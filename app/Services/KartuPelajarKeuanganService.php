@@ -567,117 +567,84 @@ class KartuPelajarKeuanganService
     }
 
     /**
-     * Selesaikan antrean cetak kartu via Scan QR Code / Tap RFID & daftarkan RFID ke presensi.
+     * Selesaikan antrean cetak kartu via Tap Kartu RFID fisik & daftarkan RFID ke presensi.
      */
     public function scanSelesaiDanRegistrasiRfid(array $data, mixed $user): array
     {
-        $rawCode = trim((string) ($data['code'] ?? ''));
         $pdId = trim((string) ($data['peserta_didik_id'] ?? ''));
-        $rfidUid = !empty($data['rfid_uid']) ? strtoupper(trim((string) $data['rfid_uid'])) : null;
+        $code = trim((string) ($data['code'] ?? ''));
+        $rfidUid = trim((string) ($data['rfid_uid'] ?? ''));
+        $rawRfid = $rfidUid !== '' ? $rfidUid : $code;
 
-        if ($rawCode === '' && $pdId === '' && !$rfidUid) {
-            return [
-                'success' => false,
-                'message' => 'Kode scan QR Code / Tap RFID atau data siswa wajib diisi.',
-                'status_code' => 422,
-            ];
-        }
-
+        // 1. Dapatkan Peserta Didik (wajib dipilih terlebih dahulu)
         $pd = null;
         if ($pdId !== '') {
             $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
         }
 
-        if (!$pd && $rawCode !== '') {
-            // 1. Ekstrak NISN / Identifier dari rawCode (URL verifikasi atau NISN murni atau nomor kartu)
-            $nisn = null;
-            if (preg_match('/\/v(?:erify)?\/([A-Za-z0-9]+)/i', $rawCode, $matches)) {
-                $nisn = $matches[1];
-            } elseif (preg_match('/nisn=([A-Za-z0-9]+)/i', $rawCode, $matches)) {
-                $nisn = $matches[1];
-            } else {
-                $nisn = preg_replace('/[^A-Za-z0-9_-]/', '', $rawCode);
-            }
-
-            // 2. Cari peserta didik berdasarkan NISN, NIPD, peserta_didik_id, atau rfid_uid yang sudah ada
+        // Fallback pencarian siswa jika code/id berupa NISN atau NIPD siswa
+        if (!$pd && $code !== '') {
+            $nisn = preg_replace('/[^A-Za-z0-9_-]/', '', $code);
             $pd = DB::table('peserta_didik')
                 ->where('nisn', $nisn)
                 ->orWhere('nipd', $nisn)
                 ->orWhere('peserta_didik_id', $nisn)
                 ->first();
-
-            if (!$pd && Schema::hasTable('peserta_didik_meta')) {
-                $metaRfid = PesertaDidikMeta::where('rfid_uid', strtoupper($rawCode))->first();
-                if ($metaRfid) {
-                    $pd = DB::table('peserta_didik')->where('peserta_didik_id', $metaRfid->peserta_didik_id)->first();
-                }
-            }
         }
 
         if (!$pd) {
-            $isPotentialRfid = strlen($rawCode) >= 4 && !str_contains($rawCode, '/') && !str_contains($rawCode, 'http');
             return [
                 'success' => false,
-                'is_unlinked_rfid' => $isPotentialRfid,
-                'unlinked_rfid' => $isPotentialRfid ? strtoupper($rawCode) : null,
-                'message' => $isPotentialRfid 
-                    ? "Kartu RFID UID [{$rawCode}] belum terhubung ke siswa. Silakan scan QR kartu siswa atau cari nama siswa untuk memasangkan kartu ini."
-                    : "Peserta didik dengan kode/NISN [{$rawCode}] tidak ditemukan di pangkalan data.",
-                'status_code' => 404,
+                'message' => 'Silakan pilih peserta didik terlebih dahulu sebelum menempelkan kartu RFID.',
+                'status_code' => 422,
             ];
         }
 
-        // 3. Tentukan RFID UID yang akan didaftarkan
-        $rfidToRegister = null;
-        if ($rfidUid && !str_contains($rfidUid, '/') && !str_contains($rfidUid, 'http')) {
-            $rfidToRegister = strtoupper($rfidUid);
-        } elseif (
-            $rawCode !== '' &&
-            $rawCode !== $pd->nisn &&
-            $rawCode !== $pd->nipd &&
-            strlen($rawCode) >= 4 &&
-            !str_contains($rawCode, '/') &&
-            !str_contains($rawCode, 'http') &&
-            !str_contains($rawCode, '.')
-        ) {
-            // rawCode adalah UID RFID fisik yang di-tap langsung pada reader
-            $rfidToRegister = strtoupper($rawCode);
+        // 2. Bersihkan dan validasi UID RFID yang di-tap
+        $rfidToRegister = strtoupper(trim($rawRfid));
+        // Bersihkan karakter non-alphanumeric pada UID RFID
+        $rfidToRegister = preg_replace('/[^A-Za-z0-9]/', '', $rfidToRegister);
+
+        if ($rfidToRegister === '' || strlen($rfidToRegister) < 4) {
+            return [
+                'success' => false,
+                'message' => 'Tempelkan kartu RFID pada reader USB untuk membaca UID kartu secara otomatis.',
+                'status_code' => 422,
+            ];
         }
 
-        if ($rfidToRegister) {
-            // Cek duplikasi di pengguna (GTK)
-            $dupUser = User::where('rfid_uid', $rfidToRegister)->first();
-            if ($dupUser) {
-                return [
-                    'success' => false,
-                    'message' => "Kartu RFID UID [{$rfidToRegister}] sudah terdaftar untuk GTK: {$dupUser->nama}.",
-                    'status_code' => 422,
-                ];
-            }
-
-            // Cek duplikasi di siswa lain
-            $dupSiswa = PesertaDidikMeta::where('rfid_uid', $rfidToRegister)
-                ->where('peserta_didik_id', '!=', $pd->peserta_didik_id)
-                ->first();
-            if ($dupSiswa) {
-                $siswaLain = DB::table('peserta_didik')->where('peserta_didik_id', $dupSiswa->peserta_didik_id)->first();
-                $namaLain = $siswaLain ? $siswaLain->nama : 'siswa lain';
-                return [
-                    'success' => false,
-                    'message' => "Kartu RFID UID [{$rfidToRegister}] sudah digunakan oleh {$namaLain} ({$dupSiswa->nisn}).",
-                    'status_code' => 422,
-                ];
-            }
-
-            // Daftarkan/update RFID ke tabel peserta_didik_meta (digunakan langsung mesin presensi)
-            $meta = PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
-            $meta->nisn = $pd->nisn;
-            $meta->rfid_uid = $rfidToRegister;
-            $meta->rfid_registered_at = now();
-            $meta->save();
+        // 3. Cek duplikasi kartu RFID di pengguna (GTK)
+        $dupUser = User::where('rfid_uid', $rfidToRegister)->first();
+        if ($dupUser) {
+            return [
+                'success' => false,
+                'message' => "Kartu RFID UID [{$rfidToRegister}] sudah terdaftar untuk GTK: {$dupUser->nama}.",
+                'status_code' => 422,
+            ];
         }
 
-        // 4. Update status antrean request cetak siswa ini menjadi 'selesai'
+        // Cek duplikasi kartu RFID di siswa lain
+        $dupSiswa = PesertaDidikMeta::where('rfid_uid', $rfidToRegister)
+            ->where('peserta_didik_id', '!=', $pd->peserta_didik_id)
+            ->first();
+        if ($dupSiswa) {
+            $siswaLain = DB::table('peserta_didik')->where('peserta_didik_id', $dupSiswa->peserta_didik_id)->first();
+            $namaLain = $siswaLain ? $siswaLain->nama : 'siswa lain';
+            return [
+                'success' => false,
+                'message' => "Kartu RFID UID [{$rfidToRegister}] sudah digunakan oleh {$namaLain} ({$dupSiswa->nisn}).",
+                'status_code' => 422,
+            ];
+        }
+
+        // 4. Daftarkan UID RFID ke tabel peserta_didik_meta (Database Manajemen Kartu RFID Presensi)
+        $meta = PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+        $meta->nisn = $pd->nisn;
+        $meta->rfid_uid = $rfidToRegister;
+        $meta->rfid_registered_at = now();
+        $meta->save();
+
+        // 5. Update status antrean request cetak siswa ini menjadi 'selesai'
         $requestUpdatedCount = 0;
         if (Schema::hasTable('kartu_pelajar_request')) {
             $requests = KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
@@ -687,13 +654,13 @@ class KartuPelajarKeuanganService
             foreach ($requests as $req) {
                 $req->status = 'selesai';
                 $req->selesai_at = now();
-                $req->catatan_admin = 'Selesai diverifikasi & registrasi RFID via Scan Kiosk.';
+                $req->catatan_admin = 'Kartu selesai dicetak & RFID terdaftar via Tap Reader.';
                 $req->save();
                 $requestUpdatedCount++;
             }
         }
 
-        // 5. Update status pembayaran & status cetak fisik kartu
+        // 6. Update status fisik kartu menjadi 'sudah_cetak' pada kartu_pelajar_pembayaran
         $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
         $record->nisn = $pd->nisn;
         $record->status_cetak = 'sudah_cetak';
@@ -708,19 +675,16 @@ class KartuPelajarKeuanganService
             ? PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first()
             : null;
 
-        $pesanRfid = $rfidToRegister ? " Kartu RFID [{$rfidToRegister}] aktif untuk presensi gerbang." : "";
-        $pesanAntrean = $requestUpdatedCount > 0 ? " {$requestUpdatedCount} antrean request diselesaikan." : "";
-
         return [
             'success' => true,
-            'message' => "Kartu pelajar {$pd->nama} ({$pd->nama_rombel}) berhasil diselesaikan.{$pesanRfid}{$pesanAntrean}",
+            'message' => "Kartu {$pd->nama} ({$pd->nama_rombel}) selesai dicetak & RFID [{$rfidToRegister}] aktif di presensi.",
             'data' => [
                 'peserta_didik_id' => $pd->peserta_didik_id,
                 'nama'             => $pd->nama,
                 'nisn'             => $pd->nisn,
                 'nama_rombel'      => $pd->nama_rombel,
                 'foto_url'         => $photoMeta?->foto_url,
-                'rfid_uid'         => $rfidToRegister ?: ($photoMeta?->rfid_uid),
+                'rfid_uid'         => $rfidToRegister,
                 'status_cetak'     => 'sudah_cetak',
                 'selesai_at'       => now()->translatedFormat('d M Y H:i:s'),
             ],

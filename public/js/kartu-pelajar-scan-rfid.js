@@ -1,22 +1,12 @@
 /**
- * SAE - Kartu Pelajar QR Code Scanner & RFID Tap Reader
- * Memproses verifikasi kartu selesai cetak via kamera/scanner dan registrasi RFID ke sistem presensi.
- */
-
-/**
- * SAE - Kartu Pelajar QR Code Scanner & RFID Tap Reader
- * Memproses verifikasi kartu selesai cetak via kamera/scanner dan registrasi RFID ke sistem presensi secara berkelanjutan (continuous flow).
+ * SAE - Kartu Pelajar Tap Reader RFID Selesai Cetak & Registrasi Presensi
+ * Memproses verifikasi kartu selesai cetak via tap reader RFID USB dan registrasi ke sistem presensi secara berkelanjutan.
  */
 
 (function () {
-    let videoStream = null;
-    let scanAnimationId = null;
     let isProcessing = false;
     let currentIdentifiedStudent = null;
-    let activeUnlinkedRfid = null;
     let sessionSuccessList = [];
-    let lastScannedCode = "";
-    let lastScannedTime = 0;
     let liveRefreshDebounceTimer = null;
     let rfidBurstTimer = null;
     let studentSearchTimer = null;
@@ -77,7 +67,7 @@
         } catch (e) {}
     }
 
-    // Buka modal scan selesai, mendukung pre-fill siswa jika diklik dari baris antrean
+    // Buka modal tap RFID selesai, mendukung pre-fill siswa jika diklik dari baris antrean
     window.openModalScanRfidSelesai = function (nisn = null, nama = null, requestId = null, pdId = null) {
         const m = document.getElementById("modalScanRfidSelesai");
         if (!m) return;
@@ -106,173 +96,23 @@
         if (!m) return;
         m.style.display = "none";
         document.body.style.overflow = "";
-        window.stopCameraScanner();
         window.resetIdentifiedStudent();
-        window.cancelUnlinkedRfid();
     };
 
     function focusActiveInput() {
         setTimeout(() => {
             if (currentIdentifiedStudent) {
-                const rfidInput = document.getElementById("inputRfidForStudent");
-                if (rfidInput) rfidInput.focus();
-            } else {
                 const input = document.getElementById("inputScanCode");
                 if (input) input.focus();
+            } else {
+                const searchInput = document.getElementById("scanSearchStudentInput");
+                if (searchInput) searchInput.focus();
             }
         }, 60);
     }
 
-    window.switchScanMode = function (mode) {
-        const tapWrap = document.getElementById("scanModeTapWrap");
-        const camWrap = document.getElementById("scanModeCameraWrap");
-        const btnTap = document.getElementById("tabBtnScanTap");
-        const btnCam = document.getElementById("tabBtnScanCamera");
-
-        if (mode === "camera") {
-            if (tapWrap) tapWrap.style.display = "none";
-            if (camWrap) camWrap.style.display = "block";
-            if (btnTap) {
-                btnTap.style.background = "transparent";
-                btnTap.style.color = "var(--text-muted)";
-            }
-            if (btnCam) {
-                btnCam.style.background = "#059669";
-                btnCam.style.color = "#ffffff";
-            }
-            window.startCameraScanner();
-        } else {
-            // mode tap
-            if (camWrap) camWrap.style.display = "none";
-            if (tapWrap) tapWrap.style.display = "block";
-            if (btnCam) {
-                btnCam.style.background = "transparent";
-                btnCam.style.color = "var(--text-muted)";
-            }
-            if (btnTap) {
-                btnTap.style.background = "#059669";
-                btnTap.style.color = "#ffffff";
-            }
-            window.stopCameraScanner();
-            focusActiveInput();
-        }
-    };
-
-    window.toggleCameraScanner = function () {
-        if (videoStream) {
-            window.stopCameraScanner();
-        } else {
-            window.startCameraScanner();
-        }
-    };
-
-    window.startCameraScanner = function () {
-        const video = document.getElementById("scanQrVideo");
-        const placeholder = document.getElementById("scanCameraPlaceholder");
-        const overlay = document.getElementById("scanQrOverlay");
-        const btnToggle = document.getElementById("btnToggleCameraScan");
-
-        if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showNotification("Browser tidak mendukung kamera. Gunakan scanner RFID/Barcode USB.", "warning");
-            return;
-        }
-
-        navigator.mediaDevices
-            .getUserMedia({
-                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-            })
-            .then((stream) => {
-                videoStream = stream;
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.style.display = "block";
-                if (placeholder) placeholder.style.display = "none";
-                if (overlay) overlay.style.display = "flex";
-                if (btnToggle) {
-                    btnToggle.innerHTML = '<i class="fas fa-video-slash me-1"></i> Matikan Kamera';
-                    btnToggle.style.color = "#ef4444";
-                    btnToggle.style.borderColor = "#ef4444";
-                }
-                video.play();
-                scanAnimationId = requestAnimationFrame(scanQrTick);
-            })
-            .catch((err) => {
-                console.error("Camera access error:", err);
-                showNotification("Gagal mengakses kamera: " + (err.message || err.name), "danger");
-            });
-    };
-
-    window.stopCameraScanner = function () {
-        if (scanAnimationId) {
-            cancelAnimationFrame(scanAnimationId);
-            scanAnimationId = null;
-        }
-        if (videoStream) {
-            videoStream.getTracks().forEach((track) => track.stop());
-            videoStream = null;
-        }
-        const video = document.getElementById("scanQrVideo");
-        const placeholder = document.getElementById("scanCameraPlaceholder");
-        const overlay = document.getElementById("scanQrOverlay");
-        const btnToggle = document.getElementById("btnToggleCameraScan");
-
-        if (video) video.style.display = "none";
-        if (placeholder) placeholder.style.display = "block";
-        if (overlay) overlay.style.display = "none";
-        if (btnToggle) {
-            btnToggle.innerHTML = '<i class="fas fa-video me-1"></i> Aktifkan Kamera Scanner';
-            btnToggle.style.color = "#38bdf8";
-            btnToggle.style.borderColor = "#38bdf8";
-        }
-    };
-
-    function scanQrTick() {
-        const video = document.getElementById("scanQrVideo");
-        const canvas = document.getElementById("scanQrCanvas");
-
-        if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-            if (videoStream) {
-                scanAnimationId = requestAnimationFrame(scanQrTick);
-            }
-            return;
-        }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        if (typeof jsQR !== "undefined") {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
-
-            if (code && code.data && !isProcessing) {
-                const rawData = code.data.trim();
-                const now = Date.now();
-
-                // Hindari memproses kode yang sama berulang kali dalam jeda 2.2 detik
-                if (rawData === lastScannedCode && now - lastScannedTime < 2200) {
-                    if (videoStream) {
-                        scanAnimationId = requestAnimationFrame(scanQrTick);
-                    }
-                    return;
-                }
-
-                lastScannedCode = rawData;
-                lastScannedTime = now;
-                window.kirimScanCode(rawData);
-                return;
-            }
-        }
-
-        if (videoStream) {
-            scanAnimationId = requestAnimationFrame(scanQrTick);
-        }
-    }
-
     function displayIdentifiedStudent(s) {
+        const selectStep = document.getElementById("scanSelectStudentStep");
         const card = document.getElementById("scanIdentifiedCard");
         const namaEl = document.getElementById("scanStudentNama");
         const nisnEl = document.getElementById("scanStudentNisn");
@@ -280,80 +120,79 @@
         const photoEl = document.getElementById("scanStudentPhoto");
         const rfidStatus = document.getElementById("scanStudentCurrentRfid");
 
-        if (!card) return;
-        card.style.display = "block";
+        if (selectStep) selectStep.style.display = "none";
+        if (card) card.style.display = "block";
         if (namaEl) namaEl.textContent = s.nama || "Peserta Didik";
         if (nisnEl) nisnEl.textContent = s.nisn || "-";
         if (rombelEl) rombelEl.textContent = s.nama_rombel || s.rombel || "";
         if (photoEl && s.foto_url) photoEl.src = s.foto_url;
-        if (rfidStatus) rfidStatus.textContent = s.rfid_uid || "Belum Ada (Menunggu Tap)";
+        if (rfidStatus) rfidStatus.textContent = s.rfid_uid || "Belum Ada (Silakan Tap Kartu Fisik)";
 
-        focusActiveInput();
+        // Highlight kotak tap RFID
+        const tapBox = document.getElementById("scanRfidTapBox");
+        if (tapBox) {
+            tapBox.style.borderColor = "#059669";
+            tapBox.style.background = "rgba(5, 150, 105, 0.05)";
+        }
+
+        const inputScan = document.getElementById("inputScanCode");
+        if (inputScan) {
+            inputScan.value = "";
+            inputScan.placeholder = `Tempelkan kartu RFID untuk ${s.nama}...`;
+            setTimeout(() => inputScan.focus(), 80);
+        }
     }
 
     window.resetIdentifiedStudent = function () {
         currentIdentifiedStudent = null;
+        const selectStep = document.getElementById("scanSelectStudentStep");
         const card = document.getElementById("scanIdentifiedCard");
         if (card) card.style.display = "none";
-        const input = document.getElementById("inputScanCode");
-        if (input) {
-            input.value = "";
-            focusActiveInput();
-        }
-    };
+        if (selectStep) selectStep.style.display = "block";
 
-    window.cancelUnlinkedRfid = function () {
-        activeUnlinkedRfid = null;
-        const banner = document.getElementById("scanUnlinkedRfidBanner");
-        if (banner) banner.style.display = "none";
-        focusActiveInput();
+        const tapBox = document.getElementById("scanRfidTapBox");
+        if (tapBox) {
+            tapBox.style.borderColor = "var(--border-color)";
+            tapBox.style.background = "var(--bg-hover)";
+        }
+
+        const inputScan = document.getElementById("inputScanCode");
+        if (inputScan) {
+            inputScan.value = "";
+            inputScan.placeholder = "Pilih peserta didik terlebih dahulu...";
+        }
+
+        const searchInput = document.getElementById("scanSearchStudentInput");
+        if (searchInput) {
+            searchInput.value = "";
+            setTimeout(() => searchInput.focus(), 60);
+        }
     };
 
     window.submitScanSelesai = function () {
         const input = document.getElementById("inputScanCode");
-        if (!input || !input.value.trim()) return;
-        const val = input.value.trim();
-        window.kirimScanCode(val);
-    };
+        const val = input ? input.value.trim() : "";
 
-    window.submitBindStudentRfid = function () {
-        const rfidInput = document.getElementById("inputRfidForStudent");
-        const rfidVal = rfidInput ? rfidInput.value.trim() : "";
+        if (!currentIdentifiedStudent) {
+            playErrorSound();
+            showNotification("Silakan pilih peserta didik terlebih dahulu sebelum menempelkan kartu RFID.", "warning");
+            const searchInput = document.getElementById("scanSearchStudentInput");
+            if (searchInput) searchInput.focus();
+            return;
+        }
 
-        if (!rfidVal) {
-            showNotification("Tempelkan kartu RFID ke scanner USB terlebih dahulu.", "warning");
+        if (!val) {
+            playErrorSound();
+            showNotification("Tempelkan kartu RFID pada reader USB untuk membaca UID kartu.", "warning");
             focusActiveInput();
             return;
         }
 
         const payload = {
-            code: currentIdentifiedStudent?.nisn || "",
-            peserta_didik_id: currentIdentifiedStudent?.peserta_didik_id || "",
-            rfid_uid: rfidVal,
+            peserta_didik_id: currentIdentifiedStudent.peserta_didik_id || "",
+            code: currentIdentifiedStudent.nisn || "",
+            rfid_uid: val,
         };
-
-        window.kirimScanPayload(payload);
-    };
-
-    window.submitCompleteWithoutRfid = function () {
-        const payload = {
-            code: currentIdentifiedStudent?.nisn || "",
-            peserta_didik_id: currentIdentifiedStudent?.peserta_didik_id || "",
-        };
-        window.kirimScanPayload(payload);
-    };
-
-    window.kirimScanCode = function (codeStr) {
-        let payload = {
-            code: codeStr,
-            peserta_didik_id: currentIdentifiedStudent ? currentIdentifiedStudent.peserta_didik_id : null,
-            rfid_uid: null,
-        };
-
-        // Jika sebelumnya ada kartu RFID belum tertaut yang di-tap terlebih dahulu
-        if (activeUnlinkedRfid) {
-            payload.rfid_uid = activeUnlinkedRfid;
-        }
 
         window.kirimScanPayload(payload);
     };
@@ -404,7 +243,7 @@
                     resultBox.style.display = "block";
                     resultNama.textContent = (data.data.nama || "Siswa") + " (" + (data.data.nama_rombel || "-") + ")";
                     const rfidLabel = data.data.rfid_uid
-                        ? `<span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;"><i class="fas fa-check-circle me-1"></i> RFID: ${data.data.rfid_uid} (Aktif)</span>`
+                        ? `<span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;"><i class="fas fa-check-circle me-1"></i> RFID: ${data.data.rfid_uid} (Aktif di Presensi)</span>`
                         : `<span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">Tanpa RFID</span>`;
                     resultDetail.innerHTML = `NISN: <strong>${data.data.nisn}</strong> &bull; Status: <strong>Selesai Dicetak</strong> &bull; ${rfidLabel}`;
                     if (resultTime) resultTime.textContent = data.data.selesai_at || "";
@@ -416,41 +255,18 @@
                 // Toast notifikasi ringkas non-blocking
                 showNotification(data.message, "success");
 
-                // Bersihkan state & siap untuk scan siswa / kartu berikutnya seketika
+                // Bersihkan siswa yang baru saja selesai agar langsung siap memilih siswa berikutnya
                 window.resetIdentifiedStudent();
-                window.cancelUnlinkedRfid();
-
-                // Kosongkan input dan refocus seketika
-                const inputScan = document.getElementById("inputScanCode");
-                if (inputScan) inputScan.value = "";
-                focusActiveInput();
 
                 // Trigger live refresh tabel antrean di latar belakang dengan debounce
                 triggerLiveRefresh();
             } else {
                 playErrorSound();
-
-                // Jika terdeteksi tap kartu RFID baru yang belum punya pemilik
-                if (data.is_unlinked_rfid) {
-                    activeUnlinkedRfid = data.unlinked_rfid || payload.code;
-                    const banner = document.getElementById("scanUnlinkedRfidBanner");
-                    const display = document.getElementById("unlinkedRfidDisplay");
-                    if (banner && display) {
-                        banner.style.display = "block";
-                        display.textContent = activeUnlinkedRfid;
-                    }
-                    showNotification("Kartu RFID [" + activeUnlinkedRfid + "] terdeteksi! Silakan scan QR / cari siswa untuk menautkan.", "warning");
-
-                    const inputScan = document.getElementById("inputScanCode");
-                    if (inputScan) inputScan.value = "";
-                    focusActiveInput();
-                } else {
-                    showNotification(data.message || "Kode tidak valid.", "danger");
-                    const inputScan = document.getElementById("inputScanCode");
-                    if (inputScan) {
-                        inputScan.value = "";
-                        focusActiveInput();
-                    }
+                showNotification(data.message || "Gagal memproses kartu RFID.", "danger");
+                const inputScan = document.getElementById("inputScanCode");
+                if (inputScan) {
+                    inputScan.value = "";
+                    inputScan.focus();
                 }
             }
         } catch (err) {
@@ -462,12 +278,8 @@
             showNotification("Gagal menghubungi server: " + (err.message || err), "danger");
             focusActiveInput();
         } finally {
-            // Jeda pemrosesan sangat singkat (250ms) agar operator bisa tap kartu berturut-turut tanpa jeda
             setTimeout(() => {
                 isProcessing = false;
-                if (videoStream && !scanAnimationId) {
-                    scanAnimationId = requestAnimationFrame(scanQrTick);
-                }
             }, 250);
         }
     };
@@ -487,10 +299,10 @@
             list.innerHTML = sessionSuccessList
                 .map((item) => {
                     const rfidTag = item.rfid_uid
-                        ? `<span class="badge badge-success" style="font-size: 0.68rem; padding: 1px 6px;">RFID: ${item.rfid_uid}</span>`
+                        ? `<span class="badge badge-success" style="font-size: 0.68rem; padding: 1px 6px;"><i class="fas fa-check me-1"></i>RFID: ${item.rfid_uid}</span>`
                         : `<span class="badge badge-outline" style="font-size: 0.68rem; padding: 1px 6px;">Non-RFID</span>`;
                     return `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: var(--bg-hover); border-radius: 6px; font-size: 0.74rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-hover); border-radius: 6px; font-size: 0.76rem; border: 1px solid var(--border-color);">
                             <div>
                                 <strong>${item.nama}</strong> (${item.nama_rombel}) &bull; NISN: ${item.nisn}
                             </div>
@@ -524,21 +336,20 @@
         }, 1200);
     }
 
-    // Auto submit jika scanner USB mengetik cepat (burst input dari hardware RFID / Barcode reader)
+    // Auto submit jika reader RFID USB mengetik cepat (burst input dari hardware)
     document.addEventListener("DOMContentLoaded", function () {
         const inputScan = document.getElementById("inputScanCode");
-        const rfidInputForStudent = document.getElementById("inputRfidForStudent");
         const searchInput = document.getElementById("scanSearchStudentInput");
         const modal = document.getElementById("modalScanRfidSelesai");
 
         if (inputScan) {
             inputScan.addEventListener("input", function () {
                 const val = this.value.trim();
-                // Jika input berupa burst dari scanner RFID (biasanya >= 8 digit angka/hex)
-                if (val.length >= 8) {
+                // Jika input berupa burst dari reader RFID (biasanya >= 6 karakter angka/hex)
+                if (val.length >= 6) {
                     clearTimeout(rfidBurstTimer);
                     rfidBurstTimer = setTimeout(() => {
-                        if (inputScan.value.trim().length >= 8 && !isProcessing) {
+                        if (inputScan.value.trim().length >= 6 && !isProcessing) {
                             window.submitScanSelesai();
                         }
                     }, 120);
@@ -546,28 +357,7 @@
             });
         }
 
-        if (rfidInputForStudent) {
-            rfidInputForStudent.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    window.submitBindStudentRfid();
-                }
-            });
-
-            rfidInputForStudent.addEventListener("input", function () {
-                const val = this.value.trim();
-                if (val.length >= 8) {
-                    clearTimeout(rfidBurstTimer);
-                    rfidBurstTimer = setTimeout(() => {
-                        if (rfidInputForStudent.value.trim().length >= 8 && !isProcessing) {
-                            window.submitBindStudentRfid();
-                        }
-                    }, 120);
-                }
-            });
-        }
-
-        // Klik di mana saja dalam modal otomatis memfokuskan kembali input scanner
+        // Klik di area modal otomatis memfokuskan kembali input yang aktif
         if (modal) {
             modal.addEventListener("click", function (e) {
                 if (
@@ -607,14 +397,14 @@
                             list.innerHTML = items
                                 .map((s) => `
                                     <div class="kp-ac-item" onclick='window.selectStudentFromSearch(${JSON.stringify(s)})'
-                                        style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                                        style="padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
                                         <div>
                                             <div style="font-weight: 700; color: var(--text-color);">${s.nama}</div>
                                             <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
                                                 NISN: ${s.nisn} &bull; ${s.nama_rombel || "-"}
                                             </div>
                                         </div>
-                                        <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px;">Pilih</span>
+                                        <span class="badge badge-primary" style="font-size: 0.7rem; padding: 3px 8px;">Pilih Siswa</span>
                                     </div>
                                 `)
                                 .join("");
@@ -635,24 +425,14 @@
         if (list) list.style.display = "none";
         if (searchInput) searchInput.value = "";
 
-        // Jika sebelumnya ada kartu RFID belum tertaut yang di-tap terlebih dahulu
-        if (activeUnlinkedRfid) {
-            const payload = {
-                code: student.nisn,
-                peserta_didik_id: student.peserta_didik_id,
-                rfid_uid: activeUnlinkedRfid,
-            };
-            window.kirimScanPayload(payload);
-        } else {
-            currentIdentifiedStudent = {
-                nisn: student.nisn,
-                nama: student.nama,
-                peserta_didik_id: student.peserta_didik_id,
-                rombel: student.nama_rombel || "",
-                rfid_uid: "",
-            };
-            displayIdentifiedStudent(currentIdentifiedStudent);
-        }
+        currentIdentifiedStudent = {
+            nisn: student.nisn,
+            nama: student.nama,
+            peserta_didik_id: student.peserta_didik_id,
+            rombel: student.nama_rombel || "",
+            rfid_uid: "",
+        };
+        displayIdentifiedStudent(currentIdentifiedStudent);
     };
 })();
 
