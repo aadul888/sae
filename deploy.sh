@@ -55,9 +55,7 @@ php artisan storage:link --force 2>/dev/null || true
 if [ -f .env ]; then
     echo "⚡ Optimizing Laravel caches..."
     php artisan optimize:clear 2>/dev/null || true
-    php artisan config:cache 2>/dev/null || true
-    php artisan route:cache 2>/dev/null || true
-    php artisan view:cache 2>/dev/null || true
+    php artisan optimize 2>/dev/null || true
 else
     echo "⚡ Fresh install mode detected (.env not ready). Flushing cache only..."
     php artisan optimize:clear 2>/dev/null || true

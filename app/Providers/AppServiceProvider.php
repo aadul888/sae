@@ -61,7 +61,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             static $appVersion = null;
             if ($appVersion === null) {
-                $appVersion = '1.0.1';
+                $appVersion = defined('\App\Services\UpdateService::CURRENT_VERSION') 
+                    ? \App\Services\UpdateService::CURRENT_VERSION 
+                    : '1.0.4';
                 try {
                     if (file_exists(base_path('.env'))) {
                         $appVersion = DB::table('settings')->where('id', 1)->value('app_version') ?: $appVersion;

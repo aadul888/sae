@@ -52,14 +52,17 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'password_updated_at' => 'datetime',
-        'rfid_registered_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'password_updated_at' => 'datetime',
+            'rfid_registered_at' => 'datetime',
+        ];
+    }
 
     protected $appends = [
         'name',
