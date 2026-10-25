@@ -61,9 +61,14 @@
                 <i class="fas fa-users-slash" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
                 <h3 style="font-size: 1.1rem; color: #1e293b;">Tidak Ada Peserta Didik Ditemukan</h3>
                 <p style="font-size: 0.85rem; color: #64748b;">
-                    @if (!empty($filter_status_request))
+                    @if (!empty($filter_status_request) && !empty($filter_hanya_ada_foto))
+                        Tidak ada peserta didik di rombel {{ $rombel->nama }} dengan antrean request
+                        "{{ $filter_status_request }}" yang sudah memiliki foto formal.
+                    @elseif (!empty($filter_status_request))
                         Tidak ada peserta didik di rombel {{ $rombel->nama }} dengan status antrean request
                         "{{ $filter_status_request }}".
+                    @elseif (!empty($filter_hanya_ada_foto))
+                        Belum ada peserta didik di rombel {{ $rombel->nama }} yang sudah mengunggah foto formal.
                     @else
                         Belum ada data peserta didik yang terhubung ke rombongan belajar {{ $rombel->nama }}.
                     @endif

@@ -345,6 +345,14 @@ class KartuPelajarController extends Controller
             $filters['status_request'] = $statusReq;
         }
 
+        // Validasi foto: aktif jika hanya_ada_foto dicentang ATAU otomatis saat filter request menunggu
+        $hanyaAdaFoto = $request->has('hanya_ada_foto')
+            ? $request->boolean('hanya_ada_foto')
+            : ($statusReq !== '');
+        if ($hanyaAdaFoto) {
+            $filters['hanya_ada_foto'] = true;
+        }
+
         $data = $this->printService->getRombelCardsData($rombelId, $filters);
         if (isset($data['error'])) {
             abort(404, 'Rombongan belajar tidak ditemukan.');

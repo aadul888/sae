@@ -375,11 +375,19 @@ window.proceedCetakRombel = function() {
     const rombelName = select.value;
     const cakupanRadio = document.querySelector('input[name="cakupan_cetak_rombel"]:checked');
     const cakupan = cakupanRadio ? cakupanRadio.value : 'semua';
+    const hanyaAdaFotoCheck = document.getElementById('checkHanyaAdaFoto');
+    const hanyaAdaFoto = hanyaAdaFotoCheck ? (hanyaAdaFotoCheck.checked ? '1' : '0') : '1';
 
-    let printUrl = '/dashboard/kartu-pelajar/cetak-rombel/' + encodeURIComponent(rombelName);
+    const params = new URLSearchParams();
     if (cakupan === 'menunggu') {
-        printUrl += '?status_request=menunggu';
+        params.set('status_request', 'menunggu');
     }
+    if (hanyaAdaFoto === '1') {
+        params.set('hanya_ada_foto', '1');
+    }
+
+    const queryStr = params.toString() ? ('?' + params.toString()) : '';
+    const printUrl = '/dashboard/kartu-pelajar/cetak-rombel/' + encodeURIComponent(rombelName) + queryStr;
 
     window.open(printUrl, '_blank');
     window.closeCetakRombelModal();

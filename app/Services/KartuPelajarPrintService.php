@@ -145,11 +145,31 @@ class KartuPelajarPrintService
         // Filter: hanya siswa yang memiliki request cetak berstatus tertentu (misal: 'menunggu')
         if (!empty($filters['status_request']) && Schema::hasTable('kartu_pelajar_request')) {
             $stReq = $filters['status_request'];
-            $query->whereExists(function ($sub) use ($stReq) {
+            $query->where(function ($qReq) use ($stReq) {
+                $qReq->whereExists(function ($sub) use ($stReq) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereColumn('kpr.peserta_didik_id', 'peserta_didik.peserta_didik_id')
+                        ->where('kpr.status', $stReq);
+                })
+                ->orWhereExists(function ($sub) use ($stReq) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereNotNull('kpr.nisn')
+                        ->whereColumn('kpr.nisn', 'peserta_didik.nisn')
+                        ->where('kpr.status', $stReq);
+                });
+            });
+        }
+
+        // Validasi: hanya siswa yang sudah ada fotonya (jika diminta atau saat cetak request)
+        if (!empty($filters['hanya_ada_foto']) && Schema::hasTable('peserta_didik_meta')) {
+            $query->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
-                    ->from('kartu_pelajar_request as kpr')
-                    ->whereColumn('kpr.peserta_didik_id', 'peserta_didik.peserta_didik_id')
-                    ->where('kpr.status', $stReq);
+                    ->from('peserta_didik_meta as pdm')
+                    ->whereColumn('pdm.peserta_didik_id', 'peserta_didik.peserta_didik_id')
+                    ->whereNotNull('pdm.foto_path')
+                    ->where('pdm.foto_path', '!=', '');
             });
         }
 
@@ -195,6 +215,7 @@ class KartuPelajarPrintService
             'cards' => $cards,
             'sekolah' => $sekolahInfo,
             'filter_status_request' => $filters['status_request'] ?? null,
+            'filter_hanya_ada_foto' => !empty($filters['hanya_ada_foto']),
         ];
     }
 }

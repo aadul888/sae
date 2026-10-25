@@ -51,7 +51,7 @@
             </div>
 
             <!-- Opsi Filter Antrean Request -->
-            <div style="margin-bottom: 16px;">
+            <div style="margin-bottom: 14px;">
                 <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                     Cakupan Siswa:
                 </label>
@@ -69,6 +69,21 @@
                         <span><i class="fas fa-hourglass-half text-warning me-1"></i> Hanya Siswa Status "Menunggu" di
                             Request Cetak</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Validasi Foto Siswa -->
+            <div
+                style="margin-bottom: 16px; background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+                <label
+                    style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; color: #1e293b; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="checkHanyaAdaFoto" checked
+                        style="accent-color: #059669; width: 16px; height: 16px; cursor: pointer;">
+                    <span><i class="fas fa-camera text-success me-1"></i> Hanya Siswa yang Sudah Ada Foto</span>
+                </label>
+                <div style="font-size: 0.72rem; color: #64748b; margin-left: 24px; margin-top: 2px;">
+                    Siswa yang belum mengunggah foto formal akan otomatis dilewati agar kartu tidak tercetak
+                    kosong/avatar.
                 </div>
             </div>
 

@@ -1,3 +1,68 @@
+// Definisikan helper modal di window level segera agar tombol onclick dapat memanggilnya kapan saja
+window.openModalCetakPengambilan = function () {
+    const m = document.getElementById("modalCetakPengambilan");
+    if (m) {
+        m.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    }
+};
+
+window.closeModalCetakPengambilan = function () {
+    const m = document.getElementById("modalCetakPengambilan");
+    if (m) {
+        m.style.display = "none";
+        document.body.style.overflow = "";
+    }
+};
+
+window.openTambahPengeluaran = function () {
+    const m = document.getElementById("modalTambahPengeluaran");
+    if (m) {
+        m.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        const form = document.getElementById("formTambahPengeluaran");
+        if (form) form.reset();
+        const jml = document.getElementById("pgJumlah");
+        if (jml) jml.value = "1";
+        const preview = document.getElementById("pgNominalPreview");
+        if (preview) {
+            preview.innerHTML = `<span>Total Pengeluaran:</span> <strong style="font-size: 0.92rem; color: var(--text-muted);">Rp 0</strong>`;
+        }
+        document.getElementById("pgJudul")?.focus();
+    }
+};
+
+window.closeTambahPengeluaran = function () {
+    const m = document.getElementById("modalTambahPengeluaran");
+    if (m) {
+        m.style.display = "none";
+        document.body.style.overflow = "";
+    }
+};
+
+window.openTambahRequest = function () {
+    const m = document.getElementById("modalTambahRequest");
+    if (m) {
+        m.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        document.getElementById("formTambahRequest")?.reset();
+        document.getElementById("rqPdId") && (document.getElementById("rqPdId").value = "");
+        document.getElementById("rqStatusPembayaran") && (document.getElementById("rqStatusPembayaran").value = "");
+        document.getElementById("rqMetodePembayaran") && (document.getElementById("rqMetodePembayaran").value = "");
+        document.getElementById("rqPilihInfo") && (document.getElementById("rqPilihInfo").textContent = "Belum ada peserta didik dipilih.");
+        document.getElementById("rqSubmit") && (document.getElementById("rqSubmit").disabled = true);
+        document.getElementById("rqCari")?.focus();
+    }
+};
+
+window.closeTambahRequest = function () {
+    const m = document.getElementById("modalTambahRequest");
+    if (m) {
+        m.style.display = "none";
+        document.body.style.overflow = "";
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     const csrfToken =
         document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
@@ -6,48 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "";
 
     // =========================================================================
-    // 8. Modal Cetak Pengambilan & Tambah Pengeluaran
+    // 8. Modal Cetak Pengambilan & Tambah Pengeluaran (sudah terdaftar di window)
     // =========================================================================
-    window.openModalCetakPengambilan = function () {
-        const m = document.getElementById("modalCetakPengambilan");
-        if (m) {
-            m.style.display = "flex";
-            document.body.style.overflow = "hidden";
-        }
-    };
-
-    window.closeModalCetakPengambilan = function () {
-        const m = document.getElementById("modalCetakPengambilan");
-        if (m) {
-            m.style.display = "none";
-            document.body.style.overflow = "";
-        }
-    };
-
-    window.openTambahPengeluaran = function () {
-        const m = document.getElementById("modalTambahPengeluaran");
-        if (m) {
-            m.style.display = "flex";
-            document.body.style.overflow = "hidden";
-            const form = document.getElementById("formTambahPengeluaran");
-            if (form) form.reset();
-            const jml = document.getElementById("pgJumlah");
-            if (jml) jml.value = "1";
-            const preview = document.getElementById("pgNominalPreview");
-            if (preview) {
-                preview.innerHTML = `<span>Total Pengeluaran:</span> <strong style="font-size: 0.92rem; color: var(--text-muted);">Rp 0</strong>`;
-            }
-            document.getElementById("pgJudul")?.focus();
-        }
-    };
-
-    window.closeTambahPengeluaran = function () {
-        const m = document.getElementById("modalTambahPengeluaran");
-        if (m) {
-            m.style.display = "none";
-            document.body.style.overflow = "";
-        }
-    };
 
     window.openEditPengeluaran = function (data) {
         const m = document.getElementById("modalEditPengeluaran");
