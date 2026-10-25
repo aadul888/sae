@@ -169,25 +169,37 @@ class PersuratanDutyModuleTest extends TestCase
             'role' => 'admin',
         ];
 
-        // 1. Tab Ekspedisi Surat Keluar
+        // 1. Tab Utama Surat Keluar (Mengkoordinir semua surat keluar & nomor terakhir)
+        $resKeluarTab = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.keluar.index'));
+        $resKeluarTab->assertStatus(200);
+        $resKeluarTab->assertSee('Nomor Surat Keluar Terakhir', false);
+
+        // 2. Tab Ekspedisi Surat Keluar
         $resEkspedisiTab = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']));
         $resEkspedisiTab->assertStatus(200);
         $resEkspedisiTab->assertSee('Buku Ekspedisi', false);
 
-        // 2. Cetak Buku Agenda Surat Masuk
+        // 3. Tab Autocrat Template
+        $resTemplateTab = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.keluar.index', ['tab' => 'template']));
+        $resTemplateTab->assertStatus(200);
+        $resTemplateTab->assertSee('Autocrat', false);
+
+        // 4. Cetak Buku Agenda Surat Masuk
         $resAgendaMasuk = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.masuk.agenda.cetak'));
         $resAgendaMasuk->assertStatus(200);
         $resAgendaMasuk->assertSee('BUKU AGENDA SURAT MASUK', false);
 
-        // 3. Cetak Buku Agenda Surat Keluar
+        // 5. Cetak Buku Agenda Surat Keluar
         $resAgendaKeluar = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.keluar.agenda.cetak'));
         $resAgendaKeluar->assertStatus(200);
         $resAgendaKeluar->assertSee('BUKU AGENDA SURAT KELUAR', false);
 
-        // 4. Cetak Buku Ekspedisi Kolektif
+        // 6. Cetak Buku Ekspedisi Kolektif
         $resEkspedisiCetak = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.keluar.ekspedisi.cetak'));
         $resEkspedisiCetak->assertStatus(200);

@@ -112,7 +112,8 @@
                             </label>
                             <input type="file" name="file_arsip" accept=".pdf,.jpg,.jpeg,.png"
                                 style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                            <div id="fileInfoExistingKeluar" style="display: none; font-size: 0.74rem; margin-top: 4px;">
+                            <div id="fileInfoExistingKeluar"
+                                style="display: none; font-size: 0.74rem; margin-top: 4px;">
                             </div>
                             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
                                 Maksimal 25MB (PDF, JPG, PNG). Berkas fisik disimpan langsung di partisi harddisk.
@@ -237,10 +238,11 @@
                                 Cari Peserta Didik (Nama / NISN / NIPD): <span class="text-danger">*</span>
                             </label>
                             <div style="position: relative;">
-                                <input type="search" id="searchSiswaInput" placeholder="Ketik nama, NISN, atau NIPD..."
-                                    autocomplete="off" required
-                                    data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
-                                    data-people-target="#inputPesertaDidikId" data-people-require-selection="true"
+                                <input type="search" id="searchSiswaInput"
+                                    placeholder="Ketik nama, NISN, atau NIPD..." autocomplete="off" required
+                                    data-people-search="{{ route('dashboard.people.search') }}"
+                                    data-people-kind="siswa" data-people-target="#inputPesertaDidikId"
+                                    data-people-require-selection="true"
                                     style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.86rem;">
                             </div>
                         </div>
@@ -286,7 +288,8 @@
                                 @endforeach
                             </select>
                             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
-                                Pilih klasifikasi indeks surat. Nomor surat otomatis akan menyesuaikan format indeks ini.
+                                Pilih klasifikasi indeks surat. Nomor surat otomatis akan menyesuaikan format indeks
+                                ini.
                             </div>
                         </div>
 
@@ -326,8 +329,10 @@
                                     Tunjangan Gaji / Anak Orang Tua</option>
                                 <option value="Pengurusan Beasiswa PIP / Prestasi">Pengurusan Beasiswa PIP / Prestasi
                                 </option>
-                                <option value="Pembukaan Rekening Tabungan Bank">Pembukaan Rekening Tabungan Bank</option>
-                                <option value="Pendaftaran BPJS / Asuransi Kesehatan">Pendaftaran BPJS / Asuransi Kesehatan
+                                <option value="Pembukaan Rekening Tabungan Bank">Pembukaan Rekening Tabungan Bank
+                                </option>
+                                <option value="Pendaftaran BPJS / Asuransi Kesehatan">Pendaftaran BPJS / Asuransi
+                                    Kesehatan
                                 </option>
                                 <option value="Melanjutkan Studi / Pindah Sekolah">Melanjutkan Studi / Pindah Sekolah
                                 </option>
@@ -345,7 +350,8 @@
                             style="display: none; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.25); border-radius: 10px; padding: 12px 14px; flex-direction: column; gap: 10px;">
                             <div
                                 style="font-size: 0.78rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-calendar-check"></i> Rincian Jadwal &amp; Agenda Pertemuan dengan Orang
+                                <i class="fas fa-calendar-check"></i> Rincian Jadwal &amp; Agenda Pertemuan dengan
+                                Orang
                                 Tua:
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -361,8 +367,8 @@
                                     <label
                                         style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Waktu
                                         / Pukul:</label>
-                                    <input type="text" name="waktu_agenda" id="inputWaktuAgenda" value="08:30 WIB"
-                                        placeholder="08:30 WIB"
+                                    <input type="text" name="waktu_agenda" id="inputWaktuAgenda"
+                                        value="08:30 WIB" placeholder="08:30 WIB"
                                         style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
                                 </div>
                             </div>
@@ -564,7 +570,8 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                     <h4
                         style="margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Buat Surat Keluar dari Template (Autocrat)
+                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Buat Surat Keluar dari Template
+                        (Autocrat)
                     </h4>
                     <button type="button" id="btnCloseModalTemplate"
                         style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
@@ -686,7 +693,8 @@
                     {{-- Form Rincian Acara / Kegiatan (Autocrat Merge Fields) --}}
                     <div
                         style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
-                        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
+                        <div
+                            style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
                             <i class="fas fa-calendar-check text-primary me-1"></i> Rincian Agenda / Kegiatan / Berkas
                             (Opsional)
                         </div>
@@ -703,7 +711,8 @@
                                 <label
                                     style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Waktu
                                     / Pukul</label>
-                                <input type="text" name="waktu_kegiatan" placeholder="Contoh: 08.00 WIB s.d. Selesai"
+                                <input type="text" name="waktu_kegiatan"
+                                    placeholder="Contoh: 08.00 WIB s.d. Selesai"
                                     style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
                             </div>
                         </div>
@@ -712,7 +721,8 @@
                                 <label
                                     style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Tempat
                                     Pelaksanaan</label>
-                                <input type="text" name="tempat_kegiatan" placeholder="Contoh: Aula Serbaguna Sekolah"
+                                <input type="text" name="tempat_kegiatan"
+                                    placeholder="Contoh: Aula Serbaguna Sekolah"
                                     style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
                             </div>
                             <div>
@@ -765,4 +775,90 @@
                 </form>
             </div>
         </div>
-    </div>
+
+        <!-- Modal 5: Filter & Cetak Buku Agenda Surat Keluar -->
+        <div class="modal-overlay" id="modalAgendaKeluar"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center;">
+            <div class="modal-container"
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden;">
+                <div
+                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h4
+                        style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-print text-primary"></i> Cetak Buku Agenda Surat Keluar
+                    </h4>
+                    <button type="button" id="btnCloseModalAgendaKeluar"
+                        style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form action="{{ route('dashboard.persuratan.keluar.agenda.cetak') }}" method="GET"
+                    target="_blank" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                            Rentang Tanggal Surat (Opsional):
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="date" name="tanggal_mulai" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
+                            <input type="date" name="tanggal_selesai" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Tahun:
+                            </label>
+                            <select name="tahun" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                                @for ($y = date('Y'); $y >= 2024; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Bulan (Opsional):
+                            </label>
+                            <select name="bulan" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                                <option value="">Semua Bulan (1 Tahun)</option>
+                                @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
+                                    <option value="{{ $mNum }}">{{ $mName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                            Kode Indeks Klasifikasi (Opsional):
+                        </label>
+                        <select name="kode_indeks" class="form-control"
+                            style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                            <option value="">Semua Indeks Klasifikasi</option>
+                            @foreach ($indeksList as $idx)
+                                <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+                        <button type="button" id="btnCancelModalAgendaKeluar" class="btn btn-outline"
+                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-print"></i> Buka Lembar Cetak
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>

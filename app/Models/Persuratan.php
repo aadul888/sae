@@ -105,6 +105,16 @@ class Persuratan extends Model
         return $this->hasOne(SuratKeteranganPd::class, 'nomor_surat', 'nomor_surat');
     }
 
+    public function spt()
+    {
+        return $this->hasOne(GtkSpt::class, 'nomor_spt', 'nomor_surat');
+    }
+
+    public function templateDoc()
+    {
+        return $this->hasOne(PersuratanTemplate::class, 'nomor_surat', 'nomor_surat');
+    }
+
     public function sarprasAset()
     {
         return $this->belongsTo(SarprasAset::class, 'sarpras_aset_id');

@@ -361,67 +361,9 @@ class SuratMasukController extends Controller
             abort(403, 'Akses pencetakan buku agenda surat masuk tidak diizinkan.');
         }
 
-        $tahun = $request->get('tahun', date('Y'));
-        $bulan = $request->get('bulan', '');
-        $tanggalMulai = $request->get('tanggal_mulai', '');
-        $tanggalSelesai = $request->get('tanggal_selesai', '');
-        $status = $request->get('status', '');
+        $data = \App\Services\SuratAgendaEkspedisiService::buildAgendaData($request, 'masuk');
 
-        $query = Persuratan::where('jenis_surat', 'masuk')
-            ->with(['latestDisposisi.ptk', 'disposisi.ptk']);
-
-        if (!empty($tanggalMulai) && !empty($tanggalSelesai)) {
-            $query->whereBetween('tanggal_surat', [$tanggalMulai, $tanggalSelesai]);
-        } elseif (!empty($tahun)) {
-            $query->whereYear('tanggal_surat', $tahun);
-            if (!empty($bulan)) {
-                $query->whereMonth('tanggal_surat', $bulan);
-            }
-        }
-
-        if (!empty($status)) {
-            $query->where('status', $status);
-        }
-
-        $items = $query->orderBy('tanggal_surat', 'asc')->orderBy('id', 'asc')->get();
-
-        $sekolah = DB::table('sekolah')->first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        $kepalaTas = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Tenaga Administrasi%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala TAS%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Tata Usaha%')
-                  ->orWhere('jenis_ptk_id_str', 'like', '%Tata Usaha%');
-            })
-            ->first();
-
-        $periodeText = !empty($tanggalMulai) && !empty($tanggalSelesai)
-            ? Carbon::parse($tanggalMulai)->translatedFormat('d M Y') . ' s.d. ' . Carbon::parse($tanggalSelesai)->translatedFormat('d M Y')
-            : (!empty($bulan) ? Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F Y') : "Tahun {$tahun}");
-
-        return view('dashboard.persuratan.cetak-agenda', [
-            'jenisSurat'     => 'masuk',
-            'judul'          => 'BUKU AGENDA SURAT MASUK',
-            'items'          => $items,
-            'sekolah'        => $sekolah,
-            'sekolahMeta'    => $sekolahMeta,
-            'kepsek'         => $kepsek,
-            'kepalaTas'      => $kepalaTas,
-            'periodeText'    => $periodeText,
-            'tahun'          => $tahun,
-            'bulan'          => $bulan,
-            'tanggalMulai'   => $tanggalMulai,
-            'tanggalSelesai' => $tanggalSelesai,
-            'status'         => $status,
-        ]);
+        return view('dashboard.persuratan.cetak-agenda', $data);
     }
 
     /**

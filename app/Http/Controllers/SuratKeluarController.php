@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\RolePermission;
 use App\Models\Persuratan;
@@ -12,9 +13,12 @@ use App\Models\SuratKeteranganPd;
 use App\Models\PesertaDidik;
 use App\Models\Gtk;
 use App\Models\Sekolah;
-use Carbon\Carbon;
 use App\Services\PersuratanHddService;
-use App\Services\QrCodeService;
+use App\Services\SuratKeluarService;
+use App\Services\SuratKeteranganService;
+use App\Services\SuratSptService;
+use App\Services\SuratTemplateService;
+use App\Services\SuratAgendaEkspedisiService;
 
 class SuratKeluarController extends Controller
 {
@@ -28,7 +32,7 @@ class SuratKeluarController extends Controller
     }
 
     /**
-     * Tampilan Buku Agenda Surat Keluar & Surat Keterangan Siswa & Surat Perintah Tugas (SPT)
+     * Tampilan Buku Agenda Surat Keluar (Terkoordinir: Surat Umum, SKET, SPT, Autocrat, & Ekspedisi)
      */
     public function index(Request $request)
     {
@@ -46,138 +50,16 @@ class SuratKeluarController extends Controller
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'delete');
 
-        // Statistik Surat Keluar
-        $curMonth = date('Y-m');
-        $stats = [
-            'total'           => Persuratan::where('jenis_surat', 'keluar')->count(),
-            'surat_keterangan'=> SuratKeteranganPd::count(),
-            'spt'             => DB::table('gtk_spt')->count(),
-            'template'        => DB::table('persuratan_templates')->count(),
-            'ekspedisi'       => Persuratan::where('jenis_surat', 'keluar')->count(),
-            'bulan_ini'       => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
-            'selesai'         => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
-        ];
-
-        $q          = trim($request->get('q', ''));
-        $tab        = $request->get('tab', 'keluar'); // 'keluar', 'keterangan', 'spt', 'template', atau 'ekspedisi'
-        $status     = $request->get('status', '');
-        $kodeIndeks = $request->get('kode_indeks', '');
-        $sort       = $request->get('sort', 'tanggal_surat');
-        $sortDir    = strtolower($request->get('sort_dir', $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
-        $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
-        $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
-
-        // Query berdasarkan Tab
-        if ($tab === 'spt') {
-            $sptQuery = DB::table('gtk_spt');
-            if ($q !== '') {
-                $sptQuery->where(function ($b) use ($q) {
-                    $b->where('nomor_spt', 'like', "%{$q}%")
-                      ->orWhere('nama_kegiatan', 'like', "%{$q}%")
-                      ->orWhere('lokasi_tujuan', 'like', "%{$q}%")
-                      ->orWhere('dasar_penugasan', 'like', "%{$q}%");
-                });
-            }
-            $items = $sptQuery->orderBy('tanggal_berangkat', 'desc')->paginate($perPage)->withQueryString();
-        } elseif ($tab === 'template') {
-            $tmplQuery = DB::table('persuratan_templates');
-            if ($q !== '') {
-                $tmplQuery->where(function ($b) use ($q) {
-                    $b->where('nomor_surat', 'like', "%{$q}%")
-                      ->orWhere('perihal', 'like', "%{$q}%")
-                      ->orWhere('tujuan_penerima', 'like', "%{$q}%")
-                      ->orWhere('template_type', 'like', "%{$q}%");
-                });
-            }
-            $items = $tmplQuery->orderBy('tanggal_surat', 'desc')->orderByDesc('id')->paginate($perPage)->withQueryString();
-        } else {
-            $query = Persuratan::where('jenis_surat', 'keluar')
-                ->with(['suratKeterangan.siswa', 'sarprasAset']);
-
-            if ($tab === 'keterangan') {
-                $query->whereIn('nomor_surat', SuratKeteranganPd::pluck('nomor_surat'));
-            }
-
-            if ($q !== '') {
-                $query->where(function ($b) use ($q) {
-                    $b->where('nomor_surat', 'like', "%{$q}%")
-                      ->orWhere('perihal', 'like', "%{$q}%")
-                      ->orWhere('tujuan_penerima', 'like', "%{$q}%")
-                      ->orWhere('keterangan', 'like', "%{$q}%")
-                      ->orWhere('kode_indeks', 'like', "%{$q}%");
-                });
-            }
-
-            if ($status !== '') {
-                $query->where('status', $status);
-            }
-
-            if ($kodeIndeks !== '') {
-                $query->where('kode_indeks', $kodeIndeks);
-            }
-
-            $allowedSorts = ['nomor_surat', 'tanggal_surat', 'status', 'created_at', 'tujuan_penerima'];
-            if (in_array($sort, $allowedSorts)) {
-                $query->orderBy($sort, $sortDir);
-            } else {
-                $query->orderBy('tanggal_surat', 'desc');
-            }
-
-            $items = $query->paginate($perPage)->withQueryString();
-        }
-
+        $viewData = SuratKeluarService::buildIndexData($request);
         $allGtk = collect();
-        if ($tab === 'spt') {
-            $assignedPtkIds = $items->getCollection()->flatMap(function ($item) {
-                $ids = json_decode($item->daftar_ptk_id ?? '[]', true);
-                return is_array($ids) ? $ids : [];
-            })->unique()->values();
 
-            if ($assignedPtkIds->isNotEmpty()) {
-                $allGtk = Gtk::whereIn('ptk_id', $assignedPtkIds)->get(['ptk_id', 'nama', 'nip']);
-            }
-        }
-
-        // Master Sarpras Aset untuk integrasi BAST / permohonan sarpras
-        $daftarAset = DB::table('sarpras_aset')
-            ->orderBy('nama_barang')
-            ->get(['id', 'kode_aset', 'nama_barang', 'merk_tipe', 'kondisi', 'kategori']);
-
-        // Master Indeks Klasifikasi Surat
-        $indeksList = DB::table('ref_indeks_surat')->where('is_active', true)->orderBy('kode')->get();
-
-        // Cek status HDD
-        $hddStatus = PersuratanHddService::checkStatus();
-
-        // Format nomor surat saran untuk form
-        $suggestedNumber = PersuratanHddService::generateNomorSuratKeluar('KPG.11.01');
-        $suggestedKetNumber = PersuratanHddService::generateNomorSuratKeterangan('KS.02.23');
-        $suggestedTemplateNumber = PersuratanHddService::generateNomorSuratKeluar('HM.01.02');
-        $templatePresets = \App\Models\PersuratanTemplate::getTemplatePresets();
-
-        return view('dashboard.persuratan.keluar', compact(
-            'stats',
-            'items',
-            'allGtk',
-            'daftarAset',
-            'q',
-            'tab',
-            'status',
-            'kodeIndeks',
-            'sort',
-            'sortDir',
-            'perPage',
+        return view('dashboard.persuratan.keluar', array_merge($viewData, compact(
             'canCreate',
             'canRead',
             'canUpdate',
             'canDelete',
-            'indeksList',
-            'hddStatus',
-            'suggestedNumber',
-            'suggestedKetNumber',
-            'suggestedTemplateNumber',
-            'templatePresets'
-        ));
+            'allGtk'
+        )));
     }
 
     /**
@@ -256,60 +138,18 @@ class SuratKeluarController extends Controller
         }
 
         $request->validate([
-            'kode_indeks' => 'required|string|max:50',
-            'perihal' => 'required|string|max:255',
+            'kode_indeks'     => 'required|string|max:50',
+            'perihal'         => 'required|string|max:255',
             'tujuan_penerima' => 'required|string|max:200',
-            'tanggal_surat' => 'required|date',
-            'nomor_surat' => 'nullable|string|max:100',
+            'tanggal_surat'   => 'required|date',
+            'nomor_surat'     => 'nullable|string|max:100',
             'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
-            'status' => 'nullable|string|in:draf,selesai,diarsipkan',
-            'keterangan' => 'nullable|string|max:1000',
-            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
+            'status'          => 'nullable|string|in:draf,selesai,diarsipkan',
+            'keterangan'      => 'nullable|string|max:1000',
+            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
         ]);
 
-        // Jika nomor surat tidak diisi manual, generate otomatis dari sistem
-        $nomorSurat = trim($request->nomor_surat);
-        $isAutoNumber = empty($nomorSurat);
-
-        if ($isAutoNumber) {
-            $nomorSurat = PersuratanHddService::generateNomorSuratKeluar($request->kode_indeks);
-        }
-
-        $filePath = null;
-        $fileSize = null;
-        $fileNameOriginal = null;
-
-        if ($request->hasFile('file_arsip')) {
-            $uploaded = PersuratanHddService::storeFile($request->file('file_arsip'), 'keluar');
-            $filePath = $uploaded['relative_path'];
-            $fileSize = $uploaded['file_size'];
-            $fileNameOriginal = $uploaded['file_name_original'];
-        }
-
-        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Petugas')) : ($user->nama ?? ($user->name ?? 'Petugas'));
-
-        $persuratan = Persuratan::create([
-            'nomor_surat' => $nomorSurat,
-            'kode_indeks' => $request->kode_indeks,
-            'jenis_surat' => 'keluar',
-            'perihal' => trim($request->perihal),
-            'pengirim_asal' => 'SMK SAE',
-            'tujuan_penerima' => trim($request->tujuan_penerima),
-            'tanggal_surat' => $request->tanggal_surat,
-            'tanggal_diterima' => null,
-            'sarpras_aset_id' => $request->sarpras_aset_id ?: null,
-            'status' => $request->status ?: 'selesai',
-            'file_path' => $filePath,
-            'file_size' => $fileSize,
-            'file_name_original' => $fileNameOriginal,
-            'keterangan' => $request->keterangan ? trim($request->keterangan) : null,
-            'created_by' => $userName,
-        ]);
-
-        // Update counter penomoran otomatis
-        if ($isAutoNumber) {
-            PersuratanHddService::incrementNomorCounter('keluar');
-        }
+        $persuratan = SuratKeluarService::store($request, $user);
 
         return redirect()->route('dashboard.persuratan.keluar.index')->with('success', "Surat keluar nomor {$persuratan->nomor_surat} berhasil dicatat.");
     }
@@ -323,11 +163,11 @@ class SuratKeluarController extends Controller
         $suratKet = SuratKeteranganPd::where('nomor_surat', $surat->nomor_surat)->first();
 
         return response()->json([
-            'success' => true,
-            'data' => $surat,
-            'surat_keterangan' => $suratKet,
-            'has_file' => !empty($surat->file_path),
-            'file_url' => !empty($surat->file_path) ? route('dashboard.persuratan.dokumen.view', $surat->id) : null,
+            'success'           => true,
+            'data'              => $surat,
+            'surat_keterangan'  => $suratKet,
+            'has_file'          => !empty($surat->file_path),
+            'file_url'          => !empty($surat->file_path) ? route('dashboard.persuratan.dokumen.view', $surat->id) : null,
             'file_download_url' => !empty($surat->file_path) ? route('dashboard.persuratan.dokumen.download', $surat->id) : null,
         ]);
     }
@@ -349,40 +189,18 @@ class SuratKeluarController extends Controller
         $surat = Persuratan::where('jenis_surat', 'keluar')->findOrFail($id);
 
         $request->validate([
-            'nomor_surat' => 'required|string|max:100',
-            'kode_indeks' => 'required|string|max:50',
-            'perihal' => 'required|string|max:255',
+            'nomor_surat'     => 'required|string|max:100',
+            'kode_indeks'     => 'required|string|max:50',
+            'perihal'         => 'required|string|max:255',
             'tujuan_penerima' => 'required|string|max:200',
-            'tanggal_surat' => 'required|date',
+            'tanggal_surat'   => 'required|date',
             'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
-            'status' => 'nullable|string|in:draf,selesai,diarsipkan',
-            'keterangan' => 'nullable|string|max:1000',
-            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
+            'status'          => 'nullable|string|in:draf,selesai,diarsipkan',
+            'keterangan'      => 'nullable|string|max:1000',
+            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
         ]);
 
-        $data = [
-            'nomor_surat' => trim($request->nomor_surat),
-            'kode_indeks' => $request->kode_indeks,
-            'perihal' => trim($request->perihal),
-            'tujuan_penerima' => trim($request->tujuan_penerima),
-            'tanggal_surat' => $request->tanggal_surat,
-            'sarpras_aset_id' => $request->sarpras_aset_id ?: null,
-            'status' => $request->status ?: $surat->status,
-            'keterangan' => $request->keterangan ? trim($request->keterangan) : null,
-        ];
-
-        if ($request->hasFile('file_arsip')) {
-            if ($surat->file_path) {
-                PersuratanHddService::deleteFile($surat->file_path);
-            }
-
-            $uploaded = PersuratanHddService::storeFile($request->file('file_arsip'), 'keluar');
-            $data['file_path'] = $uploaded['relative_path'];
-            $data['file_size'] = $uploaded['file_size'];
-            $data['file_name_original'] = $uploaded['file_name_original'];
-        }
-
-        $surat->update($data);
+        SuratKeluarService::update($request, $surat);
 
         return redirect()->route('dashboard.persuratan.keluar.index')->with('success', 'Data surat keluar berhasil diperbarui.');
     }
@@ -402,16 +220,7 @@ class SuratKeluarController extends Controller
         }
 
         $surat = Persuratan::where('jenis_surat', 'keluar')->findOrFail($id);
-
-        // Hapus berkas fisik di HDD
-        if ($surat->file_path) {
-            PersuratanHddService::deleteFile($surat->file_path);
-        }
-
-        // Hapus surat keterangan jika ada
-        SuratKeteranganPd::where('nomor_surat', $surat->nomor_surat)->delete();
-
-        $surat->delete();
+        SuratKeluarService::destroy($surat);
 
         return redirect()->route('dashboard.persuratan.keluar.index')->with('success', 'Surat keluar beserta arsip dokumennya berhasil dihapus.');
     }
@@ -432,119 +241,23 @@ class SuratKeluarController extends Controller
 
         $request->validate([
             'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
-            'jenis_surat' => 'nullable|string|in:siswa_aktif,kelakuan_baik,panggilan_ortu,rekomendasi',
-            'kode_indeks' => 'nullable|string|max:50',
-            'keperluan' => 'required|string|max:255',
-            'tanggal_surat' => 'nullable|date',
-            'nomor_surat' => 'nullable|string|max:100',
-            'tanggal_agenda' => 'nullable|date',
-            'waktu_agenda' => 'nullable|string|max:50',
-            'tempat_agenda' => 'nullable|string|max:100',
+            'jenis_surat'      => 'nullable|string|in:siswa_aktif,kelakuan_baik,panggilan_ortu,rekomendasi',
+            'kode_indeks'      => 'nullable|string|max:50',
+            'keperluan'        => 'required|string|max:255',
+            'tanggal_surat'    => 'nullable|date',
+            'nomor_surat'      => 'nullable|string|max:100',
+            'tanggal_agenda'   => 'nullable|date',
+            'waktu_agenda'     => 'nullable|string|max:50',
+            'tempat_agenda'    => 'nullable|string|max:100',
             'menghadap_agenda' => 'nullable|string|max:100',
-            'catatan_khusus' => 'nullable|string|max:1000',
+            'catatan_khusus'   => 'nullable|string|max:1000',
         ]);
 
-        $siswa = PesertaDidik::findOrFail($request->peserta_didik_id);
-        $jenisSurat = $request->jenis_surat ?: 'siswa_aktif';
+        $res = SuratKeteranganService::store($request, $user);
 
-        $defaultIndeks = match($jenisSurat) {
-            'kelakuan_baik' => 'KS.02.04',
-            'panggilan_ortu' => 'PP.03.02',
-            'rekomendasi' => 'KS.01.08',
-            default => 'KS.02.23',
-        };
-
-        $kodeIndeks = trim($request->get('kode_indeks', $defaultIndeks)) ?: $defaultIndeks;
-
-        // Otomatis tentukan nomor surat mengikuti indeks
-        $nomorSurat = trim($request->nomor_surat);
-        $isAuto = empty($nomorSurat);
-        if ($isAuto) {
-            $nomorSurat = PersuratanHddService::generateNomorSuratKeterangan($kodeIndeks);
-        }
-
-        // Cari Kepala Sekolah
-        $kepsek = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        // Generate UUID unik untuk verifikasi dokumen via QR Code publik
-        $docId = 'DOC-' . strtoupper(Str::random(10));
-        $qrVerifyUrl = url('/v/doc/' . $docId);
-
-        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Petugas')) : ($user->nama ?? ($user->name ?? 'Petugas'));
-
-        $suratKet = SuratKeteranganPd::create([
-            'nomor_surat' => $nomorSurat,
-            'peserta_didik_id' => $siswa->peserta_didik_id,
-            'jenis_surat' => $jenisSurat,
-            'keperluan' => trim($request->keperluan),
-            'tanggal_surat' => $request->tanggal_surat ?: date('Y-m-d'),
-            'tanggal_agenda' => $request->tanggal_agenda ?: null,
-            'waktu_agenda' => $request->waktu_agenda ? trim($request->waktu_agenda) : null,
-            'tempat_agenda' => $request->tempat_agenda ? trim($request->tempat_agenda) : null,
-            'menghadap_agenda' => $request->menghadap_agenda ? trim($request->menghadap_agenda) : null,
-            'catatan_khusus' => $request->catatan_khusus ? trim($request->catatan_khusus) : null,
-            'penandatangan_ptk_id' => $kepsek?->ptk_id,
-            'penandatangan_nama' => $kepsek?->nama ?: 'Kepala Sekolah',
-            'penandatangan_jabatan' => 'Kepala Sekolah',
-            'doc_id' => $docId,
-            'qrcode_url' => $qrVerifyUrl,
-            'created_by' => $userName,
-        ]);
-
-        // Integrasi Otomatis: Jika Surat Panggilan Orang Tua, catat juga ke modul Kedisiplinan / BK
-        if ($jenisSurat === 'panggilan_ortu' && class_exists(\App\Models\KedisiplinanPemanggilanWali::class)) {
-            try {
-                \App\Models\KedisiplinanPemanggilanWali::create([
-                    'peserta_didik_id' => $siswa->peserta_didik_id,
-                    'nomor_surat' => $nomorSurat,
-                    'tanggal_surat' => $suratKet->tanggal_surat,
-                    'tanggal_hadir' => $request->tanggal_agenda ?: $suratKet->tanggal_surat,
-                    'jam_hadir' => $request->waktu_agenda ?: '08:00 WIB',
-                    'tempat' => $request->tempat_agenda ?: 'Ruang Bimbingan Konseling (BK)',
-                    'alasan' => trim($request->keperluan),
-                    'menghadap_ke' => $request->menghadap_agenda ?: 'Guru BK / Wali Kelas',
-                    'status' => 'terkirim',
-                    'catatan_hasil' => $request->catatan_khusus ? trim($request->catatan_khusus) : null,
-                    'doc_id' => $docId,
-                ]);
-            } catch (\Exception $e) {
-                // Abaikan jika ada field opsional yang berbeda
-            }
-        }
-
-        $jenisLabel = match($jenisSurat) {
-            'kelakuan_baik' => 'Surat Keterangan Berkelakuan Baik',
-            'panggilan_ortu' => 'Surat Panggilan Orang Tua / Wali',
-            'rekomendasi' => 'Surat Rekomendasi Siswa',
-            default => 'Surat Keterangan Siswa Aktif',
-        };
-
-        // Catat otomatis ke buku agenda surat keluar
-        Persuratan::create([
-            'nomor_surat' => $nomorSurat,
-            'kode_indeks' => $kodeIndeks,
-            'jenis_surat' => 'keluar',
-            'perihal' => "{$jenisLabel}: {$siswa->nama} (NISN: {$siswa->nisn})",
-            'pengirim_asal' => 'SMK SAE',
-            'tujuan_penerima' => trim($request->keperluan),
-            'tanggal_surat' => $suratKet->tanggal_surat,
-            'status' => 'selesai',
-            'keterangan' => "Penerbitan {$jenisLabel} a.n. {$siswa->nama} untuk keperluan: {$request->keperluan}. Indeks: {$kodeIndeks}. Doc ID: {$docId}",
-            'created_by' => $userName,
-        ]);
-
-        if ($isAuto) {
-            PersuratanHddService::incrementNomorCounter('keterangan');
-        }
-
-        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan'])
-            ->with('success', "{$jenisLabel} nomor {$nomorSurat} berhasil diterbitkan.")
-            ->with('cetak_id', $suratKet->id);
+        return redirect()->route('dashboard.persuratan.keluar.index')
+            ->with('success', "{$res['jenisLabel']} nomor {$res['nomorSurat']} berhasil diterbitkan.")
+            ->with('cetak_id', $res['suratKet']->id);
     }
 
     /**
@@ -558,48 +271,9 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $suratKet = SuratKeteranganPd::findOrFail($id);
-        $siswa = PesertaDidik::where('peserta_didik_id', $suratKet->peserta_didik_id)->firstOrFail();
-        $sekolah = DB::table('sekolah')->first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
+        $data = SuratKeteranganService::buildCetakData($id);
 
-        $anggotaRombel = DB::table('anggota_rombel as ar')
-            ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ar.peserta_didik_id', $siswa->peserta_didik_id)
-            ->select('rb.nama as rombel_nama', 'rb.tingkat_pendidikan_id_str', 'rb.jurusan_id_str')
-            ->first();
-
-        $rombelNama = $anggotaRombel?->rombel_nama ?: 'Kelas X / XI / XII';
-        $jurusanNama = $anggotaRombel?->jurusan_id_str ?: 'Semua Program Keahlian';
-
-        $curYear = (int) date('Y');
-        $tahunAjaran = (date('n') >= 7) ? "{$curYear}/" . ($curYear + 1) : ($curYear - 1) . "/{$curYear}";
-
-        $kepsek = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        // QR Code verifikasi publik
-        $qrVerifyUrl = url('/v/doc/' . $suratKet->doc_id);
-        $qrUri = QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
-
-        $orientasi = 'portrait';
-
-        return view('dashboard.persuratan.cetak-surat-keterangan', compact(
-            'suratKet',
-            'siswa',
-            'sekolah',
-            'sekolahMeta',
-            'orientasi',
-            'rombelNama',
-            'jurusanNama',
-            'tahunAjaran',
-            'kepsek',
-            'qrUri'
-        ));
+        return view('dashboard.persuratan.cetak-surat-keterangan', $data);
     }
 
     /**
@@ -652,54 +326,23 @@ class SuratKeluarController extends Controller
         }
 
         $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
-            'lokasi_tujuan' => 'required|string|max:255',
+            'nama_kegiatan'     => 'required|string|max:255',
+            'lokasi_tujuan'     => 'required|string|max:255',
             'tanggal_berangkat' => 'required|date',
-            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_berangkat',
-            'beban_anggaran' => 'required|string|max:50',
-            'daftar_ptk_id' => 'required|array|min:1',
-            'dasar_penugasan' => 'nullable|string|max:1000',
+            'tanggal_kembali'   => 'required|date|after_or_equal:tanggal_berangkat',
+            'beban_anggaran'    => 'required|string|max:50',
+            'daftar_ptk_id'     => 'required|array|min:1',
+            'dasar_penugasan'   => 'nullable|string|max:1000',
         ], [
             'nama_kegiatan.required' => 'Nama kegiatan penugasan wajib diisi.',
             'lokasi_tujuan.required' => 'Lokasi tujuan penugasan wajib diisi.',
             'daftar_ptk_id.required' => 'Pilih minimal satu GTK yang ditugaskan.',
         ]);
 
-        $start = Carbon::parse($request->tanggal_berangkat);
-        $end = Carbon::parse($request->tanggal_kembali);
-        $lamaHari = $start->diffInDays($end) + 1;
+        $res = SuratSptService::store($request, $user);
 
-        // Auto generate nomor SPT
-        $year = date('Y');
-        $countThisYear = DB::table('gtk_spt')->whereYear('tanggal_berangkat', $year)->count() + 1;
-        $nomorSpt = sprintf('800/SPT/%s/%03d', $year, $countThisYear);
-
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
-
-        DB::table('gtk_spt')->insert([
-            'nomor_spt' => $nomorSpt,
-            'dasar_penugasan' => $request->dasar_penugasan,
-            'nama_kegiatan' => $request->nama_kegiatan,
-            'lokasi_tujuan' => $request->lokasi_tujuan,
-            'tanggal_berangkat' => $request->tanggal_berangkat,
-            'tanggal_kembali' => $request->tanggal_kembali,
-            'lama_hari' => $lamaHari,
-            'beban_anggaran' => $request->beban_anggaran,
-            'pejabat_penandatangan_ptk_id' => $kepsek?->ptk_id,
-            'pejabat_nama' => $kepsek?->nama ?? 'Kepala Sekolah',
-            'pejabat_jabatan' => 'Kepala Sekolah',
-            'daftar_ptk_id' => json_encode($request->daftar_ptk_id, JSON_UNESCAPED_UNICODE),
-            'status' => 'disetujui',
-            'created_by' => session('user')['nama'] ?? 'Tendik Persuratan',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt'])
-            ->with('success', "Surat Perintah Tugas (SPT) {$nomorSpt} berhasil diterbitkan.");
+        return redirect()->route('dashboard.persuratan.keluar.index')
+            ->with('success', "Surat Perintah Tugas (SPT) {$res['nomorSpt']} berhasil diterbitkan.");
     }
 
     /**
@@ -713,9 +356,9 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses penghapusan SPT tidak diizinkan.');
         }
 
-        DB::table('gtk_spt')->where('id', $id)->delete();
+        SuratSptService::delete($id);
 
-        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt'])
+        return redirect()->route('dashboard.persuratan.keluar.index')
             ->with('success', 'Surat Perintah Tugas berhasil dihapus.');
     }
 
@@ -730,28 +373,9 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses pencetakan SPT tidak diizinkan.');
         }
 
-        $spt = DB::table('gtk_spt')->where('id', $id)->first();
-        if (!$spt) {
-            abort(404, 'Data SPT tidak ditemukan.');
-        }
+        $data = SuratSptService::buildCetakData($id);
 
-        $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
-        $gtkList = Gtk::whereIn('ptk_id', $ptkIds)->orderBy('nama', 'asc')->get();
-
-        $sekolah = Sekolah::first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
-
-        return view('dashboard.persuratan.cetak-spt', compact(
-            'spt',
-            'gtkList',
-            'sekolah',
-            'sekolahMeta',
-            'kepsek'
-        ));
+        return view('dashboard.persuratan.cetak-spt', $data);
     }
 
     /**
@@ -768,92 +392,30 @@ class SuratKeluarController extends Controller
         }
 
         $request->validate([
-            'template_type'   => 'required|string|in:undangan,pemberitahuan,pengantar,rekomendasi,kustom',
-            'perihal'         => 'required|string|max:255',
-            'tujuan_penerima' => 'required|string|max:255',
-            'tujuan_lokasi'   => 'nullable|string|max:255',
-            'tanggal_surat'   => 'required|date',
-            'lampiran'        => 'nullable|string|max:100',
-            'salam_pembuka'   => 'nullable|string|max:100',
-            'paragraf_pembuka'=> 'nullable|string',
-            'isi_surat'       => 'nullable|string',
-            'paragraf_penutup'=> 'nullable|string',
-            'tembusan'        => 'nullable|string',
-            'nomor_surat'     => 'nullable|string|max:100',
-            'kode_indeks'     => 'nullable|string|max:50',
+            'template_type'         => 'required|string|in:undangan,pemberitahuan,pengantar,rekomendasi,kustom',
+            'perihal'               => 'required|string|max:255',
+            'tujuan_penerima'       => 'required|string|max:255',
+            'tujuan_lokasi'         => 'nullable|string|max:255',
+            'tanggal_surat'         => 'required|date',
+            'lampiran'              => 'nullable|string|max:100',
+            'salam_pembuka'         => 'nullable|string|max:100',
+            'paragraf_pembuka'      => 'nullable|string',
+            'isi_surat'             => 'nullable|string',
+            'paragraf_penutup'      => 'nullable|string',
+            'tembusan'              => 'nullable|string',
+            'nomor_surat'           => 'nullable|string|max:100',
+            'kode_indeks'           => 'nullable|string|max:50',
             'hari_tanggal_kegiatan' => 'nullable|string|max:100',
             'waktu_kegiatan'        => 'nullable|string|max:100',
             'tempat_kegiatan'       => 'nullable|string|max:200',
             'agenda_kegiatan'       => 'nullable|string|max:255',
         ]);
 
-        $kodeIndeks = $request->kode_indeks ?: 'HM.01.02';
-        $isAuto = empty($request->nomor_surat);
-        $nomorSurat = $isAuto
-            ? PersuratanHddService::generateNomorSuratKeluar($kodeIndeks)
-            : trim($request->nomor_surat);
-
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
-
-        $sekolah = Sekolah::first();
-        $docId = 'SAE-TMP-' . strtoupper(Str::random(10));
-        $userName = is_array($user) ? ($user['nama'] ?? 'Petugas Persuratan') : ($user->nama ?? 'Petugas Persuratan');
-
-        $rincian = [
-            'hari_tanggal' => $request->hari_tanggal_kegiatan,
-            'waktu'        => $request->waktu_kegiatan,
-            'tempat'       => $request->tempat_kegiatan,
-            'agenda'       => $request->agenda_kegiatan,
-        ];
-
-        $templateDoc = \App\Models\PersuratanTemplate::create([
-            'nomor_surat'      => $nomorSurat,
-            'kode_indeks'      => $kodeIndeks,
-            'template_type'    => $request->template_type,
-            'perihal'          => trim($request->perihal),
-            'lampiran'         => $request->lampiran ?: '-',
-            'tujuan_penerima'  => trim($request->tujuan_penerima),
-            'tujuan_lokasi'    => $request->tujuan_lokasi ? trim($request->tujuan_lokasi) : 'Di Tempat',
-            'tanggal_surat'    => $request->tanggal_surat,
-            'salam_pembuka'    => $request->salam_pembuka ?: 'Dengan hormat,',
-            'paragraf_pembuka' => $request->paragraf_pembuka,
-            'rincian_kegiatan' => $rincian,
-            'isi_surat'        => $request->isi_surat,
-            'paragraf_penutup' => $request->paragraf_penutup,
-            'tembusan'         => $request->tembusan,
-            'pejabat_ptk_id'   => $kepsek?->ptk_id,
-            'pejabat_nama'     => $kepsek?->nama ?? ($sekolah->nama_kepsek ?? 'Kepala Sekolah'),
-            'pejabat_nip'      => $kepsek?->nip ?: ($sekolah->nip_kepsek ?? '—'),
-            'pejabat_jabatan'  => 'Kepala Satuan Pendidikan',
-            'doc_id'           => $docId,
-            'status'           => 'selesai',
-            'created_by'       => $userName,
-        ]);
-
-        // Catat juga ke buku agenda persuratan keluar agar terindeks di master keluar
-        Persuratan::create([
-            'nomor_surat'     => $nomorSurat,
-            'jenis_surat'     => 'keluar',
-            'kode_indeks'     => $kodeIndeks,
-            'perihal'         => trim($request->perihal),
-            'pengirim_asal'   => $sekolah?->nama ?? 'SMK SAE',
-            'tujuan_penerima' => trim($request->tujuan_penerima),
-            'tanggal_surat'   => $request->tanggal_surat,
-            'status'          => 'selesai',
-            'keterangan'      => "Penerbitan surat keluar via Template Autocrat [{$request->template_type}]. Doc ID: {$docId}",
-            'created_by'      => $userName,
-        ]);
-
-        if ($isAuto) {
-            PersuratanHddService::incrementNomorCounter('keluar');
-        }
+        $res = SuratTemplateService::store($request, $user);
 
         return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template'])
-            ->with('success', "Surat keluar nomor {$nomorSurat} berhasil dibuat dari template.")
-            ->with('cetak_template_id', $templateDoc->id);
+            ->with('success', "Surat keluar nomor {$res['nomorSurat']} berhasil dibuat dari template.")
+            ->with('cetak_template_id', $res['templateDoc']->id);
     }
 
     /**
@@ -867,26 +429,9 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $doc = \App\Models\PersuratanTemplate::findOrFail($id);
-        $sekolah = Sekolah::first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = Gtk::where('ptk_id', $doc->pejabat_ptk_id)->first() ?: Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
+        $data = SuratTemplateService::buildCetakData($id);
 
-        $qrVerifyUrl = url('/v/doc/' . $doc->doc_id);
-        $qrUri = QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
-        $orientasi = 'portrait';
-
-        return view('dashboard.persuratan.cetak-template', compact(
-            'doc',
-            'sekolah',
-            'sekolahMeta',
-            'kepsek',
-            'qrUri',
-            'orientasi'
-        ));
+        return view('dashboard.persuratan.cetak-template', $data);
     }
 
     /**
@@ -900,9 +445,7 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $doc = \App\Models\PersuratanTemplate::findOrFail($id);
-        Persuratan::where('nomor_surat', $doc->nomor_surat)->delete();
-        $doc->delete();
+        SuratTemplateService::delete($id);
 
         return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template'])
             ->with('success', 'Dokumen surat template berhasil dihapus.');
@@ -919,69 +462,9 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses pencetakan buku agenda surat keluar tidak diizinkan.');
         }
 
-        $tahun = $request->get('tahun', date('Y'));
-        $bulan = $request->get('bulan', '');
-        $tanggalMulai = $request->get('tanggal_mulai', '');
-        $tanggalSelesai = $request->get('tanggal_selesai', '');
-        $status = $request->get('status', '');
-        $kodeIndeks = $request->get('kode_indeks', '');
+        $data = SuratAgendaEkspedisiService::buildAgendaData($request, 'keluar');
 
-        $query = Persuratan::where('jenis_surat', 'keluar');
-
-        if (!empty($tanggalMulai) && !empty($tanggalSelesai)) {
-            $query->whereBetween('tanggal_surat', [$tanggalMulai, $tanggalSelesai]);
-        } elseif (!empty($tahun)) {
-            $query->whereYear('tanggal_surat', $tahun);
-            if (!empty($bulan)) {
-                $query->whereMonth('tanggal_surat', $bulan);
-            }
-        }
-
-        if (!empty($status)) {
-            $query->where('status', $status);
-        }
-
-        if (!empty($kodeIndeks)) {
-            $query->where('kode_indeks', $kodeIndeks);
-        }
-
-        $items = $query->orderBy('tanggal_surat', 'asc')->orderBy('id', 'asc')->get();
-
-        $sekolah = DB::table('sekolah')->first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
-
-        $kepalaTas = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Tenaga Administrasi%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala TAS%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Tata Usaha%')
-                  ->orWhere('jenis_ptk_id_str', 'like', '%Tata Usaha%');
-            })
-            ->first();
-
-        $periodeText = !empty($tanggalMulai) && !empty($tanggalSelesai)
-            ? Carbon::parse($tanggalMulai)->translatedFormat('d M Y') . ' s.d. ' . Carbon::parse($tanggalSelesai)->translatedFormat('d M Y')
-            : (!empty($bulan) ? Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F Y') : "Tahun {$tahun}");
-
-        return view('dashboard.persuratan.cetak-agenda', [
-            'jenisSurat'     => 'keluar',
-            'judul'          => 'BUKU AGENDA SURAT KELUAR',
-            'items'          => $items,
-            'sekolah'        => $sekolah,
-            'sekolahMeta'    => $sekolahMeta,
-            'kepsek'         => $kepsek,
-            'kepalaTas'      => $kepalaTas,
-            'periodeText'    => $periodeText,
-            'tahun'          => $tahun,
-            'bulan'          => $bulan,
-            'tanggalMulai'   => $tanggalMulai,
-            'tanggalSelesai' => $tanggalSelesai,
-            'status'         => $status,
-        ]);
+        return view('dashboard.persuratan.cetak-agenda', $data);
     }
 
     /**
@@ -995,56 +478,8 @@ class SuratKeluarController extends Controller
             abort(403, 'Akses cetak lembar ekspedisi tidak diizinkan.');
         }
 
-        $sekolah = DB::table('sekolah')->first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
-        })->first();
+        $data = SuratAgendaEkspedisiService::buildEkspedisiData($request, $id);
 
-        $kepalaTas = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Tenaga Administrasi%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala TAS%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Tata Usaha%')
-                  ->orWhere('jenis_ptk_id_str', 'like', '%Tata Usaha%');
-            })
-            ->first();
-
-        if ($id) {
-            $surat = Persuratan::where('jenis_surat', 'keluar')->findOrFail($id);
-            $items = collect([$surat]);
-            $isSingle = true;
-        } else {
-            $tanggalMulai = $request->get('tanggal_mulai', '');
-            $tanggalSelesai = $request->get('tanggal_selesai', '');
-            $q = trim($request->get('q', ''));
-
-            $query = Persuratan::where('jenis_surat', 'keluar');
-            if (!empty($tanggalMulai) && !empty($tanggalSelesai)) {
-                $query->whereBetween('tanggal_surat', [$tanggalMulai, $tanggalSelesai]);
-            }
-            if ($q !== '') {
-                $query->where(function ($b) use ($q) {
-                    $b->where('nomor_surat', 'like', "%{$q}%")
-                      ->orWhere('perihal', 'like', "%{$q}%")
-                      ->orWhere('tujuan_penerima', 'like', "%{$q}%");
-                });
-            }
-
-            $items = $query->orderBy('tanggal_surat', 'desc')->orderBy('id', 'desc')->get();
-            $surat = $items->first();
-            $isSingle = false;
-        }
-
-        return view('dashboard.persuratan.cetak-ekspedisi', compact(
-            'items',
-            'surat',
-            'isSingle',
-            'sekolah',
-            'sekolahMeta',
-            'kepsek',
-            'kepalaTas'
-        ));
+        return view('dashboard.persuratan.cetak-ekspedisi', $data);
     }
 }

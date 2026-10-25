@@ -56,23 +56,25 @@
                     <i class="fas fa-truck-fast text-success"></i>
                 </a>
                 @if ($canCreate)
-                    @if (($tab ?? '') === 'spt')
-                        <button type="button" class="btn btn-primary" id="btnOpenModalSpt"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
-                            title="Terbitkan Surat Perintah Tugas (SPT)">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    @elseif (($tab ?? '') === 'template')
+                    @if (($tab ?? '') === 'template')
                         <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
                             title="Buat Surat Keluar dari Template Autocrat">
                             <i class="fas fa-wand-magic-sparkles"></i>
                         </button>
+                    @elseif (($tab ?? '') === 'ekspedisi')
+                        <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
+                            target="_blank" class="btn btn-outline"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; color: #10b981; border-color: rgba(16,185,129,0.35);"
+                            title="Cetak Buku Ekspedisi Kolektif Sesuai Filter">
+                            <i class="fas fa-print"></i>
+                        </a>
                     @else
-                        <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);"
-                            title="Buat Surat dari Template Autocrat">
-                            <i class="fas fa-wand-magic-sparkles"></i>
+                        {{-- Tab Surat Keluar (mengkoordinir semua jenis surat keluar) --}}
+                        <button type="button" class="btn btn-outline" id="btnOpenModalSpt"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(37,99,235,0.4); color: #2563eb;"
+                            title="Terbitkan Surat Perintah Tugas (SPT)">
+                            <i class="fas fa-file-contract text-info"></i>
                         </button>
                         <button type="button" class="btn btn-outline" id="btnOpenCreateKet"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(99,102,241,0.4); color: var(--primary);"
@@ -148,28 +150,20 @@
             </div>
         </div>
 
-        <!-- 4. Tab Navigasi Baku SAE -->
+        <!-- 4. Tab Navigasi Baku SAE (3 Tab Terpadu) -->
         <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
             <div class="periode-nav-desktop">
                 <a href="{{ route('dashboard.persuratan.keluar.index') }}"
                     class="periode-nav-tab {{ ($tab ?? 'keluar') === 'keluar' ? 'active' : '' }}">
-                    <i class="fas fa-paper-plane"></i> Semua Surat Keluar
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']) }}"
-                    class="periode-nav-tab {{ ($tab ?? '') === 'keterangan' ? 'active' : '' }}">
-                    <i class="fas fa-graduation-cap"></i> Surat Keterangan Siswa
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'spt']) }}"
-                    class="periode-nav-tab {{ ($tab ?? '') === 'spt' ? 'active' : '' }}">
-                    <i class="fas fa-file-contract"></i> Surat Perintah Tugas (SPT)
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
-                    class="periode-nav-tab {{ ($tab ?? '') === 'template' ? 'active' : '' }}">
-                    <i class="fas fa-wand-magic-sparkles"></i> Template Surat (Autocrat)
+                    <i class="fas fa-paper-plane"></i> Surat Keluar
                 </a>
                 <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']) }}"
                     class="periode-nav-tab {{ ($tab ?? '') === 'ekspedisi' ? 'active' : '' }}">
                     <i class="fas fa-truck-fast"></i> Buku Ekspedisi
+                </a>
+                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
+                    class="periode-nav-tab {{ ($tab ?? '') === 'template' ? 'active' : '' }}">
+                    <i class="fas fa-wand-magic-sparkles"></i> Autocrat
                 </a>
             </div>
         </div>
@@ -180,42 +174,12 @@
                 'keluar' => [
                     'label' => 'Nomor Surat Keluar Terakhir',
                     'nomor' => $stats['nomor_terakhir'] ?? '-',
-                    'badge' => 'Umum',
+                    'badge' => 'Terkoordinir',
                     'icon' => 'fas fa-paper-plane',
                     'color' => '#10b981',
                     'bg' => 'rgba(16,185,129,0.12)',
                     'border' => 'rgba(16,185,129,0.25)',
                     'gradient' => 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(99,102,241,0.03) 100%)',
-                ],
-                'keterangan' => [
-                    'label' => 'Nomor Surat Keterangan Siswa Terakhir',
-                    'nomor' => $stats['nomor_terakhir_keterangan'] ?? '-',
-                    'badge' => 'Siswa Aktif',
-                    'icon' => 'fas fa-graduation-cap',
-                    'color' => '#6366f1',
-                    'bg' => 'rgba(99,102,241,0.12)',
-                    'border' => 'rgba(99,102,241,0.25)',
-                    'gradient' => 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(59,130,246,0.03) 100%)',
-                ],
-                'spt' => [
-                    'label' => 'Nomor Surat Perintah Tugas (SPT) Terakhir',
-                    'nomor' => $stats['nomor_terakhir_spt'] ?? '-',
-                    'badge' => 'SPT Dinas',
-                    'icon' => 'fas fa-file-contract',
-                    'color' => '#2563eb',
-                    'bg' => 'rgba(37,99,235,0.12)',
-                    'border' => 'rgba(37,99,235,0.25)',
-                    'gradient' => 'linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(16,185,129,0.03) 100%)',
-                ],
-                'template' => [
-                    'label' => 'Nomor Template Surat Terakhir',
-                    'nomor' => $stats['nomor_terakhir_template'] ?? '-',
-                    'badge' => 'Autocrat',
-                    'icon' => 'fas fa-wand-magic-sparkles',
-                    'color' => '#7c3aed',
-                    'bg' => 'rgba(124,58,237,0.12)',
-                    'border' => 'rgba(124,58,237,0.25)',
-                    'gradient' => 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(99,102,241,0.03) 100%)',
                 ],
                 'ekspedisi' => [
                     'label' => 'Buku Ekspedisi Pengiriman Surat Keluar',
@@ -226,6 +190,16 @@
                     'bg' => 'rgba(245,158,11,0.12)',
                     'border' => 'rgba(245,158,11,0.25)',
                     'gradient' => 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(16,185,129,0.03) 100%)',
+                ],
+                'template' => [
+                    'label' => 'Nomor Template Surat Terakhir (Autocrat)',
+                    'nomor' => $stats['nomor_terakhir_template'] ?? '-',
+                    'badge' => 'Autocrat',
+                    'icon' => 'fas fa-wand-magic-sparkles',
+                    'color' => '#7c3aed',
+                    'bg' => 'rgba(124,58,237,0.12)',
+                    'border' => 'rgba(124,58,237,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(99,102,241,0.03) 100%)',
                 ],
             ];
             $curCfg = $tabConfigs[$activeTab] ?? $tabConfigs['keluar'];
@@ -249,6 +223,16 @@
                             style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
                             {{ $curCfg['badge'] }}
                         </span>
+                        @if ($activeTab === 'keluar')
+                            <span class="badge"
+                                style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
+                            </span>
+                            <span class="badge"
+                                style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: rgba(37,99,235,0.1); color: #2563eb; border: 1px solid rgba(37,99,235,0.25);">
+                                SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
+                            </span>
+                        @endif
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
                         <span id="labelNomorSuratKeluar"
@@ -353,128 +337,7 @@
             </div>
 
             <!-- 2. Konten Datatable Sesuai Tab Aktif -->
-            @if (($tab ?? '') === 'spt')
-                <!-- Container Datatable Responsive-Stack: Surat Perintah Tugas (SPT) -->
-                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
-                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
-                                    No</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Nomor SPT &amp; Anggaran</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Kegiatan &amp; Lokasi</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Waktu Penugasan</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    GTK Yang Ditugaskan</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
-                                    Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($items as $idx => $spt)
-                                @php
-                                    $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
-                                    $assignedGtk = isset($allGtk) ? $allGtk->whereIn('ptk_id', $ptkIds) : collect();
-                                @endphp
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
-                                        data-label="No">
-                                        {{ $items->firstItem() + $idx }}
-                                    </td>
-                                    <td style="padding: 12px 16px;" data-label="Nomor SPT">
-                                        <div
-                                            style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                                            {{ $spt->nomor_spt }}</div>
-                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
-                                            Beban: <span class="badge-compact"
-                                                style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $spt->beban_anggaran }}</span>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px 16px;" data-label="Kegiatan & Lokasi">
-                                        <div style="font-weight: 600; color: var(--text-color); font-size: 0.85rem;">
-                                            {{ $spt->nama_kegiatan }}</div>
-                                        <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
-                                            {{ $spt->lokasi_tujuan }}
-                                        </div>
-                                        @if (!empty($spt->dasar_penugasan))
-                                            <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
-                                                Dasar: {{ \Illuminate\Support\Str::limit($spt->dasar_penugasan, 60) }}
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td style="padding: 12px 16px;" data-label="Waktu">
-                                        <div style="font-size: 0.82rem; color: var(--text-color);">
-                                            <i class="far fa-calendar-alt text-muted me-1"></i>
-                                            {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d M Y') }}
-                                            s/d
-                                            {{ \Carbon\Carbon::parse($spt->tanggal_kembali)->translatedFormat('d M Y') }}
-                                        </div>
-                                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                            Durasi: <strong>{{ $spt->lama_hari }} Hari</strong>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px 16px;" data-label="GTK Ditugaskan">
-                                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                            @forelse($assignedGtk as $g)
-                                                <span class="badge-compact"
-                                                    style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.76rem;">
-                                                    <i class="fas fa-user-check me-1"></i> {{ $g->nama }}
-                                                </span>
-                                            @empty
-                                                <span
-                                                    style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">-</span>
-                                            @endforelse
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                        <div class="table-actions"
-                                            style="display: flex; gap: 4px; justify-content: center;">
-                                            <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $spt->id) }}"
-                                                target="_blank" class="btn-icon" style="color: #2563eb;"
-                                                title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
-                                                <i class="fas fa-print"></i>
-                                            </a>
-                                            @if ($canDelete)
-                                                <form
-                                                    action="{{ route('dashboard.persuratan.keluar.spt.delete', $spt->id) }}"
-                                                    method="POST" style="display: inline;" data-confirm="delete"
-                                                    data-name="{{ $spt->nomor_spt }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn-icon text-danger"
-                                                        title="Hapus SPT">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6"
-                                        style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                        <i class="fas fa-file-contract mb-2"
-                                            style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
-                                        <div>Belum ada Surat Perintah Tugas (SPT) yang diterbitkan.</div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            @elseif (($tab ?? '') === 'template')
+            @if (($tab ?? '') === 'template')
                 <!-- Container Datatable: Surat Keluar dari Template Autocrat -->
                 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
@@ -596,7 +459,7 @@
                     </table>
                 </div>
             @else
-                <!-- Container Datatable Responsive-Stack Standar SAE -->
+                <!-- Container Datatable: Surat Keluar Terpadu (Mengkoordinir Surat Umum, SKET, dan SPT) -->
                 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
@@ -604,7 +467,7 @@
                                 <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
                                     data-sort="nomor_surat"
                                     style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    No. Surat &amp; Indeks
+                                    No. Surat &amp; Kategori
                                     <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                                 <th
@@ -649,6 +512,28 @@
                                         'rekomendasi' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
                                         default => 'background: rgba(99,102,241,0.1); color: var(--primary);',
                                     };
+
+                                    $sptItem =
+                                        $item->spt ??
+                                        (str_contains($item->nomor_surat, '/SPT/') ||
+                                        ($item->kode_indeks === '800' &&
+                                            str_contains(strtolower($item->perihal), 'tugas'))
+                                            ? \Illuminate\Support\Facades\DB::table('gtk_spt')
+                                                ->where('nomor_spt', $item->nomor_surat)
+                                                ->first()
+                                            : null);
+                                    $isSpt = !empty($sptItem) || str_contains($item->nomor_surat, '/SPT/');
+
+                                    $tmplItem =
+                                        $item->templateDoc ??
+                                        (str_contains(strtolower($item->keterangan ?? ''), 'autocrat')
+                                            ? \Illuminate\Support\Facades\DB::table('persuratan_templates')
+                                                ->where('nomor_surat', $item->nomor_surat)
+                                                ->first()
+                                            : null);
+                                    $isTmpl =
+                                        !empty($tmplItem) ||
+                                        str_contains(strtolower($item->keterangan ?? ''), 'autocrat');
                                 @endphp
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 12px 16px;">
@@ -662,8 +547,20 @@
                                                 style="background: rgba(16,185,129,0.1); color: #10b981;">Idx:
                                                 {{ $item->kode_indeks ?: '-' }}</span>
                                             @if ($isKet)
+                                                <span class="badge-compact" style="{{ $badgeKetStyle }}"><i
+                                                        class="fas fa-graduation-cap me-1"></i>{{ $labelKet }}</span>
+                                            @elseif ($isSpt)
                                                 <span class="badge-compact"
-                                                    style="{{ $badgeKetStyle }}">{{ $labelKet }}</span>
+                                                    style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.25);"><i
+                                                        class="fas fa-file-contract me-1"></i>SPT Dinas</span>
+                                            @elseif ($isTmpl)
+                                                <span class="badge-compact"
+                                                    style="background: rgba(124,58,237,0.12); color: #7c3aed; border: 1px solid rgba(124,58,237,0.25);"><i
+                                                        class="fas fa-wand-magic-sparkles me-1"></i>Autocrat</span>
+                                            @else
+                                                <span class="badge-compact"
+                                                    style="background: rgba(16,185,129,0.1); color: #10b981;">Surat
+                                                    Dinas</span>
                                             @endif
                                             @if ($item->sarprasAset)
                                                 <span class="badge-compact"
@@ -681,7 +578,7 @@
                                             {{ $item->perihal }}
                                         </div>
                                         <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                            <i class="fas fa-location-arrow text-success me-1"></i> Kepada:
+                                            <i class="fas fa-location-arrow text-success me-1"></i> Kepada / Lokasi:
                                             <strong>{{ $item->tujuan_penerima ?: '-' }}</strong>
                                         </div>
                                         @if ($item->sarprasAset)
@@ -692,11 +589,20 @@
                                                 {{ ucfirst($item->sarprasAset->kondisi) }})
                                             </div>
                                         @endif
-                                        @if ($isKet && $suratKet->siswa)
+                                        @if ($isKet && $suratKet && $suratKet->siswa)
                                             <div style="font-size: 0.73rem; color: var(--primary); margin-top: 3px;">
                                                 <i class="fas fa-user-graduate me-1"></i> Siswa:
                                                 <strong>{{ $suratKet->siswa->nama }}</strong> (NISN:
                                                 {{ $suratKet->siswa->nisn ?: '-' }})
+                                            </div>
+                                        @elseif ($isSpt && $sptItem)
+                                            <div style="font-size: 0.73rem; color: #2563eb; margin-top: 3px;">
+                                                <i class="fas fa-calendar-day me-1"></i> Waktu:
+                                                {{ \Carbon\Carbon::parse($sptItem->tanggal_berangkat)->translatedFormat('d M Y') }}
+                                                s/d
+                                                {{ \Carbon\Carbon::parse($sptItem->tanggal_kembali)->translatedFormat('d M Y') }}
+                                                ({{ $sptItem->lama_hari }} Hari) &bull; Anggaran:
+                                                {{ $sptItem->beban_anggaran }}
                                             </div>
                                         @endif
                                     </td>
@@ -753,6 +659,29 @@
                                                 </a>
                                             @endif
 
+                                            <!-- Jika SPT Dinas: Tombol Cetak SPT Resmi -->
+                                            @if ($isSpt && $sptItem)
+                                                <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $sptItem->id) }}"
+                                                    target="_blank" class="btn-icon" style="color: #2563eb;"
+                                                    title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            @endif
+
+                                            <!-- Jika Template Autocrat: Tombol Cetak Template -->
+                                            @if ($isTmpl && $tmplItem)
+                                                <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmplItem->id) }}"
+                                                    target="_blank" class="btn-icon text-primary"
+                                                    title="Cetak Surat Template Autocrat">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                                <a href="{{ url('/v/doc/' . $tmplItem->doc_id) }}" target="_blank"
+                                                    class="btn-icon text-info"
+                                                    title="Halaman Verifikasi Publik (QR Code)">
+                                                    <i class="fas fa-qrcode"></i>
+                                                </a>
+                                            @endif
+
                                             <!-- Tombol Cetak Lembar Ekspedisi / Tanda Terima -->
                                             <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', $item->id) }}"
                                                 target="_blank" class="btn-icon text-success"
@@ -760,7 +689,7 @@
                                                 <i class="fas fa-receipt"></i>
                                             </a>
 
-                                            @if ($canUpdate)
+                                            @if ($canUpdate && !$isSpt && !$isTmpl)
                                                 <button type="button" class="btn-icon btn-edit-keluar"
                                                     title="Edit Surat Keluar" data-id="{{ $item->id }}"
                                                     data-nomor="{{ $item->nomor_surat }}"
@@ -817,93 +746,6 @@
         </div>
 
         @include('dashboard.persuratan.partials.modal-surat-keluar')
-
-        <!-- Modal Cetak Buku Agenda Surat Keluar -->
-        <div class="modal-overlay" id="modalAgendaKeluar"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center;">
-            <div class="modal-container"
-                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden;">
-                <div
-                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h4
-                        style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-print text-primary"></i> Cetak Buku Agenda Surat Keluar
-                    </h4>
-                    <button type="button" id="btnCloseModalAgendaKeluar"
-                        style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <form action="{{ route('dashboard.persuratan.keluar.agenda.cetak') }}" method="GET" target="_blank"
-                    style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Rentang Tanggal Surat (Opsional):
-                        </label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <input type="date" name="tanggal_mulai" class="form-control"
-                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
-                            <input type="date" name="tanggal_selesai" class="form-control"
-                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                                Tahun:
-                            </label>
-                            <select name="tahun" class="form-control"
-                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
-                                @for ($y = date('Y'); $y >= 2024; $y--)
-                                    <option value="{{ $y }}">{{ $y }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                                Bulan (Opsional):
-                            </label>
-                            <select name="bulan" class="form-control"
-                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
-                                <option value="">Semua Bulan (1 Tahun)</option>
-                                @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
-                                    <option value="{{ $mNum }}">{{ $mName }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Kode Indeks Klasifikasi (Opsional):
-                        </label>
-                        <select name="kode_indeks" class="form-control"
-                            style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
-                            <option value="">Semua Indeks Klasifikasi</option>
-                            @foreach ($indeksList as $idx)
-                                <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
-                        <button type="button" id="btnCancelModalAgendaKeluar" class="btn btn-outline"
-                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
-                        <button type="submit" class="btn btn-primary"
-                            style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-print"></i> Buka Lembar Cetak
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
     @endsection
 
     @push('scripts')
