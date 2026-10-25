@@ -7,6 +7,9 @@ use Illuminate\Http\JsonResponse;
 use App\Models\RolePermission;
 use Illuminate\Support\Facades\DB;
 
+
+use App\Support\Table;
+
 class PermissionController extends Controller
 {
     /**
@@ -26,7 +29,7 @@ class PermissionController extends Controller
         }
 
         // Auto-sinkronisasi modul baru jika ada modul yang terdeteksi di sistem tetapi belum tercatat
-        if (\Illuminate\Support\Facades\Schema::hasTable('role_permissions')) {
+        if (\App\Support\Table::exists('role_permissions')) {
             RolePermission::autoSyncNewDiscoveredModules();
         }
 
@@ -155,101 +158,114 @@ class PermissionController extends Controller
             ], 422);
         }
 
-        // Ambil atau buat record izin
-        $perm = RolePermission::firstOrCreate(
-            ['role' => $targetRole, 'permission_key' => $permissionKey],
-            [
-                'is_allowed' => true,
-                'can_create' => false,
-                'can_read' => true,
-                'can_update' => false,
-                'can_delete' => false,
-            ]
-        );
+        // Seluruh perubahan izin (record utama + cascading induk-anak) dibungkus
+        // satu transaksi. Tanpa transaksi, kegagalan di tengah cascading membuat
+        // hak akses tersimpan setengah jadi: record utama berubah tetapi modul
+        // turunannya tidak ikut menyesuaikan.
+        $perm = DB::transaction(function () use (
+            $targetRole,
+            $permissionKey,
+            $isAllowed,
+            $action
+        ) {
+            // Ambil atau buat record izin
+            $perm = RolePermission::firstOrCreate(
+                ['role' => $targetRole, 'permission_key' => $permissionKey],
+                [
+                    'is_allowed' => true,
+                    'can_create' => false,
+                    'can_read' => true,
+                    'can_update' => false,
+                    'can_delete' => false,
+                ]
+            );
 
-        if ($action && in_array($action, ['create', 'read', 'update', 'delete'])) {
-            $column = 'can_' . $action;
-            $perm->{$column} = $isAllowed;
+            if ($action && in_array($action, ['create', 'read', 'update', 'delete'])) {
+                $column = 'can_' . $action;
+                $perm->{$column} = $isAllowed;
 
-            // Jika create/update/delete dinyalakan, otomatis read dan is_allowed juga nyala
-            if ($isAllowed && in_array($action, ['create', 'update', 'delete'])) {
-                $perm->can_read = true;
-                $perm->is_allowed = true;
-            }
+                // Jika create/update/delete dinyalakan, otomatis read dan is_allowed juga nyala
+                if ($isAllowed && in_array($action, ['create', 'update', 'delete'])) {
+                    $perm->can_read = true;
+                    $perm->is_allowed = true;
+                }
 
-            // Jika read dimatikan, matikan seluruh aksi operasional terkait
-            if ($action === 'read') {
-                $perm->is_allowed = $isAllowed;
-                if (!$isAllowed) {
-                    $perm->can_create = false;
-                    $perm->can_update = false;
-                    $perm->can_delete = false;
-                } else {
-                    // Jika modul operasional guru dinyalakan, berikan izin create & update default
-                    if ($targetRole === 'guru' && in_array($permissionKey, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik'], true)) {
-                        $perm->can_create = true;
-                        $perm->can_update = true;
+                // Jika read dimatikan, matikan seluruh aksi operasional terkait
+                if ($action === 'read') {
+                    $perm->is_allowed = $isAllowed;
+                    if (!$isAllowed) {
+                        $perm->can_create = false;
+                        $perm->can_update = false;
+                        $perm->can_delete = false;
+                    } else {
+                        // Jika modul operasional guru dinyalakan, berikan izin create & update default
+                        if ($targetRole === 'guru' && in_array($permissionKey, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik'], true)) {
+                            $perm->can_create = true;
+                            $perm->can_update = true;
+                        }
                     }
+                }
+
+                // Jika semua 4 aksi false, set is_allowed = false
+                if (!$perm->can_create && !$perm->can_read && !$perm->can_update && !$perm->can_delete) {
+                    $perm->is_allowed = false;
                 }
             }
 
-            // Jika semua 4 aksi false, set is_allowed = false
-            if (!$perm->can_create && !$perm->can_read && !$perm->can_update && !$perm->can_delete) {
-                $perm->is_allowed = false;
-            }
-        }
+            $perm->save();
 
-        $perm->save();
+            // Sinkronisasi cascading induk-anak untuk modul hierarkis (Wali Kelas, Persuratan, Kesiswaan)
+            if ($action === 'read') {
+                if ($permissionKey === 'menu_wali_kelas') {
+                    RolePermission::where('role', $targetRole)
+                        ->whereIn('permission_key', [
+                            'menu_wali_kelas_aktif',
+                            'menu_wali_kelas_tidak_aktif',
+                            'menu_wali_kelas_presensi',
+                            'menu_wali_kelas_jadwal',
+                            'menu_wali_kelas_pip',
+                            'menu_wali_kelas_validasi',
+                            'menu_wali_kelas_agenda',
+                        ])
+                        ->update([
+                            'is_allowed' => $isAllowed,
+                            'can_read' => $isAllowed,
+                        ]);
+                } elseif (in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'], true) && $isAllowed) {
+                    RolePermission::where('role', $targetRole)
+                        ->where('permission_key', 'menu_wali_kelas')
+                        ->update(['is_allowed' => true, 'can_read' => true]);
+                }
 
-        // Sinkronisasi cascading induk-anak untuk modul hierarkis (Wali Kelas, Persuratan, Kesiswaan)
-        if ($action === 'read') {
-            if ($permissionKey === 'menu_wali_kelas') {
-                RolePermission::where('role', $targetRole)
-                    ->whereIn('permission_key', [
-                        'menu_wali_kelas_aktif',
-                        'menu_wali_kelas_tidak_aktif',
-                        'menu_wali_kelas_presensi',
-                        'menu_wali_kelas_jadwal',
-                        'menu_wali_kelas_pip',
-                        'menu_wali_kelas_validasi',
-                        'menu_wali_kelas_agenda',
-                    ])
-                    ->update([
-                        'is_allowed' => $isAllowed,
-                        'can_read' => $isAllowed,
-                    ]);
-            } elseif (in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'], true) && $isAllowed) {
-                RolePermission::where('role', $targetRole)
-                    ->where('permission_key', 'menu_wali_kelas')
-                    ->update(['is_allowed' => true, 'can_read' => true]);
+                if ($permissionKey === 'menu_persuratan') {
+                    RolePermission::where('role', $targetRole)
+                        ->whereIn('permission_key', ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'])
+                        ->update([
+                            'is_allowed' => $isAllowed,
+                            'can_read' => $isAllowed,
+                        ]);
+                } elseif (in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true) && $isAllowed) {
+                    RolePermission::where('role', $targetRole)
+                        ->where('permission_key', 'menu_persuratan')
+                        ->update(['is_allowed' => true, 'can_read' => true]);
+                }
+
+                if ($permissionKey === 'menu_kesiswaan') {
+                    RolePermission::where('role', $targetRole)
+                        ->whereIn('permission_key', ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'])
+                        ->update([
+                            'is_allowed' => $isAllowed,
+                            'can_read' => $isAllowed,
+                        ]);
+                } elseif (in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true) && $isAllowed) {
+                    RolePermission::where('role', $targetRole)
+                        ->where('permission_key', 'menu_kesiswaan')
+                        ->update(['is_allowed' => true, 'can_read' => true]);
+                }
             }
 
-            if ($permissionKey === 'menu_persuratan') {
-                RolePermission::where('role', $targetRole)
-                    ->whereIn('permission_key', ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'])
-                    ->update([
-                        'is_allowed' => $isAllowed,
-                        'can_read' => $isAllowed,
-                    ]);
-            } elseif (in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true) && $isAllowed) {
-                RolePermission::where('role', $targetRole)
-                    ->where('permission_key', 'menu_persuratan')
-                    ->update(['is_allowed' => true, 'can_read' => true]);
-            }
-
-            if ($permissionKey === 'menu_kesiswaan') {
-                RolePermission::where('role', $targetRole)
-                    ->whereIn('permission_key', ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'])
-                    ->update([
-                        'is_allowed' => $isAllowed,
-                        'can_read' => $isAllowed,
-                    ]);
-            } elseif (in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true) && $isAllowed) {
-                RolePermission::where('role', $targetRole)
-                    ->where('permission_key', 'menu_kesiswaan')
-                    ->update(['is_allowed' => true, 'can_read' => true]);
-            }
-        }
+            return $perm;
+        });
 
         RolePermission::clearRuntimeCache();
 

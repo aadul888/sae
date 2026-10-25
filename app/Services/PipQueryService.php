@@ -10,6 +10,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Support\Table;
 /**
  * Service khusus query dan agregasi metrik data modul PIP.
  * ponytail: static-query-builder; upgrade ke Cached Repository saat volume data sekolah melebihi 20.000 siswa.
@@ -52,9 +53,9 @@ class PipQueryService
         $perPageVal = $request->get('perPage', '15');
         $perPage = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 15;
 
-        $hasUsulanTable = Schema::hasTable('pip_usulan');
-        $hasKuotaTable = Schema::hasTable('pip_kuota_rombel');
-        $hasRiwayatTable = Schema::hasTable('pip_riwayat');
+        $hasUsulanTable = Table::exists('pip_usulan');
+        $hasKuotaTable = Table::exists('pip_kuota_rombel');
+        $hasRiwayatTable = Table::exists('pip_riwayat');
 
         // 0. Data Tab: Dashboard Overview PIP
         $dashboardData = null;
@@ -237,7 +238,7 @@ class PipQueryService
 
             $studentCounts = [];
             $totalSiswaSekolah = 0;
-            if (Schema::hasTable('peserta_didik')) {
+            if (Table::exists('peserta_didik')) {
                 $studentCounts = DB::table('peserta_didik')
                     ->select('rombongan_belajar_id', DB::raw('count(*) as total'))
                     ->groupBy('rombongan_belajar_id')
@@ -423,7 +424,7 @@ class PipQueryService
                     ->pluck('tahap')
                     ->all();
 
-                $hasUsulan = Schema::hasTable('pip_usulan');
+                $hasUsulan = Table::exists('pip_usulan');
 
                 if ($statusPipFilter === 'belum') {
                     $belumQuery = (clone $activeStudentsScope)
@@ -686,7 +687,7 @@ class PipQueryService
             }
         } elseif ($tab === 'riwayat_alumni' && $isAdmin) {
             if ($hasRiwayatTable) {
-                $hasPdta = Schema::hasTable('peserta_didik_tidak_aktif');
+                $hasPdta = Table::exists('peserta_didik_tidak_aktif');
 
                 $riwayatAlumniQuery = DB::table('pip_riwayat as r')
                     ->whereNotExists(function ($sub) {

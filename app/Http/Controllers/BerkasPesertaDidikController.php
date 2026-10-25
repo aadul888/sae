@@ -9,19 +9,17 @@ use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+
+
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Support\Table;
 
 class BerkasPesertaDidikController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
+
+    
 
     private function resolveStudentContext(Request $request): array
     {
@@ -51,7 +49,7 @@ class BerkasPesertaDidikController extends Controller
             }
         } else {
             // Admin, Guru, Tendik dapat melihat daftar dan memilih siswa
-            if (Schema::hasTable('peserta_didik')) {
+            if (Table::exists('peserta_didik')) {
                 $allPdList = DB::table('peserta_didik')
                     ->select('peserta_didik_id', 'nama', 'nisn', 'nipd', 'nama_rombel')
                     ->orderBy('nama')
@@ -68,7 +66,7 @@ class BerkasPesertaDidikController extends Controller
         }
 
         $pd = null;
-        if ($pdId && Schema::hasTable('peserta_didik')) {
+        if ($pdId && Table::exists('peserta_didik')) {
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
         }
 

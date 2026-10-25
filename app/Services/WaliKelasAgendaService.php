@@ -9,8 +9,7 @@ use App\Models\KalenderPendidikan;
 use App\Models\PresensiMengajar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service khusus pengelolaan agenda KBM kelas binaan (pencatatan jurnal, pertemuan, cetak, verifikasi).
  * ponytail: static-orchestrator; upgrade ke asynchronous job jika cetak rekapitulasi semester massal > 50 rombel.
@@ -296,7 +295,7 @@ class WaliKelasAgendaService
         })->values();
 
         $pembelajaranList = collect();
-        if (Schema::hasTable('pembelajaran')) {
+        if (Table::exists('pembelajaran')) {
             $pembelajaranList = DB::table('pembelajaran as p')
                 ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
                 ->where('p.rombongan_belajar_id', $activeRombel->rombongan_belajar_id)

@@ -19,18 +19,13 @@ use App\Services\SuratKeteranganService;
 use App\Services\SuratSptService;
 use App\Services\SuratTemplateService;
 use App\Services\SuratAgendaEkspedisiService;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class SuratKeluarController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilan Buku Agenda Surat Keluar (Terkoordinir: Surat Umum, SKET, SPT, Autocrat, & Ekspedisi)
      */

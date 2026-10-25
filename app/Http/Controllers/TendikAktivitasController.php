@@ -9,8 +9,10 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+
+
+use App\Support\Table;
 
 class TendikAktivitasController extends Controller
 {
@@ -32,7 +34,7 @@ class TendikAktivitasController extends Controller
         // Cek tugas tambahan aktif
         $isKepalaTas = false;
         $activeBidang = 'umum';
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $duties = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)
@@ -267,7 +269,7 @@ class TendikAktivitasController extends Controller
         }
 
         $indikatorId = $validated['indikator_id'] ?? null;
-        if (!$indikatorId && Schema::hasTable('tendik_indikator_kinerja')) {
+        if (!$indikatorId && Table::exists('tendik_indikator_kinerja')) {
             $indikatorId = TendikIndikatorKinerja::where('bidang', $validated['bidang'])
                 ->where('is_active', true)
                 ->orderBy('urutan')
@@ -342,7 +344,7 @@ class TendikAktivitasController extends Controller
         }
 
         $indikatorId = $validated['indikator_id'] ?? $aktivitas->indikator_id;
-        if (!$indikatorId && Schema::hasTable('tendik_indikator_kinerja')) {
+        if (!$indikatorId && Table::exists('tendik_indikator_kinerja')) {
             $indikatorId = TendikIndikatorKinerja::where('bidang', $validated['bidang'])
                 ->where('is_active', true)
                 ->orderBy('urutan')

@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
 use PDO;
+
+
+use App\Support\Table;
 
 class BackupService
 {
@@ -19,7 +21,7 @@ class BackupService
     public function createComprehensiveBackup(string $adminName = 'Admin'): array
     {
         $settings = DB::table('settings')->where('id', 1)->first();
-        $sekolah  = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolah  = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
         $npsn     = $sekolah->npsn ?? 'Data';
         $namaSekolah = $sekolah->nama ?? 'Satuan Pendidikan';
 
@@ -175,7 +177,7 @@ class BackupService
         $bom = "\xEF\xBB\xBF"; // UTF-8 Byte Order Mark agar Microsoft Excel langsung membaca aksen & kolom rapi
 
         // 1. Peserta Didik Aktif
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $fp = fopen($outputDir . '/01_Data_Peserta_Didik_Aktif.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
@@ -228,7 +230,7 @@ class BackupService
         }
 
         // 2. Peserta Didik Tidak Aktif / Alumni
-        if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (Table::exists('peserta_didik_tidak_aktif')) {
             $fp = fopen($outputDir . '/02_Data_Alumni_Peserta_Didik_Tidak_Aktif.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
@@ -273,7 +275,7 @@ class BackupService
         }
 
         // 3. Data GTK (Guru & Tenaga Kependidikan)
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $fp = fopen($outputDir . '/03_Data_GTK_Guru_Tendik.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
@@ -318,7 +320,7 @@ class BackupService
         }
 
         // 4. Rombongan Belajar (Rombel)
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $fp = fopen($outputDir . '/04_Data_Rombongan_Belajar.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, ['No', 'Nama Rombel', 'Tingkat', 'Jurusan / Peminatan', 'Kurikulum', 'ID PTK Wali Kelas']);
@@ -339,7 +341,7 @@ class BackupService
         }
 
         // 5. Anggota Rombel
-        if (Schema::hasTable('anggota_rombel')) {
+        if (Table::exists('anggota_rombel')) {
             $fp = fopen($outputDir . '/05_Data_Anggota_Rombel.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, ['No', 'ID Rombel', 'ID Siswa', 'Jenis Pendaftaran']);
@@ -359,7 +361,7 @@ class BackupService
         }
 
         // 6. Pembelajaran & Jadwal
-        if (Schema::hasTable('pembelajaran')) {
+        if (Table::exists('pembelajaran')) {
             $fp = fopen($outputDir . '/06_Data_Pembelajaran_Jadwal.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, ['No', 'ID Rombel', 'Mata Pelajaran', 'Nama PTK Guru', 'SK Mengajar', 'Tanggal SK']);
@@ -381,7 +383,7 @@ class BackupService
         }
 
         // 7. Akun Pengguna
-        if (Schema::hasTable('pengguna')) {
+        if (Table::exists('pengguna')) {
             $fp = fopen($outputDir . '/07_Data_Akun_Pengguna.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, ['No', 'Nama Pengguna', 'Username', 'Peran Akun', 'No HP', 'Alamat', 'Terdaftar Pada']);
@@ -404,7 +406,7 @@ class BackupService
         }
 
         // 8. Identitas Sekolah
-        if (Schema::hasTable('sekolah')) {
+        if (Table::exists('sekolah')) {
             $fp = fopen($outputDir . '/08_Data_Identitas_Sekolah.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, ['Atribut', 'Nilai Informasi']);

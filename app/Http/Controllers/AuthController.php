@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\User;
 
+
+use App\Support\Table;
+
 class AuthController extends Controller
 {
     public function showLogin()
@@ -144,7 +147,7 @@ class AuthController extends Controller
 
             // Ambil foto siswa
             $fotoUrl = null;
-            if (Schema::hasTable('peserta_didik_meta')) {
+            if (Table::exists('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $student->peserta_didik_id)->first();
                 $fotoUrl = $meta?->foto_url;
             }
@@ -196,7 +199,7 @@ class AuthController extends Controller
 
         // Cari user berdasarkan username, atau relasi GTK/Peserta Didik jika tabel dan kolomnya tersedia.
         $userQuery = User::where('username', $identifier);
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $gtkColumns = array_values(array_filter(['nip', 'nuptk', 'nik', 'email'], fn($column) => Schema::hasColumn('gtk', $column)));
             if ($gtkColumns) {
                 $userQuery->orWhereIn('ptk_id', function ($q) use ($identifier, $gtkColumns) {
@@ -209,7 +212,7 @@ class AuthController extends Controller
                 });
             }
         }
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $pdColumns = array_values(array_filter(['nisn', 'nik', 'nipd', 'email'], fn($column) => Schema::hasColumn('peserta_didik', $column)));
             if ($pdColumns) {
                 $userQuery->orWhereIn('peserta_didik_id', function ($q) use ($identifier, $pdColumns) {
@@ -227,7 +230,7 @@ class AuthController extends Controller
         if (!$user) {
             // Cek apakah ada di tabel peserta_didik (misal belum dibuatkan record pengguna)
             $pdCandidate = null;
-            $pdColumns = Schema::hasTable('peserta_didik')
+            $pdColumns = Table::exists('peserta_didik')
                 ? array_values(array_filter(['nisn', 'nik', 'nipd', 'email'], fn($column) => Schema::hasColumn('peserta_didik', $column)))
                 : [];
             if ($pdColumns) {
@@ -514,7 +517,7 @@ class AuthController extends Controller
         }
 
         // 2. Cek email peserta didik pada tabel peserta_didik
-        if (Schema::hasTable('peserta_didik') && Schema::hasColumn('peserta_didik', 'email')) {
+        if (Table::exists('peserta_didik') && Schema::hasColumn('peserta_didik', 'email')) {
             $pd = DB::table('peserta_didik')
                 ->whereRaw('LOWER(email) = ?', [$email])
                 ->first();
@@ -551,7 +554,7 @@ class AuthController extends Controller
         }
 
         // 3. Cek tabel peserta_didik_identitas jika ada email tersimpan
-        if (Schema::hasTable('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', 'email')) {
+        if (Table::exists('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', 'email')) {
             $identitas = DB::table('peserta_didik_identitas')
                 ->whereRaw('LOWER(email) = ?', [$email])
                 ->first();
@@ -575,7 +578,7 @@ class AuthController extends Controller
         }
 
         // 4. Cek email GTK (Guru / Tendik) pada tabel gtk
-        if (Schema::hasTable('gtk') && Schema::hasColumn('gtk', 'email')) {
+        if (Table::exists('gtk') && Schema::hasColumn('gtk', 'email')) {
             $gtk = DB::table('gtk')
                 ->whereRaw('LOWER(email) = ?', [$email])
                 ->first();
@@ -655,7 +658,7 @@ class AuthController extends Controller
 
                 if ($user->role === 'tendik') {
                     $bagianTugas = null;
-                    if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+                    if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
                         $activeDuties = DB::table('ptk_tugas_tambahan as ptt')
                             ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                             ->where('ptt.is_active', true)
@@ -675,7 +678,7 @@ class AuthController extends Controller
                     $userData['mapel'] = $bagianTugas ?: ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
                 } else {
                     $mapelUtama = null;
-                    if (Schema::hasTable('pembelajaran')) {
+                    if (Table::exists('pembelajaran')) {
                         $topMapel = DB::table('pembelajaran')
                             ->where('ptk_id', $user->ptk_id)
                             ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
@@ -693,7 +696,7 @@ class AuthController extends Controller
                 $userData['nisn'] = $pd->nisn;
                 $userData['kelas'] = $pd->nama_rombel;
             }
-            if (Schema::hasTable('peserta_didik_meta')) {
+            if (Table::exists('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
                 if ($meta) {
                     if (!empty($meta->foto_path)) {
@@ -708,7 +711,7 @@ class AuthController extends Controller
         session(['user' => $userData]);
 
         try {
-            if (Schema::hasTable('admin_aktivitas')) {
+            if (Table::exists('admin_aktivitas')) {
                 \App\Models\AdminAktivitas::create([
                     'admin_name'     => $userData['name'],
                     'admin_username' => $userData['username'] ?? ($userData['nisn'] ?? null),

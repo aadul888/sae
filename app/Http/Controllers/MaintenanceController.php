@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
 
 use App\Services\BackupService;
+
+
+use App\Support\Table;
 
 class MaintenanceController extends Controller
 {
@@ -30,9 +32,9 @@ class MaintenanceController extends Controller
         if ($res = $this->checkAdmin()) return $res;
 
         $settings = DB::table('settings')->where('id', 1)->first();
-        $hasActiveData = (Schema::hasTable('peserta_didik') && DB::table('peserta_didik')->count() > 0)
-            || (Schema::hasTable('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
-            || (Schema::hasTable('gtk') && DB::table('gtk')->count() > 0);
+        $hasActiveData = (Table::exists('peserta_didik') && DB::table('peserta_didik')->count() > 0)
+            || (Table::exists('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
+            || (Table::exists('gtk') && DB::table('gtk')->count() > 0);
 
         $lastSync = $settings->last_sync ?? null;
         $archiveDownloadedAt = $settings->archive_downloaded_at ?? null;
@@ -45,13 +47,13 @@ class MaintenanceController extends Controller
         $fotoCount = File::isDirectory($fotoDir) ? count(File::files($fotoDir)) : 0;
 
         $counts = [
-            'peserta_didik' => Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
-            'peserta_didik_tidak_aktif' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->count() : 0,
-            'alumni_lulus' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', 'Alumni')->count() : 0,
-            'alumni_mutasi' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', '<>', 'Alumni')->count() : 0,
-            'gtk' => Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0,
-            'rombongan_belajar' => Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
-            'pembelajaran' => Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
+            'peserta_didik' => Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
+            'peserta_didik_tidak_aktif' => Table::exists('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->count() : 0,
+            'alumni_lulus' => Table::exists('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', 'Alumni')->count() : 0,
+            'alumni_mutasi' => Table::exists('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', '<>', 'Alumni')->count() : 0,
+            'gtk' => Table::exists('gtk') ? DB::table('gtk')->count() : 0,
+            'rombongan_belajar' => Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
+            'pembelajaran' => Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
             'foto_count' => $fotoCount,
         ];
 
@@ -163,7 +165,7 @@ class MaintenanceController extends Controller
 
         try {
             // Bersihkan sesi kedaluwarsa jika ada
-            if (Schema::hasTable('sessions')) {
+            if (Table::exists('sessions')) {
                 DB::table('sessions')->where('last_activity', '<', time() - (86400 * 7))->delete();
             }
 

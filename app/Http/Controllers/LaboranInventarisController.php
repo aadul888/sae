@@ -5,18 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class LaboranInventarisController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     public function index(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;

@@ -4,8 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service khusus rekapitulasi dan pemrosesan validasi kelengkapan data & berkas siswa per rombel binaan.
  * ponytail: static-calculator; upgrade ke Redis caching jika akses validasi serentak melebihi 100 req/sec.
@@ -73,15 +72,15 @@ class WaliKelasValidasiService
         $allPdIds = (clone $baseQuery)->pluck('pd.peserta_didik_id')->all();
         $totalSiswa = count($allPdIds);
 
-        $identitasAll = Schema::hasTable('peserta_didik_identitas') && !empty($allPdIds)
+        $identitasAll = Table::exists('peserta_didik_identitas') && !empty($allPdIds)
             ? DB::table('peserta_didik_identitas')->whereIn('peserta_didik_id', $allPdIds)->get()->keyBy('peserta_didik_id')
             : collect();
 
-        $berkasAll = Schema::hasTable('peserta_didik_berkas') && !empty($allPdIds)
+        $berkasAll = Table::exists('peserta_didik_berkas') && !empty($allPdIds)
             ? DB::table('peserta_didik_berkas')->whereIn('peserta_didik_id', $allPdIds)->get()->groupBy('peserta_didik_id')
             : collect();
 
-        $fisikAll = Schema::hasTable('kesiswaan_berkas_verifikasi') && !empty($allPdIds)
+        $fisikAll = Table::exists('kesiswaan_berkas_verifikasi') && !empty($allPdIds)
             ? DB::table('kesiswaan_berkas_verifikasi')->whereIn('peserta_didik_id', $allPdIds)->get()->keyBy('peserta_didik_id')
             : collect();
 
@@ -263,15 +262,15 @@ class WaliKelasValidasiService
         $list = $query->paginate($perPage)->withQueryString();
 
         $pagePdIds = $list->pluck('peserta_didik_id')->all();
-        $metaMap = Schema::hasTable('peserta_didik_meta') && !empty($pagePdIds)
+        $metaMap = Table::exists('peserta_didik_meta') && !empty($pagePdIds)
             ? DB::table('peserta_didik_meta')->whereIn('peserta_didik_id', $pagePdIds)->get()->keyBy('peserta_didik_id')
             : collect();
 
-        $berkasMap = Schema::hasTable('peserta_didik_berkas') && !empty($pagePdIds)
+        $berkasMap = Table::exists('peserta_didik_berkas') && !empty($pagePdIds)
             ? DB::table('peserta_didik_berkas')->whereIn('peserta_didik_id', $pagePdIds)->get()->groupBy('peserta_didik_id')
             : collect();
 
-        $fisikMap = Schema::hasTable('kesiswaan_berkas_verifikasi') && !empty($pagePdIds)
+        $fisikMap = Table::exists('kesiswaan_berkas_verifikasi') && !empty($pagePdIds)
             ? DB::table('kesiswaan_berkas_verifikasi')->whereIn('peserta_didik_id', $pagePdIds)->get()->keyBy('peserta_didik_id')
             : collect();
 

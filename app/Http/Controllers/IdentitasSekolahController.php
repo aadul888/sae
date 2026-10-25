@@ -6,43 +6,39 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Support\Table;
 
 class IdentitasSekolahController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
+
+    
 
     public function index(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
         $sekolah = null;
-        if (Schema::hasTable('sekolah')) {
+        if (Table::exists('sekolah')) {
             $sekolah = DB::table('sekolah')->first();
         }
 
         $settings = null;
-        if (Schema::hasTable('settings')) {
+        if (Table::exists('settings')) {
             $settings = DB::table('settings')->where('id', 1)->first();
         }
 
         $stats = [
-            'total_pd' => Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
-            'total_gtk' => Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0,
-            'total_rombel' => Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
-            'total_pembelajaran' => Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
-            'total_pengguna' => Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 0,
+            'total_pd' => Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
+            'total_gtk' => Table::exists('gtk') ? DB::table('gtk')->count() : 0,
+            'total_rombel' => Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
+            'total_pembelajaran' => Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
+            'total_pengguna' => Table::exists('pengguna') ? DB::table('pengguna')->count() : 0,
         ];
 
         $sekolahMeta = null;
-        if (Schema::hasTable('sekolah_meta')) {
+        if (Table::exists('sekolah_meta')) {
             $sekolahMeta = \App\Models\SekolahMeta::first();
         }
 
@@ -88,7 +84,7 @@ class IdentitasSekolahController extends Controller
             'website' => 'nullable|string|max:200',
         ]);
 
-        if (Schema::hasTable('sekolah')) {
+        if (Table::exists('sekolah')) {
             $current = DB::table('sekolah')->first();
             $data = [
                 'nama' => $request->input('nama', $current->nama ?? null),
@@ -150,7 +146,7 @@ class IdentitasSekolahController extends Controller
         ]);
 
         try {
-            $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+            $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
             $meta = \App\Models\SekolahMeta::getActiveMeta($sekolah?->sekolah_id, $sekolah?->npsn);
 
             // Hapus file fisik logo lama jika sudah pernah ada
@@ -246,7 +242,7 @@ class IdentitasSekolahController extends Controller
         ]);
 
         try {
-            $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+            $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
             $meta = \App\Models\SekolahMeta::getActiveMeta($sekolah?->sekolah_id, $sekolah?->npsn);
 
             // Hapus file fisik kop lama jika sudah pernah ada

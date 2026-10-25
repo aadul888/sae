@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $hasPd = Schema::hasTable('peserta_didik');
-        $hasRb = Schema::hasTable('rombongan_belajar');
+        $hasPd = Table::exists('peserta_didik');
+        $hasRb = Table::exists('rombongan_belajar');
 
         $totalPd = $hasPd ? DB::table('peserta_didik')->count() : 0;
         $maleCount = $hasPd ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 0;
@@ -76,7 +76,7 @@ class HomeController extends Controller
             ];
         }
 
-        $metaMap = Schema::hasTable('jurusan_meta')
+        $metaMap = Table::exists('jurusan_meta')
             ? DB::table('jurusan_meta')->whereNotNull('singkatan')->pluck('singkatan', 'nama_jurusan')->toArray()
             : [];
 
@@ -176,7 +176,7 @@ class HomeController extends Controller
             ], 422);
         }
 
-        if (!Schema::hasTable('peserta_didik')) {
+        if (!Table::exists('peserta_didik')) {
             return response()->json([
                 'status' => 'error',
                 'found' => false,

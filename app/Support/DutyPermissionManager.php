@@ -4,8 +4,7 @@ namespace App\Support;
 
 use App\Models\RefTugasTambahan;
 use App\Models\RolePermission;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 final class DutyPermissionManager
 {
     /**
@@ -13,7 +12,7 @@ final class DutyPermissionManager
      */
     public static function updateDutyPermissions(string|int $dutyIdOrKode, array $grantedPermissions): bool
     {
-        if (!Schema::hasTable('ref_tugas_tambahan')) {
+        if (!Table::exists('ref_tugas_tambahan')) {
             return false;
         }
 
@@ -40,7 +39,7 @@ final class DutyPermissionManager
      */
     public static function resetDutyDefaults(string|int|null $dutyIdOrKode = null): void
     {
-        if (!Schema::hasTable('ref_tugas_tambahan')) {
+        if (!Table::exists('ref_tugas_tambahan')) {
             return;
         }
 
@@ -67,7 +66,7 @@ final class DutyPermissionManager
      */
     public static function toggleDutyPermission(string|int $dutyIdOrKode, string $permissionKey, bool $isAllowed): array
     {
-        if (!Schema::hasTable('ref_tugas_tambahan')) {
+        if (!Table::exists('ref_tugas_tambahan')) {
             return [];
         }
 
@@ -103,7 +102,7 @@ final class DutyPermissionManager
      */
     public static function syncDutiesGrantedPermissions(): void
     {
-        if (!Schema::hasTable('ref_tugas_tambahan')) {
+        if (!Table::exists('ref_tugas_tambahan')) {
             return;
         }
 

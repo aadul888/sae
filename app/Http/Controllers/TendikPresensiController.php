@@ -8,7 +8,7 @@ use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class TendikPresensiController extends Controller
 {
@@ -109,7 +109,7 @@ class TendikPresensiController extends Controller
         $userName = is_array($sessionUser) ? ($sessionUser['nama'] ?? ($sessionUser['name'] ?? 'Tenaga Kependidikan')) : ($sessionUser->nama ?? ($sessionUser->name ?? 'Tenaga Kependidikan'));
 
         $gtk = null;
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             if ($ptkId) {
                 $gtk = DB::table('gtk')->where('ptk_id', $ptkId)->first();
             } else {
@@ -119,7 +119,7 @@ class TendikPresensiController extends Controller
 
         // Tugas Tambahan
         $bagianTugas = null;
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $duties = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)
@@ -268,7 +268,7 @@ class TendikPresensiController extends Controller
 
         // Data Pejabat Penandatangan
         $kepalaSekolah = null;
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $kepalaSekolah = DB::table('gtk')
                 ->where('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%')
                 ->orWhere('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
@@ -276,7 +276,7 @@ class TendikPresensiController extends Controller
         }
 
         $kepalaTas = null;
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $kepalaTasRecord = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)

@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
+use App\Support\Table;
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -149,7 +152,7 @@ class User extends Authenticatable
 
             // 2. Jika mengampu mata pelajaran pada tabel pembelajaran, tugas utamanya adalah GURU
             if (!empty($this->ptk_id)) {
-                if (\Illuminate\Support\Facades\Schema::hasTable('pembelajaran')) {
+                if (\App\Support\Table::exists('pembelajaran')) {
                     $isMengajar = \Illuminate\Support\Facades\DB::table('pembelajaran')->where('ptk_id', $this->ptk_id)->exists();
                     if ($isMengajar) {
                         return 'guru';
@@ -158,7 +161,7 @@ class User extends Authenticatable
             }
 
             // 3. Cek penugasan aktif tendik untuk pengguna yang bukan guru
-            if (\Illuminate\Support\Facades\Schema::hasTable('ptk_tugas_tambahan') && \Illuminate\Support\Facades\Schema::hasTable('ref_tugas_tambahan')) {
+            if (\App\Support\Table::exists('ptk_tugas_tambahan') && \App\Support\Table::exists('ref_tugas_tambahan')) {
                 $hasTendikDuty = \Illuminate\Support\Facades\DB::table('ptk_tugas_tambahan as ptt')
                     ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                     ->where('ptt.is_active', true)

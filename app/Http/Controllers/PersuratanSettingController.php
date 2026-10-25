@@ -7,18 +7,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
 use App\Services\PersuratanHddService;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class PersuratanSettingController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilan utama Pengaturan Sistem Persuratan & Master Indeks
      */

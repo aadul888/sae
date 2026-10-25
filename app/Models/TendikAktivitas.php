@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
+use App\Support\Table;
+
 class TendikAktivitas extends Model
 {
     use HasFactory;
@@ -238,7 +241,7 @@ class TendikAktivitas extends Model
                 ? sprintf($uraianTemplate, $count)
                 : "Melaksanakan {$baseAction} sebanyak total {$count} {$unit} pada agenda kerja harian sekolah.";
 
-            if (!$indikatorId && \Illuminate\Support\Facades\Schema::hasTable('tendik_indikator_kinerja')) {
+            if (!$indikatorId && \App\Support\Table::exists('tendik_indikator_kinerja')) {
                 $indikatorId = TendikIndikatorKinerja::where('bidang', $bidang)
                     ->where('is_active', true)
                     ->orderBy('urutan')
@@ -328,7 +331,7 @@ class TendikAktivitas extends Model
             }
 
             // Hubungkan secara cerdas ke indikator kinerja sasaran per bidang
-            if (!$indikatorId && \Illuminate\Support\Facades\Schema::hasTable('tendik_indikator_kinerja')) {
+            if (!$indikatorId && \App\Support\Table::exists('tendik_indikator_kinerja')) {
                 $indikatorId = TendikIndikatorKinerja::where('bidang', $bidang)
                     ->where('is_active', true)
                     ->orderBy('urutan')

@@ -7,8 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service agregasi data metrik, visualisasi statistik, dan log aktivitas dashboard Admin.
  * ponytail: static-calculator; upgrade ke background cache jika query tren 7 hari memakan > 150ms.
@@ -20,25 +19,25 @@ class AdminDashboardStatsService
      */
     public static function getStats(Request $request): array
     {
-        $totalPd = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
-        $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+        $totalPd = Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
+        $totalGuru = Table::exists('gtk') ? DB::table('gtk')->where(function ($q) {
             $q->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
                 ->orWhereNull('jenis_ptk_id_str');
         })->count() : 0;
 
-        $totalTendik = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+        $totalTendik = Table::exists('gtk') ? DB::table('gtk')->where(function ($q) {
             $q->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tata Usaha%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Laboran%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%');
         })->count() : 0;
 
-        $totalKelas = Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
-        $totalPembelajaran = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
-        $totalPengguna = Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 0;
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $setting = Schema::hasTable('settings') ? DB::table('settings')->first() : null;
+        $totalKelas = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
+        $totalPembelajaran = Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
+        $totalPengguna = Table::exists('pengguna') ? DB::table('pengguna')->count() : 0;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $setting = Table::exists('settings') ? DB::table('settings')->first() : null;
         $lastSync = $setting->last_sync ?? null;
         $appVersion = $setting->app_version ?? UpdateService::CURRENT_VERSION;
 
@@ -53,7 +52,7 @@ class AdminDashboardStatsService
 
         // Presensi Masuk Hari Ini (Data Real)
         $today = date('Y-m-d');
-        $todayPresensi = Schema::hasTable('presensi_harian')
+        $todayPresensi = Table::exists('presensi_harian')
             ? DB::table('presensi_harian')->whereDate('tanggal', $today)->get()
             : collect();
 
@@ -62,7 +61,7 @@ class AdminDashboardStatsService
             $presensiTodayPct = $totalPd > 0 ? min(100.0, round(($hadirHariIni / $totalPd) * 100, 1)) : 0;
             $rfidTapsToday = $todayPresensi->where('metode_masuk', 'rfid')->count() ?: $hadirHariIni;
         } else {
-            $latestTgl = Schema::hasTable('presensi_harian') ? DB::table('presensi_harian')->max('tanggal') : null;
+            $latestTgl = Table::exists('presensi_harian') ? DB::table('presensi_harian')->max('tanggal') : null;
             if ($latestTgl) {
                 $latestRecords = DB::table('presensi_harian')->whereDate('tanggal', $latestTgl)->get();
                 $hadirHariIni = $latestRecords->whereIn('status', ['H', 'T'])->count();
@@ -102,10 +101,10 @@ class AdminDashboardStatsService
         } catch (\Throwable $e) {}
 
         // 2. Data Visualisasi Charts Interaktif
-        $datesPd = Schema::hasTable('presensi_harian')
+        $datesPd = Table::exists('presensi_harian')
             ? DB::table('presensi_harian')->select('tanggal')->distinct()->orderByDesc('tanggal')->limit(7)->pluck('tanggal')
             : collect();
-        $datesPm = Schema::hasTable('presensi_mengajar')
+        $datesPm = Table::exists('presensi_mengajar')
             ? DB::table('presensi_mengajar')->select('tanggal')->distinct()->orderByDesc('tanggal')->limit(7)->pluck('tanggal')
             : collect();
 
@@ -124,7 +123,7 @@ class AdminDashboardStatsService
         foreach ($trendDates as $tgl) {
             $trendLabels[] = Carbon::parse($tgl)->translatedFormat('d M');
 
-            $recordsPd = Schema::hasTable('presensi_harian')
+            $recordsPd = Table::exists('presensi_harian')
                 ? DB::table('presensi_harian')->whereDate('tanggal', $tgl)->get()
                 : collect();
 
@@ -136,7 +135,7 @@ class AdminDashboardStatsService
             }
             $trendSiswa[] = $pctPd;
 
-            $recordsGuru = Schema::hasTable('presensi_mengajar')
+            $recordsGuru = Table::exists('presensi_mengajar')
                 ? DB::table('presensi_mengajar')->whereDate('tanggal', $tgl)->get()
                 : collect();
 
@@ -147,7 +146,7 @@ class AdminDashboardStatsService
                 })->pluck('ptk_id')->filter()->unique()->count();
 
                 $hariNama = Carbon::parse($tgl)->translatedFormat('l');
-                $scheduledGuruCount = Schema::hasTable('jadwal_kbm')
+                $scheduledGuruCount = Table::exists('jadwal_kbm')
                     ? DB::table('jadwal_kbm')
                         ->where('hari', $hariNama)
                         ->where('is_active', true)
@@ -180,7 +179,7 @@ class AdminDashboardStatsService
 
         // Chart Bar: Sebaran Siswa per Jurusan
         $jurusanStats = collect();
-        if (Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')) {
+        if (Table::exists('rombongan_belajar') && Table::exists('peserta_didik')) {
             $rawJurusan = DB::table('rombongan_belajar as rb')
                 ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
                 ->select(
@@ -193,7 +192,7 @@ class AdminDashboardStatsService
                 ->limit(6)
                 ->get();
 
-            $singkatanMap = Schema::hasTable('jurusan_meta')
+            $singkatanMap = Table::exists('jurusan_meta')
                 ? DB::table('jurusan_meta')->whereNotNull('singkatan')->where('singkatan', '<>', '')->pluck('singkatan', 'jurusan_id')
                 : collect();
 
@@ -214,7 +213,7 @@ class AdminDashboardStatsService
         ];
 
         // Chart Polar Area: Siswa per Tingkat
-        $tingkatStats = Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')
+        $tingkatStats = Table::exists('rombongan_belajar') && Table::exists('peserta_didik')
             ? DB::table('rombongan_belajar as rb')
                 ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
                 ->select('rb.tingkat_pendidikan_id as tingkat', DB::raw('count(pd.peserta_didik_id) as total'))
@@ -250,7 +249,7 @@ class AdminDashboardStatsService
             'data'         => [],
         ];
 
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             foreach ($bulanList as $b) {
                 $chartSiswaBulanan['labels'][] = $b['label'];
                 $endOfMonth = Carbon::create($b['y'], $b['m'], 1)->endOfMonth()->toDateString();
@@ -262,7 +261,7 @@ class AdminDashboardStatsService
                     })
                     ->count();
 
-                if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+                if (Table::exists('peserta_didik_tidak_aktif')) {
                     $countMutasiSetelah = DB::table('peserta_didik_tidak_aktif')
                         ->whereNotNull('tanggal_keluar')
                         ->where('tanggal_keluar', '>', $endOfMonth)
@@ -301,7 +300,7 @@ class AdminDashboardStatsService
         }
 
         $aktivitasLogs = $queryLogs->paginate($perPage)->withQueryString();
-        $availableModules = Schema::hasTable('admin_aktivitas') 
+        $availableModules = Table::exists('admin_aktivitas') 
             ? DB::table('admin_aktivitas')->distinct()->pluck('modul')->filter()->values()
             : collect(['Dapodik', 'Formulir', 'Sistem', 'Backup', 'Pengumuman', 'Hak Akses', 'Presensi']);
 

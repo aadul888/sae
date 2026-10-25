@@ -6,6 +6,7 @@ use App\Models\PipKuotaRombel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Support\Table;
 /**
  * Service khusus kalkulasi dan agregasi statistik tab Dashboard Overview PIP.
  * ponytail: static-calculator; upgrade ke Redis cached snapshot jika pemanggilan dashboard melebihi 100 req/sec.
@@ -24,7 +25,7 @@ class PipDashboardStatsService
         bool $hasKuotaTable,
         bool $hasRiwayatTable
     ): array {
-        $hasPdTable = Schema::hasTable('peserta_didik');
+        $hasPdTable = Table::exists('peserta_didik');
         $hasJenisSk = $hasRiwayatTable && Schema::hasColumn('pip_riwayat', 'jenis_sk');
 
         // Siswa aktif

@@ -12,10 +12,13 @@ use App\Models\SiswaUsulanPerubahan;
 use App\Support\RefDapodikHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Support\Table;
 
 class IdentitasPesertaDidikController extends Controller
 {
+    use ChecksAuthenticatedSession;
+
     private function normalizeComparableValue($value): ?string
     {
         if ($value === null) {
@@ -54,14 +57,7 @@ class IdentitasPesertaDidikController extends Controller
         return $oldNormalized !== $newNormalized;
     }
 
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    
 
     private function resolveStudentContext(Request $request): array
     {
@@ -85,7 +81,7 @@ class IdentitasPesertaDidikController extends Controller
             }
         } else {
             // Admin, Guru, Tendik dapat melihat daftar dan memilih siswa
-            if (Schema::hasTable('peserta_didik')) {
+            if (Table::exists('peserta_didik')) {
                 $allPdList = DB::table('peserta_didik')
                     ->select('peserta_didik_id', 'nama', 'nisn', 'nipd', 'nama_rombel')
                     ->orderBy('nama')
@@ -102,7 +98,7 @@ class IdentitasPesertaDidikController extends Controller
         }
 
         $pd = null;
-        if ($pdId && Schema::hasTable('peserta_didik')) {
+        if ($pdId && Table::exists('peserta_didik')) {
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
         }
 

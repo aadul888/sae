@@ -5,7 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class PipPengaturan extends Model
 {
@@ -43,7 +43,7 @@ class PipPengaturan extends Model
             : ($tahun . '/' . ((int) $tahun + 1));
         $defaultJudul = "Usulan PIP Tahun {$tahun} — " . PipUsulan::getFaseLabel($defaultFase);
 
-        if (!Schema::hasTable('pip_pengaturan')) {
+        if (!Table::exists('pip_pengaturan')) {
             $dummy = new self();
             $dummy->tahun = $tahun;
             $dummy->fase = $defaultFase;

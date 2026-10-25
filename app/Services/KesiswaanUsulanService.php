@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+
+use App\Support\Table;
+
 class KesiswaanUsulanService
 {
     /**
@@ -61,7 +64,7 @@ class KesiswaanUsulanService
     public function getUsulanDetail(string|int $id): array
     {
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 
@@ -83,12 +86,12 @@ class KesiswaanUsulanService
         }
 
         $meta = null;
-        if (Schema::hasTable('peserta_didik_meta') && $pd) {
+        if (Table::exists('peserta_didik_meta') && $pd) {
             $meta = PesertaDidikMeta::where('peserta_didik_id', $pdId)->first();
         }
 
         $berkas = collect();
-        if (Schema::hasTable('peserta_didik_berkas') && $pd) {
+        if (Table::exists('peserta_didik_berkas') && $pd) {
             $berkas = PesertaDidikBerkas::where('peserta_didik_id', $pdId)
                 ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp', 'akta_kelahiran'])
                 ->get()
@@ -267,7 +270,7 @@ class KesiswaanUsulanService
         $userName = is_array($user) ? ($user['nama'] ?? 'Verifikator') : ($user->nama ?? 'Verifikator');
 
         $isPd = PesertaDidik::where('peserta_didik_id', $id)->exists()
-            || (Schema::hasTable('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
+            || (Table::exists('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
 
         if ($isPd) {
             $query = SiswaUsulanPerubahan::where('peserta_didik_id', $id);
@@ -296,7 +299,7 @@ class KesiswaanUsulanService
                 if (Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
                     $pdUpdates[$usulan->kolom_perubahan] = $usulan->nilai_baru;
                 }
-                if (Schema::hasTable('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
+                if (Table::exists('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
                     $identitasUpdates[$usulan->kolom_perubahan] = $usulan->nilai_baru;
                 }
             }
@@ -306,7 +309,7 @@ class KesiswaanUsulanService
             DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->update($pdUpdates);
         }
 
-        if (Schema::hasTable('peserta_didik_identitas')) {
+        if (Table::exists('peserta_didik_identitas')) {
             $remainingPending = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
                 ->where('status', 'menunggu')
                 ->count();
@@ -350,7 +353,7 @@ class KesiswaanUsulanService
         $userName = is_array($user) ? ($user['nama'] ?? 'Operator Dapodik') : ($user->nama ?? 'Operator Dapodik');
 
         $isPd = PesertaDidik::where('peserta_didik_id', $id)->exists()
-            || (Schema::hasTable('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
+            || (Table::exists('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
 
         if ($isPd) {
             $usulanList = SiswaUsulanPerubahan::where('peserta_didik_id', $id)
@@ -369,7 +372,7 @@ class KesiswaanUsulanService
             $usulan->save();
         }
 
-        if (Schema::hasTable('peserta_didik_identitas')) {
+        if (Table::exists('peserta_didik_identitas')) {
             $remaining = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
                 ->whereIn('status', ['menunggu', 'disetujui'])
                 ->count();

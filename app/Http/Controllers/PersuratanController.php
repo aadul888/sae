@@ -6,18 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\RolePermission;
 use App\Models\Persuratan;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class PersuratanController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilkan halaman utama modul Persuratan & Arsip Digital.
      */

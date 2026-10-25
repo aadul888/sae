@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use ZipArchive;
 
+
+use App\Support\Table;
+
 class UpdateService
 {
     const CURRENT_VERSION = '1.0.4';
@@ -19,7 +22,7 @@ class UpdateService
      */
     public function checkUpdate(): array
     {
-        $setting = Schema::hasTable('settings') ? DB::table('settings')->where('id', 1)->first() : null;
+        $setting = Table::exists('settings') ? DB::table('settings')->where('id', 1)->first() : null;
         $currentVersion = $setting->app_version ?? self::CURRENT_VERSION;
         $lastUpdateAt = $setting->last_update_at ?? null;
 
@@ -173,7 +176,7 @@ class UpdateService
     public function getPendingMigrations(): array
     {
         try {
-            if (!Schema::hasTable('migrations')) {
+            if (!Table::exists('migrations')) {
                 return [];
             }
 
@@ -330,7 +333,7 @@ class UpdateService
 
         // 3. Catat Versi & Waktu Update ke Database
         try {
-            if (Schema::hasTable('settings')) {
+            if (Table::exists('settings')) {
                 $commitShort = $newCommit ? substr($newCommit, 0, 7) : null;
                 $updateData = [
                     'updated_at' => now(),

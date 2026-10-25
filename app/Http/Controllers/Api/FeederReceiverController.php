@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+
+
+use App\Support\Table;
 
 class FeederReceiverController extends Controller
 {
@@ -54,9 +56,9 @@ class FeederReceiverController extends Controller
 
         if ($type === 'auth_check') {
             $settings = DB::table('settings')->where('id', 1)->first();
-            $hasActiveData = (Schema::hasTable('peserta_didik') && DB::table('peserta_didik')->count() > 0)
-                || (Schema::hasTable('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
-                || (Schema::hasTable('gtk') && DB::table('gtk')->count() > 0);
+            $hasActiveData = (Table::exists('peserta_didik') && DB::table('peserta_didik')->count() > 0)
+                || (Table::exists('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
+                || (Table::exists('gtk') && DB::table('gtk')->count() > 0);
             $syncAllowed = $hasActiveData ? (bool)($settings->sync_allowed ?? false) : true;
 
             return response()->json([
@@ -79,9 +81,9 @@ class FeederReceiverController extends Controller
 
         // Cek proteksi keamanan pergantian data:
         // Jika database SAE sudah memiliki data aktif sebelumnya, admin WAJIB mencadangkan & mengunduh berkas arsip terlebih dahulu.
-        $hasActiveData = (Schema::hasTable('peserta_didik') && DB::table('peserta_didik')->count() > 0)
-            || (Schema::hasTable('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
-            || (Schema::hasTable('gtk') && DB::table('gtk')->count() > 0);
+        $hasActiveData = (Table::exists('peserta_didik') && DB::table('peserta_didik')->count() > 0)
+            || (Table::exists('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
+            || (Table::exists('gtk') && DB::table('gtk')->count() > 0);
 
         if ($hasActiveData) {
             $settings = DB::table('settings')->where('id', 1)->first();
@@ -260,8 +262,13 @@ class FeederReceiverController extends Controller
             'created_at' => now(),
         ];
 
-        DB::table('sekolah')->delete();
-        DB::table('sekolah')->insert($record);
+        // Ganti isi tabel sekolah secara atomik: bila insert gagal, delete
+        // dibatalkan sehingga data lama tetap utuh.
+        DB::transaction(function () use ($record) {
+            DB::table('sekolah')->delete();
+            DB::table('sekolah')->insert($record);
+        });
+
         return 1;
     }
 
@@ -361,26 +368,31 @@ class FeederReceiverController extends Controller
         $this->archiveTable('anggota_rombel', 'backup_anggota_rombel');
         $this->archiveTable('pembelajaran', 'backup_pembelajaran');
 
-        // Overwrite rombongan_belajar
-        DB::table('rombongan_belajar')->delete();
-        foreach (array_chunk($batchRombel, 200) as $chunk) {
-            DB::table('rombongan_belajar')->insert($chunk);
-        }
-
-        // Overwrite relational anggota_rombel & pembelajaran
-        if (!empty($batchAnggota)) {
-            DB::table('anggota_rombel')->delete();
-            foreach (array_chunk(array_values($batchAnggota), 200) as $chunk) {
-                DB::table('anggota_rombel')->insert($chunk);
+        // Overwrite dilakukan dalam satu transaksi. Tanpa transaksi, kegagalan
+        // insert di tengah proses akan meninggalkan tabel sudah terhapus namun
+        // hanya terisi sebagian — data rombel hilang permanen.
+        DB::transaction(function () use ($batchRombel, $batchAnggota, $batchPembelajaran) {
+            // Overwrite rombongan_belajar
+            DB::table('rombongan_belajar')->delete();
+            foreach (array_chunk($batchRombel, 200) as $chunk) {
+                DB::table('rombongan_belajar')->insert($chunk);
             }
-        }
 
-        if (!empty($batchPembelajaran)) {
-            DB::table('pembelajaran')->delete();
-            foreach (array_chunk(array_values($batchPembelajaran), 200) as $chunk) {
-                DB::table('pembelajaran')->insert($chunk);
+            // Overwrite relational anggota_rombel & pembelajaran
+            if (!empty($batchAnggota)) {
+                DB::table('anggota_rombel')->delete();
+                foreach (array_chunk(array_values($batchAnggota), 200) as $chunk) {
+                    DB::table('anggota_rombel')->insert($chunk);
+                }
             }
-        }
+
+            if (!empty($batchPembelajaran)) {
+                DB::table('pembelajaran')->delete();
+                foreach (array_chunk(array_values($batchPembelajaran), 200) as $chunk) {
+                    DB::table('pembelajaran')->insert($chunk);
+                }
+            }
+        });
 
         // Sinkronkan otomatis tugas tambahan Wali Kelas dari rombongan_belajar
         try {
@@ -449,11 +461,13 @@ class FeederReceiverController extends Controller
         // Backup existing data
         $this->archiveTable('gtk', 'backup_gtk');
 
-        // Overwrite live gtk
-        DB::table('gtk')->delete();
-        foreach (array_chunk($batchGtk, 200) as $chunk) {
-            DB::table('gtk')->insert($chunk);
-        }
+        // Overwrite live gtk secara atomik (delete dibatalkan bila insert gagal)
+        DB::transaction(function () use ($batchGtk) {
+            DB::table('gtk')->delete();
+            foreach (array_chunk($batchGtk, 200) as $chunk) {
+                DB::table('gtk')->insert($chunk);
+            }
+        });
 
         return count($batchGtk);
     }
@@ -573,7 +587,7 @@ class FeederReceiverController extends Controller
         }
 
         // 1. Deteksi Siswa yang Tidak Aktif / Alumni (Siswa lama yang tidak ada di kiriman Feeder baru)
-        if (Schema::hasTable('peserta_didik') && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (Table::exists('peserta_didik') && Table::exists('peserta_didik_tidak_aktif')) {
             $incomingPdIds = array_filter(array_column($batchPd, 'peserta_didik_id'));
             // Pastikan siswa yang masuk data aktif DAPODIK otomatis dibersihkan dari tabel tidak aktif agar tidak ganda
             if (!empty($incomingPdIds)) {
@@ -584,7 +598,7 @@ class FeederReceiverController extends Controller
             $missingPdIds = array_diff($currentPdIds, $incomingPdIds);
 
             if (!empty($missingPdIds)) {
-                $metas = Schema::hasTable('peserta_didik_meta')
+                $metas = Table::exists('peserta_didik_meta')
                     ? DB::table('peserta_didik_meta')->whereIn('peserta_didik_id', $missingPdIds)->get()->keyBy('peserta_didik_id')
                     : collect();
 
@@ -643,11 +657,13 @@ class FeederReceiverController extends Controller
         // Backup existing live peserta_didik ke tabel backup_peserta_didik
         $this->archiveTable('peserta_didik', 'backup_peserta_didik');
 
-        // Overwrite live peserta_didik
-        DB::table('peserta_didik')->delete();
-        foreach (array_chunk($batchPd, 250) as $chunk) {
-            DB::table('peserta_didik')->insert($chunk);
-        }
+        // Overwrite live peserta_didik secara atomik (delete dibatalkan bila insert gagal)
+        DB::transaction(function () use ($batchPd) {
+            DB::table('peserta_didik')->delete();
+            foreach (array_chunk($batchPd, 250) as $chunk) {
+                DB::table('peserta_didik')->insert($chunk);
+            }
+        });
 
         // Sinkronisasi Akun Pengguna Peserta Didik:
         // PERTAHANKAN PASSWORD SISWA YANG PERNAH DIUBAH! JANGAN DELETE ATAU RESET PASSWORD MEREKA.
@@ -858,7 +874,7 @@ class FeederReceiverController extends Controller
                     }
                 }
             }
-            if (Schema::hasTable('sessions')) {
+            if (Table::exists('sessions')) {
                 DB::table('sessions')->delete();
             }
         } catch (\Exception $e) {

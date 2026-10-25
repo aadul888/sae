@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class TendikAktifController extends Controller
 {
@@ -27,7 +27,7 @@ class TendikAktifController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('gtk')) {
+        if (!Table::exists('gtk')) {
             return view('dashboard.tendik-aktif', [
                 'list' => collect(),
                 'total' => 0,

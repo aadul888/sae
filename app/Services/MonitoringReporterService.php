@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 
+
+use App\Support\Table;
+
 class MonitoringReporterService
 {
     /**
@@ -14,47 +17,47 @@ class MonitoringReporterService
      */
     public static function collectCounts(): array
     {
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $setting = Schema::hasTable('settings') ? DB::table('settings')->where('id', 1)->first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $setting = Table::exists('settings') ? DB::table('settings')->where('id', 1)->first() : null;
 
         $npsn = $sekolah->npsn ?? ($setting->npsn ?? '00000000');
         $namaSekolah = $sekolah->nama ?? ($setting->app_name ?? 'SAE Instance');
         $bentukPendidikan = $sekolah->bentuk_pendidikan_id_str ?? null;
 
         // Ambil data angka saja dari tabel-tabel sync (selaras 100% dengan DashboardController)
-        $totalPesertaDidik = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
+        $totalPesertaDidik = Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
 
-        $totalGtk = Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0;
-        $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+        $totalGtk = Table::exists('gtk') ? DB::table('gtk')->count() : 0;
+        $totalGuru = Table::exists('gtk') ? DB::table('gtk')->where(function ($q) {
             $q->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
                 ->orWhereNull('jenis_ptk_id_str');
         })->count() : 0;
 
-        $totalTendik = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+        $totalTendik = Table::exists('gtk') ? DB::table('gtk')->where(function ($q) {
             $q->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tata Usaha%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Laboran%')
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%');
         })->count() : 0;
 
-        $totalRombel = Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
-        $totalPembelajaran = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
+        $totalRombel = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
+        $totalPembelajaran = Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
 
         // Akun Pengguna: Di SAE menggunakan tabel 'pengguna'
-        $totalPengguna = Schema::hasTable('pengguna')
+        $totalPengguna = Table::exists('pengguna')
             ? DB::table('pengguna')->count()
-            : (Schema::hasTable('users') ? DB::table('users')->count() : 0);
+            : (Table::exists('users') ? DB::table('users')->count() : 0);
 
         $totalAdmin = 0;
-        if (Schema::hasTable('pengguna') && Schema::hasColumn('pengguna', 'peran_id_str')) {
+        if (Table::exists('pengguna') && Schema::hasColumn('pengguna', 'peran_id_str')) {
             $totalAdmin = DB::table('pengguna')->where('peran_id_str', 'LIKE', '%admin%')->count();
-        } elseif (Schema::hasTable('users') && Schema::hasColumn('users', 'role')) {
+        } elseif (Table::exists('users') && Schema::hasColumn('users', 'role')) {
             $totalAdmin = DB::table('users')->where('role', 'admin')->count();
         }
 
-        $totalSarpras = Schema::hasTable('sarpras') ? DB::table('sarpras')->count() : 0;
-        $totalJadwal = Schema::hasTable('jadwal_pelajaran') ? DB::table('jadwal_pelajaran')->count() : 0;
+        $totalSarpras = Table::exists('sarpras') ? DB::table('sarpras')->count() : 0;
+        $totalJadwal = Table::exists('jadwal_pelajaran') ? DB::table('jadwal_pelajaran')->count() : 0;
 
         // Rincian angka per tabel sync (angka saja)
         $tableCounts = [

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class RombelController extends Controller
 {
@@ -45,7 +45,7 @@ class RombelController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('rombongan_belajar')) {
+        if (!Table::exists('rombongan_belajar')) {
             return view('dashboard.rombel', [
                 'list' => collect(),
                 'total' => 0,
@@ -106,7 +106,7 @@ class RombelController extends Controller
             ->values();
 
         // Hitung peserta didik per rombel dari tabel peserta_didik dan anggota_rombel
-        $pdCounts = Schema::hasTable('peserta_didik')
+        $pdCounts = Table::exists('peserta_didik')
             ? DB::table('peserta_didik')
             ->whereNotNull('rombongan_belajar_id')
             ->where('rombongan_belajar_id', '<>', '')
@@ -114,7 +114,7 @@ class RombelController extends Controller
             ->pluck(DB::raw('COUNT(*) as total'), 'rombongan_belajar_id')
             : collect();
 
-        $arCounts = Schema::hasTable('anggota_rombel')
+        $arCounts = Table::exists('anggota_rombel')
             ? DB::table('anggota_rombel')
             ->whereNotNull('rombongan_belajar_id')
             ->where('rombongan_belajar_id', '<>', '')
@@ -227,8 +227,8 @@ class RombelController extends Controller
         }
 
         $pesertaDidik = collect();
-        if (Schema::hasTable('peserta_didik')) {
-            $arPesertaDidikIds = Schema::hasTable('anggota_rombel')
+        if (Table::exists('peserta_didik')) {
+            $arPesertaDidikIds = Table::exists('anggota_rombel')
                 ? DB::table('anggota_rombel')
                 ->where('rombongan_belajar_id', $id)
                 ->pluck('peserta_didik_id')
@@ -257,7 +257,7 @@ class RombelController extends Controller
 
             $pesertaDidik = $pdQuery->orderBy('peserta_didik.nama', 'asc')->get();
 
-            if (Schema::hasTable('peserta_didik_meta') && $pesertaDidik->isNotEmpty()) {
+            if (Table::exists('peserta_didik_meta') && $pesertaDidik->isNotEmpty()) {
                 $pdIds = $pesertaDidik->pluck('peserta_didik_id')->filter()->toArray();
                 $metas = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id');
                 foreach ($pesertaDidik as $s) {
@@ -269,7 +269,7 @@ class RombelController extends Controller
         }
 
         $pembelajaran = collect();
-        if (Schema::hasTable('pembelajaran')) {
+        if (Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
                 ->where('pembelajaran.rombongan_belajar_id', $id)

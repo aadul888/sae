@@ -7,6 +7,7 @@ use App\Models\PipRiwayat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Support\Table;
 /**
  * Service pemrosesan logika bisnis modul Program Indonesia Pintar (PIP).
  * ponytail: static-orchestrator; upgrade ke dynamic repository/queue worker bila import/rekapitulasi melebihi 50.000 baris.
@@ -19,7 +20,7 @@ class PipService
     public static function ensureSchema(): void
     {
         try {
-            if (!Schema::hasTable('pip_kuota_rombel')) {
+            if (!Table::exists('pip_kuota_rombel')) {
                 Schema::create('pip_kuota_rombel', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->id();
                     $table->string('rombongan_belajar_id', 50)->index();
@@ -31,7 +32,7 @@ class PipService
                 });
             }
 
-            if (!Schema::hasTable('pip_usulan')) {
+            if (!Table::exists('pip_usulan')) {
                 Schema::create('pip_usulan', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->id();
                     $table->string('peserta_didik_id', 50)->index();
@@ -50,7 +51,7 @@ class PipService
                 });
             }
 
-            if (!Schema::hasTable('pip_riwayat')) {
+            if (!Table::exists('pip_riwayat')) {
                 Schema::create('pip_riwayat', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->id();
                     $table->string('peserta_didik_id', 50)->nullable()->index();
@@ -93,7 +94,7 @@ class PipService
                 });
             }
 
-            if (!Schema::hasTable('pip_pengaturan')) {
+            if (!Table::exists('pip_pengaturan')) {
                 Schema::create('pip_pengaturan', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->id();
                     $table->string('tahun', 20)->default('2026')->unique();
@@ -121,7 +122,7 @@ class PipService
                 });
             }
 
-            if (Schema::hasTable('pip_usulan')) {
+            if (Table::exists('pip_usulan')) {
                 Schema::table('pip_usulan', function (\Illuminate\Database\Schema\Blueprint $table) {
                     if (!Schema::hasColumn('pip_usulan', 'fase')) {
                         $table->string('fase', 50)->default('fase_1')->after('tahun')->index();
@@ -157,7 +158,7 @@ class PipService
                 } catch (\Throwable) {}
             }
 
-            if (Schema::hasTable('pip_riwayat')) {
+            if (Table::exists('pip_riwayat')) {
                 Schema::table('pip_riwayat', function (\Illuminate\Database\Schema\Blueprint $table) {
                     if (!Schema::hasColumn('pip_riwayat', 'fase')) {
                         $table->string('fase', 50)->nullable()->after('tahap')->index();
@@ -172,7 +173,7 @@ class PipService
             }
 
             // Sinkronkan peserta_didik_id dari NISN jika masih kosong
-            if (Schema::hasTable('pip_riwayat') && Schema::hasTable('peserta_didik')) {
+            if (Table::exists('pip_riwayat') && Table::exists('peserta_didik')) {
                 $hasMissing = DB::table('pip_riwayat')
                     ->where(function ($q) {
                         $q->whereNull('peserta_didik_id')->orWhere('peserta_didik_id', '');
@@ -228,7 +229,7 @@ class PipService
         }
 
         $studentCounts = [];
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $studentCounts = DB::table('peserta_didik')
                 ->whereIn('rombongan_belajar_id', $rombels->pluck('rombongan_belajar_id'))
                 ->select('rombongan_belajar_id', DB::raw('count(*) as total'))
@@ -319,7 +320,7 @@ class PipService
         $pdMapByPdId = DB::table('peserta_didik')->pluck('rombongan_belajar_id', 'peserta_didik_id')->all();
         $pdMapByNisn = DB::table('peserta_didik')->whereNotNull('nisn')->where('nisn', '!=', '')->pluck('rombongan_belajar_id', 'nisn')->all();
         $pdIdByNisn = DB::table('peserta_didik')->whereNotNull('nisn')->where('nisn', '!=', '')->pluck('peserta_didik_id', 'nisn')->all();
-        $pdtaIdByNisn = Schema::hasTable('peserta_didik_tidak_aktif')
+        $pdtaIdByNisn = Table::exists('peserta_didik_tidak_aktif')
             ? DB::table('peserta_didik_tidak_aktif')->whereNotNull('nisn')->where('nisn', '!=', '')->pluck('peserta_didik_id', 'nisn')->all()
             : [];
 

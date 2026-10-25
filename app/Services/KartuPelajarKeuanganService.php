@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
+
+use App\Support\Table;
+
 class KartuPelajarKeuanganService
 {
     /**
@@ -229,7 +232,7 @@ class KartuPelajarKeuanganService
         $totalSiswa = (clone $baseQuery)->count();
 
         $totalFoto = 0;
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $totalFoto = (clone $baseQuery)->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('peserta_didik_meta as pdm')
@@ -241,7 +244,7 @@ class KartuPelajarKeuanganService
 
         // Hitung juga yang sudah terdaftar di antrean/riwayat cetak apapun statusnya (menunggu, diproses, selesai, ditolak)
         $alreadyInQueue = 0;
-        if (Schema::hasTable('kartu_pelajar_request')) {
+        if (Table::exists('kartu_pelajar_request')) {
             $alreadyInQueue = (clone $baseQuery)->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('kartu_pelajar_request as kpr')
@@ -295,7 +298,7 @@ class KartuPelajarKeuanganService
         }
 
         $hanyaAdaFoto = !empty($data['hanya_ada_foto']);
-        if ($hanyaAdaFoto && Schema::hasTable('peserta_didik_meta')) {
+        if ($hanyaAdaFoto && Table::exists('peserta_didik_meta')) {
             $studentsQuery->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('peserta_didik_meta as pdm')
@@ -654,7 +657,7 @@ class KartuPelajarKeuanganService
 
         // 5. Update status antrean request cetak siswa ini menjadi 'selesai'
         $requestUpdatedCount = 0;
-        if (Schema::hasTable('kartu_pelajar_request')) {
+        if (Table::exists('kartu_pelajar_request')) {
             $requests = KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
                 ->whereIn('status', ['menunggu', 'diproses'])
                 ->get();
@@ -679,7 +682,7 @@ class KartuPelajarKeuanganService
         }
         $record->save();
 
-        $photoMeta = Schema::hasTable('peserta_didik_meta')
+        $photoMeta = Table::exists('peserta_didik_meta')
             ? PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first()
             : null;
 
@@ -831,8 +834,8 @@ class KartuPelajarKeuanganService
             ->select('kp.*', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.nama_rombel')
             ->get();
 
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
 
         $waliGtk = null;
         if ($rombel) {

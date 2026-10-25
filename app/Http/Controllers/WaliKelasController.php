@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use App\Models\RolePermission;
 use App\Models\PesertaDidikMeta;
 use App\Models\PresensiHarian;
@@ -22,6 +21,9 @@ use App\Services\WaliKelasAgendaService;
 use App\Services\WaliKelasPresensiService;
 use App\Services\WaliKelasValidasiService;
 use Carbon\Carbon;
+
+
+use App\Support\Table;
 
 class WaliKelasController extends Controller
 {
@@ -197,7 +199,7 @@ class WaliKelasController extends Controller
         // Hitung siswa yang sudah memiliki foto
         $activePdIds = (clone $baseQuery)->pluck('pd.peserta_didik_id')->toArray();
         $totalBerfoto = 0;
-        if (!empty($activePdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($activePdIds) && Table::exists('peserta_didik_meta')) {
             $totalBerfoto = DB::table('peserta_didik_meta')
                 ->whereIn('peserta_didik_id', $activePdIds)
                 ->whereNotNull('foto_path')
@@ -256,7 +258,7 @@ class WaliKelasController extends Controller
         $list = $query->paginate($perPage)->appends($request->query());
 
         // Hubungkan metadata foto persisten
-        if (Schema::hasTable('peserta_didik_meta') && $list->isNotEmpty()) {
+        if (Table::exists('peserta_didik_meta') && $list->isNotEmpty()) {
             $pageIds = $list->pluck('peserta_didik_id')->toArray();
             $metaMap = PesertaDidikMeta::whereIn('peserta_didik_id', $pageIds)
                 ->get()
@@ -591,7 +593,7 @@ class WaliKelasController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE_TIDAK_AKTIF, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!$activeRombel || !Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$activeRombel || !Table::exists('peserta_didik_tidak_aktif')) {
             return view('dashboard.wali-kelas-tidak-aktif', [
                 'hasRombel'    => (bool) $activeRombel,
                 'isAdmin'      => $ctx['isAdmin'],
@@ -619,7 +621,7 @@ class WaliKelasController extends Controller
         $targetRombelName = $activeRombel->nama ?? null;
 
         // Siswa aktif tidak boleh muncul di tabel tidak aktif
-        $activePdIds = Schema::hasTable('peserta_didik')
+        $activePdIds = Table::exists('peserta_didik')
             ? DB::table('peserta_didik')->pluck('peserta_didik_id')->filter()->all()
             : [];
 
@@ -691,7 +693,7 @@ class WaliKelasController extends Controller
 
         $taPdIds = $list->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapTa = collect();
-        if (!empty($taPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($taPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapTa = PesertaDidikMeta::whereIn('peserta_didik_id', $taPdIds)->get()->keyBy('peserta_didik_id');
         }
         foreach ($list as $item) {
@@ -751,7 +753,7 @@ class WaliKelasController extends Controller
             $myRombelName = $myRombel?->nama;
 
             $studentRombelId = $student->rombongan_belajar_id;
-            if (!$studentRombelId && Schema::hasTable('anggota_rombel')) {
+            if (!$studentRombelId && Table::exists('anggota_rombel')) {
                 $studentRombelId = DB::table('anggota_rombel')
                     ->where('peserta_didik_id', $student->peserta_didik_id)
                     ->value('rombongan_belajar_id');
@@ -762,7 +764,7 @@ class WaliKelasController extends Controller
                 $isMatch = true;
             } elseif ($myRombelName && !empty($student->nama_rombel) && strcasecmp(trim($student->nama_rombel), trim($myRombelName)) === 0) {
                 $isMatch = true;
-            } elseif ($myRombelId && Schema::hasTable('anggota_rombel')) {
+            } elseif ($myRombelId && Table::exists('anggota_rombel')) {
                 $isMatch = DB::table('anggota_rombel')
                     ->where('rombongan_belajar_id', $myRombelId)
                     ->where('peserta_didik_id', $student->peserta_didik_id)
@@ -779,20 +781,20 @@ class WaliKelasController extends Controller
         }
 
         $anggota = null;
-        if (Schema::hasTable('anggota_rombel')) {
+        if (Table::exists('anggota_rombel')) {
             $anggota = DB::table('anggota_rombel')
                 ->where('peserta_didik_id', $student->peserta_didik_id)
                 ->first();
         }
 
         $meta = null;
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $meta = PesertaDidikMeta::where('peserta_didik_id', $student->peserta_didik_id)->first();
         }
 
         $rombelId = $student->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
         $pembelajaran = collect();
-        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+        if (!empty($rombelId) && Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
                 ->where('pembelajaran.rombongan_belajar_id', $rombelId)

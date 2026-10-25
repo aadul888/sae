@@ -11,18 +11,13 @@ use App\Models\PesertaDidik;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class KegiatanSiswaController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilkan Halaman Kluster Kegiatan Siswa (OSIS, Organisasi, Ekstrakurikuler, Agenda).
      */

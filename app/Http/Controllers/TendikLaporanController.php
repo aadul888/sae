@@ -8,7 +8,7 @@ use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class TendikLaporanController extends Controller
 {
@@ -415,7 +415,7 @@ class TendikLaporanController extends Controller
         // QR Code verifikasi dokumen laporan kinerja
         $verifCode = 'LAP-' . strtoupper(substr(md5(($profile['ptk_id'] ?: $userId) . $range['start'] . $range['end'] . now()->timestamp), 0, 10));
 
-        if (Schema::hasTable('tendik_laporan_log')) {
+        if (Table::exists('tendik_laporan_log')) {
             try {
                 DB::table('tendik_laporan_log')->insert([
                     'user_id'            => $userId,
@@ -507,7 +507,7 @@ class TendikLaporanController extends Controller
      */
     protected function resolveIndikatorKinerjaWithCapaian(?string $bidang, $aktivitasList)
     {
-        if (!Schema::hasTable('tendik_indikator_kinerja')) {
+        if (!Table::exists('tendik_indikator_kinerja')) {
             return collect();
         }
 

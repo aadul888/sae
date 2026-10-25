@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class PembelajaranController extends Controller
 {
@@ -85,7 +85,7 @@ class PembelajaranController extends Controller
         $sort     = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama_mata_pelajaran';
         $sortDir  = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('pembelajaran')) {
+        if (!Table::exists('pembelajaran')) {
             return view('dashboard.pembelajaran', [
                 'list' => collect(),
                 'total' => 0,

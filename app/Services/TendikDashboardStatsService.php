@@ -8,8 +8,7 @@ use App\Models\TendikIndikatorKinerja;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service khusus agregasi statistik dan metrik 10 cluster bidang tugas Tenaga Administrasi Sekolah (Tendik).
  * ponytail: static-calculator; upgrade ke caching per-bidang jika akses bersamaan melebihi 100 req/sec.
@@ -21,7 +20,7 @@ class TendikDashboardStatsService
      */
     public static function hasTendikDuty(mixed $userId, mixed $ptkId): bool
     {
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             return DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)
@@ -58,7 +57,7 @@ class TendikDashboardStatsService
         $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
 
         $gtk = null;
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $gtk = $ptkId ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : DB::table('gtk')->where('nama', $userName)->first();
         }
 
@@ -74,7 +73,7 @@ class TendikDashboardStatsService
         }
 
         $dutyRecords = collect();
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $dutyRecords = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)
@@ -193,7 +192,7 @@ class TendikDashboardStatsService
         $aktivitasBulanIniCount = 0;
         $aktivitasSayaList = collect();
 
-        if (Schema::hasTable('tendik_aktivitas')) {
+        if (Table::exists('tendik_aktivitas')) {
             $userBaseQuery = DB::table('tendik_aktivitas')->where(function ($q) use ($userId, $ptkId) {
                 if ($userId) $q->where('user_id', $userId);
                 if ($ptkId) $q->orWhere('ptk_id', $ptkId);
@@ -218,32 +217,32 @@ class TendikDashboardStatsService
         }
 
         $pengumumanList = collect();
-        if (Schema::hasTable('pengumuman')) {
+        if (Table::exists('pengumuman')) {
             $pengumumanList = Pengumuman::forUserRole('tendik')
                 ->orderByDesc('created_at')
                 ->limit(5)
                 ->get();
         }
 
-        $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
-        $totalSuratKeluar = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
-        $totalSuratKeterangan = Schema::hasTable('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
+        $totalSuratMasuk = Table::exists('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
+        $totalSuratKeluar = Table::exists('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
+        $totalSuratKeterangan = Table::exists('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
         $totalPersuratan = $totalSuratMasuk + $totalSuratKeluar;
         $hddStatus = PersuratanHddService::checkStatus();
 
-        $noSuratMasukTerakhir = Schema::hasTable('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'masuk')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
-        $noSuratKeluarTerakhir = Schema::hasTable('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
+        $noSuratMasukTerakhir = Table::exists('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'masuk')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
+        $noSuratKeluarTerakhir = Table::exists('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
 
-        $totalSiswa = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
-        $siswaLaki = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
-        $siswaPerempuan = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 506;
-        $siswaBerfoto = Schema::hasTable('peserta_didik_meta') ? DB::table('peserta_didik_meta')->whereNotNull('foto_path')->count() : 0;
-        $totalRombel = Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 70;
+        $totalSiswa = Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
+        $siswaLaki = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
+        $siswaPerempuan = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 506;
+        $siswaBerfoto = Table::exists('peserta_didik_meta') ? DB::table('peserta_didik_meta')->whereNotNull('foto_path')->count() : 0;
+        $totalRombel = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 70;
 
-        $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count() : 48;
-        $totalTendik = Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'not like', '%guru%')->count() : 19;
-        $gtkTugasCount = Schema::hasTable('ptk_tugas_tambahan') ? DB::table('ptk_tugas_tambahan')->where('is_active', true)->distinct('ptk_id')->count('ptk_id') : 38;
-        $totalJamKbm = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') : 840;
+        $totalGuru = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count() : 48;
+        $totalTendik = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'not like', '%guru%')->count() : 19;
+        $gtkTugasCount = Table::exists('ptk_tugas_tambahan') ? DB::table('ptk_tugas_tambahan')->where('is_active', true)->distinct('ptk_id')->count('ptk_id') : 38;
+        $totalJamKbm = Table::exists('pembelajaran') ? DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') : 840;
 
         $stats = [
             'total_surat_masuk'       => $totalSuratMasuk,
@@ -263,16 +262,16 @@ class TendikDashboardStatsService
             'total_tendik'       => $totalTendik,
             'gtk_tugas_tambahan' => $gtkTugasCount,
             'total_jam_kbm'      => $totalJamKbm,
-            'total_ruangan'      => Schema::hasTable('rombongan_belajar') ? (DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') ?: 33) : 33,
-            'jam_praktik'        => Schema::hasTable('pembelajaran') ? (DB::table('pembelajaran')->where(function ($q) {
+            'total_ruangan'      => Table::exists('rombongan_belajar') ? (DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') ?: 33) : 33,
+            'jam_praktik'        => Table::exists('pembelajaran') ? (DB::table('pembelajaran')->where(function ($q) {
                 $q->where('nama_mata_pelajaran', 'like', '%praktik%')
                     ->orWhere('nama_mata_pelajaran', 'like', '%kejuruan%');
             })->sum('jam_mengajar_per_minggu') ?: 48) : 48,
-            'total_pengguna'     => Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 1230,
+            'total_pengguna'     => Table::exists('pengguna') ? DB::table('pengguna')->count() : 1230,
         ];
 
         $stafTas = collect();
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $stafTas = DB::table('gtk')
                 ->leftJoin('ptk_tugas_tambahan as ptt', function ($join) {
                     $join->on('gtk.ptk_id', '=', 'ptt.ptk_id')->where('ptt.is_active', true);
@@ -287,13 +286,13 @@ class TendikDashboardStatsService
 
         $persuratanTerbaru = collect();
         $persuratanList = collect();
-        if (Schema::hasTable('persuratan')) {
+        if (Table::exists('persuratan')) {
             $persuratanList = DB::table('persuratan')->orderByDesc('id')->limit(8)->get();
             $persuratanTerbaru = $persuratanList->take(5);
         }
 
         $rombelRekap = collect();
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombelRekap = DB::table('rombongan_belajar as rb')
                 ->leftJoin('anggota_rombel as ar', 'rb.rombongan_belajar_id', '=', 'ar.rombongan_belajar_id')
                 ->select('rb.nama', 'rb.tingkat_pendidikan_id_str as tingkat', 'rb.jurusan_id_str as jurusan', DB::raw('COUNT(ar.peserta_didik_id) as total_siswa'))
@@ -304,12 +303,12 @@ class TendikDashboardStatsService
         }
 
         $siswaTerbaru = collect();
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $siswaTerbaru = DB::table('peserta_didik')->select('nama', 'nisn', 'nama_rombel', 'jenis_kelamin')->orderByDesc('peserta_didik_id')->limit(6)->get();
         }
 
         $gtkTugasList = collect();
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $gtkTugasList = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->leftJoin('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
@@ -321,17 +320,17 @@ class TendikDashboardStatsService
         }
 
         $gtkList = collect();
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $gtkList = DB::table('gtk')->select('nama', 'nip', 'jenis_ptk_id_str', 'status_kepegawaian_id_str')->orderBy('nama')->limit(6)->get();
         }
 
         $ruangList = collect();
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $ruangList = DB::table('rombongan_belajar')->select('nama as nama_rombel', 'id_ruang_str as ruang')->whereNotNull('id_ruang_str')->distinct()->orderBy('nama_rombel')->limit(8)->get();
         }
 
         $jadwalLab = collect();
-        if (Schema::hasTable('pembelajaran') && Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('pembelajaran') && Table::exists('rombongan_belajar')) {
             $jadwalLab = DB::table('pembelajaran as p')
                 ->join('rombongan_belajar as rb', 'p.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
                 ->leftJoin('gtk', 'p.ptk_id', '=', 'gtk.ptk_id')
@@ -366,7 +365,7 @@ class TendikDashboardStatsService
         $recentAgendaKbm = collect();
         $recentPresensiGuru = collect();
 
-        if (Schema::hasTable('presensi_mengajar')) {
+        if (Table::exists('presensi_mengajar')) {
             $piketStats['guru_hadir'] = DB::table('presensi_mengajar')
                 ->where('tanggal', $today)
                 ->where('status', 'hadir')
@@ -381,14 +380,14 @@ class TendikDashboardStatsService
                 ->orderByDesc('pm.created_at')
                 ->limit(6)
                 ->get();
-        } elseif (Schema::hasTable('presensi_harian')) {
+        } elseif (Table::exists('presensi_harian')) {
             $piketStats['guru_hadir'] = DB::table('presensi_harian')
                 ->where('tanggal', $today)
                 ->where('status', 'hadir')
                 ->count();
         }
 
-        if (Schema::hasTable('agenda_kbm')) {
+        if (Table::exists('agenda_kbm')) {
             $piketStats['jurnal_terisi'] = DB::table('agenda_kbm')
                 ->where('tanggal', $today)
                 ->count();
@@ -403,7 +402,7 @@ class TendikDashboardStatsService
                 ->get();
         }
 
-        if (Schema::hasTable('presensi_izin')) {
+        if (Table::exists('presensi_izin')) {
             $piketStats['izin_hari_ini'] = DB::table('presensi_izin')
                 ->whereDate('tanggal_mulai', '<=', $today)
                 ->whereDate('tanggal_selesai', '>=', $today)
@@ -431,7 +430,7 @@ class TendikDashboardStatsService
         if ($piketStats['izin_hari_ini'] === 0) $piketStats['izin_hari_ini'] = 5;
 
         $kepegawaianCharts = [];
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $kepegawaianCharts['jenisKelamin'] = DB::table('gtk')
                 ->selectRaw('jenis_kelamin, count(*) as total')
                 ->whereIn('jenis_kelamin', ['L', 'P'])
@@ -471,12 +470,12 @@ class TendikDashboardStatsService
 
         $chartsUmum = [
             'populasi' => [
-                'Peserta Didik' => Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
-                'Guru Pendidik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 0,
-                'Tenaga Tendik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 0,
-                'Rombel Belajar' => Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
+                'Peserta Didik' => Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
+                'Guru Pendidik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 0,
+                'Tenaga Tendik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 0,
+                'Rombel Belajar' => Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
             ],
-            'siswaTingkat' => Schema::hasTable('peserta_didik')
+            'siswaTingkat' => Table::exists('peserta_didik')
                 ? DB::table('peserta_didik')
                     ->selectRaw('COALESCE(tingkat_pendidikan_id, "Lainnya") as tingkat, count(*) as total')
                     ->groupBy('tingkat')
@@ -484,7 +483,7 @@ class TendikDashboardStatsService
                     ->pluck('total', 'tingkat')
                     ->toArray()
                 : [],
-            'genderSiswa' => Schema::hasTable('peserta_didik')
+            'genderSiswa' => Table::exists('peserta_didik')
                 ? DB::table('peserta_didik')
                     ->selectRaw('jenis_kelamin, count(*) as total')
                     ->whereIn('jenis_kelamin', ['L', 'P'])
@@ -492,7 +491,7 @@ class TendikDashboardStatsService
                     ->pluck('total', 'jenis_kelamin')
                     ->toArray()
                 : [],
-            'jurusanRombel' => Schema::hasTable('rombongan_belajar')
+            'jurusanRombel' => Table::exists('rombongan_belajar')
                 ? DB::table('rombongan_belajar')
                     ->selectRaw('COALESCE(jurusan_id_str, "Reguler / Umum") as jurusan, count(*) as total')
                     ->whereNotNull('jurusan_id_str')
@@ -508,14 +507,14 @@ class TendikDashboardStatsService
         $kesiswaanCharts = [
             'gender' => $chartsUmum['genderSiswa'],
             'tingkat' => $chartsUmum['siswaTingkat'],
-            'pendaftaran' => Schema::hasTable('peserta_didik')
+            'pendaftaran' => Table::exists('peserta_didik')
                 ? DB::table('peserta_didik')->selectRaw('COALESCE(jenis_pendaftaran_id_str, "Reguler") as jenis, count(*) as total')->groupBy('jenis')->pluck('total', 'jenis')->toArray()
                 : [],
             'jurusan' => $chartsUmum['jurusanRombel'],
         ];
 
         $jenisCounts = [];
-        if (Schema::hasTable('persuratan')) {
+        if (Table::exists('persuratan')) {
             $rawJenis = DB::table('persuratan')
                 ->selectRaw('COALESCE(jenis_surat, "lainnya") as jenis, count(*) as total')
                 ->groupBy('jenis')
@@ -533,13 +532,13 @@ class TendikDashboardStatsService
                 $jenisCounts[$lbl] = ($jenisCounts[$lbl] ?? 0) + $jCount;
             }
         }
-        if (Schema::hasTable('surat_keterangan_pd')) {
+        if (Table::exists('surat_keterangan_pd')) {
             $ketCount = DB::table('surat_keterangan_pd')->count();
             if ($ketCount > 0) {
                 $jenisCounts['Surat Keterangan'] = ($jenisCounts['Surat Keterangan'] ?? 0) + $ketCount;
             }
         }
-        if (Schema::hasTable('gtk_spt')) {
+        if (Table::exists('gtk_spt')) {
             $sptCount = DB::table('gtk_spt')->count();
             if ($sptCount > 0) {
                 $jenisCounts['Surat Tugas (SPT)'] = ($jenisCounts['Surat Tugas (SPT)'] ?? 0) + $sptCount;
@@ -547,7 +546,7 @@ class TendikDashboardStatsService
         }
 
         $statusCounts = [];
-        if (Schema::hasTable('persuratan')) {
+        if (Table::exists('persuratan')) {
             $rawStatus = DB::table('persuratan')
                 ->selectRaw('COALESCE(status, "draf") as status, count(*) as total')
                 ->groupBy('status')
@@ -573,13 +572,13 @@ class TendikDashboardStatsService
         ];
 
         $sarprasCharts = [
-            'gedung' => Schema::hasTable('sarpras_ruang')
+            'gedung' => Table::exists('sarpras_ruang')
                 ? DB::table('sarpras_ruang')->selectRaw('COALESCE(gedung, "Lainnya") as gedung, count(*) as total')->groupBy('gedung')->orderByDesc('total')->limit(6)->pluck('total', 'gedung')->toArray()
                 : [],
-            'kondisiRuang' => Schema::hasTable('sarpras_ruang')
+            'kondisiRuang' => Table::exists('sarpras_ruang')
                 ? DB::table('sarpras_ruang')->selectRaw('COALESCE(kondisi, "baik") as kondisi, count(*) as total')->groupBy('kondisi')->pluck('total', 'kondisi')->toArray()
                 : [],
-            'kategoriAset' => Schema::hasTable('sarpras_aset')
+            'kategoriAset' => Table::exists('sarpras_aset')
                 ? DB::table('sarpras_aset')->selectRaw('COALESCE(kategori, "Umum") as kategori, count(*) as total')->groupBy('kategori')->pluck('total', 'kategori')->toArray()
                 : [],
         ];
@@ -714,20 +713,20 @@ class TendikDashboardStatsService
                 'Perlu Pendampingan' => 0,
             ],
             'komposisiGtk' => [
-                'Guru Pendidik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 48,
-                'Tenaga Tendik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 19,
+                'Guru Pendidik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 48,
+                'Tenaga Tendik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 19,
             ],
         ];
 
         $kepegawaianIndikatorList = collect();
-        if (Schema::hasTable('tendik_indikator_kinerja')) {
+        if (Table::exists('tendik_indikator_kinerja')) {
             $kepegawaianIndikatorList = TendikIndikatorKinerja::where('bidang', 'kepegawaian')
                 ->where('is_active', true)
                 ->orderBy('urutan')
                 ->get()
                 ->map(function ($ind) {
                     $realisasi = 0;
-                    if (Schema::hasTable('tendik_aktivitas')) {
+                    if (Table::exists('tendik_aktivitas')) {
                         $realisasi = DB::table('tendik_aktivitas')
                             ->where('bidang', 'kepegawaian')
                             ->where(function ($q) use ($ind) {
@@ -753,14 +752,14 @@ class TendikDashboardStatsService
             $dbBidang = $dKey === 'kepala-tas' ? 'kepala_tas' : $dKey;
             $bidangMultiPeriode[$dKey] = KepegawaianStatsService::buildMultiPeriodeData($totalTendik ?: 19, $dbBidang);
 
-            if (Schema::hasTable('tendik_indikator_kinerja')) {
+            if (Table::exists('tendik_indikator_kinerja')) {
                 $bidangIndikatorList[$dKey] = TendikIndikatorKinerja::where('bidang', $dbBidang)
                     ->where('is_active', true)
                     ->orderBy('urutan')
                     ->get()
                     ->map(function ($ind) use ($dbBidang) {
                         $realisasi = 0;
-                        if (Schema::hasTable('tendik_aktivitas')) {
+                        if (Table::exists('tendik_aktivitas')) {
                             $realisasi = DB::table('tendik_aktivitas')
                                 ->where('bidang', $dbBidang)
                                 ->where(function ($q) use ($ind) {
@@ -775,13 +774,13 @@ class TendikDashboardStatsService
                         if ($realisasi === 0 && $dbBidang === 'persuratan') {
                             $sasaranLower = strtolower($ind->sasaran . ' ' . $ind->indikator_kinerja);
                             if (str_contains($sasaranLower, 'surat masuk')) {
-                                $realisasi = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
+                                $realisasi = Table::exists('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
                             } elseif (str_contains($sasaranLower, 'surat keluar')) {
-                                $realisasi = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
+                                $realisasi = Table::exists('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
                             } elseif (str_contains($sasaranLower, 'kearsipan') || str_contains($sasaranLower, 'sk dinas') || str_contains($sasaranLower, 'surat tugas')) {
-                                $realisasi = (Schema::hasTable('persuratan') ? DB::table('persuratan')->whereIn('jenis_surat', ['keputusan', 'tugas'])->count() : 0) + (Schema::hasTable('gtk_spt') ? DB::table('gtk_spt')->count() : 0);
+                                $realisasi = (Table::exists('persuratan') ? DB::table('persuratan')->whereIn('jenis_surat', ['keputusan', 'tugas'])->count() : 0) + (Table::exists('gtk_spt') ? DB::table('gtk_spt')->count() : 0);
                             } elseif (str_contains($sasaranLower, 'keterangan aktif') || str_contains($sasaranLower, 'legalisir')) {
-                                $realisasi = Schema::hasTable('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
+                                $realisasi = Table::exists('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
                             }
                         }
 

@@ -13,8 +13,7 @@ use App\Models\SekolahMeta;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service operasional Presensi Kelas (monitoring KBM harian, update massal, reset, dan cetak ekspor).
  * ponytail: static-orchestrator; upgrade ke streaming export generator jika rekap sekolah melibatkan > 5.000 siswa.
@@ -65,7 +64,7 @@ class PresensiKelasService
         $modeAktif = JadwalPengaturan::getModeAktif();
 
         $activeJadwal = null;
-        if ($ptkId && Schema::hasTable('jadwal_kbm')) {
+        if ($ptkId && Table::exists('jadwal_kbm')) {
             $jq = DB::table('jadwal_kbm')
                 ->where('is_active', true)
                 ->where('ptk_id', $ptkId)
@@ -802,8 +801,8 @@ class PresensiKelasService
         }
 
         $sekolah = PresensiPengaturan::getSekolah();
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
-        $kepsek = Schema::hasTable('gtk')
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
+        $kepsek = Table::exists('gtk')
             ? DB::table('gtk')->where(function ($q) {
                 $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
                   ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');

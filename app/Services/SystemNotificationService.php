@@ -13,7 +13,7 @@ use App\Models\PresensiPengaturan;
 use App\Models\RolePermission;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class SystemNotificationService
 {
@@ -58,7 +58,7 @@ class SystemNotificationService
         $items = collect();
 
         // 1. Ambil Notifikasi Tersimpan dari Database (Tabel notifikasi_transaksi)
-        if (Schema::hasTable('notifikasi_transaksi')) {
+        if (Table::exists('notifikasi_transaksi')) {
             try {
                 $dbItems = NotifikasiTransaksi::forUser($userId, $pdId)
                     ->orderBy('created_at', 'desc')
@@ -215,7 +215,7 @@ class SystemNotificationService
         }
 
         // Cek Jadwal Mengajar Guru Hari Ini (Hanya dari mode yang resmi diberlakukan)
-        if (Schema::hasTable('jadwal_kbm')) {
+        if (Table::exists('jadwal_kbm')) {
             try {
                 $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
                 $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
@@ -246,7 +246,7 @@ class SystemNotificationService
                         ]);
                     } else {
                         // Cek Presensi Mengajar Terisi Hari Ini
-                        $presensiDone = Schema::hasTable('presensi_mengajar')
+                        $presensiDone = Table::exists('presensi_mengajar')
                             ? PresensiMengajar::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
                             : 0;
 
@@ -295,7 +295,7 @@ class SystemNotificationService
                         }
 
                         // Cek Agenda KBM Terisi Hari Ini
-                        $agendaDone = Schema::hasTable('agenda_kbm')
+                        $agendaDone = Table::exists('agenda_kbm')
                             ? AgendaKbm::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
                             : 0;
 
@@ -334,7 +334,7 @@ class SystemNotificationService
         }
 
         // Cek Pengajuan Izin Siswa jika Guru berperan sebagai Wali Kelas
-        if (class_exists(RolePermission::class) && Schema::hasTable('presensi_izin')) {
+        if (class_exists(RolePermission::class) && Table::exists('presensi_izin')) {
             try {
                 $rombelId = RolePermission::getWaliKelasRombelId($currentUser);
                 if ($rombelId) {
@@ -377,7 +377,7 @@ class SystemNotificationService
 
         // Ambil daftar kode tugas tambahan aktif personil
         $duties = [];
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             try {
                 $duties = \DB::table('ptk_tugas_tambahan as ptt')
                     ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
@@ -399,7 +399,7 @@ class SystemNotificationService
         $isGuruPiket = in_array('GURU_PIKET', $duties, true);
 
         // 1. BIDANG PERSURATAN: Notifikasi surat masuk & disposisi
-        if ($isPersuratan && Schema::hasTable('persuratan')) {
+        if ($isPersuratan && Table::exists('persuratan')) {
             try {
                 $pendingSurat = \App\Models\Persuratan::where('status', 'menunggu_disposisi')->count();
                 if ($pendingSurat > 0) {
@@ -418,7 +418,7 @@ class SystemNotificationService
                     ]);
                 }
 
-                if (Schema::hasTable('persuratan_disposisi') && $ptkId) {
+                if (Table::exists('persuratan_disposisi') && $ptkId) {
                     $disposisiSaya = \App\Models\PersuratanDisposisi::where('ptk_id_tujuan', $ptkId)
                         ->where('status', 'menunggu')
                         ->count();
@@ -446,7 +446,7 @@ class SystemNotificationService
         if ($isKesiswaan) {
             try {
                 // Notifikasi berkas fisik yang belum lengkap
-                if (Schema::hasTable('kesiswaan_berkas_verifikasi')) {
+                if (Table::exists('kesiswaan_berkas_verifikasi')) {
                     $unverifiedBerkas = \App\Models\KesiswaanBerkasVerifikasi::where(function ($q) {
                         $q->where('akta_kelahiran', false)
                           ->orWhere('kartu_keluarga', false)
@@ -471,7 +471,7 @@ class SystemNotificationService
                 }
 
                 // Notifikasi siswa aktif yang belum tercatat di buku klaper
-                if (Schema::hasTable('peserta_didik') && Schema::hasTable('kesiswaan_buku_klaper')) {
+                if (Table::exists('peserta_didik') && Table::exists('kesiswaan_buku_klaper')) {
                     $unregisteredKlaper = \App\Models\PesertaDidik::whereDoesntHave('klaper')->count();
                     if ($unregisteredKlaper > 0) {
                         $list->push((object) [
@@ -496,7 +496,7 @@ class SystemNotificationService
         if ($isKepegawaian) {
             try {
                 // Notifikasi KGB jatuh tempo dalam 90 hari
-                if (Schema::hasTable('gtk_kgb_tracker')) {
+                if (Table::exists('gtk_kgb_tracker')) {
                     $today = now()->toDateString();
                     $in90Days = now()->addDays(90)->toDateString();
                     $kgbJatuhTempo = \App\Models\GtkKgbTracker::whereBetween('tmt_baru_target', [$today, $in90Days])
@@ -521,7 +521,7 @@ class SystemNotificationService
                 }
 
                 // Notifikasi permohonan cuti / tugas dinas yang diajukan
-                if (Schema::hasTable('gtk_cuti_izin')) {
+                if (Table::exists('gtk_cuti_izin')) {
                     $pendingCuti = \App\Models\GtkCutiIzin::where('status', 'diajukan')->count();
                     if ($pendingCuti > 0) {
                         $list->push((object) [
@@ -543,7 +543,7 @@ class SystemNotificationService
         }
 
         // 4. BIDANG GURU PIKET: Notifikasi izin keluar masuk siswa
-        if ($isGuruPiket && Schema::hasTable('presensi_izin')) {
+        if ($isGuruPiket && Table::exists('presensi_izin')) {
             try {
                 $pendingIzinToday = \App\Models\PresensiIzin::whereDate('tanggal_mulai', now()->toDateString())
                     ->where('status', 'menunggu')
@@ -598,7 +598,7 @@ class SystemNotificationService
         $today = now()->toDateString();
 
         // 1. Cek Presensi Harian Siswa Hari Ini (Hanya jika belum ada notifikasi presensi spesifik dari database)
-        if (!$hasDbPresensiToday && Schema::hasTable('presensi_harian')) {
+        if (!$hasDbPresensiToday && Table::exists('presensi_harian')) {
             try {
                 $presensiHariIni = PresensiHarian::where('peserta_didik_id', $pdId)
                     ->whereDate('tanggal', $today)
@@ -669,7 +669,7 @@ class SystemNotificationService
         }
 
         // 2. Cek Surat Izin yang Diajukan Siswa
-        if (Schema::hasTable('presensi_izin')) {
+        if (Table::exists('presensi_izin')) {
             try {
                 $recentIzins = PresensiIzin::where('peserta_didik_id', $pdId)
                     ->orderBy('created_at', 'desc')
@@ -742,7 +742,7 @@ class SystemNotificationService
         $siswaNama = is_array($currentUser) ? ($currentUser['siswa_nama'] ?? 'Putra/putri Anda') : ($currentUser->siswa_nama ?? 'Putra/putri Anda');
 
         // 1. Cek Presensi Harian Siswa Hari Ini (Hanya jika belum tercatat di database)
-        if (!$hasDbPresensiToday && Schema::hasTable('presensi_harian')) {
+        if (!$hasDbPresensiToday && Table::exists('presensi_harian')) {
             try {
                 $presensiHariIni = PresensiHarian::where('peserta_didik_id', $pdId)
                     ->whereDate('tanggal', $today)
@@ -789,7 +789,7 @@ class SystemNotificationService
         }
 
         // 2. Cek Surat Izin yang Diajukan untuk Siswa
-        if (Schema::hasTable('presensi_izin')) {
+        if (Table::exists('presensi_izin')) {
             try {
                 $recentIzins = PresensiIzin::where('peserta_didik_id', $pdId)
                     ->orderBy('created_at', 'desc')
@@ -844,7 +844,7 @@ class SystemNotificationService
         $list = collect();
 
         // Cek jika ada surat izin yang menunggu verifikasi global
-        if (Schema::hasTable('presensi_izin')) {
+        if (Table::exists('presensi_izin')) {
             try {
                 $pendingCount = PresensiIzin::where('status', 'menunggu')->count();
                 if ($pendingCount > 0) {
@@ -866,7 +866,7 @@ class SystemNotificationService
         }
 
         // Cek arsip surat dinas yang menunggu disposisi
-        if (Schema::hasTable('persuratan')) {
+        if (Table::exists('persuratan')) {
             try {
                 $pendingSurat = \App\Models\Persuratan::where('status', 'menunggu_disposisi')->count();
                 if ($pendingSurat > 0) {

@@ -9,22 +9,18 @@ use App\Services\KesiswaanUsulanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class KesiswaanPesertaDidikController extends Controller
+
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class KesiswaanPesertaDidikController extends Controller
 {
+    use ChecksAuthenticatedSession;
+
     public function __construct(
         protected KesiswaanQueryService $queryService,
         protected KesiswaanUsulanService $usulanService,
         protected KesiswaanBerkasService $berkasService
     ) {}
 
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    
 
     /**
      * Tampilkan Halaman Kluster Peserta Didik (Aktif, Tidak Aktif, Alumni, Berkas, Usulan Perubahan).

@@ -8,8 +8,10 @@ use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+
+
+use App\Support\Table;
 
 class KesiswaanBerkasService
 {
@@ -44,7 +46,7 @@ class KesiswaanBerkasService
     public function getBerkasDetail(string|int $id): array
     {
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 
@@ -181,7 +183,7 @@ class KesiswaanBerkasService
         ]);
 
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 

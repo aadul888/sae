@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+
+
+use App\Support\Table;
 
 class PesertaDidikQueryService
 {
@@ -54,7 +56,7 @@ class PesertaDidikQueryService
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('peserta_didik')) {
+        if (!Table::exists('peserta_didik')) {
             return [
                 'list' => collect(),
                 'total' => 0,
@@ -163,7 +165,7 @@ class PesertaDidikQueryService
 
         $pdIds = $itemsForPage->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMap = collect();
-        if (!empty($pdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($pdIds) && Table::exists('peserta_didik_meta')) {
             $metaMap = PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)
                 ->get()
                 ->keyBy('peserta_didik_id');
@@ -225,20 +227,20 @@ class PesertaDidikQueryService
         }
 
         $anggota = null;
-        if (Schema::hasTable('anggota_rombel')) {
+        if (Table::exists('anggota_rombel')) {
             $anggota = DB::table('anggota_rombel')
                 ->where('peserta_didik_id', $pesertaDidik->peserta_didik_id)
                 ->first();
         }
 
         $meta = null;
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $meta = PesertaDidikMeta::where('peserta_didik_id', $pesertaDidik->peserta_didik_id)->first();
         }
 
         $rombelId = $pesertaDidik->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
         $pembelajaran = collect();
-        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+        if (!empty($rombelId) && Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
                 ->where('pembelajaran.rombongan_belajar_id', $rombelId)
@@ -274,7 +276,7 @@ class PesertaDidikQueryService
      */
     public function getRombelMembers(string $rombelName): array
     {
-        if (!Schema::hasTable('peserta_didik')) {
+        if (!Table::exists('peserta_didik')) {
             return ['status' => 'error', 'message' => 'Tabel peserta didik belum tersedia.', 'status_code' => 500];
         }
 
@@ -294,7 +296,7 @@ class PesertaDidikQueryService
 
         $pdIds = $students->pluck('peserta_didik_id')->filter()->toArray();
         $metas = collect();
-        if (Schema::hasTable('peserta_didik_meta') && !empty($pdIds)) {
+        if (Table::exists('peserta_didik_meta') && !empty($pdIds)) {
             $metas = PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id');
         }
 
@@ -418,7 +420,7 @@ class PesertaDidikQueryService
         $rombelName = trim(urldecode($rombelId));
 
         $rombel = null;
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelName)->first();
             if (!$rombel) {
                 $rombel = DB::table('rombongan_belajar')->where('nama', $rombelName)->first();
@@ -472,11 +474,11 @@ class PesertaDidikQueryService
             return ['error' => 'not_found'];
         }
 
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
 
         $jurusanMeta = null;
-        if (!empty($rombel->jurusan_id) && Schema::hasTable('jurusan_meta')) {
+        if (!empty($rombel->jurusan_id) && Table::exists('jurusan_meta')) {
             $jurusanMeta = JurusanMeta::where('jurusan_id', $rombel->jurusan_id)->first();
             if (!$jurusanMeta) {
                 $jurusanMeta = JurusanMeta::where('jurusan_id', 'LIKE', substr($rombel->jurusan_id, 0, 5) . '%')->first();
@@ -486,7 +488,7 @@ class PesertaDidikQueryService
 
         $waliNama = $rombel->ptk_id_str ?? null;
         $waliNip = null;
-        if (empty($waliNama) && Schema::hasTable('pengguna_tugas_tambahan')) {
+        if (empty($waliNama) && Table::exists('pengguna_tugas_tambahan')) {
             $waliRecord = DB::table('pengguna_tugas_tambahan')
                 ->where('jabatan', 'wali_kelas')
                 ->where(function ($w) use ($rombel) {
@@ -500,12 +502,12 @@ class PesertaDidikQueryService
                 $waliNama = $waliRecord->nama_pegawai ?? ($waliRecord->ptk_id_str ?? null);
             }
         }
-        if (!empty($waliNama) && Schema::hasTable('gtk')) {
+        if (!empty($waliNama) && Table::exists('gtk')) {
             $waliGtk = DB::table('gtk')->where('nama', $waliNama)->first();
             $waliNip = $waliGtk?->nip ?: null;
         }
 
-        $kepalaSekolah = Schema::hasTable('gtk')
+        $kepalaSekolah = Table::exists('gtk')
             ? DB::table('gtk')->where(function ($w) {
                 $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
                   ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');

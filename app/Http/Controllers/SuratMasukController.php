@@ -10,18 +10,13 @@ use App\Models\RolePermission;
 use App\Models\Persuratan;
 use App\Models\PersuratanDisposisi;
 use App\Services\PersuratanHddService;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class SuratMasukController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilan Buku Agenda Surat Masuk
      */

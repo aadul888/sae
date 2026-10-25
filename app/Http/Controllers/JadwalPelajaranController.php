@@ -11,16 +11,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class JadwalPelajaranController extends Controller
+
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class JadwalPelajaranController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
+
+    
 
     private function getIndoDayName($date = null): string
     {

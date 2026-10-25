@@ -10,7 +10,7 @@ use App\Models\RolePermission;
 use App\Models\SiswaUsulanPerubahan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class KesiswaanQueryService
 {
@@ -39,7 +39,7 @@ class KesiswaanQueryService
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
         $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
-        $activePdIds = Schema::hasTable('peserta_didik')
+        $activePdIds = Table::exists('peserta_didik')
             ? DB::table('peserta_didik')->pluck('peserta_didik_id')->filter()->all()
             : [];
 
@@ -53,7 +53,7 @@ class KesiswaanQueryService
         $aktifLaki = PesertaDidik::where('jenis_kelamin', 'L')->count();
         $aktifPerempuan = PesertaDidik::where('jenis_kelamin', 'P')->count();
         $totalRombelAktif = PesertaDidik::whereNotNull('nama_rombel')->where('nama_rombel', '<>', '')->distinct()->count('nama_rombel');
-        $totalKoordinator = Schema::hasTable('peserta_didik_meta') ? PesertaDidikMeta::where('is_koordinator', true)->count() : 0;
+        $totalKoordinator = Table::exists('peserta_didik_meta') ? PesertaDidikMeta::where('is_koordinator', true)->count() : 0;
 
         $taMutasi = (clone $baseTidakAktif)->where('status_keluar', 'Mutasi')->count();
         $taDikeluarkan = (clone $baseTidakAktif)->where('status_keluar', 'Dikeluarkan')->count();
@@ -70,10 +70,10 @@ class KesiswaanQueryService
             ->where('kartu_keluarga', true)
             ->where('ijazah_smp', true)
             ->count();
-        $berkasMenungguCount = Schema::hasTable('peserta_didik_berkas')
+        $berkasMenungguCount = Table::exists('peserta_didik_berkas')
             ? DB::table('peserta_didik_berkas')->where('status', 'menunggu')->distinct()->count('peserta_didik_id')
             : 0;
-        $berkasDitolakCount = Schema::hasTable('peserta_didik_berkas')
+        $berkasDitolakCount = Table::exists('peserta_didik_berkas')
             ? DB::table('peserta_didik_berkas')->where('status', 'tidak_valid')->distinct()->count('peserta_didik_id')
             : 0;
         $berkasBelumLengkap = max(0, $totalAktif - $totalBerkasLengkap);
@@ -178,7 +178,7 @@ class KesiswaanQueryService
 
         $aktifPdIds = $aktifList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapAktif = collect();
-        if (!empty($aktifPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($aktifPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapAktif = PesertaDidikMeta::whereIn('peserta_didik_id', $aktifPdIds)->get()->keyBy('peserta_didik_id');
         }
         foreach ($aktifList as $item) {
@@ -241,7 +241,7 @@ class KesiswaanQueryService
         $tidakAktifList = $tidakAktifQuery->paginate($perPage, ['*'], 'tidak_aktif_page')->withQueryString();
         $taPdIds = $tidakAktifList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapTa = collect();
-        if (!empty($taPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($taPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapTa = PesertaDidikMeta::whereIn('peserta_didik_id', $taPdIds)->get()->keyBy('peserta_didik_id');
         }
         foreach ($tidakAktifList as $item) {
@@ -293,7 +293,7 @@ class KesiswaanQueryService
         $alumniList = $alumniQuery->orderBy('tanggal_keluar', 'desc')->paginate($perPage, ['*'], 'alumni_page')->withQueryString();
         $alumniPdIds = $alumniList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapAlumni = collect();
-        if (!empty($alumniPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($alumniPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapAlumni = PesertaDidikMeta::whereIn('peserta_didik_id', $alumniPdIds)->get()->keyBy('peserta_didik_id');
         }
         foreach ($alumniList as $item) {
@@ -407,11 +407,11 @@ class KesiswaanQueryService
 
         $berkasPdIds = $berkasList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapBerkas = collect();
-        if (!empty($berkasPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($berkasPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapBerkas = PesertaDidikMeta::whereIn('peserta_didik_id', $berkasPdIds)->get()->keyBy('peserta_didik_id');
         }
         $uploadedBerkasMap = collect();
-        if (!empty($berkasPdIds) && Schema::hasTable('peserta_didik_berkas')) {
+        if (!empty($berkasPdIds) && Table::exists('peserta_didik_berkas')) {
             $uploadedBerkasMap = PesertaDidikBerkas::whereIn('peserta_didik_id', $berkasPdIds)
                 ->get()
                 ->groupBy('peserta_didik_id');
@@ -477,7 +477,7 @@ class KesiswaanQueryService
         $siswaMapUsulan = collect();
         if (!empty($usulanPdIds)) {
             $siswaMapUsulan = PesertaDidik::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
-            if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+            if (Table::exists('peserta_didik_tidak_aktif')) {
                 $missingIds = array_diff($usulanPdIds, $siswaMapUsulan->keys()->all());
                 if (!empty($missingIds)) {
                     $taSiswa = DB::table('peserta_didik_tidak_aktif')->whereIn('peserta_didik_id', $missingIds)->get()->keyBy('peserta_didik_id');
@@ -495,12 +495,12 @@ class KesiswaanQueryService
         }
 
         $metaMapUsulan = collect();
-        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($usulanPdIds) && Table::exists('peserta_didik_meta')) {
             $metaMapUsulan = PesertaDidikMeta::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
         }
 
         $prereqMapUsulan = collect();
-        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_berkas')) {
+        if (!empty($usulanPdIds) && Table::exists('peserta_didik_berkas')) {
             $prereqMapUsulan = PesertaDidikBerkas::whereIn('peserta_didik_id', $usulanPdIds)
                 ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp', 'akta_kelahiran'])
                 ->get()
@@ -647,7 +647,7 @@ class KesiswaanQueryService
             ->orWhere('nipd', $id)
             ->first();
 
-        if (!$pesertaDidik && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pesertaDidik && Table::exists('peserta_didik_tidak_aktif')) {
             $pesertaDidik = DB::table('peserta_didik_tidak_aktif')
                 ->where('peserta_didik_id', $id)
                 ->orWhere('nisn', $id)
@@ -660,20 +660,20 @@ class KesiswaanQueryService
         }
 
         $anggota = null;
-        if (Schema::hasTable('anggota_rombel')) {
+        if (Table::exists('anggota_rombel')) {
             $anggota = DB::table('anggota_rombel')
                 ->where('peserta_didik_id', $pesertaDidik->peserta_didik_id)
                 ->first();
         }
 
         $meta = null;
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $meta = PesertaDidikMeta::where('peserta_didik_id', $pesertaDidik->peserta_didik_id)->first();
         }
 
         $rombelId = $pesertaDidik->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
         $pembelajaran = collect();
-        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+        if (!empty($rombelId) && Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
                 ->where('pembelajaran.rombongan_belajar_id', $rombelId)

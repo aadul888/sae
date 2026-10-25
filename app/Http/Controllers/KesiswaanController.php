@@ -12,18 +12,13 @@ use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class KesiswaanController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Tampilkan Halaman Kluster Administrasi Kesiswaan (Buku Klaper, Mutasi, Kelulusan).
      */

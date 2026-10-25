@@ -4,10 +4,12 @@ namespace App\Services;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use App\Models\Persuratan;
 use App\Models\SuratKeteranganPd;
 use App\Models\PersuratanTemplate;
+
+
+use App\Support\Table;
 
 class SuratKeluarService
 {
@@ -16,7 +18,7 @@ class SuratKeluarService
      */
     public static function syncSptToPersuratan(): void
     {
-        if (!Schema::hasTable('gtk_spt')) {
+        if (!Table::exists('gtk_spt')) {
             return;
         }
 
@@ -54,14 +56,14 @@ class SuratKeluarService
         }
 
         $latestKet = SuratKeteranganPd::orderByDesc('id')->value('nomor_surat') ?: '-';
-        $latestSpt = (Schema::hasTable('gtk_spt') ? DB::table('gtk_spt')->orderByDesc('id')->value('nomor_spt') : null) ?: '-';
-        $latestTmpl = (Schema::hasTable('persuratan_templates') ? DB::table('persuratan_templates')->orderByDesc('id')->value('nomor_surat') : null) ?: '-';
+        $latestSpt = (Table::exists('gtk_spt') ? DB::table('gtk_spt')->orderByDesc('id')->value('nomor_spt') : null) ?: '-';
+        $latestTmpl = (Table::exists('persuratan_templates') ? DB::table('persuratan_templates')->orderByDesc('id')->value('nomor_surat') : null) ?: '-';
 
         return [
             'total'                     => Persuratan::where('jenis_surat', 'keluar')->count(),
             'surat_keterangan'          => SuratKeteranganPd::count(),
-            'spt'                       => Schema::hasTable('gtk_spt') ? DB::table('gtk_spt')->count() : 0,
-            'template'                  => Schema::hasTable('persuratan_templates') ? DB::table('persuratan_templates')->count() : 0,
+            'spt'                       => Table::exists('gtk_spt') ? DB::table('gtk_spt')->count() : 0,
+            'template'                  => Table::exists('persuratan_templates') ? DB::table('persuratan_templates')->count() : 0,
             'ekspedisi'                 => Persuratan::where('jenis_surat', 'keluar')->count(),
             'bulan_ini'                 => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
             'selesai'                   => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
@@ -260,10 +262,10 @@ class SuratKeluarService
         }
 
         SuratKeteranganPd::where('nomor_surat', $surat->nomor_surat)->delete();
-        if (Schema::hasTable('gtk_spt')) {
+        if (Table::exists('gtk_spt')) {
             DB::table('gtk_spt')->where('nomor_spt', $surat->nomor_surat)->delete();
         }
-        if (Schema::hasTable('persuratan_templates')) {
+        if (Table::exists('persuratan_templates')) {
             PersuratanTemplate::where('nomor_surat', $surat->nomor_surat)->delete();
         }
 

@@ -4,8 +4,7 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service kalkulasi dataset multi-periode untuk aktivitas GTK / Tendik dan indikator kepegawaian.
  * ponytail: static-calculator; upgrade ke agregasi cron batch jika record tendik_aktivitas melebihi 100.000 baris.
@@ -21,7 +20,7 @@ class KepegawaianStatsService
         $today = $now->toDateString();
         $factor = max(1, $totalTendik);
 
-        $hasTable = Schema::hasTable('tendik_aktivitas');
+        $hasTable = Table::exists('tendik_aktivitas');
         $allActsQuery = $hasTable ? DB::table('tendik_aktivitas') : null;
         if ($allActsQuery && $bidangFilter) {
             $allActsQuery->where('bidang', $bidangFilter);
@@ -29,7 +28,7 @@ class KepegawaianStatsService
         $allActs = $allActsQuery ? $allActsQuery->get() : collect();
 
         // Integrasi transaksi persuratan riil sebagai aktivitas jika log manual belum diisi
-        if ($bidangFilter === 'persuratan' && $allActs->isEmpty() && Schema::hasTable('persuratan')) {
+        if ($bidangFilter === 'persuratan' && $allActs->isEmpty() && Table::exists('persuratan')) {
             $realSurat = DB::table('persuratan')->get()->map(function ($s) {
                 $tgl = $s->tanggal_surat ?: substr($s->created_at, 0, 10);
                 $jam = substr($s->created_at ?? '08:00:00', 11, 8) ?: '08:00:00';

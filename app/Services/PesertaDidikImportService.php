@@ -8,9 +8,11 @@ use App\Support\SemesterHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+
+use App\Support\Table;
 
 class PesertaDidikImportService
 {
@@ -84,7 +86,7 @@ class PesertaDidikImportService
             ];
         }
 
-        if (!Schema::hasTable('peserta_didik')) {
+        if (!Table::exists('peserta_didik')) {
             return [
                 'status' => 'error',
                 'message' => 'Tabel peserta didik belum tersedia di database.',
@@ -92,12 +94,12 @@ class PesertaDidikImportService
             ];
         }
 
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
         $sekolahId = $sekolah?->sekolah_id ?? null;
         $activeSemesterId = SemesterHelper::getActiveSemesterId();
 
         $rombelMap = collect();
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombelMap = DB::table('rombongan_belajar')->get()->keyBy(function ($r) {
                 return strtolower(trim($r->nama));
             });
@@ -247,7 +249,7 @@ class PesertaDidikImportService
                     $importedCount++;
                 }
 
-                if (Schema::hasTable('peserta_didik_meta')) {
+                if (Table::exists('peserta_didik_meta')) {
                     try {
                         PesertaDidikMeta::firstOrCreate(
                             ['peserta_didik_id' => $pdId],
@@ -256,7 +258,7 @@ class PesertaDidikImportService
                     } catch (\Throwable $metaErr) {}
                 }
 
-                if (Schema::hasTable('pengguna')) {
+                if (Table::exists('pengguna')) {
                     try {
                         $hasUser = DB::table('pengguna')
                             ->where('peserta_didik_id', $pdId)
@@ -278,7 +280,7 @@ class PesertaDidikImportService
                     } catch (\Throwable $userErr) {}
                 }
 
-                if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+                if (Table::exists('peserta_didik_tidak_aktif')) {
                     try {
                         DB::table('peserta_didik_tidak_aktif')
                             ->where('peserta_didik_id', $pdId)

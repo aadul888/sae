@@ -9,7 +9,7 @@ use App\Models\RolePermission;
 use App\Services\RealtimeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class JadwalKbmManualController extends Controller
 {
@@ -55,7 +55,7 @@ class JadwalKbmManualController extends Controller
 
             // Rombel di mana guru mengampu mata pelajaran (pembelajaran)
             $guruRombelIds = [];
-            if ($ptkId && Schema::hasTable('pembelajaran')) {
+            if ($ptkId && Table::exists('pembelajaran')) {
                 $guruRombelIds = DB::table('pembelajaran')
                     ->where('ptk_id', $ptkId)
                     ->whereNotNull('rombongan_belajar_id')
@@ -91,7 +91,7 @@ class JadwalKbmManualController extends Controller
         $activeRombel = $waliRombel;
         if (!$activeRombel && $role === 'peserta_didik') {
             $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-            if ($pdId && Schema::hasTable('peserta_didik')) {
+            if ($pdId && Table::exists('peserta_didik')) {
                 $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
                 if ($pd && !empty($pd->rombongan_belajar_id)) {
                     $activeRombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();

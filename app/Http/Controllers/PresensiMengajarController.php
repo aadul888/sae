@@ -12,19 +12,16 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+
+
+use App\Support\Table;
 
 class PresensiMengajarController extends Controller
 {
-    private function checkAuth()
-    {
-        $user = session('user');
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        return null;
-    }
+    use ChecksAuthenticatedSession;
 
+    
     /**
      * Dapatkan nama hari bahasa Indonesia dari objek Carbon / date string
      */
@@ -212,10 +209,10 @@ class PresensiMengajarController extends Controller
 
         // Beban JP diampu guru (dari pembagian jam mengajar mingguan di pembelajaran / jadwal)
         $bebanJpGuru = 0;
-        if ($ptkId && Schema::hasTable('pembelajaran')) {
+        if ($ptkId && Table::exists('pembelajaran')) {
             $bebanJpGuru = (int) DB::table('pembelajaran')->where('ptk_id', $ptkId)->sum('jam_mengajar_per_minggu');
         }
-        if ($bebanJpGuru === 0 && $ptkId && Schema::hasTable('jadwal_kbm')) {
+        if ($bebanJpGuru === 0 && $ptkId && Table::exists('jadwal_kbm')) {
             $bebanJpGuru = (int) DB::table('jadwal_kbm')
                 ->where('ptk_id', $ptkId)
                 ->where('is_active', true)
@@ -453,12 +450,12 @@ class PresensiMengajarController extends Controller
 
             // Otomatisasi jumlah peserta didik dari data rombel KBM
             $totalSiswaRombel = 0;
-            if (Schema::hasTable('anggota_rombel')) {
+            if (Table::exists('anggota_rombel')) {
                 $totalSiswaRombel = DB::table('anggota_rombel')
                     ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
                     ->count();
             }
-            if ($totalSiswaRombel === 0 && Schema::hasTable('peserta_didik')) {
+            if ($totalSiswaRombel === 0 && Table::exists('peserta_didik')) {
                 $totalSiswaRombel = DB::table('peserta_didik')
                     ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
                     ->count();
@@ -650,12 +647,12 @@ class PresensiMengajarController extends Controller
 
             if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
                 $totalSiswaRombel = 0;
-                if (Schema::hasTable('anggota_rombel')) {
+                if (Table::exists('anggota_rombel')) {
                     $totalSiswaRombel = DB::table('anggota_rombel')
                         ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
                         ->count();
                 }
-                if ($totalSiswaRombel === 0 && Schema::hasTable('peserta_didik')) {
+                if ($totalSiswaRombel === 0 && Table::exists('peserta_didik')) {
                     $totalSiswaRombel = DB::table('peserta_didik')
                         ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
                         ->count();

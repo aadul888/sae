@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\PresensiHarian;
 use App\Models\RolePermission;
 use App\Models\User;
+
+
+use App\Support\Table;
 
 class DutyDashboardController extends Controller
 {
@@ -267,7 +269,7 @@ class DutyDashboardController extends Controller
 
             // Peta foto siswa
             $metaMap = collect();
-            if (!empty($pdIds) && Schema::hasTable('peserta_didik_meta')) {
+            if (!empty($pdIds) && Table::exists('peserta_didik_meta')) {
                 $metaMap = DB::table('peserta_didik_meta')->whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id');
             }
 
@@ -278,7 +280,7 @@ class DutyDashboardController extends Controller
 
             // Hitung Presensi Hari Ini dari tabel presensi_harian (Data Real Database)
             $today = date('Y-m-d');
-            if (Schema::hasTable('presensi_harian')) {
+            if (Table::exists('presensi_harian')) {
                 $presensiToday = DB::table('presensi_harian')
                     ->where('rombongan_belajar_id', $rombelId)
                     ->whereDate('tanggal', $today)
@@ -413,15 +415,15 @@ class DutyDashboardController extends Controller
             // Hitung Kualitas Data Siswa (Konfirmasi Sesuai + Berkas KK & Ijazah Valid)
             $kualitasData['total'] = $totalSiswa;
             if (!empty($pdIds)) {
-                $identitasMap = Schema::hasTable('peserta_didik_identitas')
+                $identitasMap = Table::exists('peserta_didik_identitas')
                     ? DB::table('peserta_didik_identitas')->whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id')
                     : collect();
 
-                $berkasMap = Schema::hasTable('peserta_didik_berkas')
+                $berkasMap = Table::exists('peserta_didik_berkas')
                     ? DB::table('peserta_didik_berkas')->whereIn('peserta_didik_id', $pdIds)->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp'])->get()->groupBy('peserta_didik_id')
                     : collect();
 
-                $fisikMap = Schema::hasTable('kesiswaan_berkas_verifikasi')
+                $fisikMap = Table::exists('kesiswaan_berkas_verifikasi')
                     ? DB::table('kesiswaan_berkas_verifikasi')->whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id')
                     : collect();
 
@@ -482,7 +484,7 @@ class DutyDashboardController extends Controller
         $pdIds   = $siswaList->pluck('peserta_didik_id')->all();
 
         // 1. Aktivitas Login Siswa (dari admin_aktivitas)
-        if (Schema::hasTable('admin_aktivitas') && !empty($nisns)) {
+        if (Table::exists('admin_aktivitas') && !empty($nisns)) {
             $loginLogs = DB::table('admin_aktivitas')
                 ->whereIn('admin_username', $nisns)
                 ->orderBy('created_at', 'desc')
@@ -511,7 +513,7 @@ class DutyDashboardController extends Controller
         }
 
         // 2. Pengajuan e-Izin / Surat Sakit
-        if (Schema::hasTable('presensi_izin') && !empty($pdIds)) {
+        if (Table::exists('presensi_izin') && !empty($pdIds)) {
             $izinLogs = DB::table('presensi_izin')
                 ->whereIn('peserta_didik_id', $pdIds)
                 ->orderBy('created_at', 'desc')
@@ -546,7 +548,7 @@ class DutyDashboardController extends Controller
         }
 
         // 3. Izin Keluar Lingkungan Sekolah
-        if (Schema::hasTable('peserta_didik_izin_keluar') && !empty($pdIds)) {
+        if (Table::exists('peserta_didik_izin_keluar') && !empty($pdIds)) {
             $keluarLogs = DB::table('peserta_didik_izin_keluar')
                 ->whereIn('peserta_didik_id', $pdIds)
                 ->orderBy('created_at', 'desc')
@@ -575,7 +577,7 @@ class DutyDashboardController extends Controller
         }
 
         // 4. Usulan Perubahan Data Siswa
-        if (Schema::hasTable('siswa_usulan_perubahan') && !empty($pdIds)) {
+        if (Table::exists('siswa_usulan_perubahan') && !empty($pdIds)) {
             $usulanLogs = DB::table('siswa_usulan_perubahan')
                 ->whereIn('peserta_didik_id', $pdIds)
                 ->orderBy('created_at', 'desc')
@@ -604,7 +606,7 @@ class DutyDashboardController extends Controller
         }
 
         // 5. Unggah Berkas Dokumen PDF
-        if (Schema::hasTable('peserta_didik_berkas') && !empty($pdIds)) {
+        if (Table::exists('peserta_didik_berkas') && !empty($pdIds)) {
             $berkasLogs = DB::table('peserta_didik_berkas')
                 ->whereIn('peserta_didik_id', $pdIds)
                 ->orderBy('created_at', 'desc')
@@ -635,7 +637,7 @@ class DutyDashboardController extends Controller
         }
 
         // 6. Konfirmasi Identitas Siswa Mandiri
-        if (Schema::hasTable('peserta_didik_identitas') && !empty($pdIds)) {
+        if (Table::exists('peserta_didik_identitas') && !empty($pdIds)) {
             $idLogs = DB::table('peserta_didik_identitas')
                 ->whereIn('peserta_didik_id', $pdIds)
                 ->whereNotNull('dikonfirmasi_pada')
@@ -707,8 +709,8 @@ class DutyDashboardController extends Controller
             })
             ->count();
 
-        $totalSuratMasuk = \Illuminate\Support\Facades\Schema::hasTable('surat_masuk') ? DB::table('surat_masuk')->count() : 0;
-        $totalSuratKeluar = \Illuminate\Support\Facades\Schema::hasTable('surat_keluar') ? DB::table('surat_keluar')->count() : 0;
+        $totalSuratMasuk = \App\Support\Table::exists('surat_masuk') ? DB::table('surat_masuk')->count() : 0;
+        $totalSuratKeluar = \App\Support\Table::exists('surat_keluar') ? DB::table('surat_keluar')->count() : 0;
 
         return [
             'totalTendik' => $totalTendik,

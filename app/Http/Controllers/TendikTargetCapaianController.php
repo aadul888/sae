@@ -9,7 +9,7 @@ use App\Models\TendikIndikatorKinerja;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class TendikTargetCapaianController extends Controller
 {
@@ -125,7 +125,7 @@ class TendikTargetCapaianController extends Controller
         $isKepegawaian = false;
         $activeBidang = 'umum';
 
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $duties = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('ptt.is_active', true)
@@ -327,7 +327,7 @@ class TendikTargetCapaianController extends Controller
 
         // 9. Matriks Sasaran & Indikator Kinerja khusus per bidang
         $matriksIndikatorList = collect();
-        if (Schema::hasTable('tendik_indikator_kinerja')) {
+        if (Table::exists('tendik_indikator_kinerja')) {
             $indQuery = TendikIndikatorKinerja::where('is_active', true)->where('bidang', $currentBidang);
             $matriksIndikatorList = $indQuery->orderBy('urutan')->get()->map(function ($ind) use ($allActivities) {
                 $acts = $allActivities->filter(function ($a) use ($ind) {

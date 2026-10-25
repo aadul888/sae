@@ -3,8 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 final class FeederApiKey
 {
     /**
@@ -22,7 +21,7 @@ final class FeederApiKey
      */
     public static function stored(): ?string
     {
-        if (!Schema::hasTable('settings')) {
+        if (!Table::exists('settings')) {
             return null;
         }
 

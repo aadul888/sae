@@ -6,10 +6,10 @@ use App\Models\PipPengaturan;
 use App\Models\PipUsulan;
 use App\Services\SimpleXlsxExporter;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+use App\Support\Table;
 /**
  * Service khusus pembuatan dan ekspor data usulan PIP ke Microsoft Excel.
  * ponytail: static-exporter; upgrade ke queued job (Chunked Export) jika usulan sekolah melebihi 10.000 siswa.
@@ -99,7 +99,7 @@ class PipExportService
             ->get();
 
         $riwayatMap = [];
-        if (Schema::hasTable('pip_riwayat')) {
+        if (Table::exists('pip_riwayat')) {
             $riwayatRows = DB::table('pip_riwayat')
                 ->select('peserta_didik_id', 'nisn', 'tahun', 'jenis_sk', 'tahap', 'nominal', 'status_cair')
                 ->whereNotNull('tahun')
@@ -236,7 +236,7 @@ class PipExportService
             ];
         }
 
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
         $namaSekolah = $sekolah?->nama ?: 'SMK NEGERI 1 PAGELARAN';
         $npsn = $sekolah?->npsn ?: '';
 

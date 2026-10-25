@@ -9,8 +9,10 @@ use App\Services\SimpleXlsxReader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+
+
+use App\Support\Table;
 
 class PesertaDidikTidakAktifController extends Controller
 {
@@ -42,7 +44,7 @@ class PesertaDidikTidakAktifController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!Table::exists('peserta_didik_tidak_aktif')) {
             return view('dashboard.peserta-didik-tidak-aktif', [
                 'list' => collect(),
                 'total' => 0,
@@ -59,7 +61,7 @@ class PesertaDidikTidakAktifController extends Controller
         }
 
         // Jamin kepastian: Siswa yang saat ini aktif di tabel peserta_didik TIDAK BOLEH muncul ganda di tidak aktif
-        $activePdIds = Schema::hasTable('peserta_didik')
+        $activePdIds = Table::exists('peserta_didik')
             ? DB::table('peserta_didik')->pluck('peserta_didik_id')->filter()->all()
             : [];
 
@@ -197,7 +199,7 @@ class PesertaDidikTidakAktifController extends Controller
         $tahun  = trim($request->get('tahun', ''));
 
         $query = DB::table('peserta_didik_tidak_aktif');
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $activePdIds = DB::table('peserta_didik')->pluck('peserta_didik_id')->filter()->all();
             if (!empty($activePdIds)) {
                 $query->whereNotIn('peserta_didik_id', $activePdIds);
@@ -555,7 +557,7 @@ class PesertaDidikTidakAktifController extends Controller
             ], 422);
         }
 
-        if (!Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!Table::exists('peserta_didik_tidak_aktif')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Tabel peserta_didik_tidak_aktif belum tersedia di database.'
@@ -714,7 +716,7 @@ class PesertaDidikTidakAktifController extends Controller
             try {
                 // 1. Cek apakah siswa ini tercatat di peserta_didik (tabel aktif)
                 $activePd = null;
-                if (Schema::hasTable('peserta_didik')) {
+                if (Table::exists('peserta_didik')) {
                     $activePdQuery = DB::table('peserta_didik');
                     if ($nisn !== '') {
                         $activePd = (clone $activePdQuery)->where('nisn', $nisn)->first();
@@ -735,7 +737,7 @@ class PesertaDidikTidakAktifController extends Controller
 
                 // Cek foto lama jika ada
                 $fotoPath = null;
-                if (!empty($pdId) && Schema::hasTable('peserta_didik_meta')) {
+                if (!empty($pdId) && Table::exists('peserta_didik_meta')) {
                     $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pdId)->first();
                     $fotoPath = $meta?->foto_path;
                 }

@@ -9,7 +9,7 @@ use App\Services\TendikDashboardStatsService;
 use App\Services\UpdateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class DashboardController extends Controller
 {
@@ -131,7 +131,7 @@ class DashboardController extends Controller
 
         // Dukungan pemilihan siswa untuk Superadmin
         $allPdList = collect();
-        if ($userRole === 'admin' && Schema::hasTable('peserta_didik')) {
+        if ($userRole === 'admin' && Table::exists('peserta_didik')) {
             $allPdList = DB::table('peserta_didik')
                 ->select('peserta_didik_id', 'nama', 'nisn', 'nama_rombel')
                 ->orderBy('nama')
@@ -153,9 +153,9 @@ class DashboardController extends Controller
         }
 
         $pd = null;
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $pd = $pdId ? DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first() : DB::table('peserta_didik')->where('nama', $userName)->first();
-            if ($pd && Schema::hasTable('peserta_didik_meta')) {
+            if ($pd && Table::exists('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
                 $pd->foto_url = $meta?->foto_url;
                 $pd->foto_size = $meta?->formatted_foto_size;
@@ -163,7 +163,7 @@ class DashboardController extends Controller
         }
 
         $pembelajaran = collect();
-        if ($pd && !empty($pd->rombongan_belajar_id) && Schema::hasTable('pembelajaran')) {
+        if ($pd && !empty($pd->rombongan_belajar_id) && Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
                 ->where('pembelajaran.rombongan_belajar_id', $pd->rombongan_belajar_id)
@@ -187,7 +187,7 @@ class DashboardController extends Controller
 
         $presensi_terakhir = [];
 
-        if ($pd && Schema::hasTable('presensi_harian')) {
+        if ($pd && Table::exists('presensi_harian')) {
             $currentMonth = now()->format('Y-m');
             $riwayatBulanIni = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
                 ->where('tanggal', 'like', "{$currentMonth}%")
@@ -285,7 +285,7 @@ class DashboardController extends Controller
         $statusHariPd = \App\Models\KalenderPendidikan::getStatusHari(now()->toDateString(), 'pd');
         $isLiburHariIni = ($statusHariPd['is_libur'] ?? false) || !\App\Models\JadwalPengaturan::isHariAktif(now());
 
-        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && !empty($pd->rombongan_belajar_id) && Schema::hasTable('jadwal_kbm')) {
+        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && !empty($pd->rombongan_belajar_id) && Table::exists('jadwal_kbm')) {
             $jadwalSiswa = DB::table('jadwal_kbm as j')
                 ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
                 ->where('j.rombongan_belajar_id', $pd->rombongan_belajar_id)
@@ -343,7 +343,7 @@ class DashboardController extends Controller
         // Ambil data koordinator jika peserta didik bertugas sebagai Koordinator Kelas (1 Unified Dashboard)
         $koordinatorInfo = \App\Models\RolePermission::isKoordinator($user) ? \App\Models\RolePermission::getWaliKelasRombelInfo($user) : null;
         $koordinatorStats = null;
-        if ($koordinatorInfo && Schema::hasTable('peserta_didik')) {
+        if ($koordinatorInfo && Table::exists('peserta_didik')) {
             $rombelId = $koordinatorInfo->rombongan_belajar_id ?? null;
             if ($rombelId) {
                 $totalSiswa = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->count();
@@ -382,7 +382,7 @@ class DashboardController extends Controller
 
         // Dukungan pemilihan siswa jika dibuka oleh Administrator
         $allPdList = collect();
-        if ($userRole === 'admin' && Schema::hasTable('peserta_didik')) {
+        if ($userRole === 'admin' && Table::exists('peserta_didik')) {
             $allPdList = DB::table('peserta_didik')
                 ->select('peserta_didik_id', 'nama', 'nisn', 'nama_rombel')
                 ->orderBy('nama')
@@ -400,9 +400,9 @@ class DashboardController extends Controller
         $pd = null;
         $waliKelas = null;
 
-        if ($pdId && Schema::hasTable('peserta_didik')) {
+        if ($pdId && Table::exists('peserta_didik')) {
             $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
-            if ($pd && Schema::hasTable('peserta_didik_meta')) {
+            if ($pd && Table::exists('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
                 $pd->foto_url = $meta?->foto_url;
             }
@@ -425,7 +425,7 @@ class DashboardController extends Controller
             }
 
             // Informasi Wali Kelas & Jurusan
-            if ($pd && !empty($pd->rombongan_belajar_id) && Schema::hasTable('rombongan_belajar')) {
+            if ($pd && !empty($pd->rombongan_belajar_id) && Table::exists('rombongan_belajar')) {
                 $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
                 if ($rombel) {
                     $waliKelas = [
@@ -476,7 +476,7 @@ class DashboardController extends Controller
             'jam_pulang_hari_ini' => '--:--',
         ];
 
-        if ($pd && Schema::hasTable('presensi_harian')) {
+        if ($pd && Table::exists('presensi_harian')) {
             $bulanIniLogs = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
                 ->where('tanggal', 'like', "{$currentMonth}%")
                 ->get();
@@ -526,7 +526,7 @@ class DashboardController extends Controller
         }
 
         $totalMapelSesi = 0;
-        if ($pd && Schema::hasTable('presensi_mapel')) {
+        if ($pd && Table::exists('presensi_mapel')) {
             $totalMapelSesi = DB::table('presensi_mapel')
                 ->where(function ($q) use ($pd) {
                     $q->where('peserta_didik_id', $pd->peserta_didik_id);
@@ -538,10 +538,10 @@ class DashboardController extends Controller
         }
 
         $totalIzinSiswa = 0;
-        if ($pd && Schema::hasTable('peserta_didik_izin_keluar')) {
+        if ($pd && Table::exists('peserta_didik_izin_keluar')) {
             $totalIzinSiswa += DB::table('peserta_didik_izin_keluar')->where('peserta_didik_id', $pd->peserta_didik_id)->count();
         }
-        if ($pd && Schema::hasTable('presensi_izin')) {
+        if ($pd && Table::exists('presensi_izin')) {
             $totalIzinSiswa += DB::table('presensi_izin')->where('peserta_didik_id', $pd->peserta_didik_id)->count();
         }
 
@@ -549,7 +549,7 @@ class DashboardController extends Controller
         $transaksi = collect();
 
         // 1. Transaksi Presensi Harian
-        if ($pd && Schema::hasTable('presensi_harian')) {
+        if ($pd && Table::exists('presensi_harian')) {
             $harianList = DB::table('presensi_harian')->where('peserta_didik_id', $pd->peserta_didik_id)->orderBy('tanggal', 'desc')->limit(20)->get();
             foreach ($harianList as $h) {
                 $statusStr = match ($h->status) {
@@ -594,7 +594,7 @@ class DashboardController extends Controller
         }
 
         // 2. Transaksi Presensi Mapel KBM
-        if ($pd && Schema::hasTable('presensi_mapel')) {
+        if ($pd && Table::exists('presensi_mapel')) {
             $mapelList = DB::table('presensi_mapel as pm')
                 ->leftJoin('gtk as g', 'pm.ptk_id', '=', 'g.ptk_id')
                 ->where(function ($q) use ($pd) {
@@ -648,7 +648,7 @@ class DashboardController extends Controller
         }
 
         // 3. Transaksi e-Izin Keluar-Masuk
-        if ($pd && Schema::hasTable('peserta_didik_izin_keluar')) {
+        if ($pd && Table::exists('peserta_didik_izin_keluar')) {
             $izinList = DB::table('peserta_didik_izin_keluar as iz')
                 ->leftJoin('gtk as p', 'iz.petugas_piket_ptk_id', '=', 'p.ptk_id')
                 ->where('iz.peserta_didik_id', $pd->peserta_didik_id)
@@ -683,7 +683,7 @@ class DashboardController extends Controller
         }
 
         // 4. Transaksi Surat Izin Sakit
-        if ($pd && Schema::hasTable('presensi_izin')) {
+        if ($pd && Table::exists('presensi_izin')) {
             $suratList = DB::table('presensi_izin')->where('peserta_didik_id', $pd->peserta_didik_id)->orderBy('tanggal_mulai', 'desc')->limit(10)->get();
             foreach ($suratList as $si) {
                 $waktuDisplay = \Carbon\Carbon::parse($si->tanggal_mulai)->translatedFormat('d M Y');
@@ -757,7 +757,7 @@ class DashboardController extends Controller
         ];
         $riwayatHarian = [];
 
-        if ($pd && Schema::hasTable('presensi_harian')) {
+        if ($pd && Table::exists('presensi_harian')) {
             $bulanIniLogs = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
                 ->where('tanggal', 'like', "{$currentMonth}%")
                 ->get();
@@ -859,7 +859,7 @@ class DashboardController extends Controller
             'alpha' => 0,
         ];
 
-        if ($pd && Schema::hasTable('presensi_mapel')) {
+        if ($pd && Table::exists('presensi_mapel')) {
             $mapelLogs = DB::table('presensi_mapel as pm')
                 ->leftJoin('gtk as g', 'pm.ptk_id', '=', 'g.ptk_id')
                 ->where(function ($q) use ($pd) {
@@ -914,7 +914,7 @@ class DashboardController extends Controller
         $izinKeluarList = collect();
         $suratIzinList = collect();
 
-        if ($pd && Schema::hasTable('peserta_didik_izin_keluar')) {
+        if ($pd && Table::exists('peserta_didik_izin_keluar')) {
             $izinKeluarList = DB::table('peserta_didik_izin_keluar as iz')
                 ->leftJoin('gtk as p', 'iz.petugas_piket_ptk_id', '=', 'p.ptk_id')
                 ->where('iz.peserta_didik_id', $pd->peserta_didik_id)
@@ -925,7 +925,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($pd && Schema::hasTable('presensi_izin')) {
+        if ($pd && Table::exists('presensi_izin')) {
             $suratIzinList = DB::table('presensi_izin')
                 ->where('peserta_didik_id', $pd->peserta_didik_id)
                 ->orderBy('tanggal_mulai', 'desc')

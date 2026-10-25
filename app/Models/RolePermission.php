@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use App\Support\PermissionDictionary;
 use App\Support\DutyPermissionDefaults;
@@ -12,6 +11,9 @@ use App\Support\DutyPermissionManager;
 use App\Support\ModuleDiscovery;
 use App\Support\WaliKelasAccessHelper;
 use App\Support\RolePermissionRestrictions;
+
+
+use App\Support\Table;
 
 class RolePermission extends Model
 {
@@ -304,7 +306,7 @@ class RolePermission extends Model
     {
         if ($role === 'admin') return true;
         if (self::$runtimeHasTableRolePermissions === null) {
-            self::$runtimeHasTableRolePermissions = Schema::hasTable('role_permissions');
+            self::$runtimeHasTableRolePermissions = Table::exists('role_permissions');
         }
         if (!self::$runtimeHasTableRolePermissions) return false;
 
@@ -448,7 +450,7 @@ class RolePermission extends Model
     {
         // Jika tabel belum ada (sebelum migrasi selesai), fallback allow default admin
         if (self::$runtimeHasTableRolePermissions === null) {
-            self::$runtimeHasTableRolePermissions = Schema::hasTable('role_permissions');
+            self::$runtimeHasTableRolePermissions = Table::exists('role_permissions');
         }
         if (!self::$runtimeHasTableRolePermissions) {
             $r = is_string($userOrRole) ? $userOrRole : (is_array($userOrRole) ? ($userOrRole['role'] ?? '') : ($userOrRole->role ?? ''));
@@ -471,7 +473,7 @@ class RolePermission extends Model
 
         // Cache keberadaan tabel tugas tambahan
         if (self::$runtimeHasTableDuties === null) {
-            self::$runtimeHasTableDuties = Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan');
+            self::$runtimeHasTableDuties = Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan');
         }
         $hasDutyTables = self::$runtimeHasTableDuties;
 
@@ -923,7 +925,7 @@ class RolePermission extends Model
      */
     public static function resetDefaultPermissions(?string $targetRole = null): void
     {
-        if (!Schema::hasTable('role_permissions')) {
+        if (!Table::exists('role_permissions')) {
             return;
         }
 
@@ -988,7 +990,7 @@ class RolePermission extends Model
      */
     public static function syncAvailablePermissions(): int
     {
-        if (!Schema::hasTable('role_permissions')) {
+        if (!Table::exists('role_permissions')) {
             return 0;
         }
 

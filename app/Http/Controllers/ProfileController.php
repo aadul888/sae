@@ -7,7 +7,7 @@ use App\Models\PesertaDidikMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class ProfileController extends Controller
 {
@@ -32,22 +32,22 @@ class ProfileController extends Controller
 
         $role = $user->role;
         $profileDetails = [];
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
 
         if ($role === 'peserta_didik') {
-            $pd = !empty($user->peserta_didik_id) && Schema::hasTable('peserta_didik')
+            $pd = !empty($user->peserta_didik_id) && Table::exists('peserta_didik')
                 ? DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first()
                 : null;
 
-            $meta = !empty($user->peserta_didik_id) && Schema::hasTable('peserta_didik_meta')
+            $meta = !empty($user->peserta_didik_id) && Table::exists('peserta_didik_meta')
                 ? PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first()
                 : null;
 
             $rombel = null;
             $jurusan = null;
-            if ($pd && !empty($pd->rombongan_belajar_id) && Schema::hasTable('rombongan_belajar')) {
+            if ($pd && !empty($pd->rombongan_belajar_id) && Table::exists('rombongan_belajar')) {
                 $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
-                if ($rombel && !empty($rombel->jurusan_sp_id) && Schema::hasTable('jurusan_sp')) {
+                if ($rombel && !empty($rombel->jurusan_sp_id) && Table::exists('jurusan_sp')) {
                     $jurusan = DB::table('jurusan_sp')->where('jurusan_sp_id', $rombel->jurusan_sp_id)->first();
                 }
             }
@@ -66,13 +66,13 @@ class ProfileController extends Controller
                 'foto_url' => $meta?->foto_url ?? session('user.foto_url'),
             ];
         } elseif ($role === 'guru' || $role === 'tendik') {
-            $gtk = !empty($user->ptk_id) && Schema::hasTable('gtk')
+            $gtk = !empty($user->ptk_id) && Table::exists('gtk')
                 ? DB::table('gtk')->where('ptk_id', $user->ptk_id)->first()
                 : null;
 
             // Cari tugas tambahan aktif dari tabel RBAC/Dapodik
             $tugasTambahan = null;
-            if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
                 $duties = DB::table('ptk_tugas_tambahan as ptt')
                     ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                     ->where('ptt.is_active', true)
@@ -93,7 +93,7 @@ class ProfileController extends Controller
 
             // Cari mata pelajaran utama dengan total jam mengajar terbanyak untuk guru
             $mapelUtama = null;
-            if ($role === 'guru' && !empty($user->ptk_id) && Schema::hasTable('pembelajaran')) {
+            if ($role === 'guru' && !empty($user->ptk_id) && Table::exists('pembelajaran')) {
                 $topM = DB::table('pembelajaran')
                     ->where('ptk_id', $user->ptk_id)
                     ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))

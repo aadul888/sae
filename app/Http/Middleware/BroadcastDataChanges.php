@@ -7,6 +7,9 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+
+use App\Support\Table;
+
 class BroadcastDataChanges
 {
     /**
@@ -70,7 +73,7 @@ class BroadcastDataChanges
                         str_contains($path, 'password') ||
                         str_contains($path, 'profil');
 
-                    if ($sessionUser && !$isBlockedRole && !$isExcludedPath && \Illuminate\Support\Facades\Schema::hasTable('tendik_aktivitas')) {
+                    if ($sessionUser && !$isBlockedRole && !$isExcludedPath && \App\Support\Table::exists('tendik_aktivitas')) {
                         $method = $request->method();
                         $baseAction = null;
                         $bidang = 'umum';

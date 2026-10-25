@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class GuruAktifController extends Controller
 {
@@ -28,7 +28,7 @@ class GuruAktifController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('gtk')) {
+        if (!Table::exists('gtk')) {
             return view('dashboard.guru-aktif', [
                 'list' => collect(),
                 'total' => 0,
@@ -197,7 +197,7 @@ class GuruAktifController extends Controller
         }
 
         $pembelajaran = collect();
-        if (Schema::hasTable('pembelajaran')) {
+        if (Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('rombongan_belajar', 'pembelajaran.rombongan_belajar_id', '=', 'rombongan_belajar.rombongan_belajar_id')
                 ->where('pembelajaran.ptk_id', $gtk->ptk_id)

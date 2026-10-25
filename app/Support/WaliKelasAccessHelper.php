@@ -3,8 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 final class WaliKelasAccessHelper
 {
     /**
@@ -22,7 +21,7 @@ final class WaliKelasAccessHelper
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
         if (!$pdId) return false;
 
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             return (bool) DB::table('peserta_didik_meta')
                 ->where('peserta_didik_id', $pdId)
                 ->where('is_koordinator', true)
@@ -50,7 +49,7 @@ final class WaliKelasAccessHelper
                 if (!$rombelNameOrId) return true;
 
                 $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-                if ($pdId && Schema::hasTable('peserta_didik')) {
+                if ($pdId && Table::exists('peserta_didik')) {
                     $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
                     if ($pd && ($pd->rombongan_belajar_id === $rombelNameOrId || strcasecmp(trim((string)$pd->nama_rombel), trim((string)$rombelNameOrId)) === 0)) {
                         return true;
@@ -67,7 +66,7 @@ final class WaliKelasAccessHelper
             return false;
         }
 
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $waliQuery = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('rtt.kode', 'WALI_KELAS')
@@ -92,7 +91,7 @@ final class WaliKelasAccessHelper
             }
         }
 
-        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+        if ($ptkId && Table::exists('rombongan_belajar')) {
             $rombelQuery = DB::table('rombongan_belajar')->where('ptk_id', $ptkId);
             if ($rombelNameOrId) {
                 $rombelQuery->where(function ($q) use ($rombelNameOrId) {
@@ -119,7 +118,7 @@ final class WaliKelasAccessHelper
 
         if ($role === 'peserta_didik' && self::isKoordinator($user)) {
             $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-            if ($pdId && Schema::hasTable('peserta_didik')) {
+            if ($pdId && Table::exists('peserta_didik')) {
                 return DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->value('nama_rombel');
             }
         }
@@ -128,7 +127,7 @@ final class WaliKelasAccessHelper
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         if (!$userId && !$ptkId) return null;
 
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $rombelId = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('rtt.kode', 'WALI_KELAS')
@@ -146,7 +145,7 @@ final class WaliKelasAccessHelper
             }
         }
 
-        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+        if ($ptkId && Table::exists('rombongan_belajar')) {
             return DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->value('nama');
         }
 
@@ -165,9 +164,9 @@ final class WaliKelasAccessHelper
 
         if ($role === 'peserta_didik' && self::isKoordinator($user)) {
             $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-            if ($pdId && Schema::hasTable('peserta_didik')) {
+            if ($pdId && Table::exists('peserta_didik')) {
                 $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
-                if ($pd && $pd->rombongan_belajar_id && Schema::hasTable('rombongan_belajar')) {
+                if ($pd && $pd->rombongan_belajar_id && Table::exists('rombongan_belajar')) {
                     $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
                     if ($rombel) return $rombel;
                 }
@@ -178,7 +177,7 @@ final class WaliKelasAccessHelper
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         if (!$userId && !$ptkId) return null;
 
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $rombelId = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->where('rtt.kode', 'WALI_KELAS')
@@ -190,13 +189,13 @@ final class WaliKelasAccessHelper
                 })
                 ->value('ptt.rombel_id');
 
-            if ($rombelId && Schema::hasTable('rombongan_belajar')) {
+            if ($rombelId && Table::exists('rombongan_belajar')) {
                 $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first();
                 if ($rombel) return $rombel;
             }
         }
 
-        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+        if ($ptkId && Table::exists('rombongan_belajar')) {
             return DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->first();
         }
 

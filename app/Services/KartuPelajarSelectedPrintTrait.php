@@ -5,8 +5,7 @@ namespace App\Services;
 use App\Models\PesertaDidikMeta;
 use App\Support\SemesterHelper;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 trait KartuPelajarSelectedPrintTrait
 {
     /**
@@ -14,7 +13,7 @@ trait KartuPelajarSelectedPrintTrait
      */
     public function getSelectedRequestsCardsData(array $filters = []): array
     {
-        if (!Schema::hasTable('kartu_pelajar_request')) {
+        if (!Table::exists('kartu_pelajar_request')) {
             return ['error' => 'not_found', 'rombel' => null, 'cards' => [], 'sekolah' => []];
         }
 
@@ -78,7 +77,7 @@ trait KartuPelajarSelectedPrintTrait
         }
 
         // 3. Validasi foto wajib ada
-        if (!empty($filters['hanya_ada_foto']) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($filters['hanya_ada_foto']) && Table::exists('peserta_didik_meta')) {
             $query->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('peserta_didik_meta as pdm')
@@ -94,7 +93,7 @@ trait KartuPelajarSelectedPrintTrait
         $cards = [];
         $pdIds = $students->pluck('peserta_didik_id')->all();
         $photos = [];
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $photos = PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)
                 ->get()
                 ->keyBy('peserta_didik_id');

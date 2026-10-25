@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\JadwalPengaturan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class JadwalPrintService
 {
@@ -396,7 +396,7 @@ class JadwalPrintService
     public function resolveWakaKurikulum(): ?object
     {
         $waka = null;
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
             $waka = DB::table('ptk_tugas_tambahan as ptt')
                 ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                 ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
@@ -409,7 +409,7 @@ class JadwalPrintService
                 ->first();
         }
 
-        if (!$waka && Schema::hasTable('gtk')) {
+        if (!$waka && Table::exists('gtk')) {
             $waka = DB::table('gtk')
                 ->where(function ($w) {
                     $w->where('jenis_ptk_id_str', 'LIKE', '%Kurikulum%')

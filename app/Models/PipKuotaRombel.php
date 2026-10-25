@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class PipKuotaRombel extends Model
 {
@@ -22,7 +22,7 @@ class PipKuotaRombel extends Model
     public static function getKuotaForRombel(string $rombelId, ?string $tahun = null): int
     {
         $tahun = $tahun ?: (string) (date('Y'));
-        if (!Schema::hasTable('pip_kuota_rombel')) {
+        if (!Table::exists('pip_kuota_rombel')) {
             return 5;
         }
 
@@ -39,7 +39,7 @@ class PipKuotaRombel extends Model
     public static function getTargetTotalSekolah(?string $tahun = null): ?int
     {
         $tahun = $tahun ?: (string) (date('Y'));
-        if (!Schema::hasTable('pip_kuota_rombel')) {
+        if (!Table::exists('pip_kuota_rombel')) {
             return null;
         }
 
@@ -56,7 +56,7 @@ class PipKuotaRombel extends Model
     public static function setTargetTotalSekolah(int $target, ?string $tahun = null): void
     {
         $tahun = $tahun ?: (string) (date('Y'));
-        if (!Schema::hasTable('pip_kuota_rombel')) {
+        if (!Table::exists('pip_kuota_rombel')) {
             return;
         }
         self::updateOrCreate(

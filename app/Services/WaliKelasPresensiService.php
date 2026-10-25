@@ -13,8 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service khusus rekapitulasi, pencatatan manual, approval izin, dan ekspor presensi kelas binaan.
  * ponytail: static-orchestrator; upgrade ke asynchronous job jika ekspor rekap matriks bulanan melibatkan > 10.000 log.
@@ -512,14 +511,14 @@ class WaliKelasPresensiService
             $tipe = 'hari';
         }
 
-        $kepalaSekolah = Schema::hasTable('gtk')
+        $kepalaSekolah = Table::exists('gtk')
             ? DB::table('gtk')->where(function ($w) {
                 $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
                   ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
             })->first()
             : null;
 
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
 
         $viewData = [
             'tipe'          => $tipe,

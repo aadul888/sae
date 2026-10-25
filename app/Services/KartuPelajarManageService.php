@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
+
+use App\Support\Table;
+
 class KartuPelajarManageService
 {
     /**
@@ -63,7 +66,7 @@ class KartuPelajarManageService
 
         $query->where(function ($sq) {
             $sq->where('kp.status_cetak', 'sudah_cetak');
-            if (Schema::hasTable('kartu_pelajar_request')) {
+            if (Table::exists('kartu_pelajar_request')) {
                 $sq->orWhereExists(function ($sub) {
                     $sub->select(DB::raw(1))
                         ->from('kartu_pelajar_request as kpr')
@@ -129,7 +132,7 @@ class KartuPelajarManageService
 
         $statScope->where(function ($sq) {
             $sq->where('kp.status_cetak', 'sudah_cetak');
-            if (Schema::hasTable('kartu_pelajar_request')) {
+            if (Table::exists('kartu_pelajar_request')) {
                 $sq->orWhereExists(function ($sub) {
                     $sub->select(DB::raw(1))
                         ->from('kartu_pelajar_request as kpr')
@@ -168,10 +171,10 @@ class KartuPelajarManageService
         })->count();
         $totalDanaTerkumpul = (clone $statScope)->where('kp.status_pembayaran', 'lunas')->sum('kp.nominal');
 
-        $totalKlaimKartu = Schema::hasTable('kartu_pelajar_garansi_log')
+        $totalKlaimKartu = Table::exists('kartu_pelajar_garansi_log')
             ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'ganti_kartu_full')->count()
             : 0;
-        $totalKlaimStiker = Schema::hasTable('kartu_pelajar_garansi_log')
+        $totalKlaimStiker = Table::exists('kartu_pelajar_garansi_log')
             ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'cetak_stiker')->count()
             : 0;
 
@@ -217,8 +220,8 @@ class KartuPelajarManageService
         // Keuangan Kartu Pelajar
         $totalPemasukan = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->sum('nominal');
         $countPemasukan = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->count();
-        $totalPengeluaran = Schema::hasTable('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->sum('nominal') : 0;
-        $countPengeluaran = Schema::hasTable('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->count() : 0;
+        $totalPengeluaran = Table::exists('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->sum('nominal') : 0;
+        $countPengeluaran = Table::exists('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->count() : 0;
         $saldoBersih = $totalPemasukan - $totalPengeluaran;
 
         $totalSiswaGlobal = DB::table('peserta_didik')->count();
@@ -289,7 +292,7 @@ class KartuPelajarManageService
             $pemasukanList = $bayarQuery->paginate($perPage)->withQueryString();
             $recentPemasukan = $pemasukanList;
 
-            if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
+            if (Table::exists('kartu_pelajar_pengeluaran')) {
                 $bQ = trim((string) $request->get('belanja_q', ''));
                 $bPerPage = in_array((int) $request->get('belanja_per_page'), [10, 15, 25, 50, 100], true) ? (int) $request->get('belanja_per_page') : 10;
                 $bSort = in_array($request->get('belanja_sort'), ['tanggal', 'nominal', 'judul', 'kategori'], true) ? $request->get('belanja_sort') : null;
@@ -326,7 +329,7 @@ class KartuPelajarManageService
                     ->sum('nominal');
                 $chartKeuangan['pemasukan'][] = (int) $masukBulan;
 
-                $keluarBulan = Schema::hasTable('kartu_pelajar_pengeluaran')
+                $keluarBulan = Table::exists('kartu_pelajar_pengeluaran')
                     ? DB::table('kartu_pelajar_pengeluaran')
                         ->whereYear('tanggal', $mDate->year)
                         ->whereMonth('tanggal', $mDate->month)
@@ -335,7 +338,7 @@ class KartuPelajarManageService
                 $chartKeuangan['pengeluaran'][] = (int) $keluarBulan;
             }
 
-            if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
+            if (Table::exists('kartu_pelajar_pengeluaran')) {
                 $kategoriMapping = KartuPelajarPengeluaran::getKategoriList();
                 $katSums = DB::table('kartu_pelajar_pengeluaran')
                     ->select('kategori', DB::raw('SUM(nominal) as total'))
@@ -358,7 +361,7 @@ class KartuPelajarManageService
         $requestList = null;
         $requestStats = ['menunggu' => 0, 'diproses' => 0, 'selesai' => 0, 'ditolak' => 0];
         $reqStatus = trim((string) $request->get('req_status', ''));
-        if ($tab === 'request' && Schema::hasTable('kartu_pelajar_request')) {
+        if ($tab === 'request' && Table::exists('kartu_pelajar_request')) {
             $requestHasMetodePembayaran = Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran');
             $statQuery = DB::table('kartu_pelajar_request as r')
                 ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id');
@@ -589,7 +592,7 @@ class KartuPelajarManageService
 
             $filterQuery->where(function ($sq) {
                 $sq->where('kp.status_cetak', 'sudah_cetak');
-                if (Schema::hasTable('kartu_pelajar_request')) {
+                if (Table::exists('kartu_pelajar_request')) {
                     $sq->orWhereExists(function ($sub) {
                         $sub->select(DB::raw(1))
                             ->from('kartu_pelajar_request as kpr')
@@ -871,7 +874,7 @@ class KartuPelajarManageService
 
         // 1. Validasi: Garansi resmi hanya berlaku selama berstatus Peserta Didik Aktif
         $isAktif = DB::table('peserta_didik')->where('peserta_didik_id', $pd->peserta_didik_id)->exists()
-            && (!Schema::hasTable('peserta_didik_tidak_aktif') || !DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $pd->peserta_didik_id)->exists());
+            && (!Table::exists('peserta_didik_tidak_aktif') || !DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $pd->peserta_didik_id)->exists());
 
         if (!$isAktif) {
             return [

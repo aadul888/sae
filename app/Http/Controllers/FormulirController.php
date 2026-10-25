@@ -13,9 +13,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
+
+use App\Support\Table;
 
 class FormulirController extends Controller
 {
@@ -122,7 +124,7 @@ class FormulirController extends Controller
         }
 
         $rombels = [];
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombels = DB::table('rombongan_belajar')
                 ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
                 ->orderBy('nama')
@@ -223,7 +225,7 @@ class FormulirController extends Controller
         $formulir = Formulir::findOrFail($id);
 
         $rombels = [];
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombels = DB::table('rombongan_belajar')
                 ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
                 ->orderBy('nama')
@@ -659,8 +661,8 @@ class FormulirController extends Controller
                 'targetLabel' => $targetLabel,
                 'message' => 'Formulir "' . $formulir->judul . '" hanya dapat diisi oleh ' . $targetLabel . '. Silakan masuk dengan akun SAE Anda untuk melanjutkan.',
                 'loginUrl' => route('login'),
-                'sekolah' => Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null,
-                'sekolahMeta' => Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null,
+                'sekolah' => Table::exists('sekolah') ? DB::table('sekolah')->first() : null,
+                'sekolahMeta' => Table::exists('sekolah_meta') ? SekolahMeta::first() : null,
             ]);
         }
 
@@ -683,7 +685,7 @@ class FormulirController extends Controller
             }
 
             // Jika peserta didik, ambil data master sekolah (rombel, nisn)
-            if ($userPdId && Schema::hasTable('peserta_didik')) {
+            if ($userPdId && Table::exists('peserta_didik')) {
                 $studentInfo = DB::table('peserta_didik')->where('peserta_didik_id', $userPdId)->first();
 
                 // Validasi Target Rombel jika ditentukan
@@ -725,8 +727,8 @@ class FormulirController extends Controller
         }
 
         // Info branding sekolah
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
 
         return view('formulir.public-view', compact('formulir', 'user', 'studentInfo', 'sekolah', 'sekolahMeta'));
     }
@@ -762,7 +764,7 @@ class FormulirController extends Controller
         $studentInfo = null;
         if ($user) {
             $userPdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-            if ($userPdId && Schema::hasTable('peserta_didik')) {
+            if ($userPdId && Table::exists('peserta_didik')) {
                 $studentInfo = DB::table('peserta_didik')->where('peserta_didik_id', $userPdId)->first();
             }
         }
@@ -888,8 +890,8 @@ class FormulirController extends Controller
         $formulir = Formulir::where('slug', $slug)->firstOrFail();
         $respon = FormulirRespon::where('formulir_id', $formulir->id)->findOrFail($responId);
 
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Table::exists('sekolah_meta') ? SekolahMeta::first() : null;
 
         return view('formulir.success', compact('formulir', 'respon', 'sekolah', 'sekolahMeta'));
     }

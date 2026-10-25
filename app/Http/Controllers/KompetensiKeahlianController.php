@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class KompetensiKeahlianController extends Controller
 {
@@ -29,7 +29,7 @@ class KompetensiKeahlianController extends Controller
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        if (!Schema::hasTable('rombongan_belajar')) {
+        if (!Table::exists('rombongan_belajar')) {
             return view('dashboard.kompetensi-keahlian', [
                 'list' => collect(),
                 'total' => 0,
@@ -52,7 +52,7 @@ class KompetensiKeahlianController extends Controller
             ->groupBy('rombongan_belajar.jurusan_id', 'rombongan_belajar.jurusan_id_str');
 
         // Total peserta didik jika tabel peserta_didik tersedia
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             $baseQuery->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
                 ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik'));
         } else {
@@ -109,7 +109,7 @@ class KompetensiKeahlianController extends Controller
                 ];
             }
 
-            if (Schema::hasTable('jurusan_meta')) {
+            if (Table::exists('jurusan_meta')) {
                 $metaMap = \App\Models\JurusanMeta::whereIn('jurusan_id', $jurusanIds)
                     ->get()
                     ->keyBy('jurusan_id');
@@ -179,12 +179,12 @@ class KompetensiKeahlianController extends Controller
             ->get();
 
         // Hitung jumlah peserta didik per rombel
-        $pdCounts = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')
+        $pdCounts = Table::exists('peserta_didik') ? DB::table('peserta_didik')
             ->whereNotNull('rombongan_belajar_id')
             ->groupBy('rombongan_belajar_id')
             ->pluck(DB::raw('COUNT(DISTINCT peserta_didik_id)'), 'rombongan_belajar_id') : collect();
 
-        $arCounts = Schema::hasTable('anggota_rombel') ? DB::table('anggota_rombel')
+        $arCounts = Table::exists('anggota_rombel') ? DB::table('anggota_rombel')
             ->whereNotNull('rombongan_belajar_id')
             ->groupBy('rombongan_belajar_id')
             ->pluck(DB::raw('COUNT(DISTINCT peserta_didik_id)'), 'rombongan_belajar_id') : collect();

@@ -9,8 +9,7 @@ use App\Models\RolePermission;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 /**
  * Service agregasi data metrik, jadwal harian, dan ringkasan perwalian guru.
  * ponytail: static-calculator; upgrade ke caching per-guru jika query jadwal per menit melebihi 200 req/sec.
@@ -29,7 +28,7 @@ class GuruDashboardStatsService
 
         // Dukungan pemilihan guru untuk Superadmin / Tendik
         $allGtkList = collect();
-        if (($userRole === 'admin' || $userRole === 'tendik') && Schema::hasTable('gtk')) {
+        if (($userRole === 'admin' || $userRole === 'tendik') && Table::exists('gtk')) {
             $allGtkList = DB::table('gtk')
                 ->where(function ($q) {
                     $q->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
@@ -55,7 +54,7 @@ class GuruDashboardStatsService
         }
 
         $gtk = null;
-        if (Schema::hasTable('gtk')) {
+        if (Table::exists('gtk')) {
             $gtk = $ptkId ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : DB::table('gtk')->where('nama', $userName)->first();
         }
 
@@ -71,7 +70,7 @@ class GuruDashboardStatsService
         }
 
         $pembelajaran = collect();
-        if ($gtk && Schema::hasTable('pembelajaran')) {
+        if ($gtk && Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('rombongan_belajar', 'pembelajaran.rombongan_belajar_id', '=', 'rombongan_belajar.rombongan_belajar_id')
                 ->where('pembelajaran.ptk_id', $gtk->ptk_id)
@@ -88,7 +87,7 @@ class GuruDashboardStatsService
         $totalJamAjar = $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0));
         $kelasDiampu = $pembelajaran->pluck('rombongan_belajar_id')->filter()->unique()->count();
         $rombelIds = $pembelajaran->pluck('rombongan_belajar_id')->filter()->unique()->toArray();
-        $totalPdDiampu = (!empty($rombelIds) && Schema::hasTable('peserta_didik')) ? DB::table('peserta_didik')->whereIn('rombongan_belajar_id', $rombelIds)->count() : 0;
+        $totalPdDiampu = (!empty($rombelIds) && Table::exists('peserta_didik')) ? DB::table('peserta_didik')->whereIn('rombongan_belajar_id', $rombelIds)->count() : 0;
 
         $tanggalHariIni = now()->toDateString();
         $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
@@ -124,7 +123,7 @@ class GuruDashboardStatsService
         $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || !JadwalPengaturan::isHariAktif(now());
         $jadwal_hari_ini = [];
 
-        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && $gtk && !empty($gtk->ptk_id) && Schema::hasTable('jadwal_kbm')) {
+        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && $gtk && !empty($gtk->ptk_id) && Table::exists('jadwal_kbm')) {
             $jadwalRiil = DB::table('jadwal_kbm as j')
                 ->leftJoin('rombongan_belajar as rb', 'j.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
                 ->where('j.sumber', $modeAktif)
@@ -192,7 +191,7 @@ class GuruDashboardStatsService
 
         $waliInfo = RolePermission::getWaliKelasRombelInfo($user);
         $waliStats = null;
-        if ($waliInfo && Schema::hasTable('peserta_didik')) {
+        if ($waliInfo && Table::exists('peserta_didik')) {
             $rombelId = $waliInfo->rombongan_belajar_id ?? null;
             if ($rombelId) {
                 $totalSiswaWali = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->count();
@@ -201,7 +200,7 @@ class GuruDashboardStatsService
                 $izinToday = 0;
                 $sakitToday = 0;
                 $alpaToday = 0;
-                if (Schema::hasTable('presensi_harian')) {
+                if (Table::exists('presensi_harian')) {
                     $presensiKelas = DB::table('presensi_harian')
                         ->where('tanggal', $todayDate)
                         ->whereIn('peserta_didik_id', function ($q) use ($rombelId) {

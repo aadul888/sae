@@ -7,7 +7,7 @@ use App\Models\PesertaDidikMeta;
 use App\Models\SekolahMeta;
 use App\Support\SemesterHelper;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class KartuPelajarPrintService
 {
@@ -19,12 +19,12 @@ class KartuPelajarPrintService
     public function getSekolahInfo(): array
     {
         $sekolah = null;
-        if (Schema::hasTable('sekolah')) {
+        if (Table::exists('sekolah')) {
             $sekolah = DB::table('sekolah')->first();
         }
 
         $sekolahMeta = null;
-        if (Schema::hasTable('sekolah_meta')) {
+        if (Table::exists('sekolah_meta')) {
             $sekolahMeta = SekolahMeta::first();
         }
 
@@ -52,7 +52,7 @@ class KartuPelajarPrintService
      */
     public function getJurusanMeta(?string $jurusanId): ?JurusanMeta
     {
-        if (empty($jurusanId) || !Schema::hasTable('jurusan_meta')) {
+        if (empty($jurusanId) || !Table::exists('jurusan_meta')) {
             return null;
         }
 
@@ -69,7 +69,7 @@ class KartuPelajarPrintService
      */
     public function loadStudentCardData(string $nisn): ?array
     {
-        if (!Schema::hasTable('peserta_didik')) {
+        if (!Table::exists('peserta_didik')) {
             return null;
         }
 
@@ -97,7 +97,7 @@ class KartuPelajarPrintService
         $jurusanMeta = $this->getJurusanMeta($jurusanId);
 
         $fotoUrl = null;
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $meta = PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
             $fotoUrl = $meta?->foto_url;
         }
@@ -145,7 +145,7 @@ class KartuPelajarPrintService
             });
 
         // Filter: hanya siswa yang memiliki request cetak berstatus tertentu (misal: 'menunggu')
-        if (!empty($filters['status_request']) && Schema::hasTable('kartu_pelajar_request')) {
+        if (!empty($filters['status_request']) && Table::exists('kartu_pelajar_request')) {
             $stReq = $filters['status_request'];
             $query->where(function ($qReq) use ($stReq) {
                 $qReq->whereExists(function ($sub) use ($stReq) {
@@ -165,7 +165,7 @@ class KartuPelajarPrintService
         }
 
         // Filter: hanya ID request tertentu yang diceklist / dipilih
-        if (!empty($filters['request_ids']) && is_array($filters['request_ids']) && Schema::hasTable('kartu_pelajar_request')) {
+        if (!empty($filters['request_ids']) && is_array($filters['request_ids']) && Table::exists('kartu_pelajar_request')) {
             $reqIds = array_map('intval', $filters['request_ids']);
             $query->where(function ($qReq) use ($reqIds) {
                 $qReq->whereExists(function ($sub) use ($reqIds) {
@@ -190,7 +190,7 @@ class KartuPelajarPrintService
         }
 
         // Validasi: hanya siswa yang sudah ada fotonya (jika diminta atau saat cetak request)
-        if (!empty($filters['hanya_ada_foto']) && Schema::hasTable('peserta_didik_meta')) {
+        if (!empty($filters['hanya_ada_foto']) && Table::exists('peserta_didik_meta')) {
             $query->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('peserta_didik_meta as pdm')
@@ -208,7 +208,7 @@ class KartuPelajarPrintService
         $cards = [];
         $pdIds = $students->pluck('peserta_didik_id')->all();
         $photos = [];
-        if (Schema::hasTable('peserta_didik_meta')) {
+        if (Table::exists('peserta_didik_meta')) {
             $photos = PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)
                 ->get()
                 ->keyBy('peserta_didik_id');

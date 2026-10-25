@@ -17,8 +17,10 @@ use App\Support\SemesterHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+
+
+use App\Support\Table;
 
 class PipController extends Controller
 {
@@ -48,7 +50,7 @@ class PipController extends Controller
         }
 
         $rombelList = collect();
-        if (Schema::hasTable('rombongan_belajar')) {
+        if (Table::exists('rombongan_belajar')) {
             $rombelList = DB::table('rombongan_belajar')
                 ->where('jenis_rombel', '1')
                 ->orderBy('tingkat_pendidikan_id', 'asc')
@@ -65,7 +67,7 @@ class PipController extends Controller
             }
         } else {
             $activeRombel = RolePermission::getWaliKelasRombelInfo($user);
-            if (!$activeRombel && Schema::hasTable('rombongan_belajar')) {
+            if (!$activeRombel && Table::exists('rombongan_belajar')) {
                 $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
                 $userName = is_array($user) ? ($user['name'] ?? ($user['nama'] ?? '')) : ($user->name ?? ($user->nama ?? ''));
                 if ($ptkId) {
@@ -192,7 +194,7 @@ class PipController extends Controller
     {
         PipService::ensureSchema();
 
-        if (!Schema::hasTable('pip_usulan')) {
+        if (!Table::exists('pip_usulan')) {
             return back()->with('error', 'Tabel usulan PIP belum tersedia.');
         }
 

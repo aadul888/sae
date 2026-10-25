@@ -4,8 +4,7 @@ namespace App\Support;
 
 use App\Models\RolePermission;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
+use App\Support\Table;
 final class ModuleDiscovery
 {
     /**
@@ -73,7 +72,7 @@ final class ModuleDiscovery
         }
 
         // 2. Deteksi modul yang tersimpan di tabel role_permissions database
-        if (Schema::hasTable('role_permissions')) {
+        if (Table::exists('role_permissions')) {
             $dbKeys = DB::table('role_permissions')->distinct()->pluck('permission_key')->toArray();
             foreach ($dbKeys as $key) {
                 if (!isset($knownKeys[$key]) && !isset($discovered[$key])) {
@@ -184,7 +183,7 @@ final class ModuleDiscovery
      */
     public static function autoSyncNewDiscoveredModules(): int
     {
-        if (!Schema::hasTable('role_permissions')) {
+        if (!Table::exists('role_permissions')) {
             return 0;
         }
 
@@ -245,7 +244,7 @@ final class ModuleDiscovery
      */
     public static function autoRegisterNewPermission(string $permissionKey): void
     {
-        if (!Schema::hasTable('role_permissions')) {
+        if (!Table::exists('role_permissions')) {
             return;
         }
 

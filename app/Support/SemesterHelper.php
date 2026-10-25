@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Cache;
+
+
+use App\Support\Table;
 
 class SemesterHelper
 {
@@ -14,7 +16,7 @@ class SemesterHelper
     public static function getActiveSemesterId()
     {
         return Cache::remember('active_semester_id', 3600, function () {
-            if (!Schema::hasTable('rombongan_belajar')) {
+            if (!Table::exists('rombongan_belajar')) {
                 return null;
             }
             return DB::table('rombongan_belajar')->max('semester_id');
