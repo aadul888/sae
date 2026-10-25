@@ -290,10 +290,7 @@
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             @php
-                                $cols = [
-                                    ['nama', 'Nama'],
-                                    ['username', 'Username'],
-                                ];
+                                $cols = [['nama', 'Nama'], ['username', 'Username']];
                                 if ($activeTab === 'peserta_didik') {
                                     $cols[] = ['email', 'Email'];
                                 }

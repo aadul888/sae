@@ -583,7 +583,8 @@
                                     data-durasi-jp="{{ $j['durasi_jp'] }}" data-ptk-id="{{ $j['ptk_id'] }}">
                                     [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }}
                                     (Jam
-                                    {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }}){{ !$isGuru && !empty($j['guru_nama']) && $j['guru_nama'] !== '-' ? ' • ' . $j['guru_nama'] : '' }}
+                                    {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
+                                    {{ !$isGuru && !empty($j['guru_nama']) && $j['guru_nama'] !== '-' ? ' • ' . $j['guru_nama'] : '' }}
                                 </option>
                             @endforeach
                         </select>

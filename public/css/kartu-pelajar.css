@@ -1,11 +1,11 @@
 /**
  * Stylesheet Kartu Pelajar Digital SAE — FORMAT PORTRAIT
- * Standard ISO/IEC 7810 ID-1 (CR-80 Portrait: 54mm x 85.6mm)
+ * Standard Presisi ID Card: 56mm x 86mm (High Quality Print & 10 Cards/Sheet A4 Landscape)
  */
 
 :root {
-    --kp-width: 54mm;
-    --kp-height: 85.6mm;
+    --kp-width: 56mm;
+    --kp-height: 86mm;
     --kp-radius: 3.5mm;
     --kp-primary: #0f172a;
     --kp-secondary: #1e3a8a;
@@ -563,35 +563,76 @@
     margin-right: 2px;
 }
 
-/* PRINT STYLES (PORTRAIT A4) */
+/* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 86mm) */
 @media print {
     @page {
-        size: A4 portrait;
-        margin: 8mm;
+        size: A4 landscape;
+        margin: 5mm;
     }
 
-    body {
-        background: transparent !important;
+    html, body {
+        background: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    .no-print {
+    .no-print,
+    .no-print-bar {
         display: none !important;
     }
 
+    .print-canvas {
+        margin: 0 auto !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .print-grid {
+        max-width: 287mm !important;
+        width: 287mm !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        align-content: flex-start !important;
+        gap: 0 !important;
+    }
+
     .kp-card-pair {
-        gap: 5mm;
-        margin-bottom: 5mm;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        display: contents !important;
     }
 
     .kp-card {
+        width: 56mm !important;
+        height: 86mm !important;
+        min-width: 56mm !important;
+        min-height: 86mm !important;
+        max-width: 56mm !important;
+        max-height: 86mm !important;
+        box-sizing: border-box !important;
+        margin: 1.5mm 0.7mm !important;
         box-shadow: none !important;
-        border: 0.5px solid #94a3b8 !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        border: 0.4px solid #cbd5e1 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+    }
+
+    body.filter-front-only .kp-card-back {
+        display: none !important;
+    }
+
+    body.filter-back-only .kp-card-front {
+        display: none !important;
     }
 }
 
@@ -1343,14 +1384,14 @@
     transition: box-shadow 0.2s ease !important;
 }
 
-/* Clean Download / Capture State for High-Res PNG Export */
+/* Clean Download / Capture State for High-Res PNG/JPG Export */
 .kp-card-capture-target {
-    width: 54mm !important;
-    height: 85.6mm !important;
-    min-width: 54mm !important;
-    min-height: 85.6mm !important;
-    max-width: 54mm !important;
-    max-height: 85.6mm !important;
+    width: 56mm !important;
+    height: 86mm !important;
+    min-width: 56mm !important;
+    min-height: 86mm !important;
+    max-width: 56mm !important;
+    max-height: 86mm !important;
     transform: none !important;
     box-shadow: none !important;
     margin: 0 !important;
@@ -2029,12 +2070,12 @@
 }
 
 .print-grid {
-    max-width: 190mm;
-    margin: 56px auto 0 auto !important;
+    max-width: 287mm;
+    margin: 56px auto 30px auto !important;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 5mm;
+    gap: 3mm 1.5mm;
 }
 
 body.filter-front-only .kp-card-back {

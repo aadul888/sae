@@ -149,8 +149,8 @@ window.unduhKartuJpg = async function(mode) {
             staging.style.position = 'fixed';
             staging.style.left = '-9999px';
             staging.style.top = '0';
-            staging.style.width = '204px'; // 54mm @ 96dpi
-            staging.style.height = '324px'; // 85.6mm @ 96dpi
+            staging.style.width = '212px'; // 56mm @ 96dpi
+            staging.style.height = '325px'; // 86mm @ 96dpi
             staging.style.overflow = 'hidden';
             staging.style.zIndex = '-9999';
             staging.style.background = '#ffffff';
@@ -167,7 +167,7 @@ window.unduhKartuJpg = async function(mode) {
             await new Promise(r => setTimeout(r, 120));
 
             const canvas = await html2canvas(clone, {
-                scale: 3,
+                scale: 4, // 300+ DPI Ultra High Quality
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
@@ -178,7 +178,7 @@ window.unduhKartuJpg = async function(mode) {
 
             const link = document.createElement('a');
             link.download = `Kartu_Pelajar_${currentKpNisn || 'Siswa'}_${sideName}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.href = canvas.toDataURL('image/jpeg', 0.98);
             link.click();
             return true;
         } catch (err) {
