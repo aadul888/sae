@@ -29,7 +29,12 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 | Dokumen | Isi |
 |---|---|
-| [`docs/UI_DESIGN_STANDARDS.md`](docs/UI_DESIGN_STANDARDS.md) | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen Blade, aturan konsistensi, dan cara verifikasi |
+| [`docs/README.md`](docs/README.md) | **Indeks dokumentasi** — mulai dari sini |
+| [`docs/UI_DESIGN_STANDARDS.md`](docs/UI_DESIGN_STANDARDS.md) | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen Blade, aturan konsistensi |
+| [`docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md`](docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md) | Alur baku menambah modul/fitur baru |
+| [`docs/code-style-guide.md`](docs/code-style-guide.md) | Konvensi penulisan kode |
+| [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) | Peta struktur folder & arsitektur |
+| [`docs/MODULE_DEPENDENCIES.md`](docs/MODULE_DEPENDENCIES.md) | Ketergantungan antar modul |
 
 ### Ringkasan Standar UI
 
