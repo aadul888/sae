@@ -95,7 +95,7 @@
                         <input type="password" name="password" id="passwordInput" required placeholder="••••••••"
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none; border-radius: 12px 0 0 12px;">
                         <button type="button" onclick="togglePass('passwordInput', 'eyeIcon')"
-                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;">
+                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;" aria-label="Tampilkan password">
                             <i class="fas fa-eye" id="eyeIcon"></i>
                         </button>
                     </div>

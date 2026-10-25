@@ -347,7 +347,7 @@
                     </h3>
                 </div>
                 <button type="button" id="btnCloseReaderModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

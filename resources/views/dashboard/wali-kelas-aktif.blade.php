@@ -427,7 +427,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="closeBiodataModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

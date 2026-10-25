@@ -293,7 +293,7 @@
                     <div id="gtkSubtitle" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-</div>
                 </div>
                 <button type="button" onclick="closeBiodataGuruModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

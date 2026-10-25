@@ -19,7 +19,7 @@
                     <i class="fas fa-calendar-plus text-primary me-2"></i> Jadwalkan Pelajaran
                 </h3>
                 <button type="button" id="btnTutupModalSlot"
-                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">
+                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

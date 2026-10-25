@@ -542,7 +542,7 @@
                     <i class="fas fa-calendar-check text-primary"></i> Presensi Mengajar
                 </h3>
                 <button type="button" class="btn-close-modal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -817,7 +817,7 @@
                     <i class="fas fa-circle-info text-primary"></i> Rincian Presensi
                 </h3>
                 <button type="button" class="btn-close-detail"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

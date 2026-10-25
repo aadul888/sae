@@ -389,7 +389,7 @@
                             placeholder="Contoh: GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
                             style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); padding: 10px 42px 10px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); border-radius: var(--radius-lg, 12px); outline: none; font-family: monospace;">
                         <button type="button" onclick="toggleGoogleSecret('googleClientSecret', 'eyeSecretIcon')"
-                            style="position: absolute; right: 12px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;">
+                            style="position: absolute; right: 12px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" aria-label="Tampilkan password">
                             <i class="fas fa-eye" id="eyeSecretIcon"></i>
                         </button>
                     </div>
@@ -619,7 +619,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="closeEditSekolahModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

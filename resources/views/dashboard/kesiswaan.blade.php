@@ -489,7 +489,7 @@
                     <i class="fas fa-right-left text-primary"></i> Catat Mutasi Siswa
                 </h3>
                 <button type="button" id="btnCloseMutasiModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -582,7 +582,7 @@
                     <i class="fas fa-folder-check text-primary"></i> Checklist Berkas Siswa
                 </h3>
                 <button type="button" id="btnCloseBerkasModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

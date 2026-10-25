@@ -10,7 +10,7 @@
                         Catat Surat Keluar Baru
                     </h4>
                     <button type="button" id="btnCloseModalKeluar"
-                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;">
+                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -203,7 +203,7 @@
                         </div>
                     </div>
                     <button type="button" id="btnCloseModalKet"
-                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;">
+                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -447,7 +447,7 @@
                             <i class="fas fa-download me-1"></i> Unduh
                         </a>
                         <button type="button" id="btnClosePreview"
-                            style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer; padding: 4px 8px;">
+                            style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer; padding: 4px 8px;" aria-label="Tutup">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -788,7 +788,7 @@
                         <i class="fas fa-print text-primary"></i> Cetak Buku Agenda Surat Keluar
                     </h4>
                     <button type="button" id="btnCloseModalAgendaKeluar"
-                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;">
+                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>

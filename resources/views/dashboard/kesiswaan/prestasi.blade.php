@@ -344,7 +344,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Prestasi Siswa
                 </h3>
                 <button type="button" class="close-modal" data-target="#modalPrestasi"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPrestasi" method="POST" action="{{ route('dashboard.kesiswaan.prestasi.store') }}"

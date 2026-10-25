@@ -444,7 +444,7 @@
                 <h3 id="modalTitle" style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     Edit Pengguna</h3>
                 <button type="button" onclick="closeUserModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
 
@@ -517,7 +517,7 @@
                     <i class="fas fa-user-plus text-primary me-2"></i> Tambah Penugasan Tugas Tambahan
                 </h3>
                 <button type="button" id="btnCloseDutyModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
 

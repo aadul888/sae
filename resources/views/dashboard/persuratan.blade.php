@@ -325,7 +325,7 @@
                     <i class="fas fa-envelope-circle-check text-primary"></i> Form Catat Surat
                 </h3>
                 <button type="button" id="btnCloseModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -461,7 +461,7 @@
                     <i class="fas fa-circle-info text-info"></i> Informasi Rincian Surat
                 </h3>
                 <button type="button" id="btnCloseDetailModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -493,7 +493,7 @@
                     <i class="fas fa-clipboard-check text-primary"></i> Lembar Disposisi Surat
                 </h3>
                 <button type="button" id="btnCloseDisposisiModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -580,7 +580,7 @@
                     <i class="fas fa-file-signature text-primary"></i> Terbitkan Surat Keterangan Siswa
                 </h3>
                 <button type="button" id="btnCloseKetModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

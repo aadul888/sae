@@ -719,7 +719,7 @@
                     <i class="fas fa-bullseye text-primary"></i> Tambah Sasaran &amp; Target Kinerja
                 </h3>
                 <button type="button" id="btnCloseModalTarget"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

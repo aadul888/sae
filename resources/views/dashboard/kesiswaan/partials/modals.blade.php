@@ -19,7 +19,7 @@
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#biodataModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -177,7 +177,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Ajukan Usulan
                     Perubahan Data</h3>
                 <button type="button" class="close-modal" data-target="#modalUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formUsulan" method="POST"
@@ -265,7 +265,7 @@
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalVerifikasiBerkasDigital"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -318,7 +318,7 @@
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalPengelolaanUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -369,7 +369,7 @@
                     </div>
                 </div>
                 <button type="button" class="close-pdf-viewer"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -434,7 +434,7 @@
                     style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0;">Pasfoto</h4>
                 <button type="button"
                     onclick="if(typeof closePhotoPreviewModal === 'function') closePhotoPreviewModal();"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

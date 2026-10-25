@@ -433,7 +433,7 @@
                     Foto Bukti Presensi
                 </h4>
                 <button type="button" id="btnCloseSnapshotSaya"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

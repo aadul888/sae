@@ -354,6 +354,7 @@
                         <div class="recent-scan-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img src="{{ $sc->foto_url ?: asset('img/logo-dark.png') }}"
+                                    alt="Foto {{ $sc->nama ?? 'peserta didik' }}"
                                     class="recent-scan-avatar" onerror="this.src='/img/logo-dark.png';">
                                 <div>
                                     <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">

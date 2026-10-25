@@ -848,7 +848,7 @@
                     <i class="fas fa-notes-medical text-primary"></i> Pencatatan Izin / Sakit Mapel
                 </h3>
                 <button type="button" id="btnCloseIzinModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

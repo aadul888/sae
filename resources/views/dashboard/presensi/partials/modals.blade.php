@@ -8,7 +8,7 @@
                     <i class="fas fa-id-card text-primary me-2"></i> Pendaftaran Kartu RFID
                 </h3>
                 <button type="button" id="btnCloseRfidModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -61,7 +61,7 @@
                     Foto Bukti Presensi
                 </h4>
                 <button type="button" id="btnCloseFotoModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

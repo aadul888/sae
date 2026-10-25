@@ -367,7 +367,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="closeBiodataModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -551,7 +551,7 @@
                 style="margin-top: 10px; color: #fff; font-weight: 700; font-size: var(--text-md, 1rem); text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
             </div>
             <button type="button" onclick="closePhotoPreviewModal()"
-                style="position: absolute; top: -12px; right: -12px; width: 32px; height: 32px; border-radius: 50%; background: var(--danger, #ef4444); color: #fff; border: 2px solid #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                style="position: absolute; top: -12px; right: -12px; width: 32px; height: 32px; border-radius: 50%; background: var(--danger, #ef4444); color: #fff; border: 2px solid #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;" aria-label="Tutup">
                 <i class="fas fa-times"></i>
             </button>
         </div>

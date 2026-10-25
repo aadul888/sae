@@ -9,7 +9,7 @@
                             <i class="fas fa-calendar-plus text-primary me-2"></i> Tambah Agenda Kalender
                         </h3>
                         <button type="button" id="btnCloseModal"
-                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;">
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;" aria-label="Tutup">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -143,7 +143,7 @@
                             </h3>
                         </div>
                         <button type="button" id="btnCloseViewModal"
-                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>

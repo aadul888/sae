@@ -503,7 +503,7 @@
                     <i class="fas fa-ticket-alt text-primary"></i> Ajukan e-Izin Keluar Sekolah
                 </h3>
                 <button type="button" onclick="closeModalIzinKeluar()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -562,7 +562,7 @@
                     <i class="fas fa-paper-plane text-primary"></i> Ajukan Surat Izin / Sakit
                 </h3>
                 <button type="button" id="btnCloseModalIzin"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -654,7 +654,7 @@
                     Berkas Lampiran
                 </h4>
                 <button type="button" id="btnClosePreviewLampiran"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

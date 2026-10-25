@@ -579,7 +579,7 @@
                         Tambah Kode Indeks Klasifikasi
                     </h4>
                     <button type="button" id="btnCloseModalIndeks"
-                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;">
+                        style="background: none; border: none; font-size: var(--text-lg, 1.125rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>

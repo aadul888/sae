@@ -296,7 +296,7 @@
                         induk kependidikan bersumber dari Dapodik</div>
                 </div>
                 <button type="button" onclick="closeBiodataPegawaiModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

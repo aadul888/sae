@@ -43,7 +43,7 @@
                     </span>
                 </h3>
                 <button type="button" id="btnTutupModalAturDanGenerate"
-                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer; padding: 4px 8px;">
+                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer; padding: 4px 8px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

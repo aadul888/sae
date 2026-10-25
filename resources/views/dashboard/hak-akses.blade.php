@@ -310,7 +310,7 @@
                             {{ $roles[$activeRole]['name'] ?? ucfirst(str_replace('_', ' ', $activeRole)) }}
                         </h3>
                         <button type="button" id="btnCloseAddModule"
-                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;">
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;" aria-label="Tutup">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>

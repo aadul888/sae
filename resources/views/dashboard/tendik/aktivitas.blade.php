@@ -432,7 +432,7 @@
                     <i class="fas fa-pen-to-square text-primary"></i> Catat Aktivitas Harian
                 </h3>
                 <button type="button" id="btnCloseModalAktivitas"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -636,7 +636,7 @@
                     <i class="fas fa-plus-circle text-primary"></i> Tambah Tupoksi Manual
                 </h4>
                 <button type="button" onclick="closeSubModalTupoksi()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

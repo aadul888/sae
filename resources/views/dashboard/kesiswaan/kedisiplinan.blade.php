@@ -540,7 +540,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Tambah Aturan Tata
                     Tertib</h3>
                 <button type="button" class="close-modal" data-target="#modalTataTertib"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formTataTertib" method="POST"
@@ -607,7 +607,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Pelanggaran
                     Poin Siswa</h3>
                 <button type="button" class="close-modal" data-target="#modalPoin"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPoin" method="POST"
@@ -686,7 +686,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Sesi Pembinaan
                     Konseling</h3>
                 <button type="button" class="close-modal" data-target="#modalPembinaan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPembinaan" method="POST"
@@ -768,7 +768,7 @@
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Terbitkan Surat
                     Panggilan Orang Tua</h3>
                 <button type="button" class="close-modal" data-target="#modalPanggilan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPanggilan" method="POST"

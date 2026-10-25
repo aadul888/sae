@@ -80,7 +80,7 @@
                             autocomplete="new-password"
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none;">
                         <button type="button" onclick="togglePasswordVisibility('newPassword', 'eyeIconNew')"
-                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;">
+                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;" aria-label="Tampilkan password">
                             <i class="fas fa-eye" id="eyeIconNew"></i>
                         </button>
                     </div>
@@ -177,7 +177,7 @@
                             placeholder="Ulangi password baru..." autocomplete="new-password"
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none;">
                         <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'eyeIconConfirm')"
-                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;">
+                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;" aria-label="Tampilkan password">
                             <i class="fas fa-eye" id="eyeIconConfirm"></i>
                         </button>
                     </div>

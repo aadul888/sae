@@ -10,7 +10,7 @@
                     <i class="fas fa-user-clock text-primary me-2"></i> Preferensi Ketersediaan Guru
                 </h3>
                 <button type="button" id="btnTutupModalPref"
-                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">
+                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

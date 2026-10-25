@@ -54,12 +54,20 @@
 </head>
 
 <body>
+    {{-- Tautan lewati navigasi untuk pengguna keyboard/pembaca layar --}}
+    <a href="#main" class="sae-sr-only"
+        style="position:absolute; left:8px; top:8px; z-index:var(--z-toast,1100); background:var(--primary,#3b82f6); color:#fff; padding:10px 16px; border-radius:var(--radius-md,8px); font-weight:600; text-decoration:none;"
+        onfocus="this.style.position='fixed'; this.style.width='auto'; this.style.height='auto'; this.style.clip='auto';"
+        onblur="this.style.position='absolute'; this.style.width='1px'; this.style.height='1px'; this.style.clip='rect(0,0,0,0)';">
+        Lewati ke konten utama
+    </a>
+
     <div class="ambient-glow"></div>
     <div class="ambient-glow-2"></div>
 
     @include('partials.header')
 
-    <main>
+    <main id="main">
         @include('partials.flash-messages')
         @yield('content')
     </main>
