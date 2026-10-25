@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const nomor = btnKembali.dataset.nomor;
             const barang = btnKembali.dataset.barang;
 
-            formKembali.action = `/dashboard/sarpras/peminjaman/${id}/kembalikan`;
+            formKembali.action = `/dashboard/sarpras/peminjaman/${id}/kembali`;
             kembaliDesc.innerHTML = `Mencatat pengembalian untuk <strong>${barang}</strong> (Nomor: ${nomor}).`;
             modalKembali.style.display = 'flex';
         }

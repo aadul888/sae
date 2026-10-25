@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(`/dashboard/kesiswaan/klaper/${id}`, {
+                    fetch(`/dashboard/kesiswaan/administrasi/klaper/${id}`, {
                         method: 'PUT',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',

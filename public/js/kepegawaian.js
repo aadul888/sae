@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (pegawaiLoading) pegawaiLoading.style.display = 'block';
         if (pegawaiContent) pegawaiContent.style.display = 'none';
 
-        fetch('/manajemen-data/guru-aktif/' + ptkId)
+        fetch('/dashboard/manajemen-data/guru-aktif/' + encodeURIComponent(ptkId))
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success' && data.data) {

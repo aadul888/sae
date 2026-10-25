@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken =
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
+        document.querySelector('input[name="_token"]')?.value ||
+        window.CSRF_TOKEN ||
+        "";
+
     // =========================================================================
     // 8. Modal Cetak Pengambilan & Tambah Pengeluaran
     // =========================================================================
@@ -420,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = originalText;
                 }
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         });
     }
@@ -475,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } catch (err) {
                 sel.disabled = false;
                 sel.value = originalVal;
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         }
     });
@@ -520,7 +526,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Swal.fire("Gagal", data.message || "Gagal menghapus request.", "error");
                 }
             } catch (err) {
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         }
     });
@@ -622,7 +628,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = originalText;
                 }
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         });
     }
@@ -723,7 +729,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = originalText;
                 }
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         });
     }
@@ -770,7 +776,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Swal.fire("Gagal", data.message || "Gagal menghapus pengeluaran.", "error");
                 }
             } catch (err) {
-                Swal.fire("Error", "Gagal menghubungi server.", "error");
+                Swal.fire("Error", (err && err.message) ? err.message : "Gagal menghubungi server.", "error");
             }
         }
     });

@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
         content.style.display = 'none';
 
         try {
-            const res = await fetch(`/dashboard/kesiswaan/usulan/${id}/detail`, {
+            const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan-detail/${encodeURIComponent(id)}`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnSetujui.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
 
             try {
-                const res = await fetch(`/dashboard/kesiswaan/usulan/${pdId}/verifikasi`, {
+                const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/verifikasi`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnTolak.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
 
             try {
-                const res = await fetch(`/dashboard/kesiswaan/usulan/${pdId}/verifikasi`, {
+                const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/verifikasi`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnDapodik.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
 
             try {
-                const res = await fetch(`/dashboard/kesiswaan/usulan/${pdId}/mark-dapodik`, {
+                const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/dapodik`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

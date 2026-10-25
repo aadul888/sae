@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     didOpen: () => Swal.showLoading()
                 });
 
-                const response = await fetch('/dashboard/presensi/saya/izin', {
+                const response = await fetch('/dashboard/peserta-didik/saya/izin', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,

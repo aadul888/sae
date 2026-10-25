@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const catatan = this.dataset.catatan || '';
 
             if (formKlaper) {
-                formKlaper.action = `/kesiswaan/klaper/${id}`;
+                formKlaper.action = `/dashboard/kesiswaan/administrasi/klaper/${id}`;
                 document.getElementById('klaperPdNama').textContent = `${nama} (NISN: ${nisn} / NIPD: ${nipd})`;
                 document.getElementById('edit_nomor_induk').value = noInduk;
                 document.getElementById('edit_nomor_klaper').value = noKlaper;
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
 
-                    fetch('/kesiswaan/klaper/sync', {
+                    fetch('/dashboard/kesiswaan/administrasi/klaper/sync', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const payload = {};
             payload[field] = isChecked;
 
-            fetch(`/kesiswaan/berkas/${pdId}`, {
+            fetch(`/dashboard/kesiswaan/peserta-didik/berkas/${pdId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

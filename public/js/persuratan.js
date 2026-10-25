@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const res = await fetch(`/dashboard/persuratan/${suratId}/disposisi`, {
+                const res = await fetch(`/dashboard/persuratan/masuk/${encodeURIComponent(suratId)}/disposisi`, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

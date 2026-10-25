@@ -345,6 +345,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'show'])->name('persuratan.show')->middleware('permission:menu_persuratan,read')->whereNumber('id');
     Route::put('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'update'])->name('persuratan.update')->middleware('permission:menu_persuratan,update')->whereNumber('id');
     Route::delete('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'destroy'])->name('persuratan.destroy')->middleware('permission:menu_persuratan,delete')->whereNumber('id');
+    Route::post('/persuratan/{id}/disposisi', [\App\Http\Controllers\SuratMasukController::class, 'disposisi'])->middleware('permission:menu_surat_masuk,update')->whereNumber('id');
 
     // Administrasi Tendik — Kesiswaan Terpadu (5 Kluster: Peserta Didik, Administrasi, Kedisiplinan, Kegiatan Siswa, Prestasi)
     Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {
@@ -374,6 +375,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/kelulusan', [\App\Http\Controllers\KesiswaanController::class, 'storeKelulusan'])->name('kelulusan.store')->middleware('permission:menu_kesiswaan_administrasi,create');
             Route::get('/kelulusan/{id}/cetak-skl', [\App\Http\Controllers\KesiswaanController::class, 'cetakSkl'])->name('kelulusan.cetak-skl')->middleware('permission:menu_kesiswaan_administrasi,read');
         });
+
+        // Alias rute kesiswaan langsung (kompatibilitas backward)
+        Route::get('/usulan/{id}/detail', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getUsulanDetail'])->middleware('permission:menu_kesiswaan_peserta_didik,read');
+        Route::get('/usulan-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getUsulanDetail'])->middleware('permission:menu_kesiswaan_peserta_didik,read');
+        Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->middleware('permission:menu_kesiswaan_peserta_didik,update');
+        Route::post('/usulan/{id}/dapodik', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'markDapodikUpdated'])->middleware('permission:menu_kesiswaan_peserta_didik,update');
+        Route::post('/usulan/{id}/mark-dapodik', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'markDapodikUpdated'])->middleware('permission:menu_kesiswaan_peserta_didik,update');
+        Route::post('/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->middleware('permission:menu_kesiswaan_administrasi,create');
+        Route::put('/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper'])->middleware('permission:menu_kesiswaan_administrasi,update');
 
         // 3. Kluster Kedisiplinan (Tata Tertib, Poin, Riwayat, Pembinaan, Pemanggilan Wali, Tindak Lanjut, Rekap)
         Route::prefix('kedisiplinan')->name('kedisiplinan.')->group(function () {
@@ -445,6 +455,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/peserta-didik/presensi/cetak', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'cetak'])->name('peserta-didik.presensi.cetak')->middleware('permission:menu_riwayat_rfid,read');
     Route::get('/presensi/saya', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
     Route::post('/peserta-didik/saya/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.presensi.izin');
+    Route::post('/presensi/saya/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('presensi.saya.izin');
 
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');
@@ -629,6 +640,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'store'])->name('peminjaman.store')->middleware('permission:menu_sarpras|menu_laboran,create');
         Route::put('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'update'])->name('peminjaman.update')->middleware('permission:menu_sarpras|menu_laboran,update');
         Route::post('/peminjaman/{id}/kembali', [\App\Http\Controllers\SarprasPeminjamanController::class, 'kembalikan'])->name('peminjaman.kembali')->middleware('permission:menu_sarpras|menu_laboran,update');
+        Route::post('/peminjaman/{id}/kembalikan', [\App\Http\Controllers\SarprasPeminjamanController::class, 'kembalikan'])->middleware('permission:menu_sarpras|menu_laboran,update');
         Route::delete('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'destroy'])->name('peminjaman.destroy')->middleware('permission:menu_sarpras|menu_laboran,delete');
     });
 
@@ -749,4 +761,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 // Admin shortcut redirect
 Route::get('/admin', function () {
     return redirect()->route('dashboard.admin');
+});
+
+// Backward-compatible alias untuk rute API/AJAX legacy tanpa awalan /dashboard
+Route::middleware(['web'])->group(function () {
+    Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show']);
+    Route::delete('/peserta-didik/izin/{id}', [\App\Http\Controllers\PesertaDidikIzinController::class, 'destroy']);
+    Route::post('/kesiswaan/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas']);
+    Route::post('/kesiswaan/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper']);
+    Route::put('/kesiswaan/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper']);
 });

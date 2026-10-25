@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             btnCancel.disabled = true;
 
-            fetch(`/peserta-didik/izin/${id}`, {
+            fetch(`/dashboard/peserta-didik/izin/${encodeURIComponent(id)}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
