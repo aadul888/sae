@@ -17,11 +17,45 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ## 📋 Persyaratan Sistem
 
-- PHP `>= 8.2` (Rekomendasi PHP 8.3)
+- PHP `>= 8.3` (Laravel 13)
 - Ekstensi PHP: `BCMath`, `Ctype`, `cURL`, `DOM`, `Fileinfo`, `JSON`, `Mbstring`, `OpenSSL`, `PDO`, `PDO_MySQL`, `Tokenizer`, `XML`, `Zip`
 - MySQL `>= 8.0` atau MariaDB `>= 10.4`
 - Composer `>= 2.2`
 - Git (opsional, direkomendasikan untuk fitur Update Center)
+
+---
+
+## 📚 Dokumentasi Pengembangan
+
+| Dokumen | Isi |
+|---|---|
+| [`docs/UI_DESIGN_STANDARDS.md`](docs/UI_DESIGN_STANDARDS.md) | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen Blade, aturan konsistensi, dan cara verifikasi |
+
+### Ringkasan Standar UI
+
+Seluruh tampilan memakai **design token** dari `public/css/tokens.css` dan **komponen Blade** dari `resources/views/components/sae/`.
+
+```blade
+{{-- Jangan menulis nilai mentah seperti style="border-radius: 10px" --}}
+<x-sae.page-header title="Data Siswa" subtitle="Daftar peserta didik" icon="fas fa-users">
+    <x-slot:actions>
+        <x-sae.button variant="primary" icon="fas fa-plus">Tambah</x-sae.button>
+    </x-slot:actions>
+</x-sae.page-header>
+
+<x-sae.card title="Ringkasan">
+    <div class="sae-stat-grid">
+        <x-sae.stat :value="42" label="Total" icon="fas fa-users" />
+    </div>
+</x-sae.card>
+```
+
+Urutan pemuatan CSS wajib: `tokens.css` → `components.css` → `sae.css` → CSS modul.
+Dijaga otomatis oleh `DesignConsistencyTest`.
+
+> **Penting saat menjalankan test:** jalankan `php artisan config:clear` lebih dulu.
+> `config:cache` mem-bake nilai `.env` sehingga mengalahkan `CACHE_DRIVER=array` pada
+> `phpunit.xml` dan menyebabkan kegagalan test palsu.
 
 ---
 
