@@ -148,8 +148,23 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
         return;
     }
 
+    let studentItems = [];
     const pairs = Array.from(document.querySelectorAll('.kp-card-pair'));
-    if (!pairs.length) {
+    if (pairs.length > 0) {
+        studentItems = pairs.map(p => ({
+            front: p.querySelector('.kp-card-front'),
+            back: p.querySelector('.kp-card-back'),
+        }));
+    } else {
+        const fronts = Array.from(document.querySelectorAll('.kp-card-front'));
+        studentItems = fronts.map(f => {
+            const nisn = f.id?.replace('card-front-', '') || '';
+            const b = document.getElementById(`card-back-${nisn}`) || document.querySelector(`#card-back-${nisn}`);
+            return { front: f, back: b };
+        });
+    }
+
+    if (!studentItems.length) {
         if (typeof Swal !== 'undefined') {
             Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Tidak ada kartu pelajar yang ditemukan untuk diunduh.' });
         }
@@ -225,7 +240,7 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
                     <div id="swalZipProgressBar" style="width: 0%; height: 100%; background: #059669; transition: width 0.2s;"></div>
                 </div>
                 <div id="swalZipProgressText" style="margin-top: 8px; font-size: 0.8rem; font-weight: 700; color: #0f172a;">
-                    0 / ${pairs.length} Peserta Didik
+                    0 / ${studentItems.length} Peserta Didik
                 </div>
             `,
             allowOutsideClick: false,
@@ -242,18 +257,18 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
         const bar = document.getElementById('swalZipProgressBar');
         const txt = document.getElementById('swalZipProgressText');
 
-        for (let i = 0; i < pairs.length; i++) {
-            const pair = pairs[i];
-            const front = pair.querySelector('.kp-card-front');
-            const back = pair.querySelector('.kp-card-back');
+        for (let i = 0; i < studentItems.length; i++) {
+            const item = studentItems[i];
+            const front = item.front;
+            const back = item.back;
             const nisn = front?.id?.replace('card-front-', '') || ('siswa_' + (i + 1));
 
-            const pct = Math.round(((i + 1) / pairs.length) * 100);
+            const pct = Math.round(((i + 1) / studentItems.length) * 100);
             if (bar) bar.style.width = pct + '%';
-            if (txt) txt.textContent = `${i + 1} / ${pairs.length} Peserta Didik (${pct}%)`;
+            if (txt) txt.textContent = `${i + 1} / ${studentItems.length} Peserta Didik (${pct}%)`;
 
             if (btn) {
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memproses ${i + 1}/${pairs.length}...`;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memproses ${i + 1}/${studentItems.length}...`;
             }
 
             if (sideFilter === 'front-only') {

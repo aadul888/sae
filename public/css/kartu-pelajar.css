@@ -563,18 +563,139 @@
     margin-right: 2px;
 }
 
+/* ==========================================================================
+   A4 LANDSCAPE PRINT & SCREEN PREVIEW (5 Pasang = 10 Sisi per Lembar Presisi)
+   - Baris 1 (Atas): 5 Sisi Depan
+   - Jarak Potong Tengah: 12mm (Panduan Pisau Pemotong ID Card)
+   - Baris 2 (Bawah): 5 Sisi Belakang
+   ========================================================================== */
+.kp-sheet-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    margin: 68px auto 40px auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.kp-a4-sheet {
+    width: 297mm;
+    height: 210mm;
+    min-width: 297mm;
+    min-height: 210mm;
+    max-width: 297mm;
+    max-height: 210mm;
+    background: #ffffff;
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.22);
+    border-radius: 4px;
+    padding: 12mm 4.5mm;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.kp-sheet-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 2mm;
+    width: 288mm;
+    height: 87mm;
+    min-height: 87mm;
+    max-height: 87mm;
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+.kp-sheet-row .kp-card {
+    width: 56mm !important;
+    height: 87mm !important;
+    min-width: 56mm !important;
+    min-height: 87mm !important;
+    max-width: 56mm !important;
+    max-height: 87mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: 0.5px solid #cbd5e1 !important;
+    border-radius: 3.5mm !important;
+    flex-shrink: 0 !important;
+}
+
+.kp-sheet-cut-gap {
+    height: 12mm;
+    width: 288mm;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.kp-cut-line {
+    width: 100%;
+    height: 0;
+    border-top: 1px dashed rgba(148, 163, 184, 0.65);
+    position: relative;
+}
+
+.kp-cut-line::before {
+    content: '✂ Garis Potong Tengah Pisau ID Card';
+    position: absolute;
+    left: 0;
+    top: -14px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.kp-cut-line::after {
+    content: '✂';
+    position: absolute;
+    right: 0;
+    top: -14px;
+    font-size: 11px;
+    color: #94a3b8;
+    transform: scaleX(-1);
+}
+
+body.filter-front-only .kp-row-back,
+body.filter-front-only .kp-card-back {
+    display: none !important;
+}
+
+body.filter-front-only .kp-sheet-cut-gap {
+    display: none !important;
+}
+
+body.filter-back-only .kp-row-front,
+body.filter-back-only .kp-card-front {
+    display: none !important;
+}
+
+body.filter-back-only .kp-sheet-cut-gap {
+    display: none !important;
+}
+
 /* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 87mm DENGAN JARAK POTONG TENGAH) */
 @media print {
     @page {
         size: A4 landscape;
-        margin: 4mm 5mm;
+        margin: 0 !important;
     }
 
     html, body {
         background: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
-        width: 100% !important;
+        width: 297mm !important;
         height: auto !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -594,69 +715,103 @@
         width: 100% !important;
     }
 
-    .print-grid {
-        max-width: 287mm !important;
-        width: 287mm !important;
-        margin: 0 auto !important;
+    .kp-sheet-wrapper {
+        width: 297mm !important;
+        margin: 0 !important;
         padding: 0 !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        justify-content: flex-start !important;
-        align-content: flex-start !important;
         gap: 0 !important;
+        display: block !important;
     }
 
-    .kp-card-pair {
-        display: contents !important;
+    .kp-a4-sheet {
+        width: 297mm !important;
+        height: 210mm !important;
+        min-width: 297mm !important;
+        min-height: 210mm !important;
+        max-width: 297mm !important;
+        max-height: 210mm !important;
+        margin: 0 !important;
+        padding: 12mm 4.5mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: always !important;
+        break-after: page !important;
     }
 
-    .kp-card {
+    .kp-a4-sheet:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .kp-sheet-row {
+        width: 288mm !important;
+        height: 87mm !important;
+        min-height: 87mm !important;
+        max-height: 87mm !important;
+        gap: 2mm !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    .kp-sheet-row .kp-card {
         width: 56mm !important;
         height: 87mm !important;
         min-width: 56mm !important;
         min-height: 87mm !important;
         max-width: 56mm !important;
         max-height: 87mm !important;
-        box-sizing: border-box !important;
-        margin: 0.5mm 0.7mm !important;
+        margin: 0 !important;
         box-shadow: none !important;
         border: 0.4px solid #cbd5e1 !important;
+        border-radius: 3.5mm !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         image-rendering: -webkit-optimize-contrast !important;
         image-rendering: crisp-edges !important;
+        flex-shrink: 0 !important;
     }
 
-    /* Jarak kosong pemotongan tengah (10mm) antara baris 1 (atas) dan baris 2 (bawah) untuk potong manual pisau ID card */
-    .print-grid > .kp-card:nth-child(10n + 1),
-    .print-grid > .kp-card:nth-child(10n + 2),
-    .print-grid > .kp-card:nth-child(10n + 3),
-    .print-grid > .kp-card:nth-child(10n + 4),
-    .print-grid > .kp-card:nth-child(10n + 5),
-    .kp-card-pair:nth-child(5n + 1) .kp-card-front,
-    .kp-card-pair:nth-child(5n + 2) .kp-card-front,
-    .kp-card-pair:nth-child(5n + 3) .kp-card-front,
-    .kp-card-pair:nth-child(5n + 4) .kp-card-front,
-    .kp-card-pair:nth-child(5n + 5) .kp-card-front,
-    .kp-card-pair:nth-child(5n + 1) .kp-card-back,
-    .kp-card-pair:nth-child(5n + 2) .kp-card-back,
-    .kp-card-pair:nth-child(5n + 3) .kp-card-back,
-    .kp-card-pair:nth-child(5n + 4) .kp-card-back,
-    .kp-card-pair:nth-child(5n + 5) .kp-card-back {
-        margin-bottom: 10mm !important;
+    .kp-sheet-cut-gap {
+        height: 12mm !important;
+        width: 288mm !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
     }
 
-    /* Page break otomatis setiap kelipatan 10 sisi (5 pasang kartu) */
-    .kp-card-pair:nth-child(5n) {
-        page-break-after: always !important;
-        break-after: page !important;
+    .kp-cut-line {
+        width: 100% !important;
+        border-top: 1px dashed rgba(148, 163, 184, 0.65) !important;
     }
 
+    body.filter-front-only .kp-row-back,
     body.filter-front-only .kp-card-back {
         display: none !important;
     }
 
+    body.filter-front-only .kp-sheet-cut-gap {
+        display: none !important;
+    }
+
+    body.filter-back-only .kp-row-front,
     body.filter-back-only .kp-card-front {
+        display: none !important;
+    }
+
+    body.filter-back-only .kp-sheet-cut-gap {
         display: none !important;
     }
 }

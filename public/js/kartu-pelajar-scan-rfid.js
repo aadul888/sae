@@ -6,10 +6,15 @@
 (function () {
     let isProcessing = false;
     let currentIdentifiedStudent = null;
-    let sessionSuccessList = [];
-    let liveRefreshDebounceTimer = null;
+    let hasProcessedCardsInSession = false;
     let rfidBurstTimer = null;
     let studentSearchTimer = null;
+
+    function escapeHtml(str) {
+        return String(str || "").replace(/[&<>"']/g, function (m) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m];
+        });
+    }
 
     // Helper Toast Non-Blocking
     function showNotification(message, type = "success") {
@@ -96,7 +101,13 @@
         if (!m) return;
         m.style.display = "none";
         document.body.style.overflow = "";
-        window.resetIdentifiedStudent();
+
+        // Jika ada kartu yang diproses / selesai pada sesi modal ini, segarkan halaman penuh
+        if (hasProcessedCardsInSession) {
+            window.location.reload();
+        } else {
+            window.resetIdentifiedStudent();
+        }
     };
 
     function focusActiveInput() {
@@ -232,6 +243,7 @@
 
             if (res.ok && data.success) {
                 playBeepSound();
+                hasProcessedCardsInSession = true;
 
                 // Tampilkan card hasil dengan animasi flash hijau
                 const resultBox = document.getElementById("scanResultBox");
@@ -249,17 +261,11 @@
                     if (resultTime) resultTime.textContent = data.data.selesai_at || "";
                 }
 
-                // Tambahkan ke riwayat sesi ini
-                addSessionLog(data.data);
-
                 // Toast notifikasi ringkas non-blocking
                 showNotification(data.message, "success");
 
                 // Bersihkan siswa yang baru saja selesai agar langsung siap memilih siswa berikutnya
                 window.resetIdentifiedStudent();
-
-                // Trigger live refresh tabel antrean di latar belakang dengan debounce
-                triggerLiveRefresh();
             } else {
                 playErrorSound();
                 showNotification(data.message || "Gagal memproses kartu RFID.", "danger");
@@ -284,62 +290,71 @@
         }
     };
 
-    function addSessionLog(d) {
-        sessionSuccessList.unshift(d);
-        if (sessionSuccessList.length > 15) sessionSuccessList.pop();
+    async function processBarcodeOrSearchInput(rawVal, forceSelect = false) {
+        let clean = rawVal.trim();
+        if (!clean) return;
 
-        const wrap = document.getElementById("scanSessionLogWrap");
-        const list = document.getElementById("scanSessionLogList");
-        const count = document.getElementById("scanSuccessCount");
-
-        if (wrap) wrap.style.display = "block";
-        if (count) count.textContent = sessionSuccessList.length;
-
-        if (list) {
-            list.innerHTML = sessionSuccessList
-                .map((item) => {
-                    const rfidTag = item.rfid_uid
-                        ? `<span class="badge badge-success" style="font-size: 0.68rem; padding: 1px 6px;"><i class="fas fa-check me-1"></i>RFID: ${item.rfid_uid}</span>`
-                        : `<span class="badge badge-outline" style="font-size: 0.68rem; padding: 1px 6px;">Non-RFID</span>`;
-                    return `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-hover); border-radius: 6px; font-size: 0.76rem; border: 1px solid var(--border-color);">
-                            <div>
-                                <strong>${item.nama}</strong> (${item.nama_rombel}) &bull; NISN: ${item.nisn}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                ${rfidTag}
-                                <span style="font-size: 0.68rem; color: var(--text-muted);">${item.selesai_at || ""}</span>
-                            </div>
-                        </div>
-                    `;
-                })
-                .join("");
+        // Ekstrak NISN jika berupa URL verifikasi kartu QR
+        const vMatch = clean.match(/\/v(?:erify)?\/([A-Za-z0-9]+)/i);
+        if (vMatch) {
+            clean = vMatch[1];
+        } else if (clean.match(/nisn=([A-Za-z0-9]+)/i)) {
+            clean = clean.match(/nisn=([A-Za-z0-9]+)/i)[1];
         }
-    }
 
-    window.clearSessionScanLog = function () {
-        sessionSuccessList = [];
-        const wrap = document.getElementById("scanSessionLogWrap");
-        const list = document.getElementById("scanSessionLogList");
-        const count = document.getElementById("scanSuccessCount");
-        if (wrap) wrap.style.display = "none";
-        if (list) list.innerHTML = "";
-        if (count) count.textContent = "0";
-    };
+        const list = document.getElementById("scanStudentResultsList");
 
-    function triggerLiveRefresh() {
-        clearTimeout(liveRefreshDebounceTimer);
-        liveRefreshDebounceTimer = setTimeout(() => {
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(window.location.href);
+        try {
+            const res = await fetch(`/dashboard/kartu-pelajar/cari-siswa?q=${encodeURIComponent(clean)}`, {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            const items = await res.json();
+            window._searchedStudentCache = items || [];
+
+            if (items && items.length > 0) {
+                // Cek apakah ada kecocokan NISN/NIPD persis atau hanya ada 1 hasil pencarian
+                const exactMatch = items.find((s) => s.nisn === clean || s.nipd === clean);
+                if (exactMatch || forceSelect || (items.length === 1 && clean.length >= 6)) {
+                    const selected = exactMatch || items[0];
+                    playBeepSound();
+                    window.selectStudentFromSearch(selected);
+                    showNotification(`Peserta didik terpilih: ${selected.nama} (${selected.nama_rombel || "-"})`, "info");
+                    return;
+                }
+
+                if (list) {
+                    list.innerHTML = items
+                        .map((s, idx) => `
+                            <div class="kp-ac-item" data-index="${idx}"
+                                style="padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-color);">${escapeHtml(s.nama)}</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                        NISN: ${escapeHtml(s.nisn)} &bull; ${escapeHtml(s.nama_rombel || "-")}
+                                    </div>
+                                </div>
+                                <span class="badge badge-primary" style="font-size: 0.7rem; padding: 3px 8px;">Pilih Siswa</span>
+                            </div>
+                        `)
+                        .join("");
+                    list.style.display = "block";
+                }
+            } else {
+                if (list) {
+                    list.innerHTML = '<div style="padding: 10px; font-size: 0.76rem; color: var(--text-muted); text-align: center;">Tidak ditemukan siswa dengan kata kunci tersebut.</div>';
+                    list.style.display = "block";
+                }
             }
-        }, 1200);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     // Auto submit jika reader RFID USB mengetik cepat (burst input dari hardware)
     document.addEventListener("DOMContentLoaded", function () {
         const inputScan = document.getElementById("inputScanCode");
         const searchInput = document.getElementById("scanSearchStudentInput");
+        const list = document.getElementById("scanStudentResultsList");
         const modal = document.getElementById("modalScanRfidSelesai");
 
         if (inputScan) {
@@ -353,6 +368,19 @@
                             window.submitScanSelesai();
                         }
                     }, 120);
+                }
+            });
+        }
+
+        // Delegated click listener untuk hasil pencarian siswa agar aman dari karakter khusus / apostrof
+        if (list) {
+            list.addEventListener("click", function (e) {
+                const itemEl = e.target.closest(".kp-ac-item[data-index]");
+                if (!itemEl) return;
+                const idx = parseInt(itemEl.dataset.index, 10);
+                const s = window._searchedStudentCache ? window._searchedStudentCache[idx] : null;
+                if (s) {
+                    window.selectStudentFromSearch(s);
                 }
             });
         }
@@ -373,48 +401,32 @@
             });
         }
 
-        // Live Autocomplete Pencarian Siswa Manual di Modal
+        // Barcode reader / manual input pada kolom pencarian siswa
         if (searchInput) {
+            searchInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    clearTimeout(studentSearchTimer);
+                    processBarcodeOrSearchInput(this.value, true);
+                }
+            });
+
             searchInput.addEventListener("input", function () {
-                const q = this.value.trim();
-                const list = document.getElementById("scanStudentResultsList");
+                const rawVal = this.value.trim();
                 clearTimeout(studentSearchTimer);
 
-                if (q.length < 2) {
+                if (rawVal.length < 2) {
                     if (list) list.style.display = "none";
                     return;
                 }
 
-                studentSearchTimer = setTimeout(async () => {
-                    try {
-                        const res = await fetch(`/dashboard/kartu-pelajar/cari-siswa?q=${encodeURIComponent(q)}`, {
-                            headers: { "X-Requested-With": "XMLHttpRequest" },
-                        });
-                        const items = await res.json();
-                        if (!list) return;
+                // Jika terdeteksi input dari barcode reader (URL atau NISN 8-10 digit)
+                const isBarcodeBurst = rawVal.includes("/v/") || (rawVal.length >= 8 && /^\d+$/.test(rawVal));
+                const debounceTime = isBarcodeBurst ? 150 : 300;
 
-                        if (items && items.length > 0) {
-                            list.innerHTML = items
-                                .map((s) => `
-                                    <div class="kp-ac-item" onclick='window.selectStudentFromSearch(${JSON.stringify(s)})'
-                                        style="padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
-                                        <div>
-                                            <div style="font-weight: 700; color: var(--text-color);">${s.nama}</div>
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
-                                                NISN: ${s.nisn} &bull; ${s.nama_rombel || "-"}
-                                            </div>
-                                        </div>
-                                        <span class="badge badge-primary" style="font-size: 0.7rem; padding: 3px 8px;">Pilih Siswa</span>
-                                    </div>
-                                `)
-                                .join("");
-                            list.style.display = "block";
-                        } else {
-                            list.innerHTML = '<div style="padding: 10px; font-size: 0.76rem; color: var(--text-muted); text-align: center;">Tidak ditemukan siswa dengan kata kunci tersebut.</div>';
-                            list.style.display = "block";
-                        }
-                    } catch (e) {}
-                }, 300);
+                studentSearchTimer = setTimeout(() => {
+                    processBarcodeOrSearchInput(rawVal, isBarcodeBurst);
+                }, debounceTime);
             });
         }
     });
@@ -430,9 +442,11 @@
             nama: student.nama,
             peserta_didik_id: student.peserta_didik_id,
             rombel: student.nama_rombel || "",
-            rfid_uid: "",
+            rfid_uid: student.rfid_uid || "",
+            foto_url: student.foto_url || null,
         };
         displayIdentifiedStudent(currentIdentifiedStudent);
     };
 })();
+
 

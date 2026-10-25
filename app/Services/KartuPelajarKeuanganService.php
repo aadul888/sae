@@ -164,27 +164,43 @@ class KartuPelajarKeuanganService
     }
 
     /**
-     * Autocomplete peserta didik untuk form request cetak.
+     * Autocomplete peserta didik untuk form request cetak dan pencarian scanner barcode/NISN.
      */
     public function cariSiswa(string $q): Collection
     {
+        $cleanQ = trim($q);
+        if (preg_match('/\/v(?:erify)?\/([A-Za-z0-9]+)/i', $cleanQ, $matches)) {
+            $cleanQ = $matches[1];
+        } elseif (preg_match('/nisn=([A-Za-z0-9]+)/i', $cleanQ, $matches)) {
+            $cleanQ = $matches[1];
+        }
+
         return DB::table('peserta_didik as pd')
             ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id')
-            ->where(function ($s) use ($q) {
-                $s->where('pd.nama', 'LIKE', "%{$q}%")
-                    ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
-                    ->orWhere('pd.nipd', 'LIKE', "%{$q}%");
+            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+            ->where(function ($s) use ($cleanQ) {
+                $s->where('pd.nama', 'LIKE', "%{$cleanQ}%")
+                    ->orWhere('pd.nisn', 'LIKE', "%{$cleanQ}%")
+                    ->orWhere('pd.nipd', 'LIKE', "%{$cleanQ}%");
             })
+            ->orderByRaw("CASE WHEN pd.nisn = ? THEN 0 WHEN pd.nipd = ? THEN 1 ELSE 2 END", [$cleanQ, $cleanQ])
             ->orderBy('pd.nama')
             ->limit(15)
             ->get([
                 'pd.peserta_didik_id',
                 'pd.nama',
                 'pd.nisn',
+                'pd.nipd',
                 'pd.nama_rombel',
+                'pdm.foto_path',
+                'pdm.rfid_uid',
                 DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran"),
                 'kp.metode_pembayaran',
-            ]);
+            ])
+            ->transform(function ($item) {
+                $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+                return $item;
+            });
     }
 
     /**

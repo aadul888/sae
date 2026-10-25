@@ -32,11 +32,11 @@
             <div id="scanSelectStudentStep" style="margin-bottom: 14px;">
                 <label for="scanSearchStudentInput"
                     style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                    <i class="fas fa-user-check text-primary me-1"></i> Langkah 1: Pilih Peserta Didik
+                    <i class="fas fa-barcode text-primary me-1"></i> Langkah 1: Scan Barcode / Cari Peserta Didik
                 </label>
                 <div style="position: relative;">
                     <input type="text" id="scanSearchStudentInput" class="form-control"
-                        placeholder="Ketik nama / NISN / NIPD siswa..." autocomplete="off"
+                        placeholder="Scan barcode/QR NISN atau ketik nama siswa..." autocomplete="off"
                         style="width: 100%; height: 38px; padding-left: 36px; font-size: 0.84rem; font-weight: 600;">
                     <i class="fas fa-search"
                         style="position: absolute; left: 12px; top: 12px; color: var(--text-muted); font-size: 0.85rem;"></i>
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="kp-form-hint" style="margin-top: 4px; font-size: 0.72rem;">
-                    Ketik nama/NISN siswa, atau klik tombol ikon antena RFID pada baris tabel antrean.
+                    Scan barcode/QR NISN pada kartu untuk memilih langsung, atau ketik nama siswa.
                 </div>
             </div>
 
@@ -114,7 +114,7 @@
 
             <!-- Hasil Terakhir Scan / Live Feedback Flash Card -->
             <div id="scanResultBox"
-                style="display: none; padding: 12px 14px; border-radius: 10px; background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; margin-bottom: 12px; animation: kpResultFlash 0.35s ease;">
+                style="display: none; padding: 12px 14px; border-radius: 10px; background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; margin-bottom: 6px; animation: kpResultFlash 0.35s ease;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                     <div style="font-size: 0.74rem; font-weight: 800; color: #10b981; text-transform: uppercase;">
                         <i class="fas fa-circle-check me-1"></i> Selesai Dicetak &amp; Terdaftar ke Presensi
@@ -124,19 +124,6 @@
                 <div id="scanResultNama" style="font-size: 0.95rem; font-weight: 800; color: var(--text-color);">
                 </div>
                 <div id="scanResultDetail" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
-                </div>
-            </div>
-
-            <!-- Riwayat Verifikasi Sesi Ini -->
-            <div id="scanSessionLogWrap" style="display: none;">
-                <div
-                    style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-                    <span>Kartu RFID Selesai Sesi Ini (<span id="scanSuccessCount">0</span>)</span>
-                    <button type="button" onclick="clearSessionScanLog()"
-                        style="background: none; border: none; font-size: 0.7rem; color: #ef4444; cursor: pointer; text-decoration: underline;">Bersihkan</button>
-                </div>
-                <div id="scanSessionLogList"
-                    style="display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto;">
                 </div>
             </div>
 
