@@ -9,10 +9,17 @@
                     dicetak.
                 </div>
             </div>
-            <button type="button" class="btn btn-primary" onclick="openTambahRequest()"
-                style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-plus-circle"></i> Tambah Request
-            </button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button type="button" class="btn btn-outline" onclick="openModalScanRfidSelesai()"
+                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: #059669; color: #059669; background: var(--card-bg);"
+                    title="Scan QR Code atau Tap Kartu RFID Fisik untuk Verifikasi Selesai & Registrasi Presensi">
+                    <i class="fas fa-qrcode"></i> Scan / Tap RFID Selesai
+                </button>
+                <button type="button" class="btn btn-primary" onclick="openTambahRequest()"
+                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus-circle"></i> Tambah Request
+                </button>
+            </div>
         </div>
 
         <div class="dash-stat-grid"
@@ -282,6 +289,13 @@
                                 <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
                                     <div class="table-actions"
                                         style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                        {{-- Tombol Scan QR / Tap RFID untuk Selesaikan & Registrasi --}}
+                                        <button type="button" class="btn-icon" style="color: #059669;"
+                                            title="Scan QR / Tap RFID Selesai Cetak"
+                                            onclick="openModalScanRfidSelesai('{{ $rq->nisn }}', '{{ addslashes($rq->nama) }}', '{{ $rq->id }}', '{{ $rq->peserta_didik_id }}')">
+                                            <i class="fas fa-qrcode"></i>
+                                        </button>
+
                                         {{-- Tombol Pratinjau / Cetak Kartu Digital --}}
                                         @if (!empty($rq->nisn))
                                             <button type="button" class="btn-icon" style="color: #0284c7;"

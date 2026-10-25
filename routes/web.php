@@ -546,6 +546,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran']);
     Route::get('/kartu-pelajar/cari-siswa', [\App\Http\Controllers\KartuPelajarController::class, 'cariSiswa'])->name('kartu-pelajar.cari-siswa');
     Route::post('/kartu-pelajar/request', [\App\Http\Controllers\KartuPelajarController::class, 'storeRequest'])->name('kartu-pelajar.store-request');
+    Route::post('/kartu-pelajar/request/scan-selesai', [\App\Http\Controllers\KartuPelajarController::class, 'scanSelesaiRfid'])->name('kartu-pelajar.request.scan-selesai');
     Route::match(['post', 'put', 'patch'], '/kartu-pelajar/request/{id}/status', [\App\Http\Controllers\KartuPelajarController::class, 'updateStatusRequest'])->name('kartu-pelajar.update-request');
     Route::match(['post', 'delete'], '/kartu-pelajar/request/{id}/delete', [\App\Http\Controllers\KartuPelajarController::class, 'destroyRequest'])->name('kartu-pelajar.destroy-request');
 

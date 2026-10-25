@@ -247,6 +247,34 @@ class KartuPelajarTest extends TestCase
 
             $req->refresh();
             $this->assertEquals('diproses', $req->status);
+
+            // 11. Test Scan Selesai Cetak & Otomatis Registrasi RFID Presensi
+            $testRfid = 'E2801170' . rand(1000, 9999);
+            $scanRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.request.scan-selesai'), [
+                'code' => $testRfid, // Tap RFID kartu fisik
+            ]);
+            // Jika kode tidak berupa NISN, uji coba dengan memasukkan NISN siswa
+            $scanNisnRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.request.scan-selesai'), [
+                'code'     => $pd->nisn,
+                'rfid_uid' => $testRfid,
+            ]);
+            $scanNisnRes->assertOk();
+            $scanNisnRes->assertJson(['success' => true]);
+
+            // Verifikasi status request berubah menjadi selesai
+            $req->refresh();
+            $this->assertEquals('selesai', $req->status);
+            $this->assertNotNull($req->selesai_at);
+
+            // Verifikasi data registrasi RFID di tabel peserta_didik_meta
+            $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+            $this->assertNotNull($meta);
+            $this->assertEquals($testRfid, $meta->rfid_uid);
+            $this->assertNotNull($meta->rfid_registered_at);
+
+            // Verifikasi status cetak di kartu_pelajar_pembayaran
+            $pembayaran->refresh();
+            $this->assertEquals('sudah_cetak', $pembayaran->status_cetak);
         }
     }
 }

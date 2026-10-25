@@ -14,7 +14,18 @@ function escapeHtml(str) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    const CFG = window.WALI_AGENDA_CFG || { routes: {} };
+    const appEl = document.getElementById("waliAgendaApp");
+    const CFG = window.WALI_AGENDA_CFG || {
+        currentTanggal: appEl?.dataset?.tanggal || new Date().toISOString().split("T")[0],
+        currentRombelId: appEl?.dataset?.rombel || "",
+        routes: {
+            store: appEl?.dataset?.routeStore || "/dashboard/wali-kelas/agenda",
+            nextPertemuan: appEl?.dataset?.routeNext || "/dashboard/wali-kelas/agenda/next-pertemuan",
+            detail: appEl?.dataset?.routeDetail || "/dashboard/wali-kelas/agenda/detail",
+            update: appEl?.dataset?.routeUpdate || "/dashboard/wali-kelas/agenda",
+            destroy: appEl?.dataset?.routeDestroy || "/dashboard/wali-kelas/agenda",
+        }
+    };
 
     // ==========================================
     // 1. FILTER & LIVE SEARCH

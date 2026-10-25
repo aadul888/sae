@@ -873,7 +873,11 @@
     <!-- MODAL 7: Dialog Pilih Rombel untuk Cetak Masal -->
     @include('kartu-pelajar.modal-cetak-rombel', ['filterRombel' => $rombelList->pluck('nama')])
 
+    <!-- MODAL 8: Scanner QR Code & Reader RFID Selesai Cetak -->
+    @include('dashboard.kartu-pelajar.partials.modal-scan-rfid')
+
     @push('scripts')
+        <script src="{{ asset('vendor/jsqr/jsqr.min.js') }}"></script>
         <script
             src="{{ asset('js/kartu-pelajar-preview.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-preview.js')) ? filemtime(public_path('js/kartu-pelajar-preview.js')) : time() }}">
         </script>
@@ -885,5 +889,8 @@
         </script>
         <script
             src="{{ asset('js/kartu-pelajar-finance.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-finance.js')) ? filemtime(public_path('js/kartu-pelajar-finance.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/kartu-pelajar-scan-rfid.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-scan-rfid.js')) ? filemtime(public_path('js/kartu-pelajar-scan-rfid.js')) : time() }}">
         </script>
     @endpush

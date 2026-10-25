@@ -629,6 +629,36 @@ class KartuPelajarController extends Controller
     }
 
     /**
+     * Scan QR Code / Tap Kartu RFID untuk selesaikan antrean cetak & daftarkan RFID presensi.
+     */
+    public function scanSelesaiRfid(Request $request): JsonResponse
+    {
+        if (!$this->canKartuPelajar('update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'code'              => 'nullable|string|max:500',
+            'peserta_didik_id'  => 'nullable|string|max:100',
+            'rfid_uid'          => 'nullable|string|max:64',
+        ], [
+            'code.max'     => 'Panjang kode maksimal 500 karakter.',
+            'rfid_uid.max' => 'UID RFID maksimal 64 karakter.',
+        ]);
+
+        if (empty($validated['code']) && empty($validated['peserta_didik_id']) && empty($validated['rfid_uid'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode QR, nomor NISN, atau kartu RFID fisik wajib dipindai / diisi.',
+            ], 422);
+        }
+
+        $res = $this->keuanganService->scanSelesaiDanRegistrasiRfid($validated, session('user'));
+
+        return response()->json($res, $res['status_code'] ?? ($res['success'] ? 200 : 422));
+    }
+
+    /**
      * Ubah status request. Status 'selesai' otomatis menandai kartu sudah dicetak.
      */
     public function updateStatusRequest(Request $request, int $id)

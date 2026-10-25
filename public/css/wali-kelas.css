@@ -1,0 +1,651 @@
+/* ==========================================================================
+   SAE - MODUL WALI KELAS & KOORDINATOR SISWA
+   Styles for Presensi Kelas Binaan, Agenda KBM Kelas & Validasi Data
+   ========================================================================== */
+
+/* --- 1. Stat Cards Grid --- */
+.stat-grid-presensi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .stat-grid-presensi {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* --- 2. Toolbars & Filters --- */
+.presensi-toolbar-flex,
+.agenda-toolbar-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.presensi-filters-group,
+.agenda-filters-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-daterange-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0 10px;
+    height: 38px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.btn-quick-date.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border-color: var(--primary) !important;
+}
+
+/* --- 3. Datatables & Typography --- */
+.table-presensi-wali thead th,
+.table-izin-wali thead th,
+.table-agenda-jadwal thead th,
+.table-wali-agenda thead th,
+.table-validasi thead th {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.table-presensi-wali tbody tr.presensi-row:hover,
+.table-izin-wali tbody tr.izin-row:hover,
+.table-agenda-jadwal tbody tr:hover,
+.table-wali-agenda tbody tr:hover,
+.table-validasi tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.table-presensi-wali tbody td,
+.table-izin-wali tbody td,
+.table-agenda-jadwal tbody td,
+.table-wali-agenda tbody td,
+.table-validasi tbody td {
+    vertical-align: middle;
+}
+
+/* Quick Status Badges Toggle (Presensi) */
+.presensi-action-box {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.presensi-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-status-toggle {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.btn-status-toggle.active-H {
+    background: var(--success, #10b981);
+    color: #fff;
+    border-color: var(--success, #10b981);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-status-toggle.active-T {
+    background: var(--warning, #f59e0b);
+    color: #fff;
+    border-color: var(--warning, #f59e0b);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.btn-status-toggle.active-I {
+    background: var(--primary, #3b82f6);
+    color: #fff;
+    border-color: var(--primary, #3b82f6);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.btn-status-toggle.active-S {
+    background: var(--purple, #8b5cf6);
+    color: #fff;
+    border-color: var(--purple, #8b5cf6);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+.btn-status-toggle.active-A {
+    background: var(--danger, #ef4444);
+    color: #fff;
+    border-color: var(--danger, #ef4444);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.btn-status-toggle.active-D,
+.btn-status-toggle.active-P {
+    background: var(--accent, #06b6d4);
+    color: #fff;
+    border-color: var(--accent, #06b6d4);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+
+/* Modals Wali Kelas z-index standard */
+#modalInputAgenda,
+#modalDetailAgenda,
+#modalExportPdfWali,
+#modalVerifikasiIzinWali,
+#modalPreviewLampiranWali,
+#modalDetailValidasiBerkas {
+    z-index: 99999 !important;
+}
+
+/* --- 4. Berkas Chips & Validasi Data Components --- */
+.table-validasi-data {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-validasi-data thead th {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.table-validasi-data tbody tr.validasi-row {
+    transition: background 0.18s ease;
+}
+
+.table-validasi-data tbody tr.validasi-row:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.table-validasi-data tbody td {
+    vertical-align: middle;
+    padding: 13px 14px;
+    box-sizing: border-box;
+}
+
+.berkas-pill-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.berkas-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    line-height: 1.4;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.berkas-chip-status-icon {
+    font-size: 0.72rem;
+}
+
+.berkas-chip-label {
+    letter-spacing: 0.02em;
+}
+
+.berkas-chip--valid {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.32);
+}
+
+.berkas-chip--tidak_valid {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.32);
+}
+
+.berkas-chip--menunggu {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.berkas-chip--belum {
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--text-muted);
+    border-color: rgba(148, 163, 184, 0.28);
+    border-style: dashed;
+    opacity: 0.85;
+}
+
+.berkas-chip-eye {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: rgba(99, 102, 241, 0.14);
+    color: var(--primary);
+    font-size: 0.65rem;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 2px;
+    transition: all 0.15s ease;
+}
+
+.berkas-chip-eye:hover {
+    background: var(--primary);
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.validasi-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.validasi-actions .btn-validasi-berkas-detail {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.validasi-actions .btn-link-identitas {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Responsive Mobile Breakpoints (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. Stat Grid Cards */
+    .stat-grid-presensi {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* 2. Toolbars */
+    .presensi-toolbar-flex,
+    .agenda-toolbar-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .presensi-filters-group,
+    .agenda-filters-group {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    .presensi-filters-group > *,
+    .agenda-filters-group > * {
+        width: 100% !important;
+    }
+
+    .toolbar-entries {
+        justify-content: space-between !important;
+    }
+
+    .live-search-wrap {
+        width: 100% !important;
+    }
+
+    .filter-daterange-box {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .date-control-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .date-picker-group {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+
+    .date-picker-group > * {
+        width: 100% !important;
+    }
+
+    .quick-date-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    .quick-date-buttons .btn-quick-date {
+        width: 100% !important;
+        text-align: center !important;
+        padding: 7px 0 !important;
+    }
+
+    .date-badge-group {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    /* 3. Table Rows to Mobile Stack Cards */
+    .table-responsive-stack tbody tr.presensi-row,
+    .table-responsive-stack tbody tr.izin-row,
+    .table-responsive-stack tbody tr.slot-row,
+    .table-responsive-stack tbody tr.agenda-row,
+    .table-responsive-stack tbody tr.validasi-row {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 14px 15px !important;
+        margin-bottom: 12px !important;
+        border-radius: 14px !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-no {
+        display: none !important;
+    }
+
+    /* Card Top Header Rows */
+    .table-responsive-stack tbody td.cell-pd-nama,
+    .table-responsive-stack tbody td.cell-slot-jam,
+    .table-responsive-stack tbody td.cell-pd-tanggal {
+        order: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0 0 10px 0 !important;
+        margin-bottom: 6px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-nama::before,
+    .table-responsive-stack tbody td.cell-slot-jam::before {
+        display: none !important;
+    }
+
+    /* Card Field Rows (Label Left, Value Right) */
+    .table-responsive-stack tbody td.cell-pd-nisn,
+    .table-responsive-stack tbody td.cell-pd-status,
+    .table-responsive-stack tbody td.cell-pd-waktu,
+    .table-responsive-stack tbody td.cell-pd-ket,
+    .table-responsive-stack tbody td.cell-pd-jenis,
+    .table-responsive-stack tbody td.cell-pd-created,
+    .table-responsive-stack tbody td.cell-slot-mapel,
+    .table-responsive-stack tbody td.cell-pd-mapel,
+    .table-responsive-stack tbody td.cell-slot-guru,
+    .table-responsive-stack tbody td.cell-pd-guru,
+    .table-responsive-stack tbody td.cell-slot-status,
+    .table-responsive-stack tbody td.cell-pd-pertemuan {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .table-responsive-stack tbody td::before {
+        content: attr(data-label) !important;
+        font-weight: 700 !important;
+        font-size: 0.74rem !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Multi-line Content Rows: Expand to Full Width (No 60% Squeeze) */
+    .table-responsive-stack tbody td.cell-pd-alasan,
+    .table-responsive-stack tbody td.cell-slot-materi,
+    .table-responsive-stack tbody td.cell-pd-materi {
+        order: 4 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 9px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-alasan::before,
+    .table-responsive-stack tbody td.cell-slot-materi::before,
+    .table-responsive-stack tbody td.cell-pd-materi::before {
+        content: attr(data-label) !important;
+        font-weight: 700 !important;
+        font-size: 0.74rem !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase !important;
+        text-align: left !important;
+        margin-bottom: 4px !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-alasan .cell-col-right,
+    .table-responsive-stack tbody td.cell-slot-materi .cell-col-right,
+    .table-responsive-stack tbody td.cell-pd-materi .cell-col-right {
+        max-width: 100% !important;
+        width: 100% !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+        background: var(--bg-hover) !important;
+        padding: 8px 10px !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Card Action Footer Rows */
+    .table-responsive-stack tbody td.cell-pd-aksi,
+    .table-responsive-stack tbody td.cell-slot-aksi {
+        order: 10 !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px 0 0 0 !important;
+        margin-top: 6px !important;
+        border-top: 1px solid var(--border-color) !important;
+        border-bottom: none !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-aksi::before,
+    .table-responsive-stack tbody td.cell-slot-aksi::before {
+        display: none !important;
+    }
+
+    .table-responsive-stack .presensi-action-box {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        align-items: stretch !important;
+    }
+
+    /* 6 Full-width Status Toggle Grid on Mobile */
+    .table-responsive-stack .presensi-btn-group {
+        display: grid !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    .table-responsive-stack .presensi-btn-group .btn-status-toggle {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 38px !important;
+        font-size: 0.88rem !important;
+        font-weight: 800 !important;
+        border-radius: 8px !important;
+    }
+
+    .badge-mandiri-full,
+    .badge-libur-full {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+
+    .table-responsive-stack tbody tr.slot-row .cell-slot-aksi .table-actions,
+    .table-responsive-stack tbody tr.agenda-row .cell-pd-aksi .table-actions,
+    .table-responsive-stack tbody tr.izin-row .cell-pd-aksi .table-actions {
+        width: 100% !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+    }
+
+    .table-responsive-stack tbody tr.slot-row .cell-slot-aksi .btn-bantu-isi-slot,
+    .table-responsive-stack tbody tr.izin-row .cell-pd-aksi .btn-open-verifikasi {
+        width: 100% !important;
+        height: 38px !important;
+        justify-content: center !important;
+    }
+
+    /* Validasi Data Mobile Specifics */
+    .table-responsive-stack tbody td.cell-pd-konfirmasi {
+        order: 2 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-konfirmasi .konfirmasi-wrapper {
+        align-items: flex-end !important;
+        text-align: right !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-berkas {
+        order: 3 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        padding: 9px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-berkas .berkas-pill-group {
+        display: flex !important;
+        gap: 5px !important;
+        justify-content: flex-end !important;
+        flex-wrap: wrap !important;
+        max-width: 72% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-kelengkapan {
+        order: 4 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-kelengkapan .kelengkapan-wrapper {
+        align-items: flex-end !important;
+        text-align: right !important;
+    }
+
+    .table-responsive-stack tbody tr.validasi-row .cell-pd-aksi {
+        order: 10 !important;
+        display: block !important;
+        width: 100% !important;
+        padding: 12px 0 0 0 !important;
+        margin-top: 4px !important;
+        border-top: 1px solid var(--border-color) !important;
+        border-bottom: none !important;
+    }
+
+    .table-responsive-stack tbody tr.validasi-row .cell-pd-aksi .validasi-actions {
+        display: flex !important;
+        width: 100% !important;
+        gap: 8px !important;
+        justify-content: stretch !important;
+    }
+
+    .table-responsive-stack tbody tr.validasi-row .cell-pd-aksi .validasi-actions .btn-validasi-berkas-detail {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+        height: 38px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .table-responsive-stack tbody tr.validasi-row .cell-pd-aksi .validasi-actions .btn-link-identitas {
+        flex: 0 0 auto !important;
+        justify-content: center !important;
+        height: 38px !important;
+        padding: 0 14px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .d-block-mobile {
+        display: inline-flex !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .d-block-mobile {
+        display: none !important;
+    }
+}

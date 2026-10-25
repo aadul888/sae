@@ -252,6 +252,7 @@
     @include('dashboard.presensi.partials.tab-pengaturan')
 
     @include('dashboard.presensi.partials.modals')
+@endsection
 
 @push('scripts')
     <script
