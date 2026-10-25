@@ -1,11 +1,11 @@
 /**
  * Stylesheet Kartu Pelajar Digital SAE — FORMAT PORTRAIT
- * Standard Presisi ID Card: 56mm x 86mm (High Quality Print & 10 Cards/Sheet A4 Landscape)
+ * Standard Presisi ID Card: 56mm x 87mm (High Quality Print & 10 Cards/Sheet A4 Landscape)
  */
 
 :root {
     --kp-width: 56mm;
-    --kp-height: 86mm;
+    --kp-height: 87mm;
     --kp-radius: 3.5mm;
     --kp-primary: #0f172a;
     --kp-secondary: #1e3a8a;
@@ -563,7 +563,7 @@
     margin-right: 2px;
 }
 
-/* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 86mm DENGAN JARAK POTONG TENGAH) */
+/* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 87mm DENGAN JARAK POTONG TENGAH) */
 @media print {
     @page {
         size: A4 landscape;
@@ -612,11 +612,11 @@
 
     .kp-card {
         width: 56mm !important;
-        height: 86mm !important;
+        height: 87mm !important;
         min-width: 56mm !important;
-        min-height: 86mm !important;
+        min-height: 87mm !important;
         max-width: 56mm !important;
-        max-height: 86mm !important;
+        max-height: 87mm !important;
         box-sizing: border-box !important;
         margin: 0.5mm 0.7mm !important;
         box-shadow: none !important;
@@ -1412,11 +1412,11 @@
 /* Clean Download / Capture State for High-Res PNG/JPG Export */
 .kp-card-capture-target {
     width: 56mm !important;
-    height: 86mm !important;
+    height: 87mm !important;
     min-width: 56mm !important;
-    min-height: 86mm !important;
+    min-height: 87mm !important;
     max-width: 56mm !important;
-    max-height: 86mm !important;
+    max-height: 87mm !important;
     transform: none !important;
     box-shadow: none !important;
     margin: 0 !important;
