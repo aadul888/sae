@@ -39,6 +39,10 @@
         <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()"
             class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Kartu: {{ $rombel->nama }}
+            @if (!empty($filter_status_request))
+                <span
+                    style="font-size: 0.72rem; opacity: 0.9; font-weight: 600;">({{ ucfirst($filter_status_request) }})</span>
+            @endif
         </button>
 
         <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelZip()" class="btn-action"
@@ -55,9 +59,15 @@
             <div class="no-print"
                 style="text-align: center; padding: 48px; background: #fff; border-radius: 12px; width: 100%;">
                 <i class="fas fa-users-slash" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
-                <h3 style="font-size: 1.1rem; color: #1e293b;">Tidak Ada Peserta Didik di Rombel Ini</h3>
-                <p style="font-size: 0.85rem; color: #64748b;">Belum ada data peserta didik yang terhubung ke rombongan
-                    belajar {{ $rombel->nama }}.</p>
+                <h3 style="font-size: 1.1rem; color: #1e293b;">Tidak Ada Peserta Didik Ditemukan</h3>
+                <p style="font-size: 0.85rem; color: #64748b;">
+                    @if (!empty($filter_status_request))
+                        Tidak ada peserta didik di rombel {{ $rombel->nama }} dengan status antrean request
+                        "{{ $filter_status_request }}".
+                    @else
+                        Belum ada data peserta didik yang terhubung ke rombongan belajar {{ $rombel->nama }}.
+                    @endif
+                </p>
             </div>
         @endforelse
     </div>

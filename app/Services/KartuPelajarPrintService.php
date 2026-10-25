@@ -123,9 +123,9 @@ class KartuPelajarPrintService
     }
 
     /**
-     * Dapatkan kartu massal untuk satu rombel.
+     * Dapatkan kartu massal untuk satu rombel, dengan opsi filter khusus (misal: hanya yang status request menunggu).
      */
-    public function getRombelCardsData(string $rombelId): array
+    public function getRombelCardsData(string $rombelId, array $filters = []): array
     {
         $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first();
         if (!$rombel) {
@@ -136,17 +136,24 @@ class KartuPelajarPrintService
             return ['error' => 'not_found', 'rombel' => null, 'cards' => [], 'sekolah' => []];
         }
 
-        $students = DB::table('peserta_didik')
-            ->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
-            ->orderBy('nama', 'asc')
-            ->get();
+        $query = DB::table('peserta_didik')
+            ->where(function ($w) use ($rombel) {
+                $w->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
+                    ->orWhere('nama_rombel', $rombel->nama);
+            });
 
-        if ($students->isEmpty()) {
-            $students = DB::table('peserta_didik')
-                ->where('nama_rombel', $rombel->nama)
-                ->orderBy('nama', 'asc')
-                ->get();
+        // Filter: hanya siswa yang memiliki request cetak berstatus tertentu (misal: 'menunggu')
+        if (!empty($filters['status_request']) && Schema::hasTable('kartu_pelajar_request')) {
+            $stReq = $filters['status_request'];
+            $query->whereExists(function ($sub) use ($stReq) {
+                $sub->select(DB::raw(1))
+                    ->from('kartu_pelajar_request as kpr')
+                    ->whereColumn('kpr.peserta_didik_id', 'peserta_didik.peserta_didik_id')
+                    ->where('kpr.status', $stReq);
+            });
         }
+
+        $students = $query->orderBy('nama', 'asc')->get();
 
         $sekolahInfo = $this->getSekolahInfo();
         $jurusanMeta = $this->getJurusanMeta($rombel->jurusan_id);
@@ -187,6 +194,7 @@ class KartuPelajarPrintService
             'rombel' => $rombel,
             'cards' => $cards,
             'sekolah' => $sekolahInfo,
+            'filter_status_request' => $filters['status_request'] ?? null,
         ];
     }
 }

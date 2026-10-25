@@ -102,7 +102,11 @@ class KartuPelajarController extends Controller
 
         $validated = $request->validate([
             'action'                 => 'required|in:set_lunas,set_belum_bayar,set_sudah_cetak,set_belum_cetak,custom_bulk',
-            'ids'                    => 'required|array|min:1',
+            'ids'                    => 'nullable|array',
+            'apply_all_filtered'     => 'nullable|boolean',
+            'filter_q'               => 'nullable|string|max:255',
+            'filter_rombel'          => 'nullable|string|max:100',
+            'filter_status_bayar'    => 'nullable|string|max:50',
             'status_pembayaran'      => 'nullable|in:lunas,belum_bayar,keep',
             'bulk_status_pembayaran' => 'nullable|in:lunas,belum_bayar,keep',
             'nominal'                => 'nullable|numeric|min:0',
@@ -332,7 +336,16 @@ class KartuPelajarController extends Controller
             abort(403, 'Akses ditolak: Hanya Administrator dan Wali Kelas yang diizinkan mencetak kartu pelajar masal.');
         }
 
-        $data = $this->printService->getRombelCardsData($rombelId);
+        $filters = [];
+        $statusReq = trim((string) $request->get('status_request', ''));
+        if ($statusReq === '' && ($request->boolean('hanya_menunggu') || $request->get('filter') === 'menunggu')) {
+            $statusReq = 'menunggu';
+        }
+        if ($statusReq !== '') {
+            $filters['status_request'] = $statusReq;
+        }
+
+        $data = $this->printService->getRombelCardsData($rombelId, $filters);
         if (isset($data['error'])) {
             abort(404, 'Rombongan belajar tidak ditemukan.');
         }
@@ -577,6 +590,32 @@ class KartuPelajarController extends Controller
 
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
             ->with('success', $res['message']);
+    }
+
+    /**
+     * Aksi massal antrean request cetak kartu (Ubah status / hapus massal).
+     */
+    public function bulkActionRequest(Request $request): JsonResponse
+    {
+        if (!$this->canKartuPelajar('update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'action'              => 'required|in:set_diproses,set_selesai,set_ditolak,set_menunggu,custom_status,delete',
+            'ids'                 => 'nullable|array',
+            'apply_all_filtered'  => 'nullable|boolean',
+            'target_status'       => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::STATUS)),
+            'catatan_admin'       => 'nullable|string|max:500',
+            'filter_q'            => 'nullable|string|max:255',
+            'filter_rombel'       => 'nullable|string|max:100',
+            'filter_status_bayar' => 'nullable|string|max:50',
+            'filter_req_status'   => 'nullable|string|max:50',
+        ]);
+
+        $res = $this->keuanganService->bulkActionRequest($validated);
+
+        return response()->json($res);
     }
 
     /**

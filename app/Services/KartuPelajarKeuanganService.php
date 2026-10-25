@@ -356,6 +356,104 @@ class KartuPelajarKeuanganService
     }
 
     /**
+     * Aksi massal ubah status / hapus antrean request cetak kartu.
+     */
+    public function bulkActionRequest(array $data): array
+    {
+        $action = $data['action'];
+        $applyAll = !empty($data['apply_all_filtered']);
+        $ids = $data['ids'] ?? [];
+
+        if ($applyAll) {
+            $q = trim((string) ($data['filter_q'] ?? ''));
+            $rombel = trim((string) ($data['filter_rombel'] ?? ''));
+            $statusBayar = trim((string) ($data['filter_status_bayar'] ?? ''));
+            $reqStatus = trim((string) ($data['filter_req_status'] ?? ''));
+
+            $filterQuery = DB::table('kartu_pelajar_request as r')
+                ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->leftJoin('kartu_pelajar_pembayaran as kp', 'r.peserta_didik_id', '=', 'kp.peserta_didik_id');
+
+            if ($reqStatus !== '' && isset(KartuPelajarRequest::STATUS[$reqStatus])) {
+                $filterQuery->where('r.status', $reqStatus);
+            }
+            if ($rombel !== '') {
+                $filterQuery->where('pd.nama_rombel', $rombel);
+            }
+            if ($statusBayar === 'lunas') {
+                $filterQuery->where('kp.status_pembayaran', 'lunas');
+            } elseif ($statusBayar === 'belum_bayar') {
+                $filterQuery->where(function ($sq) {
+                    $sq->whereNull('kp.status_pembayaran')
+                        ->orWhere('kp.status_pembayaran', 'belum_bayar');
+                });
+            }
+            if ($q !== '') {
+                $filterQuery->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nipd', 'LIKE', "%{$q}%")
+                        ->orWhere('r.alasan', 'LIKE', "%{$q}%");
+                });
+            }
+
+            $ids = $filterQuery->pluck('r.id')->all();
+        }
+
+        if (empty($ids)) {
+            return [
+                'success' => false,
+                'message' => 'Tidak ada request antrean yang dipilih atau sesuai dengan filter.',
+            ];
+        }
+
+        $count = 0;
+        if ($action === 'delete') {
+            foreach ($ids as $reqId) {
+                $delRes = $this->destroyRequest((int) $reqId);
+                if ($delRes['success']) {
+                    $count++;
+                }
+            }
+            return [
+                'success' => true,
+                'message' => "Sebanyak {$count} request antrean berhasil dihapus permanen.",
+            ];
+        }
+
+        $targetStatus = match ($action) {
+            'set_diproses' => 'diproses',
+            'set_selesai'  => 'selesai',
+            'set_ditolak'  => 'ditolak',
+            'set_menunggu' => 'menunggu',
+            default        => $data['target_status'] ?? null,
+        };
+
+        if (!$targetStatus || !isset(KartuPelajarRequest::STATUS[$targetStatus])) {
+            return [
+                'success' => false,
+                'message' => 'Status tujuan tidak valid.',
+            ];
+        }
+
+        foreach ($ids as $reqId) {
+            $upRes = $this->updateStatusRequest((int) $reqId, [
+                'status' => $targetStatus,
+                'catatan_admin' => $data['catatan_admin'] ?? null,
+            ]);
+            if ($upRes['success']) {
+                $count++;
+            }
+        }
+
+        $label = KartuPelajarRequest::STATUS[$targetStatus];
+        return [
+            'success' => true,
+            'message' => "Sebanyak {$count} antrean request berhasil diubah statusnya menjadi {$label}.",
+        ];
+    }
+
+    /**
      * Dapatkan data cetak lembar serah terima / pengambilan kartu.
      */
     public function getPengambilanData(Request $request, array $sekolahInfo): array

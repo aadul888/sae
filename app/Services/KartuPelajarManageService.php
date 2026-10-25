@@ -576,7 +576,58 @@ class KartuPelajarManageService
     {
         $settings = KartuPelajarPengaturan::getSettings();
         $action = $data['action'];
-        $ids = $data['ids'];
+        $applyAll = !empty($data['apply_all_filtered']);
+        $ids = $data['ids'] ?? [];
+
+        if ($applyAll) {
+            $q = trim((string) ($data['filter_q'] ?? ''));
+            $rombel = trim((string) ($data['filter_rombel'] ?? ''));
+            $statusBayarFilter = trim((string) ($data['filter_status_bayar'] ?? ''));
+
+            $filterQuery = DB::table('peserta_didik as pd')
+                ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id');
+
+            $filterQuery->where(function ($sq) {
+                $sq->where('kp.status_cetak', 'sudah_cetak');
+                if (Schema::hasTable('kartu_pelajar_request')) {
+                    $sq->orWhereExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('kartu_pelajar_request as kpr')
+                            ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id')
+                            ->where('kpr.status', 'selesai');
+                    });
+                }
+            });
+
+            if ($q !== '') {
+                $filterQuery->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nipd', 'LIKE', "%{$q}%");
+                });
+            }
+            if ($rombel !== '') {
+                $filterQuery->where('pd.nama_rombel', $rombel);
+            }
+            if ($statusBayarFilter === 'lunas') {
+                $filterQuery->where('kp.status_pembayaran', 'lunas');
+            } elseif ($statusBayarFilter === 'belum_bayar') {
+                $filterQuery->where(function ($sq) {
+                    $sq->whereNull('kp.status_pembayaran')
+                        ->orWhere('kp.status_pembayaran', 'belum_bayar');
+                });
+            }
+
+            $ids = $filterQuery->pluck('pd.peserta_didik_id')->all();
+        }
+
+        if (empty($ids)) {
+            return [
+                'success' => false,
+                'message' => 'Tidak ada peserta didik yang dipilih atau sesuai dengan filter.',
+            ];
+        }
+
         $count = 0;
 
         $statusBayar = $data['bulk_status_pembayaran'] ?? ($data['status_pembayaran'] ?? null);

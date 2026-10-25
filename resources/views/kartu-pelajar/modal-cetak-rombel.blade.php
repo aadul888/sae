@@ -50,6 +50,28 @@
                 </select>
             </div>
 
+            <!-- Opsi Filter Antrean Request -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                    Cakupan Siswa:
+                </label>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #334155; cursor: pointer;">
+                        <input type="radio" name="cakupan_cetak_rombel" value="semua" checked
+                            style="accent-color: #0284c7; width: 16px; height: 16px;">
+                        <span>Semua Siswa di Rombel Terpilih</span>
+                    </label>
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #b45309; font-weight: 600; cursor: pointer;">
+                        <input type="radio" name="cakupan_cetak_rombel" value="menunggu"
+                            style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                        <span><i class="fas fa-hourglass-half text-warning me-1"></i> Hanya Siswa Status "Menunggu" di
+                            Request Cetak</span>
+                    </label>
+                </div>
+            </div>
+
             <div
                 style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; font-size: 0.76rem; color: #0369a1; line-height: 1.45; display: flex; gap: 8px; align-items: flex-start;">
                 <i class="fas fa-info-circle" style="font-size: 0.9rem; margin-top: 1px; flex-shrink: 0;"></i>

@@ -6,7 +6,8 @@
                     Data Kartu Berhasil Cetak
                 </h3>
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                    Daftar peserta didik yang telah selesai cetak dari antrean request. Kelola pencatatan pembayaran, klaim
+                    Daftar peserta didik yang telah selesai cetak dari antrean request. Kelola pencatatan pembayaran,
+                    klaim
                     garansi kartu/stiker, serta pengiriman WhatsApp.
                 </div>
             </div>
@@ -130,9 +131,18 @@
                 <div id="bulkActionBar"
                     style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                     <div
-                        style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-check-square"></i>
-                        <span><span id="bulkSelectedCount">0</span> peserta didik dipilih</span>
+                        style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <span style="display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-check-square"></i>
+                            <span><span id="bulkSelectedCount">0</span> peserta didik dipilih</span>
+                        </span>
+                        <label id="wrapPilihSemuaFilterBerhasil"
+                            style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; color: #4338ca; background: #ffffff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; cursor: pointer;">
+                            <input type="checkbox" id="checkPilihSemuaFilterBerhasil"
+                                style="accent-color: var(--primary); cursor: pointer;">
+                            <span>Pilih <strong>Semua ({{ number_format($students->total(), 0, ',', '.') }})</strong>
+                                Sesuai Filter Saat Ini</span>
+                        </label>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button type="button" class="btn btn-primary btn-sm"
@@ -205,7 +215,8 @@
                                 $isCetak = $s->status_cetak === 'sudah_cetak';
                                 $phone = $s->nomor_wa ?: ($s->nomor_telepon_seluler ?: $s->nomor_telepon_rumah);
                             @endphp
-                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                            <tr
+                                style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
                                 <td style="text-align: center; padding: 12px 10px;" data-label="Pilih">
                                     <input type="checkbox" class="check-student-row"
                                         value="{{ $s->peserta_didik_id }}">
@@ -221,7 +232,8 @@
                                             style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
                                             onerror="this.src='/img/logo-dark.png'">
                                         <div>
-                                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                            <div
+                                                style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
                                                 {{ $s->nama }}
                                             </div>
                                             <div
@@ -256,7 +268,8 @@
                                             @endif
                                         </div>
                                     @else
-                                        <span class="badge badge-warning" style="font-size: 0.74rem; padding: 3px 8px;">
+                                        <span class="badge badge-warning"
+                                            style="font-size: 0.74rem; padding: 3px 8px;">
                                             <i class="fas fa-clock me-1"></i> BELUM BAYAR
                                         </span>
                                         <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
@@ -298,13 +311,15 @@
                                         </span>
                                         <div
                                             style="font-size: 0.69rem; color: var(--text-muted); margin-top: 3px; font-style: italic;">
-                                            <i class="fas fa-shield-alt" style="opacity: 0.4;"></i> Garansi belum aktif
+                                            <i class="fas fa-shield-alt" style="opacity: 0.4;"></i> Garansi belum
+                                            aktif
                                         </div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="WhatsApp">
                                     @if ($phone)
-                                        <div style="font-size: 0.8rem; font-family: monospace; color: var(--text-color);">
+                                        <div
+                                            style="font-size: 0.8rem; font-family: monospace; color: var(--text-color);">
                                             <i class="fab fa-whatsapp text-success me-1"></i> {{ $phone }}
                                         </div>
                                         @if ($s->wa_terkirim_at)
@@ -314,13 +329,15 @@
                                             </div>
                                         @endif
                                     @else
-                                        <span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
+                                        <span
+                                            style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
                                             Belum ada nomor
                                         </span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
+                                    <div class="table-actions"
+                                        style="display: flex; gap: 4px; justify-content: center;">
                                         {{-- Tombol Edit Pembayaran --}}
                                         <button type="button" class="btn-icon" style="color: #4f46e5;"
                                             title="Catat / Edit Pembayaran"
@@ -364,10 +381,12 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                <td colspan="8"
+                                    style="padding: 35px; text-align: center; color: var(--text-muted);">
                                     <i class="fas fa-id-card mb-2"
                                         style="font-size: 2rem; opacity: 0.4; display: block;"></i>
-                                    <div style="font-weight: 700; font-size: 0.92rem;">Belum ada data kartu yang berhasil
+                                    <div style="font-weight: 700; font-size: 0.92rem;">Belum ada data kartu yang
+                                        berhasil
                                         dicetak.</div>
                                     <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
                                         Tandai status "Selesai" pada antrean tab Request Cetak agar data peserta didik

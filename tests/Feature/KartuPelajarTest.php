@@ -206,6 +206,41 @@ class KartuPelajarTest extends TestCase
             $this->assertEquals('qris', $pembayaran->metode_pembayaran);
             $this->assertEquals('sudah_cetak', $pembayaran->status_cetak);
             $this->assertEquals('Pembayaran massal via QRIS', $pembayaran->catatan);
+
+            // 7. Test Bulk Action Berdasarkan Seluruh Data Filter (apply_all_filtered = 1)
+            $bulkFilterRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.bulk-action'), [
+                'action'             => 'set_belum_bayar',
+                'apply_all_filtered' => 1,
+                'filter_rombel'      => $pd->nama_rombel,
+            ]);
+            $bulkFilterRes->assertOk();
+            $bulkFilterRes->assertJson(['success' => true]);
+
+            // 8. Test Cetak Masal Rombel dengan Filter Hanya Request Menunggu
+            $rombelPrintRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-rombel', [
+                'rombelId'       => $pd->nama_rombel ?: $pd->rombongan_belajar_id,
+                'status_request' => 'menunggu',
+            ]));
+            $rombelPrintRes->assertOk();
+
+            // 9. Test Bulk Action Request Cetak
+            $req = \App\Models\KartuPelajarRequest::create([
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'nisn'             => $pd->nisn,
+                'jenis_request'    => 'baru',
+                'status'           => 'menunggu',
+                'alasan'           => 'Uji coba bulk request',
+            ]);
+
+            $bulkReqRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.request.bulk-action'), [
+                'action' => 'set_diproses',
+                'ids'    => [$req->id],
+            ]);
+            $bulkReqRes->assertOk();
+            $bulkReqRes->assertJson(['success' => true]);
+
+            $req->refresh();
+            $this->assertEquals('diproses', $req->status);
         }
     }
 }

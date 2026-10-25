@@ -373,7 +373,15 @@ window.proceedCetakRombel = function() {
         return;
     }
     const rombelName = select.value;
-    window.open('/dashboard/kartu-pelajar/cetak-rombel/' + encodeURIComponent(rombelName), '_blank');
+    const cakupanRadio = document.querySelector('input[name="cakupan_cetak_rombel"]:checked');
+    const cakupan = cakupanRadio ? cakupanRadio.value : 'semua';
+
+    let printUrl = '/dashboard/kartu-pelajar/cetak-rombel/' + encodeURIComponent(rombelName);
+    if (cakupan === 'menunggu') {
+        printUrl += '?status_request=menunggu';
+    }
+
+    window.open(printUrl, '_blank');
     window.closeCetakRombelModal();
 };
 

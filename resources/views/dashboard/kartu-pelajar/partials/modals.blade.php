@@ -164,6 +164,10 @@
 
             <form id="formBulkPembayaran">
                 <input type="hidden" name="action" id="bulkModalAction" value="custom_bulk">
+                <input type="hidden" name="apply_all_filtered" id="bulkModalApplyAll" value="0">
+                <input type="hidden" name="filter_q" id="bulkModalFilterQ" value="">
+                <input type="hidden" name="filter_rombel" id="bulkModalFilterRombel" value="">
+                <input type="hidden" name="filter_status_bayar" id="bulkModalFilterStatusBayar" value="">
 
                 <!-- 1. Status Pembayaran -->
                 <div style="margin-bottom: 14px;">
@@ -871,6 +875,9 @@
     @push('scripts')
         <script
             src="{{ asset('js/kartu-pelajar-preview.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-preview.js')) ? filemtime(public_path('js/kartu-pelajar-preview.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/kartu-pelajar-bulk.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-bulk.js')) ? filemtime(public_path('js/kartu-pelajar-bulk.js')) : time() }}">
         </script>
         <script
             src="{{ asset('js/kartu-pelajar-manage.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-manage.js')) ? filemtime(public_path('js/kartu-pelajar-manage.js')) : time() }}">

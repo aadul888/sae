@@ -534,6 +534,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/kartu-pelajar/pembayaran', [\App\Http\Controllers\KartuPelajarController::class, 'updatePembayaran'])->name('kartu-pelajar.update-pembayaran');
     Route::post('/kartu-pelajar/toggle-cetak', [\App\Http\Controllers\KartuPelajarController::class, 'toggleCetak'])->name('kartu-pelajar.toggle-cetak');
     Route::post('/kartu-pelajar/bulk-action', [\App\Http\Controllers\KartuPelajarController::class, 'bulkAction'])->name('kartu-pelajar.bulk-action');
+    Route::post('/kartu-pelajar/request/bulk-action', [\App\Http\Controllers\KartuPelajarController::class, 'bulkActionRequest'])->name('kartu-pelajar.request.bulk-action');
     Route::get('/kartu-pelajar/wa-data/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'getWaData'])->name('kartu-pelajar.wa-data');
     Route::post('/kartu-pelajar/log-wa', [\App\Http\Controllers\KartuPelajarController::class, 'logWa'])->name('kartu-pelajar.log-wa');
     Route::get('/kartu-pelajar/qrcode-svg/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'downloadQrSvg'])->name('kartu-pelajar.qrcode-svg');
