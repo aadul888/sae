@@ -36,6 +36,14 @@ class Handler extends ExceptionHandler
                     'message' => 'Sesi halaman telah berakhir. Muat ulang halaman lalu ulangi aksi Anda.',
                 ], 419);
             }
+
+            if ($e->getStatusCode() === 403 && $request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Akses ditolak: Anda tidak memiliki izin untuk mengakses fitur ini.',
+                ], 403);
+            }
         });
     }
 }

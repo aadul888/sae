@@ -16,7 +16,14 @@
         if (action === 'reload') {
             window.location.reload();
         } else if (action === 'back') {
-            history.back();
+            var fallback = btn.getAttribute('data-fallback');
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.origin) === 0 && document.referrer !== window.location.href) {
+                history.back();
+            } else if (fallback) {
+                window.location.href = fallback;
+            } else {
+                history.back();
+            }
         } else if (action === 'back-refresh') {
             // Muat ulang halaman asal lewat GET agar token CSRF baru terbentuk.
             var fallback = btn.getAttribute('data-fallback') || '/';

@@ -1,4 +1,4 @@
-/* Halaman error SAE (419, 500). Warna aksen diatur via variabel --err-* pada body. */
+/* Halaman error SAE (403, 419, 500). Warna aksen diatur via variabel --err-* pada body. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body.error-page {
@@ -15,6 +15,11 @@ body.error-page--warning {
     --err: #f59e0b;
     --err-rgb: 245, 158, 11;
     --err-alt: #6366f1;
+}
+body.error-page--forbidden {
+    --err: #e11d48;
+    --err-rgb: 225, 29, 72;
+    --err-alt: #f59e0b;
 }
 
 .error-container { max-width: 640px; width: 100%; text-align: center; }
@@ -57,6 +62,21 @@ body.error-page--warning {
     font-size: 0.92rem; color: var(--text-muted, #94a3b8);
     line-height: 1.7; margin-bottom: 32px;
     max-width: 480px; margin-left: auto; margin-right: auto;
+}
+.error-user-strip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 999px; padding: 6px 16px; font-size: 0.8rem;
+    color: var(--text-color, #f1f5f9); margin: -14px auto 26px;
+    max-width: 90%; flex-wrap: wrap; justify-content: center;
+}
+.error-user-strip i { color: var(--err); }
+.error-user-strip .role-badge {
+    background: rgba(var(--err-rgb), 0.15); color: var(--err);
+    padding: 2px 8px; border-radius: 6px; font-weight: 700;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+    border: 1px solid rgba(var(--err-rgb), 0.25);
 }
 .error-hint {
     background: rgba(var(--err-rgb),0.07); border: 1px dashed rgba(var(--err-rgb),0.3);

@@ -368,6 +368,8 @@ class UpdateService
                 $logs[] = "[OPCACHE] Bytecode memory cache berhasil dibersihkan.";
             }
 
+            @clearstatcache(true);
+
             // Trigger reload worker LiteSpeed / OpenLiteSpeed jika berjalan di lingkungan OLS/LSPHP
             if (file_exists('/tmp/lshttpd/')) {
                 @touch(base_path('.lsphp_restart.txt'));
