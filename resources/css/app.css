@@ -1,1 +1,13 @@
-@import "tailwindcss";
+/* ==========================================================================
+   Entry CSS untuk Vite.
+   --------------------------------------------------------------------------
+   Proyek ini TIDAK memakai Tailwind. Seluruh gaya aplikasi berasal dari
+   stylesheet kustom yang dimuat langsung lewat <link> pada layout:
+
+     public/css/tokens.css      -> skala desain (spacing, radius, tipografi)
+     public/css/components.css  -> kelas komponen (.sae-btn, .sae-card, ...)
+     public/css/sae.css         -> gaya aplikasi & tema gelap/terang
+     public/css/dashboard.css   -> layout dashboard
+
+   Berkas ini hanya menjadi titik masuk bila kelak dibutuhkan bundling.
+   ========================================================================== */

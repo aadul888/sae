@@ -9,6 +9,7 @@ use App\Services\PesertaDidikImportService;
 use App\Services\PesertaDidikQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Requests\PesertaDidik\ImportPesertaDidikRequest;
 
 class PesertaDidikAktifController extends Controller
 {
@@ -288,7 +289,7 @@ class PesertaDidikAktifController extends Controller
     /**
      * Import berkas Excel / CSV untuk penambahan peserta didik aktif sementara.
      */
-    public function importExcel(Request $request): JsonResponse
+    public function importExcel(ImportPesertaDidikRequest $request): JsonResponse
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
@@ -303,13 +304,6 @@ class PesertaDidikAktifController extends Controller
                 'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menambah / mengimpor data peserta didik.'
             ], 403);
         }
-
-        $request->validate([
-            'file_excel' => 'required|file|max:20480',
-        ], [
-            'file_excel.required' => 'Berkas Excel wajib dipilih.',
-            'file_excel.max' => 'Ukuran berkas maksimal adalah 20 MB.',
-        ]);
 
         $res = $this->importService->importExcel($request);
 

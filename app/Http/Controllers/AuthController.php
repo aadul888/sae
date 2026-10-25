@@ -12,6 +12,7 @@ use App\Models\User;
 
 
 use App\Support\Table;
+use App\Http\Requests\Auth\LoginRequest;
 
 class AuthController extends Controller
 {
@@ -23,19 +24,12 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         $loginType = $request->input('login_type', 'umum');
 
         // Otentikasi Khusus Portal Orang Tua / Wali Murid
         if ($loginType === 'orang_tua' || $request->filled('nisn_anak')) {
-            $request->validate([
-                'nisn_anak'      => 'required',
-                'tgl_lahir_anak' => 'required',
-            ], [
-                'nisn_anak.required'      => 'NISN atau NIK peserta didik wajib diisi.',
-                'tgl_lahir_anak.required' => 'Password/PIN (Tanggal lahir peserta didik) wajib diisi.',
-            ]);
 
             $identifier = trim((string) $request->input('nisn_anak', $request->input('username', '')));
             $cleanIdentifier = preg_replace('/[^0-9]/', '', $identifier);
@@ -188,11 +182,6 @@ class AuthController extends Controller
             return redirect()->route('dashboard.orang-tua')
                 ->with('success', "Selamat datang di Portal Pemantauan Orang Tua / Wali Murid.");
         }
-
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
 
         $identifier = trim($request->input('username'));
         $password = $request->input('password');
