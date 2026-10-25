@@ -179,6 +179,11 @@ class AuthController extends Controller
 
             session(['user' => $userData]);
 
+            // Catatan: Portal Orang Tua tidak memiliki baris pada tabel `pengguna`
+            // (akun dibuat dinamis dari data peserta didik), sehingga guard
+            // Laravel tidak dapat diisi. Sesi aplikasi tetap menjadi sumber
+            // autentikasi untuk alur ini. Lihat App\Support\AuthSession.
+
             return redirect()->route('dashboard.orang-tua')
                 ->with('success', "Selamat datang di Portal Pemantauan Orang Tua / Wali Murid.");
         }
@@ -697,7 +702,8 @@ class AuthController extends Controller
             }
         }
 
-        session(['user' => $userData]);
+        // Isi guard Laravel sekaligus sesi aplikasi (lihat App\Support\AuthSession).
+        \App\Support\AuthSession::login($user, $userData);
 
         try {
             if (Table::exists('admin_aktivitas')) {
@@ -800,7 +806,10 @@ class AuthController extends Controller
 
     public function logout()
     {
-        session()->forget('user');
+        // Bersihkan guard Laravel sekaligus sesi aplikasi agar keduanya tidak
+        // menyisakan status login yang berbeda.
+        \App\Support\AuthSession::logout();
+
         return redirect()->route('login')->with('info', 'Anda telah keluar dari sistem.');
     }
 }
