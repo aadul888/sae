@@ -734,9 +734,9 @@
         </div>
     </div>
 
-    <!-- MODAL 4C: Tambah Request Cetak Kartu Pelajar -->
+    <!-- MODAL 4C: Tambah Request Cetak Kartu Pelajar (Individu / Per Kelas Masal) -->
     <div id="modalTambahRequest" class="modal-backdrop">
-        <div class="card kp-modal-card">
+        <div class="card kp-modal-card" style="max-width: 520px;">
             <div class="kp-modal-header">
                 <h4 class="kp-modal-title">
                     <i class="fas fa-paper-plane text-primary"></i> Tambah Request Cetak Kartu
@@ -748,9 +748,26 @@
             <form action="{{ route('dashboard.kartu-pelajar.store-request') }}" method="POST" class="kp-modal-form"
                 id="formTambahRequest">
                 @csrf
+                <input type="hidden" name="mode" id="rqMode" value="individu">
                 <input type="hidden" name="peserta_didik_id" id="rqPdId">
                 <div class="kp-modal-body">
-                    <div class="kp-form-group">
+                    <!-- Mode Switcher: Individu vs Per Kelas -->
+                    <div
+                        style="display: flex; gap: 6px; margin-bottom: 14px; background: var(--bg-hover); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <button type="button" id="tabBtnRqIndividu" onclick="switchRequestMode('individu')"
+                            class="btn btn-sm"
+                            style="flex: 1; font-size: 0.78rem; font-weight: 700; border-radius: 8px; border: none; padding: 7px 10px; background: var(--primary); color: #ffffff;">
+                            <i class="fas fa-user me-1"></i> Per Siswa (Individu)
+                        </button>
+                        <button type="button" id="tabBtnRqRombel" onclick="switchRequestMode('rombel')"
+                            class="btn btn-sm"
+                            style="flex: 1; font-size: 0.78rem; font-weight: 700; border-radius: 8px; border: none; padding: 7px 10px; background: transparent; color: var(--text-muted);">
+                            <i class="fas fa-users-viewfinder me-1"></i> Sekaligus Per Kelas
+                        </button>
+                    </div>
+
+                    <!-- MODE 1: Input Individu Siswa -->
+                    <div id="rqModeWrapIndividu" class="kp-form-group">
                         <label class="kp-form-label" for="rqCari">Cari Peserta Didik <span
                                 class="req">*</span></label>
                         <div class="kp-ac-wrap">
@@ -759,6 +776,45 @@
                             <div id="rqAcList" class="kp-ac-list"></div>
                         </div>
                         <div class="kp-form-hint" id="rqPilihInfo">Belum ada peserta didik dipilih.</div>
+                    </div>
+
+                    <!-- MODE 2: Input Sekaligus Per Kelas / Rombel -->
+                    <div id="rqModeWrapRombel" style="display: none; margin-bottom: 14px;">
+                        <div class="kp-form-group" style="margin-bottom: 8px;">
+                            <label class="kp-form-label" for="rqRombelSelect">Pilih Rombongan Belajar (Kelas) <span
+                                    class="req">*</span></label>
+                            <select id="rqRombelSelect" name="rombongan_belajar_id" class="form-control"
+                                style="width: 100%;">
+                                <option value="">-- Pilih Kelas / Rombel --</option>
+                                @if (isset($rombelList))
+                                    @foreach ($rombelList as $r)
+                                        <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- Checkbox Hanya yang ada foto kartu pelajar -->
+                        <div
+                            style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #166534; cursor: pointer; margin: 0;">
+                                <input type="checkbox" name="hanya_ada_foto" id="rqHanyaAdaFoto" value="1"
+                                    checked style="accent-color: #059669; width: 16px; height: 16px; cursor: pointer;">
+                                <span><i class="fas fa-camera text-success me-1"></i> Hanya Siswa yang Sudah Ada Foto
+                                    Formal</span>
+                            </label>
+                            <div style="font-size: 0.72rem; color: #15803d; margin-left: 24px; margin-top: 2px;">
+                                Siswa yang belum memiliki foto kartu pelajar otomatis dilewati agar antrean cetak tidak
+                                kosong.
+                            </div>
+                        </div>
+
+                        <!-- Info Hitung Ketersediaan Foto Siswa di Kelas -->
+                        <div id="rqRombelFotoInfo"
+                            style="display: none; font-size: 0.76rem; color: #047857; padding: 6px 10px; background: rgba(5,150,105,0.08); border-radius: 6px; border: 1px dashed rgba(5,150,105,0.3);">
+                            <i class="fas fa-info-circle me-1"></i> <span id="rqRombelFotoText">-</span>
+                        </div>
                     </div>
 
                     <div class="kp-form-group">
@@ -797,8 +853,8 @@
 
                     <div class="kp-form-group">
                         <label class="kp-form-label" for="rqAlasan">Alasan / Catatan</label>
-                        <textarea id="rqAlasan" name="alasan" rows="3" maxlength="500" class="form-control"
-                            placeholder="Contoh: Kartu hilang, chip tidak terbaca, siswa baru..."></textarea>
+                        <textarea id="rqAlasan" name="alasan" rows="2" maxlength="500" class="form-control"
+                            placeholder="Contoh: Cetak serentak rombel, kartu hilang, chip tidak terbaca..."></textarea>
                     </div>
                 </div>
 

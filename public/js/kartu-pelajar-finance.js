@@ -40,6 +40,50 @@ window.closeTambahPengeluaran = function () {
     }
 };
 
+window.switchRequestMode = function (mode) {
+    const wrapIndividu = document.getElementById("rqModeWrapIndividu");
+    const wrapRombel = document.getElementById("rqModeWrapRombel");
+    const btnIndividu = document.getElementById("tabBtnRqIndividu");
+    const btnRombel = document.getElementById("tabBtnRqRombel");
+    const hiddenMode = document.getElementById("rqMode");
+    const submit = document.getElementById("rqSubmit");
+    const alasan = document.getElementById("rqAlasan");
+
+    if (mode === "rombel") {
+        if (hiddenMode) hiddenMode.value = "rombel";
+        if (wrapIndividu) wrapIndividu.style.display = "none";
+        if (wrapRombel) wrapRombel.style.display = "block";
+        if (btnIndividu) {
+            btnIndividu.style.background = "transparent";
+            btnIndividu.style.color = "var(--text-muted)";
+        }
+        if (btnRombel) {
+            btnRombel.style.background = "var(--primary)";
+            btnRombel.style.color = "#ffffff";
+        }
+        if (alasan) alasan.placeholder = "Contoh: Request cetak serentak kelas...";
+        const rombelSel = document.getElementById("rqRombelSelect");
+        if (submit) submit.disabled = !(rombelSel && rombelSel.value);
+        if (rombelSel) rombelSel.focus();
+    } else {
+        if (hiddenMode) hiddenMode.value = "individu";
+        if (wrapRombel) wrapRombel.style.display = "none";
+        if (wrapIndividu) wrapIndividu.style.display = "block";
+        if (btnRombel) {
+            btnRombel.style.background = "transparent";
+            btnRombel.style.color = "var(--text-muted)";
+        }
+        if (btnIndividu) {
+            btnIndividu.style.background = "var(--primary)";
+            btnIndividu.style.color = "#ffffff";
+        }
+        if (alasan) alasan.placeholder = "Contoh: Kartu hilang, chip tidak terbaca, siswa baru...";
+        const hiddenPdId = document.getElementById("rqPdId");
+        if (submit) submit.disabled = !(hiddenPdId && hiddenPdId.value);
+        document.getElementById("rqCari")?.focus();
+    }
+};
+
 window.openTambahRequest = function () {
     const m = document.getElementById("modalTambahRequest");
     if (m) {
@@ -50,7 +94,8 @@ window.openTambahRequest = function () {
         document.getElementById("rqStatusPembayaran") && (document.getElementById("rqStatusPembayaran").value = "");
         document.getElementById("rqMetodePembayaran") && (document.getElementById("rqMetodePembayaran").value = "");
         document.getElementById("rqPilihInfo") && (document.getElementById("rqPilihInfo").textContent = "Belum ada peserta didik dipilih.");
-        document.getElementById("rqSubmit") && (document.getElementById("rqSubmit").disabled = true);
+        document.getElementById("rqRombelFotoInfo") && (document.getElementById("rqRombelFotoInfo").style.display = "none");
+        window.switchRequestMode("individu");
         document.getElementById("rqCari")?.focus();
     }
 };
@@ -135,29 +180,62 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Modal Request Cetak + Autocomplete Peserta Didik
-    window.openTambahRequest = function () {
-        const m = document.getElementById("modalTambahRequest");
-        if (m) {
-            m.style.display = "flex";
-            document.body.style.overflow = "hidden";
-            document.getElementById("formTambahRequest")?.reset();
-            document.getElementById("rqPdId") && (document.getElementById("rqPdId").value = "");
-            document.getElementById("rqStatusPembayaran") && (document.getElementById("rqStatusPembayaran").value = "");
-            document.getElementById("rqMetodePembayaran") && (document.getElementById("rqMetodePembayaran").value = "");
-            document.getElementById("rqPilihInfo") && (document.getElementById("rqPilihInfo").textContent = "Belum ada peserta didik dipilih.");
-            document.getElementById("rqSubmit") && (document.getElementById("rqSubmit").disabled = true);
-            document.getElementById("rqCari")?.focus();
-        }
-    };
+    // Event listener Rombel Select untuk cek foto siswa masal
+    (function initRombelFotoPreview() {
+        const rombelSelect = document.getElementById("rqRombelSelect");
+        const rombelFotoInfo = document.getElementById("rqRombelFotoInfo");
+        const rombelFotoText = document.getElementById("rqRombelFotoText");
+        const submitBtn = document.getElementById("rqSubmit");
+        const hanyaFotoCheckbox = document.getElementById("rqHanyaAdaFoto");
+        if (!rombelSelect) return;
 
-    window.closeTambahRequest = function () {
-        const m = document.getElementById("modalTambahRequest");
-        if (m) {
-            m.style.display = "none";
-            document.body.style.overflow = "";
+        async function updateRombelFotoCount() {
+            const val = rombelSelect.value;
+            if (!val) {
+                if (rombelFotoInfo) rombelFotoInfo.style.display = "none";
+                if (submitBtn && document.getElementById("rqMode")?.value === "rombel") {
+                    submitBtn.disabled = true;
+                }
+                return;
+            }
+
+            if (rombelFotoInfo && rombelFotoText) {
+                rombelFotoInfo.style.display = "block";
+                rombelFotoText.textContent = "Menghitung ketersediaan foto siswa...";
+            }
+
+            try {
+                const res = await fetch(`/dashboard/kartu-pelajar/count-rombel-foto?rombel_id=${encodeURIComponent(val)}`, {
+                    headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }
+                });
+                const data = await res.json();
+                if (data.success && rombelFotoInfo && rombelFotoText) {
+                    rombelFotoInfo.style.display = "block";
+                    let text = `Tersedia <strong>${data.total_foto}</strong> dari ${data.total_siswa} siswa berfoto formal.`;
+                    if (data.already_waiting > 0) {
+                        text += ` (${data.already_waiting} sudah di antrean menunggu)`;
+                    }
+                    if (data.total_foto === 0 && hanyaFotoCheckbox?.checked) {
+                        text += ` <br><span style="color: #ef4444; font-weight: 700;">Perhatian: Belum ada siswa berfoto formal di kelas ini!</span>`;
+                    }
+                    rombelFotoText.innerHTML = text;
+
+                    if (submitBtn && document.getElementById("rqMode")?.value === "rombel") {
+                        submitBtn.disabled = (data.total_foto === 0 && hanyaFotoCheckbox?.checked);
+                    }
+                }
+            } catch (e) {
+                if (submitBtn && document.getElementById("rqMode")?.value === "rombel") {
+                    submitBtn.disabled = false;
+                }
+            }
         }
-    };
+
+        rombelSelect.addEventListener("change", updateRombelFotoCount);
+        if (hanyaFotoCheckbox) {
+            hanyaFotoCheckbox.addEventListener("change", updateRombelFotoCount);
+        }
+    })();
 
     (function initRequestAutocomplete() {
         const input = document.getElementById("rqCari");
@@ -414,6 +492,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const formData = new FormData(formTambahRequest);
             const payload = Object.fromEntries(formData.entries());
+            if (document.getElementById("rqHanyaAdaFoto")) {
+                payload.hanya_ada_foto = document.getElementById("rqHanyaAdaFoto").checked ? 1 : 0;
+            }
 
             try {
                 const res = await fetch(formTambahRequest.action, {

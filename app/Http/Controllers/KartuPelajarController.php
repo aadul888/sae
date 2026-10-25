@@ -588,12 +588,67 @@ class KartuPelajarController extends Controller
     }
 
     /**
-     * Simpan request cetak kartu pelajar.
+     * Hitung preview siswa dan ketersediaan foto di rombel.
+     */
+    public function countRombelFoto(Request $request): JsonResponse
+    {
+        if (!$this->canKartuPelajar('read')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $rombelId = trim((string) $request->get('rombel_id', ''));
+        if ($rombelId === '') {
+            return response()->json(['success' => false, 'message' => 'Rombel wajib dipilih.'], 422);
+        }
+
+        $res = $this->keuanganService->countRombelFoto($rombelId);
+
+        return response()->json($res);
+    }
+
+    /**
+     * Simpan request cetak kartu pelajar (mendukung individu per siswa dan masal per rombel).
      */
     public function storeRequest(Request $request)
     {
         if (!$this->canKartuPelajar('create')) {
             abort(403, 'Akses ditolak.');
+        }
+
+        $mode = $request->get('mode', 'individu');
+        if ($mode === 'rombel' || $request->filled('rombongan_belajar_id')) {
+            $data = $request->validate([
+                'rombongan_belajar_id' => 'required|string',
+                'hanya_ada_foto'       => 'nullable|boolean',
+                'jenis_request'        => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::JENIS)),
+                'status_pembayaran'    => 'nullable|in:belum_bayar,lunas',
+                'metode_pembayaran'    => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::METODE_PEMBAYARAN)),
+                'alasan'               => 'nullable|string|max:500',
+            ], [
+                'rombongan_belajar_id.required' => 'Rombongan belajar wajib dipilih.',
+                'jenis_request.required'        => 'Jenis request wajib dipilih.',
+                'jenis_request.in'              => 'Pilihan jenis request tidak valid.',
+                'status_pembayaran.in'          => 'Status pembayaran tidak valid.',
+                'metode_pembayaran.in'          => 'Metode pembayaran tidak valid.',
+            ]);
+
+            $data['hanya_ada_foto'] = $request->has('hanya_ada_foto') ? $request->boolean('hanya_ada_foto') : true;
+
+            $res = $this->keuanganService->storeRequestRombel($data, session('user'));
+            if (!$res['success']) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $res['message']], $res['status_code'] ?? 422);
+                }
+                return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+                    ->with('error', $res['message']);
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $res['message']]);
+            }
+
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+                ->with('success', $res['message']);
         }
 
         $data = $request->validate([

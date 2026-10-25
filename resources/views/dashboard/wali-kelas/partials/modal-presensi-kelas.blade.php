@@ -156,9 +156,11 @@
                         Peserta Didik</div>
                     <div id="verifSiswaNama"
                         style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin-top: 2px;">-</div>
-                    <div style="display: flex; gap: 12px; margin-top: 6px; font-size: 0.8rem; color: var(--text-muted);">
+                    <div
+                        style="display: flex; gap: 12px; margin-top: 6px; font-size: 0.8rem; color: var(--text-muted);">
                         <span>Jenis: <strong id="verifJenisSurat" style="color: var(--primary);">-</strong></span>
-                        <span>Periode: <strong id="verifRentangTgl" style="color: var(--text-color);">-</strong></span>
+                        <span>Periode: <strong id="verifRentangTgl"
+                                style="color: var(--text-color);">-</strong></span>
                     </div>
                 </div>
 
@@ -177,7 +179,8 @@
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); cursor: pointer;">
-                            <input type="radio" name="verif_status" value="ditolak" style="accent-color: #ef4444;">
+                            <input type="radio" name="verif_status" value="ditolak"
+                                style="accent-color: #ef4444;">
                             <span style="font-weight: 700; color: #ef4444; font-size: 0.85rem;"><i
                                     class="fas fa-times-circle me-1"></i> Tolak</span>
                         </label>
@@ -277,4 +280,3 @@
             </form>
         </div>
     </div>
-</div>

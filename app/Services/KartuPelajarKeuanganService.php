@@ -188,6 +188,215 @@ class KartuPelajarKeuanganService
     }
 
     /**
+     * Hitung jumlah siswa dan ketersediaan foto di rombel untuk preview tambah request masal.
+     */
+    public function countRombelFoto(string $rombelId): array
+    {
+        $rombel = DB::table('rombongan_belajar')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->orWhere('nama', $rombelId)
+            ->first();
+
+        if (!$rombel) {
+            return [
+                'success' => false,
+                'message' => 'Rombongan belajar tidak ditemukan.',
+            ];
+        }
+
+        $baseQuery = DB::table('peserta_didik as pd')
+            ->where(function ($w) use ($rombel) {
+                $w->where('pd.rombongan_belajar_id', $rombel->rombongan_belajar_id)
+                    ->orWhere('pd.nama_rombel', $rombel->nama);
+            });
+
+        $totalSiswa = (clone $baseQuery)->count();
+
+        $totalFoto = 0;
+        if (Schema::hasTable('peserta_didik_meta')) {
+            $totalFoto = (clone $baseQuery)->whereExists(function ($sub) {
+                $sub->select(DB::raw(1))
+                    ->from('peserta_didik_meta as pdm')
+                    ->whereColumn('pdm.peserta_didik_id', 'pd.peserta_didik_id')
+                    ->whereNotNull('pdm.foto_path')
+                    ->where('pdm.foto_path', '!=', '');
+            })->count();
+        }
+
+        // Hitung juga yang sudah ada antrean menunggu hari ini
+        $alreadyWaiting = 0;
+        if (Schema::hasTable('kartu_pelajar_request')) {
+            $alreadyWaiting = (clone $baseQuery)->whereExists(function ($sub) {
+                $sub->select(DB::raw(1))
+                    ->from('kartu_pelajar_request as kpr')
+                    ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id')
+                    ->when(
+                        Schema::hasColumn('kartu_pelajar_request', 'request_date'),
+                        fn($q) => $q->where('kpr.request_date', now()->toDateString()),
+                        fn($q) => $q->whereDate('kpr.created_at', now()->toDateString())
+                    )
+                    ->where('kpr.status', 'menunggu');
+            })->count();
+        }
+
+        return [
+            'success'          => true,
+            'rombel_nama'      => $rombel->nama,
+            'total_siswa'      => $totalSiswa,
+            'total_foto'       => $totalFoto,
+            'total_tanpa_foto' => max(0, $totalSiswa - $totalFoto),
+            'already_waiting'  => $alreadyWaiting,
+        ];
+    }
+
+    /**
+     * Tambah request cetak kartu sekaligus per kelas/rombel.
+     */
+    public function storeRequestRombel(array $data, mixed $user): array
+    {
+        $rombelId = $data['rombongan_belajar_id'];
+        $rombel = DB::table('rombongan_belajar')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->orWhere('nama', $rombelId)
+            ->first();
+
+        if (!$rombel) {
+            return [
+                'success' => false,
+                'message' => 'Rombongan belajar tidak ditemukan.',
+                'status_code' => 404,
+            ];
+        }
+
+        $studentsQuery = DB::table('peserta_didik as pd')
+            ->where(function ($w) use ($rombel) {
+                $w->where('pd.rombongan_belajar_id', $rombel->rombongan_belajar_id)
+                    ->orWhere('pd.nama_rombel', $rombel->nama);
+            });
+
+        $totalSiswaRombel = (clone $studentsQuery)->count();
+        if ($totalSiswaRombel === 0) {
+            return [
+                'success' => false,
+                'message' => "Tidak ada peserta didik yang terdaftar di rombel {$rombel->nama}.",
+                'status_code' => 422,
+            ];
+        }
+
+        $hanyaAdaFoto = !empty($data['hanya_ada_foto']);
+        if ($hanyaAdaFoto && Schema::hasTable('peserta_didik_meta')) {
+            $studentsQuery->whereExists(function ($sub) {
+                $sub->select(DB::raw(1))
+                    ->from('peserta_didik_meta as pdm')
+                    ->whereColumn('pdm.peserta_didik_id', 'pd.peserta_didik_id')
+                    ->whereNotNull('pdm.foto_path')
+                    ->where('pdm.foto_path', '!=', '');
+            });
+        }
+
+        $students = $studentsQuery->orderBy('pd.nama', 'asc')->get();
+        if ($students->isEmpty()) {
+            return [
+                'success' => false,
+                'message' => "Tidak ada peserta didik di rombel {$rombel->nama} yang sudah memiliki foto formal kartu pelajar ({$totalSiswaRombel} siswa belum mengunggah foto).",
+                'status_code' => 422,
+            ];
+        }
+
+        $totalTanpaFoto = max(0, $totalSiswaRombel - $students->count());
+        $insertedCount = 0;
+        $skippedDuplicate = 0;
+        $settings = KartuPelajarPengaturan::getSettings();
+        $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
+
+        foreach ($students as $pd) {
+            // Cek duplikasi request 'menunggu' hari ini
+            $existing = KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->when(
+                    Schema::hasColumn('kartu_pelajar_request', 'request_date'),
+                    fn($q) => $q->where('request_date', now()->toDateString()),
+                    fn($q) => $q->whereDate('created_at', now()->toDateString())
+                )
+                ->where('status', 'menunggu')
+                ->first();
+
+            if ($existing) {
+                $skippedDuplicate++;
+                continue;
+            }
+
+            // Sinkronisasi data pembayaran bila diisi
+            if (!empty($data['status_pembayaran']) || !empty($data['metode_pembayaran'])) {
+                $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+                $record->nisn = $pd->nisn;
+                if (!empty($data['status_pembayaran'])) {
+                    $record->status_pembayaran = $data['status_pembayaran'];
+                    if ($data['status_pembayaran'] === 'lunas') {
+                        if (empty($record->tanggal_bayar)) {
+                            $record->tanggal_bayar = now()->toDateString();
+                        }
+                    } else {
+                        $record->tanggal_bayar = null;
+                    }
+                }
+                if (!empty($data['metode_pembayaran'])) {
+                    $record->metode_pembayaran = $data['metode_pembayaran'];
+                }
+                if (empty($record->nominal)) {
+                    $record->nominal = (int) ($settings->biaya_standar ?? 25000);
+                }
+                $record->save();
+            }
+
+            $alasan = !empty($data['alasan']) ? trim($data['alasan']) : "Request cetak masal kelas {$rombel->nama}";
+
+            $payload = [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'nisn'             => $pd->nisn,
+                'jenis_request'    => $data['jenis_request'],
+                'alasan'           => $alasan,
+                'status'           => 'menunggu',
+                'diminta_oleh'     => $userName,
+            ];
+            if (Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran')) {
+                $payload['metode_pembayaran'] = $data['metode_pembayaran'] ?? null;
+            }
+            if (Schema::hasColumn('kartu_pelajar_request', 'request_date')) {
+                $payload['request_date'] = now()->toDateString();
+            }
+
+            KartuPelajarRequest::create($payload);
+            $insertedCount++;
+        }
+
+        if ($insertedCount === 0 && $skippedDuplicate > 0) {
+            return [
+                'success' => false,
+                'message' => "Seluruh {$skippedDuplicate} siswa berfoto di kelas {$rombel->nama} sudah memiliki antrean request berstatus Menunggu hari ini.",
+                'status_code' => 422,
+            ];
+        }
+
+        $msg = "Sebanyak {$insertedCount} siswa kelas {$rombel->nama} berhasil ditambahkan ke antrean cetak.";
+        if ($totalTanpaFoto > 0) {
+            $msg .= " ({$totalTanpaFoto} siswa dilewati karena belum ada foto)";
+        }
+        if ($skippedDuplicate > 0) {
+            $msg .= " ({$skippedDuplicate} siswa dilewati karena sudah ada di antrean)";
+        }
+
+        return [
+            'success' => true,
+            'message' => $msg,
+            'data' => [
+                'inserted'          => $insertedCount,
+                'skipped_no_photo'  => $totalTanpaFoto,
+                'skipped_duplicate' => $skippedDuplicate,
+            ],
+        ];
+    }
+
+    /**
      * Simpan request antrean cetak kartu pelajar.
      */
     public function storeRequest(array $data, mixed $user): array
@@ -406,9 +615,14 @@ class KartuPelajarKeuanganService
         }
 
         if (!$pd) {
+            $isPotentialRfid = strlen($rawCode) >= 4 && !str_contains($rawCode, '/') && !str_contains($rawCode, 'http');
             return [
                 'success' => false,
-                'message' => "Peserta didik dengan kode/NISN [{$rawCode}] tidak ditemukan di pangkalan data.",
+                'is_unlinked_rfid' => $isPotentialRfid,
+                'unlinked_rfid' => $isPotentialRfid ? strtoupper($rawCode) : null,
+                'message' => $isPotentialRfid 
+                    ? "Kartu RFID UID [{$rawCode}] belum terhubung ke siswa. Silakan scan QR kartu siswa atau cari nama siswa untuk memasangkan kartu ini."
+                    : "Peserta didik dengan kode/NISN [{$rawCode}] tidak ditemukan di pangkalan data.",
                 'status_code' => 404,
             ];
         }

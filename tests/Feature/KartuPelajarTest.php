@@ -275,6 +275,24 @@ class KartuPelajarTest extends TestCase
             // Verifikasi status cetak di kartu_pelajar_pembayaran
             $pembayaran->refresh();
             $this->assertEquals('sudah_cetak', $pembayaran->status_cetak);
+
+            // 12. Test Hitung Ketersediaan Foto Rombel
+            $countRombelRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.count-rombel-foto', [
+                'rombel_id' => $pd->nama_rombel ?: $pd->rombongan_belajar_id,
+            ]));
+            $countRombelRes->assertOk();
+            $countRombelRes->assertJson(['success' => true]);
+
+            // 13. Test Tambah Request Masal Sekaligus Per Kelas (Hanya yang Ada Foto)
+            $storeRombelRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.store-request'), [
+                'mode'                 => 'rombel',
+                'rombongan_belajar_id' => $pd->nama_rombel ?: $pd->rombongan_belajar_id,
+                'hanya_ada_foto'       => 1,
+                'jenis_request'        => 'cetak_baru',
+                'alasan'               => 'Test tambah request masal rombel',
+            ]);
+            // Harus merespons sukses (atau 422 jika semua siswa berfoto sudah ada di antrean hari ini)
+            $this->assertTrue(in_array($storeRombelRes->status(), [200, 422], true));
         }
     }
 }

@@ -58,7 +58,8 @@
                             </label>
                             <select id="selectJadwalKelas"
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
-                                <option value="">-- Pilih Slot Jadwal KBM (Otomatis Isi Guru &amp; Mapel) --</option>
+                                <option value="">-- Pilih Slot Jadwal KBM (Otomatis Isi Guru &amp; Mapel) --
+                                </option>
                                 @foreach ($jadwalList as $j)
                                     <option value="{{ $j['id'] }}" data-ptk-id="{{ $j['ptk_id'] }}"
                                         data-guru="{{ $j['nama_guru'] }}" data-mapel="{{ $j['nama_mata_pelajaran'] }}"
@@ -103,15 +104,15 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                    <div
+                        style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                         <div>
                             <label
                                 style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-calendar-day text-primary"></i> Tanggal <span
                                     style="color: #ef4444;">*</span>
                             </label>
-                            <input type="date" id="inputTanggal" name="tanggal" value="{{ date('Y-m-d') }}"
-                                required
+                            <input type="date" id="inputTanggal" name="tanggal" value="{{ date('Y-m-d') }}" required
                                 style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                         </div>
 
@@ -238,7 +239,8 @@
                         <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0;">
                             Detail Agenda KBM Kelas
                         </h3>
-                        <div id="detailSubTitle" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                        <div id="detailSubTitle"
+                            style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
                             Laporan pelaksanaan kegiatan belajar mengajar
                         </div>
                     </div>
@@ -346,4 +348,3 @@
             </div>
         </div>
     </div>
-@endsection

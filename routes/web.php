@@ -545,6 +545,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::match(['post', 'delete'], '/kartu-pelajar/pengeluaran/{id}/delete', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
     Route::delete('/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran']);
     Route::get('/kartu-pelajar/cari-siswa', [\App\Http\Controllers\KartuPelajarController::class, 'cariSiswa'])->name('kartu-pelajar.cari-siswa');
+    Route::get('/kartu-pelajar/count-rombel-foto', [\App\Http\Controllers\KartuPelajarController::class, 'countRombelFoto'])->name('kartu-pelajar.count-rombel-foto');
     Route::post('/kartu-pelajar/request', [\App\Http\Controllers\KartuPelajarController::class, 'storeRequest'])->name('kartu-pelajar.store-request');
     Route::post('/kartu-pelajar/request/scan-selesai', [\App\Http\Controllers\KartuPelajarController::class, 'scanSelesaiRfid'])->name('kartu-pelajar.request.scan-selesai');
     Route::match(['post', 'put', 'patch'], '/kartu-pelajar/request/{id}/status', [\App\Http\Controllers\KartuPelajarController::class, 'updateStatusRequest'])->name('kartu-pelajar.update-request');
