@@ -74,7 +74,7 @@
                 <div style="margin-bottom: 16px; text-indent: 0; line-height: 1.5;">
                     Kepada Yth.<br>
                     <strong>Bapak / Ibu Orang Tua / Wali dari:</strong><br>
-                    <span style="font-size: 1rem; font-weight: 800; color: #1e3a8a;">{{ $siswa->nama }}</span> (NISN:
+                    <span style="font-size: var(--text-md, 1rem); font-weight: 800; color: #1e3a8a;">{{ $siswa->nama }}</span> (NISN:
                     {{ $siswa->nisn ?: '-' }} &bull; Kelas: {{ $rombelNama ?: 'Binaan' }})<br>
                     Di Tempat
                 </div>

@@ -9,6 +9,8 @@
         href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
+        href="{{ asset('css/tokens.css') }}?v={{ file_exists(public_path('css/tokens.css')) ? filemtime(public_path('css/tokens.css')) : time() }}">
+    <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
     @yield('styles')
     @stack('styles')

@@ -41,7 +41,7 @@
             <i class="fas fa-print"></i> Cetak Kartu: {{ $rombel->nama }}
             @if (!empty($filter_status_request))
                 <span
-                    style="font-size: 0.72rem; opacity: 0.9; font-weight: 600;">({{ ucfirst($filter_status_request) }})</span>
+                    style="font-size: var(--text-xs, 0.75rem); opacity: 0.9; font-weight: 600;">({{ ucfirst($filter_status_request) }})</span>
             @endif
         </button>
 
@@ -83,10 +83,10 @@
         </div>
     @else
         <div class="no-print"
-            style="text-align: center; padding: 48px; background: #fff; border-radius: 12px; width: 100%; max-width: 600px; margin: 80px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            style="text-align: center; padding: 48px; background: #fff; border-radius: var(--radius-lg, 12px); width: 100%; max-width: 600px; margin: 80px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
             <i class="fas fa-users-slash" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
-            <h3 style="font-size: 1.1rem; color: #1e293b;">Tidak Ada Peserta Didik Ditemukan</h3>
-            <p style="font-size: 0.85rem; color: #64748b;">
+            <h3 style="font-size: var(--text-lg, 1.125rem); color: #1e293b;">Tidak Ada Peserta Didik Ditemukan</h3>
+            <p style="font-size: var(--text-base, 0.875rem); color: #64748b;">
                 @if (!empty($filter_status_request) && !empty($filter_hanya_ada_foto))
                     Tidak ada peserta didik di rombel {{ $rombel->nama }} dengan antrean request
                     "{{ $filter_status_request }}" yang sudah memiliki foto formal.

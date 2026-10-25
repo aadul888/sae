@@ -134,15 +134,15 @@
         <div
             style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; position: relative; z-index: 1;">
             <!-- Diagram Proporsi Status (Horizontal Stacked Bar) -->
-            <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
+            <div style="border: 1px solid #e5e7eb; border-radius: var(--radius-sm, 6px); padding: 10px 12px;">
                 <div
-                    style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                    style="font-size: var(--text-xs, 0.75rem); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
                     Proporsi Penyelesaian Tugas
                 </div>
 
                 <!-- Stacked bar SVG -->
                 <div
-                    style="background: #f3f4f6; border-radius: 4px; height: 16px; overflow: hidden; display: flex; margin-bottom: 6px;">
+                    style="background: #f3f4f6; border-radius: var(--radius-xs, 4px); height: 16px; overflow: hidden; display: flex; margin-bottom: 6px;">
                     @if ($totalSelesai > 0)
                         <div style="width: {{ $pctSelesai }}%; background: #047857; height: 100%;"></div>
                     @endif
@@ -154,7 +154,7 @@
                     @endif
                 </div>
 
-                <div style="display: flex; gap: 10px; font-size: 0.7rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 10px; font-size: var(--text-xs, 0.75rem); flex-wrap: wrap;">
                     <span style="display: inline-flex; align-items: center; gap: 3px;">
                         <span style="width: 8px; height: 8px; background: #047857; border-radius: 50%;"></span>
                         Selesai: {{ $totalSelesai }} ({{ $pctSelesai }}%)
@@ -171,9 +171,9 @@
             </div>
 
             <!-- Distribusi Aktivitas per Bidang (Horizontal Bar) -->
-            <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
+            <div style="border: 1px solid #e5e7eb; border-radius: var(--radius-sm, 6px); padding: 10px 12px;">
                 <div
-                    style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                    style="font-size: var(--text-xs, 0.75rem); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
                     Distribusi Aktivitas per Bidang Kerja
                 </div>
                 @php
@@ -181,22 +181,22 @@
                 @endphp
                 @forelse ($distribusiBidang as $bKey => $bCount)
                     @php $barW = round($bCount / $maxBidang * 100); @endphp
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 0.7rem;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: var(--text-xs, 0.75rem);">
                         <span
                             style="width: 90px; flex-shrink: 0; color: #4b5563; font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                             title="{{ $bidangLabelsMap[$bKey] ?? $bKey }}">
                             {{ \Illuminate\Support\Str::limit($bidangLabelsMap[$bKey] ?? $bKey, 15) }}
                         </span>
-                        <div style="flex: 1; background: #f3f4f6; border-radius: 3px; height: 10px; overflow: hidden;">
+                        <div style="flex: 1; background: #f3f4f6; border-radius: var(--radius-xs, 4px); height: 10px; overflow: hidden;">
                             <div
-                                style="width: {{ $barW }}%; height: 100%; background: #1e3a8a; border-radius: 3px;">
+                                style="width: {{ $barW }}%; height: 100%; background: #1e3a8a; border-radius: var(--radius-xs, 4px);">
                             </div>
                         </div>
                         <span
                             style="width: 24px; text-align: right; color: #111827; font-weight: 700;">{{ $bCount }}</span>
                     </div>
                 @empty
-                    <p style="font-size: 0.72rem; color: #9ca3af; margin: 0;">Tidak ada data distribusi bidang.</p>
+                    <p style="font-size: var(--text-xs, 0.75rem); color: #9ca3af; margin: 0;">Tidak ada data distribusi bidang.</p>
                 @endforelse
             </div>
         </div>
@@ -204,7 +204,7 @@
         <!-- 4c. Matriks Sasaran & Indikator Kinerja Khusus Bidang -->
         <div style="margin-top: 14px; margin-bottom: 16px; position: relative; z-index: 1;">
             <div
-                style="text-align: center; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
+                style="text-align: center; font-size: var(--text-sm, 0.8125rem); font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
                 MATRIKS SASARAN &amp; INDIKATOR CAPAIAN KINERJA BIDANG
                 {{ strtoupper(\App\Models\TendikAktivitas::BIDANG_LABELS[$currentBidang ?? ''] ?? ($currentBidang ?? 'UMUM')) }}
             </div>
@@ -313,7 +313,7 @@
                         <td>
                             <strong>{{ $item->judul_aktivitas }}</strong>
                             @if (!empty($item->deskripsi))
-                                <div style="color: #4b5563; font-size: 0.72rem; margin-top: 2px;">
+                                <div style="color: #4b5563; font-size: var(--text-xs, 0.75rem); margin-top: 2px;">
                                     {{ $item->deskripsi }}
                                 </div>
                             @endif

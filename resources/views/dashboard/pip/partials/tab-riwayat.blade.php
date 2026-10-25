@@ -6,7 +6,7 @@
             <i class="fas fa-users"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary);">
                 {{ number_format($riwayatStats['total_siswa_aktif'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Siswa Aktif</div>
@@ -18,7 +18,7 @@
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                 {{ number_format($riwayatStats['total_penerima_unik'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Penerima PIP</div>
@@ -30,7 +30,7 @@
             <i class="fas fa-user-xmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
                 {{ number_format($riwayatStats['total_belum'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Belum Terima PIP</div>
@@ -42,7 +42,7 @@
             <i class="fas fa-money-bill-trend-up"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #0ea5e9; white-space: nowrap;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #0ea5e9; white-space: nowrap;">
                 Rp {{ number_format($riwayatStats['total_nominal'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Total Dana Cair</div>
@@ -52,15 +52,15 @@
 
 @if ($isAdmin)
     <div
-        style="background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.82rem; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        style="background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 16px; margin-bottom: 20px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-info-circle text-primary" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+            <i class="fas fa-info-circle text-primary" style="font-size: var(--text-lg, 1.125rem); flex-shrink: 0;"></i>
             <span>Tab ini menampilkan data <strong>Peserta Didik Aktif</strong>, baik yang sudah menerima maupun yang
                 <strong>belum mendapatkan PIP</strong>. Data siswa yang telah lulus atau mutasi alumni berada di tab
                 khusus.</span>
         </div>
         <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat_alumni', 'tahun' => $activeTahun])) }}"
-            class="btn btn-outline btn-sm" style="white-space: nowrap; font-size: 0.78rem; font-weight: 600;">
+            class="btn btn-outline btn-sm" style="white-space: nowrap; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
             <i class="fas fa-user-graduate me-1"></i> Buka Riwayat Kelas Lain &amp; Alumni
         </a>
     </div>
@@ -139,7 +139,7 @@
                         ($statusPipFilter ?? 'penerima') !== 'penerima')
                     <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun])) }}"
                         class="btn btn-outline btn-reset-filter"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                         title="Reset filter" data-live-reset>
                         <i class="fas fa-undo"></i>
                     </a>
@@ -166,25 +166,25 @@
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                     <th class="th-no d-none-mobile"
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
                         No</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
                         Peserta Didik</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 120px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 120px;">
                         Kelas Aktif</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
                         Status PIP / SK</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
                         Nominal</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
                         Pencairan / Status</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 100px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: center; width: 100px;">
                         Aksi</th>
                 </tr>
             </thead>
@@ -206,7 +206,7 @@
                         style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <!-- No Urut (Desktop Only) -->
                         <td class="cell-pd-no d-none-mobile"
-                            style="text-align: center; color: var(--text-muted); font-size: 0.84rem; font-weight: 700;"
+                            style="text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem); font-weight: 700;"
                             data-label="No">
                             {{ $itemIndex }}
                         </td>
@@ -215,7 +215,7 @@
                         <td class="cell-pd-nama" style="padding: 12px 14px;" data-label="Peserta Didik">
                             <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 10px;">
                                 <div class="user-avatar pd-foto-thumb"
-                                    style="width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
                                     <img src="{{ $r->foto_url ?: asset('img/logo-dark.png') }}"
                                         alt="{{ $namaSiswa }}"
                                         style="width: 100%; height: 100%; object-fit: cover;"
@@ -225,16 +225,16 @@
                                     <div class="pd-title-row"
                                         style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                         <span class="badge badge-outline badge-row-no d-none-desktop d-block-mobile"
-                                            style="font-size: 0.68rem; padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
+                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
                                             #{{ $itemIndex }}
                                         </span>
                                         <div class="pd-nama"
-                                            style="font-weight: 800; font-size: 0.88rem; color: var(--text-color); line-height: 1.35; word-break: break-word;">
+                                            style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color); line-height: 1.35; word-break: break-word;">
                                             {{ $namaSiswa }}
                                         </div>
                                     </div>
                                     <div class="pd-meta-row"
-                                        style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
                                         <span>NISN: <strong>{{ $nisnSiswa }}</strong></span>
                                         @if (!empty($r->nipd_pd_aktif))
                                             &bull; <span>NIPD: {{ $r->nipd_pd_aktif }}</span>
@@ -251,13 +251,13 @@
                         <!-- Kolom Kelas Aktif -->
                         <td class="cell-pd-kelas" style="padding: 12px 14px;" data-label="Kelas">
                             <span class="badge badge-outline"
-                                style="font-size: 0.74rem; padding: 3px 8px; font-weight: 600;">{{ $kelasAktif }}</span>
+                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 600;">{{ $kelasAktif }}</span>
                             @if (
                                 !$isBelum &&
                                     !empty($r->rombel) &&
                                     $r->rombel !== ($r->nama_kelas_aktif ?? '') &&
                                     $r->rombel !== ($r->nama_rombel_aktif ?? ''))
-                                <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 3px;"
+                                <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 3px;"
                                     title="Rombel tercatat saat SK SiPintar">
                                     SK: {{ $r->rombel }}
                                 </div>
@@ -269,25 +269,25 @@
                             @if ($isBelum)
                                 <div style="display: flex; flex-direction: column; gap: 3px;">
                                     <span class="badge badge-warning"
-                                        style="font-size: 0.72rem; padding: 3px 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; width: fit-content;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; width: fit-content;">
                                         <i class="fas fa-minus-circle"></i> Belum Menerima PIP
                                     </span>
                                     @if (!empty($r->status_usulan))
-                                        <div style="font-size: 0.72rem; color: var(--primary); font-weight: 600;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--primary); font-weight: 600;">
                                             <i class="fas fa-file-signature me-1"></i> Usulan {{ $activeTahun }}:
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.66rem; padding: 1px 5px;">
+                                                style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;">
                                                 {{ ucwords(str_replace('_', ' ', $r->status_usulan)) }}
                                             </span>
                                             @if (!empty($r->fase_usulan))
                                                 <span class="badge badge-primary"
-                                                    style="font-size: 0.64rem; padding: 1px 5px;">
+                                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;">
                                                     {{ \App\Models\PipUsulan::getFaseLabel($r->fase_usulan) }}
                                                 </span>
                                             @endif
                                         </div>
                                     @else
-                                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             Belum diusulkan tahun {{ $activeTahun }}
                                         </div>
                                     @endif
@@ -297,20 +297,20 @@
                                     <div
                                         style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap;">
                                         <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
-                                            style="font-size: 0.68rem; padding: 1px 6px;">
+                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                             {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
                                         </span>
                                         @if (!empty($r->fase))
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.66rem; padding: 1px 5px;">
+                                                style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;">
                                                 {{ \App\Models\PipUsulan::getFaseLabel($r->fase) }}
                                             </span>
                                         @endif
                                     </div>
-                                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color);">
                                         {{ $r->nomor_sk ?: '-' }}
                                     </div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                         @if (!empty($r->tahun_pelajaran))
                                             <span style="font-weight: 700;">TP {{ $r->tahun_pelajaran }}</span> &bull;
                                         @elseif (!empty($r->tahun))
@@ -330,7 +330,7 @@
                             data-label="Nominal">
                             @if ($isBelum)
                                 <span
-                                    style="color: var(--text-muted); font-size: 0.82rem; font-weight: normal;">-</span>
+                                    style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); font-weight: normal;">-</span>
                             @else
                                 {{ $r->nominal !== null ? 'Rp ' . number_format($r->nominal, 0, ',', '.') : '-' }}
                             @endif
@@ -340,27 +340,27 @@
                         <td class="cell-pd-cair" style="padding: 12px 14px;" data-label="Pencairan">
                             @if ($isBelum)
                                 <span class="badge badge-outline text-muted"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     Non-Penerima
                                 </span>
                             @elseif ($isNominasi)
                                 <span
                                     class="badge {{ !empty($r->tanggal_aktivasi) ? 'badge-success' : 'badge-warning' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ !empty($r->tanggal_aktivasi) ? 'Sudah Aktivasi' : 'Belum Aktivasi' }}
                                 </span>
                                 @if ($r->tanggal_aktivasi)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                         Tgl: {{ $r->tanggal_aktivasi }}
                                     </div>
                                 @endif
                             @else
                                 <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ $r->status_cair ?: 'Belum ada status' }}
                                 </span>
                                 @if ($r->tanggal_cair)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                         Tgl Cair: {{ $r->tanggal_cair }}
                                     </div>
                                 @endif
@@ -372,7 +372,7 @@
                             @if ($isBelum)
                                 @if (!empty($r->status_usulan))
                                     <span class="badge badge-info"
-                                        style="font-size: 0.72rem; padding: 3px 8px; font-weight: 600;"
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 600;"
                                         title="Siswa telah terdaftar pada daftar Usulan PIP">
                                         <i class="fas fa-check me-1"></i> Terusul
                                     </span>
@@ -391,7 +391,7 @@
                                 </button>
                             @else
                                 <span class="badge badge-outline text-success"
-                                    style="font-size: 0.7rem; padding: 2px 6px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">
                                     <i class="fas fa-check me-1"></i> Terdata
                                 </span>
                             @endif
@@ -402,7 +402,7 @@
                             <td colspan="7" class="cell-empty"
                                 style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-clock-rotate-left mb-2"
-                                    style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                    style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>
                                 @if (($statusPipFilter ?? 'penerima') === 'belum')
                                     Seluruh peserta didik aktif di rombel ini telah terdaftar sebagai penerima PIP.
                                 @elseif (($statusPipFilter ?? 'penerima') === 'semua')

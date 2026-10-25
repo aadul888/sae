@@ -52,6 +52,10 @@
 
     <!-- Global App & Dashboard Stylesheets with Cache Busting -->
     <link rel="stylesheet"
+        href="{{ asset('css/tokens.css') }}?v={{ file_exists(public_path('css/tokens.css')) ? filemtime(public_path('css/tokens.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/components.css') }}?v={{ file_exists(public_path('css/components.css')) ? filemtime(public_path('css/components.css')) : time() }}">
+    <link rel="stylesheet"
         href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
     <link rel="stylesheet"
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">

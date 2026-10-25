@@ -16,7 +16,7 @@
     .pip-countdown-card {
         margin-bottom: 22px;
         padding: 16px 20px;
-        border-radius: 14px;
+        border-radius: var(--radius-xl, 16px);
         transition: all 0.25s ease;
         position: relative;
         overflow: hidden;
@@ -66,7 +66,7 @@
         text-align: center;
         min-width: 54px;
         padding: 7px 8px;
-        border-radius: 10px;
+        border-radius: var(--radius-lg, 12px);
         background: var(--card-bg, #1e293b);
         border: 1.5px solid rgba(99, 102, 241, 0.25);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -74,7 +74,7 @@
     }
 
     .pip-cd-num {
-        font-size: 1.3rem;
+        font-size: var(--text-xl, 1.25rem);
         font-weight: 800;
         color: var(--primary, #6366f1);
         font-family: 'Plus Jakarta Sans', monospace;
@@ -82,7 +82,7 @@
     }
 
     .pip-cd-lbl {
-        font-size: 0.62rem;
+        font-size: var(--text-2xs, 0.6875rem);
         font-weight: 700;
         color: var(--text-muted, #64748b);
         text-transform: uppercase;
@@ -91,7 +91,7 @@
     }
 
     .pip-cd-sep {
-        font-size: 1.15rem;
+        font-size: var(--text-xl, 1.25rem);
         font-weight: 800;
         color: var(--primary, #6366f1);
         opacity: 0.6;
@@ -126,7 +126,7 @@
         }
 
         .pip-cd-num {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
         }
     }
 
@@ -148,11 +148,11 @@
         }
 
         .pip-cd-num {
-            font-size: 1.05rem;
+            font-size: var(--text-lg, 1.125rem);
         }
 
         .pip-cd-lbl {
-            font-size: 0.58rem;
+            font-size: var(--text-2xs, 0.6875rem);
         }
     }
 </style>
@@ -165,25 +165,25 @@
         <!-- Info Kiri: Judul Usulan, Fase, Status & Batas Waktu -->
         <div class="pip-countdown-left">
             <div
-                style="width: 44px; height: 44px; border-radius: 12px; background: {{ $isClosed ? 'rgba(239,68,68,0.14)' : 'rgba(99,102,241,0.14)' }}; color: {{ $isClosed ? '#ef4444' : 'var(--primary, #6366f1)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: {{ $isClosed ? 'rgba(239,68,68,0.14)' : 'rgba(99,102,241,0.14)' }}; color: {{ $isClosed ? '#ef4444' : 'var(--primary, #6366f1)' }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas {{ $isClosed ? 'fa-lock' : 'fa-hourglass-half fa-spin-pulse' }}"></i>
             </div>
             <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                    <span style="font-size: 0.98rem; font-weight: 800; color: var(--text-color); line-height: 1.3;">
+                    <span style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); line-height: 1.3;">
                         {{ $judulUsulan }}
                     </span>
                     <span class="badge badge-primary"
-                        style="font-size: 0.7rem; padding: 2px 8px; font-weight: 700; border-radius: 20px;">
+                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px; font-weight: 700; border-radius: var(--radius-2xl, 20px);">
                         <i class="fas fa-layer-group me-1"></i> {{ $info['fase_label'] ?? 'Fase 1' }}
                     </span>
                     @if (!empty($info['tahun_pelajaran']))
-                        <span class="badge badge-outline" style="font-size: 0.7rem; padding: 2px 7px;">
+                        <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                             <i class="fas fa-graduation-cap me-1"></i> TP {{ $info['tahun_pelajaran'] }}
                         </span>
                     @endif
                     <span id="pipCdBadge" class="badge {{ $isClosed ? 'badge-danger' : 'badge-success' }}"
-                        style="font-size: 0.7rem; padding: 2px 8px; font-weight: 700; border-radius: 20px;">
+                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px; font-weight: 700; border-radius: var(--radius-2xl, 20px);">
                         @if ($isManual)
                             <i class="fas fa-lock me-1"></i> Terkunci Manual
                         @elseif ($isExp)
@@ -195,7 +195,7 @@
                 </div>
 
                 <div
-                    style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <span>
                         <i class="fas fa-calendar-day text-primary me-1"></i>
                         Batas Akhir: <strong>{{ $info['deadline_formatted'] }}</strong>
@@ -215,7 +215,7 @@
 
                 @if (!empty($info['pesan_pengumuman']))
                     <div
-                        style="margin-top: 6px; font-size: 0.78rem; color: var(--text-muted); background: rgba(0,0,0,0.03); border-left: 3px solid {{ $isClosed ? '#ef4444' : 'var(--primary, #6366f1)' }}; padding: 4px 10px; border-radius: 0 6px 6px 0;">
+                        style="margin-top: 6px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); background: rgba(0,0,0,0.03); border-left: 3px solid {{ $isClosed ? '#ef4444' : 'var(--primary, #6366f1)' }}; padding: 4px 10px; border-radius: 0 6px 6px 0;">
                         {{ $info['pesan_pengumuman'] }}
                     </div>
                 @endif
@@ -226,8 +226,8 @@
         <div class="pip-countdown-right">
             @if ($isClosed)
                 <div
-                    style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3); color: #ef4444; font-weight: 800; font-size: 0.88rem;">
-                    <i class="fas fa-lock" style="font-size: 1.15rem;"></i>
+                    style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3); color: #ef4444; font-weight: 800; font-size: var(--text-base, 0.875rem);">
+                    <i class="fas fa-lock" style="font-size: var(--text-xl, 1.25rem);"></i>
                     <span>PENGUSULAN DITUTUP</span>
                 </div>
             @else
@@ -265,7 +265,7 @@
             @if (!empty($isAdmin))
                 <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'pengaturan', 'tahun' => $activeTahun ?? null])) }}"
                     class="btn btn-outline btn-sm"
-                    style="height: 38px; padding: 0 12px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; border-color: rgba(99,102,241,0.35); text-decoration: none;"
+                    style="height: 38px; padding: 0 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); border-color: rgba(99,102,241,0.35); text-decoration: none;"
                     title="Buka Pengaturan Kunci, Fase &amp; Batas Waktu">
                     <i class="fas fa-gear text-primary"></i>
                     <span>Atur Batas &amp; Fase</span>

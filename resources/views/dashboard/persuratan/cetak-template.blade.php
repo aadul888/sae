@@ -149,7 +149,7 @@
             style="margin-top: 30px; padding-top: 10px; border-top: 1px dashed #d1d5db; display: flex; justify-content: space-between; align-items: center; font-size: 8pt; color: #64748b; page-break-inside: avoid;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="{{ $qrUri }}" alt="QR Code Verifikasi"
-                    style="width: 44px; height: 44px; border: 1px solid #d1d5db; padding: 2px; background: #fff; border-radius: 4px;">
+                    style="width: 44px; height: 44px; border: 1px solid #d1d5db; padding: 2px; background: #fff; border-radius: var(--radius-xs, 4px);">
                 <div>
                     <strong>Dokumen Resmi Satuan Pendidikan — Sistem Aplikasi Edukasi (SAE)</strong><br>
                     ID Dokumen: <code>{{ $doc->doc_id }}</code> &bull; Pindai QR Code untuk verifikasi keaslian naskah

@@ -1,0 +1,162 @@
+/* ==========================================================================
+   SAE Design Tokens — Sumber Kebenaran Tunggal
+   --------------------------------------------------------------------------
+   Berkas ini mendefinisikan skala terbatas (spacing, radius, tipografi,
+   elevasi, durasi) yang WAJIB dipakai seluruh stylesheet dan view.
+
+   Aturan pemakaian:
+   - Jangan menulis nilai px/rem mentah untuk spacing, radius, atau ukuran
+     font pada komponen baru. Gunakan token di bawah.
+   - Inline style di Blade hanya boleh memakai `var(--*)`, bukan angka mentah.
+   - Bila butuh nilai baru, tambahkan token di sini lebih dulu agar skalanya
+     tetap terkendali.
+
+   Dimuat lebih awal (sebelum sae.css) agar variabel dapat di-override oleh
+   blok `[data-theme]` pada sae.css.
+   ========================================================================== */
+
+:root {
+    /* ---------------------------------------------------------------------
+       SPACING — skala kelipatan 4px (basis 4). 12 langkah, tanpa nilai liar.
+       --------------------------------------------------------------------- */
+    --space-0: 0;
+    --space-1: 2px;
+    --space-2: 4px;
+    --space-3: 6px;
+    --space-4: 8px;
+    --space-5: 10px;
+    --space-6: 12px;
+    --space-7: 14px;
+    --space-8: 16px;
+    --space-9: 20px;
+    --space-10: 24px;
+    --space-11: 32px;
+    --space-12: 40px;
+    --space-13: 48px;
+
+    /* Alias semantik agar maksud pemakaian jelas. */
+    --space-xs: var(--space-2);
+    --space-sm: var(--space-4);
+    --space-md: var(--space-6);
+    --space-lg: var(--space-8);
+    --space-xl: var(--space-10);
+    --space-2xl: var(--space-11);
+
+    /* ---------------------------------------------------------------------
+       RADIUS — 6 langkah. Sebelumnya ada 14 nilai berbeda (2px..9999px).
+       --------------------------------------------------------------------- */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-pill: 999px;
+
+    /* Alias pemakaian umum. */
+    --radius-control: var(--radius-md);   /* input, tombol kecil */
+    --radius-button: var(--radius-lg);    /* tombol standar */
+    --radius-card: var(--radius-xl);      /* kartu, panel */
+    --radius-modal: var(--radius-xl);
+
+    /* ---------------------------------------------------------------------
+       TIPOGRAFI — 9 langkah. Sebelumnya ada 20+ ukuran (0.78/0.8/0.82 rem
+       yang nyaris tak bisa dibedakan).
+       --------------------------------------------------------------------- */
+    --font-family-base: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-family-mono: "JetBrains Mono", "Consolas", "Courier New", monospace;
+
+    --text-2xs: 0.6875rem;  /* 11px — label teknis, badge sangat kecil */
+    --text-xs: 0.75rem;     /* 12px — caption, meta, helper text */
+    --text-sm: 0.8125rem;   /* 13px — label form, tabel sel */
+    --text-base: 0.875rem;  /* 14px — teks antarmuka standar */
+    --text-md: 1rem;        /* 16px — teks isi / body */
+    --text-lg: 1.125rem;    /* 18px — sub-judul */
+    --text-xl: 1.25rem;     /* 20px — judul kartu besar */
+    --text-2xl: 1.5rem;     /* 24px — judul halaman */
+    --text-3xl: 1.875rem;   /* 30px — angka statistik utama */
+    --text-4xl: 2.25rem;    /* 36px — judul hero */
+    --text-5xl: 3rem;       /* 48px — hero besar */
+    --text-6xl: 4rem;       /* 64px — hero pemasaran */
+
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-extrabold: 800;
+
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.65;
+
+    --tracking-tight: -0.01em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.02em;
+
+    /* ---------------------------------------------------------------------
+       ELEVASI — bayangan berlapis, konsisten gelap & terang.
+       --------------------------------------------------------------------- */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.10);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.14);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.24);
+
+    /* ---------------------------------------------------------------------
+       DURASI & EASING — animasi seragam, tidak acak.
+       --------------------------------------------------------------------- */
+    --duration-fast: 120ms;
+    --duration-base: 180ms;
+    --duration-slow: 260ms;
+    --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+    --transition-fast: var(--duration-fast) var(--easing-standard);
+    --transition-base: var(--duration-base) var(--easing-standard);
+
+    /* ---------------------------------------------------------------------
+       Z-INDEX — lapisan eksplisit agar tidak ada tabrakan tak terduga.
+       --------------------------------------------------------------------- */
+    --z-base: 1;
+    --z-sticky: 100;
+    --z-header: 900;
+    --z-sidebar: 950;
+    --z-backdrop: 980;
+    --z-dropdown: 1000;
+    --z-modal: 1050;
+    --z-toast: 1100;
+
+    /* ---------------------------------------------------------------------
+       UKURAN KONTROL — tinggi target sentuh minimum 36px (aksesibilitas).
+       --------------------------------------------------------------------- */
+    --control-height-sm: 32px;
+    --control-height-md: 38px;
+    --control-height-lg: 44px;
+    --icon-size-sm: 14px;
+    --icon-size-md: 16px;
+    --icon-size-lg: 20px;
+
+    /* ---------------------------------------------------------------------
+       LEBAR LAYOUT
+       --------------------------------------------------------------------- */
+    --sidebar-width: 264px;
+    --sidebar-width-collapsed: 76px;
+    --content-max-width: 1440px;
+}
+
+/* Light theme: bayangan dibuat lebih lembut agar tidak terlihat kotor. */
+[data-theme="light"] {
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.10);
+    --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+    --shadow-xl: 0 16px 40px rgba(15, 23, 42, 0.16);
+}
+
+/* Hormati preferensi pengguna yang meminta animasi minimal. */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast: 0ms;
+        --duration-base: 0ms;
+        --duration-slow: 0ms;
+    }
+}

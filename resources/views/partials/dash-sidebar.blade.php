@@ -702,7 +702,7 @@
                         <span class="nav-label">{{ $role === 'admin' ? 'Tendik' : 'Kepala TAS' }}</span>
                         @if ($role !== 'admin')
                             <span class="badge badge-primary"
-                                style="font-size: 0.65rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; margin-left: 6px; border-radius: var(--radius-xs, 4px); font-weight: 700;">
                                 Koordinator
                             </span>
                         @endif
@@ -1588,7 +1588,7 @@
                     <span class="nav-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
                     <span class="nav-label">Guru Piket</span>
                     <span class="badge badge-primary"
-                        style="font-size: 0.65rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
+                        style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; margin-left: 6px; border-radius: var(--radius-xs, 4px); font-weight: 700;">
                         Piket
                     </span>
                 </div>
@@ -1770,7 +1770,7 @@
                     <span class="nav-label">{{ $role === 'peserta_didik' ? 'Koordinator' : 'Wali Kelas' }}</span>
                     @if ($waliKelasRombelName)
                         <span class="badge badge-primary"
-                            style="font-size: 0.68rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
+                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; margin-left: 6px; border-radius: var(--radius-xs, 4px); font-weight: 700;">
                             {{ $waliKelasRombelName }}
                         </span>
                     @endif

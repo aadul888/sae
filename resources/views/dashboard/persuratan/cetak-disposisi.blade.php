@@ -82,7 +82,7 @@
                 <td colspan="3">
                     <div style="font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">{{ $surat->perihal }}</div>
                     @if ($surat->keterangan)
-                        <div style="font-size: 0.8rem; color: #4b5563;">{{ $surat->keterangan }}</div>
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: #4b5563;">{{ $surat->keterangan }}</div>
                     @endif
                 </td>
             </tr>
@@ -131,7 +131,7 @@
 
                     @if (!empty($disposisiTujuanLain))
                         <div
-                            style="margin-top: 10px; font-size: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                            style="margin-top: 10px; font-size: var(--text-sm, 0.8125rem); border-top: 1px dashed #cbd5e1; padding-top: 6px;">
                             <strong>Personel Ditunjuk:</strong> {{ $disposisiTujuanLain }}
                         </div>
                     @endif
@@ -174,7 +174,7 @@
                 <th colspan="2">CATATAN / PETUNJUK KHUSUS PIMPINAN:</th>
             </tr>
             <tr>
-                <td colspan="2" style="min-height: 80px; padding: 12px; font-size: 0.84rem; line-height: 1.45;">
+                <td colspan="2" style="min-height: 80px; padding: 12px; font-size: var(--text-base, 0.875rem); line-height: 1.45;">
                     {{ $disposisiCatatan ?: 'Segera koordinasikan dengan unit terkait dan laporkan hasilnya kepada Kepala Sekolah.' }}
                 </td>
             </tr>

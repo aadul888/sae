@@ -87,7 +87,7 @@
                             <div style="position: relative; z-index: 2; text-align: center; color: #94a3b8;">
                                 <i class="fas fa-user-graduate" style="font-size: 42px; opacity: 0.65;"></i>
                                 <div
-                                    style="font-size: 0.68rem; font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">
                                     PASFOTO</div>
                             </div>
                         @endif

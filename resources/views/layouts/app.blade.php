@@ -47,6 +47,8 @@
     @include('partials.pwa-head')
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <script src="{{ asset('js/sae-logos.js') }}?v={{ $logoJsVer }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/tokens.css') }}?v={{ @filemtime(public_path('css/tokens.css')) ?: '1' }}">
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v={{ @filemtime(public_path('css/components.css')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ @filemtime(public_path('css/sae.css')) ?: '1' }}">
     @yield('styles')
 </head>

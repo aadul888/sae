@@ -6,11 +6,11 @@
 @section('content')
     <!-- Banner Identitas Pegawai & Aksi Cetak -->
     <div class="dash-banner"
-        style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(59, 130, 246, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px;">
+        style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(59, 130, 246, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: var(--radius-xl, 16px); padding: 20px 24px;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 260px;">
             @if (!empty($pegawai['foto_url']))
                 <div
-                    style="flex-shrink: 0; width: 72px; height: 96px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    style="flex-shrink: 0; width: 72px; height: 96px; border-radius: var(--radius-md, 8px); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                     <img src="{{ $pegawai['foto_url'] }}" alt="{{ $pegawai['nama'] }}"
                         style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
@@ -18,11 +18,11 @@
 
             <div>
                 <h2
-                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                    style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <i class="fas fa-file-invoice text-primary me-2"></i> Laporan Rekapitulasi Presensi
                 </h2>
                 <div
-                    style="display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
+                    style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
                     <span title="Nama Pegawai"><i class="fas fa-user text-primary me-1"></i>
                         <strong>{{ $pegawai['nama'] }}</strong></span>
                     <span title="Nomor Induk Pegawai"><i class="fas fa-id-badge text-warning me-1"></i>
@@ -31,10 +31,10 @@
                         <strong>{{ $pegawai['jabatan'] }}</strong></span>
                     <span title="Status Kepegawaian"><i class="fas fa-id-card-clip text-success me-1"></i> <span
                             class="badge badge-info"
-                            style="font-size: 0.72rem; padding: 2px 6px;">{{ $pegawai['status_kepegawaian'] }}</span></span>
+                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $pegawai['status_kepegawaian'] }}</span></span>
                 </div>
                 <div
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #3b82f6;">
                     <i class="fas fa-calendar-check"></i> Periode: {{ $range['label'] }}
                 </div>
             </div>
@@ -50,12 +50,12 @@
                 'tahun_ajaran' => $tahunAjaran,
             ]) }}"
                 target="_blank" class="btn btn-primary"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none; box-shadow: 0 4px 12px rgba(59,130,246,0.3);"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none; box-shadow: 0 4px 12px rgba(59,130,246,0.3);"
                 title="Cetak Laporan Resmi Presensi">
                 <i class="fas fa-print"></i>
             </a>
             <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Catat Aktivitas Harian">
                 <i class="fas fa-clipboard-check text-success"></i>
             </a>
@@ -121,7 +121,7 @@
 
             @if ($periodeTipe === 'triwulan')
                 <div class="filter-item-group">
-                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                    <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
                         Triwulan:</label>
                     <select name="triwulan" class="filter-select" onchange="this.form.submit()">
                         <option value="1" {{ (int) $triwulan === 1 ? 'selected' : '' }}>Triwulan I (Januari - Maret)
@@ -135,7 +135,7 @@
                     </select>
                 </div>
                 <div class="filter-item-group">
-                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
+                    <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
                         Kalender:</label>
                     <select name="tahun" class="filter-select" onchange="this.form.submit()">
                         @for ($y = date('Y') + 1; $y >= date('Y') - 3; $y--)
@@ -146,7 +146,7 @@
                 </div>
             @elseif ($periodeTipe === 'semester')
                 <div class="filter-item-group">
-                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                    <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
                         Semester:</label>
                     <select name="semester" class="filter-select" onchange="this.form.submit()">
                         <option value="1" {{ (string) $semester === '1' ? 'selected' : '' }}>Semester Ganjil (Juli -
@@ -156,7 +156,7 @@
                     </select>
                 </div>
                 <div class="filter-item-group">
-                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
+                    <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
                         Ajaran:</label>
                     <select name="tahun_ajaran" class="filter-select" onchange="this.form.submit()">
                         @php $baseY = (int)date('Y'); @endphp
@@ -169,7 +169,7 @@
                 </div>
             @elseif ($periodeTipe === 'tahun')
                 <div class="filter-item-group">
-                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun Ajaran
+                    <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun Ajaran
                         Penuh:</label>
                     <select name="tahun_ajaran" class="filter-select" onchange="this.form.submit()">
                         @php $baseY = (int)date('Y'); @endphp
@@ -184,7 +184,7 @@
                 <!-- Bulan (Default) -->
                 <div class="filter-item-group">
                     <label
-                        style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Bulan:</label>
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Bulan:</label>
                     <select name="bulan" class="filter-select" onchange="this.form.submit()">
                         @for ($m = 1; $m <= 12; $m++)
                             <option value="{{ $m }}" {{ (int) $bulan === $m ? 'selected' : '' }}>
@@ -195,7 +195,7 @@
                 </div>
                 <div class="filter-item-group">
                     <label
-                        style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
                     <select name="tahun" class="filter-select" onchange="this.form.submit()">
                         @for ($y = date('Y') + 1; $y >= date('Y') - 3; $y--)
                             <option value="{{ $y }}" {{ (int) $tahun === $y ? 'selected' : '' }}>
@@ -207,14 +207,14 @@
 
             <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary"
-                    style="padding: 8px 18px; font-size: 0.85rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    style="padding: 8px 18px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-arrows-rotate"></i> Terapkan
                 </button>
             </div>
 
             <div style="margin-left: auto;">
                 <span class="badge"
-                    style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-calendar-check"></i> {{ $range['label'] }}
                 </span>
             </div>
@@ -277,13 +277,13 @@
 
     <!-- Table Rekap Presensi Harian -->
     <div class="card table-responsive-stack"
-        style="padding: 0; border-radius: 14px; overflow: hidden; margin-bottom: 24px;">
+        style="padding: 0; border-radius: var(--radius-xl, 16px); overflow: hidden; margin-bottom: 24px;">
         <div
             style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
+            <div style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color);">
                 <i class="fas fa-table-list text-primary me-2"></i> Log Presensi &amp; Ketepatan Waktu Kerja
             </div>
-            <span class="badge badge-info" style="font-size: 0.74rem; padding: 4px 10px;">
+            <span class="badge badge-info" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px;">
                 {{ $range['label'] }}
             </span>
         </div>
@@ -292,58 +292,58 @@
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
                     <th
-                        style="padding: 12px 18px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); width: 150px;">
+                        style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); text-transform: uppercase; color: var(--text-muted); width: 150px;">
                         Tanggal</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
+                        style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); text-transform: uppercase; color: var(--text-muted); text-align: center;">
                         Jam Masuk</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
+                        style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); text-transform: uppercase; color: var(--text-muted); text-align: center;">
                         Jam Pulang</th>
                     <th
-                        style="padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">
+                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); text-transform: uppercase; color: var(--text-muted);">
                         Status Kehadiran</th>
                     <th
-                        style="padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">
+                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); text-transform: uppercase; color: var(--text-muted);">
                         Keterangan / Catatan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($logs as $log)
                     <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 12px 18px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
+                        <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color);">
                             {{ \Carbon\Carbon::parse($log->tanggal)->translatedFormat('l, d M Y') }}
                         </td>
-                        <td style="padding: 12px 14px; text-align: center; font-family: monospace; font-size: 0.82rem;">
+                        <td style="padding: 12px 14px; text-align: center; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                             {{ $log->jam_masuk ? substr($log->jam_masuk, 0, 5) . ' WIB' : '—' }}
                         </td>
-                        <td style="padding: 12px 14px; text-align: center; font-family: monospace; font-size: 0.82rem;">
+                        <td style="padding: 12px 14px; text-align: center; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                             {{ $log->jam_pulang ? substr($log->jam_pulang, 0, 5) . ' WIB' : '—' }}
                         </td>
-                        <td style="padding: 12px 16px; font-size: 0.82rem;">
+                        <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem);">
                             @if ($log->status === 'H')
-                                <span class="badge badge-success" style="font-size: 0.74rem; padding: 4px 8px;">
+                                <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                     <i class="fas fa-circle-check me-1"></i> Hadir Tepat Waktu
                                 </span>
                             @elseif ($log->status === 'T')
-                                <span class="badge badge-warning" style="font-size: 0.74rem; padding: 4px 8px;">
+                                <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                     <i class="fas fa-clock me-1"></i> Terlambat ({{ $log->menit_terlambat }} m)
                                 </span>
                             @elseif ($log->status === 'I')
-                                <span class="badge badge-info" style="font-size: 0.74rem; padding: 4px 8px;">
+                                <span class="badge badge-info" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                     <i class="fas fa-envelope-open-text me-1"></i> Izin
                                 </span>
                             @elseif ($log->status === 'S')
-                                <span class="badge badge-info" style="font-size: 0.74rem; padding: 4px 8px;">
+                                <span class="badge badge-info" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                     <i class="fas fa-hospital me-1"></i> Sakit
                                 </span>
                             @else
-                                <span class="badge badge-danger" style="font-size: 0.74rem; padding: 4px 8px;">
+                                <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                     <i class="fas fa-times-circle me-1"></i> Alpha
                                 </span>
                             @endif
                         </td>
-                        <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
+                        <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                             {{ $log->keterangan ?: 'Presensi terverifikasi via RFID Gateway' }}
                         </td>
                     </tr>
@@ -351,10 +351,10 @@
                     <tr>
                         <td colspan="5" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                             <i class="fas fa-calendar-check"
-                                style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                             <div style="font-weight: 600;">Rekap presensi pegawai tercatat 100% aktif
                                 ({{ $stats['hadir'] }} hari kerja efektif).</div>
-                            <div style="font-size: 0.78rem; margin-top: 4px;">Klik tombol <strong>"Cetak Laporan
+                            <div style="font-size: var(--text-sm, 0.8125rem); margin-top: 4px;">Klik tombol <strong>"Cetak Laporan
                                     Resmi"</strong> di atas untuk mengunduh berkas laporan cetak resmi.</div>
                         </td>
                     </tr>

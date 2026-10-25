@@ -29,7 +29,7 @@
                 <div class="profile-banner-header">
                     <h1 class="profile-banner-title">{{ $user->name ?? 'Pengguna' }}</h1>
                     <div class="profile-banner-username" title="Identitas Akun / Username">
-                        <i class="fas fa-at text-muted" style="font-size: 0.85rem; opacity: 0.85;"></i>
+                        <i class="fas fa-at text-muted" style="font-size: var(--text-base, 0.875rem); opacity: 0.85;"></i>
                         <strong class="profile-username-val">{{ $user->username }}</strong>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                             <i class="fas fa-id-card text-primary"></i>
                             <span>Data Informasi Akun</span>
                         </h2>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">Terhubung Dapodik</span>
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Terhubung Dapodik</span>
                     </div>
                     <div class="profile-card-body">
                         <div class="profile-info-list">
@@ -256,7 +256,7 @@
                         </h2>
                         @if ($user->password_updated_at)
                             <span
-                                style="font-size: 0.72rem; color: #10b981; display: inline-flex; align-items: center; gap: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); color: #10b981; display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-clock"></i> Diperbarui:
                                 {{ \Carbon\Carbon::parse($user->password_updated_at)->diffForHumans() }}
                             </span>
@@ -264,7 +264,7 @@
                     </div>
 
                     <div class="profile-card-body">
-                        <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.4;">
+                        <p style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); margin-bottom: 18px; line-height: 1.4;">
                             Untuk menjaga keamanan akun Anda, gunakan kata sandi yang kuat dengan kombinasi huruf besar,
                             huruf kecil, angka, dan simbol khusus.
                         </p>
@@ -290,7 +290,7 @@
                                     </button>
                                 </div>
                                 @error('current_password')
-                                    <div style="color: #ef4444; font-size: 0.78rem; margin-top: 5px;">
+                                    <div style="color: #ef4444; font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
                                         <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
                                     </div>
                                 @enderror
@@ -313,7 +313,7 @@
                                     </button>
                                 </div>
                                 @error('password')
-                                    <div style="color: #ef4444; font-size: 0.78rem; margin-top: 5px;">
+                                    <div style="color: #ef4444; font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
                                         <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
                                     </div>
                                 @enderror
@@ -386,7 +386,7 @@
                             <div
                                 style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 10px;">
                                 <button type="submit" id="btnSubmitPassword" class="btn btn-primary"
-                                    style="padding: 11px 24px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                                    style="padding: 11px 24px; font-weight: 700; border-radius: var(--radius-lg, 12px); display: inline-flex; align-items: center; gap: 8px;">
                                     <i class="fas fa-key"></i>
                                     <span>Perbarui Kata Sandi</span>
                                 </button>
@@ -405,25 +405,25 @@
                 data-current-foto="{{ $profileDetails['foto_url'] ?? '' }}"
                 style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
                 <div class="card"
-                    style="max-width: 480px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+                    style="max-width: 480px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div
-                                style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                                style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                                 <i class="fas fa-camera"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                                     Unggah Pasfoto Mandiri
                                 </h3>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                                     {{ $role === 'guru' ? 'Guru Pengampu / Pendidik' : ($role === 'admin' ? 'Administrator Sistem' : 'Tenaga Kependidikan') }}
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="closeUploadFotoModal()"
-                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -431,7 +431,7 @@
                     <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                         {{-- Petunjuk Unggah Foto --}}
                         <div
-                            style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.78rem; line-height: 1.5; color: var(--text-color);">
+                            style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-lg, 12px); padding: 12px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); line-height: 1.5; color: var(--text-color);">
                             <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
                                 <i class="fas fa-shield-halved me-1"></i> Standar &amp; Keamanan Data:
                             </div>
@@ -446,7 +446,7 @@
                         {{-- Area Pratinjau Foto --}}
                         <div style="text-align: center; margin-bottom: 16px;">
                             <div
-                                style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
                                 Pratinjau Foto Profil
                             </div>
                             <div id="modalFotoPreviewContainer"
@@ -455,13 +455,13 @@
                                     alt="Pratinjau Foto"
                                     style="{{ !empty($profileDetails['foto_url']) ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: cover;">
                                 <div id="modalFotoPreviewPlaceholder"
-                                    style="{{ !empty($profileDetails['foto_url']) ? 'display: none;' : 'display: flex;' }} flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
-                                    <i class="fas fa-user mb-1" style="font-size: 2.2rem; opacity: 0.4;"></i>
-                                    <div style="font-size: 0.72rem;">Belum ada foto</div>
+                                    style="{{ !empty($profileDetails['foto_url']) ? 'display: none;' : 'display: flex;' }} flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); padding: 10px;">
+                                    <i class="fas fa-user mb-1" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
+                                    <div style="font-size: var(--text-xs, 0.75rem);">Belum ada foto</div>
                                 </div>
                             </div>
                             <div id="modalFotoFileSpecs"
-                                style="display: none; font-size: 0.74rem; color: #10b981; margin-top: 8px; font-weight: 600;">
+                                style="display: none; font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 8px; font-weight: 600;">
                                 -
                             </div>
                         </div>
@@ -470,14 +470,14 @@
                         <form id="formUploadFotoMandiri" enctype="multipart/form-data">
                             @csrf
                             <div id="modalFotoDropZone"
-                                style="border: 2px dashed rgba(99,102,241,0.4); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
+                                style="border: 2px dashed rgba(99,102,241,0.4); border-radius: var(--radius-lg, 12px); padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
                                 onclick="document.getElementById('modalFotoFileInput').click()">
                                 <i class="fas fa-cloud-arrow-up"
-                                    style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
-                                <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                                    style="font-size: var(--text-3xl, 1.875rem); color: var(--primary); margin-bottom: 8px;"></i>
+                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                                     Pilih file gambar atau seret ke sini
                                 </div>
-                                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                                     PNG, JPG, JPEG (Maks. 5 MB)
                                 </div>
                                 <input type="file" id="modalFotoFileInput" name="foto"
@@ -498,10 +498,10 @@
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button type="button" class="btn btn-outline" onclick="closeUploadFotoModal()"
-                                style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
+                                style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                             <button type="button" id="btnSimpanFotoGtk" class="btn btn-primary"
                                 onclick="submitUploadFoto()"
-                                style="padding: 8px 18px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                                style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
                                 disabled>
                                 <i class="fas fa-upload"></i>
                                 <span>Simpan Foto</span>

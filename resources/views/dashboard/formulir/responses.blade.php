@@ -7,32 +7,32 @@
     <!-- 1. Header Banner & Action Buttons -->
     <div class="dash-banner">
         <div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px;">
+            <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 4px;">
                 <a href="{{ route('dashboard.formulir.index') }}"
                     style="color: var(--primary); text-decoration: none;">Formulir &amp; Survei</a>
-                <i class="fas fa-chevron-right mx-1" style="font-size: 0.7rem;"></i> Rekap Tanggapan
+                <i class="fas fa-chevron-right mx-1" style="font-size: var(--text-xs, 0.75rem);"></i> Rekap Tanggapan
             </div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-inbox text-primary me-2"></i> {{ $formulir->judul }}
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 Total <strong>{{ $totalRespon }} tanggapan</strong> terekam. Unduh data langsung ke format
                 spreadsheet Excel (.xlsx).
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.formulir.export-excel', $formulir->id) }}" class="btn btn-primary"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Ekspor Respons ke Excel (.xlsx)">
                 <i class="fas fa-file-excel"></i>
             </a>
             <a href="{{ $formulir->public_url }}" target="_blank" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Buka Formulir Publik">
                 <i class="fas fa-external-link-alt text-primary"></i>
             </a>
             <a href="{{ route('dashboard.formulir.index') }}" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Kembali ke Daftar Formulir">
                 <i class="fas fa-arrow-left"></i>
             </a>
@@ -42,16 +42,16 @@
     <!-- Alert Notifikasi Flash -->
     @if (session('success'))
         <div class="alert alert-success"
-            style="padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-circle-check" style="font-size: 1.1rem;"></i>
+            style="padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-circle-check" style="font-size: var(--text-lg, 1.125rem);"></i>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger"
-            style="padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-circle-exclamation" style="font-size: 1.1rem;"></i>
+            style="padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-circle-exclamation" style="font-size: var(--text-lg, 1.125rem);"></i>
             <span>{{ session('error') }}</span>
         </div>
     @endif
@@ -104,7 +104,7 @@
                 <i class="fas {{ $statusIcon }}"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.15rem; font-weight: 700; color: {{ $statusColor }};">
+                <div class="dash-stat-value" style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: {{ $statusColor }};">
                     {{ $statusText }}
                 </div>
                 <div class="dash-stat-label">Status Formulir</div>
@@ -115,7 +115,7 @@
     <!-- Statistik & Analisis Pilihan/Rating -->
     @if (!empty($fieldStats))
         <h3
-            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+            style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-chart-pie text-primary"></i> Ringkasan Pola Tanggapan Pilihan
         </h3>
         <div class="stat-bars-grid" style="margin-bottom: 24px;">
@@ -123,7 +123,7 @@
                 <div class="stat-bar-card">
                     <div class="stat-bar-title">
                         <span>{{ $stat['label'] }}</span>
-                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted);">{{ $stat['total'] }}
+                        <span style="font-size: var(--text-xs, 0.75rem); font-weight: 600; color: var(--text-muted);">{{ $stat['total'] }}
                             suara</span>
                     </div>
                     <div>
@@ -167,7 +167,7 @@
                     @if (!empty(request('q')))
                         <a href="{{ route('dashboard.formulir.responses', $formulir->id) }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset pencarian" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -193,31 +193,31 @@
                 <thead>
                     <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
                             No</th>
                         <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}" data-sort="created_at"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                             Waktu Submit
                             <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ $sort === 'nama_responden' ? 'sorted' : '' }}"
                             data-sort="nama_responden"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                             Nama Responden
                             <span class="sort-icon">{!! $sort === 'nama_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ $sort === 'identitas_responden' ? 'sorted' : '' }}"
                             data-sort="identitas_responden"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                             Identitas
                             <span class="sort-icon">{!! $sort === 'identitas_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Ringkasan Jawaban
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">
                             Aksi
                         </th>
                     </tr>
@@ -236,7 +236,7 @@
                                 <span style="font-weight: 600; color: var(--text-color);">
                                     {{ $r->created_at ? $r->created_at->format('d/m/Y') : '-' }}
                                 </span>
-                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">
+                                <span style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                     {{ $r->created_at ? $r->created_at->format('H:i:s') . ' WIB' : '' }}
                                 </span>
                             </td>
@@ -245,15 +245,15 @@
                                     {{ $r->nama_responden ?: 'Responden Tamu' }}</div>
                                 @if ($r->pengguna_id)
                                     <span class="badge"
-                                        style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.12); color: var(--primary); padding: 2px 6px; border-radius: 4px;">
+                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(99, 102, 241, 0.12); color: var(--primary); padding: 2px 6px; border-radius: var(--radius-xs, 4px);">
                                         <i class="fas fa-user-check me-1"></i>Akun SAE
                                     </span>
                                 @else
                                     <span class="badge badge-outline"
-                                        style="font-size: 0.65rem; padding: 2px 5px; color: var(--text-muted);">Tamu</span>
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; color: var(--text-muted);">Tamu</span>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="Identitas">
                                 {{ $r->identitas_responden ?: '-' }}
                             </td>
@@ -261,13 +261,13 @@
                                 <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                     @foreach (array_slice($jawaban, 0, 2) as $k => $val)
                                         <span
-                                            style="background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); border: 1px solid var(--border-color); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;">
+                                            style="background: var(--bg-hover); padding: 2px 7px; border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem); color: var(--text-muted); border: 1px solid var(--border-color); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;">
                                             {{ is_array($val) ? implode(', ', $val) : \Illuminate\Support\Str::limit($val, 25) }}
                                         </span>
                                     @endforeach
                                     @if (count($jawaban) > 2)
                                         <span
-                                            style="font-size: 0.72rem; color: var(--text-muted);">+{{ count($jawaban) - 2 }}
+                                            style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">+{{ count($jawaban) - 2 }}
                                             lainnya</span>
                                     @endif
                                 </div>
@@ -296,10 +296,10 @@
                         <tr>
                             <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-inbox mb-2"
-                                    style="font-size: 2.2rem; opacity: 0.35; display: block;"></i>
-                                <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">Belum Ada Tanggapan
+                                    style="font-size: var(--text-3xl, 1.875rem); opacity: 0.35; display: block;"></i>
+                                <div style="font-weight: 600; font-size: var(--text-md, 1rem); margin-bottom: 4px;">Belum Ada Tanggapan
                                 </div>
-                                <div style="font-size: 0.82rem;">Belum ada responden yang mengisi formulir ini atau tidak
+                                <div style="font-size: var(--text-sm, 0.8125rem);">Belum ada responden yang mengisi formulir ini atau tidak
                                     ada
                                     data yang cocok dengan pencarian.</div>
                             </td>
@@ -324,9 +324,9 @@
                 <div
                     style="padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
                     <div>
-                        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-color);">Rincian
+                        <h4 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; margin: 0; color: var(--text-color);">Rincian
                             Tanggapan Responden</h4>
-                        <span id="modalMeta" style="font-size: 0.78rem; color: var(--text-muted);">-</span>
+                        <span id="modalMeta" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">-</span>
                     </div>
                     <button type="button" onclick="closeDetail()" class="btn-theme-toggle"
                         style="width: 32px; height: 32px;" title="Tutup">
@@ -337,7 +337,7 @@
                 <div
                     style="padding: 14px 24px; border-top: 1px solid var(--border-color); text-align: right; background: var(--bg-hover);">
                     <button type="button" class="btn btn-outline" onclick="closeDetail()"
-                        style="font-size: 0.85rem; padding: 6px 16px;">Tutup</button>
+                        style="font-size: var(--text-base, 0.875rem); padding: 6px 16px;">Tutup</button>
                 </div>
             </div>
         </div>

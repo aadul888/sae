@@ -9,15 +9,15 @@
     @endphp
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-chalkboard-user text-primary me-2"></i> Manajemen Data — Guru Aktif
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Direktori Guru &amp; Tenaga Pendidik aktif bersumber dari tabel <strong>GTK</strong> (Dapodik).
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;"
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);"
                 title="Tarik Data Dapodik">
                 <i class="fas fa-cloud-arrow-down"></i>
             </a>
@@ -31,7 +31,7 @@
                 <i class="fas fa-users"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['total'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Guru Aktif</div>
@@ -43,7 +43,7 @@
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['pns'] }}
                 </div>
                 <div class="dash-stat-label">PNS / ASN</div>
@@ -55,7 +55,7 @@
                 <i class="fas fa-user-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['non_pns'] }}
                 </div>
                 <div class="dash-stat-label">Non-PNS / Honorer</div>
@@ -67,7 +67,7 @@
                 <i class="fas fa-venus-mars"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['laki'] }} / {{ $summary['perempuan'] }}
                 </div>
                 <div class="dash-stat-label">Laki / Perempuan</div>
@@ -119,7 +119,7 @@
 
                     @if ($q || $jenis || $status || $gender)
                         <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -154,18 +154,18 @@
                         @endphp
                         @foreach ($cols as [$key, $label])
                             <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
                                 data-sort="{{ $key }}">
                                 {{ $label }}
                                 <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                         @endforeach
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Pendidikan / Mapel
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                             Aksi
                         </th>
                     </tr>
@@ -173,32 +173,32 @@
                 <tbody>
                     @forelse ($list as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                            <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Nama">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <div
-                                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-sm, 0.8125rem); flex-shrink: 0;">
                                         <i class="fas fa-chalkboard-user"></i>
                                     </div>
                                     <div>
                                         <div style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</div>
                                         @if (!empty($item->nik))
                                             <div
-                                                style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted); margin-top: 1px;">
+                                                style="font-size: var(--text-xs, 0.75rem); font-family: monospace; color: var(--text-muted); margin-top: 1px;">
                                                 NIK: <span class="copyable" data-copy="{{ $item->nik }}"
                                                     data-label="NIK"
                                                     title="Klik untuk salin NIK">{{ $item->nik }}</span>
                                             </div>
                                         @endif
                                         @if ($item->email)
-                                            <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                                 {{ $item->email }}
                                             </div>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                            <td style="padding: 14px 18px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                 data-label="NUPTK/NIP">
                                 <div class="cell-col-right">
                                     <div>
@@ -210,7 +210,7 @@
                                         @endif
                                     </div>
                                     @if ($item->nip)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             <span class="copyable" data-copy="{{ $item->nip }}" data-label="NIP"
                                                 title="Klik untuk salin NIP">NIP: {{ $item->nip }}</span>
                                         </div>
@@ -219,28 +219,28 @@
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="L/P">
                                 <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                    style="font-size: 0.72rem; padding: 2px 7px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                     {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);"
+                            <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-color);"
                                 data-label="Jenis">
                                 {{ $item->jenis_ptk ?: '-' }}
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Status">
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);" data-label="Status">
                                 <span
                                     class="badge {{ str_contains(strtoupper($item->status_kepegawaian ?? ''), 'PNS') ? 'badge-primary' : 'badge-outline' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ $item->status_kepegawaian ?: '-' }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="Pendidikan">
                                 <div class="cell-col-right">
                                     <div style="color: var(--text-color); font-weight: 500;">
                                         {{ $item->pendidikan_terakhir ?: '-' }}</div>
                                     @if ($item->bidang_studi_terakhir)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $item->bidang_studi_terakhir }}</div>
                                     @endif
                                 </div>
@@ -253,7 +253,7 @@
                                             <i class="fas fa-id-card"></i>
                                         </button>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </div>
                             </td>
@@ -261,8 +261,8 @@
                     @empty
                         <tr>
                             <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                 <div>Belum ada data Guru &amp; Tendik yang cocok.</div>
                             </td>
                         </tr>
@@ -283,27 +283,27 @@
     <div id="gtkModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 640px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 640px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
                     <h3 id="gtkJabatan"
-                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">Profil Guru
+                        style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">Profil Guru
                         &amp; Tendik</h3>
-                    <div id="gtkSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
+                    <div id="gtkSubtitle" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-</div>
                 </div>
                 <button type="button" onclick="closeBiodataGuruModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div id="gtkLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat profil GTK...</div>
             </div>
 
-            <div id="gtkContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
+            <div id="gtkContent" style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 8px 0; color: var(--text-muted); width: 140px;">Nama Lengkap</td>
@@ -358,16 +358,16 @@
                 <div id="gtkBebanSection"
                     style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i
+                        <span style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
                                 class="fas fa-book-bookmark text-primary me-1"></i> Penugasan Mengajar
                             (Pembelajaran)</span>
                         <span id="gtkJmlJam" class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.72rem; padding: 2px 7px;">0
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
                             JP</span>
                     </div>
                     <div style="overflow-x: auto;">
                         <table class="table"
-                            style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem); margin-bottom: 0;">
                             <thead>
                                 <tr
                                     style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
@@ -387,7 +387,7 @@
             <div
                 style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <button type="button" class="btn btn-outline" onclick="closeBiodataGuruModal()"
-                    style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
             </div>
         </div>
     </div>

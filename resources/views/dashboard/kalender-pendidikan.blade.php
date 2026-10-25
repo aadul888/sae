@@ -11,7 +11,7 @@
         .periode-nav-wrapper .view-switcher-group {
             background: var(--bg-card);
             padding: 3px;
-            border-radius: 10px;
+            border-radius: var(--radius-lg, 12px);
             border: 1px solid var(--border-color);
             display: inline-flex;
             align-items: center;
@@ -24,9 +24,9 @@
             outline: none !important;
             cursor: pointer;
             padding: 6px 14px !important;
-            border-radius: 7px !important;
+            border-radius: var(--radius-md, 8px) !important;
             color: var(--text-muted) !important;
-            font-size: 0.8rem !important;
+            font-size: var(--text-sm, 0.8125rem) !important;
             font-weight: 600 !important;
             display: inline-flex;
             align-items: center;
@@ -54,7 +54,7 @@
             outline: none !important;
             color: var(--text-muted) !important;
             padding: 6px 10px !important;
-            border-radius: 7px !important;
+            border-radius: var(--radius-md, 8px) !important;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -107,7 +107,7 @@
                 text-align: center !important;
                 justify-content: center !important;
                 padding: 7px 8px !important;
-                font-size: 0.76rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
             }
 
             .periode-nav-wrapper .scope-subnav-bulan,
@@ -134,7 +134,7 @@
                 text-align: center !important;
                 justify-content: center !important;
                 padding: 7px 10px !important;
-                font-size: 0.78rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
             }
         }
     </style>
@@ -143,16 +143,16 @@
 @section('content')
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-calendar-days text-primary me-2"></i> Master Data — Kalender Pendidikan
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin-bottom: 6px;">
                 Manajemen agenda akademik, hari libur, dan jadwal KBM (Luring, Daring, Libur) yang terintegrasi langsung
                 dengan sistem presensi
                 peserta didik, guru, serta tendik.
             </p>
             <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="badge"
-                style="background: rgba(99,102,241,0.12); color: var(--primary); text-decoration: none; border: 1px solid rgba(99,102,241,0.25); font-size: 0.76rem; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;"
+                style="background: rgba(99,102,241,0.12); color: var(--primary); text-decoration: none; border: 1px solid rgba(99,102,241,0.25); font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; gap: 5px;"
                 title="Atur Skema Hari Sekolah di Master Jadwal KBM">
                 <i class="fas fa-sliders"></i> Skema:
                 {{ ($skemaHari ?? '5_hari') === '6_hari' ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)' }}
@@ -162,7 +162,7 @@
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnTambahAgenda"
                     onclick="if(typeof openAddModal === 'function') openAddModal();"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Agenda Baru">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -178,11 +178,11 @@
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                     {{ number_format($hariEfektif) }}
                 </div>
                 <div class="dash-stat-label">Hari Efektif Belajar</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     <i class="fas fa-clock-rotate-left me-1"></i> {{ number_format($hariEfektifTerlewati) }} hari terlewati
                 </div>
             </div>
@@ -194,11 +194,11 @@
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($totalAgenda) }}
                 </div>
                 <div class="dash-stat-label">Total Agenda</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     {{ $periode['label'] ?? 'Periode Terpilih' }}
                 </div>
             </div>
@@ -210,11 +210,11 @@
                 <i class="fas fa-umbrella-beach"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
                     {{ number_format($totalLiburPd) }}
                 </div>
                 <div class="dash-stat-label">Libur Peserta Didik</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Bebas Presensi Siswa
                 </div>
             </div>
@@ -226,11 +226,11 @@
                 <i class="fas fa-laptop-house"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #3b82f6;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
                     {{ number_format($totalDaring ?? 0) }}
                 </div>
                 <div class="dash-stat-label">Agenda Daring (PJJ)</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Belajar dari Rumah
                 </div>
             </div>
@@ -242,11 +242,11 @@
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
                     {{ number_format($totalLiburGtk) }}
                 </div>
                 <div class="dash-stat-label">Libur Guru / Tendik</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Bebas Presensi GTK
                 </div>
             </div>
@@ -258,11 +258,11 @@
                 <i class="fas fa-file-signature"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #a855f7;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #a855f7;">
                     {{ number_format($totalUjian) }}
                 </div>
                 <div class="dash-stat-label">Agenda Asesmen / Ujian</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Evaluasi Akademik
                 </div>
             </div>
@@ -316,7 +316,7 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <span
-                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); min-width: 135px; text-align: center;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); min-width: 135px; text-align: center;">
                         <i class="fas fa-calendar-check text-primary me-1"></i> {{ $curMonthName }} {{ $curMonthYear }}
                     </span>
                     <button type="button" class="btn-nav-month" data-month="{{ $nextMonthStr }}"
@@ -429,7 +429,7 @@
 
             @if ($q || $tipe || $modePresensi || $dampak || $bulan || $semester !== 'semua')
                 <button type="button" id="btnResetFilter" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                     title="Reset filter">
                     <i class="fas fa-undo"></i>
                 </button>
@@ -455,23 +455,23 @@
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax({{ $scope === 'bulan' ? '320px' : '340px' }}, 1fr)); gap: 20px; align-items: start;">
             @foreach ($calendarData['months'] as $mItem)
                 <div class="card cal-month-card"
-                    style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--bg-card); box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: flex; flex-direction: column;">
+                    style="padding: 16px 18px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--bg-card); box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: flex; flex-direction: column;">
                     <!-- Month Header -->
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                         <div>
                             <h4
-                                style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-calendar text-primary" style="font-size: 0.9rem;"></i>
+                                style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-calendar text-primary" style="font-size: var(--text-base, 0.875rem);"></i>
                                 {{ $mItem['full_label'] }}
                             </h4>
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                 Semester {{ $mItem['semester'] === '1' ? '1 (Ganjil)' : '2 (Genap)' }} &bull;
                                 {{ $mItem['heb_count'] }} Hari Efektif Belajar
                             </div>
                         </div>
                         <span class="badge"
-                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: var(--text-xs, 0.75rem); font-weight: 700; padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
                             {{ $mItem['events_count'] }} Agenda
                         </span>
                     </div>
@@ -481,7 +481,7 @@
                         <table class="cal-mini-table"
                             style="width: 100%; border-collapse: separate; border-spacing: 2px; text-align: center; margin-bottom: 10px;">
                             <thead>
-                                <tr style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">
+                                <tr style="font-size: var(--text-xs, 0.75rem); font-weight: 800; color: var(--text-muted);">
                                     <th style="padding: 4px 2px; width: 14.28%;">Sen</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Sel</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Rab</th>
@@ -556,9 +556,9 @@
                                                     <div class="cal-day-cell {{ $evCount > 0 ? 'has-event' : '' }}"
                                                         data-date="{{ $dInfo['date'] }}"
                                                         @if ($evCount > 0) title="{{ implode(' | ', array_column($dInfo['events'], 'nama_kegiatan')) }}" @endif
-                                                        style="width: 100%; min-height: 28px; border-radius: 6px; background: {{ $bgColor }}; border: 1px solid {{ $borderColor }}; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: {{ $evCount > 0 ? 'pointer' : 'default' }};">
+                                                        style="width: 100%; min-height: 28px; border-radius: var(--radius-sm, 6px); background: {{ $bgColor }}; border: 1px solid {{ $borderColor }}; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: {{ $evCount > 0 ? 'pointer' : 'default' }};">
                                                         <span
-                                                            style="font-size: 0.76rem; font-weight: {{ $isToday || $evCount > 0 ? '800' : '600' }}; color: {{ $textColor }}; line-height: 1;">
+                                                            style="font-size: var(--text-sm, 0.8125rem); font-weight: {{ $isToday || $evCount > 0 ? '800' : '600' }}; color: {{ $textColor }}; line-height: 1;">
                                                             {{ $dInfo['day'] }}
                                                         </span>
                                                         @if ($evCount > 0)
@@ -577,17 +577,17 @@
 
                     <!-- Detail Keterangan Kalender di Bawah Tanggal Bulan -->
                     <div class="cal-month-notes"
-                        style="margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: 0.74rem;">
+                        style="margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border-color); font-size: var(--text-xs, 0.75rem);">
                         <div
                             style="font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-list-check text-primary" style="font-size: 0.7rem;"></i> Keterangan
+                                <i class="fas fa-list-check text-primary" style="font-size: var(--text-xs, 0.75rem);"></i> Keterangan
                                 Kegiatan:
                             </span>
                         </div>
 
                         @if ($mItem['events']->isEmpty())
-                            <div style="font-size: 0.72rem; color: var(--text-muted); font-style: italic; padding: 4px 0;">
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-style: italic; padding: 4px 0;">
                                 Tidak ada agenda khusus pada bulan ini (KBM Reguler).
                             </div>
                         @else
@@ -601,20 +601,20 @@
                                         $agDotColor = $ag->warna ?: '#3b82f6';
                                     @endphp
                                     <div class="cal-note-item btn-view-agenda" data-item='@json($ag)'
-                                        style="display: flex; align-items: flex-start; gap: 6px; padding: 4px 6px; border-radius: 6px; background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;"
+                                        style="display: flex; align-items: flex-start; gap: 6px; padding: 4px 6px; border-radius: var(--radius-sm, 6px); background: rgba(255,255,255,0.02); cursor: pointer; transition: background 0.15s ease;"
                                         title="Klik untuk melihat detail agenda {{ $ag->nama_kegiatan }}">
                                         <span class="badge"
-                                            style="background: rgba(255,255,255,0.06); color: var(--text-color); font-size: 0.68rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; flex-shrink: 0;">
+                                            style="background: rgba(255,255,255,0.06); color: var(--text-color); font-size: var(--text-2xs, 0.6875rem); font-weight: 700; padding: 1px 5px; border-radius: var(--radius-xs, 4px); flex-shrink: 0;">
                                             {{ $rentangTgl }}
                                         </span>
                                         <div style="flex: 1; min-width: 0; line-height: 1.3;">
                                             <span
                                                 style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $agDotColor }}; margin-right: 2px;"></span>
                                             <strong
-                                                style="color: var(--text-color); font-size: 0.73rem;">{{ $ag->nama_kegiatan }}</strong>
+                                                style="color: var(--text-color); font-size: var(--text-xs, 0.75rem);">{{ $ag->nama_kegiatan }}</strong>
                                             @if ($ag->keterangan)
                                                 <div
-                                                    style="color: var(--text-muted); font-size: 0.68rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                                    style="color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
                                                     {{ $ag->keterangan }}
                                                 </div>
                                             @endif
@@ -639,29 +639,29 @@
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th class="sortable-th {{ $sort === 'tanggal_mulai' ? 'sorted' : '' }}"
                                 data-sort="tanggal_mulai"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tanggal Pelaksanaan
                                 <span class="sort-icon">{!! $sort === 'tanggal_mulai' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'nama_kegiatan' ? 'sorted' : '' }}"
                                 data-sort="nama_kegiatan"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Agenda &amp; Kategori
                                 <span class="sort-icon">{!! $sort === 'nama_kegiatan' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'mode_presensi' ? 'sorted' : '' }}"
                                 data-sort="mode_presensi"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Mode &amp; Dampak Presensi
                                 <span class="sort-icon">{!! $sort === 'mode_presensi' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'created_by' ? 'sorted' : '' }}" data-sort="created_by"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Petugas
                                 <span class="sort-icon">{!! $sort === 'created_by' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
                                 Aksi
                             </th>
                         </tr>
@@ -716,7 +716,7 @@
                                 ];
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
-                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Tanggal">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);" data-label="Tanggal">
                                     <div
                                         style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%;">
                                         <div
@@ -727,7 +727,7 @@
                                                 @endif
                                             </span>
                                         </div>
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                             <i class="fas fa-hourglass-half me-1"></i> {{ $daysDiff }} hari
                                             pelaksanaan
                                         </div>
@@ -738,19 +738,19 @@
                                     <div
                                         style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%; min-width: 0;">
                                         <div
-                                            style="font-weight: 700; color: var(--text-color); font-size: 0.9rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                                             <span
                                                 style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {{ $item->warna }}; flex-shrink: 0;"></span>
                                             <span>{{ $item->nama_kegiatan }}</span>
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                             <span class="badge"
-                                                style="background: {{ $styleBadge['bg'] }}; color: {{ $styleBadge['color'] }}; border: 1px solid {{ $styleBadge['border'] }}; font-size: 0.68rem; padding: 2px 7px; border-radius: 6px; white-space: nowrap;">
+                                                style="background: {{ $styleBadge['bg'] }}; color: {{ $styleBadge['color'] }}; border: 1px solid {{ $styleBadge['border'] }}; font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-sm, 6px); white-space: nowrap;">
                                                 {{ $item->tipe_label }}
                                             </span>
                                             @if ($item->keterangan)
                                                 <span
-                                                    style="font-size: 0.74rem; color: var(--text-muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                                                     title="{{ $item->keterangan }}">
                                                     {{ $item->keterangan }}
                                                 </span>
@@ -760,7 +760,7 @@
                                 </td>
 
                                 <td style="padding: 14px 18px;" data-label="Presensi">
-                                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem;">
+                                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: var(--text-xs, 0.75rem);">
                                         <div>
                                             {!! $item->mode_presensi_badge !!}
                                         </div>
@@ -770,12 +770,12 @@
                                                 Didik:</span>
                                             @if ($item->libur_pd || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i>
                                                     {{ $item->mode_presensi === 'daring' ? 'Daring' : 'Efektif' }}
                                                 </span>
@@ -786,12 +786,12 @@
                                                 style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Guru:</span>
                                             @if ($item->libur_guru || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i> Efektif
                                                 </span>
                                             @endif
@@ -801,12 +801,12 @@
                                                 style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Tendik:</span>
                                             @if ($item->libur_tendik || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
+                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i> Efektif
                                                 </span>
                                             @endif
@@ -814,7 +814,7 @@
                                     </div>
                                 </td>
 
-                                <td style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);"
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Petugas">
                                     <div
                                         style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
@@ -822,7 +822,7 @@
                                             <i class="fas fa-user-pen me-1 text-primary"></i>
                                             {{ $item->created_by ?: 'Sistem' }}
                                         </div>
-                                        <div style="font-size: 0.72rem; opacity: 0.85;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); opacity: 0.85;">
                                             {{ $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-' }}
                                         </div>
                                     </div>
@@ -859,19 +859,19 @@
                             @empty
                                 <tr>
                                     <td colspan="5"
-                                        style="padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                        <div style="font-size: 2.2rem; opacity: 0.35; margin-bottom: 8px;">
+                                        style="padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                        <div style="font-size: var(--text-3xl, 1.875rem); opacity: 0.35; margin-bottom: 8px;">
                                             <i class="fas fa-calendar-xmark"></i>
                                         </div>
                                         <div style="font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Belum Ada
                                             Agenda Kalender Pendidikan</div>
-                                        <div style="font-size: 0.82rem;">Tidak ada agenda kalender pendidikan yang sesuai
+                                        <div style="font-size: var(--text-sm, 0.8125rem);">Tidak ada agenda kalender pendidikan yang sesuai
                                             filter
                                             pada periode {{ $periode['label'] ?? '' }}.</div>
                                         @if ($canCreate)
                                             <div style="margin-top: 14px;">
                                                 <button type="button" class="btn btn-primary" id="btnEmptyTambahAgenda"
-                                                    style="font-size: 0.82rem; padding: 7px 16px;">
+                                                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 16px;">
                                                     <i class="fas fa-plus me-1"></i> Tambah Agenda Baru
                                                 </button>
                                             </div>
@@ -893,7 +893,7 @@
             <!-- End Tampilan Tabel -->
 
             @include('dashboard.kalender-pendidikan.partials.modal-kalender')
-                            style="padding: 7px 18px; font-size: 0.85rem;">Tutup</button>
+                            style="padding: 7px 18px; font-size: var(--text-base, 0.875rem);">Tutup</button>
                     </div>
                 </div>
             </div>

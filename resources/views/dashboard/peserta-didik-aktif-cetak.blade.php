@@ -112,7 +112,7 @@
                         <td>{{ $ttl ?: '—' }}</td>
                         <td class="col-center">{{ $s->agama ?: '—' }}</td>
                         <td>{{ $ortu }}</td>
-                        <td style="font-size: 0.73rem;">{{ $s->alamat_jalan ?: '—' }}</td>
+                        <td style="font-size: var(--text-xs, 0.75rem);">{{ $s->alamat_jalan ?: '—' }}</td>
                         <td class="col-center col-mono">{{ $s->no_hp ?: '—' }}</td>
                         <td class="col-center" style="color: #059669; font-weight: 700;">Aktif</td>
                     </tr>
@@ -135,7 +135,7 @@
                 <div style="font-weight: 700; text-decoration: underline;">
                     {{ $kepalaSekolah?->nama ?: $sekolah?->nama_kepala_sekolah ?? 'Kepala Sekolah' }}
                 </div>
-                <div style="font-size: 0.78rem; color: #4b5563;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: #4b5563;">
                     NIP. {{ $kepalaSekolah?->nip ?: $sekolah?->nip_kepala_sekolah ?? '—' }}
                 </div>
             </div>
@@ -147,7 +147,7 @@
                 <div style="font-weight: 700; text-decoration: underline;">
                     {{ $waliNama }}
                 </div>
-                <div style="font-size: 0.78rem; color: #4b5563;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: #4b5563;">
                     NIP. {{ $waliNip ?: '—' }}
                 </div>
             </div>

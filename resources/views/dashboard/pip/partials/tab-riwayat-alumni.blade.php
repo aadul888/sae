@@ -6,7 +6,7 @@
             <i class="fas fa-user-graduate"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary);">
                 {{ number_format($riwayatAlumniStats['total_siswa'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Alumni & Non-Aktif</div>
@@ -18,7 +18,7 @@
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                 {{ number_format($riwayatAlumniStats['total_pemberian'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">SK Pemberian</div>
@@ -30,7 +30,7 @@
             <i class="fas fa-file-signature"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
                 {{ number_format($riwayatAlumniStats['total_nominasi'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">SK Nominasi</div>
@@ -42,7 +42,7 @@
             <i class="fas fa-money-bill-trend-up"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem; color: #0ea5e9; white-space: nowrap;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #0ea5e9; white-space: nowrap;">
                 Rp {{ number_format($riwayatAlumniStats['total_nominal'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Total Dana Cair</div>
@@ -105,7 +105,7 @@
                 @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($statusKeluarFilter ?? ''))
                     <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat_alumni']) }}"
                         class="btn btn-outline btn-reset-filter"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                         title="Reset filter" data-live-reset>
                         <i class="fas fa-undo"></i>
                     </a>
@@ -131,25 +131,25 @@
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                     <th class="th-no d-none-mobile"
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
                         No</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
                         Peserta Didik</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 150px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 150px;">
                         Status &amp; Rombel</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
                         SK / Tahap</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
                         Nominal</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
                         Pencairan</th>
                     <th
-                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 80px;">
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: center; width: 80px;">
                         Aksi</th>
                 </tr>
             </thead>
@@ -166,13 +166,13 @@
                     <tr class="pip-riwayat-row"
                         style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td class="cell-pd-no d-none-mobile"
-                            style="text-align: center; color: var(--text-muted); font-size: 0.84rem; font-weight: 700;"
+                            style="text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem); font-weight: 700;"
                             data-label="No">
                             {{ $itemIndex }}</td>
                         <td class="cell-pd-nama" style="padding: 12px 14px;" data-label="Peserta Didik">
                             <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 10px;">
                                 <div class="user-avatar pd-foto-thumb"
-                                    style="width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
                                     <img src="{{ $r->foto_url ?: asset('img/logo-dark.png') }}"
                                         alt="{{ $r->nama_pd }}"
                                         style="width: 100%; height: 100%; object-fit: cover;"
@@ -182,16 +182,16 @@
                                     <div class="pd-title-row"
                                         style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                         <span class="badge badge-outline badge-row-no d-none-desktop d-block-mobile"
-                                            style="font-size: 0.68rem; padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
+                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
                                             #{{ $itemIndex }}
                                         </span>
                                         <div class="pd-nama"
-                                            style="font-weight: 800; font-size: 0.88rem; color: var(--text-color); line-height: 1.35; word-break: break-word;">
+                                            style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color); line-height: 1.35; word-break: break-word;">
                                             {{ $r->nama_pd }}
                                         </div>
                                     </div>
                                     <div class="pd-meta-row"
-                                        style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
                                         <span>NISN: <strong>{{ $r->nisn ?: '-' }}</strong></span>
                                         @if ($r->nama_ibu_kandung)
                                             &bull; <span style="font-family: inherit;">Ibu:
@@ -207,27 +207,27 @@
                                     style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 2px;">
                                     @if ($r->status_keluar === 'Alumni')
                                         <span class="badge badge-success"
-                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                             Alumni{{ $r->tahun_lulus ? ' (' . $r->tahun_lulus . ')' : '' }}
                                         </span>
                                     @elseif ($r->status_keluar === 'Mutasi')
                                         <span class="badge badge-warning"
-                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                             Mutasi
                                         </span>
                                     @elseif (!empty($r->status_keluar))
                                         <span class="badge badge-outline"
-                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                             {{ $r->status_keluar }}
                                         </span>
                                     @else
                                         <span class="badge badge-outline"
-                                            style="font-size: 0.7rem; padding: 2px 7px; opacity: 0.85;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px; opacity: 0.85;">
                                             Kelas Non-Aktif / Arsip
                                         </span>
                                     @endif
                                 </div>
-                                <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); font-weight: 600;">
                                     {{ $rombelTeks }}
                                 </div>
                             </div>
@@ -237,20 +237,20 @@
                                 <div
                                     style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap;">
                                     <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
-                                        style="font-size: 0.68rem; padding: 1px 6px;">
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                         {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
                                     </span>
                                     @if (!empty($r->fase))
                                         <span class="badge badge-outline"
-                                            style="font-size: 0.66rem; padding: 1px 5px;">
+                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;">
                                             {{ \App\Models\PipUsulan::getFaseLabel($r->fase) }}
                                         </span>
                                     @endif
                                 </div>
-                                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
+                                <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color);">
                                     {{ $r->nomor_sk ?: '-' }}
                                 </div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                     @if (!empty($r->tahun_pelajaran))
                                         <span style="font-weight: 700;">TP {{ $r->tahun_pelajaran }}</span> &bull;
                                     @elseif (!empty($r->tahun))
@@ -271,21 +271,21 @@
                             @if ($isNominasi)
                                 <span
                                     class="badge {{ !empty($r->tanggal_aktivasi) ? 'badge-success' : 'badge-warning' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ !empty($r->tanggal_aktivasi) ? 'Sudah Aktivasi' : 'Belum Aktivasi' }}
                                 </span>
                                 @if ($r->tanggal_aktivasi)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                         Tgl: {{ $r->tanggal_aktivasi }}
                                     </div>
                                 @endif
                             @else
                                 <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ $r->status_cair ?: 'Belum ada status' }}
                                 </span>
                                 @if ($r->tanggal_cair)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                         Tgl Cair: {{ $r->tanggal_cair }}
                                     </div>
                                 @endif
@@ -303,7 +303,7 @@
                             <td colspan="7" class="cell-empty"
                                 style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-user-graduate mb-2"
-                                    style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                    style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>
                                 Belum ada data riwayat penerima PIP untuk kelas lain atau alumni.
                             </td>
                         </tr>

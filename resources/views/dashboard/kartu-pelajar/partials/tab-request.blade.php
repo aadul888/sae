@@ -2,21 +2,21 @@
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <div>
-                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">Antrean Request
+                <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color);">Antrean Request
                     Cetak Kartu</h3>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                     Catat permintaan cetak baru / penggantian kartu. Status "Selesai" otomatis menandai kartu sudah
                     dicetak.
                 </div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <button type="button" class="btn btn-outline" onclick="openModalScanRfidSelesai()"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: #059669; color: #059669; background: var(--card-bg);"
+                    style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: #059669; color: #059669; background: var(--card-bg);"
                     title="Pilih Siswa &amp; Tap Kartu RFID Fisik untuk Verifikasi Selesai &amp; Registrasi Presensi">
                     <i class="fas fa-satellite-dish"></i> Tap RFID Selesai Cetak
                 </button>
                 <button type="button" class="btn btn-primary" onclick="openTambahRequest()"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-plus-circle"></i> Tambah Request
                 </button>
             </div>
@@ -33,7 +33,7 @@
                         <i class="fas {{ $sIcon }}"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: 1.35rem; color: {{ $sColor }};">
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: {{ $sColor }};">
                             {{ number_format($requestStats[$sKey] ?? 0, 0, ',', '.') }}</div>
                         <div class="dash-stat-label">{{ $sLabel }}</div>
                     </div>
@@ -91,7 +91,7 @@
                         @if ($q || $rombel || $statusBayar || $reqStatus)
                             <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -112,15 +112,15 @@
 
                 <!-- Floating Multi-Select Bulk Actions Bar untuk Request Cetak -->
                 <div id="bulkActionRequestBar"
-                    style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                     <div
-                        style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <span style="display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-square"></i>
                             <span><span id="bulkRequestSelectedCount">0</span> antrean dipilih</span>
                         </span>
                         <label id="wrapPilihSemuaFilterRequest"
-                            style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; color: #4338ca; background: #ffffff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; cursor: pointer;">
+                            style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #4338ca; background: #ffffff; padding: 4px 10px; border-radius: var(--radius-sm, 6px); border: 1px solid #c7d2fe; cursor: pointer;">
                             <input type="checkbox" id="checkPilihSemuaFilterRequest"
                                 style="accent-color: var(--primary); cursor: pointer;">
                             <span>Pilih <strong>Semua
@@ -130,28 +130,28 @@
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <button type="button" class="btn btn-outline btn-sm" onclick="executeCetakSelectedRequests()"
-                            style="border-color: #0284c7; color: #0284c7; background: #ffffff; font-weight: 700; padding: 5px 12px; font-size: 0.8rem;"
+                            style="border-color: #0284c7; color: #0284c7; background: #ffffff; font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);"
                             title="Buka Lembar Cetak Masal Khusus Antrean Terpilih">
                             <i class="fas fa-print me-1"></i> Cetak Antrean Terpilih
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('set_diproses')"
-                            style="border-color: #2563eb; color: #2563eb; font-weight: 600; padding: 5px 12px; font-size: 0.8rem;">
+                            style="border-color: #2563eb; color: #2563eb; font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-gears me-1"></i> Set Diproses
                         </button>
                         <button type="button" class="btn btn-primary btn-sm"
                             onclick="executeBulkRequestAction('set_selesai')"
-                            style="background: #10b981; border-color: #10b981; font-weight: 700; padding: 5px 12px; font-size: 0.8rem;">
+                            style="background: #10b981; border-color: #10b981; font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-circle-check me-1"></i> Set Selesai (Cetak)
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('set_ditolak')"
-                            style="border-color: #ef4444; color: #ef4444; font-weight: 600; padding: 5px 12px; font-size: 0.8rem;">
+                            style="border-color: #ef4444; color: #ef4444; font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-ban me-1"></i> Tolak
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('delete')"
-                            style="border-color: #94a3b8; color: #475569; font-weight: 600; padding: 5px 10px; font-size: 0.8rem;"
+                            style="border-color: #94a3b8; color: #475569; font-weight: 600; padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);"
                             title="Hapus antrean terpilih">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -169,44 +169,44 @@
                                     title="Pilih Semua Antrean di Halaman Ini">
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Peserta Didik
                                 <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}"
                                 data-sort="nama_rombel"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Rombel / Kelas
                                 <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ in_array($sort, ['created_at', 'tanggal']) ? 'sorted' : '' }}"
                                 data-sort="created_at"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tanggal Request
                                 <span class="sort-icon">{!! in_array($sort, ['created_at', 'tanggal']) ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'jenis_request' ? 'sorted' : '' }}"
                                 data-sort="jenis_request"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis &amp; Alasan
                                 <span class="sort-icon">{!! $sort === 'jenis_request' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'status_pembayaran' ? 'sorted' : '' }}"
                                 data-sort="status_pembayaran"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Pembayaran
                                 <span class="sort-icon">{!! $sort === 'status_pembayaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'status' ? 'sorted' : '' }}" data-sort="status"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Status Request
                                 <span class="sort-icon">{!! $sort === 'status' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 170px;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 170px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -226,7 +226,7 @@
                                 <td style="text-align: center; padding: 12px 10px;" data-label="Pilih">
                                     <input type="checkbox" class="check-request-row" value="{{ $rq->id }}">
                                 </td>
-                                <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;"
+                                <td style="text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);"
                                     data-label="No">
                                     {{ $requestList->firstItem() + $ri }}</td>
                                 <td style="padding: 12px 16px;" data-label="Peserta Didik">
@@ -237,51 +237,51 @@
                                             onerror="this.src='/img/logo-dark.png'">
                                         <div>
                                             <div
-                                                style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                                style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                                 {{ $rq->nama }}
                                             </div>
                                             <div
-                                                style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                                 NISN: {{ $rq->nisn ?: '-' }} &bull; NIPD: {{ $rq->nipd ?: '-' }}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Kelas">
-                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                         {{ $rq->nama_rombel ?: '-' }}
                                     </span>
                                 </td>
-                                <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
+                                <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); white-space: nowrap;"
                                     data-label="Tanggal">
                                     {{ \Carbon\Carbon::parse($rq->created_at)->translatedFormat('d M Y H:i') }}
                                     <div>oleh {{ $rq->diminta_oleh ?: 'Admin' }}</div>
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Jenis">
                                     <span class="badge badge-outline"
-                                        style="font-size: 0.72rem;">{{ \App\Models\KartuPelajarRequest::JENIS[$rq->jenis_request] ?? $rq->jenis_request }}</span>
+                                        style="font-size: var(--text-xs, 0.75rem);">{{ \App\Models\KartuPelajarRequest::JENIS[$rq->jenis_request] ?? $rq->jenis_request }}</span>
                                     @if ($rq->alasan)
-                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px;">
                                             {{ $rq->alasan }}</div>
                                     @endif
                                     @if ($rq->catatan_admin)
-                                        <div style="font-size: 0.74rem; color: var(--primary); margin-top: 2px;"><i
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--primary); margin-top: 2px;"><i
                                                 class="fas fa-comment-dots me-1"></i>{{ $rq->catatan_admin }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Pembayaran">
-                                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ \App\Models\KartuPelajarRequest::METODE_PEMBAYARAN[$rq->metode_pembayaran_aktif] ?? strtoupper($rq->metode_pembayaran_aktif ?: 'Belum diisi') }}
                                     </span>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                         {{ $rq->status_pembayaran_aktif === 'lunas' ? 'Lunas' : 'Belum Bayar' }}
                                     </div>
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Status">
                                     <span class="badge {{ $rqColor }}"
-                                        style="font-size: 0.74rem; padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
                                     @if ($rq->selesai_at)
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                             {{ \Carbon\Carbon::parse($rq->selesai_at)->translatedFormat('d M Y H:i') }}
                                         </div>
                                     @endif
@@ -311,7 +311,7 @@
                                             @csrf
                                             <select name="status" class="form-control select-request-status"
                                                 data-current="{{ $rq->status }}" title="Ubah Status Request"
-                                                style="width: 105px; height: 30px; padding: 2px 6px; font-size: 0.76rem; border-radius: 6px; font-weight: 600;">
+                                                style="width: 105px; height: 30px; padding: 2px 6px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); font-weight: 600;">
                                                 @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
                                                     <option value="{{ $stKey }}"
                                                         {{ $rq->status === $stKey ? 'selected' : '' }}>
@@ -335,7 +335,7 @@
                                 <td colspan="8"
                                     style="padding: 35px; text-align: center; color: var(--text-muted);">
                                     <i class="fas fa-paper-plane mb-2"
-                                        style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>
                                     Belum ada request cetak kartu.
                                 </td>
                             </tr>

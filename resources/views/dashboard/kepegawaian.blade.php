@@ -6,10 +6,10 @@
     <!-- 1. Header Banner Baku SAE -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-id-card-alt text-primary me-2"></i> Administrasi Kepegawaian GTK
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 Pengelolaan arsip berkas pegawai guru &amp; tendik, kenaikan gaji berkala (KGB), serta permohonan cuti dan
                 izin resmi.
             </p>
@@ -17,26 +17,26 @@
 
         <div class="dash-banner-actions">
             <a href="{{ route('dashboard.tendik', ['bidang' => 'kepegawaian']) }}" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                 title="Dashboard Ringkasan Kepegawaian">
                 <i class="fas fa-gauge-high text-primary"></i>
             </a>
 
             @if ($tab === 'pegawai' || $tab === 'berkas' || $tab === 'guru' || $tab === 'tendik')
                 <button type="button" class="btn btn-primary" id="btnOpenModalUploadBerkas"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Unggah Berkas Digital GTK">
                     <i class="fas fa-upload"></i>
                 </button>
             @elseif($tab === 'kgb')
                 <button type="button" class="btn btn-primary" id="btnOpenModalKgb"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Catat Usulan KGB Baru">
                     <i class="fas fa-plus"></i>
                 </button>
             @elseif($tab === 'cuti')
                 <button type="button" class="btn btn-primary" id="btnOpenModalCuti"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Buat Pengajuan Cuti / Izin">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -47,14 +47,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -107,16 +107,16 @@
     <!-- Alert Notifikasi KGB Jatuh Tempo -->
     @if ($kgbJatuhTempoCount > 0)
         <div
-            style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: var(--radius-md, 8px); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-bell" style="color: #f59e0b; font-size: 1.15rem;"></i>
-                <span style="font-size: 0.86rem; color: #92400e;">
+                <i class="fas fa-bell" style="color: #f59e0b; font-size: var(--text-xl, 1.25rem);"></i>
+                <span style="font-size: var(--text-base, 0.875rem); color: #92400e;">
                     <strong>{{ $kgbJatuhTempoCount }} GTK</strong> jatuh tempo Kenaikan Gaji Berkala (KGB) dalam kurun waktu
                     90 hari ke depan.
                 </span>
             </div>
             <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}" class="btn btn-outline"
-                style="border-color: #f59e0b; color: #b45309; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;"
+                style="border-color: #f59e0b; color: #b45309; padding: 4px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;"
                 title="Buka KGB Tracker">
                 Buka KGB Tracker <i class="fas fa-arrow-right ms-1"></i>
             </a>
@@ -139,7 +139,7 @@
                 <i class="fas fa-business-time"></i> KGB Tracker
                 @if ($kgbJatuhTempoCount > 0)
                     <span
-                        style="background: #f59e0b; color: white; font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; margin-left: 4px;">{{ $kgbJatuhTempoCount }}</span>
+                        style="background: #f59e0b; color: white; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; border-radius: var(--radius-lg, 12px); margin-left: 4px;">{{ $kgbJatuhTempoCount }}</span>
                 @endif
             </a>
             <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}"
@@ -201,7 +201,7 @@
                     @if (!empty($search) || !empty($filterJenis) || !empty($filterStatus) || !empty($filterGender))
                         <a href="{{ route('dashboard.kepegawaian.index', ['tab' => $tab]) }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter & pencarian" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -230,28 +230,28 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Lengkap Pegawai</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 NUPTK / NIP</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 70px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 70px;">
                                 L/P</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis PTK</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Pendidikan Terakhir</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -259,28 +259,28 @@
                         @forelse($pegawaiList as $idx => $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td data-label="No"
-                                    style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); text-align: center;">
                                     {{ $pegawaiList->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Nama" style="padding: 12px 18px;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <div
-                                            style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.85rem; flex-shrink: 0;">
+                                            style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-base, 0.875rem); flex-shrink: 0;">
                                             <i
                                                 class="fas {{ str_contains(strtolower($item->jenis_ptk_id_str ?? ''), 'guru') ? 'fa-chalkboard-user' : 'fa-id-badge' }}"></i>
                                         </div>
                                         <div>
-                                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">
+                                            <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                                 {{ $item->nama }}</div>
                                             @if (!empty($item->nik))
                                                 <div
-                                                    style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted);">
+                                                    style="font-size: var(--text-xs, 0.75rem); font-family: monospace; color: var(--text-muted);">
                                                     NIK: <span class="copyable" data-copy="{{ $item->nik }}"
                                                         title="Klik salin">{{ $item->nik }}</span>
                                                 </div>
                                             @endif
                                             @if ($item->email)
-                                                <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                                     {{ $item->email }}
                                                 </div>
                                             @endif
@@ -288,12 +288,12 @@
                                     </div>
                                 </td>
                                 <td data-label="NUPTK/NIP"
-                                    style="padding: 12px 18px; font-family: monospace; font-size: 0.84rem;">
+                                    style="padding: 12px 18px; font-family: monospace; font-size: var(--text-base, 0.875rem);">
                                     <div style="color: var(--primary); font-weight: 600;">
                                         {{ $item->nuptk ? $item->nuptk : '-' }}
                                     </div>
                                     @if ($item->nip)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             NIP: {{ $item->nip }}
                                         </div>
                                     @endif
@@ -301,30 +301,30 @@
                                 <td data-label="L/P" style="padding: 12px 18px; text-align: center;">
                                     <span
                                         class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ $item->jenis_kelamin ?: '-' }}
                                     </span>
                                 </td>
                                 <td data-label="Jenis PTK"
-                                    style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-color);">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
                                     <span class="badge-compact"
                                         style="background: rgba(99,102,241,0.1); color: var(--primary);">
                                         {{ $item->jenis_ptk_id_str ?: 'GTK' }}
                                     </span>
                                 </td>
-                                <td data-label="Status" style="padding: 12px 18px; font-size: 0.82rem;">
+                                <td data-label="Status" style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem);">
                                     <span
                                         class="badge {{ str_contains(strtoupper($item->status_kepegawaian_id_str ?? ''), 'PNS') ? 'badge-primary' : 'badge-outline' }}"
-                                        style="font-size: 0.72rem; padding: 3px 8px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                         {{ $item->status_kepegawaian_id_str ?: '-' }}
                                     </span>
                                 </td>
                                 <td data-label="Pendidikan"
-                                    style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-muted);">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                     <div style="color: var(--text-color); font-weight: 600;">
                                         {{ $item->pendidikan_terakhir ?: '-' }}</div>
                                     @if ($item->bidang_studi_terakhir)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $item->bidang_studi_terakhir }}</div>
                                     @endif
                                 </td>
@@ -347,7 +347,7 @@
                                 <td colspan="8"
                                     style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                                     <i class="fas fa-users mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
                                     <div>Tidak ada data pegawai GTK ditemukan.</div>
                                 </td>
                             </tr>
@@ -369,19 +369,19 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Identitas Pegawai</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis PTK &amp; Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Berkas Digital Tersimpan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -389,13 +389,13 @@
                         @forelse($berkasList as $idx => $gtk)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td data-label="No"
-                                    style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); text-align: center;">
                                     {{ $berkasList->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Identitas Pegawai" style="padding: 12px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $gtk->nama }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                                         NIP: {{ $gtk->nip ?: '-' }} &bull; NUPTK: {{ $gtk->nuptk ?: '-' }}
                                     </div>
                                 </td>
@@ -407,7 +407,7 @@
                                                 class="fas {{ str_contains(strtolower($gtk->jenis_ptk_id_str ?? ''), 'guru') ? 'fa-chalkboard-user' : 'fa-id-badge' }} me-1"></i>
                                             {{ $gtk->jenis_ptk_id_str ?: 'GTK' }}
                                         </span>
-                                        <span style="font-size: 0.74rem; color: var(--text-muted);">
+                                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $gtk->status_kepegawaian_id_str ?: 'Aktif' }}
                                         </span>
                                     </div>
@@ -417,7 +417,7 @@
                                         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                                             @foreach ($gtk->berkas as $b)
                                                 <span
-                                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.78rem;">
+                                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                                     <i class="fas fa-file-pdf" style="color: #ef4444;"></i>
                                                     <a href="{{ asset('storage/' . $b->file_path) }}" target="_blank"
                                                         style="color: var(--text-color); text-decoration: none; font-weight: 500;">
@@ -431,7 +431,7 @@
                                                         @method('DELETE')
                                                         <input type="hidden" name="tab_redirect" value="berkas">
                                                         <button type="submit"
-                                                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 0.85rem;"
+                                                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: var(--text-base, 0.875rem);"
                                                             title="Hapus berkas">&times;</button>
                                                     </form>
                                                 </span>
@@ -439,7 +439,7 @@
                                         </div>
                                     @else
                                         <span
-                                            style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum
+                                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); font-style: italic;">Belum
                                             ada berkas digital</span>
                                     @endif
                                 </td>
@@ -458,7 +458,7 @@
                                 <td colspan="5"
                                     style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
                                     <div>Tidak ada data berkas pegawai ditemukan.</div>
                                 </td>
                             </tr>
@@ -480,22 +480,22 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama &amp; NIP Pegawai</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 TMT KGB Terakhir</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Target KGB Berikutnya</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Status Usulan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -510,32 +510,32 @@
                             <tr
                                 style="border-bottom: 1px solid var(--border-color); {{ $isJatuhTempo ? 'background: rgba(245, 158, 11, 0.05);' : '' }}">
                                 <td data-label="No"
-                                    style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); text-align: center;">
                                     {{ $kgbList->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Nama & NIP" style="padding: 12px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->gtk?->nama ?? '-' }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                                         NIP: {{ $item->gtk?->nip ?: '-' }} &bull; MKG: {{ $item->mkg_tahun }} Thn
                                         {{ $item->mkg_bulan }} Bln
                                     </div>
                                 </td>
                                 <td data-label="TMT Terakhir" style="padding: 12px 18px;">
-                                    <div style="font-size: 0.84rem; color: var(--text-color);">
+                                    <div style="font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                         <i class="far fa-calendar-alt text-muted me-1"></i>
                                         {{ \Carbon\Carbon::parse($item->tmt_lama)->format('d/m/Y') }}
                                     </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                         SK: {{ $item->nomor_sk_terakhir ?: '-' }}
                                     </div>
                                 </td>
                                 <td data-label="Target Berikutnya" style="padding: 12px 18px;">
                                     <div
-                                        style="font-size: 0.85rem; font-weight: 600; color: {{ $isLewat ? '#ef4444' : ($isJatuhTempo ? '#d97706' : 'var(--text-color)') }};">
+                                        style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: {{ $isLewat ? '#ef4444' : ($isJatuhTempo ? '#d97706' : 'var(--text-color)') }};">
                                         <i class="far fa-clock me-1"></i> {{ $target->format('d/m/Y') }}
                                     </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                         @if ($isLewat)
                                             <span style="color: #ef4444; font-weight: 600;">Lewat {{ abs($diffDays) }}
                                                 hari</span>
@@ -579,7 +579,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                                     <i class="fas fa-business-time mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
                                     <div>Belum ada data tracker KGB yang dicatat.</div>
                                 </td>
                             </tr>
@@ -601,22 +601,22 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Pegawai</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis &amp; Keperluan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Rentang Waktu</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Lampiran</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -624,13 +624,13 @@
                         @forelse($cutiList as $idx => $cuti)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td data-label="No"
-                                    style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); text-align: center;">
                                     {{ $cutiList->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Nama Pegawai" style="padding: 12px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $cuti->gtk?->nama ?? '-' }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                                         NIP: {{ $cuti->gtk?->nip ?: '-' }}
                                     </div>
                                 </td>
@@ -639,17 +639,17 @@
                                         style="background: rgba(99,102,241,0.1); color: var(--primary);">
                                         {{ $cuti->jenis }}
                                     </span>
-                                    <div style="font-size: 0.84rem; color: var(--text-color); margin-top: 4px;">
+                                    <div style="font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-top: 4px;">
                                         {{ $cuti->keperluan }}
                                     </div>
                                 </td>
                                 <td data-label="Rentang Waktu" style="padding: 12px 18px;">
-                                    <div style="font-size: 0.84rem; color: var(--text-color);">
+                                    <div style="font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                         <i class="far fa-calendar-alt text-muted me-1"></i>
                                         {{ \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d/m/Y') }} s/d
                                         {{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d/m/Y') }}
                                     </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                         Durasi: <strong>{{ $cuti->jumlah_hari }} Hari</strong>
                                     </div>
                                 </td>
@@ -657,12 +657,12 @@
                                     @if ($cuti->file_pendukung)
                                         <a href="{{ asset('storage/' . $cuti->file_pendukung) }}" target="_blank"
                                             class="btn btn-outline"
-                                            style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px;">
+                                            style="padding: 4px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-paperclip text-primary me-1"></i> Berkas
                                         </a>
                                     @else
                                         <span
-                                            style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Tanpa
+                                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); font-style: italic;">Tanpa
                                             Lampiran</span>
                                     @endif
                                 </td>
@@ -681,7 +681,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                                     <i class="fas fa-plane-departure mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
                                     <div>Belum ada data permohonan cuti / izin yang tercatat.</div>
                                 </td>
                             </tr>

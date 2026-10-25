@@ -3,12 +3,12 @@
         <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
             <a href="{{ route('dashboard.presensi.index', ['tab' => 'rfid', 'rfid_kategori' => 'siswa', 'tanggal' => $tanggal]) }}"
                 class="btn {{ ($rfidKategori ?? 'siswa') === 'siswa' ? 'btn-primary' : 'btn-outline' }}"
-                style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                style="padding: 8px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-lg, 12px); display: inline-flex; align-items: center; gap: 8px;">
                 <i class="fas fa-user-graduate"></i> <span>Peserta Didik</span>
             </a>
             <a href="{{ route('dashboard.presensi.index', ['tab' => 'rfid', 'rfid_kategori' => 'gtk', 'tanggal' => $tanggal]) }}"
                 class="btn {{ ($rfidKategori ?? 'siswa') === 'gtk' ? 'btn-primary' : 'btn-outline' }}"
-                style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                style="padding: 8px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-lg, 12px); display: inline-flex; align-items: center; gap: 8px;">
                 <i class="fas fa-chalkboard-user"></i> <span>Guru &amp; Tendik (Akses Kiosk)</span>
             </a>
         </div>
@@ -58,14 +58,14 @@
                         @endif
 
                         <button type="submit" class="btn btn-primary"
-                            style="padding: 7px 14px; font-size: 0.82rem; font-weight: 600;">
+                            style="padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
                             <i class="fas fa-filter me-1"></i> Filter
                         </button>
 
                         <span id="rfidFilterResetWrap">
                             @if (request('rfid_search') || request('rfid_status') || request('rfid_rombel'))
                                 <a href="{{ route('dashboard.presensi.index', ['tab' => 'rfid', 'rfid_kategori' => $rfidKategori ?? 'siswa', 'tanggal' => $tanggal]) }}"
-                                    class="btn btn-outline btn-reset-rfid" style="padding: 7px 12px; font-size: 0.82rem;"
+                                    class="btn btn-outline btn-reset-rfid" style="padding: 7px 12px; font-size: var(--text-sm, 0.8125rem);"
                                     title="Reset filter">
                                     <i class="fas fa-undo me-1"></i> Reset
                                 </a>
@@ -97,25 +97,25 @@
                             <tr
                                 style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                     No</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Nama Guru / Tendik</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     NIP / NUPTK</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Peran / Kategori</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Status Kartu</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     UID Kartu Fisik</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 140px;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 140px;">
                                     Aksi</th>
                             </tr>
                         </thead>
@@ -132,45 +132,45 @@
                                         <div class="rfid-siswa-wrapper"
                                             style="display: flex; align-items: center; gap: 12px;">
                                             <div class="rfid-avatar"
-                                                style="width: 38px; height: 38px; border-radius: 50%; background: rgba(99,102,241,0.15); color: #818cf8; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; border: 1px solid var(--border-color); flex-shrink: 0;">
+                                                style="width: 38px; height: 38px; border-radius: 50%; background: rgba(99,102,241,0.15); color: #818cf8; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: var(--text-base, 0.875rem); border: 1px solid var(--border-color); flex-shrink: 0;">
                                                 <i class="fas fa-user-tie"></i>
                                             </div>
                                             <div>
                                                 <div
-                                                    style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">
+                                                    style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                                     {{ $g->nama }}</div>
                                                 <div
-                                                    style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                     @<span>{{ $g->username }}</span></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="cell-rfid-nisn"
-                                        style="padding: 14px 16px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                        style="padding: 14px 16px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                         data-label="NIP / NUPTK">
                                         {{ $g->nip ?: ($g->nuptk ?: '—') }}
                                     </td>
                                     <td class="cell-rfid-rombel" style="padding: 14px 16px;" data-label="Peran">
                                         <span class="badge badge-outline"
-                                            style="font-size: 0.76rem; padding: 3px 8px;">{{ $g->peran_id_str ?: ($g->jenis_ptk_id_str ?: 'GTK') }}</span>
+                                            style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">{{ $g->peran_id_str ?: ($g->jenis_ptk_id_str ?: 'GTK') }}</span>
                                     </td>
                                     <td class="cell-rfid-status" style="padding: 14px 16px;" data-label="Status Kartu">
                                         @if ($g->rfid_uid)
                                             <span class="badge badge-success"
-                                                style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                     class="fas fa-check me-1"></i> Terpasang</span>
                                         @else
                                             <span class="badge"
-                                                style="background: rgba(148,163,184,0.15); color: var(--text-muted); font-size: 0.74rem; padding: 3px 8px;">Belum
+                                                style="background: rgba(148,163,184,0.15); color: var(--text-muted); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">Belum
                                                 Ada Kartu</span>
                                         @endif
                                     </td>
                                     <td class="cell-rfid-uid" style="padding: 14px 16px;" data-label="UID Kartu Fisik">
                                         @if ($g->rfid_uid)
                                             <code
-                                                style="font-size: 0.84rem; font-weight: 700; color: var(--primary);">{{ $g->rfid_uid }}</code>
+                                                style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--primary);">{{ $g->rfid_uid }}</code>
                                         @else
-                                            <span style="color: var(--text-muted); font-size: 0.84rem;">-</span>
+                                            <span style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">-</span>
                                         @endif
                                     </td>
                                     <td class="cell-rfid-aksi" style="padding: 14px 18px; text-align: right;"
@@ -182,7 +182,7 @@
                                                 data-nama="{{ $g->nama }}"
                                                 data-nisn="{{ $g->nip ?: ($g->nuptk ?: $g->username) }}"
                                                 data-rfid="{{ $g->rfid_uid }}"
-                                                style="padding: 6px 12px; font-size: 0.78rem; font-weight: 600;">
+                                                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
                                                 <i class="fas fa-link me-1"></i>
                                                 {{ $g->rfid_uid ? 'Ubah Kartu' : 'Daftarkan' }}
                                             </button>
@@ -194,7 +194,7 @@
                                     <td colspan="7"
                                         style="text-align: center; padding: 40px; color: var(--text-muted);">
                                         <i class="fas fa-id-card-clip"
-                                            style="font-size: 2.2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 10px; display: block; opacity: 0.4;"></i>
                                         Tidak ada data Guru atau Tendik yang cocok.
                                     </td>
                                 </tr>
@@ -210,25 +210,25 @@
                             <tr
                                 style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                     No</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Nama Peserta Didik</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     NISN / NIPD</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Rombel</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Status Kartu</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     UID Kartu Fisik</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 140px;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 140px;">
                                     Aksi</th>
                             </tr>
                         </thead>
@@ -245,45 +245,45 @@
                                         <div class="rfid-siswa-wrapper"
                                             style="display: flex; align-items: center; gap: 12px;">
                                             <div class="rfid-avatar"
-                                                style="width: 38px; height: 38px; border-radius: 50%; background: rgba(59,130,246,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; border: 1px solid var(--border-color); flex-shrink: 0;">
+                                                style="width: 38px; height: 38px; border-radius: 50%; background: rgba(59,130,246,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: var(--text-base, 0.875rem); border: 1px solid var(--border-color); flex-shrink: 0;">
                                                 {{ strtoupper(substr($s->nama, 0, 1)) }}
                                             </div>
                                             <div>
                                                 <div
-                                                    style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">
+                                                    style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                                     {{ $s->nama }}</div>
                                                 <div
-                                                    style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                     ID: {{ substr($s->peserta_didik_id, 0, 8) }}...</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="cell-rfid-nisn"
-                                        style="padding: 14px 16px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                        style="padding: 14px 16px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                         data-label="NISN / NIPD">
                                         {{ $s->nisn ?: ($s->nipd ?: '-') }}
                                     </td>
                                     <td class="cell-rfid-rombel" style="padding: 14px 16px;" data-label="Rombel Kelas">
                                         <span class="badge badge-outline"
-                                            style="font-size: 0.76rem; padding: 3px 8px;">{{ $s->nama_rombel ?: '-' }}</span>
+                                            style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">{{ $s->nama_rombel ?: '-' }}</span>
                                     </td>
                                     <td class="cell-rfid-status" style="padding: 14px 16px;" data-label="Status Kartu">
                                         @if ($s->rfid_uid)
                                             <span class="badge badge-success"
-                                                style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                     class="fas fa-check me-1"></i> Terpasang</span>
                                         @else
                                             <span class="badge"
-                                                style="background: rgba(148,163,184,0.15); color: var(--text-muted); font-size: 0.74rem; padding: 3px 8px;">Belum
+                                                style="background: rgba(148,163,184,0.15); color: var(--text-muted); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">Belum
                                                 Ada Kartu</span>
                                         @endif
                                     </td>
                                     <td class="cell-rfid-uid" style="padding: 14px 16px;" data-label="UID Kartu Fisik">
                                         @if ($s->rfid_uid)
                                             <code
-                                                style="font-size: 0.84rem; font-weight: 700; color: var(--primary);">{{ $s->rfid_uid }}</code>
+                                                style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--primary);">{{ $s->rfid_uid }}</code>
                                         @else
-                                            <span style="color: var(--text-muted); font-size: 0.84rem;">-</span>
+                                            <span style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">-</span>
                                         @endif
                                     </td>
                                     <td class="cell-rfid-aksi" style="padding: 14px 18px; text-align: right;"
@@ -294,7 +294,7 @@
                                                 data-id="{{ $s->peserta_didik_id }}" data-type="siswa"
                                                 data-nama="{{ $s->nama }}" data-nisn="{{ $s->nisn ?: $s->nipd }}"
                                                 data-rfid="{{ $s->rfid_uid }}"
-                                                style="padding: 6px 12px; font-size: 0.78rem; font-weight: 600;">
+                                                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
                                                 <i class="fas fa-link me-1"></i>
                                                 {{ $s->rfid_uid ? 'Ubah Kartu' : 'Daftarkan' }}
                                             </button>
@@ -306,7 +306,7 @@
                                     <td colspan="7"
                                         style="text-align: center; padding: 40px; color: var(--text-muted);">
                                         <i class="fas fa-id-card-clip"
-                                            style="font-size: 2.2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 10px; display: block; opacity: 0.4;"></i>
                                         Tidak ada data peserta didik yang cocok.
                                     </td>
                                 </tr>
@@ -322,7 +322,7 @@
             {{-- Custom Pagination for RFID List with Entry Summary --}}
             <div
                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 0 4px;">
-                <div style="font-size: 0.82rem; color: var(--text-muted);">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Menampilkan {{ $currentRfidPaginated->firstItem() ?? 0 }} sampai
                     {{ $currentRfidPaginated->lastItem() ?? 0 }} dari {{ $currentRfidPaginated->total() }} entri
                 </div>

@@ -78,21 +78,21 @@
                 <!-- Segmented Tabs Header -->
                 <div style="display: flex; border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
                     <button type="button" id="tabHeaderPengumuman" class="notif-tab-btn active"
-                        style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: 700; font-size: var(--text-sm, 0.8125rem); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fas fa-bullhorn"></i>
                         <span>Pengumuman</span>
                         @if ($notifPengumumanCount > 0)
-                            <span class="badge badge-danger" id="badgePengumumanCount" style="font-size: 0.65rem; padding: 1px 6px;">
+                            <span class="badge badge-danger" id="badgePengumumanCount" style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                 {{ $notifPengumumanCount }}
                             </span>
                         @endif
                     </button>
                     <button type="button" id="tabHeaderTransaksi" class="notif-tab-btn"
-                        style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 700; font-size: var(--text-sm, 0.8125rem); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fas fa-bell"></i>
                         <span>Sistem</span>
                         @if ($notifTransaksiCount > 0)
-                            <span class="badge badge-danger" id="badgeTransaksiCount" style="font-size: 0.65rem; padding: 1px 6px;">
+                            <span class="badge badge-danger" id="badgeTransaksiCount" style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                 {{ $notifTransaksiCount }}
                             </span>
                         @endif
@@ -102,12 +102,12 @@
                 <!-- PANEL 1: PENGUMUMAN & BROADCAST -->
                 <div id="paneNotifPengumuman">
                     <div style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.01);">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-color);">
+                        <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color);">
                             Pengumuman Sekolah
                         </span>
                         @if ($notifPengumumanCount > 0)
                             <button type="button" id="btnQuickMarkAllRead"
-                                style="background: none; border: none; font-size: 0.72rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; font-weight: 600;"
+                                style="background: none; border: none; font-size: var(--text-xs, 0.75rem); color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: var(--radius-xs, 4px); font-weight: 600;"
                                 title="Tandai semua pengumuman sudah dibaca">
                                 <i class="fas fa-check-double"></i>
                                 <span>Tandai Baca</span>
@@ -142,8 +142,8 @@
                                 @endif
                             </a>
                         @empty
-                            <div style="padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
-                                <i class="fas fa-bell-slash mb-2" style="font-size: 1.6rem; opacity: 0.4;"></i>
+                            <div style="padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">
+                                <i class="fas fa-bell-slash mb-2" style="font-size: var(--text-2xl, 1.5rem); opacity: 0.4;"></i>
                                 <div>Tidak ada pengumuman saat ini.</div>
                             </div>
                         @endforelse
@@ -151,9 +151,9 @@
 
                     <div style="padding: 9px 16px; background: rgba(99,102,241,0.05); border-top: 1px solid var(--border-color); text-align: center;">
                         <a href="{{ route('dashboard.informasi.index') }}"
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                             <span>Lihat Semua Informasi &amp; Pengumuman</span>
-                            <i class="fas fa-arrow-right" style="font-size: 0.7rem;"></i>
+                            <i class="fas fa-arrow-right" style="font-size: var(--text-xs, 0.75rem);"></i>
                         </a>
                     </div>
                 </div>
@@ -161,12 +161,12 @@
                 <!-- PANEL 2: NOTIFIKASI SISTEM & AKTIVITAS PERSONAL -->
                 <div id="paneNotifTransaksi" style="display: none;">
                     <div style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.01);">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-color);">
+                        <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color);">
                             Notifikasi &amp; Aktivitas Sistem
                         </span>
                         @if ($notifTransaksiCount > 0)
                             <button type="button" id="btnQuickMarkAllTransRead"
-                                style="background: none; border: none; font-size: 0.72rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; font-weight: 600;"
+                                style="background: none; border: none; font-size: var(--text-xs, 0.75rem); color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: var(--radius-xs, 4px); font-weight: 600;"
                                 title="Tandai semua notifikasi sistem sudah dibaca">
                                 <i class="fas fa-check-double"></i>
                                 <span>Tandai Baca</span>
@@ -180,9 +180,9 @@
                                 class="dash-notif-item {{ !$trans->is_read ? 'unread-item' : '' }}"
                                 data-trans-id="{{ $trans->id }}"
                                 style="display: flex; gap: 12px; align-items: flex-start;">
-                                <div style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+                                <div style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
                                     background: {{ $trans->tipe === 'success' ? 'rgba(16,185,129,0.15)' : ($trans->tipe === 'warning' ? 'rgba(245,158,11,0.15)' : ($trans->tipe === 'danger' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)')) }};
-                                    color: {{ $trans->tipe === 'success' ? 'var(--success)' : ($trans->tipe === 'warning' ? 'var(--warning)' : ($trans->tipe === 'danger' ? 'var(--danger)' : 'var(--primary)')) }}; font-size: 0.9rem;">
+                                    color: {{ $trans->tipe === 'success' ? 'var(--success)' : ($trans->tipe === 'warning' ? 'var(--warning)' : ($trans->tipe === 'danger' ? 'var(--danger)' : 'var(--primary)')) }}; font-size: var(--text-base, 0.875rem);">
                                     <i class="{{ $trans->icon ?: 'fas fa-bell' }}"></i>
                                 </div>
                                 <div style="flex: 1; min-width: 0;">
@@ -197,14 +197,14 @@
                                             {{ $trans->time_diff ?? ($trans->created_at ? $trans->created_at->diffForHumans(null, true) : '-') }}
                                         </span>
                                     </div>
-                                    <div class="dash-notif-content" style="color: var(--text-color); font-size: 0.78rem;">
+                                    <div class="dash-notif-content" style="color: var(--text-color); font-size: var(--text-sm, 0.8125rem);">
                                         {{ $trans->pesan }}
                                     </div>
                                 </div>
                             </a>
                         @empty
-                            <div style="padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
-                                <i class="fas fa-clock-rotate-left mb-2" style="font-size: 1.6rem; opacity: 0.4;"></i>
+                            <div style="padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">
+                                <i class="fas fa-clock-rotate-left mb-2" style="font-size: var(--text-2xl, 1.5rem); opacity: 0.4;"></i>
                                 <div>{{ $currentUserRole === 'tendik' ? 'Belum ada aktivitas hari ini untuk dikerjakan.' : 'Belum ada aktivitas atau notifikasi sistem.' }}</div>
                             </div>
                         @endforelse
@@ -212,9 +212,9 @@
 
                     <div style="padding: 9px 16px; background: rgba(99,102,241,0.05); border-top: 1px solid var(--border-color); text-align: center;">
                         <a href="{{ $systemNotifFooterUrl }}"
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                             <span>{{ $systemNotifFooterText }}</span>
-                            <i class="fas fa-arrow-right" style="font-size: 0.7rem;"></i>
+                            <i class="fas fa-arrow-right" style="font-size: var(--text-xs, 0.75rem);"></i>
                         </a>
                     </div>
                 </div>

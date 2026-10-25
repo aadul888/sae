@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-book-open"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Buku Tamu Pos Keamanan
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pencatatan identitas, tujuan kunjungan, dan pemantauan tamu yang berada di lingkungan sekolah.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" onclick="openModalTamu()"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Catat Tamu Masuk">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -113,7 +113,7 @@
                             @if ($search || $status || $tanggal)
                                 <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -137,22 +137,22 @@
                     <thead>
                         <tr>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tanggal & Waktu</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Tamu & Instansi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tujuan & Keperluan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Visitor / Kendaraan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -162,7 +162,7 @@
                                 <td style="padding: 12px 18px;">
                                     <div style="font-weight: 600; color: var(--text-heading);">
                                         {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         In: <strong>{{ substr($item->jam_masuk, 0, 5) }}</strong>
                                         @if ($item->jam_keluar)
                                             &bull; Out: <strong>{{ substr($item->jam_keluar, 0, 5) }}</strong>
@@ -172,7 +172,7 @@
                                 <td style="padding: 12px 18px;">
                                     <div style="font-weight: 600; color: var(--text-heading);">{{ $item->nama_tamu }}
                                     </div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $item->instansi_asal ?: 'Umum / Pribadi' }}
                                         @if ($item->nomor_kontak)
                                             &bull; Telp: {{ $item->nomor_kontak }}
@@ -180,12 +180,12 @@
                                     </div>
                                 </td>
                                 <td style="padding: 12px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">Bertemu:
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">Bertemu:
                                         {{ $item->tujuan_bertemu }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Hal: {{ $item->keperluan }}
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Hal: {{ $item->keperluan }}
                                     </div>
                                 </td>
-                                <td style="padding: 12px 18px; font-size: 0.82rem;">
+                                <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem);">
                                     @if ($item->nomor_kartu_visitor)
                                         <div><span class="badge"
                                                 style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">Kartu:
@@ -242,7 +242,7 @@
                             <tr>
                                 <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
                                     <i class="fas fa-user-friends"
-                                        style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; opacity: 0.4;"></i>
                                     <p style="margin: 0;">Belum ada catatan tamu.</p>
                                 </td>
                             </tr>
@@ -266,11 +266,11 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                     <h3 id="modalTamuTitle"
-                        style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-heading);">
+                        style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">
                         Catat Tamu Masuk
                     </h3>
                     <button type="button" onclick="closeModalTamu()"
-                        style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
 
                 <form id="formTamu" method="POST" action="{{ route('dashboard.keamanan.buku-tamu.store') }}"
@@ -317,7 +317,7 @@
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                 <label class="form-label" style="margin: 0;">Tujuan Bertemu <span
                                         style="color:red;">*</span></label>
-                                <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                                <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                         class="fas fa-user-tie me-1"></i>GTK / Ruang</span>
                             </div>
                             <input type="search" list="listTujuanBertemu" name="tujuan_bertemu" id="tamu_tujuan"

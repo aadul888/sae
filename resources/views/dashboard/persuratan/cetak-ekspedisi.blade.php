@@ -28,25 +28,25 @@
             gap: 8px;
             background: rgba(255, 255, 255, 0.15);
             padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            border-radius: var(--radius-md, 8px);
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .filter-form-bar input {
             height: 28px;
             padding: 0 8px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             background: #ffffff;
             color: #1e293b;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 600;
         }
 
         .table-ekspedisi {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-top: 14px;
             margin-bottom: 24px;
         }
@@ -58,7 +58,7 @@
             padding: 7px 8px;
             text-align: center;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             text-transform: uppercase;
         }
 
@@ -75,7 +75,7 @@
 
         .box-receipt {
             border: 1.5px solid #0f172a;
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             padding: 16px;
             margin-top: 16px;
             background: #ffffff;
@@ -90,7 +90,7 @@
 
         .receipt-panel {
             border: 1px solid #94a3b8;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             padding: 12px;
             background: #f8fafc;
             min-height: 170px;
@@ -100,7 +100,7 @@
         }
 
         .receipt-title {
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 800;
             text-transform: uppercase;
             color: #0f172a;
@@ -147,7 +147,7 @@
                 <span>S/d:</span>
                 <input type="date" name="tanggal_selesai" value="{{ request('tanggal_selesai', '') }}">
                 <button type="submit" class="btn-action"
-                    style="padding: 4px 10px; font-size: 0.76rem; border-radius: 6px;">
+                    style="padding: 4px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);">
                     <i class="fas fa-filter"></i> Filter
                 </button>
             </form>
@@ -171,17 +171,17 @@
         @if ($isSingle && $surat)
             {{-- TAMPILAN 1: LEMBAR TANDA TERIMA / EKSPEDISI PER-SURAT (A4 PORTRAIT) --}}
             <div class="doc-header" style="text-align: center; margin: 12px 0 16px 0;">
-                <div style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
+                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
                     LEMBAR EKSPEDISI / TANDA TERIMA PENGIRIMAN SURAT DINAS
                 </div>
-                <div style="font-size: 0.84rem; color: #475569; margin-top: 3px;">
+                <div style="font-size: var(--text-base, 0.875rem); color: #475569; margin-top: 3px;">
                     Nomor Agenda: #{{ str_pad($surat->id, 4, '0', STR_PAD_LEFT) }} &bull; Tanggal:
                     {{ \Carbon\Carbon::parse($surat->tanggal_surat)->translatedFormat('d F Y') }}
                 </div>
             </div>
 
             <div class="box-receipt">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem; line-height: 1.6;">
+                <table style="width: 100%; border-collapse: collapse; font-size: var(--text-base, 0.875rem); line-height: 1.6;">
                     <tr>
                         <td style="width: 180px; font-weight: 700; color: #475569;">Nomor Surat Keluar</td>
                         <td style="width: 15px;">:</td>
@@ -209,7 +209,7 @@
                         <td style="font-weight: 700; color: #1e3a8a;">
                             {{ $surat->perihal }}
                             @if ($surat->keterangan)
-                                <div style="font-size: 0.78rem; font-weight: 400; color: #64748b; margin-top: 3px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 400; color: #64748b; margin-top: 3px;">
                                     {{ $surat->keterangan }}</div>
                             @endif
                         </td>
@@ -222,7 +222,7 @@
                         <div>
                             <div class="receipt-title"><i class="fas fa-paper-plane me-1"></i> Pengirim / Kurir
                                 Pengantar</div>
-                            <div style="font-size: 0.78rem; line-height: 1.5; color: #334155;">
+                            <div style="font-size: var(--text-sm, 0.8125rem); line-height: 1.5; color: #334155;">
                                 Tanggal Kirim : .............................................<br>
                                 Pukul / Waktu : ........................ WIB<br>
                                 Nama Pengantar : .............................................
@@ -231,7 +231,7 @@
                         <div style="text-align: center; margin-top: 20px;">
                             <div style="border-bottom: 1px dotted #475569; height: 35px; width: 80%; margin: 0 auto;">
                             </div>
-                            <div style="font-size: 0.76rem; font-weight: 600; color: #475569; margin-top: 4px;">Tanda
+                            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #475569; margin-top: 4px;">Tanda
                                 Tangan Pengantar</div>
                         </div>
                     </div>
@@ -241,7 +241,7 @@
                         <div>
                             <div class="receipt-title"><i class="fas fa-handshake me-1"></i> Diterima Oleh (Instansi /
                                 Penerima)</div>
-                            <div style="font-size: 0.78rem; line-height: 1.5; color: #334155;">
+                            <div style="font-size: var(--text-sm, 0.8125rem); line-height: 1.5; color: #334155;">
                                 Tanggal Terima : .............................................<br>
                                 Pukul / Waktu : ........................ WIB<br>
                                 Nama Penerima : .............................................<br>
@@ -251,7 +251,7 @@
                         <div style="text-align: center; margin-top: 20px;">
                             <div style="border-bottom: 1px dotted #475569; height: 35px; width: 80%; margin: 0 auto;">
                             </div>
-                            <div style="font-size: 0.76rem; font-weight: 600; color: #475569; margin-top: 4px;">Tanda
+                            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #475569; margin-top: 4px;">Tanda
                                 Tangan &amp; Cap Stempel</div>
                         </div>
                     </div>
@@ -280,10 +280,10 @@
         @else
             {{-- TAMPILAN 2: BUKU EKSPEDISI KOLEKTIF (A4 LANDSCAPE) --}}
             <div class="doc-header" style="text-align: center; margin: 10px 0 14px 0;">
-                <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
+                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
                     BUKU EKSPEDISI PENGIRIMAN SURAT KELUAR DINAS
                 </div>
-                <div style="font-size: 0.84rem; color: #475569; margin-top: 3px; font-weight: 600;">
+                <div style="font-size: var(--text-base, 0.875rem); color: #475569; margin-top: 3px; font-weight: 600;">
                     Daftar Tanda Terima Distribusi Surat Keluar &bull; Total Berkas: {{ $items->count() }} Dokumen
                 </div>
             </div>
@@ -304,10 +304,10 @@
                     @forelse ($items as $idx => $item)
                         <tr>
                             <td style="text-align: center; font-weight: 700;">{{ $idx + 1 }}</td>
-                            <td style="text-align: center; font-size: 0.78rem;">
+                            <td style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->tanggal_surat ? \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') : '—' }}
                             </td>
-                            <td style="font-family: monospace; font-weight: 600; font-size: 0.8rem;">
+                            <td style="font-family: monospace; font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->nomor_surat }}
                             </td>
                             <td style="font-weight: 700; color: #0f172a;">
@@ -316,15 +316,15 @@
                             <td>
                                 <div style="font-weight: 700;">{{ $item->perihal }}</div>
                                 @if (!empty($item->keterangan))
-                                    <div style="font-size: 0.74rem; color: #475569; margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: #475569; margin-top: 2px;">
                                         {{ $item->keterangan }}</div>
                                 @endif
                             </td>
-                            <td style="font-size: 0.76rem; color: #475569;">
+                            <td style="font-size: var(--text-sm, 0.8125rem); color: #475569;">
                                 Tgl: ......./......./.......<br>
                                 Kurir: .......................
                             </td>
-                            <td style="height: 48px; vertical-align: bottom; font-size: 0.72rem; color: #64748b;">
+                            <td style="height: 48px; vertical-align: bottom; font-size: var(--text-xs, 0.75rem); color: #64748b;">
                                 <div style="border-bottom: 1px dotted #94a3b8; margin-bottom: 3px; height: 30px;"></div>
                                 Tgl: ................. Nama: .................
                             </td>

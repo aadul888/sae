@@ -11,15 +11,15 @@
         data-rombel-name="{{ $activeRombel ? $activeRombel->nama : '' }}"
         style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);">
+            style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: var(--radius-lg, 12px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h3 id="modalSlotTitle"
-                    style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">
+                    style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color);">
                     <i class="fas fa-calendar-plus text-primary me-2"></i> Jadwalkan Pelajaran
                 </h3>
                 <button type="button" id="btnTutupModalSlot"
-                    style="background: transparent; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">
+                    style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -33,11 +33,11 @@
                 <!-- Pilih Mata Pelajaran & Guru -->
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label for="slotPembelajaranId"
-                        style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                        style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                         Mata Pelajaran &amp; Guru Pengampu <span style="color: #ef4444;">*</span>
                     </label>
                     <select id="slotPembelajaranId" name="pembelajaran_id" required class="form-control"
-                        style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                        style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                         <option value="">-- Pilih Mata Pelajaran --</option>
                         @if ($activeRombel)
                             @foreach ($pembelajaranData as $p)
@@ -59,11 +59,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
                     <div class="form-group">
                         <label for="slotHari"
-                            style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Hari <span style="color: #ef4444;">*</span>
                         </label>
                         <select id="slotHari" name="hari" required class="form-control"
-                            style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                             @foreach ($hariAktif as $h)
                                 <option value="{{ $h }}">{{ $h }}</option>
                             @endforeach
@@ -72,12 +72,12 @@
 
                     <div class="form-group">
                         <label for="slotRuangan"
-                            style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Ruangan / Lab
                         </label>
                         <input type="text" id="slotRuangan" name="ruangan" placeholder="Contoh: R. Kelas / Lab 1"
                             value="{{ $activeRombel ? $activeRombel->nama : '' }}" class="form-control"
-                            style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                     </div>
                 </div>
 
@@ -85,11 +85,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
                     <div class="form-group">
                         <label for="slotJamKeMulai"
-                            style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Jam Ke-Mulai <span style="color: #ef4444;">*</span>
                         </label>
                         <select id="slotJamKeMulai" name="jam_ke_mulai" required class="form-control"
-                            style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                             @for ($i = 1; $i <= 16; $i++)
                                 <option value="{{ $i }}">Jam Ke-{{ $i }}</option>
                             @endfor
@@ -98,11 +98,11 @@
 
                     <div class="form-group">
                         <label for="slotJamKeSelesai"
-                            style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Jam Ke-Selesai <span style="color: #ef4444;">*</span>
                         </label>
                         <select id="slotJamKeSelesai" name="jam_ke_selesai" required class="form-control"
-                            style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                             @for ($i = 1; $i <= 16; $i++)
                                 <option value="{{ $i }}">Jam Ke-{{ $i }}</option>
                             @endfor
@@ -112,23 +112,23 @@
 
                 <!-- Durasi Info -->
                 <div id="slotDurasiInfo"
-                    style="padding: 8px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.78rem; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                    style="padding: 8px 12px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: var(--text-sm, 0.8125rem); color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                     <span>Alokasi Jam: <strong id="slotDurasiJp">1 JP</strong></span>
                     <span id="slotDurasiWaktu"></span>
                 </div>
 
                 <!-- Alert Live Anti-Bentrok -->
                 <div id="conflictAlertBoxManual"
-                    style="display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.8rem;">
+                    style="display: none; padding: 10px 14px; border-radius: var(--radius-md, 8px); margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem);">
                 </div>
 
                 <!-- Opsi Timpa / Ganti Jadwal Kelas Jika Sudah Terisi -->
                 <div id="boxOverwriteSlot"
-                    style="margin-bottom: 16px; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                    style="margin-bottom: 16px; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-md, 8px); display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="chkOverwriteSlot" name="overwrite" value="1"
                         style="width: 17px; height: 17px; cursor: pointer; accent-color: #f59e0b;">
                     <label for="chkOverwriteSlot"
-                        style="margin: 0; font-size: 0.82rem; color: var(--text-color); cursor: pointer; line-height: 1.4;">
+                        style="margin: 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); cursor: pointer; line-height: 1.4;">
                         <strong>Ganti / Timpa jadwal kelas ini</strong> jika jam yang dipilih telah terisi oleh pelajaran
                         lain.
                     </label>
@@ -137,12 +137,12 @@
                 <!-- Keterangan Opsional -->
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label for="slotKeterangan"
-                        style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                        style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                         Keterangan Tambahan (Opsional)
                     </label>
                     <input type="text" id="slotKeterangan" name="keterangan"
                         placeholder="Contoh: Praktik Bengkel / Teori" class="form-control"
-                        style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: 0.88rem;">
+                        style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                 </div>
 
                 <div

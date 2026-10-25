@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-exchange-alt"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Sirkulasi Peminjaman &amp; Pengembalian
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Manajemen peminjaman buku, pengembalian, perpanjangan, dan pencatatan denda keterlambatan.
                     </div>
                 </div>
@@ -24,7 +24,7 @@
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" id="btnTambahPeminjaman" onclick="openModalPinjam()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Transaksi Peminjaman Buku">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -129,7 +129,7 @@
                             @if (!empty($q) || !empty($status))
                                 <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -154,35 +154,35 @@
                         <tr
                             style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th class="sortable-th {{ ($sort ?? '') === 'kode_transaksi' ? 'sorted' : '' }}" data-sort="kode_transaksi"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kode &amp; Buku
                                 <span class="sort-icon">{!! ($sort ?? '') === 'kode_transaksi' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'peminjam_nama' ? 'sorted' : '' }}" data-sort="peminjam_nama"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Peminjam
                                 <span class="sort-icon">{!! ($sort ?? '') === 'peminjam_nama' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'tgl_pinjam' ? 'sorted' : '' }}" data-sort="tgl_pinjam"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tgl Pinjam / Tempo
                                 <span class="sort-icon">{!! ($sort ?? '') === 'tgl_pinjam' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'status' ? 'sorted' : '' }}" data-sort="status"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
                                 Status
                                 <span class="sort-icon">{!! ($sort ?? '') === 'status' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'denda' ? 'sorted' : '' }}" data-sort="denda"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Denda
                                 <span class="sort-icon">{!! ($sort ?? '') === 'denda' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -194,71 +194,71 @@
                                     \Carbon\Carbon::parse($row->tgl_jatuh_tempo)->isPast();
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;"
+                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);"
                                     data-label="No">
                                     {{ ($sirkulasi->currentPage() - 1) * $sirkulasi->perPage() + $loop->iteration }}
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Kode & Buku">
-                                    <div style="font-weight: 600; color: var(--text-heading); font-size: 0.9rem;">
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">
                                         {{ $row->judul_buku ?? ($row->buku->judul ?? '-') }}
                                     </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                         TR: {{ $row->kode_transaksi }} | Kode: {{ $row->kode_buku ?? ($row->buku->kode_buku ?? '-') }}
                                     </div>
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Peminjam">
-                                    <div style="font-weight: 600; color: var(--text-heading); font-size: 0.88rem;">
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">
                                         {{ $row->peminjam_nama }}</div>
                                     <span class="badge {{ $row->peminjam_tipe === 'siswa' ? 'badge-primary' : 'badge-outline' }}"
-                                        style="font-size: 0.72rem; padding: 2px 8px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
                                         {{ strtoupper($row->peminjam_tipe) }}
                                     </span>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Tgl Pinjam / Tempo">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);" data-label="Tgl Pinjam / Tempo">
                                     <div>Pinjam: {{ \Carbon\Carbon::parse($row->tgl_pinjam)->format('d M Y') }}</div>
                                     <div
-                                        style="color: {{ $isOverdue ? '#ef4444' : 'var(--text-muted)' }}; font-weight: {{ $isOverdue ? '600' : 'normal' }}; font-size: 0.8rem;">
+                                        style="color: {{ $isOverdue ? '#ef4444' : 'var(--text-muted)' }}; font-weight: {{ $isOverdue ? '600' : 'normal' }}; font-size: var(--text-sm, 0.8125rem);">
                                         Tempo: {{ \Carbon\Carbon::parse($row->tgl_jatuh_tempo)->format('d M Y') }}
                                         @if ($isOverdue)
                                             <i class="fas fa-exclamation-circle text-danger ms-1" title="Terlambat"></i>
                                         @endif
                                     </div>
                                     @if ($row->tgl_kembali)
-                                        <div style="color: #10b981; font-size: 0.78rem;">Kembali:
+                                        <div style="color: #10b981; font-size: var(--text-sm, 0.8125rem);">Kembali:
                                             {{ \Carbon\Carbon::parse($row->tgl_kembali)->format('d M Y') }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px; text-align: center;" data-label="Status">
                                     @if ($row->status === 'dipinjam')
                                         @if ($isOverdue)
-                                            <span class="badge badge-danger" style="font-size: 0.72rem; padding: 2px 7px;">
+                                            <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                                 Terlambat
                                             </span>
                                         @else
-                                            <span class="badge badge-warning" style="font-size: 0.72rem; padding: 2px 7px;">
+                                            <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                                 Dipinjam
                                             </span>
                                         @endif
                                     @elseif ($row->status === 'kembali')
-                                        <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">
+                                        <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                             Kembali
                                         </span>
                                     @else
-                                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                        <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                             {{ ucfirst($row->status) }}
                                         </span>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.88rem;" data-label="Denda">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);" data-label="Denda">
                                     @if ($row->denda > 0)
                                         <div style="font-weight: 700; color: #d97706;">Rp
                                             {{ number_format($row->denda, 0, ',', '.') }}</div>
                                         <span class="badge {{ $row->status_denda === 'lunas' ? 'badge-success' : 'badge-danger' }}"
-                                            style="font-size: 0.7rem; padding: 2px 6px;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">
                                             {{ strtoupper($row->status_denda) }}
                                         </span>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px; text-align: center;" data-label="Aksi">
@@ -287,8 +287,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <td colspan="7" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
                                     <div>Belum ada data sirkulasi peminjaman buku yang tercatat di sistem.</div>
                                 </td>
                             </tr>
@@ -309,15 +309,15 @@
         <div id="modalPinjam" class="modal-backdrop"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center; padding: 20px;">
             <div class="modal-card"
-                style="background: var(--card-bg, #fff); border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+                style="background: var(--card-bg, #fff); border-radius: var(--radius-lg, 12px); max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-heading);">
+                    <h3 style="margin: 0; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-heading);">
                         <i class="fas fa-plus-circle" style="color: var(--primary-color); margin-right: 8px;"></i>
                         Tambah Transaksi Pinjam Buku
                     </h3>
                     <button type="button" onclick="closeModalPinjam()"
-                        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <form action="{{ route('dashboard.perpustakaan.sirkulasi.store') }}" method="POST"
                     style="padding: 20px;">
@@ -325,7 +325,7 @@
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Pilih
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Pilih
                                 Buku *</label>
                             <select name="buku_id" id="pinjam_buku_id" class="form-control" required>
                                 <option value="">-- Cari Judul Buku / Kode --</option>
@@ -340,7 +340,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tipe
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tipe
                                     Peminjam *</label>
                                 <select name="peminjam_tipe" id="pinjam_tipe" class="form-control" required>
                                     <option value="siswa">Peserta Didik</option>
@@ -352,9 +352,9 @@
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <label class="form-label"
-                                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Nama
+                                        style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin: 0;">Nama
                                         Peminjam *</label>
-                                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                             class="fas fa-users me-1"></i>Relasi Siswa / GTK</span>
                                 </div>
                                 <input type="hidden" name="peminjam_id" id="pinjam_id_val" value="">
@@ -368,14 +368,14 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
                                     Pinjam *</label>
                                 <input type="date" name="tgl_pinjam" id="pinjam_tgl" class="form-control"
                                     value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Jatuh
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Jatuh
                                     Tempo (Kembali) *</label>
                                 <input type="date" name="tgl_jatuh_tempo" id="pinjam_tempo" class="form-control"
                                     value="{{ date('Y-m-d', strtotime('+7 days')) }}" required>
@@ -383,7 +383,7 @@
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Catatan
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Catatan
                                 Tambahan</label>
                             <textarea name="catatan" class="form-control" rows="2"
                                 placeholder="Catatan kondisi buku atau kontak peminjam"></textarea>
@@ -403,41 +403,41 @@
         <div id="modalKembalikan" class="modal-backdrop"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center; padding: 20px;">
             <div class="modal-card"
-                style="background: var(--card-bg, #fff); border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+                style="background: var(--card-bg, #fff); border-radius: var(--radius-lg, 12px); max-width: 500px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-heading);">
+                    <h3 style="margin: 0; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-heading);">
                         <i class="fas fa-undo-alt" style="color: #10b981; margin-right: 8px;"></i>
                         Pengembalian Buku
                     </h3>
                     <button type="button" onclick="closeModalKembalikan()"
-                        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <form id="formKembalikan" action="" method="POST" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
-                        <div style="background: var(--table-header-bg, #f8fafc); padding: 12px; border-radius: 8px;">
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Transaksi / Judul:</div>
+                        <div style="background: var(--table-header-bg, #f8fafc); padding: 12px; border-radius: var(--radius-md, 8px);">
+                            <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Transaksi / Judul:</div>
                             <div id="kembaliDetailJudul"
-                                style="font-weight: 600; color: var(--text-heading); font-size: 0.95rem;">-</div>
+                                style="font-weight: 600; color: var(--text-heading); font-size: var(--text-md, 1rem);">-</div>
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
                                 Kembali *</label>
                             <input type="date" name="tgl_kembali" class="form-control" value="{{ date('Y-m-d') }}"
                                 required>
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Denda
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Denda
                                 Keterlambatan / Kerusakan (Rp)</label>
                             <input type="number" name="denda" class="form-control" value="0" min="0"
                                 step="500">
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Status
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Status
                                 Denda</label>
                             <select name="status_denda" class="form-control">
                                 <option value="lunas">Lunas</option>

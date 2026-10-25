@@ -47,7 +47,7 @@
             <i class="fas fa-hard-drive"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.05rem;">{{ $hdd['free_formatted'] ?? '-' }}</div>
+            <div class="dash-stat-value" style="font-size: var(--text-lg, 1.125rem);">{{ $hdd['free_formatted'] ?? '-' }}</div>
             <div class="dash-stat-label">Sisa Ruang HDD (Bebas)</div>
         </div>
     </div>
@@ -57,17 +57,17 @@
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px;">
     <div class="card"
-        style="padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+        style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
             <div
-                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(59,130,246,0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-inbox"></i>
             </div>
             <div style="min-width: 0;">
                 <div
-                    style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                     No. Surat Masuk Terakhir</div>
-                <div style="font-size: 0.96rem; font-weight: 800; color: #2563eb; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: #2563eb; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     title="{{ $stats['no_surat_masuk_terakhir'] ?? '-' }}">
                     {{ $stats['no_surat_masuk_terakhir'] ?? '-' }}
                 </div>
@@ -76,28 +76,28 @@
         <div style="display: flex; gap: 6px; flex-shrink: 0;">
             <button type="button" class="btn btn-outline btn-sm"
                 onclick="copyNomorSurat(this, '{{ $stats['no_surat_masuk_terakhir'] ?? '' }}')"
-                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;" title="Salin nomor">
+                style="padding: 6px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);" title="Salin nomor">
                 <i class="fas fa-copy"></i>
             </button>
             <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline btn-sm"
-                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;" title="Buka menu surat masuk">
+                style="padding: 6px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);" title="Buka menu surat masuk">
                 <i class="fas fa-arrow-up-right-from-square"></i>
             </a>
         </div>
     </div>
 
     <div class="card"
-        style="padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.25); background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(59,130,246,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+        style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); border: 1px solid rgba(16,185,129,0.25); background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(59,130,246,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
             <div
-                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-paper-plane"></i>
             </div>
             <div style="min-width: 0;">
                 <div
-                    style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                     No. Surat Keluar Terakhir</div>
-                <div style="font-size: 0.96rem; font-weight: 800; color: #10b981; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: #10b981; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     title="{{ $stats['no_surat_keluar_terakhir'] ?? '-' }}">
                     {{ $stats['no_surat_keluar_terakhir'] ?? '-' }}
                 </div>
@@ -106,11 +106,11 @@
         <div style="display: flex; gap: 6px; flex-shrink: 0;">
             <button type="button" class="btn btn-outline btn-sm"
                 onclick="copyNomorSurat(this, '{{ $stats['no_surat_keluar_terakhir'] ?? '' }}')"
-                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;" title="Salin nomor">
+                style="padding: 6px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);" title="Salin nomor">
                 <i class="fas fa-copy"></i>
             </button>
             <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline btn-sm"
-                style="padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;" title="Buka menu surat keluar">
+                style="padding: 6px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);" title="Buka menu surat keluar">
                 <i class="fas fa-arrow-up-right-from-square"></i>
             </a>
         </div>
@@ -170,20 +170,20 @@
 
 <!-- 4. Section: Visualisasi Statistik & Distribusi Persuratan -->
 <div class="card"
-    style="padding: 20px 22px; margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg);">
+    style="padding: 20px 22px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
         <div>
             <h3
-                style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-chart-pie text-primary"></i> Statistik &amp; Distribusi Persuratan
             </h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 3px 0 0 0;">
                 Visualisasi volume surat berdasarkan jenis administrasi serta status pemrosesan dokumen resmi.
             </p>
         </div>
         <div
-            style="font-size: 0.76rem; font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.25);">
+            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
             <i class="fas fa-envelope-open-text me-1"></i> Tata Kelola Arsip Digital
         </div>
     </div>
@@ -191,12 +191,12 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
         <!-- Chart 1: Jenis Surat (Doughnut) -->
         <div
-            style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
             <div
-                style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-mail-bulk text-primary"></i> Distribusi Jenis Surat
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Surat Masuk, Keluar, SK,
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Surat Masuk, Keluar, SK,
                 &amp; Tugas</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="persuratanChartJenis"></canvas>
@@ -205,12 +205,12 @@
 
         <!-- Chart 2: Status Pemrosesan Surat (Bar) -->
         <div
-            style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
             <div
-                style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-tasks text-success"></i> Status Pemrosesan Dokumen
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Diproses, Selesai, &amp;
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Diproses, Selesai, &amp;
                 Diarsipkan</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="persuratanChartStatus"></canvas>

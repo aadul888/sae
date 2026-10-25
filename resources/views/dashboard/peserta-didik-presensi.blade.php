@@ -7,23 +7,23 @@
     <!-- 1. Header Banner & Action Buttons (Sesuai Standar Modul SAE) -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-calendar-check text-primary me-2"></i> Riwayat Presensi Harian
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Catatan kehadiran, ketepatan waktu, bukti snapshot terminal, dan cetak laporan resmi.
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.peserta-didik.presensi.cetak', request()->all()) }}" target="_blank"
                 class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Cetak Rekapitulasi Presensi Resmi">
                 <i class="fas fa-print"></i>
             </a>
             @if ($canCreate)
                 <a href="{{ route('dashboard.peserta-didik.izin.index') }}" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Ajukan Surat Izin / Sakit">
                     <i class="fas fa-envelope-open-text"></i>
                 </a>
@@ -38,7 +38,7 @@
                 <i class="fas fa-percent"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                     {{ $stats['persen'] }}%
                 </div>
                 <div class="dash-stat-label">Kehadiran ({{ $stats['total_hadir'] }}/{{ $stats['hari_efektif_berjalan'] }}
@@ -51,7 +51,7 @@
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($stats['hadir'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Hadir Tepat Waktu</div>
@@ -63,7 +63,7 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($stats['terlambat'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Terlambat Masuk</div>
@@ -75,7 +75,7 @@
                 <i class="fas fa-file-lines"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($stats['izin'] + $stats['sakit'] + $stats['dispen'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Izin / Sakit / Dispen</div>
@@ -87,7 +87,7 @@
                 <i class="fas fa-circle-xmark"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($stats['alpha'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Tanpa Keterangan (Alpha)</div>
@@ -193,7 +193,7 @@
                         @if ($q)
                             <a href="{{ route('dashboard.peserta-didik.presensi.index', array_merge(request()->except('q'), ['q' => ''])) }}"
                                 class="btn btn-outline btn-responsive-icon btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset pencarian" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -216,7 +216,7 @@
 
             <!-- Bar Informasi Periode Aktif -->
             <div
-                style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                 <div>
                     <i class="fas fa-info-circle text-primary me-1"></i>
                     Menampilkan data kehadiran: <strong style="color: var(--text-color);">{{ $range['label'] }}</strong>
@@ -234,27 +234,27 @@
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Tanggal &amp; Hari
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                             Status Kehadiran
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Jam Masuk
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Jam Pulang
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Keterangan
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                             Snapshot
                         </th>
                     </tr>
@@ -268,20 +268,20 @@
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <!-- Tanggal & Hari -->
                             <td class="cell-pd-tanggal"
-                                style="padding: 14px 18px; font-weight: 600; font-size: 0.88rem; color: var(--text-color);"
+                                style="padding: 14px 18px; font-weight: 600; font-size: var(--text-base, 0.875rem); color: var(--text-color);"
                                 data-label="Tanggal & Hari">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <div
-                                        style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        style="width: 38px; height: 38px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;">
                                         <span
-                                            style="font-size: 0.62rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">{{ $tgl->translatedFormat('M') }}</span>
+                                            style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; color: var(--primary); text-transform: uppercase;">{{ $tgl->translatedFormat('M') }}</span>
                                         <span
-                                            style="font-size: 0.95rem; font-weight: 800; color: var(--text-color); line-height: 1;">{{ $tgl->format('d') }}</span>
+                                            style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); line-height: 1;">{{ $tgl->format('d') }}</span>
                                     </div>
                                     <div>
                                         <div style="font-weight: 700; color: var(--text-color);">
                                             {{ $tgl->translatedFormat('l') }}</div>
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $tgl->translatedFormat('d F Y') }}</div>
                                     </div>
                                 </div>
@@ -292,75 +292,75 @@
                                 data-label="Status Kehadiran">
                                 @if ($status === 'H')
                                     <span class="badge"
-                                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-check-circle me-1"></i> Hadir Tepat
                                     </span>
                                 @elseif ($status === 'T')
                                     <span class="badge"
-                                        style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-clock me-1"></i> Terlambat
                                     </span>
                                     @if ($log->menit_terlambat)
-                                        <div style="font-size: 0.7rem; color: #f59e0b; margin-top: 3px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: #f59e0b; margin-top: 3px;">
                                             +{{ $log->menit_terlambat }} menit</div>
                                     @endif
                                 @elseif ($status === 'I')
                                     <span class="badge"
-                                        style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-envelope-open-text me-1"></i> Izin
                                     </span>
                                 @elseif ($status === 'S')
                                     <span class="badge"
-                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-notes-medical me-1"></i> Sakit
                                     </span>
                                 @elseif ($status === 'D')
                                     <span class="badge"
-                                        style="background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-award me-1"></i> Dispensasi
                                     </span>
                                 @elseif ($status === 'A')
                                     <span class="badge"
-                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-circle-xmark me-1"></i> Alpha
                                     </span>
                                 @else
                                     <span class="badge badge-outline"
-                                        style="font-size: 0.78rem; padding: 4px 8px;">{{ $status ?: '-' }}</span>
+                                        style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">{{ $status ?: '-' }}</span>
                                 @endif
                             </td>
 
                             <!-- Jam Masuk -->
                             <td class="cell-pd-masuk" style="padding: 14px 18px;" data-label="Jam Masuk">
                                 @if ($log->jam_masuk)
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ \Carbon\Carbon::parse($log->jam_masuk)->format('H:i') }} WIB
                                     </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                         Via: {{ ucfirst($log->metode_masuk ?? 'terminal') }}
                                     </div>
                                 @else
-                                    <span style="color: var(--text-muted); font-size: 0.82rem;">&mdash;</span>
+                                    <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">&mdash;</span>
                                 @endif
                             </td>
 
                             <!-- Jam Pulang -->
                             <td class="cell-pd-pulang" style="padding: 14px 18px;" data-label="Jam Pulang">
                                 @if ($log->jam_pulang)
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ \Carbon\Carbon::parse($log->jam_pulang)->format('H:i') }} WIB
                                     </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                         Via: {{ ucfirst($log->metode_pulang ?? 'terminal') }}
                                     </div>
                                 @else
-                                    <span style="color: var(--text-muted); font-size: 0.82rem;">&mdash;</span>
+                                    <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">&mdash;</span>
                                 @endif
                             </td>
 
                             <!-- Keterangan -->
                             <td class="cell-pd-ket" style="padding: 14px 18px;" data-label="Keterangan">
-                                <span style="font-size: 0.82rem; color: var(--text-color);">
+                                <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
                                     {{ $log->keterangan ?: '-' }}
                                 </span>
                             </td>
@@ -388,7 +388,7 @@
                                         </button>
                                     @endif
                                     @if (empty($log->foto_masuk_url) && empty($log->foto_pulang_url))
-                                        <span style="color: var(--text-muted); font-size: 0.75rem;">&mdash;</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">&mdash;</span>
                                     @endif
                                 </div>
                             </td>
@@ -396,14 +396,14 @@
                     @empty
                         <tr>
                             <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
-                                <div style="font-size: 2.4rem; opacity: 0.35; margin-bottom: 10px;">
+                                <div style="font-size: var(--text-4xl, 2.25rem); opacity: 0.35; margin-bottom: 10px;">
                                     <i class="fas fa-calendar-xmark"></i>
                                 </div>
                                 <div
-                                    style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 4px;">
+                                    style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">
                                     Belum Ada Catatan Presensi
                                 </div>
-                                <div style="font-size: 0.8rem; max-width: 420px; margin: auto;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); max-width: 420px; margin: auto;">
                                     Tidak ditemukan riwayat kehadiran untuk periode yang dipilih ({{ $range['label'] }}).
                                 </div>
                             </td>
@@ -425,21 +425,21 @@
     <div id="modalSnapshotSaya" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 440px; width: 92%; margin: auto; padding: 20px; border-radius: 16px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
+            style="max-width: 440px; width: 92%; margin: auto; padding: 20px; border-radius: var(--radius-xl, 16px); text-align: center; border: 1px solid var(--border-color); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                 <h4 id="snapshotSayaCaption"
-                    style="font-size: 0.95rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Foto Bukti Presensi
                 </h4>
                 <button type="button" id="btnCloseSnapshotSaya"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div style="margin: 10px 0;">
                 <img id="imgSnapshotSaya" src="" alt="Snapshot"
-                    style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 380px; border: 1px solid var(--border-color);">
+                    style="width: 100%; border-radius: var(--radius-lg, 12px); object-fit: cover; max-height: 380px; border: 1px solid var(--border-color);">
             </div>
         </div>
     </div>

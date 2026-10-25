@@ -1,0 +1,610 @@
+/* ==========================================================================
+   SAE UI Components — Kelas Komponen Terstandar
+   --------------------------------------------------------------------------
+   Sumber tunggal untuk tampilan elemen yang berulang: tombol, kartu, badge,
+   tabel, form, alert, empty-state, dan page-header.
+
+   Tujuan: menghentikan kebiasaan menulis `style="..."` panjang di Blade.
+   Setiap kelas di sini WAJIB memakai token dari tokens.css.
+
+   Konvensi penamaan: `.sae-<komponen>` dan `.sae-<komponen>--<varian>`.
+   Kelas lama (`.btn`, `.card`, dst.) tetap dipertahankan agar tidak merusak
+   halaman yang sudah ada; berkas ini menambahkan lapisan yang konsisten.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. PAGE HEADER — menggantikan blok judul + deskripsi + aksi yang
+      selama ini ditulis ulang dengan inline style di puluhan halaman.
+   -------------------------------------------------------------------------- */
+.sae-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-9);
+}
+
+.sae-page-header__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: var(--text-xl);
+    font-weight: var(--font-extrabold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-main);
+    margin: 0;
+}
+
+.sae-page-header__title i {
+    color: var(--primary);
+    font-size: var(--icon-size-lg);
+}
+
+.sae-page-header__subtitle {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text-muted);
+}
+
+.sae-page-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   2. BUTTON — ukuran konsisten dengan tinggi target sentuh.
+   -------------------------------------------------------------------------- */
+.sae-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    height: var(--control-height-md);
+    padding: 0 var(--space-7);
+    border: 1px solid transparent;
+    border-radius: var(--radius-button);
+    font-family: inherit;
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.sae-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.sae-btn:disabled,
+.sae-btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Varian warna */
+.sae-btn--primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.sae-btn--primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.sae-btn--secondary {
+    background: var(--bg-card-hover);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+.sae-btn--secondary:hover:not(:disabled) {
+    border-color: var(--border-glow);
+}
+
+.sae-btn--outline {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+.sae-btn--outline:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-glow);
+}
+
+.sae-btn--ghost {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.sae-btn--ghost:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.sae-btn--danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.sae-btn--danger:hover:not(:disabled) {
+    filter: brightness(0.92);
+}
+
+.sae-btn--success {
+    background: var(--success);
+    color: #fff;
+}
+
+.sae-btn--success:hover:not(:disabled) {
+    filter: brightness(0.92);
+}
+
+/* Varian ukuran */
+.sae-btn--sm {
+    height: var(--control-height-sm);
+    padding: 0 var(--space-5);
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+}
+
+.sae-btn--lg {
+    height: var(--control-height-lg);
+    padding: 0 var(--space-8);
+    font-size: var(--text-md);
+}
+
+/* Tombol ikon persegi — dipakai untuk aksi tabel dan toolbar. */
+.sae-btn--icon {
+    width: var(--control-height-md);
+    padding: 0;
+}
+
+.sae-btn--icon.sae-btn--sm {
+    width: var(--control-height-sm);
+}
+
+/* --------------------------------------------------------------------------
+   3. CARD — panel isi standar.
+   -------------------------------------------------------------------------- */
+.sae-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    padding: var(--space-10);
+    box-shadow: var(--shadow-sm);
+}
+
+.sae-card--compact {
+    padding: var(--space-8);
+}
+
+.sae-card--flush {
+    padding: 0;
+    overflow: hidden;
+}
+
+.sae-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sae-card__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: var(--font-bold);
+    color: var(--text-main);
+}
+
+.sae-card__title i {
+    color: var(--primary);
+}
+
+.sae-card__body {
+    font-size: var(--text-base);
+    color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   4. BADGE — label status. Satu ukuran, satu radius.
+   -------------------------------------------------------------------------- */
+.sae-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-tight);
+    white-space: nowrap;
+}
+
+.sae-badge--neutral {
+    background: var(--bg-hover);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+.sae-badge--primary {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+    color: var(--primary);
+}
+
+.sae-badge--success {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    border-color: color-mix(in srgb, var(--success) 30%, transparent);
+    color: var(--success);
+}
+
+.sae-badge--warning {
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+    color: var(--warning);
+}
+
+.sae-badge--danger {
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    color: var(--danger);
+}
+
+/* --------------------------------------------------------------------------
+   5. TABEL — struktur konsisten untuk seluruh modul.
+   -------------------------------------------------------------------------- */
+.sae-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.sae-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-base);
+}
+
+.sae-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    padding: var(--space-6) var(--space-7);
+    background: var(--bg-card-hover);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-wide);
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sae-table tbody td {
+    padding: var(--space-6) var(--space-7);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.sae-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sae-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.sae-table--compact thead th,
+.sae-table--compact tbody td {
+    padding: var(--space-4) var(--space-6);
+}
+
+/* --------------------------------------------------------------------------
+   6. FORM — label, kontrol, dan pesan galat dengan ritme vertikal seragam.
+   -------------------------------------------------------------------------- */
+.sae-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-7);
+}
+
+.sae-field__label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+}
+
+.sae-field__label .sae-required {
+    color: var(--danger);
+    margin-left: var(--space-1);
+}
+
+.sae-input,
+.sae-select,
+.sae-textarea {
+    width: 100%;
+    height: var(--control-height-md);
+    padding: 0 var(--space-7);
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: var(--text-base);
+    outline: none;
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.sae-textarea {
+    height: auto;
+    min-height: 96px;
+    padding: var(--space-5) var(--space-7);
+    line-height: var(--leading-normal);
+    resize: vertical;
+}
+
+.sae-input:focus,
+.sae-select:focus,
+.sae-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.sae-input:disabled,
+.sae-select:disabled,
+.sae-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sae-field__hint {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.sae-field__error {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    color: var(--danger);
+}
+
+.sae-input--invalid,
+.sae-select--invalid,
+.sae-textarea--invalid {
+    border-color: var(--danger);
+}
+
+/* --------------------------------------------------------------------------
+   7. ALERT — pesan sistem (pengganti inline style pada flash message).
+   -------------------------------------------------------------------------- */
+.sae-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-5);
+    padding: var(--space-7) var(--space-8);
+    border: 1px solid var(--border-color);
+    border-left-width: 3px;
+    border-radius: var(--radius-lg);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+}
+
+.sae-alert--success {
+    border-left-color: var(--success);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+}
+
+.sae-alert--warning {
+    border-left-color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+
+.sae-alert--danger {
+    border-left-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.sae-alert--info {
+    border-left-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   8. EMPTY STATE — keadaan kosong yang informatif, bukan tabel kosong.
+   -------------------------------------------------------------------------- */
+.sae-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    padding: var(--space-13) var(--space-8);
+    text-align: center;
+}
+
+.sae-empty__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-xl);
+    background: var(--bg-hover);
+    color: var(--text-muted);
+    font-size: var(--text-xl);
+}
+
+.sae-empty__title {
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: var(--font-semibold);
+    color: var(--text-main);
+}
+
+.sae-empty__text {
+    margin: 0;
+    max-width: 44ch;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   9. STAT CARD — kartu ringkasan angka (dipakai di banyak dashboard).
+   -------------------------------------------------------------------------- */
+.sae-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-7);
+    padding: var(--space-8);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    transition: border-color var(--transition-fast);
+}
+
+.sae-stat:hover {
+    border-color: var(--border-glow);
+}
+
+.sae-stat__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    font-size: var(--icon-size-lg);
+}
+
+.sae-stat__body {
+    min-width: 0;
+}
+
+.sae-stat__value {
+    font-size: var(--text-xl);
+    font-weight: var(--font-extrabold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-main);
+}
+
+.sae-stat__label {
+    margin-top: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+/* Grid otomatis untuk deretan stat card. */
+.sae-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-7);
+    margin-bottom: var(--space-9);
+}
+
+/* --------------------------------------------------------------------------
+   10. UTILITAS — sedikit, sengaja dibatasi agar tidak menjadi Tailwind liar.
+   -------------------------------------------------------------------------- */
+.sae-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.sae-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.sae-spacer {
+    flex: 1 1 auto;
+}
+
+.sae-text-muted {
+    color: var(--text-muted);
+}
+
+.sae-text-sm {
+    font-size: var(--text-sm);
+}
+
+.sae-text-xs {
+    font-size: var(--text-xs);
+}
+
+.sae-mono {
+    font-family: var(--font-family-mono);
+}
+
+.sae-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sae-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   11. AKSESIBILITAS & CETAK
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .sae-btn,
+    .sae-stat,
+    .sae-input,
+    .sae-select,
+    .sae-textarea {
+        transition: none;
+    }
+}
+
+@media print {
+    .sae-btn,
+    .sae-page-header__actions {
+        display: none !important;
+    }
+}

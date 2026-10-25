@@ -56,7 +56,7 @@
                     <i class="fas fa-circle-check"></i>
                     <div>
                         <div><strong>{{ $userName }}</strong></div>
-                        <div style="font-size: 0.76rem; color: #15803d;">
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: #15803d;">
                             @if ($studentInfo)
                                 NISN: {{ $studentInfo->nisn }} • Kelas: {{ $studentInfo->nama_rombel }}
                             @else
@@ -71,11 +71,11 @@
             <!-- Opsi Login untuk Responden Publik -->
             <div class="guest-banner">
                 <div class="guest-banner-info">
-                    <i class="fas fa-user-clock text-primary" style="font-size: 1.25rem;"></i>
+                    <i class="fas fa-user-clock text-primary" style="font-size: var(--text-xl, 1.25rem);"></i>
                     <div>
-                        <div style="font-weight: 700; color: #1e293b; font-size: 0.86rem;">Mengisi sebagai Responden
+                        <div style="font-weight: 700; color: #1e293b; font-size: var(--text-base, 0.875rem);">Mengisi sebagai Responden
                             Publik</div>
-                        <div style="font-size: 0.76rem; color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar
                             identitas terisi otomatis.</div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
         <!-- Error Alert -->
         @if (session('error'))
             <div
-                style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: 0.88rem;">
+                style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; font-size: var(--text-base, 0.875rem);">
                 <i class="fas fa-circle-exclamation me-1"></i> {{ session('error') }}
             </div>
         @endif
@@ -257,7 +257,7 @@
                                             <input type="radio" name="{{ $fieldId }}"
                                                 value="{{ $rVal }}" {{ $required ? 'required' : '' }}>
                                             <span>{{ $rVal }} <i class="fas fa-star"
-                                                    style="font-size: 0.75rem;"></i></span>
+                                                    style="font-size: var(--text-xs, 0.75rem);"></i></span>
                                         </label>
                                     @endforeach
                                 </div>
@@ -267,9 +267,9 @@
                                 <div class="file-dropzone"
                                     onclick="document.getElementById('{{ $fieldId }}').click()">
                                     <i class="fas fa-cloud-arrow-up"></i>
-                                    <div style="font-size: 0.88rem; font-weight: 600; color: #334155;">Klik untuk
+                                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: #334155;">Klik untuk
                                         memilih berkas</div>
-                                    <div style="font-size: 0.75rem; color: #94a3b8;">Format: JPG, PNG, PDF, DOCX
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: #94a3b8;">Format: JPG, PNG, PDF, DOCX
                                         (Maksimal 5 MB)</div>
                                     <input type="file" name="{{ $fieldId }}" id="{{ $fieldId }}"
                                         style="display: none;"

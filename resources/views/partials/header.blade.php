@@ -19,7 +19,7 @@
                 <i class="fas fa-chevron-down nav-chevron-icon" id="megaLayananChevron"></i>
             </button>
             <button type="button" class="btn-pwa-install btn" id="btnPwaInstallNav" onclick="installSaePwa()"
-                style="display: none; padding: 0.45rem 0.9rem; font-size: 0.8rem; background: rgba(16,185,129,0.14); color: #10b981; border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; align-items: center; gap: 6px; cursor: pointer;"
+                style="display: none; padding: 0.45rem 0.9rem; font-size: var(--text-sm, 0.8125rem); background: rgba(16,185,129,0.14); color: #10b981; border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-lg, 12px); align-items: center; gap: 6px; cursor: pointer;"
                 title="Instal Aplikasi SAE ke Perangkat">
                 <i class="fas fa-download"></i> <span>Instal App</span>
             </button>
@@ -27,7 +27,7 @@
                 title="Ganti Mode Gelap / Terang">
                 <i class="fas fa-moon"></i>
             </button>
-            <a href="{{ url('/login') }}" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.8rem;">
+            <a href="{{ url('/login') }}" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: var(--text-sm, 0.8125rem);">
                 <i class="fas fa-right-to-bracket"></i> Masuk Portal
             </a>
         </div>

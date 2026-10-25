@@ -57,7 +57,7 @@
                 <div>
                     <div class="bio-item">
                         <span class="bio-label">Nama Guru:</span>
-                        <strong style="color: #1e3a8a; font-size: 0.9rem;">{{ $guru->nama }}</strong>
+                        <strong style="color: #1e3a8a; font-size: var(--text-base, 0.875rem);">{{ $guru->nama }}</strong>
                     </div>
                     <div class="bio-item">
                         <span class="bio-label">NIP / NUPTK:</span>
@@ -96,7 +96,7 @@
                         <tr>
                             <td class="th-jam">
                                 <div><strong>JP {{ $sK }}</strong></div>
-                                <div style="font-size: 0.68rem; color: #6b7280;">{{ $slot['mulai'] }} -
+                                <div style="font-size: var(--text-2xs, 0.6875rem); color: #6b7280;">{{ $slot['mulai'] }} -
                                     {{ $slot['selesai'] }}</div>
                             </td>
                             @foreach ($hariList as $h)
@@ -150,7 +150,7 @@
                                         @endif
                                     </td>
                                 @elseif (!$isOccupied)
-                                    <td style="color: #9ca3af; font-size: 0.7rem;">-</td>
+                                    <td style="color: #9ca3af; font-size: var(--text-xs, 0.75rem);">-</td>
                                 @endif
                             @endforeach
                         </tr>
@@ -166,7 +166,7 @@
                     <div class="sig-space"></div>
                     <p class="sig-name">
                         {{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
-                    <p style="font-size: 0.72rem; color: #6b7280;">NIP.
+                    <p style="font-size: var(--text-xs, 0.75rem); color: #6b7280;">NIP.
                         {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
                 </div>
 
@@ -176,7 +176,7 @@
                     <p style="font-weight: 600;">Guru Pengampu,</p>
                     <div class="sig-space"></div>
                     <p class="sig-name">{{ $guru->nama }}</p>
-                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $guru->nip ?: ($guru->nuptk ?: '-') }}</p>
+                    <p style="font-size: var(--text-xs, 0.75rem); color: #6b7280;">NIP. {{ $guru->nip ?: ($guru->nuptk ?: '-') }}</p>
                 </div>
             </div>
         </div>

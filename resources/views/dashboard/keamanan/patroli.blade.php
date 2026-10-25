@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-shield-virus"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Log Patroli & Laporan Insiden
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pencatatan rute patroli keamanan lingkungan sekolah dan pelaporan insiden/kejadian khusus.
                     </div>
                 </div>
@@ -26,13 +26,13 @@
                 @if ($canCreate)
                     @if ($tab === 'patroli')
                         <button type="button" class="btn btn-primary" onclick="openModalPatroli()"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                             title="Tambah Log Patroli">
                             <i class="fas fa-plus"></i>
                         </button>
                     @else
                         <button type="button" class="btn btn-danger" onclick="openModalInsiden()"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                             title="Laporkan Insiden Khusus Keamanan">
                             <i class="fas fa-exclamation-triangle"></i>
                         </button>
@@ -87,11 +87,11 @@
         {{-- Tabs --}}
         <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
             <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'patroli']) }}"
-                style="padding: 10px 18px; font-weight: 600; font-size: 0.9rem; text-decoration: none; border-bottom: 2px solid {{ $tab === 'patroli' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'patroli' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
+                style="padding: 10px 18px; font-weight: 600; font-size: var(--text-base, 0.875rem); text-decoration: none; border-bottom: 2px solid {{ $tab === 'patroli' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'patroli' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
                 <i class="fas fa-walking"></i> Log Patroli Keliling
             </a>
             <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'insiden']) }}"
-                style="padding: 10px 18px; font-weight: 600; font-size: 0.9rem; text-decoration: none; border-bottom: 2px solid {{ $tab === 'insiden' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'insiden' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
+                style="padding: 10px 18px; font-weight: 600; font-size: var(--text-base, 0.875rem); text-decoration: none; border-bottom: 2px solid {{ $tab === 'insiden' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'insiden' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
                 <i class="fas fa-exclamation-circle"></i> Laporan Insiden & Kejadian
             </a>
         </div>
@@ -125,7 +125,7 @@
                                 @if ($search || $tanggal)
                                     <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'patroli']) }}"
                                         class="btn btn-outline btn-reset-filter"
-                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                         title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                                 @endif
                             </div>
@@ -149,22 +149,22 @@
                         <thead>
                             <tr>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Waktu Patroli</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Rute / Zona</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Kondisi Lingkungan</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Catatan Temuan</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Petugas</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Aksi</th>
                             </tr>
                         </thead>
@@ -174,7 +174,7 @@
                                     <td style="padding: 12px 18px;">
                                         <div style="font-weight: 600; color: var(--text-heading);">
                                             {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
-                                        <div style="font-size: 0.8rem; color: var(--text-muted);">Pukul
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Pukul
                                             {{ substr($item->jam_patroli, 0, 5) }} WIB</div>
                                     </td>
                                     <td style="padding: 12px 18px;">
@@ -195,10 +195,10 @@
                                         @endif
                                     </td>
                                     <td
-                                        style="padding: 12px 18px; font-size: 0.85rem; color: var(--text-muted); max-width: 250px;">
+                                        style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); max-width: 250px;">
                                         {{ $item->catatan_temuan ?: '-' }}
                                     </td>
-                                    <td style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-heading);">
+                                    <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-heading);">
                                         {{ $item->nama_petugas ?: 'Satpam' }}
                                     </td>
                                     <td style="padding: 12px 18px; text-align: center;">
@@ -231,7 +231,7 @@
                                     <td colspan="6"
                                         style="text-align: center; padding: 36px; color: var(--text-muted);">
                                         <i class="fas fa-walking"
-                                            style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
+                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; opacity: 0.4;"></i>
                                         <p style="margin: 0;">Belum ada log patroli.</p>
                                     </td>
                                 </tr>
@@ -277,7 +277,7 @@
                                 @if ($search || $tanggal)
                                     <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'insiden']) }}"
                                         class="btn btn-outline btn-reset-filter"
-                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                         title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                                 @endif
                             </div>
@@ -301,22 +301,22 @@
                         <thead>
                             <tr>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     No Laporan & Waktu</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Judul Insiden & Lokasi</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Urgensi</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Kronologi / Tindakan</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Status Penyelesaian</th>
                                 <th
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Aksi</th>
                             </tr>
                         </thead>
@@ -325,9 +325,9 @@
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 12px 18px;">
                                         <div
-                                            style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.85rem;">
+                                            style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: var(--text-base, 0.875rem);">
                                             {{ $ins->nomor_laporan }}</div>
-                                        <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                             {{ \Carbon\Carbon::parse($ins->tanggal)->translatedFormat('d M Y') }} &bull;
                                             {{ substr($ins->jam_kejadian, 0, 5) }}
                                         </div>
@@ -336,7 +336,7 @@
                                         <div style="font-weight: 600; color: var(--text-heading);">
                                             {{ $ins->judul_insiden }}
                                         </div>
-                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><i
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"><i
                                                 class="fas fa-map-marker-alt"></i> {{ $ins->lokasi_kejadian }}</div>
                                     </td>
                                     <td style="padding: 12px 18px;">
@@ -354,7 +354,7 @@
                                                 style="background: rgba(107, 114, 128, 0.2); color: #6b7280;">Rendah</span>
                                         @endif
                                     </td>
-                                    <td style="padding: 12px 18px; font-size: 0.82rem; max-width: 250px;">
+                                    <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); max-width: 250px;">
                                         <div style="color: var(--text-heading); white-space: normal;">
                                             {{ Str::limit($ins->kronologi, 80) }}</div>
                                         @if ($ins->tindakan_diambil)
@@ -401,7 +401,7 @@
                                     <td colspan="6"
                                         style="text-align: center; padding: 36px; color: var(--text-muted);">
                                         <i class="fas fa-check-circle"
-                                            style="font-size: 2rem; margin-bottom: 8px; color: #10b981; opacity: 0.6;"></i>
+                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; color: #10b981; opacity: 0.6;"></i>
                                         <p style="margin: 0;">Tidak ada laporan insiden.</p>
                                     </td>
                                 </tr>
@@ -427,10 +427,10 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                 <h3 id="modalPatroliTitle"
-                    style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-heading);">Tambah Log Patroli
+                    style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">Tambah Log Patroli
                 </h3>
                 <button type="button" onclick="closeModalPatroli()"
-                    style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                    style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
             </div>
 
             <form id="formPatroli" method="POST" action="{{ route('dashboard.keamanan.patroli.store') }}"
@@ -456,7 +456,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <label class="form-label" style="margin: 0;">Rute / Zona Patroli <span
                                 style="color:red;">*</span></label>
-                        <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                 class="fas fa-building me-1"></i>Master Ruang & Sarpras</span>
                     </div>
                     <input list="listRutePatroli" name="rute_zona" id="patroli_rute" class="form-control"
@@ -501,10 +501,10 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                 <h3 id="modalInsidenTitle"
-                    style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-heading);">Laporkan Insiden
+                    style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">Laporkan Insiden
                     Keamanan</h3>
                 <button type="button" onclick="closeModalInsiden()"
-                    style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                    style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
             </div>
 
             <form id="formInsiden" method="POST" action="{{ route('dashboard.keamanan.insiden.store') }}"
@@ -538,7 +538,7 @@
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <label class="form-label" style="margin: 0;">Lokasi Kejadian <span
                                     style="color:red;">*</span></label>
-                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                     class="fas fa-building me-1"></i>Sarpras</span>
                         </div>
                         <input list="listLokasiInsiden" name="lokasi_kejadian" id="insiden_lokasi" class="form-control"
@@ -564,7 +564,7 @@
                 <div style="margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <label class="form-label" style="margin: 0;">Pihak Terlibat / Saksi</label>
-                        <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-users me-1"></i>Siswa
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i class="fas fa-users me-1"></i>Siswa
                             / GTK</span>
                     </div>
                     <input type="search" name="pihak_terlibat" id="insiden_pihak" class="form-control"

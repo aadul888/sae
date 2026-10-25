@@ -10,14 +10,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-flask"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Inventaris Alat &amp; Bahan Lab
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pengelolaan alat praktikum, bahan habis pakai, stok, dan kontrol masa kadaluarsa laboratorium.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalLab"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Tambah Alat / Bahan Laboratorium">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -136,7 +136,7 @@
                             @if ($search || $labFilter || $jenisFilter || $kondisiFilter)
                                 <a href="{{ route('dashboard.laboran.inventaris.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -160,25 +160,25 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kode &amp; Nama Item</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Ruang Lab &amp; Rak</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis &amp; Spek</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Stok</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Kondisi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -189,32 +189,32 @@
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <td data-label="No"
-                                    style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Item" style="padding: 14px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama_item }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--primary); font-family: monospace;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                         {{ $item->kode_item }}</div>
                                     @if ($item->tgl_kedaluwarsa)
-                                        <div style="font-size: 0.75rem; color: #f59e0b;">Exp:
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: #f59e0b;">Exp:
                                             {{ \Carbon\Carbon::parse($item->tgl_kedaluwarsa)->format('d/m/Y') }}</div>
                                     @endif
                                 </td>
-                                <td data-label="Lab" style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td data-label="Lab" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-color);">{{ $item->ruang_lab_nama }}
                                     </div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted);">Rak:
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Rak:
                                         {{ $item->lokasi_lemari_rak ?: '-' }}</div>
                                 </td>
-                                <td data-label="Jenis" style="padding: 14px 18px; font-size: 0.85rem;">
+                                <td data-label="Jenis" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <span class="badge {{ $item->jenis === 'alat' ? 'badge-info' : 'badge-primary' }}"
-                                        style="font-size: 0.72rem;">
+                                        style="font-size: var(--text-xs, 0.75rem);">
                                         {{ $item->jenis === 'alat' ? 'Alat' : 'Bahan Habis Pakai' }}
                                     </span>
                                     @if ($item->spesifikasi)
-                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                                             title="{{ $item->spesifikasi }}">
                                             {{ $item->spesifikasi }}
                                         </div>
@@ -222,12 +222,12 @@
                                 </td>
                                 <td data-label="Stok" style="padding: 14px 18px; text-align: center;">
                                     <div
-                                        style="font-weight: 700; font-size: 0.95rem; color: {{ $isLow ? '#ef4444;' : 'var(--text-color)' }};">
+                                        style="font-weight: 700; font-size: var(--text-md, 1rem); color: {{ $isLow ? '#ef4444;' : 'var(--text-color)' }};">
                                         {{ (float) $item->stok_tersedia }} / {{ (float) $item->stok_total }}
                                         {{ $item->satuan }}
                                     </div>
                                     @if ($isLow)
-                                        <span class="badge badge-danger" style="font-size: 0.65rem;">Stok Menipis</span>
+                                        <span class="badge badge-danger" style="font-size: var(--text-2xs, 0.6875rem);">Stok Menipis</span>
                                     @endif
                                 </td>
                                 <td data-label="Kondisi" style="padding: 14px 18px; text-align: center;">
@@ -270,7 +270,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada data alat/bahan lab yang cocok.</div>
                                 </td>
                             </tr>
@@ -291,14 +291,14 @@
         <div id="modalLab" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
+                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="modalLabTitle"
-                        style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Tambah Alat / Bahan Lab
                     </h3>
                     <button type="button" id="btnCloseModalLab"
-                        style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
                 <form id="formLab" method="POST" action="{{ route('dashboard.laboran.inventaris.store') }}">
@@ -308,17 +308,17 @@
 
                     @if (isset($daftarAsetSarpras) && $daftarAsetSarpras->isNotEmpty())
                         <div id="wrapperAsetSarpras"
-                            style="margin-bottom: 14px; padding: 10px 12px; background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3); border-radius: 8px;">
+                            style="margin-bottom: 14px; padding: 10px 12px; background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3); border-radius: var(--radius-md, 8px);">
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <label style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin: 0;">
+                                <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--primary); margin: 0;">
                                     <i class="fas fa-boxes-stacked me-1"></i> Referensi / Salin dari Aset Sarpras
                                     (Opsional)
                                 </label>
-                                <small style="color: var(--text-muted); font-size: 0.72rem;">Isi otomatis data</small>
+                                <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Isi otomatis data</small>
                             </div>
                             <select id="selectAsetSarpras" class="form-control"
-                                style="font-size: 0.82rem; height: 36px;">
+                                style="font-size: var(--text-sm, 0.8125rem); height: 36px;">
                                 <option value="">-- Ketik Baru atau Pilih Referensi Aset Sarpras --</option>
                                 @foreach ($daftarAsetSarpras as $ast)
                                     <option value="{{ $ast->id }}" data-nama="{{ $ast->nama_barang }}"
@@ -337,11 +337,11 @@
                         <div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-color); margin: 0;">
+                                <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
                                     Ruang Lab / Bengkel <span style="color: #ef4444;">*</span>
                                 </label>
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
-                                    style="font-size: 0.72rem; color: var(--primary); text-decoration: none;"
+                                    style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
                                     title="Kelola Ruang di Sarpras & Aset">
                                     <i class="fas fa-arrow-up-right-from-square me-1"></i> Data Sarpras
                                 </a>
@@ -361,14 +361,14 @@
                                     @endforeach
                                 @endif
                             </select>
-                            <div style="font-size: 0.71rem; color: var(--text-muted); margin-top: 4px;">
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                                 <i class="fas fa-link me-1 text-primary"></i> Terhubung langsung dengan <strong>Ruang &amp;
                                     Gedung Sarpras</strong>.
                             </div>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
                                 Item <span style="color: #ef4444;">*</span></label>
                             <select name="jenis" id="labJenis" class="form-control" required>
                                 <option value="alat">Alat Praktikum</option>
@@ -380,14 +380,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
                                 Item <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="kode_item" id="labKode" class="form-control"
                                 placeholder="LAB-IPA-001" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
                                 Alat / Bahan <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="nama_item" id="labNama" class="form-control"
                                 placeholder="Mikroskop Binokuler / Asam Klorida" required>
@@ -397,21 +397,21 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
                                 Total <span style="color: #ef4444;">*</span></label>
                             <input type="number" step="0.01" name="stok_total" id="labStokTotal"
                                 class="form-control" value="1" required>
                         </div>
                         <div id="wrapperStokTersedia" style="display: none;">
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
                                 Tersedia</label>
                             <input type="number" step="0.01" name="stok_tersedia" id="labStokTersedia"
                                 class="form-control" value="1">
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
                                 <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="satuan" id="labSatuan" class="form-control" value="unit"
                                 placeholder="unit/botol/pcs" required>
@@ -421,7 +421,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
                                 <span style="color: #ef4444;">*</span></label>
                             <select name="kondisi" id="labKondisi" class="form-control" required>
                                 <option value="baik">Baik</option>
@@ -432,7 +432,7 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
                                 Kedaluwarsa</label>
                             <input type="date" name="tgl_kedaluwarsa" id="labExp" class="form-control">
                         </div>
@@ -440,7 +440,7 @@
 
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
                             Lemari / Rak</label>
                         <input type="text" name="lokasi_lemari_rak" id="labRak" class="form-control"
                             placeholder="Lemari A - Rak 2">
@@ -448,7 +448,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Spesifikasi
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Spesifikasi
                             / Keterangan</label>
                         <textarea name="spesifikasi" id="labSpek" class="form-control" rows="2"
                             placeholder="Merk, ukuran, konsentrasi bahan..."></textarea>

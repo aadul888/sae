@@ -12,14 +12,14 @@
 
 .panel-mapel-wrap {
     padding: 16px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     max-height: calc(100vh - 220px);
     overflow-y: auto;
 }
 
 .panel-matriks-wrap {
     padding: 0;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     overflow: hidden;
     margin-bottom: 24px;
 }
@@ -33,7 +33,7 @@
     display: flex;
     background: var(--bg-card, #1e293b);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 4px;
     gap: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
@@ -45,10 +45,10 @@
     justify-content: center;
     padding: 10px 14px;
     border: none;
-    border-radius: 9px;
+    border-radius: var(--radius-lg, 12px);
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.84rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 700;
     cursor: pointer;
     touch-action: manipulation;
@@ -144,12 +144,12 @@ th.sticky-jp-col {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.73rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
     background: rgba(99, 102, 241, 0.08);
     border: 1px dashed rgba(99, 102, 241, 0.25);
     padding: 7px 14px;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     margin: 10px 16px 0 16px;
 }
 
@@ -162,11 +162,11 @@ th.sticky-jp-col {
     height: 32px;
     min-width: 32px;
     min-height: 32px;
-    border-radius: 7px;
+    border-radius: var(--radius-md, 8px);
     border: 1px solid var(--border-color);
     background: var(--bg-hover, rgba(255,255,255,0.06));
     color: var(--text-color);
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     cursor: pointer;
     touch-action: manipulation;
     transition: all 0.15s ease;
@@ -196,7 +196,7 @@ th.sticky-jp-col {
     display: flex;
     background: var(--bg-hover, rgba(255,255,255,0.04));
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     padding: 3px;
     gap: 4px;
 }
@@ -207,10 +207,10 @@ th.sticky-jp-col {
     justify-content: center;
     padding: 8px 12px;
     border: none;
-    border-radius: 7px;
+    border-radius: var(--radius-md, 8px);
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 700;
     cursor: pointer;
     touch-action: manipulation;
@@ -241,7 +241,7 @@ th.sticky-jp-col {
 }
 .harian-day-pills-bar::-webkit-scrollbar-thumb {
     background: var(--border-color);
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
 }
 .harian-day-pill {
     flex-shrink: 0;
@@ -249,11 +249,11 @@ th.sticky-jp-col {
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     border: 1px solid var(--border-color);
     background: var(--bg-hover, rgba(255,255,255,0.03));
     color: var(--text-color);
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 700;
     cursor: pointer;
     touch-action: manipulation;
@@ -266,9 +266,9 @@ th.sticky-jp-col {
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
 }
 .harian-day-pill .day-count-badge {
-    font-size: 0.68rem;
+    font-size: var(--text-2xs, 0.6875rem);
     padding: 1px 6px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     background: rgba(255,255,255,0.22);
     color: inherit;
 }
@@ -285,7 +285,7 @@ th.sticky-jp-col {
 }
 .harian-card-item {
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     background: var(--bg-card);
     padding: 14px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
@@ -308,27 +308,27 @@ th.sticky-jp-col {
     gap: 8px;
 }
 .harian-jp-badge {
-    font-size: 0.76rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 800;
     color: var(--text-color);
     background: var(--bg-hover);
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     border: 1px solid var(--border-color);
 }
 .harian-clock-text {
-    font-size: 0.74rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
 }
 .harian-mapel-name {
     margin: 0 0 4px 0;
-    font-size: 0.94rem;
+    font-size: var(--text-md, 1rem);
     font-weight: 800;
     color: var(--text-color);
     line-height: 1.35;
 }
 .harian-guru-name, .harian-room-name {
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
     margin-top: 3px;
     display: flex;
@@ -336,10 +336,10 @@ th.sticky-jp-col {
     gap: 6px;
 }
 .harian-conflict-warn {
-    font-size: 0.72rem;
+    font-size: var(--text-xs, 0.75rem);
     color: #ef4444;
     background: rgba(239,68,68,0.1);
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     padding: 3px 8px;
     margin-top: 6px;
     display: inline-flex;
@@ -358,7 +358,7 @@ th.sticky-jp-col {
     text-align: center;
     padding: 32px 16px;
     color: var(--text-muted);
-    font-size: 0.84rem;
+    font-size: var(--text-base, 0.875rem);
 }
 
 /* Responsif Mobile (< 992px) */

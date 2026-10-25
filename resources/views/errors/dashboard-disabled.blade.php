@@ -5,15 +5,15 @@
 
 @section('content')
     <div class="card text-center"
-        style="max-width: 680px; margin: 40px auto; padding: 48px 32px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg, #1e293b);">
+        style="max-width: 680px; margin: 40px auto; padding: 48px 32px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg, #1e293b);">
         <div
             style="width: 76px; height: 76px; margin: 0 auto 24px; background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-lock" style="font-size: 2rem; color: #ef4444;"></i>
+            <i class="fas fa-lock" style="font-size: var(--text-3xl, 1.875rem); color: #ef4444;"></i>
         </div>
-        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 10px;">
+        <h3 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 10px;">
             Akses Dashboard {{ $roleName }} Dinonaktifkan
         </h3>
-        <p style="font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 28px;">
+        <p style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); line-height: 1.6; margin-bottom: 28px;">
             Administrator sekolah saat ini membatasi akses ke halaman utama Dashboard untuk peran
             <strong>{{ $roleName }}</strong>. Anda tetap dapat membuka modul-modul lain yang diberikan izin melalui menu
             navigasi samping (sidebar).

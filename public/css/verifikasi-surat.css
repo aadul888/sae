@@ -40,7 +40,7 @@ body {
 
 .verify-card {
     background: var(--card-bg);
-    border-radius: 20px;
+    border-radius: var(--radius-2xl, 20px);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -62,8 +62,8 @@ body {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(8px);
     padding: 6px 14px;
-    border-radius: 9999px;
-    font-size: 0.76rem;
+    border-radius: var(--radius-pill, 999px);
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 600;
     letter-spacing: 0.03em;
     margin-bottom: 12px;
@@ -71,14 +71,14 @@ body {
 }
 
 .school-name {
-    font-size: 1.25rem;
+    font-size: var(--text-xl, 1.25rem);
     font-weight: 800;
     letter-spacing: -0.01em;
     margin-bottom: 4px;
 }
 
 .school-address {
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: rgba(255, 255, 255, 0.75);
     max-width: 480px;
     margin: 0 auto;
@@ -91,7 +91,7 @@ body {
     gap: 10px;
     padding: 14px 20px;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     letter-spacing: 0.01em;
 }
 
@@ -108,7 +108,7 @@ body {
 }
 
 .status-icon {
-    font-size: 1.3rem;
+    font-size: var(--text-xl, 1.25rem);
 }
 
 .verify-body {
@@ -116,7 +116,7 @@ body {
 }
 
 .section-title {
-    font-size: 0.76rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -136,7 +136,7 @@ body {
 
 .doc-meta-grid {
     background: var(--bg-page);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     border: 1px solid var(--border-color);
     padding: 14px 16px;
     margin-bottom: 20px;
@@ -152,7 +152,7 @@ body {
 }
 
 .meta-item-label {
-    font-size: 0.72rem;
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -160,7 +160,7 @@ body {
 }
 
 .meta-item-value {
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 700;
     color: var(--text-dark);
     word-break: break-word;
@@ -187,7 +187,7 @@ body {
 
 .data-table td {
     padding: 10px 4px;
-    font-size: 0.86rem;
+    font-size: var(--text-base, 0.875rem);
     vertical-align: top;
 }
 
@@ -206,7 +206,7 @@ body {
 .security-seal {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(16, 185, 129, 0.05) 100%);
     border: 1px dashed rgba(79, 70, 229, 0.25);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 14px 16px;
     display: flex;
     align-items: center;
@@ -217,18 +217,18 @@ body {
 .seal-icon {
     width: 42px;
     height: 42px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     background: rgba(79, 70, 229, 0.12);
     color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: var(--text-xl, 1.25rem);
     flex-shrink: 0;
 }
 
 .seal-text {
-    font-size: 0.74rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
     line-height: 1.45;
 }
@@ -238,7 +238,7 @@ body {
     padding: 18px 24px;
     border-top: 1px solid var(--border-color);
     background: var(--bg-page);
-    font-size: 0.76rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
 }
 

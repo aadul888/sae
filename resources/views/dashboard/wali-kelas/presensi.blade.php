@@ -14,10 +14,10 @@
     <!-- Header Banner -->
     <div class="dash-banner" style="margin-bottom: 20px;">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-clipboard-user text-primary me-2"></i> Presensi Kelas Binaan
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 @if ($hasRombel && $activeRombel)
                     Kelas Binaan: <strong style="color: var(--text-color);">{{ $activeRombel->nama }}</strong>
                     &bull; Wali Kelas: <strong style="color: var(--primary);">{{ $waliNama }}</strong>
@@ -32,13 +32,13 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($hasRombel && $activeRombel)
                 <button type="button" id="btnOpenModalPdf" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Cetak Laporan Presensi">
                     <i class="fas fa-print text-primary"></i>
                 </button>
                 <button type="button" id="btnResetPresensiWali" class="btn btn-outline"
                     data-rombel="{{ $activeRombel->rombongan_belajar_id }}" data-tanggal="{{ $tanggal }}"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; color: #ef4444; border-color: rgba(239,68,68,0.4);"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: #ef4444; border-color: rgba(239,68,68,0.4);"
                     title="Reset Presensi Manual Kelas">
                     <i class="fas fa-rotate-left"></i>
                 </button>
@@ -50,13 +50,13 @@
         <!-- Empty State jika Guru belum ada tugas rombel -->
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
+            <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
                 Belum Ada Rombel Binaan Terdaftar
             </h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto 20px;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 540px; margin: 0 auto 20px;">
                 Akun Anda belum terikat dengan rombongan belajar aktif sebagai Wali Kelas pada data Dapodik sekolah. Silakan
                 hubungi Administrator sistem atau Operator Dapodik untuk pembaruan penugasan tugas tambahan.
             </p>

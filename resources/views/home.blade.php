@@ -50,10 +50,10 @@
                     <span class="card-nisn-title"><i class="fas fa-id-card-clip text-primary"></i> Pengecekan Data Peserta
                         Didik</span>
                     <span
-                        style="font-size: 0.7rem; color: var(--accent); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: 6px;">Live
+                        style="font-size: var(--text-xs, 0.75rem); color: var(--accent); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: var(--radius-sm, 6px);">Live
                         Check</span>
                 </div>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 1rem;">
                     Masukkan NISN untuk memverifikasi status aktif peserta didik secara resmi.
                 </p>
                 <form id="nisnCheckForm" novalidate>
@@ -63,7 +63,7 @@
                             <label class="input-label" for="nisnInput" style="margin-bottom: 0;">Nomor Induk Siswa Nasional
                                 (NISN)</label>
                             <span id="nisnCounterBadge"
-                                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; transition: color 0.2s;">
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; transition: color 0.2s;">
                                 0 / 10 digit
                             </span>
                         </div>
@@ -76,7 +76,7 @@
                                 style="position: absolute; right: 12px; pointer-events: none; display: none;"></span>
                         </div>
                         <div id="nisnErrorMsg"
-                            style="display: none; font-size: 0.76rem; color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
+                            style="display: none; font-size: var(--text-sm, 0.8125rem); color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
                             <i class="fas fa-circle-exclamation"></i> <span>NISN harus berupa angka dan pas 10 digit.</span>
                         </div>
                     </div>

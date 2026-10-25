@@ -11,5 +11,5 @@
                 onerror="this.onerror=null; this.src='/img/logo-dark.png';">
         </a>
         <span class="badge badge-primary"
-            style="font-size: 0.68rem; padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
+            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
     </div>

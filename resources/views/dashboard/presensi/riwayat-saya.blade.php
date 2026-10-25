@@ -12,17 +12,17 @@
     <!-- Dash Banner -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-id-card-clip text-primary me-2"></i> Portal Presensi Peserta Didik
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Pantau catatan kehadiran harian, waktu ketepatan masuk/pulang, foto verifikasi snapshot, serta pengajuan
                 e-izin secara mandiri.
             </p>
         </div>
         <div class="dash-banner-actions">
             <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                 title="Ajukan Surat Izin / Sakit">
                 <i class="fas fa-file-signature"></i>
             </button>
@@ -33,27 +33,27 @@
     <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; margin-bottom: 24px;">
         <!-- Left: Student Biodata & Monthly Summary Stats -->
         <div class="card"
-            style="padding: 22px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between;">
+            style="padding: 22px; border-radius: var(--radius-xl, 16px); display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 20px;">
                 <img src="{{ $siswa->foto_url ?: asset('img/logo-dark.png') }}" alt="{{ $siswa->nama }}"
                     style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 0 16px var(--primary-glow);"
                     onerror="this.src='/img/logo-dark.png';">
                 <div>
-                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-color); margin: 0 0 4px 0;">
+                    <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0 0 4px 0;">
                         {{ $siswa->nama }}
                     </h3>
-                    <div style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 4px;">
+                    <div style="font-size: var(--text-base, 0.875rem); color: var(--primary); font-weight: 700; margin-bottom: 4px;">
                         {{ $siswa->nama_rombel ?: 'Rombel Belum Ditentukan' }}
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <span style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">NISN:
+                        <span style="font-family: monospace; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">NISN:
                             {{ $siswa->nisn }}</span>
                         @if ($siswa->rfid_uid)
-                            <span class="badge badge-success" style="font-size: 0.68rem;"><i class="fas fa-wifi me-1"></i>
+                            <span class="badge badge-success" style="font-size: var(--text-2xs, 0.6875rem);"><i class="fas fa-wifi me-1"></i>
                                 RFID Aktif</span>
                         @else
                             <span class="badge"
-                                style="font-size: 0.68rem; background: rgba(148,163,184,0.15); color: var(--text-muted);">RFID
+                                style="font-size: var(--text-2xs, 0.6875rem); background: rgba(148,163,184,0.15); color: var(--text-muted);">RFID
                                 Belum Terdaftar</span>
                         @endif
                     </div>
@@ -63,36 +63,36 @@
             <!-- Mini Summary Stats -->
             <div>
                 <div
-                    style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
+                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
                     Statistik Kehadiran Bulan Ini ({{ now()->translatedFormat('F Y') }})
                 </div>
                 <div
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; text-align: center;">
                     <div
-                        style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); padding: 10px 6px; border-radius: 10px;">
-                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--success);">{{ $stats['hadir'] }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Hadir</div>
+                        style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: var(--success);">{{ $stats['hadir'] }}</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Hadir</div>
                     </div>
                     <div
-                        style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); padding: 10px 6px; border-radius: 10px;">
-                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--warning);">{{ $stats['terlambat'] }}
+                        style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: var(--warning);">{{ $stats['terlambat'] }}
                         </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Terlambat</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Terlambat</div>
                     </div>
                     <div
-                        style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); padding: 10px 6px; border-radius: 10px;">
-                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--primary);">{{ $stats['izin'] }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Izin</div>
+                        style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: var(--primary);">{{ $stats['izin'] }}</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Izin</div>
                     </div>
                     <div
-                        style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); padding: 10px 6px; border-radius: 10px;">
-                        <div style="font-weight: 800; font-size: 1.2rem; color: #8b5cf6;">{{ $stats['sakit'] }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Sakit</div>
+                        style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: #8b5cf6;">{{ $stats['sakit'] }}</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Sakit</div>
                     </div>
                     <div
-                        style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); padding: 10px 6px; border-radius: 10px;">
-                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--danger);">{{ $stats['alpha'] }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Alpha</div>
+                        style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: var(--danger);">{{ $stats['alpha'] }}</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Alpha</div>
                     </div>
                 </div>
             </div>
@@ -100,44 +100,44 @@
 
         <!-- Right: Dynamic QR Code Scanner Card (Anti-Screenshot) -->
         <div class="card"
-            style="padding: 22px; border-radius: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <div style="font-size: 0.88rem; font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
+            style="padding: 22px; border-radius: var(--radius-xl, 16px); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
                 <i class="fas fa-qrcode text-primary me-1"></i> QR Code Presensi Dinamis
             </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 14px;">
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 14px;">
                 Scan langsung di kamera terminal sekolah (Anti-Screenshot)
             </div>
 
             <div
-                style="background: #fff; padding: 10px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 16px rgba(0,0,0,0.25); margin-bottom: 12px;">
+                style="background: #fff; padding: 10px; border-radius: var(--radius-lg, 12px); display: inline-block; box-shadow: 0 4px 16px rgba(0,0,0,0.25); margin-bottom: 12px;">
                 <img src="{{ $dynamicQrUri }}" alt="Dynamic QR" style="width: 150px; height: 150px; display: block;">
             </div>
 
             <!-- Countdown Timer Progress Bar -->
             <div style="width: 100%; max-width: 220px; margin-bottom: 6px;">
-                <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                     <div id="qrProgressBar"
                         style="height: 100%; width: 0%; background: var(--primary); transition: width 1s linear;"></div>
                 </div>
             </div>
 
-            <div style="font-size: 0.75rem; color: var(--text-muted);">
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                 Kode diperbarui dalam: <strong id="qrCountdownText" style="color: var(--primary);">60d</strong>
             </div>
         </div>
     </div>
 
     <!-- Log Riwayat Presensi Tabel -->
-    <div class="card" style="padding: 20px; border-radius: 14px; margin-bottom: 24px;">
-        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">
+    <div class="card" style="padding: 20px; border-radius: var(--radius-xl, 16px); margin-bottom: 24px;">
+        <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin-bottom: 6px;">
             <i class="fas fa-calendar-check text-primary me-2"></i> Log Presensi Harian Anda
         </h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+        <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 16px;">
             Daftar riwayat tap masuk, pulang, dan foto snapshot verifikasi kamera live terminal.
         </p>
 
         <div class="table-responsive">
-            <table class="table" style="width: 100%; font-size: 0.85rem;">
+            <table class="table" style="width: 100%; font-size: var(--text-base, 0.875rem);">
                 <thead>
                     <tr>
                         <th style="width: 120px;">Tanggal</th>
@@ -159,7 +159,7 @@
                                     <div style="font-weight: 700; font-family: monospace; color: var(--text-color);">
                                         {{ substr($l->jam_masuk, 0, 5) }} WIB
                                     </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                         Metode: {{ strtoupper($l->metode_masuk ?: 'manual') }}
                                     </div>
                                 @else
@@ -171,7 +171,7 @@
                                     <div style="font-weight: 700; font-family: monospace; color: var(--text-color);">
                                         {{ substr($l->jam_pulang, 0, 5) }} WIB
                                     </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                         Metode: {{ strtoupper($l->metode_pulang ?: 'manual') }}
                                     </div>
                                 @else
@@ -202,7 +202,7 @@
                                     <button type="button" class="btn btn-outline btn-view-snapshot"
                                         data-url="{{ $l->foto_masuk_url }}"
                                         data-caption="Snapshot Masuk — {{ \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y') }}"
-                                        style="padding: 4px 8px; font-size: 0.75rem;" title="Foto Masuk">
+                                        style="padding: 4px 8px; font-size: var(--text-xs, 0.75rem);" title="Foto Masuk">
                                         <i class="fas fa-camera text-primary"></i>
                                     </button>
                                 @endif
@@ -210,13 +210,13 @@
                                     <button type="button" class="btn btn-outline btn-view-snapshot"
                                         data-url="{{ $l->foto_pulang_url }}"
                                         data-caption="Snapshot Pulang — {{ \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y') }}"
-                                        style="padding: 4px 8px; font-size: 0.75rem; margin-left: 4px;"
+                                        style="padding: 4px 8px; font-size: var(--text-xs, 0.75rem); margin-left: 4px;"
                                         title="Foto Pulang">
                                         <i class="fas fa-camera text-success"></i>
                                     </button>
                                 @endif
                                 @if (!$l->foto_masuk_url && !$l->foto_pulang_url)
-                                    <span style="color: var(--text-muted); font-size: 0.75rem;">-</span>
+                                    <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -273,16 +273,16 @@
     </div>
 
     <!-- Riwayat Pengajuan E-Izin -->
-    <div class="card" style="padding: 20px; border-radius: 14px; margin-bottom: 24px;">
-        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+    <div class="card" style="padding: 20px; border-radius: var(--radius-xl, 16px); margin-bottom: 24px;">
+        <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
             <i class="fas fa-envelope-open-text text-primary me-2"></i> Riwayat Pengajuan Surat Izin / Sakit
         </h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+        <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 16px;">
             Status verifikasi permohonan surat keterangan tidak masuk sekolah yang telah Anda ajukan.
         </p>
 
         <div class="table-responsive">
-            <table class="table" style="width: 100%; font-size: 0.85rem;">
+            <table class="table" style="width: 100%; font-size: var(--text-base, 0.875rem);">
                 <thead>
                     <tr>
                         <th>Tgl Pengajuan</th>
@@ -307,11 +307,11 @@
                             <td>
                                 @if ($iz->lampiran_url)
                                     <a href="{{ $iz->lampiran_url }}" target="_blank" class="btn btn-outline"
-                                        style="padding: 4px 8px; font-size: 0.75rem;">
+                                        style="padding: 4px 8px; font-size: var(--text-xs, 0.75rem);">
                                         <i class="fas fa-paperclip me-1"></i> Buka File
                                     </a>
                                 @else
-                                    <span style="color: var(--text-muted); font-size: 0.75rem;">-</span>
+                                    <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">-</span>
                                 @endif
                             </td>
                             <td>{!! $iz->status_badge !!}</td>
@@ -332,14 +332,14 @@
     <!-- Modal Form Pengajuan E-Izin -->
     <div id="modalPengajuanIzin" class="modal-backdrop" style="display: none; z-index: 99999 !important;">
         <div class="card"
-            style="max-width: 500px; width: 92%; margin: auto; padding: 24px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
+            style="max-width: 500px; width: 92%; margin: auto; padding: 24px; border-radius: var(--radius-xl, 16px); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     <i class="fas fa-file-signature text-primary me-2"></i> Pengajuan Surat Izin / Sakit
                 </h3>
                 <button type="button" id="btnCloseModalIzin"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -347,11 +347,11 @@
             <form id="formPengajuanIzin" enctype="multipart/form-data">
                 <div style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
                         Jenis Permohonan:
                     </label>
                     <select name="jenis" required class="form-control"
-                        style="width: 100%; padding: 8px 12px; font-size: 0.85rem;">
+                        style="width: 100%; padding: 8px 12px; font-size: var(--text-base, 0.875rem);">
                         <option value="izin">Izin (Keperluan Keluarga / Penting)</option>
                         <option value="sakit">Sakit (Wajib Lampirkan Surat Dokter)</option>
                         <option value="dispen">Dispensasi (Lomba / Tugas Sekolah)</option>
@@ -361,50 +361,50 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div>
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
                             Mulai Tanggal:
                         </label>
                         <input type="date" name="tanggal_mulai" value="{{ now()->toDateString() }}" required
-                            class="form-control" style="width: 100%; font-size: 0.85rem;">
+                            class="form-control" style="width: 100%; font-size: var(--text-base, 0.875rem);">
                     </div>
                     <div>
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
                             Sampai Tanggal:
                         </label>
                         <input type="date" name="tanggal_selesai" value="{{ now()->toDateString() }}" required
-                            class="form-control" style="width: 100%; font-size: 0.85rem;">
+                            class="form-control" style="width: 100%; font-size: var(--text-base, 0.875rem);">
                     </div>
                 </div>
 
                 <div style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
                         Alasan &amp; Keterangan Lengkap:
                     </label>
                     <textarea name="alasan" rows="3" required placeholder="Jelaskan alasan izin atau kondisi sakit Anda..."
-                        class="form-control" style="width: 100%; font-size: 0.85rem;"></textarea>
+                        class="form-control" style="width: 100%; font-size: var(--text-base, 0.875rem);"></textarea>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
                         Unggah Bukti Surat / Foto Surat Dokter:
                     </label>
                     <input type="file" name="lampiran" accept=".jpg,.jpeg,.png,.pdf" class="form-control"
-                        style="width: 100%; font-size: 0.82rem; padding: 7px;">
-                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 4px;">
+                        style="width: 100%; font-size: var(--text-sm, 0.8125rem); padding: 7px;">
+                    <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem); display: block; margin-top: 4px;">
                         Format: JPG, PNG, atau PDF (Maksimal 4 MB).
                     </small>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="btnCancelModalIzin" class="btn btn-outline"
-                        style="padding: 8px 18px; font-size: 0.85rem;">
+                        style="padding: 8px 18px; font-size: var(--text-base, 0.875rem);">
                         Batal
                     </button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 22px; font-size: 0.85rem; font-weight: 700;">
+                        style="padding: 8px 22px; font-size: var(--text-base, 0.875rem); font-weight: 700;">
                         Kirim Permohonan
                     </button>
                 </div>
@@ -415,21 +415,21 @@
     <!-- Modal View Snapshot -->
     <div id="modalSnapshotSaya" class="modal-backdrop" style="display: none; z-index: 99999 !important;">
         <div class="card"
-            style="max-width: 440px; width: 92%; margin: auto; padding: 20px; border-radius: 16px; text-align: center;">
+            style="max-width: 440px; width: 92%; margin: auto; padding: 20px; border-radius: var(--radius-xl, 16px); text-align: center;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                 <h4 id="snapshotSayaCaption"
-                    style="font-size: 0.95rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Foto Bukti Presensi
                 </h4>
                 <button type="button" id="btnCloseSnapshotSaya"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div style="margin: 10px 0;">
                 <img id="imgSnapshotSaya" src="" alt="Snapshot"
-                    style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 380px; border: 1px solid var(--border-color);">
+                    style="width: 100%; border-radius: var(--radius-lg, 12px); object-fit: cover; max-height: 380px; border: 1px solid var(--border-color);">
             </div>
         </div>
     </div>

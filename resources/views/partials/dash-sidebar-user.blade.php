@@ -37,7 +37,7 @@
                 <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
                 @foreach ($userDuties as $duty)
                     <span class="badge badge-accent"
-                        style="font-size: 0.62rem; padding: 1px 5px; border-radius: 4px; text-transform: none; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px; border-radius: var(--radius-xs, 4px); text-transform: none; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                         title="{{ $duty->nama }}{{ $duty->ekuivalensi_jam ? ' (' . $duty->ekuivalensi_jam . ' Jam)' : '' }}">
                         {{ $duty->nama }}
                     </span>

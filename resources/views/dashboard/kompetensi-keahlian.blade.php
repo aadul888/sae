@@ -6,16 +6,16 @@
 @section('content')
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-laptop-code text-primary me-2"></i> Master Data — Kompetensi Keahlian
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Data kompetensi keahlian / jurusan disinkronkan otomatis dari tabel <strong>Rombongan Belajar</strong>
                 (Dapodik).
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;"
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);"
                 title="Tarik Data Rombel">
                 <i class="fas fa-cloud-arrow-down"></i>
             </a>
@@ -29,7 +29,7 @@
                 <i class="fas fa-laptop-code"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['jurusan'] }}
                 </div>
                 <div class="dash-stat-label">Total Kompetensi Keahlian</div>
@@ -41,7 +41,7 @@
                 <i class="fas fa-school"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['rombel'] }}
                 </div>
                 <div class="dash-stat-label">Total Rombongan Belajar</div>
@@ -53,7 +53,7 @@
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['peserta_didik'] ?? 0, 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
@@ -76,14 +76,14 @@
                             @endforeach
                         </select>
                         <span>entri</span>
-                        <span class="badge badge-outline" style="margin-left: 8px; font-size: 0.73rem;">Total:
+                        <span class="badge badge-outline" style="margin-left: 8px; font-size: var(--text-xs, 0.75rem);">Total:
                             {{ $total }}</span>
                     </div>
 
                     @if ($q)
                         <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -117,20 +117,20 @@
                         @endphp
                         @foreach ($cols as [$key, $label])
                             <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; user-select: none; {{ in_array($key, ['total_rombel', 'total_peserta_didik']) ? 'text-align: center;' : '' }}"
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; user-select: none; {{ in_array($key, ['total_rombel', 'total_peserta_didik']) ? 'text-align: center;' : '' }}"
                                 data-sort="{{ $key }}">
                                 {{ $label }}
                                 <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                         @endforeach
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Tingkat Kelas</th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Kurikulum</th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                             Aksi</th>
                     </tr>
                 </thead>
@@ -138,23 +138,23 @@
                     @forelse ($list as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td class="cell-kode"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.86rem; font-family: monospace;"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: var(--text-base, 0.875rem); font-family: monospace;"
                                 data-label="Kode">
                                 <span class="badge badge-primary copyable" data-copy="{{ $item->kode }}"
                                     data-label="Kode Jurusan" title="Klik untuk salin kode"
-                                    style="font-size: 0.76rem; padding: 4px 8px; font-family: monospace;">
+                                    style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; font-family: monospace;">
                                     {{ $item->kode }}
                                 </span>
                             </td>
                             <td class="cell-jurusan-main"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.88rem;"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Jurusan">
                                 <div class="jurusan-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->logo_url))
                                         <div class="jurusan-logo-thumb" id="logoThumb_{{ $item->kode }}"
                                             onclick="openUploadLogoModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}', '{{ $item->logo_url }}', '{{ $item->logo_size ?? '' }}')"
                                             title="Klik untuk melihat / mengubah logo jurusan"
-                                            style="width: 44px; height: 44px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                            style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                             <img src="{{ $item->logo_url }}" alt="Logo {{ $item->nama }}"
                                                 style="width: 100%; height: 100%; object-fit: contain; padding: 2px;">
                                         </div>
@@ -162,10 +162,10 @@
                                         <div class="jurusan-logo-thumb empty" id="logoThumb_{{ $item->kode }}"
                                             onclick="openUploadLogoModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}', '', '')"
                                             title="Klik untuk mengunggah logo jurusan"
-                                            style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
-                                            <i class="fas fa-arrow-up-from-bracket" style="font-size: 0.78rem;"></i>
+                                            style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-sm, 0.8125rem); flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                            <i class="fas fa-arrow-up-from-bracket" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                             <span
-                                                style="font-size: 0.55rem; font-weight: 800; letter-spacing: 0.5px; margin-top: 2px;">PNG</span>
+                                                style="font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.5px; margin-top: 2px;">PNG</span>
                                         </div>
                                     @endif
                                     <div class="jurusan-info">
@@ -175,7 +175,7 @@
                                             <span id="singkatanBadge_{{ $item->kode }}">
                                                 @if (!empty($item->singkatan))
                                                     <span class="badge badge-primary"
-                                                        style="font-size: 0.72rem; padding: 2px 7px; font-weight: 800; letter-spacing: 0.5px;">
+                                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px; font-weight: 800; letter-spacing: 0.5px;">
                                                         {{ $item->singkatan }}
                                                     </span>
                                                 @endif
@@ -183,7 +183,7 @@
                                         </div>
                                         @if (!empty($item->rombel_list))
                                             <div class="jurusan-rombel-sub"
-                                                style="font-size: 0.73rem; color: var(--text-muted); margin-top: 2px;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 {{ implode(', ', array_slice($item->rombel_list, 0, 4)) }}{{ count($item->rombel_list) > 4 ? ' +' . (count($item->rombel_list) - 4) . ' lainnya' : '' }}
                                             </div>
                                         @endif
@@ -191,30 +191,30 @@
                                 </div>
                             </td>
                             <td class="cell-rombel"
-                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem;"
+                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem);"
                                 data-label="Rombel">
-                                <span class="badge badge-outline" style="font-size: 0.78rem; padding: 3px 10px;">
+                                <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
                                     <i class="fas fa-users-rectangle me-1" style="opacity: 0.7;"></i>
                                     {{ $item->total_rombel }}
                                 </span>
                             </td>
                             <td class="cell-peserta-didik cell-siswa"
-                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
+                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: #10b981;"
                                 data-label="Peserta Didik">
                                 <span class="badge"
-                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
+                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
                                     <i class="fas fa-user-graduate me-1"></i>
                                     {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                                 </span>
                             </td>
                             <td class="cell-tingkat"
-                                style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);"
+                                style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="Tingkat">
                                 <div class="tingkat-wrap">
                                     @if (!empty($item->tingkat_list))
                                         @foreach ($item->tingkat_list as $tk)
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.7rem; padding: 2px 6px; margin-right: 3px;">{{ $tk }}</span>
+                                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px; margin-right: 3px;">{{ $tk }}</span>
                                         @endforeach
                                     @else
                                         -
@@ -222,7 +222,7 @@
                                 </div>
                             </td>
                             <td class="cell-kurikulum"
-                                style="padding: 14px 18px; font-size: 0.78rem; color: var(--text-muted); max-width: 220px;"
+                                style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); max-width: 220px;"
                                 data-label="Kurikulum">
                                 <div class="kurikulum-text">
                                     @if (!empty($item->kurikulum_list))
@@ -258,10 +258,10 @@
                     @empty
                         <tr>
                             <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                 <div>Belum ada data kompetensi keahlian di tabel rombongan_belajar.</div>
-                                <div style="font-size: 0.78rem; margin-top: 6px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); margin-top: 6px;">
                                     Silakan sinkronisasi data Dapodik terlebih dahulu melalui menu <strong>Tarik Data
                                         Dapodik</strong>.
                                 </div>
@@ -284,33 +284,33 @@
     <div id="rombelModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 720px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 720px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
                     <h3 id="rombelModalTitle"
-                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                        style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                         Daftar Rombongan Belajar
                     </h3>
-                    <div id="rombelModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    <div id="rombelModalSubtitle" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         -
                     </div>
                 </div>
                 <button type="button" onclick="closeRombelModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div id="rombelLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat data rombel...</div>
             </div>
 
             <div id="rombelTableWrapper"
-                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
                 <table class="table"
-                    style="min-width: 620px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    style="min-width: 620px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Rombel</th>
@@ -330,7 +330,7 @@
             <div
                 style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <button type="button" class="btn btn-outline" onclick="closeRombelModal()"
-                    style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
             </div>
         </div>
     </div>
@@ -339,27 +339,27 @@
     <div id="logoUploadModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div class="card"
-            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                         <i class="fas fa-image"></i>
                     </div>
                     <div>
                         <h3 id="logoModalTitle"
-                            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Unggah Logo Jurusan
                         </h3>
                         <div id="logoModalSubtitle"
-                            style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                             -
                         </div>
                     </div>
                 </div>
                 <button type="button" onclick="closeLogoUploadModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -367,7 +367,7 @@
             <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                 {{-- Info Box Persistensi & Kartu Pelajar --}}
                 <div
-                    style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.78rem; line-height: 1.5; color: var(--text-color);">
+                    style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-lg, 12px); padding: 12px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); line-height: 1.5; color: var(--text-color);">
                     <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
                         <i class="fas fa-shield-halved me-1"></i> Perlindungan Dapodik & Standar Gambar:
                     </div>
@@ -383,21 +383,21 @@
 
                 {{-- Area Preview Logo --}}
                 <div style="text-align: center; margin-bottom: 16px;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
                         Pratinjau Transparansi Logo
                     </div>
                     <div id="logoPreviewContainer"
-                        style="width: 140px; height: 140px; margin: 0 auto; border-radius: 14px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 12px 12px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                        style="width: 140px; height: 140px; margin: 0 auto; border-radius: var(--radius-xl, 16px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 12px 12px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
                         <img id="logoPreviewImg" src="" alt="Pratinjau Logo"
                             style="display: none; max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
                         <div id="logoPreviewPlaceholder"
-                            style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
-                            <i class="fas fa-cloud-arrow-up mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
-                            <div style="font-size: 0.72rem;">Belum ada file dipilih</div>
+                            style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); padding: 10px;">
+                            <i class="fas fa-cloud-arrow-up mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
+                            <div style="font-size: var(--text-xs, 0.75rem);">Belum ada file dipilih</div>
                         </div>
                     </div>
                     <div id="logoFileSpecs"
-                        style="display: none; font-size: 0.74rem; color: #10b981; margin-top: 8px; font-weight: 600;">
+                        style="display: none; font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 8px; font-weight: 600;">
                         -
                     </div>
                 </div>
@@ -408,14 +408,14 @@
                     <input type="hidden" id="logoUploadKode" name="kode" value="">
 
                     <div id="logoDropZone"
-                        style="border: 2px dashed rgba(99,102,241,0.4); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
+                        style="border: 2px dashed rgba(99,102,241,0.4); border-radius: var(--radius-lg, 12px); padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
                         onclick="document.getElementById('logoFileInput').click()">
                         <i class="fas fa-file-image"
-                            style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
-                        <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                            style="font-size: var(--text-3xl, 1.875rem); color: var(--primary); margin-bottom: 8px;"></i>
+                        <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                             Pilih file atau seret file PNG ke sini
                         </div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                             Hanya file <strong>.PNG</strong> (Maks. 5 MB)
                         </div>
                         <input type="file" id="logoFileInput" name="logo" accept=".png,image/png"
@@ -428,16 +428,16 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                 @if ($canDelete)
                     <button type="button" id="btnDeleteLogo" class="btn"
-                        style="display: none; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.82rem; padding: 8px 14px;"
+                        style="display: none; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-sm, 0.8125rem); padding: 8px 14px;"
                         onclick="handleDeleteLogo()">
                         <i class="fas fa-trash-can me-1"></i> Hapus Logo
                     </button>
                 @endif
                 <div style="display: flex; gap: 8px; margin-left: auto;">
                     <button type="button" class="btn btn-outline" onclick="closeLogoUploadModal()"
-                        style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
+                        style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                     <button type="button" id="btnSubmitLogo" class="btn btn-primary"
-                        style="padding: 8px 18px; font-size: 0.82rem;" onclick="handleSubmitLogo()">
+                        style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);" onclick="handleSubmitLogo()">
                         <i class="fas fa-cloud-arrow-up me-1"></i> Simpan Logo
                     </button>
                 </div>
@@ -448,26 +448,26 @@
     {{-- Modal Edit Singkatan Jurusan --}}
     <div id="singkatanModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        <div class="card" style="max-width: 480px; width: 92%; margin: 0; border-radius: 14px; padding: 22px;">
+        <div class="card" style="max-width: 480px; width: 92%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                         <i class="fas fa-tag"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                        <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Singkatan Kompetensi Keahlian
                         </h3>
                         <div id="singkatanModalSubtitle"
-                            style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                             -
                         </div>
                     </div>
                 </div>
                 <button type="button" onclick="closeSingkatanModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -477,23 +477,23 @@
 
                 <div style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                         Nama Lengkap:
                     </label>
                     <input type="text" id="singkatanModalNama" class="form-control" readonly
-                        style="width: 100%; padding: 9px 12px; background: rgba(255,255,255,0.03); color: var(--text-muted); font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 8px;">
+                        style="width: 100%; padding: 9px 12px; background: rgba(255,255,255,0.03); color: var(--text-muted); font-size: var(--text-base, 0.875rem); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
                 </div>
 
                 <div style="margin-bottom: 18px;">
                     <label for="inputSingkatanJurusan"
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                         Singkatan Nama Jurusan: <span style="color: var(--danger);">*</span>
                     </label>
                     <input type="text" id="inputSingkatanJurusan" class="form-control" maxlength="30"
                         placeholder="Contoh: TKJ, DKV, TKR, ATPH, KHT..."
-                        style="width: 100%; padding: 10px 14px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px; border: 1px solid var(--border-color); border-radius: 8px;"
+                        style="width: 100%; padding: 10px 14px; font-size: var(--text-base, 0.875rem); font-weight: 700; letter-spacing: 0.5px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);"
                         autocomplete="off">
-                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 5px;">
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 5px;">
                         Singkatan ini akan digunakan pada grafik batang konsentrasi keahlian di dashboard agar ringkas dan
                         rapi. Kosongkan jika ingin menggunakan nama bawaan Dapodik.
                     </div>
@@ -502,9 +502,9 @@
                 <div
                     style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                     <button type="button" class="btn btn-outline" onclick="closeSingkatanModal()"
-                        style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
+                        style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                     <button type="submit" id="btnSaveSingkatan" class="btn btn-primary"
-                        style="padding: 8px 18px; font-size: 0.82rem;">
+                        style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
                         <i class="fas fa-check me-1"></i> Simpan Singkatan
                     </button>
                 </div>

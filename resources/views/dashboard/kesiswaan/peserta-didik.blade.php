@@ -9,14 +9,14 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-users-viewfinder"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Peserta Didik
                 </h2>
-                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Direktori lengkap siswa aktif, riwayat nonaktif, verifikasi berkas fisik, usulan revisi data, dan arsip
                     alumni.
                 </p>
@@ -27,7 +27,7 @@
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenUsulanModal"
                     title="Ajukan Usulan Perubahan Data Siswa"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-file-pen"></i>
                 </button>
             @endif
@@ -43,7 +43,7 @@
                     <i class="fas fa-user-graduate"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['total_aktif'] ?? 0) }}
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($stats['total_aktif'] ?? 0) }}
                     </div>
                     <div class="dash-stat-label">Total Siswa Aktif</div>
                 </div>
@@ -53,7 +53,7 @@
                     <i class="fas fa-mars"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['aktif_laki'] ?? 0) }}
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($stats['aktif_laki'] ?? 0) }}
                     </div>
                     <div class="dash-stat-label">Laki-Laki (L)</div>
                 </div>
@@ -63,7 +63,7 @@
                     <i class="fas fa-venus"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['aktif_perempuan'] ?? 0) }}</div>
                     <div class="dash-stat-label">Perempuan (P)</div>
                 </div>
@@ -73,7 +73,7 @@
                     <i class="fas fa-chalkboard-user"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $stats['total_rombel'] ?? 0 }}</div>
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ $stats['total_rombel'] ?? 0 }}</div>
                     <div class="dash-stat-label">Total Rombel Kelas</div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                     <i class="fas fa-user-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
                         {{ number_format($stats['total_tidak_aktif'] ?? 0) }}</div>
                     <div class="dash-stat-label">Total Tidak Aktif</div>
                 </div>
@@ -94,7 +94,7 @@
                     <i class="fas fa-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['ta_mutasi'] ?? 0) }}
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($stats['ta_mutasi'] ?? 0) }}
                     </div>
                     <div class="dash-stat-label">Mutasi / Pindah</div>
                 </div>
@@ -104,7 +104,7 @@
                     <i class="fas fa-ban"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['ta_dikeluarkan'] ?? 0) }}</div>
                     <div class="dash-stat-label">Dikeluarkan (DO)</div>
                 </div>
@@ -114,7 +114,7 @@
                     <i class="fas fa-arrow-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['ta_mengundurkan_lainnya'] ?? 0) }}</div>
                     <div class="dash-stat-label">Mengundurkan Diri &amp; Lainnya</div>
                 </div>
@@ -126,7 +126,7 @@
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
                         {{ number_format($stats['berkas_menunggu'] ?? 0) }}</div>
                     <div class="dash-stat-label">Menunggu Validasi</div>
                 </div>
@@ -136,7 +136,7 @@
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
                         {{ number_format($stats['berkas_ditolak'] ?? 0) }}</div>
                     <div class="dash-stat-label">Ada Berkas Ditolak</div>
                 </div>
@@ -146,7 +146,7 @@
                     <i class="fas fa-folder-minus"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['berkas_belum_lengkap'] ?? 0) }}</div>
                     <div class="dash-stat-label">Belum Lengkap</div>
                 </div>
@@ -156,7 +156,7 @@
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                         {{ number_format($stats['berkas_lengkap'] ?? 0) }}</div>
                     <div class="dash-stat-label">Lengkap &amp; Valid</div>
                 </div>
@@ -168,7 +168,7 @@
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
                         {{ number_format($stats['usulan_menunggu'] ?? 0) }}</div>
                     <div class="dash-stat-label">Menunggu Review</div>
                 </div>
@@ -178,7 +178,7 @@
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                         {{ number_format($stats['usulan_disetujui'] ?? 0) }}</div>
                     <div class="dash-stat-label">Disetujui (Siap Dapodik)</div>
                 </div>
@@ -188,7 +188,7 @@
                     <i class="fas fa-cloud-arrow-up"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #3b82f6;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
                         {{ number_format($stats['usulan_dapodik'] ?? 0) }}</div>
                     <div class="dash-stat-label">Selesai di Dapodik</div>
                 </div>
@@ -198,7 +198,7 @@
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
                         {{ number_format($stats['usulan_ditolak'] ?? 0) }}</div>
                     <div class="dash-stat-label">Ditolak Kesiswaan</div>
                 </div>
@@ -210,7 +210,7 @@
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['total_alumni'] ?? 0) }}</div>
                     <div class="dash-stat-label">Total Alumni</div>
                 </div>
@@ -220,7 +220,7 @@
                     <i class="fas fa-mars"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['alumni_laki'] ?? 0) }}</div>
                     <div class="dash-stat-label">Alumni Laki-Laki</div>
                 </div>
@@ -230,7 +230,7 @@
                     <i class="fas fa-venus"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($stats['alumni_perempuan'] ?? 0) }}</div>
                     <div class="dash-stat-label">Alumni Perempuan</div>
                 </div>
@@ -240,7 +240,7 @@
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $stats['alumni_angkatan'] ?? 0 }}</div>
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ $stats['alumni_angkatan'] ?? 0 }}</div>
                     <div class="dash-stat-label">Total Angkatan Kelulusan</div>
                 </div>
             </div>
@@ -278,7 +278,7 @@
                 <label><i class="fas fa-layer-group text-primary me-1"></i> Pilih Kategori Data Siswa:</label>
                 <select class="periode-mobile-select form-select"
                     onchange="if(this.value) window.location.href=this.value;"
-                    style="font-size: 0.85rem; height: 40px; border-radius: 8px;">
+                    style="font-size: var(--text-base, 0.875rem); height: 40px; border-radius: var(--radius-md, 8px);">
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'aktif']) }}"
                         {{ $activeTab === 'aktif' ? 'selected' : '' }}>
                         👤 Siswa Aktif ({{ number_format($stats['total_aktif'] ?? 0) }})
@@ -408,13 +408,13 @@
                         </select>
                         <input type="text" id="filterTahunLulus" name="tahun_lulus" value="{{ $tahunLulus }}"
                             placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
-                            style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                            style="width: 170px; height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                     @endif
 
                     @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($status) || !empty($tahunLulus))
                         <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>

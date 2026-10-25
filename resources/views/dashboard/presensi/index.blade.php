@@ -12,17 +12,17 @@
     <!-- Dash Banner -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-id-card text-primary me-2"></i> Presensi &amp; RFID Realtime
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Monitoring kehadiran peserta didik otomatis menggunakan kartu RFID fisik, QR Code digital, dan verifikasi
                 kamera live terminal.
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.presensi.scan') }}" target="_blank" class="btn btn-primary"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Buka Terminal Kiosk Pemindai">
                 <i class="fas fa-desktop"></i>
             </a>
@@ -33,12 +33,12 @@
         <div class="card"
             style="margin-bottom: 20px; border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.08); padding: 16px 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="font-size: 1.8rem; color: var(--danger);"><i class="fas fa-umbrella-beach"></i></div>
+                <div style="font-size: var(--text-3xl, 1.875rem); color: var(--danger);"><i class="fas fa-umbrella-beach"></i></div>
                 <div>
-                    <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
+                    <h4 style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
                         Hari Libur Akademik — {{ $agendaHariIni ? $agendaHariIni->nama_kegiatan : 'Kalender Pendidikan' }}
                     </h4>
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                    <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 0;">
                         Berdasarkan sinkronisasi Kalender Pendidikan, tanggal
                         {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }} adalah hari libur peserta didik.
                         Presensi harian terminal dinonaktifkan secara otomatis.
@@ -50,13 +50,13 @@
         <div class="card"
             style="margin-bottom: 20px; border-left: 4px solid var(--primary); background: rgba(59, 130, 246, 0.08); padding: 16px 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="font-size: 1.8rem; color: var(--primary);"><i class="fas fa-laptop-house"></i></div>
+                <div style="font-size: var(--text-3xl, 1.875rem); color: var(--primary);"><i class="fas fa-laptop-house"></i></div>
                 <div>
-                    <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
+                    <h4 style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
                         Pembelajaran Daring (PJJ) —
                         {{ $agendaHariIni ? $agendaHariIni->nama_kegiatan : 'Jadwal PJJ / Belajar Rumah' }}
                     </h4>
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                    <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 0;">
                         Berdasarkan sinkronisasi Kalender Pendidikan, tanggal
                         {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }} dijadwalkan Pembelajaran Jarak Jauh
                         (Daring/PJJ). Terminal gerbang sekolah dinonaktifkan.
@@ -73,7 +73,7 @@
                 <i class="fas fa-users"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($totalSiswa) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($totalSiswa) }}</div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
         </div>
@@ -83,7 +83,7 @@
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countHadir) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countHadir) }}</div>
                 <div class="dash-stat-label">Tepat Waktu</div>
             </div>
         </div>
@@ -93,7 +93,7 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countTerlambat) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countTerlambat) }}</div>
                 <div class="dash-stat-label">Terlambat</div>
             </div>
         </div>
@@ -103,7 +103,7 @@
                 <i class="fas fa-file-signature"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countIzin) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countIzin) }}</div>
                 <div class="dash-stat-label">Izin</div>
             </div>
         </div>
@@ -113,7 +113,7 @@
                 <i class="fas fa-notes-medical"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countSakit) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countSakit) }}</div>
                 <div class="dash-stat-label">Sakit</div>
             </div>
         </div>
@@ -123,7 +123,7 @@
                 <i class="fas fa-times-circle"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countAlpha) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countAlpha) }}</div>
                 <div class="dash-stat-label">Alpha</div>
             </div>
         </div>
@@ -133,7 +133,7 @@
                 <i class="fas fa-hourglass-start"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($countBelumAbsen) }}</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countBelumAbsen) }}</div>
                 <div class="dash-stat-label">Belum Presensi</div>
             </div>
         </div>
@@ -143,7 +143,7 @@
                 <i class="fas fa-chart-pie"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $persenHadir }}%</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ $persenHadir }}%</div>
                 <div class="dash-stat-label">Tingkat Hadir</div>
             </div>
         </div>
@@ -164,7 +164,7 @@
             <i class="fas fa-envelope-open-text"></i> Pengajuan E-Izin
             @if ($izinPending->count() > 0)
                 <span class="badge badge-danger"
-                    style="font-size: 0.65rem; padding: 2px 6px;">{{ $izinPending->count() }}</span>
+                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">{{ $izinPending->count() }}</span>
             @endif
         </button>
         <button type="button" class="presensi-tab-btn {{ $activeTab === 'pengaturan' ? 'active' : '' }}"

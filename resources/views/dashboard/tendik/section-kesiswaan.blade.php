@@ -88,39 +88,39 @@
             <i class="fas fa-venus-mars"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.1rem;">{{ $stats['siswa_laki'] ?? '-' }} L / {{ $stats['siswa_perempuan'] ?? '-' }} P</div>
+            <div class="dash-stat-value" style="font-size: var(--text-lg, 1.125rem);">{{ $stats['siswa_laki'] ?? '-' }} L / {{ $stats['siswa_perempuan'] ?? '-' }} P</div>
             <div class="dash-stat-label">Gender Siswa</div>
         </div>
     </div>
 </div>
 
 <!-- Section: Visualisasi Statistik & Analitik Kesiswaan -->
-<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg);">
+<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
         <div>
-            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-chart-pie text-primary"></i> Statistik &amp; Demografi Kesiswaan
             </h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 3px 0 0 0;">
                 Visualisasi rasio gender, sebaran rombel per tingkat, serta distribusi jurusan kompetensi keahlian.
             </p>
         </div>
-        <div style="font-size: 0.76rem; font-weight: 700; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(59,130,246,0.25);">
+        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(59,130,246,0.25);">
             <i class="fas fa-user-graduate me-1"></i> {{ number_format($stats['total_siswa'] ?? 1126, 0, ',', '.') }} Siswa
         </div>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
         <!-- Chart 1: Gender Siswa (Doughnut) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-venus-mars text-accent"></i> Proporsi Gender Siswa
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Rasio Laki-laki vs Perempuan</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Rasio Laki-laki vs Perempuan</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="kesiswaanChartGender"></canvas>
             </div>
-            <div style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: 0.78rem; border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <div style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: var(--text-sm, 0.8125rem); border-top: 1px solid var(--border-color); padding-top: 8px;">
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
                     <span>Laki-laki: <strong>{{ $kesiswaanCharts['gender']['L'] ?? 0 }}</strong></span>
@@ -133,22 +133,22 @@
         </div>
 
         <!-- Chart 2: Siswa per Tingkat (Bar) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-layer-group text-primary"></i> Siswa per Jenjang Kelas
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Populasi Siswa Kelas 10, 11, &amp; 12</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Populasi Siswa Kelas 10, 11, &amp; 12</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="kesiswaanChartTingkat"></canvas>
             </div>
         </div>
 
         <!-- Chart 3: Jurusan Keahlian (Horizontal Bar) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-graduation-cap text-success"></i> Rombel per Kompetensi Keahlian
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Distribusi kelas jurusan sekolah</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Distribusi kelas jurusan sekolah</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="kesiswaanChartJurusan"></canvas>
             </div>

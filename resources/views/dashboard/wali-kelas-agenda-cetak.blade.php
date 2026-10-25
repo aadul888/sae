@@ -78,7 +78,7 @@
                         <td style="text-align: center;">{{ $idx + 1 }}</td>
                         <td>
                             <strong>{{ $item->hari }}</strong><br>
-                            <span style="font-size: 0.72rem; color: #555;">
+                            <span style="font-size: var(--text-xs, 0.75rem); color: #555;">
                                 {{ $item->tanggal ? $item->tanggal->translatedFormat('d/m/Y') : '-' }}
                             </span>
                         </td>
@@ -91,7 +91,7 @@
                         <td>
                             <strong>{{ $item->nama_guru ?: '-' }}</strong>
                             @if (!empty($item->created_by))
-                                <div style="font-size: 0.65rem; color: #777;">(Oleh: {{ $item->created_by }})</div>
+                                <div style="font-size: var(--text-2xs, 0.6875rem); color: #777;">(Oleh: {{ $item->created_by }})</div>
                             @endif
                         </td>
                         <td>{{ $item->nama_mata_pelajaran }}</td>
@@ -101,7 +101,7 @@
                         <td>
                             <div>{{ $item->uraian_kegiatan }}</div>
                             @if ($item->penugasan)
-                                <div style="font-size: 0.7rem; color: #059669; margin-top: 3px;">
+                                <div style="font-size: var(--text-xs, 0.75rem); color: #059669; margin-top: 3px;">
                                     <strong>Tugas:</strong> {{ $item->penugasan }}
                                 </div>
                             @endif
@@ -109,7 +109,7 @@
                         <td style="text-align: center;">
                             <span
                                 class="badge {{ $item->status_kbm === 'Terlaksana' ? 'badge-success' : ($item->status_kbm === 'Sebagian' ? 'badge-warning' : 'badge-danger') }}"
-                                style="font-size: 0.68rem; padding: 2px 6px;">
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">
                                 {{ $item->status_kbm }}
                             </span>
                         </td>
@@ -125,7 +125,7 @@
         </table>
 
         <!-- Ringkasan Statistik Singkat Dokumen -->
-        <div style="margin-top: 15px; font-size: 0.78rem; color: #444; display: flex; gap: 20px;">
+        <div style="margin-top: 15px; font-size: var(--text-sm, 0.8125rem); color: #444; display: flex; gap: 20px;">
             <span>Total Agenda: <strong>{{ count($items) }}</strong> pertemuan</span>
             <span>Terlaksana: <strong>{{ $items->where('status_kbm', 'Terlaksana')->count() }}</strong></span>
             <span>Sebagian: <strong>{{ $items->where('status_kbm', 'Sebagian')->count() }}</strong></span>

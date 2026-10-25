@@ -9,14 +9,14 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-book-open-reader"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-color); margin: 0 0 2px 0;">
+                <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0 0 2px 0;">
                     Jurnal &amp; Agenda KBM
                 </h2>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">
+                <p style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); margin: 0;">
                     Dokumentasi materi, tujuan pembelajaran &amp; penugasan kelas.
                 </p>
             </div>
@@ -25,13 +25,13 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.agenda-kbm.cetak', request()->all()) }}" target="_blank" class="btn btn-outline"
                 title="Cetak Jurnal KBM"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;">
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;">
                 <i class="fas fa-print text-primary"></i>
             </a>
 
             @if ($canCreate)
                 <button type="button" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     id="btnOpenCreateAgenda" title="Tambah Agenda KBM">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -42,14 +42,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -63,7 +63,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
-                        style="font-size: 0.72rem; font-weight: 500;">Hari</span></div>
+                        style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span></div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
         </div>
@@ -120,24 +120,24 @@
     @if ($isHariLiburAgenda || !empty($agendaHariIni))
         <!-- Banner Peringatan / Info Kalender Pendidikan Hari Ini -->
         <div class="card"
-            style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            style="padding: 12px 18px; margin-bottom: 20px; border-radius: var(--radius-lg, 12px); border: 1px solid {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div
-                    style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isHariLiburAgenda ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                    style="width: 38px; height: 38px; border-radius: var(--radius-lg, 12px); background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isHariLiburAgenda ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                     <i class="fas {{ $isHariLiburAgenda ? 'fa-umbrella-beach' : 'fa-calendar-star' }}"></i>
                 </div>
                 <div>
-                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                         @if ($isHariLiburAgenda)
                             <span style="color: #ef4444;">Informasi Kalender: Hari Ini Libur Sekolah</span>
                             <span class="badge"
-                                style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM
+                                style="background: #ef4444; color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
                                 Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
                         @endif
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         @if (!empty($agendaHariIni))
                             <strong>{{ $agendaHariIni->nama_agenda }}</strong>
                             @if ($agendaHariIni->keterangan)
@@ -151,7 +151,7 @@
             </div>
             <div>
                 <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
-                    style="padding: 6px 12px; font-size: 0.78rem;">
+                    style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem);">
                     <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
                 </a>
             </div>
@@ -178,16 +178,16 @@
 
                     <!-- Filter Rentang Tanggal Inline Baku SAE -->
                     <div
-                        style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                        <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
+                        style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                        <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
                             title="Rentang Tanggal"></i>
                         <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
                             value="{{ request('tanggal_mulai') }}" title="Tanggal Mulai"
-                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                        <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
+                            style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 125px; cursor: pointer;">
+                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">&ndash;</span>
                         <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
                             value="{{ request('tanggal_selesai') }}" title="Tanggal Selesai"
-                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                            style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 125px; cursor: pointer;">
                     </div>
 
                     <!-- Filter Rombel -->
@@ -239,7 +239,7 @@
                             request('filter_ptk_id'))
                         <a href="{{ route('dashboard.agenda-kbm.index') }}" id="btnResetFilter"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -277,15 +277,15 @@
     <div id="modalFormAgenda" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow-y: auto;">
         <div class="card modal-card-responsive"
-            style="max-width: 620px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            style="max-width: 620px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; margin: auto; border-radius: var(--radius-xl, 16px); padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
             <div class="ma-modal-head"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
                 <h3 id="modalAgendaTitle"
-                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-book-open-reader text-primary"></i> Jurnal &amp; Agenda KBM
                 </h3>
                 <button type="button" class="btn-close-modal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -303,11 +303,11 @@
                     <!-- Selector Jadwal KBM (Otomatisasi) -->
                     <div id="wrapJadwalSelector" style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-calendar-days text-primary"></i> Pilih dari Jadwal KBM
                         </label>
                         <select id="selectJadwalKbm"
-                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                             <option value="">-- Pilih dari Jadwal KBM (Otomatis) --</option>
                             @foreach ($jadwalList as $j)
                                 <option value="{{ $j['id'] }}" data-rombel-id="{{ $j['rombongan_belajar_id'] }}"
@@ -327,18 +327,18 @@
 
                     <!-- Alert Info Kalender Pendidikan pada Tanggal Terpilih -->
                     <div id="infoKalenderTanggalAgenda"
-                        style="display: none; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;">
+                        style="display: none; margin-bottom: 12px; padding: 8px 12px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
                     </div>
 
                     <div class="form-grid-2">
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-chalkboard text-primary"></i> Kelas <span
                                     style="color: #ef4444;">*</span>
                             </label>
                             <select id="inputRombonganBelajarId" name="rombongan_belajar_id" required
-                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                                 <option value="">-- Pilih Kelas --</option>
                                 @foreach ($rombelList as $r)
                                     <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
@@ -348,44 +348,44 @@
 
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-book text-primary"></i> Mata Pelajaran <span
                                     style="color: #ef4444;">*</span>
                             </label>
                             <input type="text" id="inputNamaMataPelajaran" name="nama_mata_pelajaran" required
                                 placeholder="Mata Pelajaran..."
-                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                         </div>
                     </div>
 
                     <div class="form-grid-3">
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-calendar-day text-primary"></i> Tanggal <span
                                     style="color: #ef4444;">*</span>
                             </label>
                             <input type="date" id="inputTanggal" name="tanggal" value="{{ date('Y-m-d') }}" required
-                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                         </div>
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-hashtag text-primary"></i> Pertemuan Ke <span
                                     style="color: #ef4444;">*</span>
                             </label>
                             <input type="number" id="inputPertemuanKe" name="pertemuan_ke" min="1"
                                 max="100" value="1" required
-                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; box-sizing: border-box; font-weight: 700;">
+                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box; font-weight: 700;">
                         </div>
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-signal text-primary"></i> Status KBM <span
                                     style="color: #ef4444;">*</span>
                             </label>
                             <select id="inputStatusKbm" name="status_kbm" required
-                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                                style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                                 <option value="Terlaksana">Terlaksana</option>
                                 <option value="Sebagian">Sebagian</option>
                                 <option value="Tertunda">Tertunda</option>
@@ -397,103 +397,103 @@
                     <div class="form-grid-2">
                         <div>
                             <label
-                                style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="display: flex; align-items: center; gap: 4px;">
                                     <i class="fas fa-play text-primary"></i> Jam Mulai (Ke-)
                                 </span>
                                 <span id="badgeAutoJamMulai"
-                                    style="font-size: 0.68rem; color: #10b981; font-weight: 600; display: none;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; font-weight: 600; display: none;">
                                     <i class="fas fa-lock me-1"></i> Otomatis
                                 </span>
                             </label>
                             <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0"
                                 max="20" value="1" readonly
-                                style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
+                                style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                         </div>
                         <div>
                             <label
-                                style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="display: flex; align-items: center; gap: 4px;">
                                     <i class="fas fa-stop text-primary"></i> Jam Selesai (Ke-)
                                 </span>
                                 <span id="labelDurasiJp"
-                                    style="font-size: 0.68rem; color: var(--text-muted); display: none;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); display: none;">
                                     - JP
                                 </span>
                             </label>
                             <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0"
                                 max="20" value="2" readonly
-                                style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
+                                style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                         </div>
                     </div>
 
                     <!-- Info Banner Waktu Nyata KBM dari Jadwal -->
                     <div id="wrapWaktuKbm"
-                        style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.75rem; color: var(--text-color); justify-content: space-between; align-items: center;">
+                        style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: var(--text-xs, 0.75rem); color: var(--text-color); justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <i class="far fa-clock text-primary"></i>
                             <span>Waktu KBM: <strong id="textWaktuKbm" style="color: var(--primary);">-</strong></span>
                         </div>
                         <span id="badgeHariJadwal" class="badge"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.7rem; padding: 2px 7px; font-weight: 600;">-</span>
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 7px; font-weight: 600;">-</span>
                     </div>
 
                     <!-- Materi Pokok -->
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-heading text-primary"></i> Materi Pokok / Tujuan Pembelajaran <span
                                 style="color: #ef4444;">*</span>
                         </label>
                         <input type="text" id="inputMateriPokok" name="materi_pokok" required
                             placeholder="Contoh: Algoritma Pengurutan (Sorting)..."
-                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                     </div>
 
                     <!-- Uraian Kegiatan KBM -->
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-list-check text-primary"></i> Uraian Aktivitas KBM <span
                                 style="color: #ef4444;">*</span>
                         </label>
                         <textarea id="inputUraianKegiatan" name="uraian_kegiatan" rows="3" required
                             placeholder="Uraian kegiatan KBM, apersepsi, eksplorasi materi, refleksi..."
-                            style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box; resize: vertical;"></textarea>
+                            style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box; resize: vertical;"></textarea>
                     </div>
 
                     <!-- Penugasan Siswa -->
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-tasks text-success"></i> Penugasan / Asesmen <span
-                                style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted);">(Opsional)</span>
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 400; color: var(--text-muted);">(Opsional)</span>
                         </label>
                         <textarea id="inputPenugasan" name="penugasan" rows="2"
                             placeholder="Tugas mandiri, lembar kerja, kuis, atau PR..."
-                            style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box; resize: vertical;"></textarea>
+                            style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box; resize: vertical;"></textarea>
                     </div>
 
                     <!-- Hambatan & Catatan -->
                     <div style="margin-bottom: 16px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-triangle-exclamation text-warning"></i> Catatan Kendala <span
-                                style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted);">(Opsional)</span>
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 400; color: var(--text-muted);">(Opsional)</span>
                         </label>
                         <input type="text" id="inputHambatanCatatan" name="hambatan_catatan"
                             placeholder="Catatan kendala / catatan khusus siswa..."
-                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
                     </div>
 
                     <div class="ma-actions"
                         style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; flex-shrink: 0;">
                         <button type="button" class="btn btn-outline btn-close-modal"
-                            style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
+                            style="padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
                             Batal
                         </button>
                         <button type="submit" id="btnSaveAgenda" class="btn btn-primary"
-                            style="padding: 7px 18px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;">
+                            style="padding: 7px 18px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 600;">
                             <i class="fas fa-check me-1"></i> Simpan
                         </button>
                     </div>
@@ -506,27 +506,27 @@
     <div id="modalDetailAgenda" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow-y: auto;">
         <div class="card modal-card-responsive"
-            style="max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            style="max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto; border-radius: var(--radius-xl, 16px); padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                 <h3
-                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-book-open text-primary"></i> Rincian Agenda KBM
                 </h3>
                 <button type="button" class="btn-close-detail-agenda"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div id="detailAgendaContent" style="font-size: 0.84rem; display: flex; flex-direction: column; gap: 10px;">
+            <div id="detailAgendaContent" style="font-size: var(--text-base, 0.875rem); display: flex; flex-direction: column; gap: 10px;">
                 <!-- Konten dinamis via JS -->
             </div>
 
             <div
                 style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
                 <button type="button" class="btn btn-outline btn-close-detail-agenda"
-                    style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+                    style="padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
                     Tutup
                 </button>
             </div>

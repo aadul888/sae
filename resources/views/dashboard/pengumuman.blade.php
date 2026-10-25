@@ -7,22 +7,22 @@
     <!-- Banner Header -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-bullhorn text-primary me-2"></i> Pengumuman &amp; Broadcast
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 Kelola informasi teks berjalan portal publik dan notifikasi lonceng pengguna dashboard secara terpusat.
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.informasi.index') }}" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Tampilan Feed Pengguna">
                 <i class="fas fa-newspaper text-primary"></i>
             </a>
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenCreateModal"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Buat Pengumuman Baru">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -124,7 +124,7 @@
 
                     @if ($q || $targetFilter || $targetPeranFilter || $statusFilter !== '')
                         <a href="{{ route('dashboard.pengumuman.index') }}" class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -149,38 +149,38 @@
                 <thead class="sticky-table-header">
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                             No</th>
                         <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}" data-sort="judul"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                             Judul &amp; Pesan Pengumuman
                             <span class="sort-icon">{!! $sort === 'judul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ $sort === 'target' ? 'sorted' : '' }}" data-sort="target"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px; cursor: pointer;">
                             Target Tampilan
                             <span class="sort-icon">{!! $sort === 'target' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ $sort === 'target_peran' ? 'sorted' : '' }}" data-sort="target_peran"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; cursor: pointer;">
                             Ditujukan Kepada
                             <span class="sort-icon">{!! $sort === 'target_peran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                             Pembaca</th>
                         <th class="sortable-th {{ $sort === 'is_active' ? 'sorted' : '' }}" data-sort="is_active"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px; cursor: pointer;">
                             Status
                             <span class="sort-icon">{!! $sort === 'is_active' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}" data-sort="created_at"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px; cursor: pointer;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px; cursor: pointer;">
                             Tanggal
                             <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
                             Aksi</th>
                     </tr>
                 </thead>
@@ -188,61 +188,61 @@
                     @forelse ($list as $index => $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: 0.84rem;">
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: var(--text-base, 0.875rem);">
                                 {{ $list->firstItem() + $index }}
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.88rem;">
+                            <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                 <div style="font-weight: 700; color: var(--text-color); margin-bottom: 3px;">
                                     {{ $item->judul }}
                                 </div>
                                 <div
-                                    style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; max-width: 520px;">
+                                    style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4; max-width: 520px;">
                                     {{ Str::limit($item->isi, 130) }}
                                 </div>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem;">
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);">
                                 @if ($item->target === 'publik')
                                     <span class="badge badge-accent"
-                                        style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-globe me-1"></i> Teks Publik
                                     </span>
                                 @elseif($item->target === 'pengguna')
                                     <span class="badge badge-warning"
-                                        style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-bell me-1"></i> Lonceng Pengguna
                                     </span>
                                 @else
                                     <span class="badge badge-primary"
-                                        style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-bullhorn me-1"></i> Publik &amp; Lonceng
                                     </span>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem;">
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);">
                                 @if ($item->target_peran === 'guru')
-                                    <span class="badge badge-primary" style="font-size: 0.72rem; padding: 4px 8px;">
+                                    <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                         <i class="fas fa-chalkboard-user me-1"></i> Guru
                                     </span>
                                 @elseif($item->target_peran === 'tendik')
-                                    <span class="badge badge-accent" style="font-size: 0.72rem; padding: 4px 8px;">
+                                    <span class="badge badge-accent" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                         <i class="fas fa-id-badge me-1"></i> Tendik
                                     </span>
                                 @elseif($item->target_peran === 'peserta_didik')
-                                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px;">
+                                    <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                         <i class="fas fa-user-graduate me-1"></i> Peserta Didik
                                     </span>
                                 @elseif($item->target_peran === 'admin')
-                                    <span class="badge badge-danger" style="font-size: 0.72rem; padding: 4px 8px;">
+                                    <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                         <i class="fas fa-user-shield me-1"></i> Admin
                                     </span>
                                 @else
-                                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 4px 8px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                                         <i class="fas fa-users me-1"></i> Semua Pengguna
                                     </span>
                                 @endif
                             </td>
                             <td style="padding: 14px 18px; text-align: center;">
-                                <span class="badge badge-outline" style="font-size: 0.75rem; padding: 3px 8px;"
+                                <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"
                                     title="Telah dibaca oleh {{ $item->jumlah_pembaca }} pengguna">
                                     <i class="fas fa-eye me-1 text-primary"></i> {{ $item->jumlah_pembaca }}
                                 </span>
@@ -256,7 +256,7 @@
                                             data-id="{{ $item->id }}" {{ $item->is_active ? 'checked' : '' }}
                                             style="opacity: 0; width: 0; height: 0;">
                                         <span class="slider-toggle-crud"
-                                            style="position: absolute; inset: 0; background-color: {{ $item->is_active ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                            style="position: absolute; inset: 0; background-color: {{ $item->is_active ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                     </label>
                                 @else
                                     <span class="badge {{ $item->is_active ? 'badge-success' : 'badge-outline' }}">
@@ -264,9 +264,9 @@
                                     </span>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);">
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                 <div>{{ $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-' }}</div>
-                                <div style="font-size: 0.72rem; opacity: 0.85;">
+                                <div style="font-size: var(--text-xs, 0.75rem); opacity: 0.85;">
                                     <i class="fas fa-user-pen me-1"></i> {{ $item->penulis_nama ?: 'Administrator' }}
                                 </div>
                             </td>
@@ -299,8 +299,8 @@
                     @empty
                         <tr>
                             <td colspan="8"
-                                style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-bullhorn mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                style="padding: 36px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-bullhorn mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
                                 <div>Belum ada data pengumuman yang sesuai. Klik <strong>"Buat Pengumuman"</strong> untuk
                                     memulai.</div>
                             </td>
@@ -321,14 +321,14 @@
     <!-- Modal Form Create/Edit Pengumuman -->
     <div id="pengumumanModal" class="modal-backdrop">
         <div class="card"
-            style="max-width: 560px; width: 92%; margin: auto; padding: 22px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
+            style="max-width: 560px; width: 92%; margin: auto; padding: 22px; border-radius: var(--radius-xl, 16px); box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 id="modalTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                <h3 id="modalTitle" style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     <i class="fas fa-bullhorn text-primary me-2"></i> Buat Pengumuman Baru
                 </h3>
                 <button type="button" id="btnCloseModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -376,18 +376,18 @@
                     <label>Isi Pesan Pengumuman <span style="color: #ef4444;">*</span></label>
                     <textarea name="isi" id="inputIsi" required rows="4"
                         placeholder="Tuliskan isi pengumuman secara jelas dan ringkas..."
-                        style="width: 100%; padding: 10px 12px; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); resize: vertical; box-sizing: border-box; line-height: 1.5;"></textarea>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                        style="width: 100%; padding: 10px 12px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); resize: vertical; box-sizing: border-box; line-height: 1.5;"></textarea>
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                         Teks ini akan ditampilkan pada teks berjalan portal publik atau pop-up lonceng &amp; feed pengguna.
                     </div>
                 </div>
 
                 <div
-                    style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px;">
+                    style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
                     <input type="checkbox" name="is_active" id="inputIsActive" value="1" checked
                         style="width: 16px; height: 16px; cursor: pointer;">
                     <label for="inputIsActive"
-                        style="font-size: 0.82rem; font-weight: 600; color: var(--text-color); cursor: pointer; margin: 0;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); cursor: pointer; margin: 0;">
                         Aktifkan pengumuman ini segera
                     </label>
                 </div>
@@ -395,9 +395,9 @@
                 <div
                     style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                     <button type="button" id="btnCancelModal" class="btn btn-outline"
-                        style="padding: 8px 16px; font-size: 0.85rem;">Batal</button>
+                        style="padding: 8px 16px; font-size: var(--text-base, 0.875rem);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600;">Simpan</button>
+                        style="padding: 8px 20px; font-size: var(--text-base, 0.875rem); font-weight: 600;">Simpan</button>
                 </div>
             </form>
         </div>
@@ -406,26 +406,26 @@
     <!-- Modal Preview Pengumuman (Detail Admin) -->
     <div id="previewPengumumanModal" class="modal-backdrop">
         <div class="card"
-            style="max-width: 580px; width: 92%; margin: auto; padding: 24px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
+            style="max-width: 580px; width: 92%; margin: auto; padding: 24px; border-radius: var(--radius-xl, 16px); box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <div>
                     <span id="previewTargetBadge" class="badge badge-primary"
-                        style="font-size: 0.72rem; margin-bottom: 6px;"></span>
+                        style="font-size: var(--text-xs, 0.75rem); margin-bottom: 6px;"></span>
                     <span id="previewPeranBadge" class="badge badge-outline"
-                        style="font-size: 0.72rem; margin-bottom: 6px;"></span>
+                        style="font-size: var(--text-xs, 0.75rem); margin-bottom: 6px;"></span>
                     <h3 id="previewJudul"
-                        style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 6px 0 0 0; line-height: 1.3;">
+                        style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 6px 0 0 0; line-height: 1.3;">
                     </h3>
                 </div>
                 <button type="button" id="btnClosePreviewModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div
-                style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
+                style="display: flex; align-items: center; gap: 12px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 16px;">
                 <div><i class="fas fa-user-pen me-1 text-primary"></i> <span id="previewPenulis"></span></div>
                 <span>&bull;</span>
                 <div><i class="fas fa-clock me-1"></i> <span id="previewTanggal"></span></div>
@@ -434,12 +434,12 @@
             </div>
 
             <div id="previewIsi"
-                style="font-size: 0.9rem; line-height: 1.6; color: var(--text-color); background: rgba(255,255,255,0.02); padding: 14px 16px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; white-space: pre-line;">
+                style="font-size: var(--text-base, 0.875rem); line-height: 1.6; color: var(--text-color); background: rgba(255,255,255,0.02); padding: 14px 16px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); margin-bottom: 20px; white-space: pre-line;">
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
                 <button type="button" id="btnClosePreviewBtn" class="btn btn-outline"
-                    style="padding: 8px 18px; font-size: 0.85rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-base, 0.875rem);">Tutup</button>
             </div>
         </div>
     </div>

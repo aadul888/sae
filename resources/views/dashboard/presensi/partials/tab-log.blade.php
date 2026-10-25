@@ -23,7 +23,7 @@
                             </div>
 
                             <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
-                                style="height: 38px; padding: 0 10px; font-size: 0.82rem; border-radius: 8px;"
+                                style="height: 38px; padding: 0 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);"
                                 title="Pilih Tanggal Presensi">
 
                             <select name="rombel_id" id="filterRombel" class="toolbar-filter-select"
@@ -52,7 +52,7 @@
                             @if (request('rombel_id') || request('status') || request('search') || $tanggal !== now()->toDateString())
                                 <a href="{{ route('dashboard.presensi.index', ['tab' => 'log']) }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset>
                                     <i class="fas fa-undo"></i>
                                 </a>
@@ -79,41 +79,41 @@
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th class="sortable-th {{ $sortLog === 'nama_siswa' ? 'sorted' : '' }}"
                                 data-sort="nama_siswa"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                                 Nama Peserta Didik
                                 <span class="sort-icon">{!! $sortLog === 'nama_siswa' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sortLog === 'nama_rombel' ? 'sorted' : '' }}"
                                 data-sort="nama_rombel"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                                 Rombel
                                 <span class="sort-icon">{!! $sortLog === 'nama_rombel' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sortLog === 'jam_masuk' ? 'sorted' : '' }}" data-sort="jam_masuk"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                                 Jam Masuk
                                 <span class="sort-icon">{!! $sortLog === 'jam_masuk' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sortLog === 'jam_pulang' ? 'sorted' : '' }}"
                                 data-sort="jam_pulang"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                                 Jam Pulang
                                 <span class="sort-icon">{!! $sortLog === 'jam_pulang' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sortLog === 'status' ? 'sorted' : '' }}" data-sort="status"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; cursor: pointer;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; cursor: pointer;">
                                 Status
                                 <span class="sort-icon">{!! $sortLog === 'status' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Keterangan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Snapshot</th>
                         </tr>
                     </thead>
@@ -133,42 +133,42 @@
                                             title="{{ $log->foto_profil_url ? 'Klik untuk memperbesar foto profil' : '' }}"
                                             onerror="this.src='/img/logo-dark.png';">
                                         <div>
-                                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">
+                                            <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                                 {{ $log->nama_siswa }}</div>
                                             <div
-                                                style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                 NISN: {{ $log->nisn_siswa }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="cell-log-rombel" style="padding: 14px 16px;" data-label="Rombel Kelas">
                                     <span class="badge badge-outline"
-                                        style="font-size: 0.76rem; padding: 3px 8px;">{{ $log->nama_rombel ?: '-' }}</span>
+                                        style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">{{ $log->nama_rombel ?: '-' }}</span>
                                 </td>
                                 <td class="cell-log-masuk" style="padding: 14px 16px;" data-label="Presensi Masuk">
                                     @if ($log->jam_masuk)
                                         <div
-                                            style="font-weight: 700; font-family: monospace; color: var(--text-color); font-size: 0.88rem;">
+                                            style="font-weight: 700; font-family: monospace; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                             {{ substr($log->jam_masuk, 0, 5) }} WIB
                                         </div>
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             <i
                                                 class="fas fa-rss me-1"></i>{{ strtoupper($log->metode_masuk ?: 'manual') }}
                                         </div>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.84rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">-</span>
                                     @endif
                                 </td>
                                 <td class="cell-log-pulang" style="padding: 14px 16px;" data-label="Presensi Pulang">
                                     @if ($log->jam_pulang)
                                         <div
-                                            style="font-weight: 700; font-family: monospace; color: var(--text-color); font-size: 0.88rem;">
+                                            style="font-weight: 700; font-family: monospace; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                             {{ substr($log->jam_pulang, 0, 5) }} WIB
                                         </div>
-                                        <div style="font-size: 0.72rem; margin-top: 2px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); margin-top: 2px;">
                                             @if ($log->status_ketepatan_pulang === 'pulang_cepat')
                                                 <span class="badge"
-                                                    style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.68rem; padding: 1px 6px;">
+                                                    style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                                     <i class="fas fa-person-walking-arrow-right me-1"></i> Pulang Cepat
                                                 </span>
                                             @else
@@ -179,44 +179,44 @@
                                     @elseif ($log->status_ketepatan_pulang === 'pulang_cepat')
                                         <div>
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; padding: 2px 7px;">
+                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                                 <i class="fas fa-person-walking-arrow-right me-1"></i> Pulang Cepat
                                             </span>
-                                            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">
+                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 2px;">
                                                 Tanpa
                                                 Tap Pulang</div>
                                         </div>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.84rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">-</span>
                                     @endif
                                 </td>
                                 <td class="cell-log-status" style="padding: 14px 16px; text-align: center;"
                                     data-label="Status Kehadiran">
                                     @if ($log->status === 'H')
-                                        <span class="badge badge-success" style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                        <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-check-circle me-1"></i> Hadir</span>
                                     @elseif ($log->status === 'T')
-                                        <span class="badge badge-warning" style="font-size: 0.74rem; padding: 3px 8px;"
+                                        <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"
                                             title="Terlambat {{ $log->menit_terlambat }} menit">
                                             <i class="fas fa-clock me-1"></i> +{{ $log->menit_terlambat }}m
                                         </span>
                                     @elseif ($log->status === 'I')
-                                        <span class="badge badge-primary" style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                        <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-file-signature me-1"></i> Izin</span>
                                     @elseif ($log->status === 'S')
                                         <span class="badge"
-                                            style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: 0.74rem; padding: 3px 8px;"><i
+                                            style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-notes-medical me-1"></i> Sakit</span>
                                     @elseif ($log->status === 'D')
-                                        <span class="badge badge-accent" style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                        <span class="badge badge-accent" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-award me-1"></i> Dispen</span>
                                     @else
-                                        <span class="badge badge-danger" style="font-size: 0.74rem; padding: 3px 8px;"><i
+                                        <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-times-circle me-1"></i> Alpha</span>
                                     @endif
                                 </td>
                                 <td class="cell-log-keterangan" style="padding: 14px 16px;" data-label="Keterangan">
-                                    <div style="max-width: 220px; font-size: 0.82rem; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                    <div style="max-width: 220px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                                         title="{{ $log->keterangan }}">
                                         {{ $log->keterangan ?: '-' }}
                                     </div>
@@ -229,7 +229,7 @@
                                             <button type="button" class="btn btn-outline btn-preview-snapshot"
                                                 data-url="{{ $log->foto_masuk_url }}"
                                                 data-title="Snapshot Masuk — {{ $log->nama_siswa }}"
-                                                style="padding: 5px 9px; font-size: 0.75rem;"
+                                                style="padding: 5px 9px; font-size: var(--text-xs, 0.75rem);"
                                                 title="Lihat Snapshot Masuk">
                                                 <i class="fas fa-camera text-primary"></i> Masuk
                                             </button>
@@ -238,13 +238,13 @@
                                             <button type="button" class="btn btn-outline btn-preview-snapshot"
                                                 data-url="{{ $log->foto_pulang_url }}"
                                                 data-title="Snapshot Pulang — {{ $log->nama_siswa }}"
-                                                style="padding: 5px 9px; font-size: 0.75rem;"
+                                                style="padding: 5px 9px; font-size: var(--text-xs, 0.75rem);"
                                                 title="Lihat Snapshot Pulang">
                                                 <i class="fas fa-camera text-success"></i> Pulang
                                             </button>
                                         @endif
                                         @if (!$log->foto_masuk_url && !$log->foto_pulang_url)
-                                            <span style="color: var(--text-muted); font-size: 0.78rem;">-</span>
+                                            <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                         @endif
                                     </div>
                                 </td>
@@ -253,7 +253,7 @@
                             <tr>
                                 <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
                                     <i class="fas fa-clipboard-question"
-                                        style="font-size: 2.2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 10px; display: block; opacity: 0.4;"></i>
                                     Belum ada data presensi yang tercatat untuk filter tanggal dan rombel ini.
                                 </td>
                             </tr>

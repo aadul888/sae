@@ -38,7 +38,7 @@
     </div>
 
     <div
-        style="background: #fff; max-width: {{ $tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun' ? '297mm' : '210mm' }}; margin: 0 auto; padding: 12mm 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 6px; position: relative; overflow: hidden;">
+        style="background: #fff; max-width: {{ $tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun' ? '297mm' : '210mm' }}; margin: 0 auto; padding: 12mm 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: var(--radius-sm, 6px); position: relative; overflow: hidden;">
 
         <!-- Watermark Logo SAE -->
         <div class="watermark-sae">

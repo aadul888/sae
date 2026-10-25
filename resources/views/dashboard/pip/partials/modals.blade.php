@@ -22,16 +22,16 @@
                     $activeTp = $pipStatusInfo['tahun_pelajaran'] ?? null;
                 @endphp
                 <div
-                    style="margin-bottom: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    style="margin-bottom: 14px; padding: 10px 14px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: var(--text-sm, 0.8125rem); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                     <div>
                         <div style="font-weight: 800; color: var(--primary);">{{ $activeJudul }}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 1px;">
                             {{ $activeFase }}@if ($activeTp)
                                 &bull; TP {{ $activeTp }}
                             @endif
                         </div>
                     </div>
-                    <span class="badge badge-primary" style="font-size: 0.68rem; padding: 2px 7px;">Tahun
+                    <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px;">Tahun
                         {{ $activeTahun }}</span>
                 </div>
 
@@ -50,7 +50,7 @@
                     <div style="display: grid; gap: 6px;">
                         @foreach ($kriteriaAlasan as $kKey => $kLabel)
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; cursor: pointer; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                style="display: flex; align-items: center; gap: 8px; font-size: var(--text-base, 0.875rem); cursor: pointer; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
                                 <input type="checkbox" name="alasan_usulan[]" value="{{ $kKey }}">
                                 <span>{{ $kLabel }}</span>
                             </label>
@@ -87,10 +87,10 @@
             <input type="hidden" name="id" id="editUsulanId">
             <div class="kp-modal-body">
                 <div
-                    style="margin-bottom: 14px; padding: 12px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25);">
-                    <div style="font-size: 0.9rem; font-weight: 800; color: var(--text-color);" id="editUsulanNamaPd">-
+                    style="margin-bottom: 14px; padding: 12px 14px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25);">
+                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--text-color);" id="editUsulanNamaPd">-
                     </div>
-                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                         Setiap perubahan alasan/kriteria atau keterangan akan dicatat otomatis pada riwayat log usulan
                         dan ditandai secara visual.
                     </div>
@@ -101,7 +101,7 @@
                     <div style="display: grid; gap: 6px;">
                         @foreach ($kriteriaAlasan as $kKey => $kLabel)
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; cursor: pointer; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                style="display: flex; align-items: center; gap: 8px; font-size: var(--text-base, 0.875rem); cursor: pointer; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
                                 <input type="checkbox" name="alasan_usulan[]" value="{{ $kKey }}"
                                     class="edit-alasan-cb">
                                 <span>{{ $kLabel }}</span>
@@ -138,10 +138,10 @@
         <div class="kp-modal-body" style="max-height: 70vh; overflow-y: auto;">
             <!-- Header Info Siswa -->
             <div
-                style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2);">
-                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-color);" id="riwayatPdNama">-
+                style="margin-bottom: 16px; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2);">
+                <div style="font-weight: 800; font-size: var(--text-md, 1rem); color: var(--text-color);" id="riwayatPdNama">-
                 </div>
-                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;" id="riwayatPdMeta">-</div>
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px;" id="riwayatPdMeta">-</div>
             </div>
 
             <!-- Timeline Perubahan -->

@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Jadwal Pemeliharaan Preventif (Maintenance)
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Program perawatan berkala gedung, kelistrikan, perairan, sanitasi/drainase, pendingin AC, dan
                         infrastruktur IT.
                     </div>
@@ -25,7 +25,7 @@
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" id="btnTambahJadwalPM"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Jadwal Preventive Maintenance">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -148,7 +148,7 @@
                             @if ($q || $kategori || $frekuensi || $status)
                                 <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -173,25 +173,25 @@
                         <tr
                             style="background-color: var(--table-header-bg, #f8fafc); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kode & Kegiatan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Bidang & Lokasi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Frekuensi & Jadwal</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 PJ & Biaya</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 130px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 130px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -220,61 +220,61 @@
                                 ];
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ ($pemeliharaan->currentPage() - 1) * $pemeliharaan->perPage() + $loop->iteration }}
                                 </td>
                                 <td style="padding: 14px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-heading); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">
                                         {{ $row->nama_kegiatan }}
                                     </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                         {{ $row->kode_pemeliharaan }}
                                     </div>
                                     @if ($row->catatan_hasil)
-                                        <div style="font-size: 0.78rem; color: #10b981; margin-top: 4px;">
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: #10b981; margin-top: 4px;">
                                             <i class="fas fa-check-circle"></i> {{ Str::limit($row->catatan_hasil, 60) }}
                                         </div>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
-                                        style="background-color: #f1f5f9; color: var(--text-heading); font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                                        style="background-color: #f1f5f9; color: var(--text-heading); font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                         {{ $kategoriLabel }}
                                     </span>
                                     <div
-                                        style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem; margin-top: 4px;">
-                                        <i class="fas fa-map-marker-alt" style="color: #ef4444; font-size: 0.8rem;"></i>
+                                        style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem); margin-top: 4px;">
+                                        <i class="fas fa-map-marker-alt" style="color: #ef4444; font-size: var(--text-sm, 0.8125rem);"></i>
                                         {{ $row->lokasi_aset }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <span class="badge"
-                                        style="background-color: #ede9fe; color: #6d28d9; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px;">
+                                        style="background-color: #ede9fe; color: #6d28d9; font-size: var(--text-xs, 0.75rem); padding: 2px 6px; border-radius: var(--radius-xs, 4px);">
                                         {{ strtoupper($row->frekuensi) }}
                                     </span>
                                     <div style="color: var(--text-heading); font-weight: 600; margin-top: 4px;">
                                         Jadwal: {{ \Carbon\Carbon::parse($row->tgl_jadwal)->format('d M Y') }}
                                     </div>
                                     @if ($row->tgl_realisasi)
-                                        <div style="color: #10b981; font-size: 0.78rem;">
+                                        <div style="color: #10b981; font-size: var(--text-sm, 0.8125rem);">
                                             Realisasi: {{ \Carbon\Carbon::parse($row->tgl_realisasi)->format('d M Y') }}
                                         </div>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-heading);">
                                         {{ $row->penanggung_jawab ?: '-' }}</div>
                                     @if ($row->biaya > 0)
-                                        <div style="font-size: 0.8rem; color: #d97706; font-weight: 600; margin-top: 2px;">
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: #d97706; font-weight: 600; margin-top: 2px;">
                                             Rp {{ number_format($row->biaya, 0, ',', '.') }}
                                         </div>
                                     @else
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Biaya: Rp 0</div>
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Biaya: Rp 0</div>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
-                                        style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['color'] }}; font-size: 0.78rem; padding: 4px 10px; border-radius: 12px; font-weight: 600;">
+                                        style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['color'] }}; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-lg, 12px); font-weight: 600;">
                                         {{ $statusColor['label'] }}
                                     </span>
                                 </td>
@@ -282,8 +282,8 @@
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-icon btn-update-pm"
                                             data-item="{{ json_encode($row) }}" title="Update Status & Realisasi"
-                                            style="background-color: #3b82f6; color: #fff; width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-check-square" style="font-size: 0.8rem;"></i>
+                                            style="background-color: #3b82f6; color: #fff; width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-check-square" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                         </button>
                                         <form action="{{ route('dashboard.teknisi.pemeliharaan.destroy', $row->id) }}"
                                             method="POST" style="display: inline;" data-confirm="delete">
@@ -291,8 +291,8 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-pm"
                                                 data-nama="{{ $row->nama_kegiatan }}" title="Hapus Jadwal"
-                                                style="background-color: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                                                style="background-color: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-trash-alt" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -302,8 +302,8 @@
                             <tr>
                                 <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
                                     <i class="fas fa-clipboard-list"
-                                        style="font-size: 2.2rem; margin-bottom: 10px; opacity: 0.4;"></i>
-                                    <p style="margin: 0; font-size: 0.95rem;">Belum ada jadwal pemeliharaan preventif.</p>
+                                        style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 10px; opacity: 0.4;"></i>
+                                    <p style="margin: 0; font-size: var(--text-md, 1rem);">Belum ada jadwal pemeliharaan preventif.</p>
                                 </td>
                             </tr>
                         @endforelse
@@ -323,15 +323,15 @@
         <div id="modalCreatePM" class="modal-backdrop"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center; padding: 20px;">
             <div class="modal-card"
-                style="background: var(--card-bg, #fff); border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+                style="background: var(--card-bg, #fff); border-radius: var(--radius-lg, 12px); max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-heading);">
+                    <h3 style="margin: 0; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-heading);">
                         <i class="fas fa-plus-circle" style="color: var(--primary-color); margin-right: 8px;"></i>
                         Tambah Jadwal Pemeliharaan Preventif
                     </h3>
                     <button type="button" onclick="closeModalCreatePM()"
-                        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <form action="{{ route('dashboard.teknisi.pemeliharaan.store') }}" method="POST"
                     style="padding: 20px;">
@@ -339,7 +339,7 @@
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama
                                 Kegiatan / Program PM *</label>
                             <input type="text" name="nama_kegiatan" class="form-control"
                                 placeholder="Contoh: Kuras Toren Air & Pengecekan Pompa Distribusi" required>
@@ -347,7 +347,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bidang
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bidang
                                     Sarpras *</label>
                                 <select name="kategori" class="form-control" required>
                                     <option value="bangunan">Bangunan & Fisik</option>
@@ -360,7 +360,7 @@
                             </div>
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Frekuensi
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Frekuensi
                                     Servis *</label>
                                 <select name="frekuensi" class="form-control" required>
                                     <option value="mingguan">Mingguan</option>
@@ -376,9 +376,9 @@
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <label class="form-label"
-                                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Lokasi
+                                        style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin: 0;">Lokasi
                                         / Aset Sasaran *</label>
-                                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                             class="fas fa-building me-1"></i>Sarpras</span>
                                 </div>
                                 <input list="listLokasiAsetPm" name="lokasi_aset" class="form-control"
@@ -396,7 +396,7 @@
                             </div>
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
                                     Rencana Jadwal *</label>
                                 <input type="date" name="tgl_jadwal" class="form-control"
                                     value="{{ date('Y-m-d') }}" required>
@@ -407,9 +407,9 @@
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <label class="form-label"
-                                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Penanggung
+                                        style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin: 0;">Penanggung
                                         Jawab</label>
-                                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                             class="fas fa-user-check me-1"></i>GTK</span>
                                 </div>
                                 <input type="search" name="penanggung_jawab" class="form-control"
@@ -418,7 +418,7 @@
                             </div>
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Estimasi
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Estimasi
                                     Anggaran (Rp)</label>
                                 <input type="number" name="biaya" class="form-control" value="0" min="0"
                                     step="5000">
@@ -438,29 +438,29 @@
         <div id="modalUpdatePM" class="modal-backdrop"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center; padding: 20px;">
             <div class="modal-card"
-                style="background: var(--card-bg, #fff); border-radius: 12px; max-width: 540px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+                style="background: var(--card-bg, #fff); border-radius: var(--radius-lg, 12px); max-width: 540px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-heading);">
+                    <h3 style="margin: 0; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-heading);">
                         <i class="fas fa-tasks" style="color: #3b82f6; margin-right: 8px;"></i>
                         Update Realisasi Pemeliharaan
                     </h3>
                     <button type="button" onclick="closeModalUpdatePM()"
-                        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <form id="formUpdatePM" action="" method="POST" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
-                        <div style="background: var(--table-header-bg, #f8fafc); padding: 12px; border-radius: 8px;">
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Kegiatan:</div>
-                            <div id="updateNamaPM" style="font-weight: 700; color: var(--text-heading); font-size: 1rem;">
+                        <div style="background: var(--table-header-bg, #f8fafc); padding: 12px; border-radius: var(--radius-md, 8px);">
+                            <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Kegiatan:</div>
+                            <div id="updateNamaPM" style="font-weight: 700; color: var(--text-heading); font-size: var(--text-md, 1rem);">
                                 -
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Status
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Status
                                     *</label>
                                 <select name="status" id="updateStatusPMVal" class="form-control" required>
                                     <option value="terjadwal">Terjadwal</option>
@@ -471,7 +471,7 @@
                             </div>
                             <div>
                                 <label class="form-label"
-                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
+                                    style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
                                     Realisasi</label>
                                 <input type="date" name="tgl_realisasi" id="updateTglRealisasiVal"
                                     class="form-control" value="{{ date('Y-m-d') }}">
@@ -479,14 +479,14 @@
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Catatan
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Catatan
                                 Hasil & Rekomendasi</label>
                             <textarea name="catatan_hasil" id="updateCatatanHasilVal" class="form-control" rows="3"
                                 placeholder="Jelaskan kondisi aset setelah diservis atau catatan komponen yang perlu diganti..."></textarea>
                         </div>
                         <div>
                             <label class="form-label"
-                                style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Realisasi
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Realisasi
                                 Biaya Aktual (Rp)</label>
                             <input type="number" name="biaya" id="updateBiayaPMVal" class="form-control"
                                 value="0" min="0" step="1000">

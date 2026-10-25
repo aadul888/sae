@@ -10,14 +10,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-door-open"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Data Ruang &amp; Gedung
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pemetaan gedung, ruang kelas, laboratorium, dan kondisi fisik fasilitas sekolah.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalRuang"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Tambah Ruangan Baru">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -116,7 +116,7 @@
                             @if ($search || $gedungFilter || $kondisiFilter)
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -140,22 +140,22 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kode &amp; Nama Ruang</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Gedung &amp; Lantai</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Penanggung Jawab</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Kondisi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -163,26 +163,26 @@
                         @forelse ($list as $idx => $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <td data-label="No"
-                                    style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Ruang" style="padding: 14px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama_ruang }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--primary); font-family: monospace;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                         {{ $item->kode_ruang }}</div>
                                 </td>
                                 <td data-label="Gedung"
-                                    style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-color);">
+                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                     <div><i class="fas fa-landmark text-muted me-1"></i> {{ $item->gedung ?: '-' }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted);">Lantai:
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Lantai:
                                         {{ $item->lantai ?: '1' }}</div>
                                 </td>
-                                <td data-label="PJ" style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td data-label="PJ" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-color);">{{ $item->pj_nama ?: '-' }}
                                     </div>
                                     @if ($item->pj_nip)
-                                        <div style="font-size: 0.78rem; color: var(--text-muted);">NIP:
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">NIP:
                                             {{ $item->pj_nip }}
                                         </div>
                                     @endif
@@ -222,7 +222,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada data ruang yang cocok.</div>
                                 </td>
                             </tr>
@@ -243,14 +243,14 @@
         <div id="modalRuang" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
+                style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="modalRuangTitle"
-                        style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Tambah Data Ruang
                     </h3>
                     <button type="button" id="btnCloseModalRuang"
-                        style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
                 <form id="formRuang" method="POST" action="{{ route('dashboard.sarpras.ruang.store') }}">
@@ -261,14 +261,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
                                 Ruang <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="kode_ruang" id="ruangKode" class="form-control"
                                 placeholder="R-01" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
                                 Ruang <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="nama_ruang" id="ruangNama" class="form-control"
                                 placeholder="Ruang Kelas X TKJ 1" required>
@@ -278,13 +278,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Gedung</label>
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Gedung</label>
                             <input type="text" name="gedung" id="ruangGedung" class="form-control"
                                 placeholder="Gedung A">
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lantai</label>
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lantai</label>
                             <input type="text" name="lantai" id="ruangLantai" class="form-control"
                                 placeholder="Lantai 1">
                         </div>
@@ -292,7 +292,7 @@
 
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Penanggung
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Penanggung
                             Jawab (GTK)</label>
                         <input type="search" id="ruangPj" class="form-control"
                             placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
@@ -303,7 +303,7 @@
 
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
                             Ruang <span style="color: #ef4444;">*</span></label>
                         <select name="kondisi" id="ruangKondisi" class="form-control" required>
                             <option value="baik">Baik</option>
@@ -314,7 +314,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Keterangan
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Keterangan
                             / Fasilitas Ruang</label>
                         <textarea name="keterangan" id="ruangKeterangan" class="form-control" rows="2"
                             placeholder="Luas ruang, kelengkapan proyektor, AC, kapasitas kursi..."></textarea>

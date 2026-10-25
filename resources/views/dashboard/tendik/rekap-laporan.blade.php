@@ -10,28 +10,28 @@
             <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 260px;">
                 @if (!empty($profile['foto_url']))
                     <div
-                        style="flex-shrink: 0; width: 64px; height: 80px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);">
+                        style="flex-shrink: 0; width: 64px; height: 80px; border-radius: var(--radius-md, 8px); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);">
                         <img src="{{ $profile['foto_url'] }}" alt="{{ $profile['nama'] }}"
                             style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                 @endif
                 <div>
                     <h2
-                        style="margin: 0 0 4px 0; font-size: 1.35rem; font-weight: 800; color: var(--text-color); line-height: 1.25;">
+                        style="margin: 0 0 4px 0; font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); line-height: 1.25;">
                         <i class="fas fa-file-lines text-primary me-2"></i> Laporan Kinerja &amp; Aktivitas
                     </h2>
-                    <p style="margin: 0 0 8px 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+                    <p style="margin: 0 0 8px 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4;">
                         Rekapitulasi log aktivitas harian, capaian tugas, dan akumulasi durasi penugasan tenaga
                         kependidikan.
                     </p>
-                    <div style="display: flex; gap: 10px; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap;">
                         <span><i class="fas fa-user text-primary me-1"></i> <strong>{{ $profile['nama'] }}</strong></span>
                         @if (!empty($profile['nip']))
                             <span><i class="fas fa-id-badge text-warning me-1"></i>
                                 <strong>{{ $profile['nip'] }}</strong></span>
                         @endif
                         <span><i class="fas fa-briefcase text-info me-1"></i> <span class="badge"
-                                style="background: rgba(59,130,246,0.15); color: #3b82f6; font-size: 0.72rem; padding: 2px 6px;">{{ $bidangLabels[$currentBidang] ?? ($profile['tugas_tambahan'] ?? $profile['jabatan']) }}</span></span>
+                                style="background: rgba(59,130,246,0.15); color: #3b82f6; font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $bidangLabels[$currentBidang] ?? ($profile['tugas_tambahan'] ?? $profile['jabatan']) }}</span></span>
                     </div>
                 </div>
             </div>
@@ -39,18 +39,18 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.tendik.laporan.cetak', array_merge(request()->all(), ['bidang' => $currentBidang])) }}"
                     target="_blank" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none; box-shadow: 0 4px 12px rgba(59,130,246,0.35);"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none; box-shadow: 0 4px 12px rgba(59,130,246,0.35);"
                     title="Cetak Dokumen Resmi Laporan Kinerja">
                     <i class="fas fa-print"></i>
                 </a>
                 <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Target &amp; Capaian Kinerja">
                     <i class="fas fa-bullseye text-primary"></i>
                 </a>
                 <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
                     class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Catat Aktivitas Harian">
                     <i class="fas fa-pen-to-square text-success"></i>
                 </a>
@@ -135,7 +135,7 @@
                 @if ($periodeTipe === 'bulan')
                     <div class="filter-item-group">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Bulan:</label>
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Bulan:</label>
                         <select name="bulan" class="filter-select">
                             @for ($m = 1; $m <= 12; $m++)
                                 <option value="{{ $m }}" {{ $bulan == $m ? 'selected' : '' }}>
@@ -146,7 +146,7 @@
                     </div>
                     <div class="filter-item-group">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
                         <select name="tahun" class="filter-select">
                             @for ($y = date('Y') + 1; $y >= date('Y') - 4; $y--)
                                 <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>
@@ -156,7 +156,7 @@
                     </div>
                 @elseif ($periodeTipe === 'triwulan')
                     <div class="filter-item-group">
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                        <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
                             Triwulan:</label>
                         <select name="triwulan" class="filter-select">
                             <option value="1" {{ $triwulan == 1 ? 'selected' : '' }}>Triwulan I (Jan - Mar)</option>
@@ -167,7 +167,7 @@
                     </div>
                     <div class="filter-item-group">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun:</label>
                         <select name="tahun" class="filter-select">
                             @for ($y = date('Y') + 1; $y >= date('Y') - 4; $y--)
                                 <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>
@@ -178,7 +178,7 @@
                 @elseif ($periodeTipe === 'semester')
                     <div class="filter-item-group">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Semester:</label>
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Semester:</label>
                         <select name="semester" class="filter-select">
                             <option value="1" {{ $semester == '1' ? 'selected' : '' }}>Semester 1 (Ganjil - Jul s/d
                                 Des)</option>
@@ -187,14 +187,14 @@
                         </select>
                     </div>
                     <div class="filter-item-group">
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
+                        <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
                             Ajaran:</label>
                         <input type="text" name="tahun_ajaran" value="{{ $tahunAjaran }}" class="filter-select"
                             placeholder="2025/2026" style="width: 120px;">
                     </div>
                 @elseif ($periodeTipe === 'tahun')
                     <div class="filter-item-group">
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
+                        <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Tahun
                             Ajaran:</label>
                         <input type="text" name="tahun_ajaran" value="{{ $tahunAjaran }}" class="filter-select"
                             placeholder="2025/2026" style="width: 140px;">
@@ -203,7 +203,7 @@
 
                 @if ($isKepalaTas)
                     <div class="filter-item-group">
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Bidang
+                        <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Bidang
                             Tugas:</label>
                         <select name="bidang" class="filter-select" onchange="this.form.submit()">
                             @foreach ($bidangLabels as $bK => $bL)
@@ -218,14 +218,14 @@
 
                 <div style="display: flex; gap: 8px;">
                     <button type="submit" class="btn btn-primary" title="Terapkan Filter"
-                        style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; font-weight: 700;">
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 700;">
                         <i class="fas fa-filter"></i>
                     </button>
                 </div>
 
                 <div style="margin-left: auto;">
                     <span class="badge"
-                        style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-calendar-check"></i> {{ $range['label'] }}
                     </span>
                 </div>
@@ -291,11 +291,11 @@
             <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
                 <div
                     style="padding: 14px 20px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); display: flex; align-items: center; justify-content: space-between;">
-                    <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-color, #f8fafc);">
+                    <h3 style="font-size: var(--text-md, 1rem); font-weight: 700; margin: 0; color: var(--text-color, #f8fafc);">
                         <i class="fas fa-chart-line text-primary me-2"></i> Rekap Akumulasi per Bulan
                     </h3>
                     <span class="badge"
-                        style="background: rgba(255,255,255,0.05); color: var(--text-muted, #94a3b8); font-size: 0.75rem;">
+                        style="background: rgba(255,255,255,0.05); color: var(--text-muted, #94a3b8); font-size: var(--text-xs, 0.75rem);">
                         {{ count($rekapBulanan) }} Bulan Terdata
                     </span>
                 </div>
@@ -305,22 +305,22 @@
                         <thead>
                             <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Bulan</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Hari Aktif</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Total Pekerjaan</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Selesai</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                     Proses</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                     Durasi Kerja</th>
                             </tr>
                         </thead>
@@ -357,16 +357,16 @@
                 style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); flex-wrap: wrap; gap: 8px;">
                 <div>
                     <h3
-                        style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-color, #f8fafc); display: flex; align-items: center; gap: 8px;">
+                        style="font-size: var(--text-md, 1rem); font-weight: 700; margin: 0; color: var(--text-color, #f8fafc); display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-print text-primary"></i> Log Riwayat Penerbitan &amp; Cetak Laporan Kinerja
                     </h3>
-                    <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-muted, #94a3b8);">
+                    <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #94a3b8);">
                         Rekam jejak resmi pencetakan lembar kinerja tendik yang tersimpan dan tervalidasi kode verifikasi
                     </p>
                 </div>
                 <a href="{{ route('dashboard.tendik.laporan.cetak', request()->all()) }}" target="_blank"
                     class="btn btn-primary"
-                    style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; color: #fff;">
+                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 14px; border-radius: var(--radius-md, 8px); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; color: #fff;">
                     <i class="fas fa-print"></i> Cetak Laporan Periode Ini
                 </a>
             </div>
@@ -377,25 +377,25 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
                                 Waktu &amp; Tanggal Cetak</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Pegawai &amp; Bidang</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Periode Laporan</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
                                 Hasil Capaian</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                                 Format &amp; Kode</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -403,45 +403,45 @@
                         @forelse ($cetakLogs ?? [] as $cIdx => $log)
                             <tr>
                                 <td data-label="No"
-                                    style="text-align: center; color: var(--text-muted, #94a3b8); font-size: 0.82rem;">
+                                    style="text-align: center; color: var(--text-muted, #94a3b8); font-size: var(--text-sm, 0.8125rem);">
                                     {{ $cIdx + 1 }}
                                 </td>
-                                <td data-label="Waktu Cetak" style="font-size: 0.82rem;">
+                                <td data-label="Waktu Cetak" style="font-size: var(--text-sm, 0.8125rem);">
                                     <div style="font-weight: 700; color: var(--text-color);">
                                         {{ \Carbon\Carbon::parse($log->tanggal_cetak)->translatedFormat('d M Y') }}
                                     </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                         <i
                                             class="far fa-clock me-1"></i>{{ \Carbon\Carbon::parse($log->tanggal_cetak)->format('H:i:s') }}
                                         WIB
                                     </div>
                                 </td>
-                                <td data-label="Pegawai" style="font-size: 0.82rem;">
+                                <td data-label="Pegawai" style="font-size: var(--text-sm, 0.8125rem);">
                                     <div style="font-weight: 700; color: var(--text-color);">{{ $log->nama_pegawai }}
                                     </div>
                                     <span class="badge badge-info"
-                                        style="font-size: 0.68rem; padding: 2px 6px;">{{ ucfirst($log->bidang) }}</span>
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">{{ ucfirst($log->bidang) }}</span>
                                 </td>
-                                <td data-label="Periode" style="font-size: 0.82rem; font-weight: 600;">
+                                <td data-label="Periode" style="font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
                                     {{ $log->periode_label }}
                                 </td>
-                                <td data-label="Hasil Capaian" style="text-align: center; font-size: 0.82rem;">
+                                <td data-label="Hasil Capaian" style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
                                     <span
                                         class="badge {{ $log->persentase_selesai >= 80 ? 'badge-success' : ($log->persentase_selesai >= 50 ? 'badge-warning' : 'badge-danger') }}"
-                                        style="font-size: 0.72rem; padding: 3px 8px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                         {{ $log->total_selesai }}/{{ $log->total_aktivitas }}
                                         ({{ $log->persentase_selesai }}%)
                                     </span>
                                 </td>
-                                <td data-label="Format & Kode" style="font-size: 0.78rem;">
+                                <td data-label="Format & Kode" style="font-size: var(--text-sm, 0.8125rem);">
                                     <div>A4 {{ ucfirst($log->orientasi) }}</div>
-                                    <div style="font-family: monospace; font-size: 0.7rem; color: var(--primary);">
+                                    <div style="font-family: monospace; font-size: var(--text-xs, 0.75rem); color: var(--primary);">
                                         {{ $log->kode_verifikasi }}</div>
                                 </td>
                                 <td data-label="Aksi" style="text-align: center;">
                                     <a href="{{ route('dashboard.tendik.laporan.cetak', ['periode' => $log->periode_tipe, 'orientasi' => $log->orientasi]) }}"
                                         target="_blank" class="btn btn-outline btn-sm"
-                                        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; text-decoration: none;"
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px); text-decoration: none;"
                                         title="Buka Dokumen Cetak">
                                         <i class="fas fa-arrow-up-right-from-square"></i>
                                     </a>
@@ -454,7 +454,7 @@
                                     <i class="fas fa-print fa-2x"
                                         style="opacity: 0.3; margin-bottom: 8px; display: block;"></i>
                                     <div>Belum ada riwayat cetak dokumen kinerja.</div>
-                                    <div style="font-size: 0.78rem; margin-top: 4px;">Pencetakan laporan resmi akan
+                                    <div style="font-size: var(--text-sm, 0.8125rem); margin-top: 4px;">Pencetakan laporan resmi akan
                                         otomatis tercatat pada log ini.</div>
                                 </td>
                             </tr>

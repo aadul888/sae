@@ -19,14 +19,14 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 14px;">
             <div
-                style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                 <i class="fas fa-hand-holding-dollar"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Usulan &amp; Riwayat PIP
                 </h2>
-                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                     @if ($isAdmin)
                         Kelola kuota, pantau usulan, verifikasi pengajuan, dan riwayat penerima PIP.
                     @else
@@ -40,44 +40,44 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($tab === 'dashboard')
                 <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Usulan Siswa PIP Baru">
                     <i class="fas fa-plus"></i>
                 </button>
                 @if ($isAdmin)
                     <button type="button" class="btn btn-outline" onclick="openImportRiwayat()"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Import Excel SK SiPintar Kemdikbud">
                         <i class="fas fa-file-excel text-success"></i>
                     </button>
                 @endif
             @elseif ($tab === 'usulan')
                 <button type="button" class="btn btn-outline" onclick="pipExportUsulanExcel()"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; border-color: #10b981; color: #10b981;"
+                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; border-color: #10b981; color: #10b981;"
                     title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>
                 @if (!$isAdmin && !empty($isWaliLocked))
                     <button type="button" class="btn btn-outline" disabled
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; opacity: 0.6; cursor: not-allowed;"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; opacity: 0.6; cursor: not-allowed;"
                         title="Pengusulan PIP saat ini terkunci / telah melewati batas waktu pengisian">
                         <i class="fas fa-lock"></i> Usulan Ditutup
                     </button>
                 @else
                     <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700;"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700;"
                         title="Tambah Usulan Siswa PIP Baru">
                         <i class="fas fa-plus"></i> Usulan
                     </button>
                 @endif
             @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Data Riwayat Manual">
                     <i class="fas fa-plus"></i>
                 </button>
                 <button type="button" class="btn btn-primary" onclick="openImportRiwayat()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Import Excel SK SiPintar Kemdikbud">
                     <i class="fas fa-file-excel"></i>
                 </button>
@@ -88,14 +88,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -172,7 +172,7 @@
             height: 100% !important;
             box-sizing: border-box !important;
             padding: 14px 16px !important;
-            border-radius: 12px !important;
+            border-radius: var(--radius-lg, 12px) !important;
             display: flex !important;
             align-items: center !important;
             gap: 12px !important;
@@ -183,8 +183,8 @@
             height: 44px !important;
             min-width: 44px !important;
             min-height: 44px !important;
-            border-radius: 12px !important;
-            font-size: 1.25rem !important;
+            border-radius: var(--radius-lg, 12px) !important;
+            font-size: var(--text-xl, 1.25rem) !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -200,7 +200,7 @@
         }
 
         .dash-stat-value {
-            font-size: 1.35rem !important;
+            font-size: var(--text-2xl, 1.5rem) !important;
             font-weight: 800 !important;
             line-height: 1.2 !important;
             margin-bottom: 2px !important;
@@ -210,7 +210,7 @@
         }
 
         .dash-stat-label {
-            font-size: 0.76rem !important;
+            font-size: var(--text-sm, 0.8125rem) !important;
             font-weight: 600 !important;
             color: var(--text-muted) !important;
             line-height: 1.25 !important;
@@ -253,7 +253,7 @@
                 flex-direction: column !important;
                 padding: 14px 15px !important;
                 margin-bottom: 14px !important;
-                border-radius: 14px !important;
+                border-radius: var(--radius-xl, 16px) !important;
                 background: var(--bg-card) !important;
                 border: 1px solid var(--border-color) !important;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
@@ -292,7 +292,7 @@
             .table-responsive-stack tbody td.cell-pd-kelas::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                font-size: 0.74rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 color: var(--text-muted) !important;
                 text-transform: uppercase !important;
                 text-align: left !important;
@@ -311,7 +311,7 @@
             .table-responsive-stack tbody td.cell-pd-status::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                font-size: 0.74rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 color: var(--text-muted) !important;
                 text-transform: uppercase !important;
                 text-align: left !important;
@@ -337,7 +337,7 @@
             .table-responsive-stack tbody td.cell-pd-nominal::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                font-size: 0.74rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 color: var(--text-muted) !important;
                 text-transform: uppercase !important;
                 text-align: left !important;
@@ -356,7 +356,7 @@
             .table-responsive-stack tbody td.cell-pd-cair::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                font-size: 0.74rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 color: var(--text-muted) !important;
                 text-transform: uppercase !important;
                 text-align: left !important;
@@ -382,7 +382,7 @@
             .table-responsive-stack tbody td.cell-pd-aksi::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                font-size: 0.74rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 color: var(--text-muted) !important;
                 text-transform: uppercase !important;
                 text-align: left !important;

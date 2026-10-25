@@ -10,14 +10,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Jadwal &amp; Penggunaan Lab
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Penjadwalan sesi praktikum, pemakaian ruang lab komputer/IPA/bengkel, dan log pasca-praktik.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Jadwalkan Praktik Baru">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -127,13 +127,13 @@
 
                             <input type="date" name="tanggal" id="filterTanggal" value="{{ $tanggalFilter }}"
                                 class="form-control"
-                                style="height: 38px; font-size: 0.82rem; padding: 0 10px; border-radius: 8px;"
+                                style="height: 38px; font-size: var(--text-sm, 0.8125rem); padding: 0 10px; border-radius: var(--radius-md, 8px);"
                                 title="Filter Tanggal">
 
                             @if ($search || $labFilter || $statusFilter || $tanggalFilter)
                                 <a href="{{ route('dashboard.laboran.jadwal.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -157,25 +157,25 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Lab &amp; Tanggal</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Mapel &amp; Topik</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Guru &amp; Rombel</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Waktu Sesi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -183,35 +183,35 @@
                         @forelse ($list as $idx => $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <td data-label="No"
-                                    style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Lab & Tanggal" style="padding: 14px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->ruang_lab_nama }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);"><i
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"><i
                                             class="fas fa-calendar-day text-primary me-1"></i>
                                         {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y') }}</div>
                                 </td>
                                 <td data-label="Mapel" style="padding: 14px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.88rem;">
+                                    <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->mata_pelajaran }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--primary); font-weight: 500;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-weight: 500;">
                                         {{ $item->topik_praktik }}</div>
                                     @if ($item->laporan_kerusakan)
-                                        <div style="font-size: 0.74rem; color: #ef4444; margin-top: 3px;"><i
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: #ef4444; margin-top: 3px;"><i
                                                 class="fas fa-circle-exclamation me-1"></i> Catatan:
                                             {{ $item->laporan_kerusakan }}</div>
                                     @endif
                                 </td>
-                                <td data-label="Guru" style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td data-label="Guru" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-color);">{{ $item->guru_nama ?: '-' }}
                                     </div>
                                     <span class="badge badge-outline"
-                                        style="font-size: 0.72rem;">{{ $item->rombel_nama ?: 'Seluruh Siswa' }}</span>
+                                        style="font-size: var(--text-xs, 0.75rem);">{{ $item->rombel_nama ?: 'Seluruh Siswa' }}</span>
                                 </td>
                                 <td data-label="Waktu"
-                                    style="padding: 14px 18px; text-align: center; font-size: 0.85rem; font-family: monospace;">
+                                    style="padding: 14px 18px; text-align: center; font-size: var(--text-base, 0.875rem); font-family: monospace;">
                                     {{ substr($item->jam_mulai, 0, 5) }} - {{ substr($item->jam_selesai, 0, 5) }}
                                 </td>
                                 <td data-label="Status" style="padding: 14px 18px; text-align: center;">
@@ -248,7 +248,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada jadwal penggunaan lab yang cocok.</div>
                                 </td>
                             </tr>
@@ -269,14 +269,14 @@
         <div id="modalJadwal" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
+                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="modalJadwalTitle"
-                        style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Jadwalkan Penggunaan Lab
                     </h3>
                     <button type="button" id="btnCloseModalJadwal"
-                        style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
                 <form id="formJadwal" method="POST" action="{{ route('dashboard.laboran.jadwal.store') }}">
@@ -285,11 +285,11 @@
                         <div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-color); margin: 0;">
+                                <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
                                     Ruang Lab / Bengkel <span style="color: #ef4444;">*</span>
                                 </label>
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
-                                    style="font-size: 0.72rem; color: var(--primary); text-decoration: none;"
+                                    style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
                                     title="Kelola Ruang di Sarpras & Aset">
                                     <i class="fas fa-arrow-up-right-from-square me-1"></i> Data Sarpras
                                 </a>
@@ -309,14 +309,14 @@
                                     @endforeach
                                 @endif
                             </select>
-                            <div style="font-size: 0.71rem; color: var(--text-muted); margin-top: 4px;">
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                                 <i class="fas fa-link me-1 text-primary"></i> Data ruang terintegrasi dari <strong>Sarpras
                                     &amp; Aset</strong>.
                             </div>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
                                 Praktik <span style="color: #ef4444;">*</span></label>
                             <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" class="form-control"
                                 required>
@@ -326,7 +326,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Guru
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Guru
                                 Pengampu <span style="color: #ef4444;">*</span></label>
                             <select name="ptk_id" class="form-control" required>
                                 <option value="">-- Pilih Guru --</option>
@@ -337,7 +337,7 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kelas
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kelas
                                 / Rombel</label>
                             <select name="rombel_id" class="form-control">
                                 <option value="">-- Semua Siswa / Umum --</option>
@@ -351,14 +351,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Mata
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Mata
                                 Pelajaran <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="mata_pelajaran" class="form-control"
                                 placeholder="Contoh: Pemrograman Web / Kimia Dasar" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Topik
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Topik
                                 / Materi Praktik <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="topik_praktik" class="form-control"
                                 placeholder="Contoh: Reaksi Redoks / Desain Database" required>
@@ -368,13 +368,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
                                 Mulai <span style="color: #ef4444;">*</span></label>
                             <input type="time" name="jam_mulai" class="form-control" value="08:00" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
                                 Selesai <span style="color: #ef4444;">*</span></label>
                             <input type="time" name="jam_selesai" class="form-control" value="09:30" required>
                         </div>
@@ -382,7 +382,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kebutuhan
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kebutuhan
                             Alat / Bahan Praktik</label>
                         <textarea name="alat_bahan_digunakan" class="form-control" rows="2"
                             placeholder="Sebutkan alat, komputer, cairan kimia, atau bahan yang diperlukan..."></textarea>
@@ -400,23 +400,23 @@
         {{-- Modal Update Status & Laporan Kerusakan --}}
         <div id="modalStatus" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card" style="width: 100%; max-width: 480px; padding: 24px; border-radius: 12px;">
+            <div class="card" style="width: 100%; max-width: 480px; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+                    <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Update Status Praktikum
                     </h3>
                     <button type="button" id="btnCloseModalStatus"
-                        style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
                 <form id="formStatus" method="POST" action="">
                     @csrf
                     @method('PUT')
-                    <p id="statusDesc" style="font-size: 0.88rem; color: var(--text-color); margin-bottom: 16px;"></p>
+                    <p id="statusDesc" style="font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 16px;"></p>
 
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
                             Status <span style="color: #ef4444;">*</span></label>
                         <select name="status" id="selectStatusLab" class="form-control" required>
                             <option value="dijadwalkan">Dijadwalkan</option>
@@ -428,7 +428,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Laporan
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Laporan
                             Kerusakan / Insiden Pasca-Praktik</label>
                         <textarea name="laporan_kerusakan" id="inputLaporanKerusakan" class="form-control" rows="2"
                             placeholder="Catat jika ada alat pecah, mouse/keyboard rusak, atau insiden..."></textarea>

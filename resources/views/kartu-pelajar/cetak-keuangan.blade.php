@@ -21,15 +21,15 @@
 
         <form method="GET" action="{{ route('dashboard.kartu-pelajar.cetak-keuangan') }}"
             style="display: inline-flex; align-items: center; gap: 8px; margin: 0 4px; white-space: nowrap; flex-shrink: 0;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0; font-weight: 600;">Dari:</label>
+            <label style="font-size: var(--text-sm, 0.8125rem); color: #cbd5e1; margin: 0; font-weight: 600;">Dari:</label>
             <input type="date" name="dari" value="{{ $dari }}" class="select-cetak"
-                onchange="this.form.submit()" style="padding: 4px 8px; font-size: 0.78rem;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Sampai:</label>
+                onchange="this.form.submit()" style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);">
+            <label style="font-size: var(--text-sm, 0.8125rem); color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Sampai:</label>
             <input type="date" name="sampai" value="{{ $sampai }}" class="select-cetak"
-                onchange="this.form.submit()" style="padding: 4px 8px; font-size: 0.78rem;">
+                onchange="this.form.submit()" style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);">
             @if ($dari || $sampai)
                 <a href="{{ route('dashboard.kartu-pelajar.cetak-keuangan') }}" class="btn-action"
-                    style="padding: 5px 10px; font-size: 0.78rem;" title="Reset Filter">
+                    style="padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);" title="Reset Filter">
                     <i class="fas fa-undo"></i>
                 </a>
             @endif
@@ -41,16 +41,16 @@
     </div>
 
     <div class="paper"
-        style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+        style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: var(--radius-md, 8px); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
         <!-- Kop Dokumen Resmi Sekolah -->
         @include('partials.kop-surat')
 
         <div style="text-align: center; margin-top: 14px; margin-bottom: 18px;">
             <h3
-                style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
+                style="font-size: var(--text-lg, 1.125rem); font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
                 LAPORAN KEUANGAN &amp; ARUS KAS KARTU PELAJAR
             </h3>
-            <div style="font-size: 0.82rem; color: #475569;">
+            <div style="font-size: var(--text-sm, 0.8125rem); color: #475569;">
                 @if ($dari && $sampai)
                     Periode: <strong>{{ \Carbon\Carbon::parse($dari)->translatedFormat('d F Y') }}</strong> s/d
                     <strong>{{ \Carbon\Carbon::parse($sampai)->translatedFormat('d F Y') }}</strong>
@@ -73,7 +73,7 @@
                 <div class="summary-box-val" style="color: #059669;">
                     Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                 </div>
-                <div style="font-size: 0.72rem; color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
                     {{ number_format($pemasukanList->count(), 0, ',', '.') }} transaksi pembayaran siswa
                 </div>
             </div>
@@ -83,7 +83,7 @@
                 <div class="summary-box-val" style="color: #dc2626;">
                     Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
                 </div>
-                <div style="font-size: 0.72rem; color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
                     {{ number_format($pengeluaranList->count(), 0, ',', '.') }} nota belanja logistik kartu
                 </div>
             </div>
@@ -93,7 +93,7 @@
                 <div class="summary-box-val" style="color: #2563eb;">
                     Rp {{ number_format($saldoBersih, 0, ',', '.') }}
                 </div>
-                <div style="font-size: 0.72rem; color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
                     Status: {{ $saldoBersih >= 0 ? 'Surplus / Kas Tersedia' : 'Defisit' }}
                 </div>
             </div>
@@ -102,7 +102,7 @@
         <!-- Tabel 1: Catatan Pengeluaran Bahan & Alat Cetak -->
         <div class="section-title">
             <span>I. RINCIAN PENGELUARAN PENGADAAN ALAT &amp; BAHAN CETAK</span>
-            <span style="font-size: 0.82rem; font-weight: 600; color: #dc2626;">Subtotal: Rp
+            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #dc2626;">Subtotal: Rp
                 {{ number_format($totalPengeluaran, 0, ',', '.') }}</span>
         </div>
 
@@ -125,7 +125,7 @@
                         <td>
                             <strong>{{ $p->judul }}</strong>
                             @if (!empty($p->jumlah))
-                                <span style="font-size: 0.74rem; color: #475569; font-weight: 600;">
+                                <span style="font-size: var(--text-xs, 0.75rem); color: #475569; font-weight: 600;">
                                     (Qty: {{ number_format($p->jumlah, 0, ',', '.') }}
                                     @if (!empty($p->harga_satuan) || ($p->jumlah > 1 && $p->nominal > 0))
                                         &bull; @ Rp
@@ -134,7 +134,7 @@
                                 </span>
                             @endif
                             @if (!empty($p->keterangan))
-                                <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">{{ $p->keterangan }}
+                                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 2px;">{{ $p->keterangan }}
                                 </div>
                             @endif
                         </td>
@@ -144,7 +144,7 @@
                         <td style="text-align: right; font-weight: 700; color: #dc2626;">
                             Rp {{ number_format($p->nominal, 0, ',', '.') }}
                         </td>
-                        <td style="font-size: 0.78rem;">{{ $p->petugas ?: 'Admin' }}</td>
+                        <td style="font-size: var(--text-sm, 0.8125rem);">{{ $p->petugas ?: 'Admin' }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -159,7 +159,7 @@
         <!-- Tabel 2: Rincian Penerimaan Pembayaran Siswa -->
         <div class="section-title" style="margin-top: 26px;">
             <span>II. RINGKASAN PENERIMAAN PEMBAYARAN KARTU SISWA (LUNAS)</span>
-            <span style="font-size: 0.82rem; font-weight: 600; color: #059669;">Subtotal: Rp
+            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #059669;">Subtotal: Rp
                 {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
         </div>
 
@@ -206,7 +206,7 @@
                 <div style="font-weight: 700;">Kepala Sekolah</div>
                 <div class="sig-space"></div>
                 <div style="font-weight: 800; text-decoration: underline;">H. DEDI KURNIAWAN, S.Pd., M.M.</div>
-                <div style="font-size: 0.78rem; color: #475569;">NIP. 197405102005011004</div>
+                <div style="font-size: var(--text-sm, 0.8125rem); color: #475569;">NIP. 197405102005011004</div>
             </div>
 
             <div class="sig-block">
@@ -215,7 +215,7 @@
                 <div class="sig-space"></div>
                 <div style="font-weight: 800; text-decoration: underline;">
                     {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}</div>
-                <div style="font-size: 0.78rem; color: #475569;">Pengelola Sistem Aplikasi Edukasi (SAE)</div>
+                <div style="font-size: var(--text-sm, 0.8125rem); color: #475569;">Pengelola Sistem Aplikasi Edukasi (SAE)</div>
             </div>
         </div>
     </div>

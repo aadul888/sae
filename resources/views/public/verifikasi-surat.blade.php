@@ -73,7 +73,7 @@
                             <tr>
                                 <td class="label-col">Nama Lengkap</td>
                                 <td class="val-col"
-                                    style="font-size: 0.95rem; font-weight: 800; color: var(--primary-dark);">
+                                    style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--primary-dark);">
                                     {{ $siswa->nama }}
                                 </td>
                             </tr>
@@ -106,8 +106,8 @@
                                 <td class="label-col">Status Keaktifan</td>
                                 <td class="val-col">
                                     <span
-                                        style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); color: #059669; padding: 2px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700;">
-                                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Siswa Aktif Terdaftar
+                                        style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); color: #059669; padding: 2px 10px; border-radius: var(--radius-pill, 999px); font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
+                                        <i class="fas fa-circle" style="font-size: var(--text-2xs, 0.6875rem);"></i> Siswa Aktif Terdaftar
                                     </span>
                                 </td>
                             </tr>
@@ -173,14 +173,14 @@
 
                 <div class="verify-body" style="text-align: center; padding: 40px 24px;">
                     <div
-                        style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239,68,68,0.12); color: var(--danger); display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 16px;">
+                        style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239,68,68,0.12); color: var(--danger); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                         <i class="fas fa-ban"></i>
                     </div>
-                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">
+                    <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">
                         Data Dokumen Tidak Ditemukan
                     </h3>
                     <p
-                        style="font-size: 0.84rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 16px; line-height: 1.5;">
+                        style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); max-width: 440px; margin: 0 auto 16px; line-height: 1.5;">
                         Kode dokumen <code>{{ $doc_id }}</code> tidak terdaftar pada pangkalan data persuratan
                         sekolah. Harap pastikan kembali keaslian fisik dokumen atau hubungi pihak tata usaha sekolah.
                     </p>

@@ -9,14 +9,14 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: 10px; background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-folder-closed"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Administrasi Kesiswaan
                 </h2>
-                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Pengelolaan Buku Klaper abjad, mutasi masuk/keluar, dan penetapan kelulusan serta SKL digital.
                 </p>
             </div>
@@ -27,18 +27,18 @@
                 @if ($activeTab === 'klaper')
                     <button type="button" class="btn btn-outline" id="btnSyncKlaper"
                         title="Sinkronkan Buku Klaper dari Dapodik"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                         <i class="fas fa-rotate text-primary"></i>
                     </button>
                 @elseif ($activeTab === 'mutasi')
                     <button type="button" class="btn btn-primary" id="btnOpenMutasiModal" title="Catat Mutasi Siswa"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                         <i class="fas fa-plus"></i>
                     </button>
                 @elseif ($activeTab === 'kelulusan')
                     <button type="button" class="btn btn-primary" id="btnOpenKelulusanModal"
                         title="Catat / Update Kelulusan Siswa"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -112,7 +112,7 @@
             <div class="datatable-toolbar">
                 <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;">
                     <span
-                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-right: 8px;">Abjad:</span>
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-right: 8px;">Abjad:</span>
                     <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper', 'perPage' => $perPage]) }}"
                         class="badge {{ empty($abjad) ? 'badge-primary' : 'badge-outline' }}"
                         style="text-decoration: none; padding: 4px 8px;">Semua</a>
@@ -140,7 +140,7 @@
                         @if (!empty($q) || !empty($abjad))
                             <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper']) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -166,25 +166,25 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                                 No. Klaper</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Peserta Didik</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
                                 NISN / NIPD</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
                                 L/P</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
                                 Rombel</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
                                 Status</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -198,7 +198,7 @@
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->nama }}
                                 </td>
-                                <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem;">
+                                <td style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                                     {{ $item->nisn ?: '-' }} / {{ $item->nipd ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -207,7 +207,7 @@
                                         {{ $item->jenis_kelamin }}
                                     </span>
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ $item->rombel_nama ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -242,7 +242,7 @@
                                 <td colspan="7"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Tidak ada data Buku Klaper yang cocok dengan filter pencarian.
                                 </td>
                             </tr>
@@ -280,7 +280,7 @@
                         @if (!empty($q))
                             <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'mutasi']) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -306,22 +306,22 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
                                 No. Surat Mutasi</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
                                 Jenis Mutasi</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">
                                 Tanggal</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Sekolah Tujuan / Asal</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -329,12 +329,12 @@
                         @forelse ($mutasiList as $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td
-                                    style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+                                    style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary);">
                                     {{ $item->nomor_surat_mutasi ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">NISN:
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">NISN:
                                         {{ $item->siswa?->nisn ?: '-' }}</div>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -343,10 +343,10 @@
                                         {{ strtoupper($item->jenis_mutasi) }}
                                     </span>
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ date('d/m/Y', strtotime($item->tanggal_mutasi)) }}
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ $item->sekolah_tujuan_asal ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -363,7 +363,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Tidak ada catatan mutasi siswa yang cocok dengan filter pencarian.
                                 </td>
                             </tr>
@@ -401,7 +401,7 @@
                         @if (!empty($q) || !empty($tahunAjaran))
                             <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'kelulusan']) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -426,22 +426,22 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
                                 No. SKL</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
                                 Tahun Ajaran</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No. Ujian / Ijazah</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
                                 Status</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -449,18 +449,18 @@
                         @forelse ($kelulusanList as $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td
-                                    style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+                                    style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary);">
                                     {{ $item->nomor_skl ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">NISN:
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">NISN:
                                         {{ $item->siswa?->nisn ?: '-' }}</div>
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ $item->tahun_ajaran }}
                                 </td>
-                                <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem;">
+                                <td style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                                     {{ $item->nomor_peserta_ujian ?: '-' }} / {{ $item->nomor_ijazah ?: '-' }}
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -483,7 +483,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Tidak ada data penetapan kelulusan siswa yang cocok dengan filter pencarian.
                                 </td>
                             </tr>
@@ -505,21 +505,21 @@
     <div id="modalMutasi" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div class="card"
-            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; color: #ef4444;">
                         <i class="fas fa-person-walking-dashed-line-arrow-right"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">Catat Mutasi
+                        <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">Catat Mutasi
                             Siswa</h3>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalMutasi"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -529,22 +529,22 @@
                     @csrf
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                             Peserta Didik <span class="text-danger">*</span></label>
                         <input type="search" id="mutasiSiswaLookup" class="form-control"
                             placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
                             data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
                             data-people-target="#mutasiSiswaId" data-people-require-selection="true" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                         <input type="hidden" id="mutasiSiswaId" name="peserta_didik_id">
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Jenis
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Jenis
                                 Mutasi <span class="text-danger">*</span></label>
                             <select name="jenis_mutasi" class="form-control" required
-                                style="width: 100%; border-radius: 8px;">
+                                style="width: 100%; border-radius: var(--radius-md, 8px);">
                                 <option value="keluar">Mutasi Keluar</option>
                                 <option value="masuk">Mutasi Masuk</option>
                                 <option value="do">Drop Out (DO)</option>
@@ -553,32 +553,32 @@
                         </div>
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
                                 Mutasi <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal_mutasi" class="form-control"
-                                value="{{ date('Y-m-d') }}" required style="width: 100%; border-radius: 8px;">
+                                value="{{ date('Y-m-d') }}" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Sekolah
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Sekolah
                             Tujuan / Asal</label>
                         <input type="text" name="sekolah_tujuan_asal" class="form-control"
-                            placeholder="Contoh: SMKN 2 Bandung" style="width: 100%; border-radius: 8px;">
+                            placeholder="Contoh: SMKN 2 Bandung" style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group" style="margin-bottom: 18px;">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
                             Mutasi <span class="text-danger">*</span></label>
                         <input type="text" name="alasan" class="form-control"
                             placeholder="Contoh: Mengikuti domisili orang tua" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div
                         style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
                         <button type="button" class="btn btn-outline close-modal" data-target="#modalMutasi"
-                            style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.82rem;"><i
+                            style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);"><i
                                 class="fas fa-save me-1"></i> Simpan Mutasi</button>
                     </div>
                 </form>
@@ -590,21 +590,21 @@
     <div id="modalKelulusan" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div class="card"
-            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 520px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">Penetapan
+                        <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">Penetapan
                             Kelulusan &amp; SKL</h3>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalKelulusan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -614,30 +614,30 @@
                     @csrf
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                             Peserta Didik <span class="text-danger">*</span></label>
                         <input type="search" id="kelulusanSiswaLookup" class="form-control"
                             placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
                             data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
                             data-people-target="#kelulusanSiswaId" data-people-require-selection="true" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                         <input type="hidden" id="kelulusanSiswaId" name="peserta_didik_id">
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tahun
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tahun
                                 Ajaran <span class="text-danger">*</span></label>
                             <input type="text" name="tahun_ajaran" class="form-control"
                                 value="{{ date('n') >= 7 ? date('Y') . '/' . (date('Y') + 1) : date('Y') - 1 . '/' . date('Y') }}"
-                                required style="width: 100%; border-radius: 8px;">
+                                required style="width: 100%; border-radius: var(--radius-md, 8px);">
                         </div>
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Status
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Status
                                 Kelulusan <span class="text-danger">*</span></label>
                             <select name="status_kelulusan" class="form-control" required
-                                style="width: 100%; border-radius: 8px;">
+                                style="width: 100%; border-radius: var(--radius-md, 8px);">
                                 <option value="lulus">Lulus</option>
                                 <option value="tidak_lulus">Tidak Lulus</option>
                                 <option value="ditunda">Ditunda</option>
@@ -647,24 +647,24 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">No.
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">No.
                                 Peserta Ujian</label>
                             <input type="text" name="nomor_peserta_ujian" class="form-control"
-                                placeholder="Contoh: 04-001-001-8" style="width: 100%; border-radius: 8px;">
+                                placeholder="Contoh: 04-001-001-8" style="width: 100%; border-radius: var(--radius-md, 8px);">
                         </div>
                         <div class="form-group">
                             <label
-                                style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">No.
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">No.
                                 Ijazah Nasional</label>
                             <input type="text" name="nomor_ijazah" class="form-control"
-                                placeholder="Contoh: M-SMK/06-000123" style="width: 100%; border-radius: 8px;">
+                                placeholder="Contoh: M-SMK/06-000123" style="width: 100%; border-radius: var(--radius-md, 8px);">
                         </div>
                     </div>
                     <div
                         style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
                         <button type="button" class="btn btn-outline close-modal" data-target="#modalKelulusan"
-                            style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.82rem;"><i
+                            style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);"><i
                                 class="fas fa-save me-1"></i> Simpan Kelulusan</button>
                     </div>
                 </form>

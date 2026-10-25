@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-book"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Katalog Koleksi Buku &amp; Bahan Pustaka
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Manajemen data inventaris buku perpustakaan, klasifikasi DDC, ISBN, dan ketersediaan eksemplar.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnTambahBuku" onclick="openModalBuku()"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Tambah Koleksi Buku">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -126,7 +126,7 @@
                             @if (!empty($q) || !empty($kategori))
                                 <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -151,91 +151,91 @@
                         <tr
                             style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
                             <th class="sortable-th {{ ($sort ?? '') === 'kode_buku' ? 'sorted' : '' }}" data-sort="kode_buku"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kode &amp; ISBN
                                 <span class="sort-icon">{!! ($sort ?? '') === 'kode_buku' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'judul' ? 'sorted' : '' }}" data-sort="judul"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Judul Buku
                                 <span class="sort-icon">{!! ($sort ?? '') === 'judul' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'penulis' ? 'sorted' : '' }}" data-sort="penulis"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Penulis &amp; Penerbit
                                 <span class="sort-icon">{!! ($sort ?? '') === 'penulis' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'kategori' ? 'sorted' : '' }}" data-sort="kategori"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kategori &amp; DDC
                                 <span class="sort-icon">{!! ($sort ?? '') === 'kategori' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'eksemplar_tersedia' ? 'sorted' : '' }}" data-sort="eksemplar_tersedia"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Stok Tersedia
                                 <span class="sort-icon">{!! ($sort ?? '') === 'eksemplar_tersedia' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ ($sort ?? '') === 'lokasi_rak' ? 'sorted' : '' }}" data-sort="lokasi_rak"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Lokasi Rak
                                 <span class="sort-icon">{!! ($sort ?? '') === 'lokasi_rak' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($list as $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;"
+                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);"
                                     data-label="No">
                                     {{ ($list->currentPage() - 1) * $list->perPage() + $loop->iteration }}
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Kode & ISBN">
                                     <span
-                                        style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.85rem;">{{ $item->kode_buku }}</span>
+                                        style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: var(--text-base, 0.875rem);">{{ $item->kode_buku }}</span>
                                     @if ($item->isbn)
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);">ISBN:
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">ISBN:
                                             {{ $item->isbn }}
                                         </div>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Judul Buku">
-                                    <div style="font-weight: 600; color: var(--text-heading); font-size: 0.9rem;">{{ $item->judul }}</div>
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">{{ $item->judul }}</div>
                                     @if ($item->tahun_terbit)
-                                        <div style="font-size: 0.78rem; color: var(--text-muted);">Tahun:
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Tahun:
                                             {{ $item->tahun_terbit }}</div>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Penulis & Penerbit">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);" data-label="Penulis & Penerbit">
                                     <div style="color: var(--text-heading);">{{ $item->penulis ?: '—' }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $item->penerbit ?: '—' }}
                                     </div>
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Kategori & DDC">
-                                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ $item->kategori }}
                                     </span>
                                     @if ($item->klasifikasi_ddc)
-                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">DDC:
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">DDC:
                                             {{ $item->klasifikasi_ddc }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px; text-align: center;" data-label="Stok Tersedia">
                                     <span
-                                        style="font-weight: 700; color: {{ $item->eksemplar_tersedia > 0 ? '#10b981' : '#ef4444' }}; font-size: 1rem;">
+                                        style="font-weight: 700; color: {{ $item->eksemplar_tersedia > 0 ? '#10b981' : '#ef4444' }}; font-size: var(--text-md, 1rem);">
                                         {{ $item->eksemplar_tersedia }}
                                     </span>
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);">/
+                                    <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">/
                                         {{ $item->jumlah_eksemplar }}
                                         Eks</span>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-heading);" data-label="Lokasi Rak">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-heading);" data-label="Lokasi Rak">
                                     {{ $item->lokasi_rak ?: '—' }}
                                 </td>
                                 <td style="padding: 14px 18px; text-align: center;" data-label="Aksi">
@@ -265,8 +265,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <td colspan="8" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
                                     <div>Belum ada data koleksi buku yang tercatat di sistem.</div>
                                 </td>
                             </tr>
@@ -290,10 +290,10 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                     <h3 id="modalBukuTitle"
-                        style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-heading);">Tambah Koleksi
+                        style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">Tambah Koleksi
                         Buku</h3>
                     <button type="button" onclick="closeModalBuku()"
-                        style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
 
                 <form id="formBuku" method="POST" action="{{ route('dashboard.perpustakaan.koleksi.store') }}"

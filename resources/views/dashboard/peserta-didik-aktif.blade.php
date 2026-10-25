@@ -9,17 +9,17 @@
     @endphp
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-user-graduate text-primary me-2"></i> Manajemen Data — Peserta Didik Aktif
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Direktori data peserta didik aktif bersumber langsung dari tabel <strong>Peserta Didik</strong> (Dapodik).
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate || $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 8px; font-size: 0.88rem; border-color: #10b981; color: #10b981;"
+                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: #10b981; color: #10b981;"
                     title="Import Excel Peserta Didik Aktif (Sementara)">
                     <i class="fas fa-file-excel"></i>
                     <span>Import Excel</span>
@@ -27,7 +27,7 @@
             @endif
             @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Tarik Data Dapodik">
                     <i class="fas fa-cloud-arrow-down"></i>
                 </a>
@@ -42,7 +42,7 @@
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['total'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik Aktif</div>
@@ -54,7 +54,7 @@
                 <i class="fas fa-mars"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['laki'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Laki-Laki</div>
@@ -66,7 +66,7 @@
                 <i class="fas fa-venus"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['perempuan'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Perempuan</div>
@@ -78,7 +78,7 @@
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['rombel'] }}
                 </div>
                 <div class="dash-stat-label">Total Rombel</div>
@@ -122,7 +122,7 @@
                     @if ($q || $rombel || $gender)
                         <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -130,7 +130,7 @@
 
                     @if ($canCreate || $isAdmin)
                         <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #10b981; color: #10b981;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #10b981; color: #10b981;"
                             title="Import Excel Peserta Didik Aktif (Sementara)">
                             <i class="fas fa-file-excel"></i>
                         </button>
@@ -139,14 +139,14 @@
                     @if ($isAdmin)
                         <button type="button" class="btn btn-primary"
                             onclick="openBulkUploadFotoModal('{{ $rombel }}')"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
                             title="Unggah Foto Masal Kelas">
                             <i class="fas fa-images"></i>
                         </button>
 
                         <button type="button" class="btn btn-outline"
                             onclick="openCetakRombelModal('{{ $rombel }}')"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #0284c7; color: #0284c7;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #0284c7; color: #0284c7;"
                             title="Cetak Kartu Pelajar Masal">
                             <i class="fas fa-id-card"></i>
                         </button>
@@ -155,7 +155,7 @@
                     @if ($isAdmin || $isWaliOrAdmin || $canRead)
                         <button type="button" class="btn btn-outline"
                             onclick="openCetakDataRombelModal('{{ $rombel }}')"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #10b981; color: #10b981;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #10b981; color: #10b981;"
                             title="Cetak Data Peserta Didik per Kelas">
                             <i class="fas fa-print"></i>
                         </button>
@@ -190,18 +190,18 @@
                         @endphp
                         @foreach ($cols as [$key, $label])
                             <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
                                 data-sort="{{ $key }}">
                                 {{ $label }}
                                 <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                         @endforeach
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Tempat, Tanggal Lahir
                         </th>
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                             Aksi
                         </th>
                     </tr>
@@ -210,7 +210,7 @@
                     @forelse ($list as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Nama Lengkap">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
@@ -219,7 +219,7 @@
                                         title="Klik untuk melihat / mengubah pasfoto peserta didik"
                                         @else
                                         title="Pasfoto {{ $item->nama }}" @endif
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                            style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                             <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
                                                 style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
@@ -229,7 +229,7 @@
                                         title="Klik untuk mengunggah pasfoto peserta didik"
                                         @else
                                         title="Belum ada pasfoto" @endif
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
+                                            style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-lg, 1.125rem); flex-shrink: 0; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
@@ -241,14 +241,14 @@
                                             @if (!empty($item->is_koordinator))
                                                 <span class="badge badge-koordinator"
                                                     id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                    style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
                                                     title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                     <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
                                                 </span>
                                             @else
                                                 <span class="badge badge-koordinator"
                                                     id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
+                                                    style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
                                                     title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                     <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
                                                 </span>
@@ -256,7 +256,7 @@
                                         </div>
                                         @if ($item->nik)
                                             <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                 <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
                                                     title="Klik untuk salin NIK">
                                                     NIK: {{ $item->nik }}
@@ -267,7 +267,7 @@
                                 </div>
                             </td>
                             <td class="cell-pd-nisn"
-                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                style="padding: 14px 18px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                 data-label="NISN/NIPD">
                                 <div class="cell-col-right">
                                     <div>
@@ -279,7 +279,7 @@
                                         @endif
                                     </div>
                                     @if ($item->nipd)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                             <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
                                                 title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
@@ -288,24 +288,24 @@
                             </td>
                             <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
                                 <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                    style="font-size: 0.72rem; padding: 2px 7px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                     {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
                             <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Rombel">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                     {{ $item->nama_rombel ?: '-' }}
                                 </span>
                             </td>
                             <td class="cell-pd-tingkat"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="Tingkat">
                                 {{ $item->tingkat_pendidikan_id ?: '-' }}
                             </td>
                             <td class="cell-pd-ttl"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="TTL">
                                 <div class="cell-col-right" style="color: var(--text-muted);">
                                     {{ $item->tempat_lahir ? $item->tempat_lahir . ', ' : '' }}{{ $item->tanggal_lahir ? date('d/m/Y', strtotime($item->tanggal_lahir)) : '-' }}
@@ -354,7 +354,7 @@
                                             <i class="fas fa-key" style="color: #f59e0b;"></i>
                                         </button>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </div>
                             </td>
@@ -362,8 +362,8 @@
                     @empty
                         <tr>
                             <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-user-slash mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                 <div>Belum ada data peserta didik yang cocok.</div>
                             </td>
                         </tr>
@@ -384,36 +384,36 @@
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                     <div id="bioFotoContainer"
-                        style="width: 50px; height: 50px; border-radius: 12px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
-                        <i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>
+                        style="width: 50px; height: 50px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                        <i class="fas fa-user-graduate text-primary" style="font-size: var(--text-xl, 1.25rem);"></i>
                     </div>
                     <div>
                         <h3 id="bioNama"
-                            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Peserta Didik</h3>
-                        <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="bioRombel" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
                 <button type="button" onclick="closeBiodataModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat biodata peserta didik...</div>
             </div>
 
-            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
+            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
                 <div style="margin-bottom: 12px;">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-user me-1"></i> Data Pribadi &amp; Fisik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -455,7 +455,7 @@
 
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-graduation-cap me-1"></i> Data Akademik &amp; Pendaftaran
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -470,14 +470,14 @@
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">ID Registrasi / Anggota</td>
                             <td id="bioRegId"
-                                style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">-</td>
+                                style="font-family: monospace; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">-</td>
                         </tr>
                     </table>
                 </div>
 
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-users me-1"></i> Data Orang Tua &amp; Wali
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -498,7 +498,7 @@
 
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-address-book me-1"></i> Kontak &amp; Domisili
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -516,15 +516,15 @@
                 <div id="bioMapelSection"
                     style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i
+                        <span style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
                                 class="fas fa-book-open text-primary me-1"></i> Mata Pelajaran di Kelas</span>
                         <span id="bioJmlMapel" class="badge"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.72rem; padding: 2px 7px;">0
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
                             Mapel</span>
                     </div>
                     <div style="overflow-x: auto; max-height: 180px;">
                         <table class="table"
-                            style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem); margin-bottom: 0;">
                             <thead>
                                 <tr
                                     style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
@@ -542,7 +542,7 @@
             <div
                 style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <button type="button" class="btn btn-outline" onclick="closeBiodataModal()"
-                    style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
             </div>
         </div>
     </div>
@@ -554,28 +554,28 @@
     <div id="bulkFotoUploadModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
         <div class="card"
-            style="max-width: 960px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: 16px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
+            style="max-width: 960px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
 
             {{-- Header Modal --}}
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.15rem; box-shadow: 0 2px 10px rgba(99,102,241,0.25);">
+                        style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-xl, 1.25rem); box-shadow: 0 2px 10px rgba(99,102,241,0.25);">
                         <i class="fas fa-images"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                        <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                             Unggah Pasfoto Masal per Kelas
                         </h3>
-                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                             Dukungan unggah sekaligus satu kelas (36 - 52 peserta didik) dengan pencocokan otomatis cerdas
                             format PNG
                         </div>
                     </div>
                 </div>
                 <button type="button" onclick="closeBulkUploadFotoModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem);"
                     title="Tutup Modal">
                     <i class="fas fa-times"></i>
                 </button>
@@ -585,10 +585,10 @@
             <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                 {{-- STEP 1: Pilih Kelas / Rombel --}}
                 <div
-                    style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                    style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px);">
                     <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;">
                         <label for="bulkRombelSelect"
-                            style="margin: 0; font-weight: 700; font-size: 0.85rem; color: var(--text-color); white-space: nowrap;">
+                            style="margin: 0; font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); white-space: nowrap;">
                             <i class="fas fa-chalkboard text-primary me-1"></i> Pilih Kelas:
                         </label>
                         <select id="bulkRombelSelect" class="form-select toolbar-filter-select"
@@ -603,15 +603,15 @@
 
                     <div id="bulkRombelStatsBadge" style="display: none; align-items: center; gap: 8px;">
                         <span class="badge"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.78rem; padding: 5px 10px;">
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                             <i class="fas fa-users me-1"></i> <span id="bulkTotalPdCount">0</span> Peserta Didik
                         </span>
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.78rem; padding: 5px 10px;">
+                            style="background: rgba(16,185,129,0.15); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                             <i class="fas fa-check-circle me-1"></i> <span id="bulkSudahFotoCount">0</span> Sudah Ada Foto
                         </span>
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.78rem; padding: 5px 10px;">
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                             <i class="fas fa-clock me-1"></i> <span id="bulkBelumFotoCount">0</span> Belum
                         </span>
                     </div>
@@ -620,16 +620,16 @@
                 {{-- STEP 2: Dropzone Multi-file PNG --}}
                 <div id="bulkDropZoneWrapper" style="display: none; margin-bottom: 14px;">
                     <div id="bulkDropZone"
-                        style="border: 2px dashed rgba(99,102,241,0.45); border-radius: 14px; padding: 22px; text-align: center; cursor: pointer; background: rgba(99,102,241,0.03); transition: all 0.25s ease;">
+                        style="border: 2px dashed rgba(99,102,241,0.45); border-radius: var(--radius-xl, 16px); padding: 22px; text-align: center; cursor: pointer; background: rgba(99,102,241,0.03); transition: all 0.25s ease;">
                         <div
-                            style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 8px;">
+                            style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 8px;">
                             <i class="fas fa-cloud-arrow-up"></i>
                         </div>
-                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 4px;">
+                        <div style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">
                             Pilih atau Tarik Seluruh Foto PNG Kelas Ini ke Sini
                         </div>
                         <div
-                            style="font-size: 0.76rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 12px auto; line-height: 1.45;">
+                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); max-width: 600px; margin: 0 auto 12px auto; line-height: 1.45;">
                             Unggah 36 hingga 52 file PNG sekaligus, atau satu file <strong>ZIP</strong> berisi langsung
                             <code>nisn.png</code> tanpa folder. Beri nama file berupa <strong>NISN</strong> (contoh:
                             <code>0071234567.png</code>), <strong>Nama Peserta Didik</strong>, atau <strong>Nomor Urut
@@ -639,11 +639,11 @@
 
                         <div style="display: inline-flex; align-items: center; gap: 8px;">
                             <label for="bulkFilesInput" class="btn btn-primary"
-                                style="padding: 8px 18px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i class="fas fa-folder-open"></i> Pilih PNG / ZIP Foto Sekaligus
                             </label>
                             <button type="button" id="btnClearBulkMatches" onclick="resetBulkMatches()"
-                                class="btn btn-outline" style="display: none; padding: 8px 14px; font-size: 0.82rem;">
+                                class="btn btn-outline" style="display: none; padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">
                                 <i class="fas fa-rotate-left me-1"></i> Reset Berkas
                             </button>
                         </div>
@@ -654,43 +654,43 @@
 
                 {{-- Summary Banner Pencocokan Otomatis --}}
                 <div id="bulkMatchSummaryBanner"
-                    style="display: none; margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); font-size: 0.82rem; color: var(--text-color); align-items: center; justify-content: space-between;">
+                    style="display: none; margin-bottom: 14px; padding: 10px 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); font-size: var(--text-sm, 0.8125rem); color: var(--text-color); align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-circle-check text-success" style="font-size: 1.2rem;"></i>
+                        <i class="fas fa-circle-check text-success" style="font-size: var(--text-xl, 1.25rem);"></i>
                         <div>
                             <span id="bulkMatchSummaryText" style="font-weight: 600;">36 foto berhasil dicocokkan
                                 otomatis.</span>
-                            <div id="bulkMatchHint" style="font-size: 0.74rem; color: var(--text-muted);">
+                            <div id="bulkMatchHint" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                 Anda dapat meninjau pratinjau setiap peserta didik di bawah sebelum menekan tombol simpan.
                             </div>
                         </div>
                     </div>
                     <span id="bulkFilesCountBadge" class="badge badge-primary"
-                        style="font-size: 0.75rem; padding: 4px 8px;">
+                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
                         0 Berkas Siap
                     </span>
                 </div>
 
                 {{-- Live Progress Bar Container --}}
                 <div id="bulkProgressContainer"
-                    style="display: none; margin-bottom: 14px; padding: 14px; border-radius: 12px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.25);">
+                    style="display: none; margin-bottom: 14px; padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.25);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span id="bulkProgressTitle" style="font-weight: 700; font-size: 0.84rem; color: var(--primary);">
+                        <span id="bulkProgressTitle" style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--primary);">
                             <i class="fas fa-spinner fa-spin me-1"></i> Mengompresi &amp; Menyimpan Pasfoto...
                         </span>
                         <span id="bulkProgressPercent"
-                            style="font-weight: 800; font-size: 0.85rem; color: var(--text-color);">
+                            style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                             0%
                         </span>
                     </div>
                     <div
-                        style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+                        style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: var(--radius-lg, 12px); overflow: hidden;">
                         <div id="bulkProgressBar"
-                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: 10px;">
+                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: var(--radius-lg, 12px);">
                         </div>
                     </div>
                     <div id="bulkProgressDetail"
-                        style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">
+                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 6px; text-align: right;">
                         0 dari 0 foto selesai
                     </div>
                 </div>
@@ -698,26 +698,26 @@
                 {{-- Loading Spinner State --}}
                 <div id="bulkLoadingSpinner"
                     style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
-                    <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.6rem; color: var(--primary);"></i>
-                    <div style="margin-top: 8px; font-size: 0.86rem;">Memuat daftar peserta didik rombel...</div>
+                    <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary);"></i>
+                    <div style="margin-top: 8px; font-size: var(--text-base, 0.875rem);">Memuat daftar peserta didik rombel...</div>
                 </div>
 
                 {{-- Empty State (Belum Pilih Rombel) --}}
                 <div id="bulkEmptyState" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
                     <div
-                        style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; opacity: 0.45; margin-bottom: 12px;">
+                        style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); opacity: 0.45; margin-bottom: 12px;">
                         <i class="fas fa-chalkboard-user"></i>
                     </div>
-                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Pilih
+                    <h4 style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Pilih
                         Rombel Kelas Terlebih Dahulu</h4>
-                    <p style="font-size: 0.78rem; max-width: 420px; margin: 0 auto;">Pilih rombel kelas pada pilihan di
+                    <p style="font-size: var(--text-sm, 0.8125rem); max-width: 420px; margin: 0 auto;">Pilih rombel kelas pada pilihan di
                         atas untuk menampilkan daftar peserta didik dan mencocokkan foto masal sekaligus.</p>
                 </div>
 
                 {{-- STEP 3: Tabel Peserta Didik Rombel & Pemetaan Berkas Foto --}}
                 <div id="bulkTableWrapper" style="display: none; overflow-x: auto;">
                     <table class="table"
-                        style="width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 0;">
+                        style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem); margin-bottom: 0;">
                         <thead>
                             <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
                                 <th style="padding: 10px 12px; width: 45px; text-align: center; color: var(--text-muted);">
@@ -745,14 +745,14 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                 <button type="button" onclick="closeBulkUploadFotoModal()" class="btn btn-outline"
-                    style="padding: 8px 18px; font-size: 0.82rem;">
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
                     Batal
                 </button>
 
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <button type="button" id="btnStartBulkUpload" onclick="executeBulkUploadQueue()"
                         class="btn btn-primary"
-                        style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease;">
+                        style="padding: 8px 22px; font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease;">
                         <i class="fas fa-cloud-arrow-up"></i>
                         <span id="btnStartBulkUploadText">Mulai Unggah &amp; Kompresi Masal (0 Foto)</span>
                     </button>
@@ -766,27 +766,27 @@
         <div id="modalImportExcel" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="max-width: 580px; width: 94%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                style="max-width: 580px; width: 94%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
 
                 {{-- Header Modal --}}
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div
-                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                             <i class="fas fa-file-excel"></i>
                         </div>
                         <div>
-                            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                                 Import Peserta Didik Aktif
                             </h3>
-                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                                 Tambah data sementara untuk validasi &amp; kartu pelajar digital
                             </div>
                         </div>
                     </div>
                     <button type="button" onclick="closeImportExcelModal()"
-                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; padding: 4px;"
+                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;"
                         title="Tutup">
                         <i class="fas fa-times"></i>
                     </button>
@@ -798,7 +798,7 @@
 
                     {{-- Alert Box Info Petunjuk --}}
                     <div
-                        style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; line-height: 1.45; color: var(--text-color);">
+                        style="margin-bottom: 16px; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: var(--text-sm, 0.8125rem); line-height: 1.45; color: var(--text-color);">
                         <div
                             style="font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-info-circle"></i> Data Utama yang Diperlukan
@@ -812,15 +812,15 @@
 
                     {{-- Unduh Template Card --}}
                     <div
-                        style="margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        style="margin-bottom: 18px; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                         <div>
-                            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">Format Excel Baku
+                            <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">Format Excel Baku
                                 SAE</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">Gunakan template resmi agar header
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Gunakan template resmi agar header
                                 kolom terbaca otomatis</div>
                         </div>
                         <a href="{{ route('dashboard.peserta-didik-aktif.download-template') }}" class="btn btn-outline"
-                            style="padding: 6px 12px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px; border-color: #10b981; color: #10b981; text-decoration: none; white-space: nowrap;">
+                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px; border-color: #10b981; color: #10b981; text-decoration: none; white-space: nowrap;">
                             <i class="fas fa-download"></i> Unduh Template
                         </a>
                     </div>
@@ -828,20 +828,20 @@
                     {{-- Berkas Input --}}
                     <div style="margin-bottom: 16px;">
                         <label for="inputExcelFile"
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
                         </label>
                         <input type="file" id="inputExcelFile" name="file_excel" accept=".xlsx,.xls,.csv,.txt"
-                            style="width: 100%; padding: 8px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-color);"
+                            style="width: 100%; padding: 8px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-color);"
                             required>
-                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                             Mendukung berkas format .xlsx, .xls, atau .csv (Maksimal 20 MB).
                         </div>
                     </div>
 
                     {{-- Loading / Status State --}}
                     <div id="importExcelProgress"
-                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: 0.82rem; color: #10b981;">
+                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: var(--text-sm, 0.8125rem); color: #10b981;">
                         <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
                     </div>
 
@@ -849,11 +849,11 @@
                     <div
                         style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                         <button type="button" onclick="closeImportExcelModal()" class="btn btn-outline"
-                            style="padding: 8px 18px; font-size: 0.82rem;">
+                            style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
                             Batal
                         </button>
                         <button type="submit" id="btnSubmitImportExcel" class="btn btn-primary"
-                            style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                            style="padding: 8px 22px; font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-cloud-arrow-up"></i>
                             <span id="btnSubmitImportExcelText">Import Sekarang</span>
                         </button>

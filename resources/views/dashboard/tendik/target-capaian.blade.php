@@ -8,15 +8,15 @@
     <div class="dash-banner" style="margin-bottom: 16px;">
         <div style="flex: 1; min-width: 260px;">
             <h2
-                style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                 <i class="fas fa-bullseye text-primary me-2"></i> Target &amp; Capaian Kinerja Tendik
                 <span class="badge badge-primary"
-                    style="font-size: 0.74rem; padding: 4px 10px; margin-left: 8px; vertical-align: middle; border-radius: 6px;">
+                    style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; margin-left: 8px; vertical-align: middle; border-radius: var(--radius-sm, 6px);">
                     <i class="fas fa-briefcase me-1"></i>{{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
                 </span>
             </h2>
             <div
-                style="display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
+                style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
                 <span title="Periode Aktif"><i class="fas fa-calendar-check text-primary me-1"></i>
                     <strong>{{ $range['label'] }}</strong></span>
                 <span title="Hari Efektif"><i class="fas fa-business-time text-warning me-1"></i>
@@ -24,7 +24,7 @@
                 <span title="Total Staf"><i class="fas fa-users text-info me-1"></i> <strong>{{ $totalTendik }} Staf
                         Tendik</strong></span>
             </div>
-            <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
+            <p style="margin: 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                 Indikator sasaran kerja dan monitoring capaian target operasional khusus bidang
                 {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}.
             </p>
@@ -33,19 +33,19 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenModalTarget"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: #6366f1; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; cursor: pointer;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: #6366f1; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; cursor: pointer;"
                     title="Tambah Sasaran &amp; Target Kinerja">
                     <i class="fas fa-plus"></i>
                 </button>
                 <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
                     class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Catat Aktivitas Harian">
                     <i class="fas fa-pen-to-square text-success"></i>
                 </a>
             @endif
             <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Laporan Kinerja Tendik">
                 <i class="fas fa-file-invoice text-info"></i>
             </a>
@@ -71,21 +71,21 @@
     <!-- Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
     @endif
     @if (isset($errors) && $errors->any())
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.84rem;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem);">
             <div style="font-weight: 700; margin-bottom: 4px;">Periksa kembali input formulir:</div>
             <ul style="margin: 0; padding-left: 18px;">
                 @foreach ($errors->all() as $err)
@@ -104,7 +104,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($targetTotalPeriode) }} <span
-                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Tugas</span></div>
+                        style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-muted);">Tugas</span></div>
                 <div class="dash-stat-label">Target Tugas Periode Ini ({{ $hariEfektif }} Hari Kerja)</div>
             </div>
         </div>
@@ -123,12 +123,12 @@
 
     <!-- 3. Toolbar Pemilihan Periode Standar SAE -->
     <div class="card"
-        style="padding: 16px; margin-bottom: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+        style="padding: 16px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">
         <form id="formFilterPeriode" method="GET" action="{{ route('dashboard.tendik.target.index') }}"
             style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                 <label
-                    style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 6px;">
+                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 6px;">
                     <i class="fas fa-filter text-primary"></i> Rentang Periode:
                 </label>
 
@@ -152,7 +152,7 @@
                 <div id="wrapFilterHari"
                     style="{{ $periodeTipe === 'hari' ? 'display: flex;' : 'display: none;' }} align-items: center; gap: 6px;">
                     <input type="date" name="tanggal" value="{{ $tanggalPilihan }}" class="form-control"
-                        style="height: 38px; font-size: 0.82rem; border-radius: 8px;">
+                        style="height: 38px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
                 </div>
 
                 <div id="wrapFilterBulan"
@@ -210,7 +210,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-outline"
-                    style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
+                    style="padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-arrows-rotate me-1"></i> Terapkan
                 </button>
                 @if ($filterBidang)
@@ -218,7 +218,7 @@
                 @endif
             </div>
 
-            <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
+            <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); font-weight: 600;">
                 <i class="fas fa-circle-info text-info me-1"></i> Target Standar: 1 Aktivitas per Hari Kerja
             </div>
         </form>
@@ -228,24 +228,24 @@
     <div class="target-charts-grid {{ $isKepalaTas ? '' : 'grid-even' }}">
         <!-- Chart 1: Line/Area Tren Target vs Realisasi Capaian -->
         <div class="card"
-            style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); min-width: 0;">
+            style="padding: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg); min-width: 0;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                 <div>
                     <h3
-                        style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-chart-line text-primary"></i> Tren Target vs Realisasi Capaian
                     </h3>
-                    <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                    <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 2px 0 0 0;">
                         Perbandingan target tugas harian dengan realisasi aktivitas yang dicatat.
                     </p>
                 </div>
-                <div style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; gap: 10px;">
+                <div style="font-size: var(--text-xs, 0.75rem); font-weight: 600; color: var(--text-muted); display: flex; gap: 10px;">
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span
-                            style="width: 12px; height: 12px; background: rgba(99, 102, 241, 0.5); border-radius: 3px;"></span>
+                            style="width: 12px; height: 12px; background: rgba(99, 102, 241, 0.5); border-radius: var(--radius-xs, 4px);"></span>
                         Target</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span
-                            style="width: 12px; height: 12px; background: #10b981; border-radius: 3px;"></span>
+                            style="width: 12px; height: 12px; background: #10b981; border-radius: var(--radius-xs, 4px);"></span>
                         Capaian</span>
                 </div>
             </div>
@@ -257,13 +257,13 @@
 
         <!-- Chart 2: Doughnut Status Pelaksanaan -->
         <div class="card"
-            style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); min-width: 0;">
+            style="padding: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg); min-width: 0;">
             <div style="margin-bottom: 14px;">
                 <h3
-                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-chart-pie text-accent"></i> Proporsi Status Tugas
                 </h3>
-                <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 2px 0 0 0;">
                     Distribusi pekerjaan: Selesai, Proses, atau Tertunda.
                 </p>
             </div>
@@ -273,17 +273,17 @@
             </div>
 
             <div
-                style="display: flex; justify-content: space-around; font-size: 0.76rem; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                style="display: flex; justify-content: space-around; font-size: var(--text-sm, 0.8125rem); margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
                 <div style="text-align: center;">
-                    <div style="color: #10b981; font-weight: 700; font-size: 0.95rem;">{{ $realisasiSelesai }}</div>
+                    <div style="color: #10b981; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiSelesai }}</div>
                     <div style="color: var(--text-muted);">Selesai</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="color: #f59e0b; font-weight: 700; font-size: 0.95rem;">{{ $realisasiProses }}</div>
+                    <div style="color: #f59e0b; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiProses }}</div>
                     <div style="color: var(--text-muted);">Proses</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="color: #ef4444; font-weight: 700; font-size: 0.95rem;">{{ $realisasiTertunda }}</div>
+                    <div style="color: #ef4444; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiTertunda }}</div>
                     <div style="color: var(--text-muted);">Tertunda</div>
                 </div>
             </div>
@@ -293,13 +293,13 @@
     @if ($isKepalaTas)
         <!-- Chart 3: Distribusi Capaian Berdasarkan Bidang Kerja (Khusus Kepala TAS) -->
         <div class="card"
-            style="padding: 20px; margin-bottom: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            style="padding: 20px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">
             <div style="margin-bottom: 14px;">
                 <h3
-                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-chart-column text-primary"></i> Capaian Aktivitas Berdasarkan Bidang Kerja
                 </h3>
-                <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 2px 0 0 0;">
                     Akumulasi seluruh aktivitas yang diselesaikan oleh masing-masing urusan administrasi pada periode ini.
                 </p>
             </div>
@@ -312,16 +312,16 @@
 
     <!-- 5. Card: Matriks Sasaran & Target Kinerja (Posisinya Setelah Chart) -->
     <div class="card"
-        style="margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
+        style="margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
         <div
             style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(255,255,255,0.02);">
             <div>
                 <h3
-                    style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-bullseye text-primary"></i> Matriks Sasaran &amp; Target Kinerja Bidang
                     {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
                 </h3>
-                <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+                <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 3px 0 0 0;">
                     Sasaran strategis, indikator kinerja, dan target kuantitatif khusus bidang
                     {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }} yang terintegrasi dengan pengisian log
                     aktivitas harian.
@@ -336,10 +336,10 @@
                         <input type="hidden" name="periode" value="{{ $periodeTipe }}">
                         <input type="hidden" name="bulan" value="{{ $bulan }}">
                         <input type="hidden" name="tahun" value="{{ $tahun }}">
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                        <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
                             Bidang:</label>
                         <select name="bidang" class="toolbar-filter-select" onchange="this.form.submit()"
-                            style="font-size: 0.82rem; height: 36px; border-radius: 8px; font-weight: 700;">
+                            style="font-size: var(--text-sm, 0.8125rem); height: 36px; border-radius: var(--radius-md, 8px); font-weight: 700;">
                             @foreach ($bidangLabels as $bK => $bL)
                                 <option value="{{ $bK }}" {{ $currentBidang === $bK ? 'selected' : '' }}>
                                     {{ $bL }}</option>
@@ -347,7 +347,7 @@
                         </select>
                     </form>
                 @else
-                    <span class="badge badge-info" style="font-size: 0.78rem; padding: 5px 10px;">
+                    <span class="badge badge-info" style="font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                         <i class="fas fa-briefcase me-1"></i> Bidang Tugas:
                         {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
                     </span>
@@ -355,7 +355,7 @@
 
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary btn-sm btn-tambah-target-modal"
-                        style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem; background: #6366f1; border: none; color: #fff; cursor: pointer;"
+                        style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: #6366f1; border: none; color: #fff; cursor: pointer;"
                         title="Tambah Target Kinerja">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -369,30 +369,30 @@
                     <tr
                         style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                             NO.</th>
                         @if ($isKepalaTas)
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
                                 Bidang</th>
                         @endif
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
                             Sasaran</th>
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Indikator Kinerja</th>
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                             Target</th>
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                             Realisasi Capaian</th>
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                             Status</th>
                         <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 95px;">
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 95px;">
                             Aksi</th>
                     </tr>
                 </thead>
@@ -400,36 +400,36 @@
                     @forelse ($matriksIndikatorList as $idx => $ind)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td data-label="No."
-                                style="padding: 14px 16px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;">
+                                style="padding: 14px 16px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">
                                 {{ $idx + 1 }}
                             </td>
                             @if ($isKepalaTas)
                                 <td data-label="Bidang" style="padding: 14px 16px;">
-                                    <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">
+                                    <span class="badge badge-info" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ $bidangLabels[$ind->bidang] ?? ucfirst($ind->bidang) }}
                                     </span>
                                 </td>
                             @endif
                             <td data-label="Sasaran"
-                                style="padding: 14px 16px; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                                style="padding: 14px 16px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                                 {{ $ind->sasaran }}
                             </td>
                             <td data-label="Indikator Kinerja"
-                                style="padding: 14px 16px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
+                                style="padding: 14px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.45;">
                                 {{ $ind->indikator_kinerja }}
                             </td>
                             <td data-label="Target"
-                                style="padding: 14px 16px; text-align: center; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                                style="padding: 14px 16px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                                 {{ $ind->target_label }}
                             </td>
                             <td data-label="Realisasi"
-                                style="padding: 14px 16px; text-align: center; font-size: 0.84rem; font-weight: 700; color: #10b981;">
+                                style="padding: 14px 16px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981;">
                                 {{ $ind->realisasi_label }} ({{ $ind->capaian_persen }}%)
                             </td>
                             <td data-label="Status" style="padding: 14px 16px; text-align: center;">
                                 <span
                                     class="badge {{ $ind->status_kpi === 'Tercapai' ? 'badge-success' : 'badge-warning' }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ $ind->status_kpi }}
                                 </span>
                             </td>
@@ -459,7 +459,7 @@
                     @empty
                         <tr>
                             <td colspan="{{ $isKepalaTas ? 8 : 7 }}"
-                                style="text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.84rem;">
+                                style="text-align: center; padding: 28px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                 Belum ada data sasaran &amp; target indikator kinerja terdaftar untuk bidang ini. Klik
                                 <strong>"Tambah Sasaran &amp; Target"</strong> untuk menambahkan.
                             </td>
@@ -473,29 +473,29 @@
     @if ($canViewMonitoringPegawai)
         <!-- 6. Section Collapsible: Monitoring Indikator Input Harian Pegawai (Khusus Kepala TAS & Kepegawaian — Default Hide) -->
         <div class="card card-collapsible"
-            style="margin-bottom: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
+            style="margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
             <div
                 style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,0.02);">
                 <div>
                     <h3
-                        style="font-size: 0.96rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-clock-rotate-left text-warning"></i> Monitoring Indikator Input Harian Pegawai
                         (Hari Ini: {{ Carbon\Carbon::parse($today)->translatedFormat('l, d F Y') }})
                     </h3>
-                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                    <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 2px 0 0 0;">
                         Indikator realtime kepatuhan staf tendik dalam mencatat aktivitas pekerjaan harian.
                     </p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span
                         class="badge {{ $persenKepatuhanHariIni >= 80 ? 'badge-success' : ($persenKepatuhanHariIni >= 50 ? 'badge-warning' : 'badge-danger') }}"
-                        style="font-size: 0.78rem; padding: 4px 10px; font-weight: 700;">
+                        style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700;">
                         {{ $totalSudahInputHariIni }} / {{ $totalTendik }} Staf Tercatat
                         ({{ $persenKepatuhanHariIni }}%)
                     </span>
                     <button type="button" class="btn btn-outline btn-sm btn-toggle-collapse"
                         data-target="#collapseMonitoringHarian"
-                        style="padding: 5px 12px; font-size: 0.78rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-chevron-down toggle-icon"></i>
                         <span class="toggle-text">Buka Tabel</span>
                     </button>
@@ -510,22 +510,22 @@
                             <tr
                                 style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                                     No</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Nama Pegawai Tendik</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Bidang / Jabatan</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
                                     Status Input Hari Ini</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                     Jam Input</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                     Jumlah Log</th>
                             </tr>
                         </thead>
@@ -533,41 +533,41 @@
                             @forelse ($kepatuhanHarianList as $idx => $staf)
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td data-label="No"
-                                        style="padding: 10px 14px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                                        style="padding: 10px 14px; text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $idx + 1 }}
                                     </td>
-                                    <td data-label="Nama Pegawai" style="padding: 10px 14px; font-size: 0.84rem;">
+                                    <td data-label="Nama Pegawai" style="padding: 10px 14px; font-size: var(--text-base, 0.875rem);">
                                         <div style="font-weight: 700; color: var(--text-color);">{{ $staf->nama }}</div>
                                         @if (!empty($staf->nip))
                                             <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                                 NIP: {{ $staf->nip }}</div>
                                         @endif
                                     </td>
                                     <td data-label="Bidang"
-                                        style="padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted);">
+                                        style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $staf->jabatan }}
                                     </td>
                                     <td data-label="Status Input" style="padding: 10px 14px; text-align: center;">
                                         @if ($staf->sudah_input)
                                             <span class="badge badge-success"
-                                                style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
                                                 <i class="fas fa-check-circle"></i> Sudah Input
                                             </span>
                                         @else
                                             <span class="badge badge-danger"
-                                                style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
                                                 <i class="fas fa-circle-xmark"></i> Belum Input
                                             </span>
                                         @endif
                                     </td>
                                     <td data-label="Jam Input"
-                                        style="padding: 10px 14px; text-align: center; font-size: 0.82rem; font-family: monospace; color: var(--text-color);">
+                                        style="padding: 10px 14px; text-align: center; font-size: var(--text-sm, 0.8125rem); font-family: monospace; color: var(--text-color);">
                                         {{ $staf->jam_input ?: '—' }}
                                     </td>
                                     <td data-label="Jumlah Log" style="padding: 10px 14px; text-align: center;">
                                         <span class="badge"
-                                            style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-weight: 700; font-size: 0.78rem; padding: 3px 8px;">
+                                            style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                             {{ $staf->total_input }} Tugas
                                         </span>
                                     </td>
@@ -575,7 +575,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6"
-                                        style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.84rem;">
+                                        style="text-align: center; padding: 24px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                         Belum ada data staf tendik terdaftar.
                                     </td>
                                 </tr>
@@ -588,26 +588,26 @@
 
         <!-- 7. Section Collapsible: Rekapitulasi Capaian Tugas per Pegawai (Periode Ini — Default Hide) -->
         <div class="card card-collapsible"
-            style="margin-bottom: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
+            style="margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
             <div
                 style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,0.02);">
                 <div>
                     <h3
-                        style="font-size: 0.96rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-trophy text-warning"></i> Rekapitulasi Capaian Tugas per Pegawai (Periode:
                         {{ $range['label'] }})
                     </h3>
-                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                    <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 2px 0 0 0;">
                         Perhitungan persentase capaian terhadap target standar hari kerja efektif seluruh staf.
                     </p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span class="badge badge-info" style="font-size: 0.78rem; padding: 4px 10px;">
+                    <span class="badge badge-info" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px;">
                         {{ $capaianTendikList->count() }} Pegawai Terdata
                     </span>
                     <button type="button" class="btn btn-outline btn-sm btn-toggle-collapse"
                         data-target="#collapseRekapCapaian"
-                        style="padding: 5px 12px; font-size: 0.78rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-chevron-down toggle-icon"></i>
                         <span class="toggle-text">Buka Tabel</span>
                     </button>
@@ -622,25 +622,25 @@
                             <tr
                                 style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                                     No</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Nama Pegawai</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                     Target</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                     Selesai</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                     Proses</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
                                     Capaian (%)</th>
                                 <th
-                                    style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
+                                    style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
                                     Predikat</th>
                             </tr>
                         </thead>
@@ -648,46 +648,46 @@
                             @forelse ($capaianTendikList as $idx => $row)
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td data-label="No"
-                                        style="padding: 10px 14px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                                        style="padding: 10px 14px; text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $idx + 1 }}
                                     </td>
-                                    <td data-label="Nama Pegawai" style="padding: 10px 14px; font-size: 0.84rem;">
+                                    <td data-label="Nama Pegawai" style="padding: 10px 14px; font-size: var(--text-base, 0.875rem);">
                                         <div style="font-weight: 700; color: var(--text-color);">{{ $row->nama }}</div>
                                         @if (!empty($row->nip))
                                             <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                                 NIP: {{ $row->nip }}</div>
                                         @endif
                                     </td>
                                     <td data-label="Target"
-                                        style="padding: 10px 14px; text-align: center; font-size: 0.84rem; color: var(--text-muted);">
+                                        style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                         {{ $row->target }} Tugas
                                     </td>
                                     <td data-label="Selesai"
-                                        style="padding: 10px 14px; text-align: center; font-weight: 700; color: #10b981; font-size: 0.84rem;">
+                                        style="padding: 10px 14px; text-align: center; font-weight: 700; color: #10b981; font-size: var(--text-base, 0.875rem);">
                                         {{ $row->selesai }}
                                     </td>
                                     <td data-label="Proses"
-                                        style="padding: 10px 14px; text-align: center; color: #f59e0b; font-size: 0.84rem;">
+                                        style="padding: 10px 14px; text-align: center; color: #f59e0b; font-size: var(--text-base, 0.875rem);">
                                         {{ $row->proses }}
                                     </td>
                                     <td data-label="Capaian" style="padding: 10px 14px; text-align: center;">
                                         <div
                                             style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                                             <div
-                                                style="flex: 1; max-width: 60px; height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden;">
+                                                style="flex: 1; max-width: 60px; height: 6px; background: var(--bg-hover); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                                                 <div
-                                                    style="width: {{ min(100, $row->persen) }}%; height: 100%; background: {{ $row->persen >= 100 ? '#10b981' : ($row->persen >= 75 ? '#3b82f6' : ($row->persen >= 50 ? '#f59e0b' : '#ef4444')) }}; border-radius: 3px;">
+                                                    style="width: {{ min(100, $row->persen) }}%; height: 100%; background: {{ $row->persen >= 100 ? '#10b981' : ($row->persen >= 75 ? '#3b82f6' : ($row->persen >= 50 ? '#f59e0b' : '#ef4444')) }}; border-radius: var(--radius-xs, 4px);">
                                                 </div>
                                             </div>
                                             <span
-                                                style="font-weight: 700; font-size: 0.8rem; color: var(--text-color);">{{ $row->persen }}%</span>
+                                                style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">{{ $row->persen }}%</span>
                                         </div>
                                     </td>
                                     <td data-label="Predikat" style="padding: 10px 14px; text-align: center;">
                                         <span
                                             class="badge {{ $row->persen >= 100 ? 'badge-success' : ($row->persen >= 75 ? 'badge-primary' : ($row->persen >= 50 ? 'badge-warning' : 'badge-danger')) }}"
-                                            style="font-size: 0.72rem; padding: 3px 8px; font-weight: 600;">
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 600;">
                                             {{ $row->kategori }}
                                         </span>
                                     </td>
@@ -695,7 +695,7 @@
                             @empty
                                 <tr>
                                     <td colspan="7"
-                                        style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.84rem;">
+                                        style="text-align: center; padding: 24px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                         Belum ada catatan capaian staf tendik pada periode ini.
                                     </td>
                                 </tr>
@@ -711,15 +711,15 @@
     <div id="modalTargetKinerja" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; box-sizing: border-box;">
         <div class="card modal-card-responsive"
-            style="max-width: 580px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
+            style="max-width: 580px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: var(--radius-xl, 16px); padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
                 <h3 id="modalTargetTitle"
-                    style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-bullseye text-primary"></i> Tambah Sasaran &amp; Target Kinerja
                 </h3>
                 <button type="button" id="btnCloseModalTarget"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -732,11 +732,11 @@
                 <div class="modal-body-scroll" style="overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px;">
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
                             Bidang Tugas / Administrasi <span style="color: #ef4444;">*</span>
                         </label>
                         <select name="bidang" id="inputTargetBidang" required class="form-control"
-                            style="font-size: 0.84rem; height: 38px; border-radius: 8px;">
+                            style="font-size: var(--text-base, 0.875rem); height: 38px; border-radius: var(--radius-md, 8px);">
                             @foreach ($bidangLabels as $bK => $bL)
                                 <option value="{{ $bK }}"
                                     {{ $filterBidang && $filterBidang === $bK ? 'selected' : '' }}>{{ $bL }}
@@ -747,42 +747,42 @@
 
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
                             Sasaran Program / Kegiatan <span style="color: #ef4444;">*</span>
                         </label>
                         <input type="text" name="sasaran" id="inputTargetSasaran"
                             placeholder="Contoh: Tersusunnya data kepegawaian" required class="form-control"
-                            style="font-size: 0.84rem; height: 38px; border-radius: 8px;">
+                            style="font-size: var(--text-base, 0.875rem); height: 38px; border-radius: var(--radius-md, 8px);">
                     </div>
 
                     <div style="margin-bottom: 12px;">
                         <label
-                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
                             Indikator Kinerja <span style="color: #ef4444;">*</span>
                         </label>
                         <textarea name="indikator_kinerja" id="inputTargetIndikator" rows="3"
                             placeholder="Contoh: Jumlah dokumen tenaga pendidik dan kependidikan" required class="form-control"
-                            style="font-size: 0.84rem; border-radius: 8px; resize: vertical;"></textarea>
+                            style="font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); resize: vertical;"></textarea>
                     </div>
 
                     <div class="form-grid-2" style="margin-bottom: 12px;">
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
                                 Target Kuantitas <span style="color: #ef4444;">*</span>
                             </label>
                             <input type="number" name="target_kuantitas" id="inputTargetKuantitas" value="1"
                                 min="1" required class="form-control"
-                                style="font-size: 0.84rem; height: 38px; border-radius: 8px;">
+                                style="font-size: var(--text-base, 0.875rem); height: 38px; border-radius: var(--radius-md, 8px);">
                         </div>
                         <div>
                             <label
-                                style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
                                 Satuan Ukur <span style="color: #ef4444;">*</span>
                             </label>
                             <input type="text" name="satuan" id="inputTargetSatuan" value="dokumen"
                                 placeholder="dokumen / laporan / kegiatan" required class="form-control"
-                                style="font-size: 0.84rem; height: 38px; border-radius: 8px;">
+                                style="font-size: var(--text-base, 0.875rem); height: 38px; border-radius: var(--radius-md, 8px);">
                         </div>
                     </div>
                 </div>
@@ -790,9 +790,9 @@
                 <div
                     style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px; flex-shrink: 0;">
                     <button type="button" id="btnCancelModalTarget" class="btn btn-outline"
-                        style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">Batal</button>
+                        style="padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 7px 20px; font-size: 0.82rem; border-radius: 8px; font-weight: 700; background: #6366f1; border: none; color: #fff;">
+                        style="padding: 7px 20px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 700; background: #6366f1; border: none; color: #fff;">
                         <i class="fas fa-save me-1"></i> Simpan Target
                     </button>
                 </div>

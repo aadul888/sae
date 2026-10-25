@@ -6,10 +6,10 @@
 @section('content')
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-users-gear text-primary me-2"></i> Manajemen Pengguna
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Kelola akun Administrator, Guru / Tenaga Kependidikan, serta Peserta Didik dalam satu modul.
             </p>
         </div>
@@ -136,23 +136,23 @@
 
                     @if ($activeTab === 'tugas_tambahan' && $canCreate)
                         <button type="button" class="btn btn-primary" id="btnOpenAssignModal"
-                            style="padding: 7px 14px; font-size: 0.84rem; height: 38px;">
+                            style="padding: 7px 14px; font-size: var(--text-base, 0.875rem); height: 38px;">
                             <i class="fas fa-plus me-1"></i> Tambah Penugasan
                         </button>
                         <button type="button" class="btn btn-outline" id="btnSyncWaliKelas"
-                            style="padding: 7px 14px; font-size: 0.84rem; height: 38px;">
+                            style="padding: 7px 14px; font-size: var(--text-base, 0.875rem); height: 38px;">
                             <i class="fas fa-sync-alt me-1"></i> Tarik Wali Kelas (Dapodik)
                         </button>
                     @elseif ($canCreate)
                         <button type="button" class="btn btn-primary" id="btnOpenCreateUser" onclick="openCreateModal()"
-                            style="padding: 7px 14px; font-size: 0.84rem; height: 38px;">
+                            style="padding: 7px 14px; font-size: var(--text-base, 0.875rem); height: 38px;">
                             <i class="fas fa-user-plus me-1"></i> Tambah Pengguna
                         </button>
                     @endif
 
                     @if ($q)
                         <a href="{{ $tabUrl($activeTab) }}" class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                     @endif
                 </div>
@@ -178,25 +178,25 @@
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 PTK / Personel</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tugas Tambahan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Bidang & Kelompok</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 SK & Periode</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Rombel / Info</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -204,60 +204,60 @@
                         @php $list = $tugasTambahanList; @endphp
                         @forelse ($tugasTambahanList as $idx => $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-muted);"
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);"
                                     data-label="No">
                                     {{ ($tugasTambahanList->currentPage() - 1) * $tugasTambahanList->perPage() + $idx + 1 }}
                                 </td>
-                                <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.86rem;"
+                                <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="PTK">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <div
-                                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem;">
+                                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-sm, 0.8125rem);">
                                             <i class="fas {{ $item->tugas_icon ?: 'fa-user' }}"></i>
                                         </div>
                                         <div>
                                             <div>{{ $item->ptk_nama }}</div>
                                             <div
-                                                style="font-size: 0.73rem; color: var(--text-muted); font-family: monospace;">
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                                 NIP: {{ $item->ptk_nip }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Tugas">
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);" data-label="Tugas">
                                     <span class="badge badge-primary"
-                                        style="font-size: 0.76rem; padding: 4px 8px; border-radius: 6px;">
+                                        style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         {{ $item->tugas_nama }}
                                     </span>
                                     @if (!empty($item->ekuivalensi_jam))
                                         <span class="badge badge-outline ms-1"
-                                            style="font-size: 0.7rem;">{{ $item->ekuivalensi_jam }} JP</span>
+                                            style="font-size: var(--text-xs, 0.75rem);">{{ $item->ekuivalensi_jam }} JP</span>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Bidang">
                                     <div><strong
                                             style="color: var(--text-color);">{{ $item->tugas_bidang ?: '-' }}</strong>
                                     </div>
-                                    <div style="font-size: 0.72rem; text-transform: uppercase;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); text-transform: uppercase;">
                                         {{ $item->tugas_kelompok }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="SK & Periode">
                                     <div><i class="fas fa-file-signature me-1"></i> {{ $item->nomor_sk ?: 'SK Sekolah' }}
                                     </div>
-                                    <div style="font-size: 0.72rem;">
+                                    <div style="font-size: var(--text-xs, 0.75rem);">
                                         {{ $item->tmt_tugas ? date('d/m/Y', strtotime($item->tmt_tugas)) : 'TMT Aktif' }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Rombel / Info">
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);" data-label="Rombel / Info">
                                     @if ($item->rombel_nama)
-                                        <span class="badge badge-accent" style="font-size: 0.74rem;">
+                                        <span class="badge badge-accent" style="font-size: var(--text-xs, 0.75rem);">
                                             <i class="fas fa-chalkboard-user me-1"></i> {{ $item->rombel_nama }}
                                         </span>
                                     @else
                                         <span
-                                            style="color: var(--text-muted); font-size: 0.76rem;">{{ $item->keterangan ?: '-' }}</span>
+                                            style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">{{ $item->keterangan ?: '-' }}</span>
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
@@ -274,8 +274,8 @@
                         @empty
                             <tr>
                                 <td colspan="7"
-                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada penugasan tugas tambahan. Silakan klik "Tambah Penugasan" atau "Tarik
                                         Wali
                                         Kelas (Dapodik)".</div>
@@ -299,14 +299,14 @@
                             @endphp
                             @foreach ($cols as [$key, $label])
                                 <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
                                     data-sort="{{ $key }}">
                                     {{ $label }}
                                     <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                             @endforeach
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -323,11 +323,11 @@
                         @endphp
                         @forelse ($list as $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.86rem;"
+                                <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Nama">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <div
-                                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem;">
+                                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-sm, 0.8125rem);">
                                             <i
                                                 class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : ($activeTab === 'tendik' ? 'fa-id-badge' : 'fa-user-graduate')) }}"></i>
                                         </div>
@@ -335,23 +335,23 @@
                                             <div>{{ $item->nama ?: 'Tanpa Nama' }}</div>
                                             @if ($item->alamat)
                                                 <div
-                                                    style="font-size: 0.73rem; color: var(--text-muted); font-weight: 400;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 400;">
                                                     {{ Str::limit($item->alamat, 35) }}</div>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.84rem; font-family: monospace; color: var(--text-color);"
+                                <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); font-family: monospace; color: var(--text-color);"
                                     data-label="Username">
                                     {{ $item->username }}
                                 </td>
                                 @if ($activeTab === 'peserta_didik')
-                                    <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                         data-label="Email">
                                         @if (!empty($item->email))
                                             <a href="mailto:{{ $item->email }}"
                                                 style="color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                                <i class="fas fa-envelope" style="font-size: 0.75rem; opacity: 0.8;"></i>
+                                                <i class="fas fa-envelope" style="font-size: var(--text-xs, 0.75rem); opacity: 0.8;"></i>
                                                 <span>{{ $item->email }}</span>
                                             </a>
                                         @else
@@ -359,23 +359,23 @@
                                         @endif
                                     </td>
                                 @endif
-                                <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Peran">
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);" data-label="Peran">
                                     <span
                                         class="badge {{ $activeTab === 'admin' ? 'badge-primary' : ($activeTab === 'guru' ? 'badge-accent' : ($activeTab === 'tendik' ? 'badge-info' : 'badge-outline')) }}"
-                                        style="font-size: 0.73rem; padding: 4px 8px; border-radius: 6px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         {{ $item->peran_id_str ?: ($activeTab === 'peserta_didik' ? 'Peserta Didik' : ($activeTab === 'tendik' ? 'Tenaga Kependidikan' : 'Pengguna')) }}
                                     </span>
                                     @if (!empty($item->rfid_uid))
                                         <div style="margin-top: 5px;">
                                             <span class="badge badge-success"
-                                                style="font-size: 0.7rem; font-family: monospace; padding: 2px 6px;"
+                                                style="font-size: var(--text-xs, 0.75rem); font-family: monospace; padding: 2px 6px;"
                                                 title="Kartu RFID Fisik Aktif">
                                                 <i class="fas fa-id-card me-1"></i> {{ $item->rfid_uid }}
                                             </span>
                                         </div>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Kontak">
                                     {{ $item->no_hp ?: '-' }}
                                 </td>
@@ -417,8 +417,8 @@
                         @empty
                             <tr>
                                 <td colspan="{{ $activeTab === 'peserta_didik' ? 6 : 5 }}"
-                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Tidak ada data pengguna ditemukan.</div>
                                 </td>
                             </tr>
@@ -439,12 +439,12 @@
     {{-- Edit Modal Pengguna --}}
     <div id="userModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="max-width: 520px; width: 90%; margin: 0; border-radius: 14px; padding: 22px;">
+        <div class="card" style="max-width: 520px; width: 90%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 id="modalTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                <h3 id="modalTitle" style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     Edit Pengguna</h3>
                 <button type="button" onclick="closeUserModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);"><i
                         class="fas fa-times"></i></button>
             </div>
 
@@ -497,9 +497,9 @@
                 <div
                     style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
                     <button type="button" class="btn btn-outline" onclick="closeUserModal()"
-                        style="padding: 8px 14px; font-size: 0.82rem;">Batal</button>
+                        style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 16px; font-size: 0.82rem;">Simpan</button>
+                        style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Simpan</button>
                 </div>
             </form>
         </div>
@@ -511,13 +511,13 @@
         data-store-url="{{ route('dashboard.pengguna.tugas-tambahan.store') }}"
         data-destroy-base-url="{{ url('/dashboard/pengguna/tugas-tambahan') }}"
         data-sync-wali-url="{{ route('dashboard.pengguna.tugas-tambahan.sync-wali') }}">
-        <div class="card" style="max-width: 540px; width: 92%; margin: 0; border-radius: 14px; padding: 22px;">
+        <div class="card" style="max-width: 540px; width: 92%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     <i class="fas fa-user-plus text-primary me-2"></i> Tambah Penugasan Tugas Tambahan
                 </h3>
                 <button type="button" id="btnCloseDutyModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);"><i
                         class="fas fa-times"></i></button>
             </div>
 
@@ -582,9 +582,9 @@
                 <div
                     style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
                     <button type="button" class="btn btn-outline" id="btnCancelDutyModal"
-                        style="padding: 8px 14px; font-size: 0.82rem;">Batal</button>
+                        style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                     <button type="submit" class="btn btn-primary" id="btnSubmitDutyModal"
-                        style="padding: 8px 16px; font-size: 0.82rem;">Simpan Penugasan</button>
+                        style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Simpan Penugasan</button>
                 </div>
             </form>
         </div>

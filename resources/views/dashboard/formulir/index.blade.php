@@ -7,10 +7,10 @@
     <!-- Banner Header -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-clipboard-list text-primary me-2"></i> Formulir &amp; Survei Digital
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 Buat kuesioner, angket rombel, pendaftaran ekskul, dan survei publik dengan integrasi otomatis data peserta
                 didik
                 &amp; guru SAE.
@@ -19,7 +19,7 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canManage)
                 <a href="{{ route('dashboard.formulir.create') }}" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Buat Formulir Baru">
                     <i class="fas fa-plus"></i>
                 </a>
@@ -30,16 +30,16 @@
     <!-- Alert Notifikasi Flash -->
     @if (session('success'))
         <div class="alert alert-success"
-            style="padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-circle-check" style="font-size: 1.1rem;"></i>
+            style="padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-circle-check" style="font-size: var(--text-lg, 1.125rem);"></i>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger"
-            style="padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-circle-exclamation" style="font-size: 1.1rem;"></i>
+            style="padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-circle-exclamation" style="font-size: var(--text-lg, 1.125rem);"></i>
             <span>{{ session('error') }}</span>
         </div>
     @endif
@@ -97,17 +97,17 @@
             <div style="position: relative; width: 100%;">
                 <input type="text" name="q" value="{{ request('q') }}"
                     placeholder="Cari judul atau topik formulir..." class="form-control"
-                    style="padding-left: 36px; height: 40px; border-radius: 10px; font-size: 0.88rem; width: 100%;">
+                    style="padding-left: 36px; height: 40px; border-radius: var(--radius-lg, 12px); font-size: var(--text-base, 0.875rem); width: 100%;">
                 <i class="fas fa-search"
                     style="position: absolute; left: 12px; top: 12px; color: var(--text-muted, #94a3b8);"></i>
             </div>
             <button type="submit" class="btn btn-outline"
-                style="height: 40px; border-radius: 10px; padding: 0 16px;">Cari</button>
+                style="height: 40px; border-radius: var(--radius-lg, 12px); padding: 0 16px;">Cari</button>
         </form>
 
         <div style="display: flex; gap: 8px; align-items: center;">
             <select class="form-select" onchange="window.location.href=this.value"
-                style="height: 40px; border-radius: 10px; font-size: 0.85rem;">
+                style="height: 40px; border-radius: var(--radius-lg, 12px); font-size: var(--text-base, 0.875rem);">
                 <option value="{{ request()->fullUrlWithQuery(['status' => '']) }}">Semua Status</option>
                 <option value="{{ request()->fullUrlWithQuery(['status' => 'active']) }}"
                     {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
@@ -138,7 +138,7 @@
                                     data-url="{{ route('dashboard.formulir.toggle', $f->id) }}"
                                     data-title="{{ $f->judul }}" data-active="{{ $f->is_active ? '1' : '0' }}"
                                     data-open="{{ $isScheduleOpen ? '1' : '0' }}"
-                                    style="cursor: pointer; border: 1px solid currentColor; background: transparent; font-family: inherit; font-size: 0.72rem;"
+                                    style="cursor: pointer; border: 1px solid currentColor; background: transparent; font-family: inherit; font-size: var(--text-xs, 0.75rem);"
                                     title="Klik cepat untuk {{ $f->is_active ? 'menonaktifkan' : 'mengaktifkan' }} formulir">
                                     <i
                                         class="fas {{ $f->is_active ? ($isScheduleOpen ? 'fa-circle-dot' : 'fa-clock') : 'fa-ban' }}"></i>
@@ -184,7 +184,7 @@
                             @else
                                 <div class="form-student-status student-status-pending">
                                     <span><i class="fas fa-hourglass-half me-1"></i> Belum Anda Isi</span>
-                                    <span style="font-size: 0.75rem;">Wajib/Disarankan</span>
+                                    <span style="font-size: var(--text-xs, 0.75rem);">Wajib/Disarankan</span>
                                 </div>
                             @endif
                         @endif
@@ -221,18 +221,18 @@
                         @if ($role === 'peserta_didik')
                             @if ($hasResponded)
                                 <a href="{{ $f->public_url }}" target="_blank" class="btn btn-outline"
-                                    style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px; white-space: nowrap;">
+                                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 14px; border-radius: var(--radius-md, 8px); white-space: nowrap;">
                                     <i class="fas fa-receipt me-1"></i> Bukti Pengisian
                                 </a>
                             @else
                                 <a href="{{ $f->public_url }}" target="_blank" class="btn btn-primary"
-                                    style="font-size: 0.82rem; padding: 7px 16px; border-radius: 8px; font-weight: 600; white-space: nowrap;">
+                                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 16px; border-radius: var(--radius-md, 8px); font-weight: 600; white-space: nowrap;">
                                     <i class="fas fa-pen-to-square me-1"></i> Isi Sekarang
                                 </a>
                             @endif
                         @else
                             <a href="{{ route('dashboard.formulir.responses', $f->id) }}" class="btn btn-outline"
-                                style="font-size: 0.82rem; padding: 7px 12px; border-radius: 8px; font-weight: 600; white-space: nowrap;">
+                                style="font-size: var(--text-sm, 0.8125rem); padding: 7px 12px; border-radius: var(--radius-md, 8px); font-weight: 600; white-space: nowrap;">
                                 <i class="fas fa-chart-pie me-1"></i> {{ $f->respon_count }} Tanggapan
                             </a>
                         @endif
@@ -273,20 +273,20 @@
         </div>
     @else
         <div
-            style="text-align: center; padding: 60px 20px; background: var(--card-bg); border-radius: 14px; border: 1px dashed var(--border-color);">
+            style="text-align: center; padding: 60px 20px; background: var(--card-bg); border-radius: var(--radius-xl, 16px); border: 1px dashed var(--border-color);">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-hover); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-hover); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin: 0 auto 16px;">
                 <i class="fas fa-clipboard-question"></i>
             </div>
             <h4 style="font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada Formulir</h4>
-            <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 440px; margin: 0 auto 20px;">
                 Belum ada formulir atau survei yang dibuat. Buat formulir baru untuk mengumpulkan data dari peserta didik,
                 guru,
                 atau masyarakat umum.
             </p>
             @if ($canManage)
                 <a href="{{ route('dashboard.formulir.create') }}" class="btn btn-primary"
-                    style="padding: 9px 20px; font-size: 0.88rem;">
+                    style="padding: 9px 20px; font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-plus me-1"></i> Buat Formulir Sekarang
                 </a>
             @endif

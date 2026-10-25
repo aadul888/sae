@@ -26,7 +26,7 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;"
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);"
                 title="Tarik Data Dapodik">
                 <i class="fas fa-cloud-arrow-down"></i>
             </a>
@@ -102,7 +102,7 @@
             <div class="periode-mobile-select-box" style="margin-bottom: 0;">
                 <label><i class="fas fa-filter text-primary me-1"></i> Pilih Kategori Rombel:</label>
                 <select class="periode-mobile-select form-select" onchange="if(this.value) window.location.href=this.value;"
-                    style="font-size: 0.85rem; height: 42px; border-radius: 10px; width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
+                    style="font-size: var(--text-base, 0.875rem); height: 42px; border-radius: var(--radius-lg, 12px); width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
                     <option value="{{ route('dashboard.rombel.reguler') }}"
                         {{ ($currentType ?? 'reguler') === 'reguler' ? 'selected' : '' }}>
                         Kelas (Reguler)
@@ -156,7 +156,7 @@
                     @if ($q || $tingkat || $jurusan)
                         <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -192,14 +192,14 @@
                         @endphp
                         @foreach ($cols as [$key, $label])
                             <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'total_peserta_didik' ? 'text-align: center;' : '' }}"
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'total_peserta_didik' ? 'text-align: center;' : '' }}"
                                 data-sort="{{ $key }}">
                                 {{ $label }}
                                 <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                         @endforeach
                         <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                             Aksi
                         </th>
                     </tr>
@@ -207,52 +207,52 @@
                 <tbody>
                     @forelse ($list as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.88rem;"
+                            <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: var(--text-base, 0.875rem);"
                                 data-label="Rombel">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <div
-                                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-sm, 0.8125rem); flex-shrink: 0;">
                                         <i class="fas fa-chalkboard-user"></i>
                                     </div>
                                     <div>
                                         <div style="font-weight: 700;">{{ $item->nama }}</div>
                                         @if ($item->kurikulum)
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 {{ Str::limit($item->kurikulum, 40) }}
                                             </div>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Tingkat">
-                                <span class="badge badge-outline" style="font-size: 0.72rem; padding: 3px 8px;">
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);" data-label="Tingkat">
+                                <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                                     {{ $item->tingkat ?: '-' }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Jurusan">
                                 {{ $item->jurusan ?: '-' }}
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);"
+                            <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-color);"
                                 data-label="Wali">
                                 @if ($item->wali_kelas)
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <i class="fas fa-user-tie"
-                                            style="color: var(--primary); opacity: 0.7; font-size: 0.76rem;"></i>
+                                            style="color: var(--primary); opacity: 0.7; font-size: var(--text-sm, 0.8125rem);"></i>
                                         <span>{{ $item->wali_kelas }}</span>
                                     </div>
                                 @else
                                     <span style="color: var(--text-muted);">-</span>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                            <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                 data-label="Ruang">
                                 {{ $item->ruang ?: '-' }}
                             </td>
-                            <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
+                            <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: #10b981;"
                                 data-label="Peserta Didik">
                                 <span class="badge"
-                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
+                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
                                     <i class="fas fa-user-graduate me-1"></i>
                                     {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                                 </span>
@@ -269,10 +269,10 @@
                     @empty
                         <tr>
                             <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                 <div>Belum ada data rombongan belajar yang sesuai.</div>
-                                <div style="font-size: 0.78rem; margin-top: 6px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); margin-top: 6px;">
                                     Silakan sinkronisasi data Dapodik terlebih dahulu melalui menu <strong>Tarik Data
                                         Dapodik</strong>.
                                 </div>
@@ -295,21 +295,21 @@
     <div id="pesertaDidikModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 860px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; border-radius: 14px; padding: 20px;">
+            style="max-width: 860px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; border-radius: var(--radius-xl, 16px); padding: 20px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
                     <h3 id="pesertaDidikModalTitle"
-                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                        style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                         Rincian Rombongan Belajar
                     </h3>
                     <div id="pesertaDidikModalSubtitle"
-                        style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                        style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         -
                     </div>
                 </div>
                 <button type="button" onclick="closePesertaDidikModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -317,18 +317,18 @@
             <!-- Tab Buttons (Desktop) -->
             <div class="rombel-tab-buttons">
                 <button type="button" id="tabBtnAnggota" class="btn btn-primary"
-                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px;"
+                    style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);"
                     onclick="switchRombelModalTab('anggota')">
                     <i class="fas fa-user-graduate me-1"></i> Anggota Peserta Didik <span id="badgeAnggotaCount"
                         class="badge"
-                        style="background: rgba(255,255,255,0.2); font-size: 0.7rem; margin-left: 4px;">0</span>
+                        style="background: rgba(255,255,255,0.2); font-size: var(--text-xs, 0.75rem); margin-left: 4px;">0</span>
                 </button>
                 <button type="button" id="tabBtnPembelajaran" class="btn btn-outline"
-                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px;"
+                    style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);"
                     onclick="switchRombelModalTab('pembelajaran')">
                     <i class="fas fa-book-bookmark me-1"></i> Mata Pelajaran &amp; Guru <span id="badgePembelajaranCount"
                         class="badge"
-                        style="background: rgba(255,255,255,0.1); font-size: 0.7rem; margin-left: 4px;">0</span>
+                        style="background: rgba(255,255,255,0.1); font-size: var(--text-xs, 0.75rem); margin-left: 4px;">0</span>
                 </button>
             </div>
 
@@ -342,15 +342,15 @@
             </div>
 
             <div id="pesertaDidikLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat rincian rombel...</div>
             </div>
 
             <!-- Tab 1: Peserta Didik -->
             <div id="pesertaDidikTableWrapper"
-                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
                 <table class="table"
-                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
@@ -374,9 +374,9 @@
 
             <!-- Tab 2: Pembelajaran -->
             <div id="pembelajaranTableWrapper"
-                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
                 <table class="table"
-                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
@@ -398,11 +398,11 @@
 
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                <div id="pesertaDidikModalFooterCount" style="font-size: 0.8rem; color: var(--text-muted);">
+                <div id="pesertaDidikModalFooterCount" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Total: 0 Peserta Didik
                 </div>
                 <button type="button" class="btn btn-outline" onclick="closePesertaDidikModal()"
-                    style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
             </div>
         </div>
     </div>

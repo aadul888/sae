@@ -7,10 +7,10 @@
     <!-- Header Banner -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-chalkboard-user text-primary me-2"></i> Wali Kelas — Peserta Didik Aktif
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 @if ($hasRombel && $activeRombel)
                     Kelas Binaan: <strong style="color: var(--text-color);">{{ $activeRombel->nama }}</strong>
                     &bull; Wali Kelas: <strong style="color: var(--primary);">{{ $waliNama }}</strong>
@@ -26,11 +26,11 @@
             @if ($isAdmin && $rombelList->isNotEmpty())
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <label for="adminRombelSelect"
-                        style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin: 0; white-space: nowrap;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin: 0; white-space: nowrap;">
                         <i class="fas fa-filter me-1"></i> Pilih Rombel:
                     </label>
                     <select id="adminRombelSelect" class="form-control"
-                        style="font-size: 0.85rem; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); min-width: 170px;">
+                        style="font-size: var(--text-base, 0.875rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); min-width: 170px;">
                         @foreach ($rombelList as $r)
                             <option value="{{ $r->rombongan_belajar_id }}"
                                 {{ $activeRombel?->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
@@ -47,12 +47,12 @@
         <!-- Empty State jika Guru belum ada tugas rombel -->
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
+            <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
                 Binaan Terdaftar</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto 20px;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 540px; margin: 0 auto 20px;">
                 Akun Anda belum terikat dengan rombongan belajar aktif sebagai Wali Kelas pada data Dapodik sekolah. Silakan
                 hubungi Administrator sistem atau Operator Dapodik untuk pembaruan penugasan tugas tambahan.
             </p>
@@ -66,7 +66,7 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['total'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Total Peserta Didik di Kelas</div>
@@ -78,7 +78,7 @@
                     <i class="fas fa-mars"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['laki'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Laki-Laki</div>
@@ -90,7 +90,7 @@
                     <i class="fas fa-venus"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['perempuan'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Perempuan</div>
@@ -102,7 +102,7 @@
                     <i class="fas fa-camera"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['berfoto'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Memiliki Pasfoto</div>
@@ -119,14 +119,14 @@
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <div class="toolbar-entries">
                             <label for="perPageSelect"
-                                style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tampilkan</label>
+                                style="margin: 0; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                 @foreach ([10, 15, 25, 50, 100] as $n)
                                     <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                         {{ $n }}</option>
                                 @endforeach
                             </select>
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">entri</span>
+                            <span style="font-size: var(--text-base, 0.875rem); color: var(--text-muted);">entri</span>
                         </div>
 
                         <select id="filterGender" name="gender" class="toolbar-filter-select"
@@ -139,7 +139,7 @@
                         @if ($q || $gender)
                             <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -148,7 +148,7 @@
                         @if ($activeRombel)
                             <a href="{{ url('/dashboard/kartu-pelajar/cetak-rombel/' . urlencode($activeRombel->rombongan_belajar_id ?? $activeRombel->nama)) }}"
                                 target="_blank" class="btn btn-outline"
-                                style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 8px; font-size: 0.84rem; border-color: #0284c7; color: #0284c7;"
+                                style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: #0284c7; color: #0284c7;"
                                 title="Cetak Seluruh Kartu Pelajar Rombel {{ $activeRombel->nama }}">
                                 <i class="fas fa-id-card me-1"></i> Cetak Kartu Rombel
                             </a>
@@ -184,18 +184,18 @@
                             @endphp
                             @foreach ($cols as [$key, $label])
                                 <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
                                     data-sort="{{ $key }}">
                                     {{ $label }}
                                     <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                             @endforeach
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tempat, Tanggal Lahir
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi
                             </th>
                         </tr>
@@ -205,7 +205,7 @@
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <!-- Kolom Nama & Avatar -->
                                 <td class="cell-pd-nama"
-                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Nama Lengkap">
                                     <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                         @if (!empty($item->foto_url))
@@ -214,7 +214,7 @@
                                             title="Klik untuk melihat / mengubah pasfoto peserta didik"
                                             @else
                                             title="Pasfoto {{ $item->nama }}" @endif
-                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                                 <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
                                                     style="width: 100%; height: 100%; object-fit: cover;">
                                             </div>
@@ -225,7 +225,7 @@
                                             title="Klik untuk mengunggah pasfoto peserta didik"
                                             @else
                                             title="Belum ada pasfoto" @endif
-                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-lg, 1.125rem); flex-shrink: 0; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
                                                 <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                             </div>
                                         @endif
@@ -237,14 +237,14 @@
                                                 @if (!empty($item->is_koordinator))
                                                     <span class="badge badge-koordinator"
                                                         id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                        style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                        style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
                                                         title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                         <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
                                                     </span>
                                                 @else
                                                     <span class="badge badge-koordinator"
                                                         id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                        style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
+                                                        style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
                                                         title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                         <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
                                                     </span>
@@ -252,7 +252,7 @@
                                             </div>
                                             @if ($item->nik)
                                                 <div
-                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                     <span class="copyable" data-copy="{{ $item->nik }}"
                                                         data-label="NIK" title="Klik untuk salin NIK">
                                                         NIK: {{ $item->nik }}
@@ -265,7 +265,7 @@
 
                                 <!-- Kolom NISN / NIPD -->
                                 <td class="cell-pd-nisn"
-                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                     data-label="NISN/NIPD">
                                     <div class="cell-col-right">
                                         <div>
@@ -277,7 +277,7 @@
                                             @endif
                                         </div>
                                         @if ($item->nipd)
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
                                                     title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                             </div>
@@ -290,30 +290,30 @@
                                     data-label="L/P">
                                     <span
                                         class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ $item->jenis_kelamin ?: '-' }}
                                     </span>
                                 </td>
 
                                 <!-- Kolom Rombel Kelas -->
                                 <td class="cell-pd-rombel"
-                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Rombel">
-                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                         {{ $item->nama_rombel ?: '-' }}
                                     </span>
                                 </td>
 
                                 <!-- Kolom Tingkat -->
                                 <td class="cell-pd-tingkat"
-                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Tingkat">
                                     {{ $item->tingkat_pendidikan_id ?: '-' }}
                                 </td>
 
                                 <!-- Kolom Tempat, Tanggal Lahir -->
                                 <td class="cell-pd-ttl"
-                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="TTL">
                                     <div class="cell-col-right" style="color: var(--text-muted);">
                                         {{ $item->tempat_lahir ? $item->tempat_lahir . ', ' : '' }}{{ $item->tanggal_lahir ? date('d/m/Y', strtotime($item->tanggal_lahir)) : '-' }}
@@ -374,8 +374,8 @@
                         @empty
                             <tr>
                                 <td colspan="7"
-                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-user-slash mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Tidak ada data peserta didik aktif yang sesuai dengan kriteria pencarian di kelas
                                         ini.
                                     </div>
@@ -389,7 +389,7 @@
                 @if ($total > 0 && !$list->hasPages())
                     <div
                         style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
+                        <div class="total-count-text" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                             Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai
                             <strong>{{ $list->lastItem() ?: 0 }}</strong> dari
                             <strong>{{ number_format($total, 0, ',', '.') }}</strong> peserta didik
@@ -411,37 +411,37 @@
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border-color);">
+            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border-color);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                     <div id="bioFotoContainer"
-                        style="width: 50px; height: 50px; border-radius: 12px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
-                        <i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>
+                        style="width: 50px; height: 50px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                        <i class="fas fa-user-graduate text-primary" style="font-size: var(--text-xl, 1.25rem);"></i>
                     </div>
                     <div>
                         <h3 id="bioNama"
-                            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Peserta Didik</h3>
-                        <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="bioRombel" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
                 <button type="button" onclick="closeBiodataModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat biodata peserta didik...</div>
             </div>
 
-            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
+            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
                 <!-- 1. Data Pribadi & Fisik -->
                 <div style="margin-bottom: 12px;">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-user me-1"></i> Data Pribadi &amp; Fisik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -484,7 +484,7 @@
                 <!-- 2. Data Akademik & Pendaftaran -->
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-graduation-cap me-1"></i> Data Akademik &amp; Pendaftaran
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -499,7 +499,7 @@
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">ID Registrasi / Anggota</td>
                             <td id="bioRegId"
-                                style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">-</td>
+                                style="font-family: monospace; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">-</td>
                         </tr>
                     </table>
                 </div>
@@ -507,7 +507,7 @@
                 <!-- 3. Data Orang Tua & Wali -->
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-users me-1"></i> Data Orang Tua &amp; Wali
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -529,7 +529,7 @@
                 <!-- 4. Kontak & Domisili -->
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-address-book me-1"></i> Kontak &amp; Domisili
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -548,15 +548,15 @@
                 <div id="bioMapelSection"
                     style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i
+                        <span style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
                                 class="fas fa-book-open text-primary me-1"></i> Mata Pelajaran di Kelas</span>
                         <span id="bioJmlMapel" class="badge"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.72rem; padding: 2px 7px;">0
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
                             Mapel</span>
                     </div>
                     <div style="overflow-x: auto; max-height: 180px;">
                         <table class="table"
-                            style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem); margin-bottom: 0;">
                             <thead>
                                 <tr
                                     style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
@@ -574,7 +574,7 @@
             <div
                 style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <button type="button" class="btn btn-outline" onclick="closeBiodataModal()"
-                    style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
             </div>
         </div>
     </div>

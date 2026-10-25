@@ -27,26 +27,26 @@
             gap: 8px;
             background: rgba(255, 255, 255, 0.15);
             padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            border-radius: var(--radius-md, 8px);
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .filter-form-bar input,
         .filter-form-bar select {
             height: 28px;
             padding: 0 8px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             background: #ffffff;
             color: #1e293b;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 600;
         }
 
         .table-agenda {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-top: 14px;
             margin-bottom: 24px;
         }
@@ -58,7 +58,7 @@
             padding: 7px 8px;
             text-align: center;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             text-transform: uppercase;
         }
 
@@ -80,7 +80,7 @@
         }
 
         .agenda-header h2 {
-            font-size: 1.25rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             color: #0f172a;
             margin: 0;
@@ -88,7 +88,7 @@
         }
 
         .agenda-header p {
-            font-size: 0.84rem;
+            font-size: var(--text-base, 0.875rem);
             color: #475569;
             margin: 4px 0 0 0;
             font-weight: 600;
@@ -125,7 +125,7 @@
             <span>S/d:</span>
             <input type="date" name="tanggal_selesai" value="{{ $tanggalSelesai ?? '' }}">
             <button type="submit" class="btn-action"
-                style="padding: 4px 10px; font-size: 0.76rem; border-radius: 6px;">
+                style="padding: 4px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);">
                 <i class="fas fa-filter"></i> Filter
             </button>
         </form>
@@ -183,13 +183,13 @@
                     <tr>
                         <td style="text-align: center; font-weight: 700;">{{ $idx + 1 }}</td>
                         @if ($jenisSurat === 'masuk')
-                            <td style="text-align: center; font-size: 0.78rem;">
+                            <td style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->tanggal_diterima ? \Carbon\Carbon::parse($item->tanggal_diterima)->format('d/m/Y') : '—' }}
                             </td>
-                            <td style="font-family: monospace; font-weight: 600; font-size: 0.8rem;">
+                            <td style="font-family: monospace; font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->nomor_surat }}
                             </td>
-                            <td style="text-align: center; font-size: 0.78rem;">
+                            <td style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->tanggal_surat ? \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') : '—' }}
                             </td>
                             <td style="font-weight: 600;">
@@ -198,11 +198,11 @@
                             <td>
                                 <div style="font-weight: 700;">{{ $item->perihal }}</div>
                                 @if (!empty($item->keterangan))
-                                    <div style="font-size: 0.75rem; color: #475569; margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: #475569; margin-top: 2px;">
                                         {{ $item->keterangan }}</div>
                                 @endif
                             </td>
-                            <td style="font-size: 0.78rem;">
+                            <td style="font-size: var(--text-sm, 0.8125rem);">
                                 @php
                                     $disposisiList = $item->disposisi ?? collect();
                                     $tujuanStr = $disposisiList
@@ -214,17 +214,17 @@
                                 {{ $tujuanStr ?: 'Belum Didisposisi' }}
                             </td>
                             <td
-                                style="text-align: center; font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">
+                                style="text-align: center; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; font-weight: 700;">
                                 {{ str_replace('_', ' ', $item->status) }}
                             </td>
                         @else
-                            <td style="text-align: center; font-family: monospace; font-size: 0.78rem;">
+                            <td style="text-align: center; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->kode_indeks ?: '-' }}
                             </td>
-                            <td style="text-align: center; font-size: 0.78rem;">
+                            <td style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->tanggal_surat ? \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') : '—' }}
                             </td>
-                            <td style="font-family: monospace; font-weight: 600; font-size: 0.8rem;">
+                            <td style="font-family: monospace; font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->nomor_surat }}
                             </td>
                             <td style="font-weight: 600;">
@@ -233,15 +233,15 @@
                             <td>
                                 <div style="font-weight: 700;">{{ $item->perihal }}</div>
                                 @if (!empty($item->keterangan))
-                                    <div style="font-size: 0.75rem; color: #475569; margin-top: 2px;">
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: #475569; margin-top: 2px;">
                                         {{ $item->keterangan }}</div>
                                 @endif
                             </td>
-                            <td style="font-size: 0.78rem;">
+                            <td style="font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->created_by ?: 'Petugas Persuratan' }}
                             </td>
                             <td
-                                style="text-align: center; font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">
+                                style="text-align: center; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; font-weight: 700;">
                                 {{ str_replace('_', ' ', $item->status) }}
                             </td>
                         @endif

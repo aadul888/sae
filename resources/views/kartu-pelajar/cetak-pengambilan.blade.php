@@ -23,7 +23,7 @@
         <!-- Filter Form Tanggal Cetak & Rombel (Satu Baris Rapi, Auto-Submit on Change) -->
         <form method="GET" action="{{ route('dashboard.kartu-pelajar.cetak-pengambilan') }}"
             style="display: inline-flex; align-items: center; gap: 8px; margin: 0 4px; white-space: nowrap; flex-shrink: 0;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0; font-weight: 600;">Tanggal Cetak:</label>
+            <label style="font-size: var(--text-sm, 0.8125rem); color: #cbd5e1; margin: 0; font-weight: 600;">Tanggal Cetak:</label>
             <select name="tanggal_cetak" class="select-cetak" onchange="this.form.submit()"
                 title="Pilih Tanggal Selesai Cetak">
                 @if ($tanggalCetakList && $tanggalCetakList->count() > 0)
@@ -39,7 +39,7 @@
                 @endif
             </select>
 
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Rombel:</label>
+            <label style="font-size: var(--text-sm, 0.8125rem); color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Rombel:</label>
             <select name="rombel" class="select-cetak" onchange="this.form.submit()" title="Filter Berdasarkan Rombel">
                 <option value="">Semua Rombel Terpilih</option>
                 @foreach ($rombelList as $rName)
@@ -56,16 +56,16 @@
     </div>
 
     <div class="paper"
-        style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+        style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: var(--radius-md, 8px); box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
         <!-- Kop Surat Resmi Sekolah -->
         @include('partials.kop-surat')
 
         <div style="text-align: center; margin-top: 14px; margin-bottom: 14px;">
             <h3
-                style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
+                style="font-size: var(--text-lg, 1.125rem); font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
                 DAFTAR DISTRIBUSI &amp; SERAH TERIMA KARTU PELAJAR FISIK (RFID)
             </h3>
-            <div style="font-size: 0.82rem; color: #475569;">
+            <div style="font-size: var(--text-sm, 0.8125rem); color: #475569;">
                 Daftar Peserta Didik Aktif yang Telah Selesai Dicetak &amp; Siap Diambil
             </div>
         </div>
@@ -109,24 +109,24 @@
                 @forelse ($students as $idx => $s)
                     <tr>
                         <td style="text-align: center; font-weight: 700;">{{ $idx + 1 }}</td>
-                        <td style="font-family: monospace; font-size: 0.74rem; line-height: 1.25; white-space: nowrap;">
+                        <td style="font-family: monospace; font-size: var(--text-xs, 0.75rem); line-height: 1.25; white-space: nowrap;">
                             {{ $s->nisn ?: '-' }}<br>
                             <span style="color: #64748b;">{{ $s->nipd ?: '-' }}</span>
                         </td>
                         <td>
-                            <strong style="font-size: 0.82rem;">{{ $s->nama }}</strong>
+                            <strong style="font-size: var(--text-sm, 0.8125rem);">{{ $s->nama }}</strong>
                         </td>
-                        <td style="white-space: nowrap; font-size: 0.78rem; font-weight: 700;">
+                        <td style="white-space: nowrap; font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
                             {{ $s->nama_rombel ?: '-' }}
                         </td>
-                        <td style="text-align: center; font-size: 0.75rem; color: #475569; white-space: nowrap;">
+                        <td style="text-align: center; font-size: var(--text-xs, 0.75rem); color: #475569; white-space: nowrap;">
                             {{ $s->tanggal_cetak ? \Carbon\Carbon::parse($s->tanggal_cetak)->format('H:i') : '-' }} WIB
                         </td>
                         <td style="text-align: center; white-space: nowrap;">
                             @if ($s->status_pembayaran === 'lunas')
-                                <span style="color: #059669; font-weight: 700; font-size: 0.72rem;">LUNAS</span>
+                                <span style="color: #059669; font-weight: 700; font-size: var(--text-xs, 0.75rem);">LUNAS</span>
                             @else
-                                <span style="color: #d97706; font-weight: 700; font-size: 0.72rem;">BELUM</span>
+                                <span style="color: #d97706; font-weight: 700; font-size: var(--text-xs, 0.75rem);">BELUM</span>
                             @endif
                         </td>
                         <td>
@@ -142,7 +142,7 @@
                                 </div>
                             @endif
                         </td>
-                        <td style="text-align: center; font-size: 0.74rem; color: #64748b;">
+                        <td style="text-align: center; font-size: var(--text-xs, 0.75rem); color: #64748b;">
                             {{ $s->catatan ?: '-' }}
                         </td>
                     </tr>
@@ -169,7 +169,7 @@
                             style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
                             {{ $waliGtk->nama }}
                         </div>
-                        <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">
                             NIP. {{ $waliGtk->nip ?? ($waliGtk->nuptk ?? '-') }}
                         </div>
                     @else
@@ -177,7 +177,7 @@
                             style="font-weight: 800; border-bottom: 1px dotted #0f172a; display: inline-block; min-width: 180px;">
                             &nbsp;
                         </div>
-                        <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">NIP. -</div>
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">NIP. -</div>
                     @endif
                 </div>
 
@@ -189,7 +189,7 @@
                         style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
                         {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
                     </div>
-                    <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
                 </div>
             </div>
         @else
@@ -202,7 +202,7 @@
                         style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 200px;">
                         {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
                     </div>
-                    <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
                 </div>
             </div>
         @endif

@@ -39,7 +39,7 @@
         @foreach ($hariList as $hari)
             <div style="margin-bottom: 24px; page-break-inside: avoid;">
                 <div class="day-header-banner"
-                    style="background: #1e3a8a; color: #ffffff !important; padding: 6px 12px; font-weight: 800; font-size: 0.82rem; border-radius: 4px 4px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                    style="background: #1e3a8a; color: #ffffff !important; padding: 6px 12px; font-weight: 800; font-size: var(--text-sm, 0.8125rem); border-radius: 4px 4px 0 0; display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #ffffff !important;"><i class="fas fa-calendar-day me-1"
                             style="color: #ffffff !important;"></i> HARI {{ strtoupper($hari) }}</span>
                     <span style="color: #ffffff !important;">Total JP: {{ count($slots) }} JP</span>
@@ -53,7 +53,7 @@
                                 <th style="background-color: #1e3a8a !important; color: #ffffff !important;">
                                     <div style="color: #ffffff !important; font-weight: 700;">JP {{ $slot['ke'] }}
                                     </div>
-                                    <div style="font-size: 0.62rem; font-weight: 500; color: #e2e8f0 !important;">
+                                    <div style="font-size: var(--text-2xs, 0.6875rem); font-weight: 500; color: #e2e8f0 !important;">
                                         {{ $slot['mulai'] }}-{{ $slot['selesai'] }}</div>
                                 </th>
                             @endforeach
@@ -92,7 +92,7 @@
                                                 <span class="guru-name">Dewan Guru &amp; Siswa</span>
                                                 @if ($item->ruangan)
                                                     <span
-                                                        style="font-size: 0.6rem; color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                                        style="font-size: var(--text-2xs, 0.6875rem); color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
                                                 @endif
                                             @elseif ($isPembiasaan)
                                                 <span class="routine-title"><i
@@ -108,7 +108,7 @@
                                                 <span class="guru-name">{{ $item->nama_guru ?? 'Guru' }}</span>
                                                 @if ($item->ruangan)
                                                     <span
-                                                        style="font-size: 0.6rem; color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                                        style="font-size: var(--text-2xs, 0.6875rem); color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
                                                 @endif
                                             @endif
                                         </td>
@@ -136,7 +136,7 @@
                 <div class="sig-space"></div>
                 <p class="sig-name">
                     {{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
-                <p style="font-size: 0.72rem; color: #4b5563;">NIP.
+                <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
                     {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
             </div>
 
@@ -147,7 +147,7 @@
                 <div class="sig-space"></div>
                 <p class="sig-name">
                     {{ $wakaKurikulum?->nama ?? '......................................................' }}</p>
-                <p style="font-size: 0.72rem; color: #4b5563;">NIP.
+                <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
                     {{ $wakaKurikulum?->nip ?: ($wakaKurikulum?->nuptk ?: '—') }}</p>
             </div>
         </div>

@@ -9,14 +9,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-broom"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Checklist Kebersihan &amp; Sanitasi Harian
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pencatatan kontrol kebersihan toilet, ruang belajar, selasar, ketersediaan air &amp; sabun.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" onclick="openModalKebersihan()"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Tambah Checklist Kebersihan">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -110,7 +110,7 @@
                             @if ($search || $shift || $tanggal)
                                 <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -134,25 +134,25 @@
                     <thead>
                         <tr>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tanggal & Shift</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Area / Zona</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kondisi Kebersihan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Air & Sabun</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Catatan Temuan</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Petugas</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -162,7 +162,7 @@
                                 <td style="padding: 12px 18px;">
                                     <div style="font-weight: 600; color: var(--text-heading);">
                                         {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: capitalize;">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); text-transform: capitalize;">
                                         Shift
                                         {{ $item->shift }}</div>
                                 </td>
@@ -202,10 +202,10 @@
                                     @endif
                                 </td>
                                 <td
-                                    style="padding: 12px 18px; font-size: 0.85rem; color: var(--text-muted); max-width: 250px;">
+                                    style="padding: 12px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted); max-width: 250px;">
                                     {{ $item->catatan_temuan ?: '-' }}
                                 </td>
-                                <td style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-heading);">
+                                <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-heading);">
                                     {{ $item->nama_petugas ?: 'Petugas Fasilitas' }}
                                 </td>
                                 <td style="padding: 12px 18px; text-align: center;">
@@ -234,7 +234,7 @@
                             <tr>
                                 <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
                                     <i class="fas fa-clipboard-check"
-                                        style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; opacity: 0.4;"></i>
                                     <p style="margin: 0;">Belum ada data checklist kebersihan.</p>
                                 </td>
                             </tr>
@@ -258,10 +258,10 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                     <h3 id="modalKebersihanTitle"
-                        style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-heading);">Checklist
+                        style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">Checklist
                         Kebersihan</h3>
                     <button type="button" onclick="closeModalKebersihan()"
-                        style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
 
                 <form id="formKebersihan" method="POST" action="{{ route('dashboard.penjaga.kebersihan.store') }}"
@@ -291,7 +291,7 @@
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <label class="form-label" style="margin: 0;">Area / Zona Kebersihan <span
                                     style="color:red;">*</span></label>
-                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                     class="fas fa-building me-1"></i>Master Ruang & Sarpras</span>
                         </div>
                         <input list="listAreaKebersihan" name="area_zona" id="kebersihan_area" class="form-control"

@@ -95,50 +95,50 @@
 </div>
 
 <!-- 3. Section: Visualisasi Statistik Buku Tamu & Patroli Keamanan -->
-<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg);">
+<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
         <div>
-            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-chart-pie text-primary"></i> Statistik Kunjungan Tamu &amp; Patroli Keamanan
             </h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 3px 0 0 0;">
                 Visualisasi asal instansi tamu dinas, frekuensi patroli keamanan per zona, serta evaluasi situasi sekolah.
             </p>
         </div>
-        <div style="font-size: 0.76rem; font-weight: 700; color: #ef4444; background: rgba(239,68,68,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(239,68,68,0.25);">
+        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; background: rgba(239,68,68,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(239,68,68,0.25);">
             <i class="fas fa-shield-halved me-1"></i> Pos Satpam Terintegrasi
         </div>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
         <!-- Chart 1: Kategori Tamu (Doughnut) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-address-book text-primary"></i> Kategori Kunjungan Tamu
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Orang tua, dinas, mitra industri &amp; umum</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Orang tua, dinas, mitra industri &amp; umum</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="keamananChartTamu"></canvas>
             </div>
         </div>
 
         <!-- Chart 2: Patroli per Zona (Bar) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-route text-success"></i> Intensitas Patroli per Zona
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Gerbang, kelas, lab &amp; pagar keliling</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Gerbang, kelas, lab &amp; pagar keliling</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="keamananChartPatroli"></canvas>
             </div>
         </div>
 
         <!-- Chart 3: Kondisi Keamanan (Doughnut) -->
-        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-shield-virus text-warning"></i> Status Situasi Lingkungan
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Kondusif vs laporan temuan catatan</div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Kondusif vs laporan temuan catatan</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="keamananChartStatus"></canvas>
             </div>

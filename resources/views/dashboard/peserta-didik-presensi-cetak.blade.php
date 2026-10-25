@@ -93,7 +93,7 @@
                     <td><strong>{{ $stats['dispen'] }}</strong> hari</td>
                     <td><strong style="color: #ef4444;">{{ $stats['alpha'] }}</strong> hari</td>
                     <td><strong>{{ $stats['hari_efektif_berjalan'] ?? $stats['total'] }}</strong> hari</td>
-                    <td><strong style="font-size: 0.88rem; color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
+                    <td><strong style="font-size: var(--text-base, 0.875rem); color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
                 </tr>
             </tbody>
         </table>

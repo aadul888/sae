@@ -41,7 +41,7 @@ body {
     -webkit-backdrop-filter: blur(10px) !important;
     color: #ffffff !important;
     padding: 8px 18px !important;
-    border-radius: 50px !important;
+    border-radius: var(--radius-pill, 999px) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -62,9 +62,9 @@ body {
     align-items: center !important;
     gap: 6px !important;
     padding: 7px 16px !important;
-    font-size: 0.82rem !important;
+    font-size: var(--text-sm, 0.8125rem) !important;
     font-weight: 700 !important;
-    border-radius: 25px !important;
+    border-radius: var(--radius-2xl, 20px) !important;
     border: none !important;
     cursor: pointer !important;
     text-decoration: none !important;
@@ -108,7 +108,7 @@ body {
     align-items: center !important;
     background: rgba(0, 0, 0, 0.35) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 25px !important;
+    border-radius: var(--radius-2xl, 20px) !important;
     padding: 2px !important;
     gap: 3px !important;
 }
@@ -118,10 +118,10 @@ body {
     align-items: center !important;
     gap: 5px !important;
     padding: 5px 12px !important;
-    font-size: 0.78rem !important;
+    font-size: var(--text-sm, 0.8125rem) !important;
     font-weight: 700 !important;
     color: #94a3b8 !important;
-    border-radius: 20px !important;
+    border-radius: var(--radius-2xl, 20px) !important;
     text-decoration: none !important;
     transition: all 0.15s ease !important;
 }
@@ -140,9 +140,9 @@ body {
     background: rgba(255, 255, 255, 0.16) !important;
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.22) !important;
-    border-radius: 20px !important;
+    border-radius: var(--radius-2xl, 20px) !important;
     padding: 6px 14px !important;
-    font-size: 0.8rem !important;
+    font-size: var(--text-sm, 0.8125rem) !important;
     font-weight: 600 !important;
     outline: none !important;
     cursor: pointer !important;
@@ -178,7 +178,7 @@ body {
     margin: 0 auto 28px auto;
     padding: 20mm 20mm;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     position: relative;
     overflow: hidden;
     max-width: 850px;
@@ -546,7 +546,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             page-break-after: always;
             position: relative;
             overflow: hidden;
@@ -588,7 +588,7 @@ body {
         }
 
         .doc-header .school-name {
-            font-size: 1.2rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -596,7 +596,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -605,7 +605,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
         }
 
@@ -616,9 +616,9 @@ body {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             padding: 10px 14px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             position: relative;
             z-index: 1;
         }
@@ -638,7 +638,7 @@ body {
         .table-guru {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 24px;
             position: relative;
             z-index: 1;
@@ -687,7 +687,7 @@ body {
         .routine-title {
             font-weight: 700;
             display: block;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .cell-upacara .routine-title {
@@ -703,7 +703,7 @@ body {
         }
 
         .routine-desc {
-            font-size: 0.67rem;
+            font-size: var(--text-2xs, 0.6875rem);
             color: #4b5563;
             display: block;
             margin-top: 2px;
@@ -714,11 +714,11 @@ body {
             font-weight: 700;
             color: #1e3a8a;
             display: block;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .mapel-name {
-            font-size: 0.70rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #374151;
             display: block;
             margin-top: 2px;
@@ -726,7 +726,7 @@ body {
         }
 
         .ruangan-badge {
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.6875rem);
             color: #059669;
             font-weight: 600;
             display: inline-block;
@@ -738,7 +738,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -766,9 +766,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -833,7 +833,7 @@ body {
             margin: 0 auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
         }
@@ -870,7 +870,7 @@ body {
         }
 
         .doc-header .school-name {
-            font-size: 1.25rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -878,7 +878,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -887,7 +887,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
         }
 
@@ -895,7 +895,7 @@ body {
         .table-induk {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
             margin-bottom: 20px;
         }
 
@@ -944,7 +944,7 @@ body {
         .routine-title {
             font-weight: 700;
             display: block;
-            font-size: 0.7rem;
+            font-size: var(--text-xs, 0.75rem);
         }
 
         .cell-upacara .routine-title {
@@ -963,18 +963,18 @@ body {
             font-weight: 700;
             color: #1e3a8a;
             display: block;
-            font-size: 0.7rem;
+            font-size: var(--text-xs, 0.75rem);
         }
 
         .guru-name {
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.6875rem);
             color: #4b5563;
             display: block;
         }
 
         .cell-empty {
             color: #9ca3af;
-            font-size: 0.68rem;
+            font-size: var(--text-2xs, 0.6875rem);
         }
 
         /* Tanda Tangan */
@@ -982,7 +982,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 30px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
         }
 
@@ -1008,9 +1008,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -1072,7 +1072,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             page-break-after: always;
             position: relative;
             overflow: hidden;
@@ -1114,7 +1114,7 @@ body {
         }
 
         .doc-header .school-name {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -1122,7 +1122,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.1rem;
+            font-size: var(--text-lg, 1.125rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -1131,7 +1131,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
         }
 
@@ -1142,9 +1142,9 @@ body {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             padding: 10px 14px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .info-item {
@@ -1162,7 +1162,7 @@ body {
         .table-rombel {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 24px;
         }
 
@@ -1209,7 +1209,7 @@ body {
         .routine-title {
             font-weight: 700;
             display: block;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
         }
 
         .cell-upacara .routine-title {
@@ -1228,11 +1228,11 @@ body {
             font-weight: 700;
             color: #1e3a8a;
             display: block;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
         }
 
         .guru-name {
-            font-size: 0.68rem;
+            font-size: var(--text-2xs, 0.6875rem);
             color: #4b5563;
             display: block;
             margin-top: 2px;
@@ -1243,7 +1243,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
         }
 
@@ -1269,9 +1269,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -1340,7 +1340,7 @@ body {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 5.5rem;
+            font-size: var(--text-6xl, 4rem);
             font-weight: 900;
             color: rgba(79, 70, 229, 0.035);
             text-transform: uppercase;
@@ -1447,7 +1447,7 @@ body {
             right: 24px;
             background: #ffffff;
             padding: 10px 16px;
-            border-radius: 50px;
+            border-radius: var(--radius-pill, 999px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
             display: flex;
             gap: 12px;
@@ -1460,9 +1460,9 @@ body {
             color: #ffffff;
             border: none;
             padding: 8px 18px;
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: var(--text-base, 0.875rem);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1477,9 +1477,9 @@ body {
             color: #374151;
             border: none;
             padding: 8px 14px;
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: var(--text-base, 0.875rem);
             cursor: pointer;
         }
         @media print {
@@ -1520,7 +1520,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 35px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
             max-width: 850px;
@@ -1585,7 +1585,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -1593,7 +1593,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -1607,7 +1607,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -1617,14 +1617,14 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.85rem;
+            font-size: var(--text-base, 0.875rem);
             color: #374151;
             font-weight: 600;
         }
 
         /* Isi Naskah Surat */
         .surat-body {
-            font-size: 0.9rem;
+            font-size: var(--text-base, 0.875rem);
             line-height: 1.6;
             margin-bottom: 24px;
             text-align: justify;
@@ -1641,7 +1641,7 @@ body {
         .table-bio {
             width: 100%;
             margin: 12px 0 16px 20px;
-            font-size: 0.88rem;
+            font-size: var(--text-base, 0.875rem);
             border-collapse: collapse;
         }
 
@@ -1670,7 +1670,7 @@ body {
             display: flex;
             justify-content: flex-end;
             margin-top: 30px;
-            font-size: 0.86rem;
+            font-size: var(--text-base, 0.875rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -1699,7 +1699,7 @@ body {
         }
 
         .sig-nip {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             margin-top: 2px;
         }
@@ -1712,7 +1712,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             position: relative;
             z-index: 1;
@@ -1730,7 +1730,7 @@ body {
             border: 1px solid #d1d5db;
             padding: 2px;
             background: #fff;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
         }
 
         /* Floating bar */
@@ -1741,9 +1741,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -1773,7 +1773,7 @@ body {
             align-items: center;
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -1782,10 +1782,10 @@ body {
             align-items: center;
             gap: 5px;
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #4b5563;
-            border-radius: 25px;
+            border-radius: var(--radius-2xl, 20px);
             text-decoration: none;
             transition: all 0.15s ease;
         }
@@ -2106,7 +2106,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
             max-width: 850px;
@@ -2171,7 +2171,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -2179,7 +2179,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -2195,7 +2195,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -2204,7 +2204,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             font-weight: 600;
         }
@@ -2213,7 +2213,7 @@ body {
         .table-disp {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 20px;
             position: relative;
             z-index: 1;
@@ -2238,7 +2238,7 @@ body {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .instruksi-item {
@@ -2254,7 +2254,7 @@ body {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: var(--text-xs, 0.75rem);
             font-weight: bold;
         }
 
@@ -2263,7 +2263,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -2287,7 +2287,7 @@ body {
         }
 
         .sig-nip {
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             margin-top: 2px;
         }
@@ -2300,7 +2300,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             position: relative;
             z-index: 1;
@@ -2314,9 +2314,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -2346,7 +2346,7 @@ body {
             align-items: center;
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -2355,10 +2355,10 @@ body {
             align-items: center;
             gap: 5px;
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #4b5563;
-            border-radius: 25px;
+            border-radius: var(--radius-2xl, 20px);
             text-decoration: none;
             transition: all 0.15s ease;
         }
@@ -2508,7 +2508,7 @@ body {
             background: #2563eb;
             color: white;
             padding: 10px 18px;
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             border: none;
             font-weight: 600;
             cursor: pointer;
@@ -2555,7 +2555,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 35px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
             max-width: 850px;
@@ -2620,7 +2620,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -2628,7 +2628,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -2642,7 +2642,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -2652,14 +2652,14 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.85rem;
+            font-size: var(--text-base, 0.875rem);
             color: #374151;
             font-weight: 600;
         }
 
         /* Isi Naskah Surat */
         .surat-body {
-            font-size: 0.9rem;
+            font-size: var(--text-base, 0.875rem);
             line-height: 1.6;
             margin-bottom: 24px;
             text-align: justify;
@@ -2676,7 +2676,7 @@ body {
         .table-bio {
             width: 100%;
             margin: 12px 0 16px 20px;
-            font-size: 0.88rem;
+            font-size: var(--text-base, 0.875rem);
             border-collapse: collapse;
         }
 
@@ -2705,7 +2705,7 @@ body {
             display: flex;
             justify-content: flex-end;
             margin-top: 30px;
-            font-size: 0.86rem;
+            font-size: var(--text-base, 0.875rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -2734,7 +2734,7 @@ body {
         }
 
         .sig-nip {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             margin-top: 2px;
         }
@@ -2747,7 +2747,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             position: relative;
             z-index: 1;
@@ -2765,7 +2765,7 @@ body {
             border: 1px solid #d1d5db;
             padding: 2px;
             background: #fff;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
         }
 
         /* Floating bar */
@@ -2776,9 +2776,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -2808,7 +2808,7 @@ body {
             align-items: center;
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -2817,10 +2817,10 @@ body {
             align-items: center;
             gap: 5px;
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #4b5563;
-            border-radius: 25px;
+            border-radius: var(--radius-2xl, 20px);
             text-decoration: none;
             transition: all 0.15s ease;
         }
@@ -2878,7 +2878,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
 
@@ -2944,7 +2944,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -2953,7 +2953,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #374151;
             margin-top: 3px;
             line-height: 1.35;
@@ -2968,7 +2968,7 @@ body {
         }
 
         .doc-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -2976,7 +2976,7 @@ body {
         }
 
         .doc-subtitle {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #059669;
             margin-top: 2px;
@@ -2991,10 +2991,10 @@ body {
             gap: 8px 16px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             padding: 10px 16px;
             margin-bottom: 16px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             position: relative;
             z-index: 1;
         }
@@ -3019,7 +3019,7 @@ body {
         .table-data {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 24px;
             position: relative;
             z-index: 1;
@@ -3037,7 +3037,7 @@ body {
             color: #0f172a;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
             letter-spacing: 0.3px;
             text-align: center;
         }
@@ -3052,7 +3052,7 @@ body {
 
         .col-mono {
             font-family: monospace;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         /* Tanda Tangan */
@@ -3061,7 +3061,7 @@ body {
             justify-content: space-between;
             align-items: flex-start;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -3084,9 +3084,9 @@ body {
             text-decoration: none;
             cursor: pointer;
             border: none;
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 600;
             display: inline-flex;
             align-items: center;
@@ -3107,7 +3107,7 @@ body {
         .orientation-switch {
             display: flex;
             background: rgba(0, 0, 0, 0.35);
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -3115,7 +3115,7 @@ body {
             background: transparent;
             color: #94a3b8;
             padding: 4px 10px !important;
-            font-size: 0.75rem !important;
+            font-size: var(--text-xs, 0.75rem) !important;
         }
 
         .btn-orientasi.active {
@@ -3192,7 +3192,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
         }
@@ -3248,14 +3248,14 @@ body {
             flex: 1;
         }
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             color: #111827;
         }
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -3268,7 +3268,7 @@ body {
             z-index: 1;
         }
         .doc-header .doc-title-main {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -3276,7 +3276,7 @@ body {
             margin: 0 0 2px 0;
         }
         .doc-header .doc-subtitle {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             font-weight: 600;
         }
@@ -3288,9 +3288,9 @@ body {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             padding: 10px 14px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             position: relative;
             z-index: 1;
         }
@@ -3312,7 +3312,7 @@ body {
         .table-rekap {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 16px;
             position: relative;
             z-index: 1;
@@ -3327,14 +3327,14 @@ body {
             font-weight: 700;
             color: #374151;
             text-transform: uppercase;
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
         }
 
         /* Tabel Rincian Kehadiran Harian */
         .table-presensi {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 24px;
             position: relative;
             z-index: 1;
@@ -3350,7 +3350,7 @@ body {
             color: #374151;
             text-align: center;
             text-transform: uppercase;
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
             letter-spacing: 0.5px;
         }
         .text-center { text-align: center; }
@@ -3366,7 +3366,7 @@ body {
         }
         .ttd-date {
             text-align: right;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #374151;
             margin-bottom: 10px;
         }
@@ -3374,7 +3374,7 @@ body {
             width: 100%;
             border-collapse: collapse;
             text-align: center;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
         .ttd-table td {
             padding: 4px;
@@ -3389,7 +3389,7 @@ body {
             color: #111827;
         }
         .ttd-nip {
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
         }
 
@@ -3400,9 +3400,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 7px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -3497,7 +3497,7 @@ body {
         .badge {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
             font-size: 11px;
             font-weight: bold;
             border: 1px solid #333;
@@ -3548,7 +3548,7 @@ body {
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             padding: 10px 20px;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             display: flex;
             align-items: center;
             gap: 14px;
@@ -3568,7 +3568,7 @@ body {
             color: #ffffff;
             border: none;
             padding: 7px 16px;
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
@@ -3589,7 +3589,7 @@ body {
             color: #ffffff;
             border: none;
             padding: 7px 14px;
-            border-radius: 20px;
+            border-radius: var(--radius-2xl, 20px);
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
@@ -3611,7 +3611,7 @@ body {
             margin: 50px auto 30px auto;
             padding: 12mm 15mm 15mm 15mm;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
             position: relative;
             overflow: hidden;
         }
@@ -3715,7 +3715,7 @@ body {
             grid-template-columns: 1fr 1fr 1fr 1fr;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             padding: 8px 12px;
             margin-bottom: 10px;
             font-size: 9pt;
@@ -3754,7 +3754,7 @@ body {
             flex: 1;
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
             padding: 5px 8px;
             text-align: center;
         }
@@ -3941,7 +3941,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
             max-width: 850px;
@@ -4006,7 +4006,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -4014,7 +4014,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -4030,7 +4030,7 @@ body {
         }
 
         .doc-header .school-name {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -4038,7 +4038,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.1rem;
+            font-size: var(--text-lg, 1.125rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -4047,7 +4047,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             font-weight: 600;
         }
@@ -4059,9 +4059,9 @@ body {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             padding: 10px 14px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             position: relative;
             z-index: 1;
         }
@@ -4087,7 +4087,7 @@ body {
             display: flex;
             border: 1px solid #e5e7eb;
             background: #f9fafb;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
             overflow: hidden;
             position: relative;
@@ -4106,14 +4106,14 @@ body {
         }
 
         .stat-item .val {
-            font-size: 1.05rem;
+            font-size: var(--text-lg, 1.125rem);
             font-weight: 800;
             color: #1e3a8a;
             display: block;
         }
 
         .stat-item .lbl {
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
             text-transform: uppercase;
             font-weight: 700;
             color: #6b7280;
@@ -4122,7 +4122,7 @@ body {
 
         /* Section Subheading */
         .section-subhead {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -4139,7 +4139,7 @@ body {
         .table-data {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 20px;
             position: relative;
             z-index: 1;
@@ -4157,7 +4157,7 @@ body {
             font-weight: 700;
             color: #111827;
             text-align: center;
-            font-size: 0.74rem;
+            font-size: var(--text-xs, 0.75rem);
             text-transform: uppercase;
         }
 
@@ -4181,7 +4181,7 @@ body {
             text-align: center;
             white-space: nowrap;
             font-family: monospace;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
         }
 
         .table-data .col-output {
@@ -4205,8 +4205,8 @@ body {
         .badge-kbm {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
+            border-radius: var(--radius-xs, 4px);
+            font-size: var(--text-xs, 0.75rem);
             font-weight: 700;
             text-align: center;
             white-space: nowrap;
@@ -4239,7 +4239,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -4263,7 +4263,7 @@ body {
         }
 
         .sig-nip {
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             margin-top: 2px;
         }
@@ -4276,7 +4276,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             position: relative;
             z-index: 1;
@@ -4294,7 +4294,7 @@ body {
             border: 1px solid #d1d5db;
             padding: 2px;
             background: #fff;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
         }
 
         /* Floating bar (Identik dengan Jadwal KBM) */
@@ -4305,9 +4305,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -4338,7 +4338,7 @@ body {
             align-items: center;
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -4347,10 +4347,10 @@ body {
             align-items: center;
             gap: 5px;
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #4b5563;
-            border-radius: 25px;
+            border-radius: var(--radius-2xl, 20px);
             text-decoration: none;
             transition: all 0.15s ease;
         }
@@ -4409,7 +4409,7 @@ body {
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: var(--radius-md, 8px);
             position: relative;
             overflow: hidden;
             max-width: 850px;
@@ -4474,7 +4474,7 @@ body {
         }
 
         .kop-title {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -4482,7 +4482,7 @@ body {
         }
 
         .kop-subtitle {
-            font-size: 0.78rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             line-height: 1.35;
         }
@@ -4498,7 +4498,7 @@ body {
         }
 
         .doc-header .school-name {
-            font-size: 1.15rem;
+            font-size: var(--text-xl, 1.25rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -4506,7 +4506,7 @@ body {
         }
 
         .doc-header .doc-title-main {
-            font-size: 1.1rem;
+            font-size: var(--text-lg, 1.125rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -4515,7 +4515,7 @@ body {
         }
 
         .doc-header .doc-subtitle {
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             color: #4b5563;
             font-weight: 600;
         }
@@ -4527,9 +4527,9 @@ body {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             padding: 10px 14px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             position: relative;
             z-index: 1;
         }
@@ -4555,7 +4555,7 @@ body {
             display: flex;
             border: 1px solid #e5e7eb;
             background: #f9fafb;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             margin-bottom: 16px;
             overflow: hidden;
             position: relative;
@@ -4574,14 +4574,14 @@ body {
         }
 
         .stat-item .val {
-            font-size: 1.05rem;
+            font-size: var(--text-lg, 1.125rem);
             font-weight: 800;
             color: #1e3a8a;
             display: block;
         }
 
         .stat-item .lbl {
-            font-size: 0.72rem;
+            font-size: var(--text-xs, 0.75rem);
             text-transform: uppercase;
             font-weight: 700;
             color: #6b7280;
@@ -4590,7 +4590,7 @@ body {
 
         /* Section Subheading */
         .section-subhead {
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -4607,7 +4607,7 @@ body {
         .table-data {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.76rem;
+            font-size: var(--text-sm, 0.8125rem);
             margin-bottom: 20px;
             position: relative;
             z-index: 1;
@@ -4625,7 +4625,7 @@ body {
             font-weight: 700;
             color: #111827;
             text-align: center;
-            font-size: 0.74rem;
+            font-size: var(--text-xs, 0.75rem);
             text-transform: uppercase;
         }
 
@@ -4642,7 +4642,7 @@ body {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
@@ -4666,7 +4666,7 @@ body {
         }
 
         .sig-nip {
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             margin-top: 2px;
         }
@@ -4679,7 +4679,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             color: #6b7280;
             position: relative;
             z-index: 1;
@@ -4697,7 +4697,7 @@ body {
             border: 1px solid #d1d5db;
             padding: 2px;
             background: #fff;
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
         }
 
         /* Floating bar (Identik dengan Jadwal KBM) */
@@ -4708,9 +4708,9 @@ body {
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            font-size: 0.82rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             border: none;
             cursor: pointer;
             text-decoration: none;
@@ -4741,7 +4741,7 @@ body {
             align-items: center;
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
-            border-radius: 30px;
+            border-radius: var(--radius-2xl, 20px);
             padding: 2px;
         }
 
@@ -4750,10 +4750,10 @@ body {
             align-items: center;
             gap: 5px;
             padding: 6px 14px;
-            font-size: 0.8rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             color: #4b5563;
-            border-radius: 25px;
+            border-radius: var(--radius-2xl, 20px);
             text-decoration: none;
             transition: all 0.15s ease;
         }
@@ -4905,7 +4905,7 @@ body {
             font-weight: bold;
             display: inline-block;
             padding: 1px 4px;
-            border-radius: 3px;
+            border-radius: var(--radius-xs, 4px);
             font-size: 9px;
         }
         .status-h { background: #dcfce7; color: #15803d; }
@@ -4918,7 +4918,7 @@ body {
         .summary-box {
             border: 1px solid #cbd5e1;
             background: #f8fafc;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             padding: 8px 12px;
             margin-bottom: 14px;
             font-size: 10px;
@@ -5085,12 +5085,12 @@ body {
     margin: 12px 0 16px 0;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     padding: 8px 14px;
 }
 
 .meta-col-title {
-    font-size: 0.68rem;
+    font-size: var(--text-2xs, 0.6875rem);
     text-transform: uppercase;
     font-weight: 700;
     color: #64748b;
@@ -5098,7 +5098,7 @@ body {
 }
 
 .meta-col-val {
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     font-weight: 800;
     color: #0f172a;
 }
@@ -5106,7 +5106,7 @@ body {
 .table-distribusi {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     margin-bottom: 20px;
 }
 
@@ -5117,7 +5117,7 @@ body {
     text-align: left;
     font-weight: 700;
     color: #1e293b;
-    font-size: 0.76rem;
+    font-size: var(--text-sm, 0.8125rem);
 }
 
 .table-distribusi td {
@@ -5130,7 +5130,7 @@ body {
 .ttd-box-odd {
     text-align: left;
     padding-left: 8px;
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     height: 26px;
     display: flex;
     align-items: center;
@@ -5139,7 +5139,7 @@ body {
 .ttd-box-even {
     text-align: left;
     padding-left: 55px;
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     height: 26px;
     display: flex;
     align-items: center;
@@ -5160,13 +5160,13 @@ body {
 
 .summary-box {
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     padding: 12px 14px;
     background: #f8fafc;
 }
 
 .summary-box-label {
-    font-size: 0.75rem;
+    font-size: var(--text-xs, 0.75rem);
     color: #64748b;
     text-transform: uppercase;
     font-weight: 700;
@@ -5174,13 +5174,13 @@ body {
 }
 
 .summary-box-val {
-    font-size: 1.25rem;
+    font-size: var(--text-xl, 1.25rem);
     font-weight: 800;
     color: #0f172a;
 }
 
 .section-title {
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     font-weight: 800;
     color: #0f172a;
     margin: 20px 0 10px 0;
@@ -5194,7 +5194,7 @@ body {
 .table-laporan {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     margin-bottom: 18px;
 }
 
@@ -5224,7 +5224,7 @@ body {
 
 .sig-block {
     text-align: center;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     page-break-inside: avoid;
     break-inside: avoid;
 }

@@ -10,14 +10,14 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-boxes-stacked"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Inventaris Aset &amp; Sarana
                     </h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Pencatatan barang milik sekolah, aset elektronik, mebel, mesin, dan status ketersediaannya.
                     </div>
                 </div>
@@ -25,7 +25,7 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalAset"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Tambah Aset Baru">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -122,7 +122,7 @@
                             @if ($search || $kategoriFilter || $kondisiFilter || $ruangFilter)
                                 <a href="{{ route('dashboard.sarpras.aset.index') }}"
                                     class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -146,25 +146,25 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Aset / Barang</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kategori &amp; Sumber</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Ruang / Lokasi</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Jumlah</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Kondisi &amp; Status</th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -172,80 +172,80 @@
                         @forelse ($list as $idx => $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <td data-label="No"
-                                    style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
                                 </td>
                                 <td data-label="Aset" style="padding: 14px 18px;">
                                     <div style="display: flex; align-items: center; gap: 12px;">
                                         @if ($item->foto)
                                             <div
-                                                style="width: 42px; height: 42px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-md, 8px); overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0;">
                                                 <img src="{{ asset('storage/' . $item->foto) }}"
                                                     alt="{{ $item->nama_barang }}"
                                                     style="width: 100%; height: 100%; object-fit: cover;">
                                             </div>
                                         @else
                                             <div
-                                                style="width: 42px; height: 42px; border-radius: 8px; background: var(--bg-hover); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-md, 8px); background: var(--bg-hover); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;">
                                                 <i class="fas fa-box"></i>
                                             </div>
                                         @endif
                                         <div>
-                                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">
+                                            <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                                 {{ $item->nama_barang }}</div>
                                             <div
-                                                style="font-size: 0.78rem; color: var(--primary); font-family: monospace;">
+                                                style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                                 {{ $item->kode_aset }}</div>
                                             @if ($item->merk_tipe)
-                                                <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                                     {{ $item->merk_tipe }}</div>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="Kategori" style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td data-label="Kategori" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <span class="badge badge-info"
-                                        style="font-size: 0.75rem;">{{ $item->kategori }}</span>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">Sumber:
+                                        style="font-size: var(--text-xs, 0.75rem);">{{ $item->kategori }}</span>
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px;">Sumber:
                                         {{ $item->sumber_dana }}</div>
                                 </td>
-                                <td data-label="Lokasi" style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td data-label="Lokasi" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-color);">
                                         {{ $item->nama_ruang ?: 'Belum Ditentukan' }}</div>
                                     @if ($item->gedung)
-                                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ $item->gedung }}
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">{{ $item->gedung }}
                                         </div>
                                     @endif
                                 </td>
                                 <td data-label="Jumlah"
-                                    style="padding: 14px 18px; text-align: center; font-size: 0.9rem; font-weight: 700;">
+                                    style="padding: 14px 18px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700;">
                                     {{ $item->jumlah }} {{ $item->satuan }}
                                 </td>
                                 <td data-label="Status" style="padding: 14px 18px; text-align: center;">
                                     <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
                                         @if ($item->kondisi === 'baik')
-                                            <span class="badge badge-success" style="font-size: 0.72rem;">Kondisi
+                                            <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem);">Kondisi
                                                 Baik</span>
                                         @elseif ($item->kondisi === 'rusak_ringan')
-                                            <span class="badge badge-warning" style="font-size: 0.72rem;">Rusak
+                                            <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem);">Rusak
                                                 Ringan</span>
                                         @else
-                                            <span class="badge badge-danger" style="font-size: 0.72rem;">Rusak
+                                            <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem);">Rusak
                                                 Berat</span>
                                         @endif
 
                                         @if ($item->status_ketersediaan === 'tersedia')
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.7rem; border-color: #10b981; color: #10b981;">Tersedia</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: #10b981; color: #10b981;">Tersedia</span>
                                         @elseif ($item->status_ketersediaan === 'dipinjam')
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.7rem; border-color: #3b82f6; color: #3b82f6;">Dipinjam</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: #3b82f6; color: #3b82f6;">Dipinjam</span>
                                         @elseif ($item->status_ketersediaan === 'perbaikan')
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.7rem; border-color: #f59e0b; color: #f59e0b;">Perbaikan</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: #f59e0b; color: #f59e0b;">Perbaikan</span>
                                         @else
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.7rem; border-color: #ef4444; color: #ef4444;">Dihapuskan</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: #ef4444; color: #ef4444;">Dihapuskan</span>
                                         @endif
                                     </div>
                                 </td>
@@ -279,7 +279,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada data barang aset yang cocok.</div>
                                 </td>
                             </tr>
@@ -300,14 +300,14 @@
         <div id="modalAset" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
+                style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="modalAsetTitle"
-                        style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Tambah Aset Sarpras
                     </h3>
                     <button type="button" id="btnCloseModalAset"
-                        style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
                 <form id="formAset" method="POST" action="{{ route('dashboard.sarpras.aset.store') }}"
@@ -319,14 +319,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
                                 Aset <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="kode_aset" id="asetKode" class="form-control"
                                 placeholder="AST-2026-001" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
                                 Barang / Aset <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="nama_barang" id="asetNama" class="form-control"
                                 placeholder="Proyektor Epson EB-X500" required>
@@ -336,7 +336,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kategori
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kategori
                                 <span style="color: #ef4444;">*</span></label>
                             <select name="kategori" id="asetKategori" class="form-control" required>
                                 @foreach ($kategoriList as $kat)
@@ -346,7 +346,7 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Merk
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Merk
                                 / Model / Tipe</label>
                             <input type="text" name="merk_tipe" id="asetMerk" class="form-control"
                                 placeholder="Epson / Lenovo / Olympic">
@@ -356,21 +356,21 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jumlah
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jumlah
                                 <span style="color: #ef4444;">*</span></label>
                             <input type="number" name="jumlah" id="asetJumlah" class="form-control" value="1"
                                 min="1" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
                                 <span style="color: #ef4444;">*</span></label>
                             <input type="text" name="satuan" id="asetSatuan" class="form-control" value="unit"
                                 placeholder="unit/buah/set" required>
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tahun
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tahun
                                 Beli</label>
                             <input type="number" name="tahun_perolehan" id="asetTahun" class="form-control"
                                 value="{{ date('Y') }}" min="1990">
@@ -380,7 +380,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Sumber
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Sumber
                                 Dana <span style="color: #ef4444;">*</span></label>
                             <select name="sumber_dana" id="asetSumber" class="form-control" required>
                                 <option value="BOS Reguler">BOS Reguler</option>
@@ -392,7 +392,7 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Ruang
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Ruang
                                 / Penempatan</label>
                             <select name="ruang_id" id="asetRuang" class="form-control">
                                 <option value="">-- Pilih Ruang --</option>
@@ -408,7 +408,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
                                 <span style="color: #ef4444;">*</span></label>
                             <select name="kondisi" id="asetKondisi" class="form-control" required>
                                 <option value="baik">Baik</option>
@@ -418,7 +418,7 @@
                         </div>
                         <div>
                             <label
-                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Status
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Status
                                 Ketersediaan <span style="color: #ef4444;">*</span></label>
                             <select name="status_ketersediaan" id="asetStatus" class="form-control" required>
                                 <option value="tersedia">Tersedia</option>
@@ -431,7 +431,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Foto
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Foto
                             Aset / Barang (Opsional)</label>
                         <input type="file" name="foto" id="asetFoto" class="form-control" accept="image/*">
                     </div>

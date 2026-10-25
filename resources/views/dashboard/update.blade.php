@@ -7,16 +7,16 @@
     <!-- Welcome / Header Banner -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-arrows-rotate text-primary me-2"></i> Update Sistem
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Deteksi dan instalasi otomatis pembaruan file kode, assets, dan migrasi skema database SAE.
             </p>
         </div>
         <div class="dash-banner-actions">
             <button type="button" id="btnCheckUpdate" class="btn btn-outline"
-                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                 title="Periksa Pembaruan Sistem">
                 <i class="fas fa-sync-alt" id="checkIcon"></i>
             </button>
@@ -30,7 +30,7 @@
                 <i class="fas fa-code-branch"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" id="currentVer" style="font-size: 1.25rem;">
+                <div class="dash-stat-value" id="currentVer" style="font-size: var(--text-xl, 1.25rem);">
                     v{{ $status['current_version'] }}
                 </div>
                 <div class="dash-stat-label">Versi Sistem Terpasang</div>
@@ -42,7 +42,7 @@
                 <i class="fas fa-code-commit"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" id="gitBranch" style="font-size: 1.15rem;">
+                <div class="dash-stat-value" id="gitBranch" style="font-size: var(--text-xl, 1.25rem);">
                     {{ $status['has_git'] ? $status['git_branch'] : 'Standalone' }}
                 </div>
                 <div class="dash-stat-label">Branch Repositori</div>
@@ -68,7 +68,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" id="lastUpdateText"
-                    style="font-size: 0.95rem; font-weight: 700; word-break: break-all;">
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; word-break: break-all;">
                     {{ $status['last_update_at'] ?? 'Belum Tercatat' }}
                 </div>
                 <div class="dash-stat-label">Riwayat Update Terakhir</div>
@@ -81,7 +81,7 @@
         <!-- Status & Action Card -->
         <div class="card" style="margin-bottom: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color);">
                     <i class="fas fa-shield-halved text-primary me-2"></i> Status Integritas Sistem
                 </h3>
                 <span class="badge {{ $status['updates_available'] ? 'badge-warning' : 'badge-primary' }}" id="statusBadge">
@@ -91,7 +91,7 @@
 
             <!-- Update Alert Banner -->
             <div id="updateBanner"
-                style="padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)' }}; border: 1px solid {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)' }};">
+                style="padding: 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)' }}; border: 1px solid {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)' }};">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
                         style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)' }}; color: {{ $status['updates_available'] ? '#f59e0b' : '#10b981' }};">
@@ -101,14 +101,14 @@
                         <div style="font-weight: 700; color: var(--text-color);" id="bannerTitle">
                             {{ $status['updates_available'] ? 'Pembaruan Tersedia!' : 'Sistem Sudah yang Terbaru' }}
                         </div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);" id="bannerDesc">
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);" id="bannerDesc">
                             {{ $status['updates_available'] ? 'Ditemukan file kode atau migrasi database baru yang siap dipasang.' : 'Semua file kode dan struktur database sudah dalam kondisi prima.' }}
                         </div>
                     </div>
                 </div>
                 <button type="button" id="btnRunUpdate"
                     class="btn btn-primary {{ $status['updates_available'] ? '' : 'hidden' }}"
-                    style="padding: 9px 16px; font-size: 0.85rem; white-space: nowrap; display: {{ $status['updates_available'] ? 'inline-flex' : 'none' }};">
+                    style="padding: 9px 16px; font-size: var(--text-base, 0.875rem); white-space: nowrap; display: {{ $status['updates_available'] ? 'inline-flex' : 'none' }};">
                     <i class="fas fa-download me-1"></i> Pasang Sekarang
                 </button>
             </div>
@@ -116,12 +116,12 @@
             <!-- Migration Details if any -->
             <div id="migrationList" class="{{ empty($status['pending_migrations']) ? 'hidden' : '' }}"
                 style="margin-top: 15px;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-color); margin-bottom: 8px;">
+                <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 8px;">
                     <i class="fas fa-database text-warning me-1"></i> Migrasi Database yang Belum Dipasang:
                 </div>
                 <div
-                    style="background: var(--bg-hover); border-radius: 8px; padding: 10px; max-height: 140px; overflow-y: auto;">
-                    <ul style="font-size: 0.8rem; color: var(--text-muted); margin: 0; padding-left: 18px;" id="migUl">
+                    style="background: var(--bg-hover); border-radius: var(--radius-md, 8px); padding: 10px; max-height: 140px; overflow-y: auto;">
+                    <ul style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 0; padding-left: 18px;" id="migUl">
                         @foreach ($status['pending_migrations'] as $mig)
                             <li><code>{{ $mig }}</code></li>
                         @endforeach
@@ -129,7 +129,7 @@
                 </div>
             </div>
 
-            <div style="margin-top: 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+            <div style="margin-top: 20px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5;">
                 <i class="fas fa-circle-info text-primary me-1"></i> <b>Catatan Pembaruan:</b>
                 Proses update akan melakukan migrasi database (jika ada skema baru), sinkronisasi file kode, dan
                 membersihkan cache aplikasi secara otomatis.
@@ -139,14 +139,14 @@
         <!-- Terminal Execution Log Card -->
         <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color);">
                     <i class="fas fa-terminal text-primary me-2"></i> Log Eksekusi Pembaruan
                 </h3>
                 <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: var(--text-muted);">Console</span>
             </div>
 
             <div id="updateLogBox"
-                style="flex: 1; min-height: 250px; max-height: 320px; background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 0.8rem; padding: 14px; border-radius: 10px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08);">
+                style="flex: 1; min-height: 250px; max-height: 320px; background: #0f172a; color: #38bdf8; font-family: monospace; font-size: var(--text-sm, 0.8125rem); padding: 14px; border-radius: var(--radius-lg, 12px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.08);">
                 <div style="color: #64748b;">// Siap menerima proses update sistem...</div>
             </div>
         </div>

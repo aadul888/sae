@@ -22,10 +22,10 @@ textarea.form-control,
 select.form-control {
     background-color: var(--input-bg, rgba(0, 0, 0, 0.35)) !important;
     border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     padding: 9px 14px;
     color: var(--text-color, #f1f5f9) !important;
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     font-family: inherit;
     outline: none;
     box-sizing: border-box;
@@ -82,7 +82,7 @@ input[type="month"] {
     background: transparent;
     border: none;
     padding: 10px 18px;
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 600;
     color: var(--text-muted);
     border-bottom: 2px solid transparent;
@@ -141,7 +141,7 @@ input[type="month"] {
 }
 
 .kiosk-header-title {
-    font-size: 1.15rem;
+    font-size: var(--text-xl, 1.25rem);
     font-weight: 800;
     margin: 0;
     color: var(--text-color);
@@ -152,7 +152,7 @@ input[type="month"] {
 }
 
 .kiosk-header-subtitle {
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
     margin-top: 2px;
     white-space: normal;
@@ -172,7 +172,7 @@ input[type="month"] {
 
 .kiosk-clock {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 2.1rem;
+    font-size: var(--text-3xl, 1.875rem);
     font-weight: 800;
     color: var(--primary, #3b82f6);
     letter-spacing: 2px;
@@ -181,7 +181,7 @@ input[type="month"] {
 }
 
 .kiosk-date {
-    font-size: 0.85rem;
+    font-size: var(--text-base, 0.875rem);
     color: var(--text-muted);
     margin-top: 4px;
 }
@@ -200,8 +200,8 @@ input[type="month"] {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    font-size: 0.95rem !important;
+    border-radius: var(--radius-lg, 12px);
+    font-size: var(--text-md, 1rem) !important;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -224,7 +224,7 @@ input[type="month"] {
 .kiosk-header-actions #btnKioskLock i,
 .kiosk-header-actions .btn-danger i {
     color: #ffffff !important;
-    font-size: 1.05rem !important;
+    font-size: var(--text-lg, 1.125rem) !important;
 }
 
 .kiosk-header-actions #btnKioskLock:hover,
@@ -254,7 +254,7 @@ input[type="month"] {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: 0.85rem;
+    font-size: var(--text-base, 0.875rem);
     backdrop-filter: blur(8px);
     transition: all 0.25s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -300,7 +300,7 @@ input[type="month"] {
     gap: 6px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 4px;
     width: 100%;
     max-width: 220px;
@@ -332,9 +332,9 @@ input[type="month"] {
     justify-content: center;
     width: 100%;
     padding: 9px 0;
-    font-size: 1.05rem;
+    font-size: var(--text-lg, 1.125rem);
     color: var(--text-muted);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
 }
@@ -391,7 +391,7 @@ input[type="month"] {
         padding: 8px 12px;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
+        border-radius: var(--radius-lg, 12px);
     }
     .kiosk-header-left {
         display: flex;
@@ -422,7 +422,7 @@ input[type="month"] {
         flex: 1;
     }
     .kiosk-clock {
-        font-size: 1.15rem;
+        font-size: var(--text-xl, 1.25rem);
         letter-spacing: 1px;
         font-weight: 800;
         line-height: 1;
@@ -430,7 +430,7 @@ input[type="month"] {
     }
     .kiosk-date {
         display: block; /* Tampilkan hari dan tanggal di header mode responsive */
-        font-size: 0.65rem;
+        font-size: var(--text-2xs, 0.6875rem);
         color: var(--text-muted);
         margin-top: 2px;
         white-space: nowrap;
@@ -448,8 +448,8 @@ input[type="month"] {
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        font-size: 0.82rem !important;
+        border-radius: var(--radius-md, 8px);
+        font-size: var(--text-sm, 0.8125rem) !important;
     }
     .kiosk-header-actions .btn-kiosk-action .btn-text {
         display: none; /* Mode icon-only untuk menghemat ruang vertikal */
@@ -464,20 +464,20 @@ input[type="month"] {
     }
     .kiosk-mode-pills .kiosk-mode-pill .pill-content {
         padding: 8px 0 !important;
-        font-size: 1rem !important;
+        font-size: var(--text-md, 1rem) !important;
         justify-content: center;
     }
     .kiosk-mode-pills .kiosk-mode-pill .pill-content i {
-        font-size: 1rem;
+        font-size: var(--text-md, 1rem);
     }
 
     .kiosk-scanner-card {
         padding: 12px 10px !important;
-        border-radius: 14px !important;
+        border-radius: var(--radius-xl, 16px) !important;
     }
     .camera-container {
         max-width: 100% !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius-lg, 12px) !important;
     }
     #formManualScan {
         max-width: 100% !important;
@@ -496,7 +496,7 @@ input[type="month"] {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
-    border-radius: 18px;
+    border-radius: var(--radius-2xl, 20px);
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -511,7 +511,7 @@ input[type="month"] {
     width: 100%;
     max-width: 480px;
     aspect-ratio: 4 / 3;
-    border-radius: 14px;
+    border-radius: var(--radius-xl, 16px);
     overflow: hidden;
     background: #000;
     border: 2px solid rgba(59, 130, 246, 0.4);
@@ -558,7 +558,7 @@ input[type="month"] {
     width: 65%;
     height: 65%;
     border: 2px dashed rgba(59, 130, 246, 0.8);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     pointer-events: none;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
 }
@@ -628,7 +628,7 @@ input[type="month"] {
 .verify-popup-card {
     background: var(--bg-card);
     border: 2px solid var(--border-glow);
-    border-radius: 20px;
+    border-radius: var(--radius-2xl, 20px);
     padding: 32px;
     width: 90%;
     max-width: 500px;
@@ -684,7 +684,7 @@ input[type="month"] {
 .recent-scan-item {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 12px 16px;
     display: flex;
     align-items: center;
@@ -715,9 +715,9 @@ input[type="month"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 700;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     border: 1px solid var(--border-color);
     background: transparent;
     color: var(--text-muted);
@@ -781,7 +781,7 @@ input[type="month"] {
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     pointer-events: none;
 }
 
@@ -798,7 +798,7 @@ input[type="month"] {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--text-xs, 0.75rem);
     display: none;
 }
 
@@ -830,7 +830,7 @@ input[type="month"] {
         display: flex !important;
         flex-direction: column !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 16px !important;
+        border-radius: var(--radius-xl, 16px) !important;
         padding: 16px !important;
         margin-bottom: 14px !important;
         background: var(--bg-card, #131b2e) !important;
@@ -893,7 +893,7 @@ input[type="month"] {
         border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
         width: 100% !important;
         max-width: 100% !important;
-        font-size: 0.84rem !important;
+        font-size: var(--text-base, 0.875rem) !important;
     }
 
     .table-presensi-log tbody td::before,
@@ -901,7 +901,7 @@ input[type="month"] {
     .table-izin tbody td::before {
         content: attr(data-label);
         font-weight: 700;
-        font-size: 0.76rem;
+        font-size: var(--text-sm, 0.8125rem);
         letter-spacing: 0.03em;
         color: var(--text-muted);
         text-align: left;
@@ -1016,8 +1016,8 @@ input[type="month"] {
         min-width: 32px !important;
         height: 32px !important;
         padding: 0 !important;
-        font-size: 0.8rem !important;
-        border-radius: 7px !important;
+        font-size: var(--text-sm, 0.8125rem) !important;
+        border-radius: var(--radius-md, 8px) !important;
     }
 }
 
@@ -1120,7 +1120,7 @@ input[type="month"] {
 .presensi-rekap-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 14px;
+    border-radius: var(--radius-xl, 16px);
     padding: 24px;
     margin-bottom: 24px;
     width: 100%;
@@ -1171,7 +1171,7 @@ input[type="month"] {
 .rekap-feature-box {
     background: rgba(99, 102, 241, 0.04);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     padding: 14px 16px;
     display: flex;
     gap: 12px;

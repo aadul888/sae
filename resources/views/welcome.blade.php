@@ -11,16 +11,16 @@
 <body class="antialiased"
     style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-main, #0f172a); color: var(--text-main, #f8fafc); font-family: Figtree, sans-serif;">
     <div style="text-align: center; padding: 24px;">
-        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Sistem Aplikasi Edukasi (SAE)</h1>
+        <h1 style="font-size: var(--text-3xl, 1.875rem); font-weight: 800; margin-bottom: 8px;">Sistem Aplikasi Edukasi (SAE)</h1>
         <p style="color: var(--text-muted, #94a3b8); margin-bottom: 24px;">Portal Aplikasi Manajemen Sekolah &amp;
             Integrasi Dapodik</p>
         <div style="display: flex; gap: 12px; justify-content: center;">
             <a href="{{ route('home') }}" class="btn btn-primary"
-                style="padding: 10px 20px; border-radius: 8px; background: #6366f1; color: #fff; text-decoration: none; font-weight: 600;">Beranda</a>
+                style="padding: 10px 20px; border-radius: var(--radius-md, 8px); background: #6366f1; color: #fff; text-decoration: none; font-weight: 600;">Beranda</a>
             <a href="{{ route('login') }}" class="btn btn-outline"
-                style="padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); color: #fff; text-decoration: none; font-weight: 600;">Masuk</a>
+                style="padding: 10px 20px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(255,255,255,0.2); color: #fff; text-decoration: none; font-weight: 600;">Masuk</a>
         </div>
-        <p style="font-size: 0.78rem; color: #64748b; margin-top: 32px;">Laravel
+        <p style="font-size: var(--text-sm, 0.8125rem); color: #64748b; margin-top: 32px;">Laravel
             v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</p>
     </div>
 </body>

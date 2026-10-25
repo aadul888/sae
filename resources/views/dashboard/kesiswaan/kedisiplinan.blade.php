@@ -9,14 +9,14 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: 10px; background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-shield-halved"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                     Kedisiplinan Siswa
                 </h2>
-                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Tata tertib sekolah, buku saku poin pelanggaran, sesi pembinaan konseling, pemanggilan orang tua, dan
                     rekapitulasi.
                 </p>
@@ -26,21 +26,21 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
                 <button type="button" class="btn btn-outline" id="btnOpenTataTertibModal" title="Tambah Aturan Tata Tertib"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-book-bookmark text-primary"></i>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnOpenPoinModal" title="Catat Pelanggaran Poin Siswa"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #ef4444; border-color: #ef4444;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #ef4444; border-color: #ef4444;">
                     <i class="fas fa-triangle-exclamation"></i>
                 </button>
                 <button type="button" class="btn btn-outline" id="btnOpenPembinaanModal"
                     title="Catat Sesi Pembinaan Konseling"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-user-doctor text-success"></i>
                 </button>
                 <button type="button" class="btn btn-outline" id="btnOpenPanggilanModal"
                     title="Terbitkan Surat Panggilan Wali"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-envelope-open-text text-warning"></i>
                 </button>
             @endif
@@ -159,7 +159,7 @@
                     @if (!empty($q) || !empty($status) || !empty($kategori))
                         <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => $activeTab]) }}"
                             class="btn btn-outline btn-reset-filter"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
@@ -187,19 +187,19 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px;">
                                 Kode</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
                                 Kategori</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Uraian Tata Tertib &amp; Pelanggaran</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Bobot Poin</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
                                 Sanksi Rekomendasi</th>
                         </tr>
                     </thead>
@@ -225,10 +225,10 @@
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->nama_aturan }}</td>
                                 <td
-                                    style="padding: 12px 16px; text-align: center; font-weight: 800; color: #ef4444; font-size: 1.05rem;">
+                                    style="padding: 12px 16px; text-align: center; font-weight: 800; color: #ef4444; font-size: var(--text-lg, 1.125rem);">
                                     +{{ $item->bobot_poin }}
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $item->sanksi_rekomendasi ?: '-' }}</td>
                             </tr>
                         @empty
@@ -236,7 +236,7 @@
                                 <td colspan="5"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada aturan tata tertib yang cocok dengan pencarian.
                                 </td>
                             </tr>
@@ -251,46 +251,46 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
                                 Tanggal</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Jenis Pelanggaran</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
                                 Poin</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                                 Pelapor</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; text-align: center;">
                                 Status Tindak Lanjut</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($riwayatList as $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}</td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">NISN:
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">NISN:
                                         {{ $item->siswa?->nisn ?: '-' }}</div>
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran Khusus' }}</strong>
                                     @if ($item->keterangan)
-                                        <div style="font-size: 0.78rem; color: var(--text-muted);">Ket:
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Ket:
                                             {{ $item->keterangan }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center; font-weight: 800; color: #ef4444;">
                                     +{{ $item->poin }}
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
+                                <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                     {{ $item->pelapor_nama ?: 'Guru/Piket' }}</td>
                                 <td style="padding: 12px 16px; text-align: center;">
                                     @php
@@ -309,7 +309,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada riwayat pelanggaran poin siswa yang cocok dengan filter pencarian.
                                 </td>
                             </tr>
@@ -330,36 +330,36 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
                                 Tanggal</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
                                 Bentuk Pembinaan</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Hasil / Catatan Konseling</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
                                 Pembina</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
                                 Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($pembinaanList as $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     {{ date('d/m/Y', strtotime($item->tanggal_pembinaan)) }}</td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->siswa?->nama ?: '-' }}</td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;"><span
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);"><span
                                         class="badge badge-primary">{{ $item->bentuk_pembinaan }}</span></td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $item->hasil_pembinaan }}</td>
-                                <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">{{ $item->hasil_pembinaan }}</td>
+                                <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                     {{ $item->guruBk?->nama ?: ($item->waliKelas?->nama ?: 'Guru BK / Wali') }}</td>
                                 <td style="padding: 12px 16px; text-align: center;">
                                     <span
@@ -371,7 +371,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada sesi pembinaan konseling yang cocok dengan filter pencarian.
                                 </td>
                             </tr>
@@ -393,22 +393,22 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
                                 No. Surat</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
                                 Jadwal Kehadiran Ortu</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Alasan Pemanggilan</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                                 Menghadap Ke</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -416,18 +416,18 @@
                         @forelse ($pemanggilanList as $item)
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td
-                                    style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+                                    style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary);">
                                     {{ $item->nomor_surat }}</td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->siswa?->nama ?: '-' }}</td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                     <strong>{{ date('d/m/Y', strtotime($item->tanggal_hadir)) }}</strong> pk
                                     {{ substr($item->jam_hadir, 0, 5) }}
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Tempat: {{ $item->tempat }}
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Tempat: {{ $item->tempat }}
                                     </div>
                                 </td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $item->alasan }}</td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $item->menghadap_ke }}</td>
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">{{ $item->alasan }}</td>
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">{{ $item->menghadap_ke }}</td>
                                 <td style="padding: 12px 16px; text-align: center;">
                                     <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
                                         <a href="{{ route('dashboard.kesiswaan.kedisiplinan.panggilan-wali.cetak', $item->id) }}"
@@ -442,7 +442,7 @@
                                 <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada surat pemanggilan wali murid yang cocok dengan pencarian.
                                 </td>
                             </tr>
@@ -464,25 +464,25 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 70px; text-align: center;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 70px; text-align: center;">
                                 Peringkat</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Nama Siswa</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                                 NISN</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">
                                 Rombel</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Total Kasus</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 130px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 130px;">
                                 Akumulasi Poin</th>
                             <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 230px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 230px;">
                                 Tindakan Rekomendasi</th>
                         </tr>
                     </thead>
@@ -494,14 +494,14 @@
                                     #{{ $idx + 1 }}</td>
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $sw->nama }}</td>
-                                <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem;">
+                                <td style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                                     {{ $sw->nisn ?: '-' }}</td>
-                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $sw->rombel_nama ?: '-' }}</td>
+                                <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">{{ $sw->rombel_nama ?: '-' }}</td>
                                 <td style="padding: 12px 16px; text-align: center; font-weight: 700;">
                                     {{ $sw->total_kasus }}x
                                 </td>
                                 <td
-                                    style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: 1.1rem; color: {{ $sw->total_poin >= 50 ? '#ef4444' : ($sw->total_poin >= 25 ? '#f59e0b' : 'var(--text-color)') }};">
+                                    style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: var(--text-lg, 1.125rem); color: {{ $sw->total_poin >= 50 ? '#ef4444' : ($sw->total_poin >= 25 ? '#f59e0b' : 'var(--text-color)') }};">
                                     {{ $sw->total_poin }}
                                 </td>
                                 <td style="padding: 12px 16px;">
@@ -521,7 +521,7 @@
                                 <td colspan="7"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Tidak ada rekaman pelanggaran poin. Seluruh siswa bersih.
                                 </td>
                             </tr>
@@ -535,12 +535,12 @@
     <!-- MODAL 1: ATURAN TATA TERTIB -->
     <div id="modalTataTertib" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 500px; padding: 24px; border-radius: 12px; margin: 16px;">
+        <div class="card" style="width: 100%; max-width: 500px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Tambah Aturan Tata
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Tambah Aturan Tata
                     Tertib</h3>
                 <button type="button" class="close-modal" data-target="#modalTataTertib"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formTataTertib" method="POST"
@@ -549,16 +549,16 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kode
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kode
                             Aturan <span class="text-danger">*</span></label>
                         <input type="text" name="kode" class="form-control" placeholder="Contoh: TT17" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kategori
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kategori
                             <span class="text-danger">*</span></label>
-                        <select name="kategori" class="form-control" required style="width: 100%; border-radius: 8px;">
+                        <select name="kategori" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                             <option value="kerapian">Kerapian</option>
                             <option value="kehadiran">Kehadiran</option>
                             <option value="perilaku">Perilaku</option>
@@ -568,31 +568,31 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Uraian
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Uraian
                         Pelanggaran <span class="text-danger">*</span></label>
                     <input type="text" name="nama_aturan" class="form-control"
-                        placeholder="Tuliskan nama pelanggaran" required style="width: 100%; border-radius: 8px;">
+                        placeholder="Tuliskan nama pelanggaran" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                 </div>
                 <div style="display: grid; grid-template-columns: 100px 1fr; gap: 12px; margin-bottom: 18px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Poin
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Poin
                             <span class="text-danger">*</span></label>
                         <input type="number" name="bobot_poin" class="form-control" value="5" min="1"
-                            required style="width: 100%; border-radius: 8px;">
+                            required style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Sanksi
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Sanksi
                             Rekomendasi</label>
                         <input type="text" name="sanksi_rekomendasi" class="form-control"
-                            placeholder="Contoh: Teguran lisan" style="width: 100%; border-radius: 8px;">
+                            placeholder="Contoh: Teguran lisan" style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline close-modal" data-target="#modalTataTertib"
-                        style="border-radius: 8px;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;"><i
+                        style="border-radius: var(--radius-md, 8px);">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-md, 8px);"><i
                             class="fas fa-save"></i> Simpan Aturan</button>
                 </div>
             </form>
@@ -602,12 +602,12 @@
     <!-- MODAL 2: CATAT PELANGGARAN POIN -->
     <div id="modalPoin" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
+        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Catat Pelanggaran
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Pelanggaran
                     Poin Siswa</h3>
                 <button type="button" class="close-modal" data-target="#modalPoin"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPoin" method="POST"
@@ -615,20 +615,20 @@
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                         Siswa <span class="text-danger">*</span></label>
                     <input type="search" id="poinSiswaLookup" class="form-control"
                         placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
                         data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
                         data-people-target="#poinSiswaId" data-people-require-selection="true" required
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                     <input type="hidden" id="poinSiswaId" name="peserta_didik_id">
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                         Pelanggaran Tata Tertib <span class="text-danger">*</span></label>
-                    <select name="tata_tertib_id" class="form-control" required style="width: 100%; border-radius: 8px;">
+                    <select name="tata_tertib_id" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                         <option value="">-- Pilih Jenis Pelanggaran --</option>
                         @foreach ($tataTertibList as $tt)
                             <option value="{{ $tt->id }}">[{{ $tt->kode }}] {{ $tt->nama_aturan }}
@@ -640,38 +640,38 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
                             Kejadian <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_kejadian" class="form-control" value="{{ date('Y-m-d') }}"
-                            required style="width: 100%; border-radius: 8px;">
+                            required style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tempat
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tempat
                             Kejadian</label>
                         <input type="text" name="tempat_kejadian" class="form-control"
-                            placeholder="Contoh: Depan Gerbang / Kantin" style="width: 100%; border-radius: 8px;">
+                            placeholder="Contoh: Depan Gerbang / Kantin" style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Keterangan
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Keterangan
                         / Catatan Tambahan</label>
                     <input type="text" name="keterangan" class="form-control" placeholder="Rincian kronologi singkat"
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                 </div>
                 <div class="form-group" style="margin-bottom: 18px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Unggah
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Unggah
                         Foto Bukti (Opsional)</label>
                     <input type="file" name="foto_bukti" class="form-control" accept="image/*"
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline close-modal" data-target="#modalPoin"
-                        style="border-radius: 8px;">Batal</button>
+                        style="border-radius: var(--radius-md, 8px);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="border-radius: 8px; background: #ef4444; border-color: #ef4444;"><i
+                        style="border-radius: var(--radius-md, 8px); background: #ef4444; border-color: #ef4444;"><i
                             class="fas fa-save"></i> Catat Poin</button>
                 </div>
             </form>
@@ -681,12 +681,12 @@
     <!-- MODAL 3: PEMBINAAN SISWA -->
     <div id="modalPembinaan" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
+        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Catat Sesi Pembinaan
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Sesi Pembinaan
                     Konseling</h3>
                 <button type="button" class="close-modal" data-target="#modalPembinaan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPembinaan" method="POST"
@@ -694,29 +694,29 @@
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                         Siswa <span class="text-danger">*</span></label>
                     <input type="search" id="pembinaanSiswaLookup" class="form-control"
                         placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
                         data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
                         data-people-target="#pembinaanSiswaId" data-people-require-selection="true" required
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                     <input type="hidden" id="pembinaanSiswaId" name="peserta_didik_id">
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
                             Pembinaan <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_pembinaan" class="form-control" value="{{ date('Y-m-d') }}"
-                            required style="width: 100%; border-radius: 8px;">
+                            required style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Bentuk
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Bentuk
                             Pembinaan <span class="text-danger">*</span></label>
                         <select name="bentuk_pembinaan" class="form-control" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                             <option value="Konseling Individual BK">Konseling Individual BK</option>
                             <option value="Peringatan Lisan & Refleksi">Peringatan Lisan & Refleksi</option>
                             <option value="Surat Perjanjian Bermaterai">Surat Perjanjian Bermaterai</option>
@@ -726,34 +726,34 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Hasil
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Hasil
                         / Komitmen Siswa <span class="text-danger">*</span></label>
                     <textarea name="hasil_pembinaan" class="form-control" rows="3"
                         placeholder="Tuliskan hasil sesi konseling dan komitmen siswa..." required
-                        style="width: 100%; border-radius: 8px;"></textarea>
+                        style="width: 100%; border-radius: var(--radius-md, 8px);"></textarea>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Status
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Status
                             Kasus <span class="text-danger">*</span></label>
-                        <select name="status" class="form-control" required style="width: 100%; border-radius: 8px;">
+                        <select name="status" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                             <option value="selesai">Selesai / Tuntas</option>
                             <option value="proses">Masih Dalam Pemantauan</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">File
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">File
                             Surat Perjanjian (Jika Ada)</label>
                         <input type="file" name="surat_perjanjian_file" class="form-control" accept=".pdf,image/*"
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline close-modal" data-target="#modalPembinaan"
-                        style="border-radius: 8px;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;"><i
+                        style="border-radius: var(--radius-md, 8px);">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-md, 8px);"><i
                             class="fas fa-save"></i> Simpan Pembinaan</button>
                 </div>
             </form>
@@ -763,12 +763,12 @@
     <!-- MODAL 4: PEMANGGILAN ORANG TUA / WALI -->
     <div id="modalPanggilan" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
+        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Terbitkan Surat
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Terbitkan Surat
                     Panggilan Orang Tua</h3>
                 <button type="button" class="close-modal" data-target="#modalPanggilan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
                         class="fas fa-times"></i></button>
             </div>
             <form id="formPanggilan" method="POST"
@@ -776,68 +776,68 @@
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                         Siswa <span class="text-danger">*</span></label>
                     <input type="search" id="panggilanSiswaLookup" class="form-control"
                         placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
                         data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
                         data-people-target="#panggilanSiswaId" data-people-require-selection="true" required
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                     <input type="hidden" id="panggilanSiswaId" name="peserta_didik_id">
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
                             Surat <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_surat" class="form-control" value="{{ date('Y-m-d') }}"
-                            required style="width: 100%; border-radius: 8px;">
+                            required style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tanggal
                             Hadir Ortu <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_hadir" class="form-control"
                             value="{{ date('Y-m-d', strtotime('+1 day')) }}" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pukul
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pukul
                             / Jam <span class="text-danger">*</span></label>
                         <input type="time" name="jam_hadir" class="form-control" value="08:30" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div class="form-group">
                         <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Ruang
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Ruang
                             / Tempat <span class="text-danger">*</span></label>
                         <input type="text" name="tempat" class="form-control"
                             value="Ruang Bimbingan Konseling / Kesiswaan" required
-                            style="width: 100%; border-radius: 8px;">
+                            style="width: 100%; border-radius: var(--radius-md, 8px);">
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
                         Pemanggilan <span class="text-danger">*</span></label>
                     <input type="text" name="alasan" class="form-control"
                         placeholder="Contoh: Akumulasi poin pelanggaran mencapai 50 poin" required
-                        style="width: 100%; border-radius: 8px;">
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
                 </div>
                 <div class="form-group" style="margin-bottom: 18px;">
                     <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Menghadap
+                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Menghadap
                         Ke <span class="text-danger">*</span></label>
                     <input type="text" name="menghadap_ke" class="form-control"
-                        value="Guru BK / Waka Bidang Kesiswaan" required style="width: 100%; border-radius: 8px;">
+                        value="Guru BK / Waka Bidang Kesiswaan" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline close-modal" data-target="#modalPanggilan"
-                        style="border-radius: 8px;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;"><i
+                        style="border-radius: var(--radius-md, 8px);">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-md, 8px);"><i
                             class="fas fa-paper-plane"></i> Terbitkan Surat</button>
                 </div>
             </form>

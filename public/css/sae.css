@@ -12,6 +12,7 @@
     --border-glow: rgba(59, 130, 246, 0.3);
     --primary: #3b82f6;
     --primary-hover: #2563eb;
+    --primary-light: #818cf8;
     --primary-glow: rgba(59, 130, 246, 0.5);
     --accent: #06b6d4;
     --text-main: #f1f5f9;
@@ -45,6 +46,7 @@
     --border-glow: rgba(59, 130, 246, 0.25);
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
+    --primary-light: #3b82f6;
     --primary-glow: rgba(37, 99, 235, 0.3);
     --accent: #0284c7;
     --text-main: #0f172a;
@@ -172,8 +174,8 @@ body {
 /* Buttons */
 .btn {
     padding: 0.65rem 1.25rem;
-    border-radius: 10px;
-    font-size: 0.875rem;
+    border-radius: var(--radius-lg, 12px);
+    font-size: var(--text-base, 0.875rem);
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -237,12 +239,12 @@ body {
     color: var(--text-main);
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     transition: all 0.2s ease;
 }
 .btn-theme-toggle:hover {
@@ -254,7 +256,7 @@ body {
 .card {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 16px;
+    border-radius: var(--radius-xl, 16px);
     padding: 24px;
     box-shadow: var(--card-shadow);
 }
@@ -272,7 +274,7 @@ body {
 }
 .form-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 6px;
@@ -281,10 +283,10 @@ body {
     width: 100%;
     background: var(--input-bg);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 11px 14px;
     color: var(--text-main);
-    font-size: 0.9rem;
+    font-size: var(--text-base, 0.875rem);
     outline: none;
     transition: border-color 0.2s ease;
 }
@@ -303,9 +305,9 @@ select.input-control {
     background-color: var(--input-bg, var(--bg-card));
     color: var(--text-main);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 10px 36px 10px 14px;
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 500;
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
@@ -383,8 +385,8 @@ select:-webkit-autofill {
 /* Alert Boxes */
 .alert {
     padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 0.85rem;
+    border-radius: var(--radius-lg, 12px);
+    font-size: var(--text-base, 0.875rem);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -411,10 +413,10 @@ select:-webkit-autofill {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.72rem;
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 700;
     padding: 3px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
@@ -452,7 +454,7 @@ select:-webkit-autofill {
     gap: 8px;
     background: var(--card-bg);
     padding: 5px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     border: 1px solid var(--border-color);
     margin-bottom: 18px;
     max-width: 100%;
@@ -478,9 +480,9 @@ select:-webkit-autofill {
     white-space: nowrap;
     flex-shrink: 0;
     padding: 7px 16px;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     text-decoration: none;
     transition: all 0.2s ease;
 }
@@ -489,7 +491,7 @@ select:-webkit-autofill {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
@@ -499,8 +501,8 @@ select:-webkit-autofill {
     width: auto !important;
     min-width: 60px;
     padding: 7px 10px;
-    font-size: 0.82rem;
-    border-radius: 8px;
+    font-size: var(--text-sm, 0.8125rem);
+    border-radius: var(--radius-md, 8px);
     border: 1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-color);
@@ -519,7 +521,7 @@ select:-webkit-autofill {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
 }
 .table-custom th {
     padding: 12px 14px;
@@ -574,7 +576,7 @@ select:-webkit-autofill {
 .nav-link {
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 500;
     transition: color 0.2s;
 }
@@ -588,12 +590,12 @@ select:-webkit-autofill {
     color: var(--text-main);
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     transition: all 0.2s ease;
 }
 .theme-toggle-btn:hover,
@@ -606,7 +608,7 @@ select:-webkit-autofill {
     background: transparent;
     border: none;
     color: var(--text-main);
-    font-size: 1.35rem;
+    font-size: var(--text-2xl, 1.5rem);
     cursor: pointer;
 }
 
@@ -625,7 +627,7 @@ select:-webkit-autofill {
     margin: 1.25rem 0 1.75rem;
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     padding: 0.5rem 0.85rem;
     display: flex;
     align-items: center;
@@ -636,9 +638,9 @@ select:-webkit-autofill {
 .ticker-label {
     background: rgba(59, 130, 246, 0.2);
     color: var(--primary);
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     padding: 4px 8px;
-    font-size: 0.7rem;
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -661,7 +663,7 @@ select:-webkit-autofill {
     flex-shrink: 0;
     animation: marqueeContinuous 35s linear infinite;
     color: var(--text-muted);
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     padding-right: 28px;
 }
 .ticker-item {
@@ -697,13 +699,13 @@ select:-webkit-autofill {
     cursor: pointer;
     padding: 0.45rem 0.95rem;
     font-family: inherit;
-    font-size: 0.875rem;
+    font-size: var(--text-base, 0.875rem);
     color: var(--text-main);
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     transition: all var(--transition-speed) ease;
 }
 
@@ -724,7 +726,7 @@ select:-webkit-autofill {
 }
 
 .nav-chevron-icon {
-    font-size: 0.72rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
 }
@@ -793,7 +795,7 @@ select:-webkit-autofill {
 }
 
 .mega-dropdown-title {
-    font-size: 1.35rem;
+    font-size: var(--text-2xl, 1.5rem);
     font-weight: 800;
     color: var(--text-main);
     letter-spacing: -0.01em;
@@ -805,12 +807,12 @@ select:-webkit-autofill {
     color: var(--text-muted);
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--text-base, 0.875rem);
     transition: all var(--transition-speed) ease;
 }
 
@@ -835,7 +837,7 @@ select:-webkit-autofill {
     padding: 14px 16px;
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     text-decoration: none;
     transition: all var(--transition-speed) ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -851,11 +853,11 @@ select:-webkit-autofill {
 .mega-item-icon {
     width: 42px;
     height: 42px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: var(--text-xl, 1.25rem);
     flex-shrink: 0;
 }
 
@@ -865,7 +867,7 @@ select:-webkit-autofill {
 }
 
 .mega-item-title {
-    font-size: 0.92rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 700;
     color: var(--text-main);
     display: flex;
@@ -875,17 +877,17 @@ select:-webkit-autofill {
 }
 
 .badge-live-dot {
-    font-size: 0.62rem;
+    font-size: var(--text-2xs, 0.6875rem);
     font-weight: 800;
     background: var(--success);
     color: #ffffff;
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     letter-spacing: 0.5px;
 }
 
 .mega-item-desc {
-    font-size: 0.74rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
     line-height: 1.4;
     display: -webkit-box;
@@ -918,7 +920,7 @@ select:-webkit-autofill {
     padding: 6px 14px;
     background: rgba(6, 182, 212, 0.1);
     color: var(--accent);
-    border-radius: 99px;
+    border-radius: var(--radius-pill, 999px);
     font-size: clamp(0.7rem, 2vw, 0.8rem);
     font-weight: 700;
     border: 1px solid rgba(6, 182, 212, 0.2);
@@ -958,8 +960,8 @@ select:-webkit-autofill {
     background: var(--input-bg);
     border: 1px solid var(--border-glass);
     padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 0.725rem;
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 600;
     color: var(--text-muted);
     display: flex;
@@ -971,7 +973,7 @@ select:-webkit-autofill {
 .card-nisn {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 20px;
+    border-radius: var(--radius-2xl, 20px);
     padding: clamp(1.25rem, 3vw, 2rem);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
@@ -989,7 +991,7 @@ select:-webkit-autofill {
     margin-bottom: 1.25rem;
 }
 .card-nisn-title {
-    font-size: 1rem;
+    font-size: var(--text-md, 1rem);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -1001,7 +1003,7 @@ select:-webkit-autofill {
 }
 .input-label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 6px;
@@ -1011,9 +1013,9 @@ select:-webkit-autofill {
     background: var(--input-bg);
     border: 1px solid var(--border-glass);
     padding: 0.75rem 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     color: var(--text-main);
-    font-size: 0.9rem;
+    font-size: var(--text-base, 0.875rem);
     outline: none;
 }
 .input-field:focus {
@@ -1023,7 +1025,7 @@ select:-webkit-autofill {
 .nisn-result {
     margin-top: 1rem;
     padding: 0.85rem;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.25);
     display: none;
@@ -1039,7 +1041,7 @@ select:-webkit-autofill {
 .kpi-card {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 16px;
+    border-radius: var(--radius-xl, 16px);
     padding: 1.25rem;
     display: flex;
     align-items: center;
@@ -1053,11 +1055,11 @@ select:-webkit-autofill {
 .kpi-icon {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: var(--text-xl, 1.25rem);
     flex-shrink: 0;
 }
 .kpi-icon.blue {
@@ -1084,7 +1086,7 @@ select:-webkit-autofill {
     color: var(--text-main);
 }
 .kpi-desc {
-    font-size: 0.75rem;
+    font-size: var(--text-xs, 0.75rem);
     color: var(--text-muted);
     font-weight: 600;
 }
@@ -1096,7 +1098,7 @@ select:-webkit-autofill {
 }
 .section-kicker {
     color: var(--accent);
-    font-size: 0.75rem;
+    font-size: var(--text-xs, 0.75rem);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1126,7 +1128,7 @@ select:-webkit-autofill {
 .service-card {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 18px;
+    border-radius: var(--radius-2xl, 20px);
     padding: clamp(1.25rem, 3vw, 1.75rem);
     text-decoration: none;
     color: var(--text-main);
@@ -1143,17 +1145,17 @@ select:-webkit-autofill {
 .service-icon {
     width: 42px;
     height: 42px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg, 12px);
     background: var(--input-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: var(--text-xl, 1.25rem);
     color: var(--primary);
     margin-bottom: 1.25rem;
 }
 .service-title {
-    font-size: 1.05rem;
+    font-size: var(--text-lg, 1.125rem);
     font-weight: 700;
     margin-bottom: 0.6rem;
     color: var(--text-main);
@@ -1161,12 +1163,12 @@ select:-webkit-autofill {
 .service-list {
     list-style: none;
     margin-bottom: 1.25rem;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
     line-height: 1.6;
 }
 .service-cta {
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     font-weight: 700;
     color: var(--primary);
     display: flex;
@@ -1178,7 +1180,7 @@ select:-webkit-autofill {
 .analytics-card {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 20px;
+    border-radius: var(--radius-2xl, 20px);
     padding: clamp(1.25rem, 3vw, 2rem);
     margin-bottom: clamp(3rem, 6vw, 5rem);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -1197,12 +1199,12 @@ select:-webkit-autofill {
 .chart-box {
     background: var(--input-bg);
     border: 1px solid var(--border-glass);
-    border-radius: 14px;
+    border-radius: var(--radius-xl, 16px);
     padding: clamp(1rem, 2vw, 1.25rem);
     min-width: 0;
 }
 .chart-box-title {
-    font-size: 0.85rem;
+    font-size: var(--text-base, 0.875rem);
     font-weight: 700;
     margin-bottom: 0.75rem;
     color: var(--text-muted);
@@ -1218,7 +1220,7 @@ select:-webkit-autofill {
     gap: 0.75rem;
     background: var(--input-bg);
     padding: 0.85rem;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     border: 1px solid var(--border-glass);
 }
 .filter-select {
@@ -1228,9 +1230,9 @@ select:-webkit-autofill {
     border: 1px solid var(--border-glass);
     color: var(--text-main);
     padding: 0.65rem 2.4rem 0.65rem 0.9rem;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     outline: none;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     background-repeat: no-repeat !important;
     background-position: right 12px center !important;
     background-size: 15px 15px !important;
@@ -1245,7 +1247,7 @@ select:-webkit-autofill {
     padding: 2rem 0;
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
 }
 
 /* Responsive Breakpoints */
@@ -1292,7 +1294,7 @@ select:-webkit-autofill {
         width: 100%;
         justify-content: center;
         padding: 0.6rem 1rem;
-        font-size: 0.95rem;
+        font-size: var(--text-md, 1rem);
     }
     .theme-toggle-btn {
         margin: 0 auto;
@@ -1325,7 +1327,7 @@ select:-webkit-autofill {
         margin-bottom: 14px;
     }
     .mega-dropdown-title {
-        font-size: 1.2rem;
+        font-size: var(--text-xl, 1.25rem);
     }
     .mega-dropdown-grid {
         grid-template-columns: 1fr;
@@ -1340,13 +1342,13 @@ select:-webkit-autofill {
     .mega-item-icon {
         width: 38px;
         height: 38px;
-        font-size: 1.1rem;
+        font-size: var(--text-lg, 1.125rem);
     }
     .mega-item-title {
-        font-size: 0.92rem;
+        font-size: var(--text-base, 0.875rem);
     }
     .mega-item-desc {
-        font-size: 0.76rem;
+        font-size: var(--text-sm, 0.8125rem);
     }
     .nav-link {
         width: 100%;
@@ -1394,7 +1396,7 @@ select:-webkit-autofill {
     max-width: 540px;
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 24px;
+    border-radius: var(--radius-2xl, 20px);
     padding: clamp(1.5rem, 4vw, 2.5rem);
     box-shadow: var(--card-shadow);
 }
@@ -1441,7 +1443,7 @@ select:-webkit-autofill {
     border: 1px solid var(--border-glass);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-radius: 20px;
+    border-radius: var(--radius-2xl, 20px);
     padding: 1.75rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     transform: scale(0.92) translateY(10px);
@@ -1455,11 +1457,11 @@ select:-webkit-autofill {
 .sae-dialog-icon {
     width: 52px;
     height: 52px;
-    border-radius: 16px;
+    border-radius: var(--radius-xl, 16px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: var(--text-2xl, 1.5rem);
     margin-bottom: 1.25rem;
 }
 
@@ -1481,14 +1483,14 @@ select:-webkit-autofill {
 }
 
 .sae-dialog-title {
-    font-size: 1.15rem;
+    font-size: var(--text-xl, 1.25rem);
     font-weight: 700;
     color: var(--text-main);
     margin-bottom: 0.5rem;
 }
 
 .sae-dialog-message {
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     color: var(--text-muted);
     line-height: 1.55;
     margin-bottom: 1.5rem;
@@ -1517,13 +1519,13 @@ select:-webkit-autofill {
     border: 1px solid var(--border-glass);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-radius: 14px;
+    border-radius: var(--radius-xl, 16px);
     padding: 12px 18px;
     display: flex;
     align-items: center;
     gap: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    font-size: 0.88rem;
+    font-size: var(--text-base, 0.875rem);
     color: var(--text-main);
     transform: translateX(100%);
     opacity: 0;
@@ -1549,9 +1551,9 @@ select:-webkit-autofill {
     padding: 8px 36px 8px 38px !important;
     padding-left: 38px !important;
     padding-right: 36px !important;
-    font-size: 0.85rem !important;
+    font-size: var(--text-base, 0.875rem) !important;
     width: 260px;
-    border-radius: 8px !important;
+    border-radius: var(--radius-md, 8px) !important;
     border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
     background: var(--card-bg, #1a2234) !important;
     color: var(--text-color, #f8fafc) !important;
@@ -1572,7 +1574,7 @@ select:-webkit-autofill {
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted, #94a3b8);
-    font-size: 0.85rem;
+    font-size: var(--text-base, 0.875rem);
     pointer-events: none;
     z-index: 2;
 }
@@ -1585,7 +1587,7 @@ select:-webkit-autofill {
     border: none;
     color: var(--text-muted, #94a3b8);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     width: 22px;
     height: 22px;
     display: none;
@@ -1618,7 +1620,7 @@ select:-webkit-autofill {
     border: 1px solid var(--border-glow);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 18px;
+    border-radius: var(--radius-2xl, 20px);
     padding: 16px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
     z-index: 999999 !important;
@@ -1649,7 +1651,7 @@ select:-webkit-autofill {
 .sae-pwa-banner-icon {
     width: 46px;
     height: 46px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg, 12px);
     object-fit: cover;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     flex-shrink: 0;
@@ -1661,7 +1663,7 @@ select:-webkit-autofill {
 }
 
 .sae-pwa-banner-title {
-    font-size: 0.95rem;
+    font-size: var(--text-md, 1rem);
     font-weight: 800;
     color: var(--text-main);
     display: flex;
@@ -1670,17 +1672,17 @@ select:-webkit-autofill {
 }
 
 .sae-pwa-banner-badge {
-    font-size: 0.62rem;
+    font-size: var(--text-2xs, 0.6875rem);
     font-weight: 700;
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--radius-xs, 4px);
     background: rgba(16, 185, 129, 0.15);
     color: var(--success);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .sae-pwa-banner-desc {
-    font-size: 0.78rem;
+    font-size: var(--text-sm, 0.8125rem);
     color: var(--text-muted);
     line-height: 1.35;
     margin-top: 2px;
@@ -1690,13 +1692,13 @@ select:-webkit-autofill {
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: var(--text-base, 0.875rem);
     cursor: pointer;
     padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     transition: color 0.15s ease, background 0.15s ease;
     align-self: flex-start;
 }
@@ -1718,9 +1720,9 @@ select:-webkit-autofill {
     background: linear-gradient(135deg, var(--primary), var(--primary-hover));
     color: #ffffff;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: var(--text-sm, 0.8125rem);
     padding: 7px 14px;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     border: none;
     cursor: pointer;
     display: inline-flex;
@@ -1739,9 +1741,9 @@ select:-webkit-autofill {
     background: transparent;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: var(--text-sm, 0.8125rem);
     padding: 7px 12px;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     border: 1px solid var(--border-glass);
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
@@ -1760,7 +1762,7 @@ select:-webkit-autofill {
         width: auto;
         max-width: none;
         bottom: calc(76px + env(safe-area-inset-bottom, 10px));
-        border-radius: 16px;
+        border-radius: var(--radius-xl, 16px);
         padding: 14px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }

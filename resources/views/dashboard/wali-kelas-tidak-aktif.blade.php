@@ -7,10 +7,10 @@
     <!-- Header Banner -->
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-user-xmark text-primary me-2"></i> Wali Kelas — Peserta Didik Tidak Aktif
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
                 @if ($hasRombel && $activeRombel)
                     Kelas Binaan: <strong style="color: var(--text-color);">{{ $activeRombel->nama }}</strong>
                     &bull; Wali Kelas: <strong style="color: var(--primary);">{{ $waliNama }}</strong>
@@ -24,11 +24,11 @@
             @if ($isAdmin && $rombelList->isNotEmpty())
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <label for="adminRombelSelect"
-                        style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin: 0; white-space: nowrap;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin: 0; white-space: nowrap;">
                         <i class="fas fa-filter me-1"></i> Pilih Rombel:
                     </label>
                     <select id="adminRombelSelect" class="form-control"
-                        style="font-size: 0.85rem; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); min-width: 170px;">
+                        style="font-size: var(--text-base, 0.875rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); min-width: 170px;">
                         @foreach ($rombelList as $r)
                             <option value="{{ $r->rombongan_belajar_id }}"
                                 {{ $activeRombel?->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
@@ -44,12 +44,12 @@
     @if (!$hasRombel)
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
+            <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
                 Binaan Terdaftar</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto 20px;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 540px; margin: 0 auto 20px;">
                 Akun Anda belum terikat dengan rombongan belajar aktif sebagai Wali Kelas pada data Dapodik sekolah. Silakan
                 hubungi Administrator sistem atau Operator Dapodik untuk pembaruan penugasan.
             </p>
@@ -63,7 +63,7 @@
                     <i class="fas fa-user-slash"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['total'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Total Peserta Didik Tidak Aktif</div>
@@ -75,7 +75,7 @@
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['alumni'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Alumni / Lulus</div>
@@ -87,7 +87,7 @@
                     <i class="fas fa-arrow-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['mutasi'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Mutasi / Keluar</div>
@@ -99,7 +99,7 @@
                     <i class="fas fa-camera"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                         {{ number_format($summary['berfoto'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Arsip Pasfoto</div>
@@ -116,14 +116,14 @@
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <div class="toolbar-entries">
                             <label for="perPageSelect"
-                                style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tampilkan</label>
+                                style="margin: 0; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                 @foreach ([10, 15, 25, 50, 100] as $n)
                                     <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                         {{ $n }}</option>
                                 @endforeach
                             </select>
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">entri</span>
+                            <span style="font-size: var(--text-base, 0.875rem); color: var(--text-muted);">entri</span>
                         </div>
 
                         <select id="filterStatus" name="status" class="toolbar-filter-select"
@@ -147,7 +147,7 @@
                         @if ($q || $status || $tahun)
                             <a href="{{ route('dashboard.wali-kelas.peserta-didik-tidak-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
                                 class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -184,18 +184,18 @@
                             @endphp
                             @foreach ($cols as [$key, $label])
                                 <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
                                     data-sort="{{ $key }}">
                                     {{ $label }}
                                     <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                             @endforeach
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Kontak &amp; Alamat
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi
                             </th>
                         </tr>
@@ -205,20 +205,20 @@
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <!-- Kolom Nama Lengkap & Foto -->
                                 <td class="cell-pd-nama"
-                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Nama">
                                     <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                         @if (!empty($item->foto_url))
                                             <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
                                                 onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')"
                                                 title="Klik untuk memperbesar pasfoto"
-                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                                 <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
                                                     style="width: 100%; height: 100%; object-fit: cover;">
                                             </div>
                                         @else
                                             <div class="pd-foto-thumb empty"
-                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.05rem; flex-shrink: 0;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                                                 <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
                                             </div>
                                         @endif
@@ -229,12 +229,12 @@
                                                     style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
                                                 @if ($item->status_keluar === 'Alumni')
                                                     <span class="badge"
-                                                        style="font-size: 0.62rem; background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
                                                         <i class="fas fa-graduation-cap me-1"></i>Alumni
                                                     </span>
                                                 @else
                                                     <span class="badge"
-                                                        style="font-size: 0.62rem; background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
                                                         <i
                                                             class="fas fa-right-from-bracket me-1"></i>{{ $item->status_keluar ?: 'Keluar' }}
                                                     </span>
@@ -242,7 +242,7 @@
                                             </div>
                                             @if ($item->nik)
                                                 <div
-                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                                     <span class="copyable" data-copy="{{ $item->nik }}"
                                                         data-label="NIK" title="Klik untuk salin NIK">
                                                         NIK: {{ $item->nik }}
@@ -255,7 +255,7 @@
 
                                 <!-- Kolom NISN / NIPD -->
                                 <td class="cell-pd-nisn"
-                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: var(--text-base, 0.875rem); color: var(--primary);"
                                     data-label="NISN/NIPD">
                                     <div class="cell-col-right">
                                         <div>
@@ -267,7 +267,7 @@
                                             @endif
                                         </div>
                                         @if ($item->nipd)
-                                            <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                                 <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
                                                     title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                             </div>
@@ -280,36 +280,36 @@
                                     data-label="L/P">
                                     <span
                                         class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                         {{ $item->jenis_kelamin ?: '-' }}
                                     </span>
                                 </td>
 
                                 <!-- Kolom Rombel Terakhir -->
                                 <td class="cell-pd-rombel"
-                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Rombel">
-                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                    <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                         {{ $item->nama_rombel_terakhir ?: '-' }}
                                     </span>
                                 </td>
 
                                 <!-- Kolom Tingkat -->
                                 <td class="cell-pd-tingkat"
-                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Tingkat">
                                     {{ $item->tingkat_pendidikan_terakhir ?: '-' }}
                                 </td>
 
                                 <!-- Kolom Status & Tanggal -->
                                 <td class="cell-pd-ttl"
-                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"
                                     data-label="Status & Tanggal">
                                     <div class="cell-col-right">
                                         <div style="font-weight: 600; color: var(--text-color);">
                                             {{ $item->status_keluar === 'Alumni' ? 'Lulus ' . ($item->tahun_lulus ?: '-') : ($item->status_keluar ?: 'Keluar') }}
                                         </div>
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $item->tanggal_keluar ? date('d/m/Y', strtotime($item->tanggal_keluar)) : '-' }}
                                         </div>
                                     </div>
@@ -317,23 +317,23 @@
 
                                 <!-- Kolom Kontak & Alamat -->
                                 <td class="cell-pd-kontak"
-                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted); max-width: 220px;"
+                                    style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); max-width: 220px;"
                                     data-label="Kontak & Alamat">
                                     <div class="cell-col-right">
                                         @if ($item->nomor_telepon_seluler)
                                             <div>
                                                 <i class="fas fa-phone-alt me-1 text-primary"
-                                                    style="font-size: 0.72rem;"></i>
+                                                    style="font-size: var(--text-xs, 0.75rem);"></i>
                                                 <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}"
                                                     data-label="No HP"
                                                     title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
                                             </div>
                                         @endif
                                         @if ($item->alamat_jalan)
-                                            <div style="font-size: 0.74rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;"
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;"
                                                 title="{{ $item->alamat_jalan }}">
                                                 <i class="fas fa-map-marker-alt me-1"
-                                                    style="font-size: 0.7rem;"></i>{{ $item->alamat_jalan }}
+                                                    style="font-size: var(--text-xs, 0.75rem);"></i>{{ $item->alamat_jalan }}
                                             </div>
                                         @endif
                                         @if (!$item->nomor_telepon_seluler && !$item->alamat_jalan)
@@ -370,8 +370,8 @@
                         @empty
                             <tr>
                                 <td colspan="8"
-                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                    <i class="fas fa-user-check mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                    <i class="fas fa-user-check mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Tidak ada data peserta didik tidak aktif di kelas binaan ini.</div>
                                 </td>
                             </tr>
@@ -383,7 +383,7 @@
                 @if ($total > 0 && !$list->hasPages())
                     <div
                         style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
+                        <div class="total-count-text" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                             Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai
                             <strong>{{ $list->lastItem() ?: 0 }}</strong> dari
                             <strong>{{ number_format($total, 0, ',', '.') }}</strong> peserta didik
@@ -405,36 +405,36 @@
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border-color);">
+            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border-color);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 14px;">
                     <div id="bioFotoContainer"
-                        style="width: 50px; height: 50px; border-radius: 12px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
-                        <i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>
+                        style="width: 50px; height: 50px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                        <i class="fas fa-user-graduate text-primary" style="font-size: var(--text-xl, 1.25rem);"></i>
                     </div>
                     <div>
                         <h3 id="bioNama"
-                            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Arsip Peserta Didik</h3>
-                        <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="bioRombel" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
                 <button type="button" onclick="closeBiodataModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
                 <div>Memuat rincian arsip peserta didik...</div>
             </div>
 
-            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
+            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
                 <div style="margin-bottom: 12px;">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-user me-1"></i> Data Pribadi Peserta Didik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -464,7 +464,7 @@
 
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-graduation-cap me-1"></i> Status Pengarsipan &amp; Akademik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -489,7 +489,7 @@
 
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
-                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-address-book me-1"></i> Kontak &amp; Domisili
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
@@ -512,7 +512,7 @@
             <div
                 style="padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
                 <button type="button" onclick="closeBiodataModal()" class="btn btn-outline"
-                    style="padding: 8px 18px; font-size: 0.85rem;">
+                    style="padding: 8px 18px; font-size: var(--text-base, 0.875rem);">
                     Tutup
                 </button>
             </div>
@@ -526,19 +526,19 @@
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);"
         onclick="if(typeof closePhotoPreviewModal === 'function') closePhotoPreviewModal();">
         <div class="card"
-            style="max-width: 420px; width: 90%; text-align: center; border-radius: 16px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);"
+            style="max-width: 420px; width: 90%; text-align: center; border-radius: var(--radius-xl, 16px); padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);"
             onclick="event.stopPropagation();">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h4 id="photoPreviewName"
-                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0;">Pasfoto</h4>
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0;">Pasfoto</h4>
                 <button type="button"
                     onclick="if(typeof closePhotoPreviewModal === 'function') closePhotoPreviewModal();"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div
-                style="width: 100%; max-height: 480px; overflow: hidden; border-radius: 12px; border: 1px solid var(--border-color); background: #000; margin-bottom: 12px;">
+                style="width: 100%; max-height: 480px; overflow: hidden; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color); background: #000; margin-bottom: 12px;">
                 <img id="photoPreviewImg" src="" alt="Pasfoto"
                     style="width: 100%; height: auto; max-height: 480px; object-fit: contain;">
             </div>

@@ -58,27 +58,27 @@
 
     <!-- Welcome Banner -->
     <div class="dash-banner"
-        style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px;">
+        style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: var(--radius-xl, 16px); padding: 20px 24px;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Tenaga Kependidikan -->
                 <div class="dash-banner-foto"
                     style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
                     <img src="{{ $fotoUrl }}" alt="{{ $userName }}"
-                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: var(--radius-lg, 12px); filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
             <div style="flex: 1; min-width: 0;">
                 <h2
-                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                    style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
-                        style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
+                        style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
                     {{ $userName }}! 📁
                 </h2>
                 <div
-                    style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                    style="display: flex; align-items: center; gap: 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     <span title="Penugasan / Bidang Tugas">
                         <i class="fas fa-briefcase text-primary me-1"></i>
                         <strong
@@ -94,18 +94,18 @@
                         <span title="Status Kepegawaian">
                             <i class="fas fa-id-card-clip text-info me-1"></i>
                             <span class="badge badge-info"
-                                style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
+                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
                         </span>
                     @endif
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <div
-                        style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #3b82f6;">
                         <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                     </div>
                     @if ($isKepalaTas ?? false)
                         <div
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
                             <i class="fas fa-crown"></i> Kepala TAS / Koordinator Tata Usaha
                         </div>
                     @endif

@@ -14,7 +14,7 @@
         .jadwal-subnav-desktop {
             background: var(--bg-card);
             padding: 4px;
-            border-radius: 12px;
+            border-radius: var(--radius-lg, 12px);
             border: 1px solid var(--border-color);
             display: inline-flex;
             gap: 4px;
@@ -86,7 +86,7 @@
                 flex: 1 !important;
                 text-align: center !important;
                 justify-content: center !important;
-                font-size: 0.78rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
                 padding: 8px 8px !important;
             }
 
@@ -113,7 +113,7 @@
             .jadwal-days-strip .btn-day-tab {
                 flex-shrink: 0 !important;
                 padding: 6px 12px !important;
-                font-size: 0.78rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
             }
 
             .jadwal-tingkat-strip {
@@ -128,7 +128,7 @@
                 text-align: center !important;
                 justify-content: center !important;
                 padding: 6px 6px !important;
-                font-size: 0.76rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
             }
         }
     </style>
@@ -137,10 +137,10 @@
 @section('content')
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-calendar-alt text-primary me-2"></i> Master Data — Jadwal KBM
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                 Visualisasi jadwal mengajar guru per rombel secara modular dan anti-bentrok, terintegrasi ke presensi dan
                 agenda KBM.
             </p>
@@ -151,38 +151,38 @@
                 <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
                     @if ($isOtomatisAktif)
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-circle"></i> Jadwal Otomatis Diberlakukan (Aktif)
                         </span>
                         <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="otomatis"
                             data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
                             <i class="fas fa-pause"></i>
                         </button>
                     @elseif ($isManualAktif)
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Jadwal Manual Aktif)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Manual)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @else
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @endif
@@ -191,15 +191,15 @@
 
             <!-- View Mode Switcher -->
             <div class="jadwal-view-switcher"
-                style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color);">
+                style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
                 <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'grid', 'hari' => $selectedHari])) }}"
                     class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-outline' }}"
-                    style="padding: 6px 12px; font-size: 0.8rem; border: none; border-radius: 6px; box-shadow: none;">
+                    style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
                     <i class="fas fa-table-cells me-1"></i> Matriks Grid
                 </a>
                 <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'table'])) }}"
                     class="btn {{ $viewMode === 'table' ? 'btn-primary' : 'btn-outline' }}"
-                    style="padding: 6px 12px; font-size: 0.8rem; border: none; border-radius: 6px; box-shadow: none;">
+                    style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
                     <i class="fas fa-list me-1"></i> Rekap Tabel
                 </a>
             </div>
@@ -209,33 +209,33 @@
                 <!-- Dropdown Cetak Jadwal Multi-Format -->
                 <div style="position: relative; display: inline-block;">
                     <button type="button" class="btn btn-outline" id="btnDropdownCetak"
-                        style="padding: 8px 14px; font-size: 0.9rem;" title="Cetak Jadwal (Induk, Guru, Kelas)">
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);" title="Cetak Jadwal (Induk, Guru, Kelas)">
                         <i class="fas fa-print"></i>
                     </button>
                     <div id="dropdownMenuCetak"
-                        style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 220px; z-index: 1000; overflow: hidden;">
+                        style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 220px; z-index: 1000; overflow: hidden;">
                         <a href="{{ route('dashboard.jadwal-kbm.cetak-induk') }}" target="_blank"
-                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: var(--text-base, 0.875rem); border-bottom: 1px solid var(--border-color);">
                             <i class="fas fa-table text-primary" style="width: 18px;"></i>
                             <div>
                                 <strong>Jadwal Induk Sekolah</strong>
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">Matriks besar seluruh kelas</div>
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Matriks besar seluruh kelas</div>
                             </div>
                         </a>
                         <a href="{{ route('dashboard.jadwal-kbm.cetak-guru') }}" target="_blank"
-                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: var(--text-base, 0.875rem); border-bottom: 1px solid var(--border-color);">
                             <i class="fas fa-chalkboard-user text-success" style="width: 18px;"></i>
                             <div>
                                 <strong>Jadwal per Guru</strong>
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">Kartu jadwal mengajar GTK</div>
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Kartu jadwal mengajar GTK</div>
                             </div>
                         </a>
                         <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel') }}" target="_blank"
-                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem;">
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: var(--text-base, 0.875rem);">
                             <i class="fas fa-school text-warning" style="width: 18px;"></i>
                             <div>
                                 <strong>Jadwal per Kelas</strong>
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">Format siap tempel di kelas</div>
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Format siap tempel di kelas</div>
                             </div>
                         </a>
                     </div>
@@ -243,23 +243,23 @@
 
                 @if ($canUpdate)
                     <button type="button" class="btn btn-outline" id="btnBukaPreferensiGuru"
-                        style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Hari Off dan Jam Berhalangan Guru">
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);" title="Atur Hari Off dan Jam Berhalangan Guru">
                         <i class="fas fa-user-clock"></i>
                     </button>
                     <button type="button" class="btn btn-outline" id="btnBukaPengaturanSlot"
-                        style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
                         <i class="fas fa-sliders"></i>
                     </button>
                 @endif
 
                 @if ($canCreate)
                     <button type="button" class="btn" id="btnBukaAutoGenerate"
-                        style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
                         title="Auto-Generate Jadwal Otomatis">
                         <i class="fas fa-wand-magic-sparkles"></i>
                     </button>
                     <button type="button" class="btn btn-primary" id="btnTambahJadwal"
-                        style="padding: 8px 14px; font-size: 0.9rem;" title="Tambah Jadwal Manual">
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);" title="Tambah Jadwal Manual">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -281,7 +281,7 @@
 
     <!-- Banner Integrasi Kalender Pendidikan -->
     <div class="card"
-        style="padding: 12px 18px; margin-bottom: 18px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        style="padding: 12px 18px; margin-bottom: 18px; border-radius: var(--radius-lg, 12px); background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 12px;">
             @php
                 $isLibur =
@@ -301,32 +301,32 @@
                         : 'fa-calendar-check');
             @endphp
             <div
-                style="width: 40px; height: 40px; border-radius: 10px; background: {{ $bgIcon }}; color: {{ $colIcon }}; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: {{ $bgIcon }}; color: {{ $colIcon }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas {{ $iconClass }}"></i>
             </div>
             <div>
                 <div
-                    style="font-size: 0.88rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                     <span>Kalender Akademik: TA {{ $tahunAjaranAktif }} (Semester
                         {{ $semesterAktif == '1' ? '1 Ganjil' : '2 Genap' }})</span>
                     @if ($isLibur)
                         <span class="badge"
-                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
                             <i class="fas fa-ban me-1"></i> Libur Sekolah / KBM Off
                         </span>
                     @elseif (!empty($agendaHariIni))
                         <span class="badge"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
                             <i class="fas fa-flag me-1"></i> Agenda Khusus
                         </span>
                     @else
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
                             <i class="fas fa-check me-1"></i> Hari Efektif Belajar (HEB)
                         </span>
                     @endif
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                     @if (!empty($agendaHariIni))
                         <strong>Hari Ini ({{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}):</strong>
                         {{ $agendaHariIni->nama_agenda }}
@@ -342,7 +342,7 @@
         </div>
         <div>
             <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
-                style="padding: 6px 14px; font-size: 0.8rem;" title="Lihat Detail Kalender Pendidikan">
+                style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem);" title="Lihat Detail Kalender Pendidikan">
                 <i class="fas fa-calendar-alt me-1"></i> Buka Kalender Pendidikan
             </a>
         </div>
@@ -355,9 +355,9 @@
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
                     {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span
-                        style="font-size: 0.72rem; font-weight: 500;">Hari</span>
+                        style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span>
                 </div>
                 <div class="dash-stat-label">HEB Semester (Jalan: {{ $summary['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
@@ -368,7 +368,7 @@
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['total_jadwal'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Jadwal KBM</div>
@@ -380,7 +380,7 @@
                 <i class="fas fa-school"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['total_rombel'] }}
                 </div>
                 <div class="dash-stat-label">Rombel Terjadwal</div>
@@ -392,7 +392,7 @@
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ $summary['total_guru'] }}
                 </div>
                 <div class="dash-stat-label">Guru Terjadwal</div>
@@ -404,7 +404,7 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['total_jp'], 0, ',', '.') }} JP
                 </div>
                 <div class="dash-stat-label">Total Jam Pelajaran</div>
@@ -420,7 +420,7 @@
                 <!-- Tab Hari Buttons -->
                 <div class="jadwal-days-strip" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                     <span
-                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
                         <i class="fas fa-calendar-day me-1"></i> Hari:
                     </span>
                     @foreach (\App\Models\JadwalKbm::HARI_LIST as $h)
@@ -441,11 +441,11 @@
                             <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['hari' => $h, 'view_mode' => 'grid'])) }}"
                                 class="btn {{ $isDayActive ? 'btn-primary' : 'btn-outline' }} btn-day-tab"
                                 data-hari="{{ $h }}"
-                                style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; {{ $isDayActive ? 'color: #ffffff !important;' : '' }}">
+                                style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; {{ $isDayActive ? 'color: #ffffff !important;' : '' }}">
                                 <span
                                     style="{{ $isDayActive ? 'color: #ffffff !important; font-weight: 700;' : '' }}">{{ $h }}</span>
                                 <span class="badge"
-                                    style="{{ $isDayActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted);' }} font-size: 0.72rem; padding: 2px 6px; border-radius: 10px;"
+                                    style="{{ $isDayActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted);' }} font-size: var(--text-xs, 0.75rem); padding: 2px 6px; border-radius: var(--radius-lg, 12px);"
                                     title="{{ $hJp }} JP ({{ $count }} jadwal)">
                                     {{ $hJp }} JP
                                 </span>
@@ -457,14 +457,14 @@
                 <!-- Filter Tingkat Rombel -->
                 <div class="jadwal-tingkat-strip" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                     <span
-                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
                         Tingkat:
                     </span>
                     @foreach (['' => 'Semua', '10' => 'Kelas X', '11' => 'Kelas XI', '12' => 'Kelas XII'] as $tVal => $tLabel)
                         <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['tingkat' => $tVal, 'view_mode' => 'grid', 'hari' => $selectedHari])) }}"
                             class="btn {{ $tingkat === $tVal ? 'btn-primary' : 'btn-outline' }} btn-tingkat-filter"
                             data-tingkat="{{ $tVal }}"
-                            style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px;">
+                            style="padding: 4px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);">
                             {{ $tLabel }}
                         </a>
                     @endforeach
@@ -472,10 +472,10 @@
             </div>
 
             <div
-                style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     @if (count($timeSlots) > 0)
-                        <span class="badge badge-primary" style="font-size: 0.76rem; padding: 4px 8px;">
+                        <span class="badge badge-primary" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
                             <i class="fas fa-clock me-1"></i> KBM {{ $selectedHari }}: {{ count($timeSlots) }} JP
                         </span>
                         <span style="font-weight: 600; color: var(--text-color);">
@@ -483,7 +483,7 @@
                         </span>
                     @else
                         <span class="badge"
-                            style="background: var(--bg-hover); color: var(--text-muted); font-size: 0.76rem; padding: 4px 8px; border: 1px solid var(--border-color);">
+                            style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border: 1px solid var(--border-color);">
                             <i class="fas fa-calendar-xmark me-1"></i> KBM {{ $selectedHari }}: 0 JP
                         </span>
                         <span style="font-weight: 600; color: var(--text-muted);">
@@ -493,10 +493,10 @@
                 </div>
                 <div style="display: flex; gap: 14px;">
                     <span><span
-                            style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span>
+                            style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span>
                         Terjadwal</span>
                     <span><span
-                            style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span>
+                            style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span>
                         Kosong (Bisa Diisi)</span>
                 </div>
             </div>
@@ -510,7 +510,7 @@
                     <tr>
                         <!-- Header Kolom Jam Pelajaran (Sticky Left) -->
                         <th
-                            style="position: sticky; left: 0; z-index: 20; background: var(--bg-card); width: 130px; min-width: 130px; padding: 14px 12px; border-bottom: 2px solid var(--border-color); border-right: 2px solid var(--border-color); font-size: 0.78rem; font-weight: 800; color: var(--text-color); text-transform: uppercase;">
+                            style="position: sticky; left: 0; z-index: 20; background: var(--bg-card); width: 130px; min-width: 130px; padding: 14px 12px; border-bottom: 2px solid var(--border-color); border-right: 2px solid var(--border-color); font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); text-transform: uppercase;">
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <i class="fas fa-clock text-primary"></i> Jam Pelajaran
                             </div>
@@ -521,16 +521,16 @@
                             <th
                                 style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; min-width: 180px; max-width: 220px; background: var(--bg-card);">
                                 <div
-                                    style="font-weight: 800; font-size: 0.88rem; color: var(--text-color); margin-bottom: 2px;">
+                                    style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 2px;">
                                     {{ $r->nama }}
                                 </div>
                                 <span class="badge"
-                                    style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.7rem; padding: 2px 6px; font-weight: 700;">
+                                    style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 6px; font-weight: 700;">
                                     Tingkat {{ $r->tingkat_pendidikan_id }}
                                 </span>
                             </th>
                         @empty
-                            <th style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                            <th style="padding: 14px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                 Tidak ada rombel pada tingkat ini.
                             </th>
                         @endforelse
@@ -543,13 +543,13 @@
                             <td
                                 style="position: sticky; left: 0; z-index: 10; background: var(--bg-card); height: 64px; box-sizing: border-box; padding: 6px 10px; border-bottom: 1px solid var(--border-color); border-right: 2px solid var(--border-color); vertical-align: middle;">
                                 <div
-                                    style="font-weight: 800; font-size: 0.82rem; color: var(--text-color); display: flex; align-items: center; justify-content: space-between;">
+                                    style="font-weight: 800; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; justify-content: space-between;">
                                     <span>Jam Ke-{{ $slot['ke'] }}</span>
                                     <span class="badge"
-                                        style="background: var(--bg-hover); color: var(--text-muted); font-size: 0.65rem; font-weight: 700; padding: 2px 5px;">JP</span>
+                                        style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); font-weight: 700; padding: 2px 5px;">JP</span>
                                 </div>
                                 <div
-                                    style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; font-weight: 600;">
+                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px; font-weight: 600;">
                                     {{ $slot['mulai'] }} - {{ $slot['selesai'] }}
                                 </div>
                             </td>
@@ -588,10 +588,10 @@
                                     <td rowspan="{{ $durasi }}"
                                         style="height: {{ $durasi * 64 }}px; padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
                                         <div class="jadwal-grid-card"
-                                            style="background: {{ $bgCard }}; border: 1px solid {{ $isRoutine ? $borderCol : 'rgba(99,102,241,0.35)' }}; border-left: 4px solid {{ $borderCol }}; border-radius: 7px; padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; height: calc(100% - 2px); min-height: {{ max(54, $durasi * 64 - 10) }}px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+                                            style="background: {{ $bgCard }}; border: 1px solid {{ $isRoutine ? $borderCol : 'rgba(99,102,241,0.35)' }}; border-left: 4px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; height: calc(100% - 2px); min-height: {{ max(54, $durasi * 64 - 10) }}px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                                             <div>
                                                 <!-- Mapel Title -->
-                                                <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-color); line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: {{ $durasi > 1 ? '3' : '1' }}; -webkit-box-orient: vertical; overflow: hidden;"
+                                                <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: {{ $durasi > 1 ? '3' : '1' }}; -webkit-box-orient: vertical; overflow: hidden;"
                                                     title="{{ $item->nama_mata_pelajaran }}">
                                                     @if ($isUpacara)
                                                         <i class="fas fa-flag text-danger me-1"></i>
@@ -605,28 +605,28 @@
 
                                                 <!-- Guru / Subtitle -->
                                                 <div
-                                                    style="font-size: 0.73rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
                                                     @if ($isUpacara)
                                                         <i class="fas fa-users text-danger"
-                                                            style="font-size: 0.7rem; flex-shrink: 0;"></i>
+                                                            style="font-size: var(--text-xs, 0.75rem); flex-shrink: 0;"></i>
                                                         <span
                                                             style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">Dewan
                                                             Guru &amp; Siswa</span>
                                                     @elseif ($isPembiasaan)
                                                         <i class="fas fa-users text-success"
-                                                            style="font-size: 0.7rem; flex-shrink: 0;"></i>
+                                                            style="font-size: var(--text-xs, 0.75rem); flex-shrink: 0;"></i>
                                                         <span
                                                             style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">Wali
                                                             Kelas &amp; Guru</span>
                                                     @elseif ($isIstirahat)
                                                         <i class="fas fa-mug-hot text-warning"
-                                                            style="font-size: 0.7rem; flex-shrink: 0;"></i>
+                                                            style="font-size: var(--text-xs, 0.75rem); flex-shrink: 0;"></i>
                                                         <span
                                                             style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">Siswa
                                                             &amp; Dewan Guru</span>
                                                     @else
                                                         <i class="fas fa-chalkboard-user text-primary"
-                                                            style="font-size: 0.7rem; flex-shrink: 0;"></i>
+                                                            style="font-size: var(--text-xs, 0.75rem); flex-shrink: 0;"></i>
                                                         <span
                                                             style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;"
                                                             title="{{ $item->nama_guru }}">
@@ -637,7 +637,7 @@
 
                                                 @if ($durasi >= 4)
                                                     <div
-                                                        style="font-size: 0.68rem; color: var(--primary); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); color: var(--primary); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
                                                         <i class="fas fa-cubes"></i> Blok Praktik ({{ $durasi }} JP)
                                                     </div>
                                                 @endif
@@ -650,29 +650,29 @@
                                                     style="display: flex; gap: 3px; flex-wrap: wrap; align-items: center;">
                                                     @if ($isUpacara)
                                                         <span class="badge"
-                                                            style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: 0.65rem; padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Upacara
                                                         </span>
                                                     @elseif ($isPembiasaan)
                                                         <span class="badge"
-                                                            style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.65rem; padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Pembiasaan
                                                         </span>
                                                     @elseif ($isIstirahat)
                                                         <span class="badge"
-                                                            style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.65rem; padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Istirahat
                                                         </span>
                                                     @else
                                                         <span class="badge badge-primary"
-                                                            style="font-size: 0.65rem; padding: 2px 5px; font-weight: 700;">
+                                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             {{ $durasi }} JP
                                                         </span>
                                                     @endif
 
                                                     @if (!empty($item->ruangan))
                                                         <span class="badge"
-                                                            style="background: var(--bg-hover); color: var(--text-color); font-size: 0.65rem; padding: 2px 5px; border: 1px solid var(--border-color);"
+                                                            style="background: var(--bg-hover); color: var(--text-color); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; border: 1px solid var(--border-color);"
                                                             title="Ruangan: {{ $item->ruangan }}">
                                                             <i class="fas fa-door-open"></i> {{ $item->ruangan }}
                                                         </span>
@@ -682,7 +682,7 @@
                                                 <!-- Action Buttons (Quick Edit & Delete) -->
                                                 @if ($isRoutine)
                                                     <span class="badge"
-                                                        style="background: var(--bg-hover); color: var(--text-muted); font-size: 0.62rem; padding: 2px 5px;"
+                                                        style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px;"
                                                         title="Disinkronkan otomatis dari Pengaturan KBM">
                                                         <i class="fas fa-sync-alt me-1"></i> Rutin
                                                     </span>
@@ -701,7 +701,7 @@
                                                                 data-jam-selesai="{{ substr($item->jam_selesai, 0, 5) }}"
                                                                 data-ruangan="{{ $item->ruangan }}"
                                                                 data-keterangan="{{ $item->keterangan }}"
-                                                                style="width: 22px; height: 22px; font-size: 0.68rem; padding: 0;">
+                                                                style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0;">
                                                                 <i class="fas fa-pencil text-primary"></i>
                                                             </button>
                                                         @endif
@@ -716,7 +716,7 @@
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn-icon"
                                                                     title="Hapus Jadwal"
-                                                                    style="width: 22px; height: 22px; font-size: 0.68rem; padding: 0;">
+                                                                    style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0;">
                                                                     <i class="fas fa-trash text-danger"></i>
                                                                 </button>
                                                             </form>
@@ -737,13 +737,13 @@
                                                 data-rombel-nama="{{ $r->nama }}" data-hari="{{ $selectedHari }}"
                                                 data-jam-ke="{{ $slot['ke'] }}" data-jam-mulai="{{ $slot['mulai'] }}"
                                                 data-jam-selesai="{{ $slot['selesai'] }}"
-                                                style="width: 100%; height: 100%; min-height: 54px; border: 1px dashed var(--border-color); border-radius: 6px; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: all 0.2s ease;">
-                                                <i class="fas fa-plus" style="font-size: 0.75rem;"></i>
-                                                <span style="font-size: 0.65rem; font-weight: 600;">Isi Jadwal</span>
+                                                style="width: 100%; height: 100%; min-height: 54px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm, 6px); background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: all 0.2s ease;">
+                                                <i class="fas fa-plus" style="font-size: var(--text-xs, 0.75rem);"></i>
+                                                <span style="font-size: var(--text-2xs, 0.6875rem); font-weight: 600;">Isi Jadwal</span>
                                             </button>
                                         @else
                                             <div
-                                                style="min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.72rem;">
+                                                style="min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
                                                 -
                                             </div>
                                         @endif
@@ -756,11 +756,11 @@
                         <tr>
                             <td colspan="{{ max(1, count($gridRombels) + 1) }}"
                                 style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
-                                <i class="fas fa-calendar-xmark mb-3" style="font-size: 2.2rem; opacity: 0.4;"></i>
+                                <i class="fas fa-calendar-xmark mb-3" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
                                 <div
-                                    style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 4px;">
+                                    style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">
                                     Tidak Ada KBM pada Hari {{ $selectedHari }}</div>
-                                <div style="font-size: 0.82rem; color: var(--text-muted);">Total JP untuk hari
+                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Total JP untuk hari
                                     {{ $selectedHari }} diatur 0 JP (Libur). Klik tombol <strong>Atur Jam
                                         Pelajaran</strong> untuk menyesuaikan jam pelajaran.</div>
                             </td>
@@ -820,7 +820,7 @@
                         @if ($q || $hari || $rombelId || $guruId)
                             <a href="{{ route('dashboard.jadwal-kbm.index', ['view_mode' => 'table']) }}"
                                 class="btn btn-outline"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Reset filter">
                                 <i class="fas fa-undo"></i>
                             </a>
@@ -845,38 +845,38 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
                             <th
-                                style="width: 45px; text-align: center; padding: 12px 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="width: 45px; text-align: center; padding: 12px 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No
                             </th>
                             <th class="sortable-th {{ $sort === 'hari' ? 'sorted' : '' }}" data-sort="hari"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Hari &amp; Waktu
                                 <span class="sort-icon">{!! $sort === 'hari' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}"
                                 data-sort="nama_rombel"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Rombel / Kelas
                                 <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'nama_mata_pelajaran' ? 'sorted' : '' }}"
                                 data-sort="nama_mata_pelajaran"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Mata Pelajaran
                                 <span class="sort-icon">{!! $sort === 'nama_mata_pelajaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="sortable-th {{ $sort === 'nama_guru' ? 'sorted' : '' }}" data-sort="nama_guru"
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Guru Pengampu
                                 <span class="sort-icon">{!! $sort === 'nama_guru' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Ruangan
                             </th>
                             @if ($canUpdate || $canDelete)
                                 <th
-                                    style="width: 100px; text-align: center; padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    style="width: 100px; text-align: center; padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Aksi
                                 </th>
                             @endif
@@ -886,7 +886,7 @@
                         @forelse ($list as $index => $item)
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
                                 <td
-                                    style="text-align: center; padding: 12px 8px; color: var(--text-muted); font-size: 0.85rem;">
+                                    style="text-align: center; padding: 12px 8px; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                     {{ $list->firstItem() + $index }}
                                 </td>
                                 <td style="padding: 12px 14px;">
@@ -905,15 +905,15 @@
                                                 'background: rgba(107,114,128,0.15); color: #6b7280;';
                                         @endphp
                                         <span class="badge"
-                                            style="{{ $badgeStyle }} font-weight: 700; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;">
+                                            style="{{ $badgeStyle }} font-weight: 700; padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-size: var(--text-xs, 0.75rem);">
                                             {{ $item->hari }}
                                         </span>
-                                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-color);">
+                                        <span style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                                             {{ substr($item->jam_mulai, 0, 5) }} -
                                             {{ substr($item->jam_selesai, 0, 5) }}
                                         </span>
                                     </div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         <i class="fas fa-layer-group me-1"></i>
                                         @if ($item->jam_ke_mulai === $item->jam_ke_selesai)
                                             Jam ke-{{ $item->jam_ke_mulai }} (1 JP)
@@ -925,26 +925,26 @@
                                 </td>
                                 <td style="padding: 12px 14px;">
                                     <span class="badge badge-primary"
-                                        style="font-size: 0.82rem; padding: 4px 8px; font-weight: 700;">
+                                        style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; font-weight: 700;">
                                         <i class="fas fa-chalkboard me-1"></i> {{ $item->nama_rombel ?: '-' }}
                                     </span>
                                 </td>
                                 <td style="padding: 12px 14px;">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.88rem;">
+                                    <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama_mata_pelajaran }}
                                     </div>
                                     @if (!empty($item->keterangan))
-                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                             <i class="fas fa-info-circle me-1"></i> {{ $item->keterangan }}
                                         </div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 14px;">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.88rem;">
+                                    <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama_guru ?: 'Belum Ditugaskan' }}
                                     </div>
                                     @if (!empty($item->nip_guru))
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             NIP: {{ $item->nip_guru }}
                                         </div>
                                     @endif
@@ -952,11 +952,11 @@
                                 <td style="padding: 12px 14px;">
                                     @if (!empty($item->ruangan))
                                         <span class="badge"
-                                            style="background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); font-size: 0.78rem;">
+                                            style="background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); font-size: var(--text-sm, 0.8125rem);">
                                             <i class="fas fa-door-open me-1"></i> {{ $item->ruangan }}
                                         </span>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
+                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </td>
                                 @if ($canUpdate || $canDelete)
@@ -999,15 +999,15 @@
                             <tr>
                                 <td colspan="{{ $canUpdate || $canDelete ? 7 : 6 }}"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                    <div style="font-size: 2.2rem; margin-bottom: 10px; color: var(--border-color);">
+                                    <div style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 10px; color: var(--border-color);">
                                         <i class="fas fa-calendar-xmark"></i>
                                     </div>
                                     <div
-                                        style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 4px;">
+                                        style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">
                                         Belum Ada Jadwal KBM
                                     </div>
                                     <p
-                                        style="font-size: 0.85rem; margin-bottom: 16px; max-width: 420px; margin-left: auto; margin-right: auto;">
+                                        style="font-size: var(--text-base, 0.875rem); margin-bottom: 16px; max-width: 420px; margin-left: auto; margin-right: auto;">
                                         Data jadwal pembelajaran mingguan belum tersedia atau tidak cocok dengan filter
                                         pencarian.
                                     </p>
