@@ -345,6 +345,14 @@ class KartuPelajarController extends Controller
             $filters['status_request'] = $statusReq;
         }
 
+        // Ambil ID antrean request yang diceklist jika ada
+        $requestIdsParam = $request->get('request_ids');
+        if (!empty($requestIdsParam)) {
+            $filters['request_ids'] = is_array($requestIdsParam)
+                ? $requestIdsParam
+                : explode(',', (string) $requestIdsParam);
+        }
+
         // Validasi foto: aktif jika hanya_ada_foto dicentang ATAU otomatis saat filter request menunggu
         $hanyaAdaFoto = $request->has('hanya_ada_foto')
             ? $request->boolean('hanya_ada_foto')
@@ -356,6 +364,60 @@ class KartuPelajarController extends Controller
         $data = $this->printService->getRombelCardsData($rombelId, $filters);
         if (isset($data['error'])) {
             abort(404, 'Rombongan belajar tidak ditemukan.');
+        }
+
+        return view('kartu-pelajar.cetak-rombel', $data);
+    }
+
+    /**
+     * Cetak Masal Kartu Pelajar Berdasarkan Antrean Request yang Dipilih / Diceklist.
+     */
+    public function printSelectedRequests(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if (!RolePermission::isWaliKelasOrAdmin($user)) {
+            abort(403, 'Akses ditolak: Hanya Administrator dan Wali Kelas yang diizinkan mencetak kartu pelajar.');
+        }
+
+        $filters = [];
+        $requestIdsParam = $request->get('request_ids') ?: $request->get('ids');
+        if (!empty($requestIdsParam)) {
+            $filters['request_ids'] = is_array($requestIdsParam)
+                ? $requestIdsParam
+                : explode(',', (string) $requestIdsParam);
+        }
+
+        $statusReq = trim((string) $request->get('status_request', ''));
+        if ($statusReq !== '') {
+            $filters['status_request'] = $statusReq;
+        }
+
+        if ($request->has('filter_rombel')) {
+            $filters['filter_rombel'] = trim((string) $request->get('filter_rombel'));
+        }
+        if ($request->has('filter_req_status')) {
+            $filters['filter_req_status'] = trim((string) $request->get('filter_req_status'));
+        }
+        if ($request->has('filter_status_bayar')) {
+            $filters['filter_status_bayar'] = trim((string) $request->get('filter_status_bayar'));
+        }
+        if ($request->has('filter_q')) {
+            $filters['filter_q'] = trim((string) $request->get('filter_q'));
+        }
+
+        // Validasi foto (default aktif)
+        $hanyaAdaFoto = $request->has('hanya_ada_foto') ? $request->boolean('hanya_ada_foto') : true;
+        if ($hanyaAdaFoto) {
+            $filters['hanya_ada_foto'] = true;
+        }
+
+        $data = $this->printService->getSelectedRequestsCardsData($filters);
+        if (isset($data['error'])) {
+            abort(404, 'Data antrean kartu pelajar tidak ditemukan.');
         }
 
         return view('kartu-pelajar.cetak-rombel', $data);

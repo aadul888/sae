@@ -344,4 +344,42 @@ document.addEventListener("DOMContentLoaded", function () {
             Swal.fire("Error", "Gagal menghubungi server.", "error");
         }
     };
+
+    // =========================================================================
+    // 5. Cetak Masal Khusus Antrean Terpilih / Terfilter
+    // =========================================================================
+    window.executeCetakSelectedRequests = function () {
+        const ids = getRequestSelectedIds();
+        const applyAll = isRequestApplyAll();
+
+        if (!ids.length && !applyAll) {
+            Swal.fire("Peringatan", "Pilih minimal satu antrean atau centang 'Pilih Semua Sesuai Filter'.", "warning");
+            return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchInput = document.getElementById("searchKartuPelajar");
+        const filterRombel = document.getElementById("filterRombel");
+        const filterStatusBayar = document.getElementById("filterStatusBayar");
+        const filterReqStatus = document.getElementById("filterReqStatus");
+
+        const params = new URLSearchParams();
+        if (applyAll) {
+            const q = (searchInput ? searchInput.value.trim() : "") || urlParams.get("q") || "";
+            const rombel = (filterRombel ? filterRombel.value : "") || urlParams.get("rombel") || "";
+            const bayar = (filterStatusBayar ? filterStatusBayar.value : "") || urlParams.get("status_pembayaran") || "";
+            const reqSt = (filterReqStatus ? filterReqStatus.value : "") || urlParams.get("req_status") || "";
+
+            if (q) params.set("filter_q", q);
+            if (rombel) params.set("filter_rombel", rombel);
+            if (bayar) params.set("filter_status_bayar", bayar);
+            if (reqSt) params.set("filter_req_status", reqSt);
+        } else {
+            params.set("ids", ids.join(","));
+        }
+        params.set("hanya_ada_foto", "1");
+
+        const printUrl = "/dashboard/kartu-pelajar/cetak-antrean?" + params.toString();
+        window.open(printUrl, "_blank");
+    };
 });

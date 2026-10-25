@@ -552,6 +552,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Kartu Pelajar Digital — Layanan Cetak
     Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');
     Route::get('/kartu-pelajar/cetak-rombel/{rombelId}', [\App\Http\Controllers\KartuPelajarController::class, 'printRombel'])->name('kartu-pelajar.cetak-rombel');
+    Route::get('/kartu-pelajar/cetak-antrean', [\App\Http\Controllers\KartuPelajarController::class, 'printSelectedRequests'])->name('kartu-pelajar.cetak-antrean');
     Route::get('/kartu-pelajar/cetak-keuangan', [\App\Http\Controllers\KartuPelajarController::class, 'printLaporanKeuangan'])->name('kartu-pelajar.cetak-keuangan');
     Route::get('/kartu-pelajar/cetak-pengambilan', [\App\Http\Controllers\KartuPelajarController::class, 'printPengambilan'])->name('kartu-pelajar.cetak-pengambilan');
 

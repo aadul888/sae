@@ -563,11 +563,11 @@
     margin-right: 2px;
 }
 
-/* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 86mm) */
+/* PRINT STYLES (A4 LANDSCAPE: 10 SISI PER LEMBAR, UKURAN PRESISI 56mm x 86mm DENGAN JARAK POTONG TENGAH) */
 @media print {
     @page {
         size: A4 landscape;
-        margin: 5mm;
+        margin: 4mm 5mm;
     }
 
     html, body {
@@ -618,13 +618,38 @@
         max-width: 56mm !important;
         max-height: 86mm !important;
         box-sizing: border-box !important;
-        margin: 1.5mm 0.7mm !important;
+        margin: 0.5mm 0.7mm !important;
         box-shadow: none !important;
         border: 0.4px solid #cbd5e1 !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         image-rendering: -webkit-optimize-contrast !important;
         image-rendering: crisp-edges !important;
+    }
+
+    /* Jarak kosong pemotongan tengah (10mm) antara baris 1 (atas) dan baris 2 (bawah) untuk potong manual pisau ID card */
+    .print-grid > .kp-card:nth-child(10n + 1),
+    .print-grid > .kp-card:nth-child(10n + 2),
+    .print-grid > .kp-card:nth-child(10n + 3),
+    .print-grid > .kp-card:nth-child(10n + 4),
+    .print-grid > .kp-card:nth-child(10n + 5),
+    .kp-card-pair:nth-child(5n + 1) .kp-card-front,
+    .kp-card-pair:nth-child(5n + 2) .kp-card-front,
+    .kp-card-pair:nth-child(5n + 3) .kp-card-front,
+    .kp-card-pair:nth-child(5n + 4) .kp-card-front,
+    .kp-card-pair:nth-child(5n + 5) .kp-card-front,
+    .kp-card-pair:nth-child(5n + 1) .kp-card-back,
+    .kp-card-pair:nth-child(5n + 2) .kp-card-back,
+    .kp-card-pair:nth-child(5n + 3) .kp-card-back,
+    .kp-card-pair:nth-child(5n + 4) .kp-card-back,
+    .kp-card-pair:nth-child(5n + 5) .kp-card-back {
+        margin-bottom: 10mm !important;
+    }
+
+    /* Page break otomatis setiap kelipatan 10 sisi (5 pasang kartu) */
+    .kp-card-pair:nth-child(5n) {
+        page-break-after: always !important;
+        break-after: page !important;
     }
 
     body.filter-front-only .kp-card-back {
@@ -2075,7 +2100,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 3mm 1.5mm;
+    gap: 10mm 2mm;
 }
 
 body.filter-front-only .kp-card-back {

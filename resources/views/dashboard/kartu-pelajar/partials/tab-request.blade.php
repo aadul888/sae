@@ -122,6 +122,11 @@
                         </label>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="executeCetakSelectedRequests()"
+                            style="border-color: #0284c7; color: #0284c7; background: #ffffff; font-weight: 700; padding: 5px 12px; font-size: 0.8rem;"
+                            title="Buka Lembar Cetak Masal Khusus Antrean Terpilih">
+                            <i class="fas fa-print me-1"></i> Cetak Antrean Terpilih
+                        </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('set_diproses')"
                             style="border-color: #2563eb; color: #2563eb; font-weight: 600; padding: 5px 12px; font-size: 0.8rem;">

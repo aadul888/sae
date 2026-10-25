@@ -239,6 +239,12 @@ class KartuPelajarTest extends TestCase
             $bulkReqRes->assertOk();
             $bulkReqRes->assertJson(['success' => true]);
 
+            // 10. Test Cetak Berdasarkan Antrean Request Terpilih / Diceklist
+            $selectedReqPrintRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-antrean', [
+                'ids' => $req->id,
+            ]));
+            $selectedReqPrintRes->assertOk();
+
             $req->refresh();
             $this->assertEquals('diproses', $req->status);
         }

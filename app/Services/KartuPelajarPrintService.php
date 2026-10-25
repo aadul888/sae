@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Schema;
 
 class KartuPelajarPrintService
 {
+    use KartuPelajarSelectedPrintTrait;
+
     /**
      * Dapatkan informasi dan logo sekolah.
      */
@@ -162,6 +164,31 @@ class KartuPelajarPrintService
             });
         }
 
+        // Filter: hanya ID request tertentu yang diceklist / dipilih
+        if (!empty($filters['request_ids']) && is_array($filters['request_ids']) && Schema::hasTable('kartu_pelajar_request')) {
+            $reqIds = array_map('intval', $filters['request_ids']);
+            $query->where(function ($qReq) use ($reqIds) {
+                $qReq->whereExists(function ($sub) use ($reqIds) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereColumn('kpr.peserta_didik_id', 'peserta_didik.peserta_didik_id')
+                        ->whereIn('kpr.id', $reqIds);
+                })
+                ->orWhereExists(function ($sub) use ($reqIds) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereNotNull('kpr.nisn')
+                        ->whereColumn('kpr.nisn', 'peserta_didik.nisn')
+                        ->whereIn('kpr.id', $reqIds);
+                });
+            });
+        }
+
+        // Filter: hanya peserta_didik_id tertentu
+        if (!empty($filters['peserta_didik_ids']) && is_array($filters['peserta_didik_ids'])) {
+            $query->whereIn('peserta_didik.peserta_didik_id', $filters['peserta_didik_ids']);
+        }
+
         // Validasi: hanya siswa yang sudah ada fotonya (jika diminta atau saat cetak request)
         if (!empty($filters['hanya_ada_foto']) && Schema::hasTable('peserta_didik_meta')) {
             $query->whereExists(function ($sub) {
@@ -216,6 +243,7 @@ class KartuPelajarPrintService
             'sekolah' => $sekolahInfo,
             'filter_status_request' => $filters['status_request'] ?? null,
             'filter_hanya_ada_foto' => !empty($filters['hanya_ada_foto']),
+            'is_selected_only' => !empty($filters['request_ids']) || !empty($filters['peserta_didik_ids']),
         ];
     }
 }
