@@ -13,7 +13,12 @@ class FeederReceiverController extends Controller
 {
     private function validateApiKey(Request $request): bool
     {
-        $serverKey = DB::table('settings')->where('id', 1)->value('api_key') ?? 'sae_secret_live_key_2026';
+        $serverKey = \App\Support\FeederApiKey::stored();
+
+        // Fail-closed: tanpa kunci tersimpan, tidak ada permintaan yang boleh lolos.
+        if (empty($serverKey)) {
+            return false;
+        }
 
         $headerKey = $request->header('X-API-Key') ?? $request->header('x-api-key');
         if (!$headerKey && $request->hasHeader('Authorization')) {

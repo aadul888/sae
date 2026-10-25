@@ -57,12 +57,14 @@ class DatabaseSeeder extends Seeder
         );
 
         // Default setting website & API Key untuk feeder (Single Row id=1)
+        // Kunci feeder dibuat acak per instalasi agar tidak ada kunci bawaan yang diketahui publik.
+        $existingKey = DB::table('settings')->where('id', 1)->value('api_key');
         DB::table('settings')->updateOrInsert(
             ['id' => 1],
             [
                 'app_name' => 'SAE - Sistem Aplikasi Edukasi',
                 'site_name' => 'SAE - Sistem Aplikasi Edukasi',
-                'api_key' => 'sae_secret_live_key_2026',
+                'api_key' => $existingKey ?: \App\Support\FeederApiKey::generate(),
                 'dapodik_url' => 'http://localhost:5774',
                 'maintenance_status' => 0,
                 'updated_at' => now(),

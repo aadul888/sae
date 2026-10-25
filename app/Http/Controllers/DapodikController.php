@@ -31,8 +31,9 @@ class DapodikController extends Controller
         $totalPesertaDidik = DB::table('peserta_didik')->count();
         $totalRombel = DB::table('rombongan_belajar')->count();
 
+        $apiKey = \App\Support\FeederApiKey::ensure();
         $setting = DB::table('settings')->where('id', 1)->first();
-        $apiKey = $setting->api_key ?? 'sae_secret_live_key_2026';
+
         $lastSync = $setting->last_sync ?? ($sekolah->updated_at ?? '-');
 
         $hasActiveData = ($totalPesertaDidik > 0 || $totalGtk > 0 || $totalRombel > 0);
@@ -63,7 +64,7 @@ class DapodikController extends Controller
     {
         if ($res = $this->checkAdmin()) return $res;
 
-        $newKey = 'SAE_' . bin2hex(random_bytes(16));
+        $newKey = \App\Support\FeederApiKey::generate();
         DB::table('settings')->updateOrInsert(
             ['id' => 1],
             ['api_key' => $newKey, 'updated_at' => now()]

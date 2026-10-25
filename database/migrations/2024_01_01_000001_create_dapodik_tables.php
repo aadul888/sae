@@ -14,7 +14,7 @@ return new class extends Migration
                 $table->integer('id')->default(1)->primary();
                 $table->string('app_name', 255)->default('SAE - Sistem Aplikasi Edukasi');
                 $table->string('site_name', 255)->default('SAE - Sistem Aplikasi Edukasi');
-                $table->string('api_key', 191)->default('sae_secret_live_key_2026');
+                $table->string('api_key', 191)->nullable();
                 $table->string('dapodik_url', 255)->default('http://localhost:5774');
                 $table->dateTime('last_sync')->nullable();
                 $table->boolean('maintenance_status')->default(false);

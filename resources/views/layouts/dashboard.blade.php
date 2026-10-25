@@ -86,9 +86,10 @@
 
         <!-- Mobile Bottom Navigation (5 Menu Utama) -->
         @include('partials.mobile-bottom-nav')
+    </div>
 
-        <!-- SweetAlert2 Local -->
-        <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <!-- SweetAlert2 Local -->
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
         <!-- Global & Dashboard JS Scripts with Cache Busting -->
         <script

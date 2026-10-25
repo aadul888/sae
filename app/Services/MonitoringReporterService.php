@@ -112,12 +112,19 @@ class MonitoringReporterService
     {
         $payload = self::collectCounts();
         $coreUrl = rtrim(config('services.sae_core.url') ?: env('SAE_CORE_URL', 'https://appsae.com'), '/');
-        $apiKey = config('services.sae_core.api_key') ?: env('SAE_CORE_API_KEY', env('SAE_API_KEY', 'SAE_20260422090959_d6be672e5e92c802adeca5d8a4eccf0c'));
+        $apiKey = config('services.sae_core.api_key');
 
         if (empty($coreUrl)) {
             return [
                 'success' => false,
                 'message' => 'URL sae-core belum dikonfigurasi (SAE_CORE_URL).',
+            ];
+        }
+
+        if (empty($apiKey)) {
+            return [
+                'success' => false,
+                'message' => 'Kunci sae-core belum dikonfigurasi (SAE_CORE_API_KEY pada berkas .env).',
             ];
         }
 
