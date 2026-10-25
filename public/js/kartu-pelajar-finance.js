@@ -212,16 +212,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.success && rombelFotoInfo && rombelFotoText) {
                     rombelFotoInfo.style.display = "block";
                     let text = `Tersedia <strong>${data.total_foto}</strong> dari ${data.total_siswa} siswa berfoto formal.`;
-                    if (data.already_waiting > 0) {
-                        text += ` (${data.already_waiting} sudah di antrean menunggu)`;
+                    const queueCount = data.already_in_queue !== undefined ? data.already_in_queue : (data.already_waiting || 0);
+                    if (queueCount > 0) {
+                        text += ` (${queueCount} siswa sudah pernah didaftarkan dan akan otomatis dilewati)`;
                     }
                     if (data.total_foto === 0 && hanyaFotoCheckbox?.checked) {
                         text += ` <br><span style="color: #ef4444; font-weight: 700;">Perhatian: Belum ada siswa berfoto formal di kelas ini!</span>`;
+                    } else if (data.total_foto > 0 && queueCount >= data.total_foto && hanyaFotoCheckbox?.checked) {
+                        text += ` <br><span style="color: #f59e0b; font-weight: 700;">Perhatian: Seluruh siswa berfoto di kelas ini sudah terdaftar dalam antrean/riwayat cetak!</span>`;
                     }
                     rombelFotoText.innerHTML = text;
 
                     if (submitBtn && document.getElementById("rqMode")?.value === "rombel") {
-                        submitBtn.disabled = (data.total_foto === 0 && hanyaFotoCheckbox?.checked);
+                        const isBlocked = (data.total_foto === 0 && hanyaFotoCheckbox?.checked) || 
+                                          (data.total_foto > 0 && queueCount >= data.total_foto && hanyaFotoCheckbox?.checked);
+                        submitBtn.disabled = isBlocked;
                     }
                 }
             } catch (e) {

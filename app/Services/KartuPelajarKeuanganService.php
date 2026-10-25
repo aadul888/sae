@@ -239,19 +239,13 @@ class KartuPelajarKeuanganService
             })->count();
         }
 
-        // Hitung juga yang sudah ada antrean menunggu hari ini
-        $alreadyWaiting = 0;
+        // Hitung juga yang sudah terdaftar di antrean/riwayat cetak apapun statusnya (menunggu, diproses, selesai, ditolak)
+        $alreadyInQueue = 0;
         if (Schema::hasTable('kartu_pelajar_request')) {
-            $alreadyWaiting = (clone $baseQuery)->whereExists(function ($sub) {
+            $alreadyInQueue = (clone $baseQuery)->whereExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('kartu_pelajar_request as kpr')
-                    ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id')
-                    ->when(
-                        Schema::hasColumn('kartu_pelajar_request', 'request_date'),
-                        fn($q) => $q->where('kpr.request_date', now()->toDateString()),
-                        fn($q) => $q->whereDate('kpr.created_at', now()->toDateString())
-                    )
-                    ->where('kpr.status', 'menunggu');
+                    ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id');
             })->count();
         }
 
@@ -261,7 +255,8 @@ class KartuPelajarKeuanganService
             'total_siswa'      => $totalSiswa,
             'total_foto'       => $totalFoto,
             'total_tanpa_foto' => max(0, $totalSiswa - $totalFoto),
-            'already_waiting'  => $alreadyWaiting,
+            'already_in_queue' => $alreadyInQueue,
+            'already_waiting'  => $alreadyInQueue,
         ];
     }
 
@@ -326,15 +321,13 @@ class KartuPelajarKeuanganService
         $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
 
         foreach ($students as $pd) {
-            // Cek duplikasi request 'menunggu' hari ini
-            $existing = KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
-                ->when(
-                    Schema::hasColumn('kartu_pelajar_request', 'request_date'),
-                    fn($q) => $q->where('request_date', now()->toDateString()),
-                    fn($q) => $q->whereDate('created_at', now()->toDateString())
-                )
-                ->where('status', 'menunggu')
-                ->first();
+            // Cek duplikasi request kartu pelajar apapun statusnya (menunggu, diproses, selesai, ditolak)
+            $existing = KartuPelajarRequest::where(function ($q) use ($pd) {
+                $q->where('peserta_didik_id', $pd->peserta_didik_id);
+                if (!empty($pd->nisn)) {
+                    $q->orWhere('nisn', $pd->nisn);
+                }
+            })->first();
 
             if ($existing) {
                 $skippedDuplicate++;
@@ -388,7 +381,7 @@ class KartuPelajarKeuanganService
         if ($insertedCount === 0 && $skippedDuplicate > 0) {
             return [
                 'success' => false,
-                'message' => "Seluruh {$skippedDuplicate} siswa berfoto di kelas {$rombel->nama} sudah memiliki antrean request berstatus Menunggu hari ini.",
+                'message' => "Seluruh {$skippedDuplicate} siswa berfoto di kelas {$rombel->nama} sudah terdaftar dalam antrean/riwayat cetak (menunggu, proses, selesai, atau ditolak). Permintaan ganda ditolak.",
                 'status_code' => 422,
             ];
         }
@@ -398,7 +391,7 @@ class KartuPelajarKeuanganService
             $msg .= " ({$totalTanpaFoto} siswa dilewati karena belum ada foto)";
         }
         if ($skippedDuplicate > 0) {
-            $msg .= " ({$skippedDuplicate} siswa dilewati karena sudah ada di antrean)";
+            $msg .= " ({$skippedDuplicate} siswa dilewati karena sudah terdaftar di antrean/riwayat)";
         }
 
         return [
@@ -419,20 +412,19 @@ class KartuPelajarKeuanganService
     {
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
 
-        // Cek duplicate request
-        $existingRequest = KartuPelajarRequest::where('peserta_didik_id', $data['peserta_didik_id'])
-            ->when(
-                Schema::hasColumn('kartu_pelajar_request', 'request_date'),
-                fn($query) => $query->where('request_date', now()->toDateString()),
-                fn($query) => $query->whereDate('created_at', now()->toDateString())
-            )
-            ->where('status', 'menunggu')
-            ->first();
+        // Cek duplicate request kartu pelajar apapun statusnya (menunggu, diproses, selesai, ditolak)
+        $existingRequest = KartuPelajarRequest::where(function ($q) use ($pd, $data) {
+            $q->where('peserta_didik_id', $data['peserta_didik_id']);
+            if (!empty($pd->nisn)) {
+                $q->orWhere('nisn', $pd->nisn);
+            }
+        })->first();
 
         if ($existingRequest) {
+            $statusLabel = KartuPelajarRequest::STATUS[$existingRequest->status] ?? ucfirst($existingRequest->status);
             return [
                 'success' => false,
-                'message' => "Peserta didik {$pd->nama} sudah memiliki request antrean berstatus Menunggu pada tanggal hari ini.",
+                'message' => "Peserta didik {$pd->nama} sudah terdaftar dalam antrean/riwayat cetak dengan status {$statusLabel}. Permintaan ganda tidak diizinkan.",
                 'status_code' => 422,
             ];
         }

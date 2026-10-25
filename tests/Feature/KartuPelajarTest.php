@@ -296,6 +296,16 @@ class KartuPelajarTest extends TestCase
             ]);
             // Harus merespons sukses (atau 422 jika semua siswa berfoto sudah ada di antrean hari ini)
             $this->assertTrue(in_array($storeRombelRes->status(), [200, 422], true));
+
+            // 14. Test Penolakan Request Ganda Individu (Apapun statusnya: selesai/menunggu/proses/ditolak)
+            $duplicateIndividuRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.store-request'), [
+                'mode'             => 'individu',
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'jenis_request'    => 'cetak_baru',
+                'alasan'           => 'Test request ganda',
+            ]);
+            $duplicateIndividuRes->assertStatus(422);
+            $duplicateIndividuRes->assertJson(['success' => false]);
         }
     }
 }
