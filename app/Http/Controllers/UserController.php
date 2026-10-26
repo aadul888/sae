@@ -269,9 +269,9 @@ class UserController extends Controller
         $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
         $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
         // Daftar jurusan untuk penetapan cakupan Laboran/Kaprog.
-        // jurusan_meta memuat dua level Dapodik (Program & Konsentrasi Keahlian) dengan
-        // nama yang bisa sama, sehingga disertakan jumlah rombel sebagai pembeda.
+        // Dikelompokkan berpasangan antara Program Keahlian (Kelas X) & Konsentrasi Keahlian (Kelas XI-XII).
         $jurusanList = collect();
+        $jurusanGroups = [];
         if (\App\Support\Table::exists('jurusan_meta')) {
             $rombelPerJurusan = \App\Support\Table::exists('rombongan_belajar')
                 ? DB::table('rombongan_belajar')
@@ -283,12 +283,45 @@ class UserController extends Controller
 
             $jurusanList = DB::table('jurusan_meta')
                 ->select('jurusan_id', 'nama_jurusan', 'singkatan')
-                ->orderBy('nama_jurusan')
-                ->orderBy('jurusan_id')
                 ->get()
                 ->each(function ($j) use ($rombelPerJurusan) {
                     $j->jumlah_rombel = (int) ($rombelPerJurusan[$j->jurusan_id] ?? 0);
+                    $j->is_kelas_x = strlen((string) $j->jurusan_id) <= 5;
                 });
+
+            $grouped = [];
+            foreach ($jurusanList as $j) {
+                $prefix = substr((string) $j->jurusan_id, 0, 5);
+                $grouped[$prefix][] = $j;
+            }
+
+            foreach ($grouped as $k => $items) {
+                usort($items, fn($a, $b) => ($a->is_kelas_x ? 0 : 1) <=> ($b->is_kelas_x ? 0 : 1));
+
+                $groupName = '';
+                $groupSingkatan = '';
+                foreach ($items as $it) {
+                    if (!$it->is_kelas_x && !empty($it->singkatan)) {
+                        $groupSingkatan = $it->singkatan;
+                    }
+                    if (!$it->is_kelas_x && !empty($it->nama_jurusan)) {
+                        $groupName = $it->nama_jurusan;
+                    }
+                }
+                if (!$groupName && !empty($items[0])) {
+                    $groupName = $items[0]->nama_jurusan;
+                    $groupSingkatan = $items[0]->singkatan ?? '';
+                }
+
+                $jurusanGroups[] = [
+                    'prefix'    => $k,
+                    'name'      => $groupName,
+                    'singkatan' => $groupSingkatan,
+                    'items'     => $items,
+                ];
+            }
+
+            usort($jurusanGroups, fn($a, $b) => strcasecmp($a['name'], $b['name']));
         }
 
         return view('dashboard.pengguna', compact(
@@ -302,6 +335,7 @@ class UserController extends Controller
             'ptkList',
             'rombelList',
             'jurusanList',
+            'jurusanGroups',
             'counts',
             'activeTab',
             'q',

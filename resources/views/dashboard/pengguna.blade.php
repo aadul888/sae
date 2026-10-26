@@ -567,7 +567,7 @@
         data-store-url="{{ route('dashboard.pengguna.tugas-tambahan.store') }}"
         data-destroy-base-url="{{ url('/dashboard/pengguna/tugas-tambahan') }}"
         data-sync-wali-url="{{ route('dashboard.pengguna.tugas-tambahan.sync-wali') }}">
-        <div class="card" style="max-width: 540px; width: 92%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
+        <div class="card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
                 <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     <i class="fas fa-user-plus text-primary me-2"></i> Tambah Penugasan Tugas Tambahan
@@ -615,23 +615,52 @@
                     </div>
 
                     <div class="form-group-compact full-width" id="dutyJurusanWrap" style="display: none;">
-                        <label>Jurusan / Bidang Keahlian (Bisa Pilih Lebih dari 1)</label>
-                        <div class="jurusan-checkbox-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 10px; background: var(--bg-hover, rgba(255,255,255,0.03)); display: flex; flex-direction: column; gap: 8px;">
-                            @foreach (($jurusanList ?? []) as $j)
-                                <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
-                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $j->jurusan_id }}" class="duty-jurusan-check" style="accent-color: var(--primary);">
-                                    <span>
-                                        <strong>{{ $j->nama_jurusan }}</strong>
-                                        @if(!empty($j->singkatan))
-                                            <span class="badge badge-outline ms-1" style="font-size: var(--text-xs, 0.75rem);">{{ $j->singkatan }}</span>
-                                        @endif
-                                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">({{ $j->jumlah_rombel ?? 0 }} rombel)</span>
-                                    </span>
-                                </label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin: 0; font-weight: 700; color: var(--text-color);">
+                                <i class="fas fa-graduation-cap text-primary me-1"></i> Cakupan Jurusan / Keahlian
+                            </label>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                Centang sesuai penugasan
+                            </span>
+                        </div>
+                        <div class="jurusan-group-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 8px; background: var(--bg-hover, rgba(255,255,255,0.02)); display: flex; flex-direction: column; gap: 8px;">
+                            @foreach (($jurusanGroups ?? []) as $group)
+                                <div class="jurusan-group-box" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-card, rgba(255,255,255,0.03)); padding: 8px 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">
+                                        <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-folder-tree text-primary" style="font-size: 0.75rem;"></i>
+                                            <span>{{ $group['name'] }}</span>
+                                            @if(!empty($group['singkatan']))
+                                                <span class="badge badge-primary ms-1" style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $group['singkatan'] }}</span>
+                                            @endif
+                                        </div>
+                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary); font-size: 0.7rem; padding: 1px 6px; cursor: pointer;">
+                                            Pilih Semua
+                                        </button>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        @foreach ($group['items'] as $it)
+                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: 6px; cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                                                <div style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem);">
+                                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $it->jurusan_id }}" class="duty-jurusan-check" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;">
+                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: 0.65rem; padding: 2px 6px; font-weight: 600;">
+                                                        {{ $it->is_kelas_x ? 'Kelas X (Program)' : 'Kelas XI-XII (Konsentrasi)' }}
+                                                    </span>
+                                                    <span style="color: var(--text-color); font-weight: 500;">
+                                                        {{ $it->nama_jurusan }}
+                                                    </span>
+                                                </div>
+                                                <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; white-space: nowrap;">
+                                                    {{ $it->jumlah_rombel }} rombel
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
-                        <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
-                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih satu atau lebih jurusan (misal: Program Keahlian untuk Kelas X dan Konsentrasi Keahlian untuk Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan.
+                        <small style="display: block; margin-top: 5px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih Program Keahlian (Kelas X) dan/atau Konsentrasi Keahlian (Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan sekolah.
                         </small>
                     </div>
 
@@ -671,7 +700,7 @@
     <div id="modalEditDuty" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 540px; width: 92%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
+            style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
                 <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                     <i class="fas fa-pen-to-square text-primary me-2"></i> Ubah Penugasan Tugas Tambahan
@@ -693,23 +722,52 @@
                     </div>
 
                     <div class="form-group-compact full-width" id="editDutyJurusanWrap" style="display: none;">
-                        <label>Jurusan / Bidang Keahlian (Bisa Pilih Lebih dari 1)</label>
-                        <div class="jurusan-checkbox-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 10px; background: var(--bg-hover, rgba(255,255,255,0.03)); display: flex; flex-direction: column; gap: 8px;">
-                            @foreach (($jurusanList ?? []) as $j)
-                                <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
-                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $j->jurusan_id }}" class="duty-jurusan-check" style="accent-color: var(--primary);">
-                                    <span>
-                                        <strong>{{ $j->nama_jurusan }}</strong>
-                                        @if(!empty($j->singkatan))
-                                            <span class="badge badge-outline ms-1" style="font-size: var(--text-xs, 0.75rem);">{{ $j->singkatan }}</span>
-                                        @endif
-                                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">({{ $j->jumlah_rombel ?? 0 }} rombel)</span>
-                                    </span>
-                                </label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin: 0; font-weight: 700; color: var(--text-color);">
+                                <i class="fas fa-graduation-cap text-primary me-1"></i> Cakupan Jurusan / Keahlian
+                            </label>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                Centang sesuai penugasan
+                            </span>
+                        </div>
+                        <div class="jurusan-group-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 8px; background: var(--bg-hover, rgba(255,255,255,0.02)); display: flex; flex-direction: column; gap: 8px;">
+                            @foreach (($jurusanGroups ?? []) as $group)
+                                <div class="jurusan-group-box" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-card, rgba(255,255,255,0.03)); padding: 8px 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">
+                                        <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-folder-tree text-primary" style="font-size: 0.75rem;"></i>
+                                            <span>{{ $group['name'] }}</span>
+                                            @if(!empty($group['singkatan']))
+                                                <span class="badge badge-primary ms-1" style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $group['singkatan'] }}</span>
+                                            @endif
+                                        </div>
+                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary); font-size: 0.7rem; padding: 1px 6px; cursor: pointer;">
+                                            Pilih Semua
+                                        </button>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        @foreach ($group['items'] as $it)
+                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: 6px; cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                                                <div style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem);">
+                                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $it->jurusan_id }}" class="duty-jurusan-check" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;">
+                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: 0.65rem; padding: 2px 6px; font-weight: 600;">
+                                                        {{ $it->is_kelas_x ? 'Kelas X (Program)' : 'Kelas XI-XII (Konsentrasi)' }}
+                                                    </span>
+                                                    <span style="color: var(--text-color); font-weight: 500;">
+                                                        {{ $it->nama_jurusan }}
+                                                    </span>
+                                                </div>
+                                                <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; white-space: nowrap;">
+                                                    {{ $it->jumlah_rombel }} rombel
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
-                        <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
-                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih satu atau lebih jurusan (misal: Program Keahlian untuk Kelas X dan Konsentrasi Keahlian untuk Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan.
+                        <small style="display: block; margin-top: 5px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih Program Keahlian (Kelas X) dan/atau Konsentrasi Keahlian (Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan sekolah.
                         </small>
                     </div>
 

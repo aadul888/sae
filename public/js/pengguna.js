@@ -258,6 +258,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (modal) modal.style.display = "flex";
     };
 
+    window.toggleJurusanGroup = function (btn) {
+        const box = btn.closest(".jurusan-group-box");
+        if (!box) return;
+        const checkboxes = box.querySelectorAll(".duty-jurusan-check");
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(chk => chk.checked);
+        checkboxes.forEach(chk => { chk.checked = !allChecked; });
+        btn.textContent = allChecked ? "Pilih Semua" : "Batal";
+    };
+
     window.closeDutyModal = function () {
         const modal = document.getElementById("dutyModal");
         if (modal) {
@@ -275,6 +284,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 jurusanWrap.style.display = "none";
                 document.querySelectorAll("#dutyJurusanWrap .duty-jurusan-check").forEach(chk => {
                     chk.checked = false;
+                });
+                document.querySelectorAll("#dutyJurusanWrap .btn-toggle-pair").forEach(btn => {
+                    btn.textContent = "Pilih Semua";
                 });
             }
         }
@@ -368,6 +380,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll("#editDutyJurusanWrap .duty-jurusan-check").forEach(chk => {
                 chk.checked = false;
             });
+            document.querySelectorAll("#editDutyJurusanWrap .btn-toggle-pair").forEach(btn => {
+                btn.textContent = "Pilih Semua";
+            });
         }
     };
 
@@ -419,6 +434,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll("#editDutyJurusanWrap .duty-jurusan-check").forEach(chk => {
             chk.checked = selectedJurusanIds.includes(chk.value);
+        });
+
+        // Update teks tombol Pilih Semua per grup
+        document.querySelectorAll("#editDutyJurusanWrap .jurusan-group-box").forEach(box => {
+            const checkboxes = box.querySelectorAll(".duty-jurusan-check");
+            const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(chk => chk.checked);
+            const toggleBtn = box.querySelector(".btn-toggle-pair");
+            if (toggleBtn) toggleBtn.textContent = allChecked ? "Batal" : "Pilih Semua";
         });
 
         const setVal = (id, val) => {

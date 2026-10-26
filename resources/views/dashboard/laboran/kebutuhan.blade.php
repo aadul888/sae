@@ -494,6 +494,7 @@
     </div>
 
         @push('scripts')
+            <script src="{{ asset('js/laboran-common.js') }}?v={{ file_exists(public_path('js/laboran-common.js')) ? filemtime(public_path('js/laboran-common.js')) : time() }}"></script>
             <script src="{{ asset('js/laboran-kebutuhan.js') }}?v={{ file_exists(public_path('js/laboran-kebutuhan.js')) ? filemtime(public_path('js/laboran-kebutuhan.js')) : time() }}"></script>
         @endpush
     @endsection

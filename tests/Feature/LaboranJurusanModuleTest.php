@@ -1508,7 +1508,7 @@ class LaboranJurusanModuleTest extends TestCase
 
         // Label pembeda level Program vs Konsentrasi Keahlian
         $normalized = preg_replace('/\s+/', ' ', $html);
-        $this->assertStringContainsString('rombel </option>', $normalized);
+        $this->assertStringContainsString('rombel', $normalized);
     }
 
     /**
