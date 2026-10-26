@@ -49,8 +49,12 @@ else
     exit 1
 fi
 
+# Ekstensi yang WAJIB terpasang eksplisit.
+# Catatan: ctype, curl, dom, json, mbstring, openssl, pdo, tokenizer, xml
+# sudah menyatu di PHP 8.3 sehingga tidak perlu diperiksa/dipasang terpisah.
+# bcmath TIDAK dipakai aplikasi ini.
 MISSING_EXT=""
-for ext in bcmath ctype curl dom fileinfo json mbstring openssl pdo pdo_mysql tokenizer xml zip; do
+for ext in pdo_mysql zip gd; do
     if ! php -m 2>/dev/null | grep -qi "^${ext}$"; then
         MISSING_EXT="${MISSING_EXT} ${ext}"
     fi
@@ -58,9 +62,12 @@ done
 if [ -n "${MISSING_EXT}" ]; then
     fail "Ekstensi PHP belum terpasang:${MISSING_EXT}"
     fail "Pasang di aaPanel > App Store > PHP 8.3 > Setting > Install extension."
+    fail "  pdo_mysql -> koneksi database"
+    fail "  zip       -> impor/ekspor Excel, backup, update sistem"
+    fail "  gd        -> resize foto profil & peserta didik"
     FAILED=1
 else
-    ok "Semua ekstensi wajib tersedia"
+    ok "Ekstensi wajib tersedia (pdo_mysql, zip, gd)"
 fi
 
 # -----------------------------------------------------------------------------

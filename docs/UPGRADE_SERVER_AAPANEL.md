@@ -116,27 +116,75 @@ php -v | head -n1
 
 ## Langkah 3 — Pasang Ekstensi PHP 8.3
 
-1. **App Store** → **PHP 8.3** → **Setting** → tab **Install extension**
-2. Pasang yang belum ada:
+> **Penting — baca dulu:** daftar di aaPanel **hanya menampilkan ekstensi yang
+> BELUM terpasang**. Ekstensi yang sudah menyatu di PHP 8.3 tidak muncul.
+> Melihat "hanya ada fileinfo dan mbstring" itu **normal dan bukan masalah**.
+
+### 3.1 Yang benar-benar wajib (hanya 3)
+
+Aplikasi ini hanya membutuhkan **tiga** ekstensi tambahan:
+
+| Ekstensi | Dipakai untuk | Bila tidak ada |
+|---|---|---|
+| `pdo_mysql` | Koneksi database | Aplikasi tidak bisa terhubung ke database sama sekali |
+| `zip` | Impor/ekspor Excel, backup, update sistem (18 pemakaian `ZipArchive`) | Impor Excel & backup gagal |
+| `gd` | Resize/konversi foto (foto profil, foto peserta didik) | Upload foto gagal |
+
+Di aaPanel: **App Store → PHP 8.3 → Setting → Install extension**
+Cari ketiganya, klik **Install**, lalu **Reload** PHP 8.3.
+
+### 3.2 Yang sudah otomatis ada (JANGAN dipasang ulang)
+
+Ekstensi berikut **menyatu** di PHP 8.3 sehingga tidak muncul di daftar
+dan tidak perlu diapa-apakan:
 
 ```
-bcmath  ctype  curl  dom  fileinfo  json  mbstring
-openssl  pdo  pdo_mysql  tokenizer  xml  zip
+ctype  curl  dom  fileinfo  filter  hash  iconv  json
+libxml  mbstring  openssl  pcre  phar  session  tokenizer  xml  xmlwriter
 ```
 
-3. Klik **Install** pada masing-masing, lalu **Reload** PHP 8.3
+### 3.3 Yang TIDAK dibutuhkan (abaikan bila muncul)
 
-Verifikasi lewat SSH:
+| Ekstensi | Alasan |
+|---|---|
+| `bcmath` | Tidak dipakai sama sekali (0 pemakaian `bcadd`/`bcmul`/dst.) |
+| `intl` | Tidak wajib (bonus untuk format tanggal/locale) |
+| `imagick` | Tidak dipakai — aplikasi memakai GD |
+| `exif` | Tidak dipakai |
+
+> Panduan versi awal saya menyebut 13 ekstensi. Itu **berlebihan** — hasil
+> pemeriksaan `composer check-platform-reqs` membuktikan sebagian besar sudah
+> tersedia lewat PHP itu sendiri atau polyfill Laravel.
+
+### 3.4 Verifikasi
+
+Jalankan skrip pemeriksa yang disertakan proyek:
 
 ```bash
-for e in bcmath ctype curl dom fileinfo json mbstring openssl pdo pdo_mysql tokenizer xml zip; do
-  php -m | grep -qi "^$e$" && echo "OK   $e" || echo "HILANG $e"
+cd /www/wwwroot/<domain-anda>
+bash check-server.sh
+```
+
+Skrip ini **hanya memeriksa**, tidak mengubah apa pun. Contoh keluaran sehat:
+
+```
+2. Ekstensi WAJIB
+  OK    pdo_mysql
+  OK    zip
+  OK    gd
+```
+
+Atau cek manual:
+
+```bash
+for e in pdo_mysql zip gd; do
+  php -m | grep -qi "^$e$" && echo "OK   $e" || echo "KURANG $e"
 done
 ```
 
-Semua harus **OK** sebelum lanjut.
+Ketiganya harus **OK** sebelum lanjut ke Langkah 6.
 
-### 3.1 Naikkan batas upload (opsional, untuk impor Excel)
+### 3.5 Naikkan batas upload (untuk impor Excel)
 
 Di **PHP 8.3 → Setting → Configuration**:
 
