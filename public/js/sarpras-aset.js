@@ -126,4 +126,94 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+
+    // =========================================================================
+    // Modal Import Aset via Excel (Point 7)
+    // =========================================================================
+    const modalImportAset = document.getElementById('modalImportAset');
+    const btnOpenImportAset = document.getElementById('btnOpenImportAset');
+    const btnCloseImportAset = document.getElementById('btnCloseModalImportAset');
+    const btnCancelImportAset = document.getElementById('btnCancelModalImportAset');
+    const formImportAset = document.getElementById('formImportAset');
+
+    function openModalImportAset() {
+        if (!modalImportAset) return;
+        if (formImportAset) formImportAset.reset();
+        modalImportAset.style.display = 'flex';
+    }
+
+    function closeModalImportAset() {
+        if (!modalImportAset) return;
+        modalImportAset.style.display = 'none';
+    }
+
+    if (btnOpenImportAset) btnOpenImportAset.addEventListener('click', openModalImportAset);
+    if (btnCloseImportAset) btnCloseImportAset.addEventListener('click', closeModalImportAset);
+    if (btnCancelImportAset) btnCancelImportAset.addEventListener('click', closeModalImportAset);
+    if (modalImportAset) {
+        modalImportAset.addEventListener('click', function (e) {
+            if (e.target === modalImportAset) closeModalImportAset();
+        });
+    }
+
+    if (formImportAset) {
+        formImportAset.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitImportAset');
+            const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengunggah &amp; Mengimpor...';
+            }
+
+            const formData = new FormData(formImportAset);
+            fetch(formImportAset.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+                if (data.status === 'success') {
+                    closeModalImportAset();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Import Berhasil',
+                            text: data.message,
+                            icon: 'success'
+                        }).then(function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        alert(data.message);
+                        window.location.reload();
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ title: 'Gagal Import', text: data.message || 'Terjadi kesalahan.', icon: 'error' });
+                    } else {
+                        alert(data.message || 'Gagal import.');
+                    }
+                }
+            })
+            .catch(function (err) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: 'Kesalahan Sistem', text: err.message || 'Gagal mengunggah berkas.', icon: 'error' });
+                } else {
+                    alert(err.message || 'Gagal mengunggah berkas.');
+                }
+            });
+        });
+    }
 });

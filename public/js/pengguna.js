@@ -580,46 +580,4 @@ document.addEventListener("DOMContentLoaded", function () {
             window.closeEditDutyModal();
         }
     });
-                confirmed = await window.SAE.confirm(confirmMsg, "Tarik Wali Kelas?", "info", "Ya, Sinkronkan", "Batal");
-            } else if (typeof Swal !== "undefined") {
-                const result = await Swal.fire({
-                    title: "Tarik Wali Kelas?",
-                    text: confirmMsg,
-                    icon: "info",
-                    showCancelButton: true,
-                    confirmButtonText: "Ya, Sinkronkan",
-                    cancelButtonText: "Batal"
-                });
-                confirmed = result.isConfirmed;
-            }
-
-            if (!confirmed) return;
-
-            btnSyncWaliKelas.disabled = true;
-            btnSyncWaliKelas.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyinkronkan...';
-
-            try {
-                const res = await fetch(syncUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
-                    }
-                });
-                const data = await res.json();
-                if (data.status === "success") {
-                    showToast(data.message, "success");
-                    setTimeout(() => window.location.reload(), 800);
-                } else {
-                    throw new Error(data.message || "Gagal menyinkronkan");
-                }
-            } catch (err) {
-                showToast(err.message, "danger");
-            } finally {
-                btnSyncWaliKelas.disabled = false;
-                btnSyncWaliKelas.innerHTML = originalHtml;
-            }
-        });
-    }
 });

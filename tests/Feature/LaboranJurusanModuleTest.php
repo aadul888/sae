@@ -36,11 +36,8 @@ class LaboranJurusanModuleTest extends TestCase
         'laboran_peminjaman',
         'laboran_peminjaman_item',
         'laboran_jadwal_penggunaan',
-        'laboran_permintaan',
-        'laboran_permintaan_item',
         'laboran_jurnal',
         'laboran_kebersihan',
-        'laboran_administrasi',
         'laboran_arsip',
     ];
 
@@ -1032,8 +1029,6 @@ class LaboranJurusanModuleTest extends TestCase
         }
 
         $expected = [
-            'menu_laboran_administrasi', // #1 Buku Administrasi Jurusan
-            'menu_laboran_permintaan',   // #2 Bon Permintaan
             'menu_laboran_arsip',        // #7 Arsip/Ordner
             'menu_laboran_jurnal',       // #8 Jurnal Kegiatan
             'menu_laboran_kebersihan',   // #9 Kebersihan
@@ -1054,8 +1049,6 @@ class LaboranJurusanModuleTest extends TestCase
         $session = $this->adminSession();
 
         foreach ([
-            'dashboard.laboran.administrasi.index',
-            'dashboard.laboran.permintaan.index',
             'dashboard.laboran.arsip.index',
             'dashboard.laboran.jurnal.index',
             'dashboard.laboran.kebersihan.index',
@@ -1065,90 +1058,215 @@ class LaboranJurusanModuleTest extends TestCase
         }
     }
 
-    public function test_permintaan_serah_terima_mengurangi_stok_bahan_habis_pakai(): void
+    public function test_jadwal_mendukung_pemberlakuan_bulanan_dan_semester(): void
     {
-        $ptk = (string) DB::table('gtk')->value('ptk_id');
+        $session = $this->adminSession();
+        $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
 
+        // 1. Pemberlakuan Bulanan (Rutin mingguan dalam 1 bulan)
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.jadwal.store'), [
+            'ruang_lab_nama'       => 'Lahan Praktik ATPH',
+            'jenis_lokasi'         => 'lahan',
+            'rombel_id'            => $rombel,
+            'mata_pelajaran'       => 'UJI-PEMBERLAKUAN-BULANAN',
+            'tanggal'              => '2026-11-02', // Senin
+            'pemberlakuan'         => 'bulanan',
+            'pemberlakuan_bulan'   => 11,
+            'pemberlakuan_tahun'   => 2026,
+            'jam_mulai'            => '07:30',
+            'jam_selesai'          => '09:00',
+        ]);
+
+        $res->assertStatus(200);
+
+        // November 2026 memiliki 5 hari Senin: 2, 9, 16, 23, 30
+        $count = DB::table('laboran_jadwal_penggunaan')
+            ->where('mata_pelajaran', 'UJI-PEMBERLAKUAN-BULANAN')
+            ->count();
+        $this->assertGreaterThanOrEqual(4, $count, 'Penjadwalan bulanan harus meng-generate seluruh minggu dalam bulan.');
+    }
+
+    public function test_jadwal_multi_guru_dan_deteksi_bentrok(): void
+    {
+        $session = $this->adminSession();
+        $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
+        $gtkIds = DB::table('gtk')->limit(2)->pluck('ptk_id')->all();
+
+        $this->assertCount(2, $gtkIds, 'Dibutuhkan minimal 2 GTK untuk pengujian multi-guru.');
+
+        // Simpan sesi dengan 2 guru (tim teaching)
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.jadwal.store'), [
+            'ruang_lab_nama'       => 'Lab Komputer 1',
+            'jenis_lokasi'         => 'lab',
+            'rombel_id'            => $rombel,
+            'mata_pelajaran'       => 'UJI-MULTI-GURU',
+            'tanggal'              => '2026-12-01',
+            'pemberlakuan'         => 'sekali',
+            'jam_mulai'            => '08:00',
+            'jam_selesai'          => '10:00',
+            'ptk_id'               => $gtkIds[0],
+            'ptk_ids'              => [$gtkIds[0], $gtkIds[1]],
+        ]);
+
+        $res->assertStatus(200);
+
+        $saved = DB::table('laboran_jadwal_penggunaan')->where('mata_pelajaran', 'UJI-MULTI-GURU')->first();
+        $this->assertNotNull($saved);
+        $this->assertNotNull($saved->guru_pendamping, 'Nama guru pendamping harus terformat.');
+
+        // Uji bentrok guru pendamping pada jam yang sama di lokasi lain
+        $resConflict = $this->withSession($session)->postJson(route('dashboard.laboran.jadwal.store'), [
+            'ruang_lab_nama'       => 'Bengkel Otomotif',
+            'jenis_lokasi'         => 'bengkel',
+            'rombel_id'            => $rombel,
+            'mata_pelajaran'       => 'UJI-BENTROK-GURU',
+            'tanggal'              => '2026-12-01',
+            'pemberlakuan'         => 'sekali',
+            'jam_mulai'            => '08:30',
+            'jam_selesai'          => '09:30',
+            'ptk_id'               => $gtkIds[1], // Guru pendamping tadi dicoba dijadwalkan di sini
+        ]);
+
+        $resConflict->assertStatus(422);
+    }
+
+    public function test_jadwal_kbm_slot_endpoint(): void
+    {
+        $session = $this->adminSession();
+        $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
+
+        $res = $this->withSession($session)->getJson(route('dashboard.laboran.jadwal.kbm', ['rombel_id' => $rombel]));
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
+    }
+
+    public function test_jalankan_analisis_kebutuhan(): void
+    {
+        $session = $this->adminSession();
+
+        // Buat 1 item inventaris kritis (stok habis)
         $itemId = DB::table('laboran_bahan_alat')->insertGetId([
-            'ruang_lab_nama' => 'Lahan Praktik ATPH',
-            'kode_item'      => 'TPM-' . uniqid(),
-            'nama_item'      => 'Pupuk Uji Permintaan',
+            'ruang_lab_nama' => 'Lab Komputer 1',
+            'kode_item'      => 'KRIT-UJI-' . uniqid(),
+            'nama_item'      => 'Kabel LAN Uji Habis',
             'jenis'          => 'bahan_habis_pakai',
-            'stok_total'     => 50,
-            'stok_tersedia'  => 50,
-            'satuan'         => 'kg',
-            'kondisi'        => 'baik',
-            'jurusan_id'     => self::JUR_ATPH,
+            'stok_total'     => 10,
+            'stok_tersedia'  => 0, // Habis
+            'satuan'         => 'roll',
+            'kondisi'        => 'rusak_berat',
+            'jurusan_id'     => self::JUR_TKJ,
             'created_at'     => now(),
             'updated_at'     => now(),
         ]);
 
-        $session = $this->adminSession();
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.kebutuhan.jalankan-analisis'));
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
 
-        $this->withSession($session)
-            ->postJson(route('dashboard.laboran.permintaan.store'), [
-                'tanggal_permintaan' => now()->toDateString(),
-                'pemohon_nama'       => 'Guru Uji',
-                'keperluan'          => 'Praktik pemupukan',
-                'item_ids'           => [$itemId],
-                'item_jumlah'        => [$itemId => 10],
-            ])
-            ->assertStatus(200);
-
-        $permintaan = DB::table('laboran_permintaan')->latest('id')->first();
-        $this->assertNotNull($permintaan);
-        $this->assertStringStartsWith('PMT/', $permintaan->nomor_permintaan);
-
-        // Periksa ketersediaan
-        $this->withSession($session)
-            ->postJson(route('dashboard.laboran.permintaan.periksa', $permintaan->id))
-            ->assertStatus(200);
-
-        $it = DB::table('laboran_permintaan_item')->where('permintaan_id', $permintaan->id)->first();
-        $this->assertSame('tersedia', $it->status_ketersediaan);
-
-        // Serah terima -> stok bahan habis pakai berkurang
-        $this->withSession($session)
-            ->postJson(route('dashboard.laboran.permintaan.serahkan', $permintaan->id), [
-                'item_diberikan' => [$it->id => 10],
-            ])
-            ->assertStatus(200);
-
-        $this->assertEquals(40, (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia'));
-        $this->assertSame('diserahkan', DB::table('laboran_permintaan')->where('id', $permintaan->id)->value('status'));
+        $kebutuhan = DB::table('laboran_kebutuhan')->where('nama_item', 'Kabel LAN Uji Habis')->first();
+        $this->assertNotNull($kebutuhan, 'Analisis otomatis harus memasukkan item kritis ke daftar kebutuhan.');
+        $this->assertSame('kritis', $kebutuhan->prioritas);
     }
 
-    public function test_permintaan_alat_tidak_mengurangi_stok(): void
+    public function test_usulan_pengadaan_dengan_pilihan_jenis(): void
     {
-        [$alatId] = $this->seedItems(); // jenis = alat
-
         $session = $this->adminSession();
 
-        $this->withSession($session)
-            ->postJson(route('dashboard.laboran.permintaan.store'), [
-                'tanggal_permintaan' => now()->toDateString(),
-                'pemohon_nama'       => 'Guru Uji',
-                'item_ids'           => [$alatId],
-                'item_jumlah'        => [$alatId => 2],
-            ])
-            ->assertStatus(200);
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.pengadaan.store'), [
+            'tanggal_usulan' => now()->toDateString(),
+            'jenis'          => 'alat',
+            'urgensi'        => 'tinggi',
+            'status'         => 'diajukan',
+            'justifikasi'    => 'Pengadaan alat praktik semester ganjil',
+        ]);
 
-        $permintaan = DB::table('laboran_permintaan')->latest('id')->first();
-        $it = DB::table('laboran_permintaan_item')->where('permintaan_id', $permintaan->id)->first();
-        $stokAwal = (float) DB::table('laboran_bahan_alat')->where('id', $alatId)->value('stok_tersedia');
+        $res->assertStatus(200);
 
-        $this->withSession($session)
-            ->postJson(route('dashboard.laboran.permintaan.serahkan', $permintaan->id), [
-                'item_diberikan' => [$it->id => 2],
-            ])
-            ->assertStatus(200);
+        $row = DB::table('laboran_usulan_pengadaan')->latest('id')->first();
+        $this->assertNotNull($row);
+        $this->assertSame('alat', $row->jenis);
+    }
 
-        // Alat dipinjam, stok tidak berkurang
-        $this->assertEquals(
-            $stokAwal,
-            (float) DB::table('laboran_bahan_alat')->where('id', $alatId)->value('stok_tersedia'),
-            'Alat tidak boleh mengurangi stok saat serah terima permintaan.'
-        );
+    public function test_peminjaman_alat_dengan_siswa_otomatis_dan_sarpras(): void
+    {
+        $session = $this->adminSession();
+        $siswa = DB::table('peserta_didik')->first();
+
+        // 1 item lab
+        [$alatId] = $this->seedItems();
+
+        // 1 aset sarpras
+        $asetId = DB::table('sarpras_aset')->insertGetId([
+            'kode_aset'           => 'AST-UJI-' . uniqid(),
+            'nama_barang'         => 'Laptop Inventaris Uji',
+            'kategori'            => 'Elektronik',
+            'jumlah'              => 1,
+            'satuan'              => 'unit',
+            'kondisi'             => 'baik',
+            'status_ketersediaan' => 'tersedia',
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.peminjaman-alat.store'), [
+            'peminjam_tipe'           => 'siswa',
+            'peminjam_id'             => $siswa ? $siswa->peserta_didik_id : '12345',
+            'peminjam_nama'           => $siswa ? $siswa->nama : 'Siswa Uji',
+            'keperluan'               => 'Praktik lapangan',
+            'tanggal_pinjam'          => now()->toDateString(),
+            'tanggal_kembali_rencana' => now()->addDays(2)->toDateString(),
+            'item_ids'                => [$alatId],
+            'item_jumlah'             => [$alatId => 1],
+            'aset_ids'                => [$asetId],
+            'aset_jumlah'             => [$asetId => 1],
+        ]);
+
+        $res->assertStatus(200);
+
+        $pinjam = DB::table('laboran_peminjaman')->latest('id')->first();
+        $this->assertNotNull($pinjam);
+        $this->assertSame(2, (int) $pinjam->jumlah_item);
+
+        // Serah terima
+        $this->withSession($session)->putJson(route('dashboard.laboran.peminjaman-alat.status', $pinjam->id), [
+            'status' => 'dipinjam',
+        ])->assertStatus(200);
+
+        $this->assertSame('dipinjam', DB::table('sarpras_aset')->where('id', $asetId)->value('status_ketersediaan'));
+
+        // Pengembalian
+        $this->withSession($session)->postJson(route('dashboard.laboran.peminjaman-alat.kembalikan', $pinjam->id), [
+            'kondisi_kembali' => 'baik',
+        ])->assertStatus(200);
+
+        $this->assertSame('tersedia', DB::table('sarpras_aset')->where('id', $asetId)->value('status_ketersediaan'));
+
+        DB::table('sarpras_aset')->where('id', $asetId)->delete();
+    }
+
+    public function test_import_excel_inventaris_dan_aset(): void
+    {
+        $session = $this->adminSession();
+
+        // 1. Template download inventaris & aset
+        $this->withSession($session)->get(route('dashboard.laboran.inventaris.template'))->assertStatus(200);
+        $this->withSession($session)->get(route('dashboard.sarpras.aset.template'))->assertStatus(200);
+
+        // 2. Import inventaris dengan CSV dummy
+        $csvContent = "kode_item,nama_item,jenis,stok_total,satuan,kondisi,ruang_lab_nama\n"
+                    . "IMP-001,Obeng Set Uji,alat,5,set,baik,Lab Komputer 1\n";
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'inv') . '.csv';
+        file_put_contents($tempFile, $csvContent);
+
+        $uploaded = new \Illuminate\Http\UploadedFile($tempFile, 'import.csv', 'text/csv', null, true);
+
+        $res = $this->withSession($session)->post(route('dashboard.laboran.inventaris.import'), [
+            'file' => $uploaded,
+        ]);
+
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
+        $this->assertNotNull(DB::table('laboran_bahan_alat')->where('kode_item', 'IMP-001')->first());
+
+        @unlink($tempFile);
     }
 
     public function test_jurnal_menghitung_durasi_dan_kategori_tupoksi(): void
@@ -1197,24 +1315,6 @@ class LaboranJurusanModuleTest extends TestCase
         $paths = json_decode($row->dokumentasi_paths, true);
         $this->assertCount(2, $paths);
         $this->assertContains('storage/lab/foto1.jpg', $paths);
-    }
-
-    public function test_administrasi_mencatat_dokumen_jurusan(): void
-    {
-        $this->withSession($this->adminSession())
-            ->postJson(route('dashboard.laboran.administrasi.store'), [
-                'tanggal'       => now()->toDateString(),
-                'jenis_dokumen' => 'surat_masuk',
-                'perihal'       => 'Undangan Rapat Jurusan',
-                'asal_tujuan'   => 'Dinas Pendidikan',
-                'status'        => 'aktif',
-            ])
-            ->assertStatus(200);
-
-        $row = DB::table('laboran_administrasi')->latest('id')->first();
-        $this->assertNotNull($row);
-        $this->assertSame('surat_masuk', $row->jenis_dokumen);
-        $this->assertSame('Undangan Rapat Jurusan', $row->perihal);
     }
 
     public function test_arsip_massal_menarik_dokumen_dari_modul_lain(): void

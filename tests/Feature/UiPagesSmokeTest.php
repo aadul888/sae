@@ -51,8 +51,6 @@ class UiPagesSmokeTest extends TestCase
             '/dashboard/laboran/peminjaman-alat',
             '/dashboard/laboran/laporan',
             '/dashboard/laboran/laporan-lengkap',
-            '/dashboard/laboran/administrasi',
-            '/dashboard/laboran/permintaan',
             '/dashboard/laboran/arsip',
             '/dashboard/laboran/jurnal',
             '/dashboard/laboran/kebersihan',

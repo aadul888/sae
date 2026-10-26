@@ -22,6 +22,7 @@ return new class extends Migration
                 if (!Schema::hasColumn('laboran_jadwal_penggunaan', 'jadwal_seri_id')) {
                     $table->string('jadwal_seri_id', 60)->nullable()->index()->after('pemberlakuan');
                 }
+                $table->string('ptk_id', 255)->nullable()->change();
             });
         }
 
@@ -30,6 +31,8 @@ return new class extends Migration
                 if (!Schema::hasColumn('laboran_usulan_pengadaan', 'jenis')) {
                     $table->string('jenis', 30)->default('semua')->after('semester');
                 }
+                $table->string('sumber_dana', 40)->nullable()->change();
+                $table->string('pemohon_nama', 255)->nullable()->change();
             });
         }
 
