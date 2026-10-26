@@ -52,43 +52,22 @@ document.addEventListener('DOMContentLoaded', function () {
     let isEditMode = false;
 
     // -------------------------------------------------------------------------
-    // 2. Util: Alert
+    // 2. Util: Alert — delegasi ke helper bersama (laboran-common.js)
     // -------------------------------------------------------------------------
     function notifySuccess(message) {
-        if (typeof Swal !== 'undefined') {
-            return Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: message,
-                timer: 1400,
-                showConfirmButton: false
-            });
-        }
-        alert(message);
-        return Promise.resolve();
+        return window.SAELaboran.notifySuccess(message, false);
     }
 
     function notifyError(title, message) {
-        if (typeof Swal !== 'undefined') {
-            return Swal.fire({ icon: 'error', title: title, text: message });
-        }
-        alert(title + ': ' + message);
-        return Promise.resolve();
+        return window.SAELaboran.notifyError(title, message);
     }
 
     function extractErrorMessage(data, fallback) {
-        if (data && data.errors) {
-            const first = Object.values(data.errors)[0];
-            if (Array.isArray(first) && first.length > 0) return first[0];
-            if (typeof first === 'string') return first;
-        }
-        return (data && data.message) || fallback;
+        return window.SAELaboran.extractError(data, fallback);
     }
 
     function csrfToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        const input = document.querySelector('input[name="_token"]');
-        return (meta ? meta.getAttribute('content') : '') || (input ? input.value : '');
+        return window.SAELaboran.csrfToken();
     }
 
     // -------------------------------------------------------------------------

@@ -777,26 +777,6 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // KELENGKAPAN TUPOKSI LABORAN (9 Indikator Supervisi)
         // =====================================================================
 
-        // Indikator 1 — Buku Administrasi Jurusan
-        Route::prefix('administrasi')->name('administrasi.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
-            Route::post('/', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
-            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
-            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
-        });
-
-        // Indikator 2 — Bon/Form Permintaan Bahan & Alat Praktik
-        Route::prefix('permintaan')->name('permintaan.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
-            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
-            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
-            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
-            Route::post('/{id}/periksa', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'periksaKetersediaan'])->name('periksa')->middleware('permission:menu_laboran,update');
-            Route::post('/{id}/serahkan', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'serahkan'])->name('serahkan')->middleware('permission:menu_laboran,update');
-            Route::get('/{id}/cetak', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
-        });
 
         // Indikator 7 — Arsip Dokumen (Ordner Digital)
         Route::prefix('arsip')->name('arsip.')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RolePermission;
+use App\Services\LaboranInventarisImportService;
 use App\Support\LaboranScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -219,36 +220,11 @@ class LaboranInventarisController extends Controller
     }
 
     /**
-     * Buat kode item otomatis yang unik.
-     * Format: {PREFIX}-{YYYYMM}-{NNNN}, mis. ALAT-202610-0001.
+     * Buat kode item otomatis yang unik (delegasi ke service import).
      */
     protected function generateKodeItem(?string $namaItem, ?string $jenis): string
     {
-        $prefix = $jenis === 'bahan_habis_pakai' ? 'BHP' : 'ALT';
-        $periode = now()->format('Ym');
-        $base = $prefix . '-' . $periode . '-';
-
-        $last = DB::table('laboran_bahan_alat')
-            ->where('kode_item', 'like', $base . '%')
-            ->orderByDesc('kode_item')
-            ->value('kode_item');
-
-        $seq = 1;
-        if ($last) {
-            $tail = substr($last, strlen($base));
-            $seq = (int) $tail + 1;
-        }
-
-        // Jaminan unik (bila ada bentrok karena data lama / race condition)
-        $candidate = $base . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
-        $guard = 0;
-        while (DB::table('laboran_bahan_alat')->where('kode_item', $candidate)->exists() && $guard < 9999) {
-            $seq++;
-            $candidate = $base . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
-            $guard++;
-        }
-
-        return $candidate;
+        return app(LaboranInventarisImportService::class)->generateKodeItem($jenis);
     }
 
     /**
@@ -400,255 +376,48 @@ class LaboranInventarisController extends Controller
     }
 
     /**
-     * Download format berkas Excel untuk import inventaris laboratorium (Point 7).
+     * Unduh format berkas Excel untuk import inventaris laboratorium.
      */
-    public function templateExcel()
+    public function templateExcel(?LaboranInventarisImportService $service = null)
     {
-        $headers = [
-            'kode_item',
-            'nama_item',
-            'jenis',
-            'kategori',
-            'spesifikasi',
-            'stok_total',
-            'satuan',
-            'kondisi',
-            'jumlah_baik',
-            'jumlah_rusak_ringan',
-            'jumlah_rusak_berat',
-            'jumlah_kedaluwarsa',
-            'ruang_lab_nama',
-            'lokasi_lemari_rak',
-            'tgl_kedaluwarsa',
-        ];
+        $service = $service ?? app(LaboranInventarisImportService::class);
+        $path = $service->generateTemplateFile();
 
-        $rows = [
-            [
-                'ITM-LAB-001',
-                'Mikroskop Binokuler Digital',
-                'alat',
-                'Optik',
-                'Perbesaran 1000x, kamera USB 5MP',
-                '5',
-                'unit',
-                'baik',
-                '4',
-                '1',
-                '0',
-                '0',
-                'Lab Biologi',
-                'Lemari A-01',
-                '',
-            ],
-            [
-                '',
-                'Traktor Tangan Mini',
-                'alat',
-                'Mesin Pertanian',
-                'Kapasitas 8 PK, roda dua',
-                '10',
-                'unit',
-                'baik',
-                '5',
-                '3',
-                '2',
-                '0',
-                'Lahan Praktik ATPH',
-                'Gudang Alsintan',
-                '',
-            ],
-            [
-                'ITM-LAB-002',
-                'Alkohol 70% 1 Liter',
-                'bahan_habis_pakai',
-                'Bahan Kimia',
-                'Kemasan botol 1000 ml teknis',
-                '20',
-                'botol',
-                'baik',
-                '20',
-                '0',
-                '0',
-                '0',
-                'Lab Kimia',
-                'Rak Bahan C-03',
-                '2028-12-31',
-            ],
-        ];
-
-        $meta = [
-            'title'    => 'Format Import Inventaris Alat & Bahan Laboratorium',
-            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
-            'fields'   => [
-                'Kode Item'      => 'Boleh dikosongkan — sistem akan membuat kode otomatis',
-                'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
-            ],
-        ];
-
-        $tempPath = storage_path('app/temp_template_inventaris_' . uniqid() . '.xlsx');
-        \App\Services\SimpleXlsxExporter::export($tempPath, $meta, $headers, $rows, [
-            'sheetName' => 'Inventaris Lab',
-        ]);
-
-        return response()->download($tempPath, 'Format_Import_Inventaris_Laboratorium.xlsx')->deleteFileAfterSend(true);
+        return response()
+            ->download($path, 'Format_Import_Inventaris_Laboratorium.xlsx')
+            ->deleteFileAfterSend(true);
     }
 
     /**
-     * Import inventaris alat & bahan via Excel (.xlsx, .xls, .csv) (Point 7).
+     * Import inventaris alat & bahan via Excel (.xlsx, .xls, .csv).
      */
-    public function importExcel(Request $request)
+    public function importExcel(Request $request, LaboranInventarisImportService $service)
     {
         if ($res = $this->checkAuth()) return $res;
 
         $context = LaboranScope::resolve();
+
         $request->validate([
             'file' => 'required|file|max:10240',
         ]);
 
-        $file = $request->file('file');
-        $ext = strtolower($file->getClientOriginalExtension());
-        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Format berkas tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.',
-            ], 422);
-        }
-
         try {
-            $rows = \App\Services\SimpleXlsxReader::readFile($file->getRealPath());
-        } catch (\Throwable $e) {
+            $hasil = $service->import(
+                $request->file('file'),
+                $context,
+                $request->input('jurusan_id')
+            );
+        } catch (\RuntimeException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Gagal membaca berkas: ' . $e->getMessage(),
+                'message' => $e->getMessage(),
             ], 422);
-        }
-
-        if (empty($rows)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Berkas Excel kosong atau tidak memiliki data baris.',
-            ], 422);
-        }
-
-        $imported = 0;
-        $updated = 0;
-        $jurusanId = LaboranScope::jurusanForWrite($request->input('jurusan_id'), $context);
-
-        foreach ($rows as $r) {
-            $normalized = [];
-            foreach ($r as $k => $v) {
-                $cleanKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', (string) $k))));
-                $normalized[$cleanKey] = is_string($v) ? trim($v) : $v;
-            }
-
-            $nama = $normalized['nama_item'] ?? ($normalized['nama_barang'] ?? ($normalized['nama'] ?? ''));
-            if (!$nama) {
-                continue;
-            }
-
-            $kode = strtoupper(trim((string) ($normalized['kode_item'] ?? ($normalized['kode'] ?? ''))));
-
-            $rawJenis = strtolower((string) ($normalized['jenis'] ?? 'alat'));
-            $jenis = in_array($rawJenis, ['bahan', 'bahan_habis_pakai', 'habis_pakai', 'bhp'], true) ? 'bahan_habis_pakai' : 'alat';
-
-            // Kode kosong -> buat otomatis (tidak lagi memakai uniqid acak).
-            if ($kode === '') {
-                $kode = $this->generateKodeItem($nama, $jenis);
-            }
-
-            $total = (float) ($normalized['stok_total'] ?? ($normalized['stok'] ?? ($normalized['jumlah'] ?? 1)));
-            $tersedia = isset($normalized['stok_tersedia']) ? (float) $normalized['stok_tersedia'] : $total;
-            $satuan = (string) ($normalized['satuan'] ?? 'unit');
-
-            $rawKondisi = strtolower((string) ($normalized['kondisi'] ?? 'baik'));
-            $kondisi = match ($rawKondisi) {
-                'rusak_ringan', 'ringan' => 'rusak_ringan',
-                'rusak_berat', 'berat'   => 'rusak_berat',
-                'kedaluwarsa', 'expired' => 'kedaluwarsa',
-                default                  => 'baik',
-            };
-
-            // Rincian kondisi per jumlah (opsional). Bila kosong, seluruh stok
-            // dianggap sesuai kolom `kondisi`.
-            $jBaik = (float) ($normalized['jumlah_baik'] ?? ($normalized['baik'] ?? 0));
-            $jRr   = (float) ($normalized['jumlah_rusak_ringan'] ?? ($normalized['rusak_ringan'] ?? 0));
-            $jRb   = (float) ($normalized['jumlah_rusak_berat'] ?? ($normalized['rusak_berat'] ?? 0));
-            $jKad  = (float) ($normalized['jumlah_kedaluwarsa'] ?? ($normalized['kedaluwarsa_jml'] ?? 0));
-
-            $rincian = ['baik' => 0.0, 'rusak_ringan' => 0.0, 'rusak_berat' => 0.0, 'kedaluwarsa' => 0.0];
-            if (($jBaik + $jRr + $jRb + $jKad) > 0) {
-                $rincian = ['baik' => $jBaik, 'rusak_ringan' => $jRr, 'rusak_berat' => $jRb, 'kedaluwarsa' => $jKad];
-
-                // Kondisi dominan mengikuti jumlah terbanyak
-                $dominan = 'baik';
-                $max = $jBaik;
-                if ($jRr > $max) { $dominan = 'rusak_ringan'; $max = $jRr; }
-                if ($jRb >= $max && $jRb > 0) { $dominan = 'rusak_berat'; $max = $jRb; }
-                if ($jKad > $max) { $dominan = 'kedaluwarsa'; }
-                $kondisi = $dominan;
-            } else {
-                $rincian[$kondisi] = $total;
-            }
-
-            $ruang = (string) ($normalized['ruang_lab_nama'] ?? ($normalized['lokasi'] ?? ($normalized['ruangan'] ?? 'Lab Utama')));
-            $spesifikasi = (string) ($normalized['spesifikasi'] ?? '');
-            $rak = (string) ($normalized['lokasi_lemari_rak'] ?? ($normalized['rak'] ?? ($normalized['lemari'] ?? '')));
-            $kadaluwarsa = (string) ($normalized['tgl_kedaluwarsa'] ?? ($normalized['kedaluwarsa'] ?? ''));
-            $tglVal = null;
-            if ($kadaluwarsa) {
-                try { $tglVal = \Carbon\Carbon::parse($kadaluwarsa)->toDateString(); } catch (\Throwable $e) {}
-            }
-
-            $existing = DB::table('laboran_bahan_alat')->where('kode_item', $kode)->first();
-
-            if ($existing) {
-                DB::table('laboran_bahan_alat')->where('id', $existing->id)->update([
-                    'nama_item'           => $nama,
-                    'jenis'               => $jenis,
-                    'stok_total'          => $total,
-                    'stok_tersedia'       => $tersedia,
-                    'jumlah_baik'         => $rincian['baik'],
-                    'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
-                    'jumlah_rusak_berat'  => $rincian['rusak_berat'],
-                    'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
-                    'satuan'              => $satuan,
-                    'kondisi'             => $kondisi,
-                    'ruang_lab_nama'      => $ruang,
-                    'spesifikasi'         => $spesifikasi ?: $existing->spesifikasi,
-                    'lokasi_lemari_rak'   => $rak ?: $existing->lokasi_lemari_rak,
-                    'tgl_kedaluwarsa'     => $tglVal ?: $existing->tgl_kedaluwarsa,
-                    'updated_at'          => now(),
-                ]);
-                $updated++;
-            } else {
-                DB::table('laboran_bahan_alat')->insert([
-                    'jurusan_id'          => $jurusanId,
-                    'ruang_lab_nama'      => $ruang,
-                    'kode_item'           => $kode,
-                    'nama_item'           => $nama,
-                    'jenis'               => $jenis,
-                    'spesifikasi'         => $spesifikasi ?: null,
-                    'stok_total'          => max(0.01, $total),
-                    'stok_tersedia'       => max(0, $tersedia),
-                    'jumlah_baik'         => $rincian['baik'],
-                    'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
-                    'jumlah_rusak_berat'  => $rincian['rusak_berat'],
-                    'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
-                    'satuan'              => $satuan,
-                    'kondisi'             => $kondisi,
-                    'tgl_kedaluwarsa'     => $tglVal,
-                    'lokasi_lemari_rak'   => $rak ?: null,
-                    'created_at'          => now(),
-                    'updated_at'          => now(),
-                ]);
-                $imported++;
-            }
         }
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Import selesai: {$imported} item baru ditambahkan, {$updated} item diperbarui.",
-            'count'   => $imported + $updated,
+            'message' => "Import selesai: {$hasil['imported']} item baru ditambahkan, {$hasil['updated']} item diperbarui.",
+            'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }
 }

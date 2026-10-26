@@ -387,16 +387,6 @@ final class PermissionDictionary
                     'icon' => 'fa-file-lines',
                     'roles' => ['tugas_tambahan'],
                 ],
-                'menu_laboran_administrasi' => [
-                    'label' => 'Laboratorium: Buku Administrasi Jurusan',
-                    'icon' => 'fa-folder-open',
-                    'roles' => ['tugas_tambahan'],
-                ],
-                'menu_laboran_permintaan' => [
-                    'label' => 'Laboratorium: Bon Permintaan Alat & Bahan',
-                    'icon' => 'fa-file-signature',
-                    'roles' => ['tugas_tambahan'],
-                ],
                 'menu_laboran_arsip' => [
                     'label' => 'Laboratorium: Arsip Dokumen (Ordner)',
                     'icon' => 'fa-box-archive',

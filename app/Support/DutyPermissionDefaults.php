@@ -187,8 +187,6 @@ final class DutyPermissionDefaults
                 'menu_laboran_pengadaan',
                 'menu_laboran_kerusakan',
                 'menu_laboran_laporan',
-                'menu_laboran_administrasi',
-                'menu_laboran_permintaan',
                 'menu_laboran_arsip',
                 'menu_laboran_jurnal',
                 'menu_laboran_kebersihan',

@@ -361,7 +361,6 @@
                         <select name="kategori" class="form-control" required>
                             <option value="berita_acara_kerusakan">Berita Acara Kerusakan Alat ({{ $sumberOptions['berita_acara_kerusakan']->count() ?? 0 }} belum diarsip)</option>
                             <option value="kartu_peminjaman">Kartu Peminjaman Alat ({{ $sumberOptions['kartu_peminjaman']->count() ?? 0 }})</option>
-                            <option value="bon_permintaan">Bon/Form Permintaan ({{ $sumberOptions['bon_permintaan']->count() ?? 0 }})</option>
                             <option value="checklist_pemeriksaan">Checklist Pemeriksaan ({{ $sumberOptions['checklist_pemeriksaan']->count() ?? 0 }})</option>
                             <option value="usulan_pengadaan">Usulan Pengadaan ({{ $sumberOptions['usulan_pengadaan']->count() ?? 0 }})</option>
                         </select>

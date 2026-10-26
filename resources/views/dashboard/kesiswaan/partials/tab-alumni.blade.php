@@ -81,7 +81,8 @@
                                             @endif
                                         </div>
                                         @if (!empty($item->nipd))
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
+                                            <div
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 <span class="copyable" data-copy="{{ $item->nipd }}"
                                                     data-label="NIPD" title="Klik untuk salin NIPD">NIPD:
                                                     {{ $item->nipd }}</span>
@@ -100,7 +101,8 @@
                                 <td class="cell-pd-rombel"
                                     style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                     data-label="Rombel Terakhir">
-                                    <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
+                                    <span class="badge badge-outline"
+                                        style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                                         {{ $item->rombel_terakhir ?: '-' }}
                                     </span>
                                 </td>
@@ -119,7 +121,8 @@
                             <tr>
                                 <td colspan="6"
                                     style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
-                                    <i class="fas fa-graduation-cap mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
+                                    <i class="fas fa-graduation-cap mb-2"
+                                        style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada data arsip alumni.</div>
                                 </td>
                             </tr>
@@ -133,4 +136,3 @@
                     @include('partials.datatable-pagination', ['paginator' => $alumniList])
                 </div>
             @endif
-        @endif

@@ -15,145 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const STORE_URL = '/dashboard/laboran/kebutuhan';
 
-    // Helper mandiri dengan fallback
-    const L = window.SAELaboran || {
-        openModal: function (m) {
-            if (m) m.style.display = 'flex';
-        },
-        closeModal: function (m) {
-            if (m) m.style.display = 'none';
-        },
-        notifySuccess: function (msg) {
-            if (typeof Swal !== 'undefined') {
-                return Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: msg,
-                    timer: 1400,
-                    showConfirmButton: false
-                }).then(function () {
-                    window.location.reload();
-                });
-            }
-            alert(msg);
-            window.location.reload();
-            return Promise.resolve();
-        },
-        notifyError: function (t, msg) {
-            if (typeof Swal !== 'undefined') {
-                return Swal.fire({ icon: 'error', title: t, text: msg });
-            }
-            alert(t + ': ' + msg);
-            return Promise.resolve();
-        },
-        deleteData: function (url, name) {
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const doDel = function () {
-                fetch(url, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (d) {
-                    if (d.status === 'success') {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Berhasil', d.message || 'Data berhasil dihapus.', 'success').then(function () {
-                                window.location.reload();
-                            });
-                        } else {
-                            alert(d.message || 'Data berhasil dihapus.');
-                            window.location.reload();
-                        }
-                    } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Gagal', d.message || 'Terjadi kesalahan.', 'error');
-                        } else {
-                            alert(d.message || 'Terjadi kesalahan.');
-                        }
-                    }
-                })
-                .catch(function (err) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Error', err.message || 'Gagal menghapus data.', 'error');
-                    } else {
-                        alert(err.message || 'Gagal menghapus data.');
-                    }
-                });
-            };
-
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Hapus data kebutuhan?',
-                    text: 'Hapus ' + name + '?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then(function (res) {
-                    if (res.isConfirmed) doDel();
-                });
-            } else if (confirm('Hapus ' + name + '?')) {
-                doDel();
-            }
-        },
-        submitForm: function (f, opts) {
-            const btn = f.querySelector('button[type="submit"]');
-            const orig = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
-            }
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const formData = new FormData(f);
-
-            fetch(f.action, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: formData
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = orig;
-                }
-                if (d.status === 'success') {
-                    if (opts && typeof opts.onSuccess === 'function') {
-                        opts.onSuccess(d);
-                    } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Berhasil', d.message || 'Data berhasil disimpan.', 'success').then(function () {
-                                window.location.reload();
-                            });
-                        } else {
-                            alert(d.message || 'Data berhasil disimpan.');
-                            window.location.reload();
-                        }
-                    }
-                } else {
-                    const err = (d && d.errors) ? Object.values(d.errors)[0][0] : (d.message || 'Gagal menyimpan data.');
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Gagal', err, 'error');
-                    } else {
-                        alert(err);
-                    }
-                }
-            })
-            .catch(function (err) {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = orig;
-                }
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', err.message || 'Terjadi kesalahan sistem.', 'error');
-                } else {
-                    alert(err.message || 'Terjadi kesalahan sistem.');
-                }
-            });
-        }
-    };
+    // Helper bersama (laboran-common.js dimuat lebih dulu oleh Blade).
+    const L = window.SAELaboran;
 
     function openCreate() {
         if (!form) return;
@@ -262,16 +125,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const triggerAnalisis = e.target.closest('#btnJalankanAnalisis, .btn-trigger-analisis');
         if (triggerAnalisis) {
             const doAnalisis = function () {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'Menganalisis Ketersediaan...',
-                        html: 'Sedang memindai inventaris dan riwayat kerusakan...',
-                        allowOutsideClick: false,
-                        didOpen: function () {
-                            Swal.showLoading();
-                        }
-                    });
-                }
+                Swal.fire({
+                    title: 'Menganalisis Ketersediaan...',
+                    html: 'Sedang memindai inventaris dan riwayat kerusakan...',
+                    allowOutsideClick: false,
+                    didOpen: function () {
+                        Swal.showLoading();
+                    }
+                });
 
                 fetch(STORE_URL + '/jalankan-analisis', {
                     method: 'POST',
@@ -284,60 +145,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.status === 'success' || data.success) {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                title: 'Analisis Selesai',
-                                text: data.message || 'Hasil analisis berhasil diterapkan.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(function () {
-                                window.location.reload();
-                            });
-                        } else {
-                            alert(data.message || 'Hasil analisis berhasil diterapkan.');
+                        Swal.fire({
+                            title: 'Analisis Selesai',
+                            text: data.message || 'Hasil analisis berhasil diterapkan.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(function () {
                             window.location.reload();
-                        }
+                        });
                     } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                title: 'Galat',
-                                text: data.message || 'Gagal menjalankan analisis kebutuhan.',
-                                icon: 'error'
-                            });
-                        } else {
-                            alert(data.message || 'Gagal menjalankan analisis kebutuhan.');
-                        }
+                        Swal.fire({
+                            title: 'Galat',
+                            text: data.message || 'Gagal menjalankan analisis kebutuhan.',
+                            icon: 'error'
+                        });
                     }
                 })
                 .catch(function (err) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Kesalahan Sistem',
-                            text: err.message || 'Terjadi kesalahan saat memproses analisis.',
-                            icon: 'error'
-                        });
-                    } else {
-                        alert(err.message || 'Terjadi kesalahan saat memproses analisis.');
-                    }
+                    Swal.fire({
+                        title: 'Kesalahan Sistem',
+                        text: err.message || 'Terjadi kesalahan saat memproses analisis.',
+                        icon: 'error'
+                    });
                 });
             };
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Jalankan Analisis Kebutuhan?',
-                    html: 'Sistem akan memindai stok inventaris yang <strong>kritis, habis, rusak</strong>, atau menipis dalam cakupan jurusan Anda dan otomatis memasukkannya ke daftar kebutuhan.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3b82f6',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Jalankan Sekarang',
-                    cancelButtonText: 'Batal'
-                }).then(function (result) {
-                    if (result.isConfirmed) doAnalisis();
-                });
-            } else if (confirm('Jalankan Analisis Kebutuhan dari stok inventaris?')) {
-                doAnalisis();
-            }
+            Swal.fire({
+                title: 'Jalankan Analisis Kebutuhan?',
+                html: 'Sistem akan memindai stok inventaris yang <strong>kritis, habis, rusak</strong>, atau menipis dalam cakupan jurusan Anda dan otomatis memasukkannya ke daftar kebutuhan.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Jalankan Sekarang',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) doAnalisis();
+            });
         }
     });
 

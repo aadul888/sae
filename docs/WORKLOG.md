@@ -1099,3 +1099,89 @@ Melengkapi pengelolaan `dashboard/tendik?bidang=sarpras` agar benar-benar menjad
 6. **View cache**: `php artisan view:clear` lalu `view:cache` sukses.
 7. **Batas baris**: seluruh berkas yang disentuh < 1.000 baris (maks 936).
 8. **Test suite penuh**: **246 passed (2.957 assertions), 0 failed** (sebelumnya 236 passed; +10 test baru).
+
+---
+
+## Sesi 16 — 26 Oktober 2026: Penataan Struktur Kode Modul Laboran
+
+### 1. Latar Belakang
+Modul Laboran tumbuh cepat dalam beberapa sesi (jadwal KBM, multi-guru, analisis otomatis, unifikasi peminjaman, import Excel, rincian kondisi). Akibatnya muncul pelanggaran standar:
+- `tests/Feature/LaboranJurusanModuleTest.php` mencapai **1.676 baris** (batas 1.000).
+- `resources/views/partials/dash-sidebar.blade.php` mencapai **3.026 baris**.
+- `LaboranInventarisController.php` mencampur CRUD dengan parsing Excel (654 baris).
+- Beberapa view laboran mendekati batas dan menaruh seluruh modal di satu berkas.
+- Sisa kode mati dari modul Administrasi Jurusan & Bon Permintaan yang sudah dihapus.
+
+### 2. Pemecahan Berkas Uji (1.676 → 16 berkas)
+Berkas uji monolitik dipecah menjadi satu basis + 15 berkas per-domain:
+
+| Berkas | Baris | Cakupan |
+|---|---|---|
+| `Laboran/LaboranTestCase.php` | 180 | Basis: fixture, session, seeding, cleanup snapshot-id |
+| `Laboran/LaboranScopingJurusanTest.php` | 91 | Context, query, penulisan per jurusan |
+| `Laboran/LaboranScopingModulLamaTest.php` | 164 | Inventaris, jadwal, laporan lokasi |
+| `Laboran/LaboranHalamanAksesTest.php` | 37 | Akses halaman & proteksi tamu |
+| `Laboran/LaboranKebutuhanTest.php` | 64 | Analisis & kebutuhan |
+| `Laboran/LaboranPerawatanTest.php` | 69 | Perawatan K3 & kartu |
+| `Laboran/LaboranPemeriksaanTest.php` | 74 | Ceklist sebelum/sesudah pakai |
+| `Laboran/LaboranPengadaanTest.php` | 80 | Usulan pengadaan |
+| `Laboran/LaboranKerusakanTest.php` | 47 | Berita acara kerusakan |
+| `Laboran/LaboranPeminjamanTest.php` | 115 | Peminjaman terpadu + mutasi stok |
+| `Laboran/LaboranLaporanTest.php` | 77 | Laporan lengkap per periode |
+| `Laboran/LaboranHakAksesTest.php` | 68 | Permission dictionary & default |
+| `Laboran/LaboranJadwalPraktikTest.php` | 76 | Pemberlakuan berkala, multi-guru, slot KBM |
+| `Laboran/LaboranInventarisImportTest.php` | 115 | Import Excel, kode otomatis, rincian kondisi |
+| `Laboran/LaboranDokumenTupoksiTest.php` | 93 | Jurnal, kebersihan, arsip |
+| `Laboran/LaboranPenetapanJurusanTest.php` | 175 | Penetapan jurusan & regresi WALI_KELAS |
+
+Seluruh 57 test lama tetap berjalan (dipindah, bukan dihapus), ditambah helper `templateFilePath()` dan `makeCsv()` untuk menghilangkan duplikasi.
+
+### 3. Pemecahan Blade View
+Modal dipindah ke `resources/views/dashboard/laboran/partials/` dan dipanggil via `@include()`:
+
+| View utama | Sebelum | Sesudah | Partial hasil ekstraksi |
+|---|---|---|---|
+| `inventaris.blade.php` | 635 | 358 | `inventaris-modal-form` (266), `inventaris-modal-import` (46) |
+| `jadwal.blade.php` | 571 | 344 | `jadwal-modal-form` (217), `jadwal-modal-status` (45) |
+| `perawatan.blade.php` | 633 | 417 | `perawatan-modal-catatan` (149), `perawatan-modal-kartu` (110) |
+| `peminjaman.blade.php` | 435 | 265 | `peminjaman-modal-ajukan` (163), `peminjaman-modal-kembali` (40) |
+| `kebutuhan.blade.php` | 471 | 340 | `kebutuhan-modal-form` (161) |
+
+### 4. Pemecahan Sidebar (3.026 → 2.465 + 9 partial)
+Blok per-bidang diekstrak menjadi partial mandiri di `resources/views/partials/`:
+`dash-sidebar-laboran` (176), `dash-sidebar-persuratan` (61), `dash-sidebar-kesiswaan` (75), `dash-sidebar-kepegawaian` (41), `dash-sidebar-sarpras` (58), `dash-sidebar-perpustakaan` (45), `dash-sidebar-teknisi` (33), `dash-sidebar-keamanan` (53), `dash-sidebar-fasilitas` (33).
+
+### 5. Ekstraksi Service (hapus duplikasi & kurangi controller)
+`app/Services/LaboranInventarisImportService.php` (baru) memuat seluruh logika:
+- `HEADERS`, `contohBaris()`, `metaTemplate()`, `generateTemplateFile()`
+- `import()` — orkestrasi, `normalisasiBaris()`, `normalisasiKunci()`, `resolveKondisi()`
+- `perbarui()`, `simpanBaru()`, `generateKodeItem()`
+
+`LaboranInventarisController` **654 → 422 baris**; `generateKodeItem()` kini mendelegasikan ke service (satu sumber kebenaran).
+
+### 6. Penghapusan Kode Mati
+Modul **Administrasi Jurusan** dan **Bon Permintaan** dihapus menyeluruh:
+
+| Dihapus | Keterangan |
+|---|---|
+| `LaboranAdministrasiController.php`, `LaboranPermintaanController.php` | Controller |
+| `administrasi.blade.php`, `administrasi-cetak.blade.php`, `permintaan.blade.php`, `permintaan-detail.blade.php`, `permintaan-cetak.blade.php` | View |
+| `laboran-administrasi.js`, `laboran-permintaan.js` | JS |
+| 13 baris route `laboran/administrasi*` & `laboran/permintaan*` | `routes/web.php` |
+| 6 blok tautan sidebar (2 lokasi × 2 modul + 2 lainnya) | `dash-sidebar.blade.php` |
+| `menu_laboran_administrasi`, `menu_laboran_permintaan` | `PermissionDictionary`, `DutyPermissionDefaults` |
+| Blok sumber arsip `bon_permintaan` | `LaboranArsipController` + `arsip.blade.php` |
+
+### 7. Penghapusan Duplikasi JavaScript
+`laboran-jadwal.js` mendefinisikan ulang `notifySuccess`, `notifyError`, `extractErrorMessage`, dan `csrfToken` yang sudah ada di `laboran-common.js`. Kini mendelegasikan ke `window.SAELaboran.*`, dan `jadwal.blade.php` memuat `laboran-common.js` lebih dulu.
+
+`laboran-common.js` & `laboran-kebutuhan.js` juga membersihkan cabang `alert()`/`confirm()` yang tidak pernah tercapai (SweetAlert2 selalu dimuat oleh `layouts/dashboard.blade.php`).
+
+### 8. Verifikasi
+1. **Linting**: `php -l` seluruh berkas PHP + `node --check` seluruh JS laboran — 0 error.
+2. **Batas ukuran**: 77 berkas modul laboran diperiksa, **0 pelanggaran** > 1.000 baris; berkas terbesar 817 baris.
+3. **Keseimbangan `<div>`**: seluruh view utama dan partial hasil ekstraksi diverifikasi seimbang.
+4. **Render halaman**: 15 halaman laboran + sarpras aset mengembalikan HTTP 200.
+5. **Modal ter-render**: seluruh id modal/field kunci (`modalLab`, `modalImportInventaris`, `modalJadwal`, `modalStatus`, `modalPerawatan`, `modalKartu`, `modalPeminjaman`, `modalKembali`, `modalKebutuhan`) terverifikasi ADA di HTML hasil render.
+6. **Menu sidebar**: 12/12 label menu laboran tampil untuk pengguna LABORAN; label modul yang dihapus sudah tidak muncul.
+7. **Test suite penuh**: **246 passed (2.975 assertions), 0 failed**.

@@ -184,7 +184,8 @@
                                     {{ $item->nomor_induk ?: ($item->nipd ?: '—') }}
                                 </td>
                                 <td data-label="Nama Siswa" style="padding: 12px 14px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                                    <div
+                                        style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $item->tempat_lahir }},
@@ -221,11 +222,13 @@
                                             data-induk="{{ $item->nomor_induk }}"
                                             data-status="{{ $item->status_klaper }}"
                                             data-tahun="{{ $item->tahun_masuk }}"
-                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);" title="Edit Nomor Klaper">
+                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);"
+                                            title="Edit Nomor Klaper">
                                             <i class="fas fa-pen-to-square"></i>
                                         </button>
                                     @else
-                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">—</span>
+                                        <span
+                                            style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">—</span>
                                     @endif
                                 </td>
                             </tr>
@@ -235,9 +238,12 @@
                                     style="text-align: center; padding: 40px 14px; color: var(--text-muted);">
                                     <i class="fas fa-address-book"
                                         style="font-size: var(--text-4xl, 2.25rem); margin-bottom: 12px; display: block; opacity: 0.35;"></i>
-                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada rekaman data Buku
+                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada
+                                        rekaman data Buku
                                         Klaper.</span>
-                                    <p style="font-size: var(--text-sm, 0.8125rem); margin: 4px 0 0 0; color: var(--text-muted);">Gunakan
+                                    <p
+                                        style="font-size: var(--text-sm, 0.8125rem); margin: 4px 0 0 0; color: var(--text-muted);">
+                                        Gunakan
                                         tombol "Sinkronkan Buku Klaper" di atas untuk men-generate nomor klaper otomatis
                                         dari Dapodik.</p>
                                 </td>
@@ -326,18 +332,21 @@
                                             style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Drop
                                             Out / Berhenti</span>
                                     @endif
-                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 4px;">
+                                    <div
+                                        style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 4px;">
                                         {{ \Carbon\Carbon::parse($mt->tanggal_mutasi)->translatedFormat('d M Y') }}
                                     </div>
                                 </td>
                                 <td data-label="Nama Siswa" style="padding: 12px 14px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                                    <div
+                                        style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $mt->siswa->nama ?? 'Siswa' }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">NISN:
                                         {{ $mt->siswa->nisn ?? '-' }}</div>
                                 </td>
                                 <td data-label="No Surat & Tujuan" style="padding: 12px 14px;">
-                                    <div style="font-weight: 600; font-size: var(--text-base, 0.875rem); color: var(--primary);">
+                                    <div
+                                        style="font-weight: 600; font-size: var(--text-base, 0.875rem); color: var(--primary);">
                                         {{ $mt->nomor_surat_mutasi ?: '—' }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Sekolah:
                                         {{ $mt->sekolah_tujuan_asal ?: '—' }}</div>
@@ -347,8 +356,9 @@
                                     {{ $mt->alasan }}
                                 </td>
                                 <td data-label="Aksi" style="padding: 12px 14px; text-align: center;">
-                                    <a href="{{ route('dashboard.kesiswaan.mutasi.cetak', $mt->id) }}" target="_blank"
-                                        class="btn btn-outline btn-sm" style="padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);"
+                                    <a href="{{ route('dashboard.kesiswaan.administrasi.mutasi.cetak', $mt->id) }}"
+                                        target="_blank" class="btn btn-outline btn-sm"
+                                        style="padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);"
                                         title="Cetak Surat Mutasi">
                                         <i class="fas fa-print"></i>
                                     </a>
@@ -360,9 +370,12 @@
                                     style="text-align: center; padding: 40px 14px; color: var(--text-muted);">
                                     <i class="fas fa-person-walking-arrow-right"
                                         style="font-size: var(--text-4xl, 2.25rem); margin-bottom: 12px; display: block; opacity: 0.35;"></i>
-                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada riwayat mutasi siswa yang
+                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada
+                                        riwayat mutasi siswa yang
                                         dicatat.</span>
-                                    <p style="font-size: var(--text-sm, 0.8125rem); margin: 4px 0 0 0; color: var(--text-muted);">Gunakan
+                                    <p
+                                        style="font-size: var(--text-sm, 0.8125rem); margin: 4px 0 0 0; color: var(--text-muted);">
+                                        Gunakan
                                         tombol "Catat Mutasi Siswa" di atas untuk meregistrasi mutasi.</p>
                                 </td>
                             </tr>
@@ -411,11 +424,13 @@
                     <tbody>
                         @forelse ($berkasList as $index => $bk)
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 14px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
+                                <td
+                                    style="padding: 12px 14px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $berkasList->firstItem() + $index }}
                                 </td>
                                 <td style="padding: 12px 14px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                                    <div
+                                        style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $bk->nama }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">NISN:
                                         {{ $bk->nisn ?: '-' }} &bull; Rombel: {{ $bk->rombel_nama ?: '-' }}</div>
@@ -454,7 +469,8 @@
                                             data-ijazah="{{ $bk->ijazah_smp ? 1 : 0 }}"
                                             data-ktp="{{ $bk->ktp_orang_tua ? 1 : 0 }}"
                                             data-kip="{{ $bk->kip_pip ? 1 : 0 }}"
-                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);" title="Verifikasi Berkas">
+                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem);"
+                                            title="Verifikasi Berkas">
                                             <i class="fas fa-pen-to-square"></i>
                                         </button>
                                     @endif
@@ -466,7 +482,8 @@
                                     style="text-align: center; padding: 40px 14px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
                                         style="font-size: var(--text-4xl, 2.25rem); margin-bottom: 12px; display: block; opacity: 0.35;"></i>
-                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada rekaman verifikasi berkas
+                                    <span style="font-weight: 600; font-size: var(--text-base, 0.875rem);">Belum ada
+                                        rekaman verifikasi berkas
                                         siswa.</span>
                                 </td>
                             </tr>
@@ -489,7 +506,8 @@
                     <i class="fas fa-right-left text-primary"></i> Catat Mutasi Siswa
                 </h3>
                 <button type="button" id="btnCloseMutasiModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -582,7 +600,8 @@
                     <i class="fas fa-folder-check text-primary"></i> Checklist Berkas Siswa
                 </h3>
                 <button type="button" id="btnCloseBerkasModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -591,28 +610,34 @@
                 @csrf
                 <input type="hidden" id="berkasPdId">
 
-                <div style="background: var(--bg-hover); padding: 10px 14px; border-radius: var(--radius-md, 8px); margin-bottom: 16px;">
+                <div
+                    style="background: var(--bg-hover); padding: 10px 14px; border-radius: var(--radius-md, 8px); margin-bottom: 16px;">
                     <div id="berkasNamaSiswa" style="font-weight: 700; color: var(--text-color);"></div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
                         <input type="checkbox" id="chkAkta" style="width: 18px; height: 18px;">
                         <span>Akta Kelahiran (Asli / Fotokopi Terlegalisir)</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
                         <input type="checkbox" id="chkKk" style="width: 18px; height: 18px;">
                         <span>Kartu Keluarga (KK)</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
                         <input type="checkbox" id="chkIjazah" style="width: 18px; height: 18px;">
                         <span>Ijazah / SKL SMP / MTs</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
                         <input type="checkbox" id="chkKtp" style="width: 18px; height: 18px;">
                         <span>KTP Kedua Orang Tua / Wali</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: var(--text-base, 0.875rem); cursor: pointer;">
                         <input type="checkbox" id="chkKip" style="width: 18px; height: 18px;">
                         <span>Kartu Indonesia Pintar (KIP / PIP / PKH)</span>
                     </label>

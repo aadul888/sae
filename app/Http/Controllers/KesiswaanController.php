@@ -257,7 +257,7 @@ class KesiswaanController extends Controller
             'status' => 'success',
             'message' => "Mutasi siswa a.n {$siswa->nama} berhasil dicatat.",
             'mutasi_id' => $mutasi->id,
-            'cetak_url' => route('dashboard.kesiswaan.mutasi.cetak', $mutasi->id),
+            'cetak_url' => route('dashboard.kesiswaan.administrasi.mutasi.cetak', $mutasi->id),
         ]);
     }
 

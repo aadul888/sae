@@ -22,7 +22,6 @@ class LaboranArsipController extends LaboranBaseController
         'berita_acara_kerusakan' => 'Berita Acara Kerusakan Alat',
         'kartu_peminjaman'       => 'Kartu Peminjaman Alat',
         'kartu_perawatan'        => 'Kartu Perawatan Alat',
-        'bon_permintaan'         => 'Bon/Form Permintaan',
         'checklist_pemeriksaan'  => 'Checklist Pemeriksaan',
         'buku_inventaris'        => 'Buku Induk Inventaris',
         'usulan_pengadaan'       => 'Usulan Pengadaan',
@@ -165,18 +164,6 @@ class LaboranArsipController extends LaboranBaseController
         LaboranScope::apply($q, 'p.jurusan_id', $context);
         $result['kartu_peminjaman'] = $q->get();
 
-        // Permintaan
-        $q = DB::table('laboran_permintaan as pm')
-            ->whereNotExists(function ($sub) {
-                $sub->select(DB::raw(1))->from('laboran_arsip as ar')
-                    ->whereColumn('ar.sumber_id', 'pm.id')
-                    ->where('ar.sumber_tabel', 'laboran_permintaan');
-            })
-            ->select('pm.id', 'pm.nomor_permintaan as nomor', 'pm.pemohon_nama as judul', 'pm.tanggal_permintaan as tanggal', 'pm.jurusan_id')
-            ->orderByDesc('pm.id')->limit(50);
-        LaboranScope::apply($q, 'pm.jurusan_id', $context);
-        $result['bon_permintaan'] = $q->get();
-
         // Pemeriksaan
         $q = DB::table('laboran_pemeriksaan as pr')
             ->whereNotExists(function ($sub) {
@@ -252,7 +239,6 @@ class LaboranArsipController extends LaboranBaseController
         $map = [
             'berita_acara_kerusakan' => ['laboran_berita_acara_kerusakan', 'nomor_ba', 'nama_alat', 'tanggal_ba', 'jurusan_id'],
             'kartu_peminjaman'       => ['laboran_peminjaman', 'nomor_pinjam', 'peminjam_nama', 'tanggal_pinjam', 'jurusan_id'],
-            'bon_permintaan'         => ['laboran_permintaan', 'nomor_permintaan', 'pemohon_nama', 'tanggal_permintaan', 'jurusan_id'],
             'checklist_pemeriksaan'  => ['laboran_pemeriksaan', 'nomor_pemeriksaan', 'ruang_lab_nama', 'tanggal_pemeriksaan', 'jurusan_id'],
             'usulan_pengadaan'       => ['laboran_usulan_pengadaan', 'nomor_usulan', 'pemohon_nama', 'tanggal_usulan', 'jurusan_id'],
         ];

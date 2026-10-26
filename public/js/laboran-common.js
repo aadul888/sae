@@ -32,28 +32,19 @@
     }
 
     function notifySuccess(message, reload) {
-        if (typeof Swal !== 'undefined') {
-            return Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: message,
-                timer: 1400,
-                showConfirmButton: false
-            }).then(function () {
-                if (reload !== false) window.location.reload();
-            });
-        }
-        alert(message);
-        if (reload !== false) window.location.reload();
-        return Promise.resolve();
+        return Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: message,
+            timer: 1400,
+            showConfirmButton: false
+        }).then(function () {
+            if (reload !== false) window.location.reload();
+        });
     }
 
     function notifyError(title, message) {
-        if (typeof Swal !== 'undefined') {
-            return Swal.fire({ icon: 'error', title: title, text: message });
-        }
-        alert(title + ': ' + message);
-        return Promise.resolve();
+        return Swal.fire({ icon: 'error', title: title, text: message });
     }
 
     function openModal(el) {
@@ -155,22 +146,18 @@
                 });
         };
 
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Hapus Data?',
-                text: 'Apakah Anda yakin ingin menghapus "' + label + '"?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) doDelete();
-            });
-        } else if (confirm('Hapus "' + label + '"?')) {
-            doDelete();
-        }
+        Swal.fire({
+            title: 'Hapus Data?',
+            text: 'Apakah Anda yakin ingin menghapus "' + label + '"?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then(function (result) {
+            if (result.isConfirmed) doDelete();
+        });
     }
 
     function formatRupiah(n) {

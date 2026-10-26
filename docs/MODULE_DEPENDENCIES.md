@@ -195,6 +195,39 @@ Seluruh pembatasan data laboran berasal dari **satu sumber**: kolom `ptk_tugas_t
 
 **Peringatan:** jika `jurusan_id` masih `NULL`, sistem **tidak memblokir** operasi (permissive fallback) — ini disengaja agar modul tidak lumpuh sebelum admin menetapkan penugasan. Peringatan visual wajib dianggap tindakan yang harus segera diselesaikan.
 
+
+### G5. Struktur Berkas Modul Laboran (WAJIB dipatuhi saat menambah fitur)
+Modul laboran dijaga tetap modular agar tidak melampaui batas 1.000 baris/berkas.
+
+**Backend**
+| Lapisan | Berkas |
+|---|---|
+| Routing | `routes/web.php` — grup `laboran.*` |
+| Controller HTTP | `app/Http/Controllers/LaboranJadwalController.php`, `LaboranInventarisController.php`, `SarprasAsetController.php`, `app/Http/Controllers/Laboran/Laboran*Controller.php` |
+| Logika bisnis | `app/Services/LaboranJadwalService.php` (periode, bentrok, slot KBM), `app/Services/LaboranInventarisImportService.php` (Excel, kode otomatis, rincian kondisi) |
+| Cakupan data | `app/Support/LaboranScope.php` |
+| Basis bersama | `app/Http/Controllers/Laboran/LaboranBaseController.php` (boot/abilities/respond/findScoped/generateNomor/itemOptions/lokasiOptions) |
+
+**Frontend**
+| Lapisan | Berkas |
+|---|---|
+| View utama | `resources/views/dashboard/laboran/*.blade.php` (semua < 550 baris) |
+| Partial modal | `resources/views/dashboard/laboran/partials/*-modal-*.blade.php` |
+| Partial sidebar | `resources/views/partials/dash-sidebar.blade.php` + `dash-sidebar-{bidang}.blade.php` |
+| Helper JS | `public/js/laboran-common.js` (modal, submit AJAX, delete, notifikasi) |
+| JS per modul | `public/js/laboran-{modul}.js` — WAJIB memuat `laboran-common.js` lebih dulu, kecuali modul yang sepenuhnya mandiri (`laboran-inventaris.js`) |
+
+**Pengujian**
+| Berkas | Cakupan |
+|---|---|
+| `tests/Feature/Laboran/LaboranTestCase.php` | Basis fixture + cleanup snapshot-id |
+| `tests/Feature/Laboran/Laboran*Test.php` | 15 berkas per domain (scoping, kebutuhan, perawatan, pemeriksaan, pengadaan, kerusakan, peminjaman, laporan, hak akses, jadwal, import, tupoksi, penetapan jurusan) |
+
+**Aturan tambahan**
+- `kode_item` bersifat opsional; pembuatan kode otomatis **hanya** di `LaboranInventarisImportService::generateKodeItem()` — jangan menduplikasi logika ini.
+- Rincian kondisi (`jumlah_baik`/`jumlah_rusak_ringan`/`jumlah_rusak_berat`/`jumlah_kedaluwarsa`) dinormalisasi di `LaboranInventarisImportService::resolveKondisi()`; controller hanya meneruskan hasil.
+- Modul **Administrasi Jurusan** dan **Bon Permintaan** sudah dihapus; permission key `menu_laboran_administrasi` & `menu_laboran_permintaan` tidak boleh dipakai lagi.
+
 ### H. Realtime Mutation & Notifikasi Sistem
 - **Komponen Inti:** `App\Http\Middleware\BroadcastDataChanges`, `App\Services\RealtimeService`, `App\Services\SystemNotificationService`, `App\Http\Controllers\RealtimeController`.
 - **Keterkaitan:**

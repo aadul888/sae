@@ -14,12 +14,14 @@
                         <h3 id="bioNama"
                             style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Peserta Didik</h3>
-                        <div id="bioRombel" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-
+                        <div id="bioRombel"
+                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">-
                         </div>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#biodataModal"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -29,7 +31,8 @@
                 <div>Memuat biodata peserta didik...</div>
             </div>
 
-            <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
+            <div id="bioContent"
+                style="overflow-y: auto; flex: 1; display: none; font-size: var(--text-base, 0.875rem);">
                 <div style="margin-bottom: 12px;">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -90,7 +93,8 @@
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">ID Registrasi / Anggota</td>
                             <td id="bioRegId"
-                                style="font-family: monospace; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">-</td>
+                                style="font-family: monospace; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                                -</td>
                         </tr>
                     </table>
                 </div>
@@ -137,7 +141,8 @@
                     style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
+                        <span
+                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
                                 class="fas fa-book-open text-primary me-1"></i> Mata Pelajaran di Kelas</span>
                         <span id="bioJmlMapel" class="badge"
                             style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
@@ -172,13 +177,15 @@
     <!-- MODAL 2: AJUKAN USULAN PERUBAHAN DATA (Clean Global SAE Modal Style) -->
     <div id="modalUsulan" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
+        <div class="card"
+            style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Ajukan Usulan
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
+                    Ajukan Usulan
                     Perubahan Data</h3>
                 <button type="button" class="close-modal" data-target="#modalUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
-                        class="fas fa-times"></i></button>
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
+                    aria-label="Tutup"><i class="fas fa-times"></i></button>
             </div>
             <form id="formUsulan" method="POST"
                 action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}" enctype="multipart/form-data">
@@ -259,13 +266,15 @@
                         <h3 id="modalVbNama"
                             style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
                             Validasi Berkas Persyaratan Siswa</h3>
-                        <div id="modalVbInfo" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
+                        <div id="modalVbInfo"
+                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                             Memuat data siswa...
                         </div>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalVerifikasiBerkasDigital"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -318,7 +327,8 @@
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalPengelolaanUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -369,7 +379,8 @@
                     </div>
                 </div>
                 <button type="button" class="close-pdf-viewer"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -431,10 +442,12 @@
             onclick="event.stopPropagation();">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <h4 id="photoPreviewName"
-                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0;">Pasfoto</h4>
+                    style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0;">
+                    Pasfoto</h4>
                 <button type="button"
                     onclick="if(typeof closePhotoPreviewModal === 'function') closePhotoPreviewModal();"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);" aria-label="Tutup">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem);"
+                    aria-label="Tutup">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -445,26 +458,25 @@
             </div>
         </div>
     </div>
-@endsection
 
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
-@endpush
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+    @endpush
 
-@push('scripts')
-    <script
-        src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ file_exists(public_path('js/peserta-didik-aktif.js')) ? filemtime(public_path('js/peserta-didik-aktif.js')) : time() }}">
-    </script>
-    <script
-        src="{{ asset('js/peserta-didik-bulk-foto.js') }}?v={{ file_exists(public_path('js/peserta-didik-bulk-foto.js')) ? filemtime(public_path('js/peserta-didik-bulk-foto.js')) : time() }}">
-    </script>
-    <script
-        src="{{ asset('js/peserta-didik-actions.js') }}?v={{ file_exists(public_path('js/peserta-didik-actions.js')) ? filemtime(public_path('js/peserta-didik-actions.js')) : time() }}">
-    </script>
-    <script
-        src="{{ asset('js/kesiswaan-peserta-didik.js') }}?v={{ file_exists(public_path('js/kesiswaan-peserta-didik.js')) ? filemtime(public_path('js/kesiswaan-peserta-didik.js')) : time() }}">
-    </script>
-    <script
-        src="{{ asset('js/kesiswaan-usulan-manage.js') }}?v={{ file_exists(public_path('js/kesiswaan-usulan-manage.js')) ? filemtime(public_path('js/kesiswaan-usulan-manage.js')) : time() }}">
-    </script>
-@endpush
+    @push('scripts')
+        <script
+            src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ file_exists(public_path('js/peserta-didik-aktif.js')) ? filemtime(public_path('js/peserta-didik-aktif.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/peserta-didik-bulk-foto.js') }}?v={{ file_exists(public_path('js/peserta-didik-bulk-foto.js')) ? filemtime(public_path('js/peserta-didik-bulk-foto.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/peserta-didik-actions.js') }}?v={{ file_exists(public_path('js/peserta-didik-actions.js')) ? filemtime(public_path('js/peserta-didik-actions.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/kesiswaan-peserta-didik.js') }}?v={{ file_exists(public_path('js/kesiswaan-peserta-didik.js')) ? filemtime(public_path('js/kesiswaan-peserta-didik.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/kesiswaan-usulan-manage.js') }}?v={{ file_exists(public_path('js/kesiswaan-usulan-manage.js')) ? filemtime(public_path('js/kesiswaan-usulan-manage.js')) : time() }}">
+        </script>
+    @endpush
