@@ -817,7 +817,8 @@
                                 @if ($can('menu_buku_induk') || $can('menu_kesiswaan'))
                                     <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.buku-induk.*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-address-book"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-address-book"></i></span>
                                         <span class="nav-label">Buku Induk</span>
                                     </a>
                                 @endif
@@ -938,6 +939,21 @@
                                         <span class="nav-label">Peminjaman Sarpras</span>
                                     </a>
                                 @endif
+                                @if ($can('menu_teknisi'))
+                                    <a href="{{ route('dashboard.teknisi.work-order') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                                        <span class="nav-label">Perbaikan &amp; Work Order</span>
+                                    </a>
+                                @endif
+                                @if ($can('menu_penjaga'))
+                                    <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.penjaga.kebersihan*') ? 'active' : '' }}">
+                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>
+                                        <span class="nav-label">Kebersihan Fasilitas</span>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -960,14 +976,25 @@
                                 </a>
 
                                 {{-- ==== KELOMPOK: ADMINISTRASI & PERENCANAAN ==== --}}
-                                <div style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                                <div
+                                    style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                     Administrasi &amp; Perencanaan
                                 </div>
+                                @if ($can('menu_laboran_administrasi') || $can('menu_laboran'))
+                                    <a href="{{ route('dashboard.laboran.administrasi.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
+                                        title="Tupoksi #1 — Buku Administrasi Jurusan">
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-folder-open"></i></span>
+                                        <span class="nav-label">Buku Administrasi Jurusan</span>
+                                    </a>
+                                @endif
                                 @if ($can('menu_laboran_kebutuhan') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
                                         title="Tupoksi #6 — Pendataan Kebutuhan Alat &amp; Bahan">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-clipboard-list"></i></span>
                                         <span class="nav-label">Analisis &amp; Kebutuhan</span>
                                     </a>
                                 @endif
@@ -975,34 +1002,48 @@
                                     <a href="{{ route('dashboard.laboran.pengadaan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.pengadaan*') ? 'active' : '' }}"
                                         title="Tupoksi #6 — Daftar Usulan Pengadaan">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-invoice-dollar"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-file-invoice-dollar"></i></span>
                                         <span class="nav-label">Usulan Pengadaan</span>
                                     </a>
                                 @endif
 
                                 {{-- ==== KELOMPOK: LAYANAN PRAKTIK ==== --}}
-                                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                                <div
+                                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                     Layanan Praktik
                                 </div>
                                 @if ($can('menu_laboran_jadwal') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.laboran.jadwal.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}"
                                         title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-calendar-days"></i></span>
                                         <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
+                                    </a>
+                                @endif
+                                @if ($can('menu_laboran_permintaan') || $can('menu_laboran'))
+                                    <a href="{{ route('dashboard.laboran.permintaan.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
+                                        title="Tupoksi #2 — Bon/Form Permintaan Bahan &amp; Alat">
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-file-signature"></i></span>
+                                        <span class="nav-label">Bon Permintaan</span>
                                     </a>
                                 @endif
                                 @if ($can('menu_laboran_peminjaman') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.peminjaman-alat*') ? 'active' : '' }}"
                                         title="Tupoksi #7 — Kartu Peminjaman Alat">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-hand-holding"></i></span>
                                         <span class="nav-label">Peminjaman Alat</span>
                                     </a>
                                 @endif
 
                                 {{-- ==== KELOMPOK: PEMELIHARAAN & INVENTARIS ==== --}}
-                                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                                <div
+                                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                     Pemeliharaan &amp; Inventaris
                                 </div>
                                 @if ($can('menu_laboran_inventaris') || $can('menu_laboran'))
@@ -1017,7 +1058,8 @@
                                     <a href="{{ route('dashboard.laboran.perawatan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.perawatan*') ? 'active' : '' }}"
                                         title="Tupoksi #3 — Kartu Perawatan &amp; Penataan K3">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-screwdriver-wrench"></i></span>
                                         <span class="nav-label">Perawatan &amp; K3</span>
                                     </a>
                                 @endif
@@ -1025,7 +1067,8 @@
                                     <a href="{{ route('dashboard.laboran.pemeriksaan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.pemeriksaan*') ? 'active' : '' }}"
                                         title="Tupoksi #5 — Form Checklist Sebelum/Sesudah Pakai">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-list-check"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-list-check"></i></span>
                                         <span class="nav-label">Pemeriksaan Ceklist</span>
                                     </a>
                                 @endif
@@ -1039,14 +1082,16 @@
                                 @endif
 
                                 {{-- ==== KELOMPOK: PELAPORAN & ARSIP ==== --}}
-                                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                                <div
+                                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                     Pelaporan &amp; Arsip
                                 </div>
                                 @if ($can('menu_laboran_kerusakan') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.laboran.kerusakan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kerusakan*') ? 'active' : '' }}"
                                         title="Tupoksi #7 — Ordner Berita Acara Kerusakan Alat">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-triangle-exclamation"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-triangle-exclamation"></i></span>
                                         <span class="nav-label">Berita Acara Kerusakan</span>
                                     </a>
                                 @endif
@@ -1062,7 +1107,8 @@
                                     <a href="{{ route('dashboard.laboran.laporan-lengkap.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.laporan-lengkap*') ? 'active' : '' }}"
                                         title="Tupoksi #8 — Laporan Rekapitulasi Penggunaan &amp; Kerusakan">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-lines"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-file-lines"></i></span>
                                         <span class="nav-label">Laporan Lengkap</span>
                                     </a>
                                 @endif
@@ -1070,28 +1116,36 @@
                                     <a href="{{ route('dashboard.laboran.arsip.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.arsip*') ? 'active' : '' }}"
                                         title="Tupoksi #7 — Arsip Dokumen (Ordner Digital)">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-box-archive"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-box-archive"></i></span>
                                         <span class="nav-label">Arsip Dokumen</span>
                                     </a>
                                 @endif
 
                                 {{-- ==== KELOMPOK: INTEGRASI SARPRAS ==== --}}
-                                @if (($can('menu_laboran_aset') || $can('menu_inventaris') || $can('menu_laboran')) || ($can('menu_laboran_peminjaman') || $can('menu_sarpras_peminjaman') || $can('menu_laboran')))
-                                    <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                                @if (
+                                    $can('menu_laboran_aset') ||
+                                        $can('menu_inventaris') ||
+                                        $can('menu_laboran') ||
+                                        ($can('menu_laboran_peminjaman') || $can('menu_sarpras_peminjaman') || $can('menu_laboran')))
+                                    <div
+                                        style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                         Integrasi Sarpras
                                     </div>
                                 @endif
                                 @if ($can('menu_laboran_aset') || $can('menu_inventaris') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.sarpras.aset.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.aset*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-boxes-stacked"></i></span>
                                         <span class="nav-label">Inventaris &amp; Aset Sarpras</span>
                                     </a>
                                 @endif
                                 @if ($can('menu_laboran_peminjaman') || $can('menu_sarpras_peminjaman') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-hand-holding"></i></span>
                                         <span class="nav-label">Peminjaman Sarpras</span>
                                     </a>
                                 @endif
@@ -1468,8 +1522,11 @@
         </div>
     @endif
 
-    {{-- Bidang Sarana & Prasarana --}}
-    @if ($isTendikRole && !$hasKepalaTas && $tendikDutyList->contains('kode', 'STAF_SARPRAS') && $can('menu_sarpras'))
+    {{-- Bidang Sarana & Prasarana (induk seluruh urusan sarpras) --}}
+    {{-- Catatan: tugas tambahan STAF_SARPRAS dapat dipegang GTK ber-peran dasar
+         `tendik` maupun `guru` (peran Dapodik "PTK"), sehingga gerbang menu
+         memakai kode tugas tambahan, bukan hanya $isTendikRole. --}}
+    @if (!$hasKepalaTas && $tendikDutyList->contains('kode', 'STAF_SARPRAS') && $can('menu_sarpras'))
         <div class="dash-nav-group {{ $isSarprasActive ? 'open active-group' : '' }}">
             <button type="button" class="dash-nav-toggle">
                 <div class="dash-nav-toggle-main">
@@ -1499,6 +1556,20 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
                     <span class="nav-label">Peminjaman Sarpras</span>
                 </a>
+                @if ($can('menu_teknisi'))
+                    <a href="{{ route('dashboard.teknisi.work-order') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                        <span class="nav-label">Perbaikan &amp; Work Order</span>
+                    </a>
+                @endif
+                @if ($can('menu_penjaga'))
+                    <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.penjaga.kebersihan*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-broom"></i></span>
+                        <span class="nav-label">Kebersihan Fasilitas</span>
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -1585,9 +1656,16 @@
                     <span class="nav-label">Dashboard Laboratorium</span>
                 </a>
                 {{-- Kelompok: Administrasi & Perencanaan --}}
-                <div style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                <div
+                    style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Administrasi &amp; Perencanaan
                 </div>
+                <a href="{{ route('dashboard.laboran.administrasi.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
+                    title="Tupoksi #1 — Buku Administrasi Jurusan">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                    <span class="nav-label">Buku Administrasi Jurusan</span>
+                </a>
                 <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
                     title="Tupoksi #6 — Pendataan Kebutuhan">
@@ -1602,7 +1680,8 @@
                 </a>
 
                 {{-- Kelompok: Layanan Praktik --}}
-                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                <div
+                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Layanan Praktik
                 </div>
                 <a href="{{ route('dashboard.laboran.jadwal.index') }}"
@@ -1610,6 +1689,12 @@
                     title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                     <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
+                </a>
+                <a href="{{ route('dashboard.laboran.permintaan.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
+                    title="Tupoksi #2 — Bon/Form Permintaan">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                    <span class="nav-label">Bon Permintaan</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.peminjaman-alat*') ? 'active' : '' }}"
@@ -1619,7 +1704,8 @@
                 </a>
 
                 {{-- Kelompok: Pemeliharaan & Inventaris --}}
-                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                <div
+                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Pemeliharaan &amp; Inventaris
                 </div>
                 <a href="{{ route('dashboard.laboran.inventaris.index') }}"
@@ -1648,7 +1734,8 @@
                 </a>
 
                 {{-- Kelompok: Pelaporan & Arsip --}}
-                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                <div
+                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Pelaporan &amp; Arsip
                 </div>
                 <a href="{{ route('dashboard.laboran.kerusakan.index') }}"
@@ -1677,7 +1764,8 @@
                 </a>
 
                 {{-- Kelompok: Integrasi Sarpras --}}
-                <div style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                <div
+                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Integrasi Sarpras
                 </div>
                 <a href="{{ route('dashboard.sarpras.aset.index') }}"
@@ -2480,6 +2568,21 @@
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
                             <span class="nav-label">Peminjaman Sarpras</span>
                         </a>
+                        @if ($can('menu_teknisi'))
+                            <a href="{{ route('dashboard.teknisi.work-order') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                                <span class="nav-label">Perbaikan &amp; Work Order</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_penjaga'))
+                            <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.penjaga.kebersihan*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>
+                                <span class="nav-label">Kebersihan Fasilitas</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -2520,7 +2623,8 @@
                         </a>
                         <a href="{{ route('dashboard.laboran.perawatan.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.perawatan*') ? 'active' : '' }}">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                            <span class="nav-icon nested-icon"><i
+                                    class="fas fa-fw fa-screwdriver-wrench"></i></span>
                             <span class="nav-label">Perawatan &amp; K3</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.pemeriksaan.index') }}"
@@ -2530,12 +2634,14 @@
                         </a>
                         <a href="{{ route('dashboard.laboran.pengadaan.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.pengadaan*') ? 'active' : '' }}">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-invoice-dollar"></i></span>
+                            <span class="nav-icon nested-icon"><i
+                                    class="fas fa-fw fa-file-invoice-dollar"></i></span>
                             <span class="nav-label">Usulan Pengadaan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.kerusakan.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kerusakan*') ? 'active' : '' }}">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-triangle-exclamation"></i></span>
+                            <span class="nav-icon nested-icon"><i
+                                    class="fas fa-fw fa-triangle-exclamation"></i></span>
                             <span class="nav-label">Berita Acara Kerusakan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
@@ -2548,6 +2654,18 @@
                             title="Tupoksi #8 — Laporan Rekapitulasi">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-lines"></i></span>
                             <span class="nav-label">Laporan Lengkap</span>
+                        </a>
+                        <a href="{{ route('dashboard.laboran.administrasi.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
+                            title="Tupoksi #1 — Buku Administrasi Jurusan">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                            <span class="nav-label">Administrasi Jurusan</span>
+                        </a>
+                        <a href="{{ route('dashboard.laboran.permintaan.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
+                            title="Tupoksi #2 — Bon/Form Permintaan">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                            <span class="nav-label">Bon Permintaan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.jurnal.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jurnal*') ? 'active' : '' }}"

@@ -92,6 +92,7 @@ Menyimpan logika bisnis kompleks yang tidak boleh membebani controller:
 - `AdminDashboardStatsService.php`: Agregasi metrik, tren presensi 7 hari, sebaran jurusan, polar tingkat, dan log aktivitas admin.
 - `GuruDashboardStatsService.php`: Kompilasi data jadwal mengajar harian, status kalender pendidikan, dan statistik perwalian guru.
 - `TendikDashboardStatsService.php`: Agregasi metrik 10 cluster bidang tugas Tenaga Administrasi Sekolah (TAS) dan status penugasan tendik.
+- `SarprasDashboardService.php`: Agregator Dashboard Induk Sarana & Prasarana (KPI ruang/aset, peminjaman terpadu, work order teknisi, usulan laboran, temuan penjaga, insiden keamanan, peringatan tindak lanjut, serta kartu kendali modul turunan dengan gerbang hak akses).
 - `KepegawaianStatsService.php`: Pembangun dataset multi-periode (hari, minggu, bulan, triwulan, semester, tahun, TA) aktivitas GTK.
 - `SuratKeluarService.php`: Layanan agregasi query datatable surat keluar terkoordinir, sinkronisasi SPT, kalkulasi nomor surat terakhir, dan penanganan CRUD berkas arsip HDD.
 - `SuratKeteranganService.php`: Logika penerbitan surat keterangan siswa (aktif, berkelakuan baik, panggilan ortu, rekomendasi), integrasi BK, dan kompilasi cetak ber-Kop + QR.

@@ -571,17 +571,10 @@ class TendikDashboardStatsService
             'status' => !empty($statusCounts) ? $statusCounts : ['Selesai / Terbit' => 0, 'Menunggu Disposisi' => 0],
         ];
 
-        $sarprasCharts = [
-            'gedung' => Table::exists('sarpras_ruang')
-                ? DB::table('sarpras_ruang')->selectRaw('COALESCE(gedung, "Lainnya") as gedung, count(*) as total')->groupBy('gedung')->orderByDesc('total')->limit(6)->pluck('total', 'gedung')->toArray()
-                : [],
-            'kondisiRuang' => Table::exists('sarpras_ruang')
-                ? DB::table('sarpras_ruang')->selectRaw('COALESCE(kondisi, "baik") as kondisi, count(*) as total')->groupBy('kondisi')->pluck('total', 'kondisi')->toArray()
-                : [],
-            'kategoriAset' => Table::exists('sarpras_aset')
-                ? DB::table('sarpras_aset')->selectRaw('COALESCE(kategori, "Umum") as kategori, count(*) as total')->groupBy('kategori')->pluck('total', 'kategori')->toArray()
-                : [],
-        ];
+        // Dashboard induk Sarpras: agregasi lintas modul (ruang, aset,
+        // peminjaman, teknisi, laboran, penjaga, keamanan).
+        $sarprasDashboard = SarprasDashboardService::build($user);
+        $sarprasCharts = $sarprasDashboard['charts'];
 
         $laboranCharts = [
             'sebaranUnit' => [
@@ -794,6 +787,14 @@ class TendikDashboardStatsService
             }
         }
 
+        // Pecah hasil agregasi dashboard Sarpras menjadi variabel view
+        // agar partial `dashboard.tendik.section-sarpras` tetap ringkas.
+        $sarprasRingkasan       = $sarprasDashboard['ringkasan'];
+        $sarprasDaftar          = $sarprasDashboard['daftar'];
+        $sarprasLintasBidang    = $sarprasDashboard['lintasBidang'];
+        $sarprasPenanggungJawab = $sarprasDashboard['penanggungJawab'];
+        $sarprasPeringatan      = $sarprasDashboard['peringatan'];
+
         return compact(
             'stats',
             'administrasi_tugas',
@@ -833,6 +834,12 @@ class TendikDashboardStatsService
             'kesiswaanCharts',
             'persuratanCharts',
             'sarprasCharts',
+            'sarprasDashboard',
+            'sarprasRingkasan',
+            'sarprasDaftar',
+            'sarprasLintasBidang',
+            'sarprasPenanggungJawab',
+            'sarprasPeringatan',
             'laboranCharts',
             'perpustakaanCharts',
             'keamananCharts',

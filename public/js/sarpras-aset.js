@@ -12,6 +12,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalTitle = document.getElementById('modalAsetTitle');
     const methodInput = document.getElementById('asetMethod');
 
+    // Token CSRF dipakai bersama oleh hapus aset & import Excel.
+    // WAJIB di scope terluar: sebelumnya berada di dalam blok if (btnDelete)
+    // sehingga import melempar ReferenceError tanpa alert apa pun.
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        const input = document.querySelector('input[name="_token"]');
+        return (meta ? meta.getAttribute('content') : '') || (input ? input.value : '');
+    }
+
     function openModal(isEdit = false, data = {}) {
         if (!modal) return;
         modal.style.display = 'flex';
@@ -81,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btnDelete) {
             const id = btnDelete.dataset.id;
             const nama = btnDelete.dataset.nama || 'aset ini';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const csrfToken = getCsrfToken();
 
             if (window.Swal) {
                 Swal.fire({
@@ -159,60 +168,111 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formImportAset) {
         formImportAset.addEventListener('submit', function (e) {
             e.preventDefault();
+
             const submitBtn = document.getElementById('btnSubmitImportAset');
             const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+
+            function restoreBtn() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+            }
+
+            function showError(title, msg) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: title, text: msg, icon: 'error' });
+                } else {
+                    alert(title + ': ' + msg);
+                }
+            }
+
+            const fileInput = document.getElementById('fileImportAset');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                showError('Berkas Belum Dipilih', 'Pilih berkas Excel (.xlsx/.xls) atau CSV terlebih dahulu.');
+                return;
+            }
+
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengunggah &amp; Mengimpor...';
             }
 
-            const formData = new FormData(formImportAset);
+            let formData;
+            try {
+                formData = new FormData(formImportAset);
+            } catch (err) {
+                restoreBtn();
+                showError('Kesalahan Sistem', 'Gagal menyiapkan data unggahan.');
+                return;
+            }
+
             fetch(formImportAset.action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                credentials: 'same-origin',
                 body: formData
             })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-                if (data.status === 'success') {
+            .then(function (res) {
+                return res.text().then(function (text) {
+                    let parsed = null;
+                    try {
+                        parsed = JSON.parse(text);
+                    } catch (e) {
+                        parsed = null;
+                    }
+
+                    if (parsed) {
+                        return { ok: res.ok, status: res.status, data: parsed };
+                    }
+
+                    let msg = 'Server mengembalikan respons tidak valid (HTTP ' + res.status + ').';
+                    if (res.status === 419) {
+                        msg = 'Sesi halaman telah berakhir. Muat ulang halaman lalu ulangi unggahan.';
+                    } else if (res.status === 413) {
+                        msg = 'Ukuran berkas terlalu besar untuk server. Perkecil berkas lalu ulangi.';
+                    } else if (res.status >= 500) {
+                        msg = 'Terjadi kesalahan pada server saat memproses berkas. Periksa format berkas Anda.';
+                    }
+                    return { ok: false, status: res.status, data: { status: 'error', message: msg } };
+                });
+            })
+            .then(function (result) {
+                restoreBtn();
+                const data = result.data || {};
+
+                if (result.ok && data.status === 'success') {
                     closeModalImportAset();
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             title: 'Import Berhasil',
-                            text: data.message,
+                            text: data.message || 'Data berhasil diimpor.',
                             icon: 'success'
                         }).then(function () {
                             window.location.reload();
                         });
                     } else {
-                        alert(data.message);
+                        alert(data.message || 'Data berhasil diimpor.');
                         window.location.reload();
                     }
-                } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ title: 'Gagal Import', text: data.message || 'Terjadi kesalahan.', icon: 'error' });
-                    } else {
-                        alert(data.message || 'Gagal import.');
-                    }
+                    return;
                 }
+
+                let errMsg = data.message || 'Terjadi kesalahan saat memproses berkas.';
+                if (data.errors) {
+                    const first = Object.values(data.errors)[0];
+                    if (Array.isArray(first) && first.length > 0) errMsg = first[0];
+                    else if (typeof first === 'string') errMsg = first;
+                }
+                showError('Gagal Import', errMsg);
             })
             .catch(function (err) {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ title: 'Kesalahan Sistem', text: err.message || 'Gagal mengunggah berkas.', icon: 'error' });
-                } else {
-                    alert(err.message || 'Gagal mengunggah berkas.');
-                }
+                restoreBtn();
+                showError('Kesalahan Sistem', err.message || 'Gagal mengunggah berkas. Periksa koneksi lalu coba lagi.');
             });
         });
     }

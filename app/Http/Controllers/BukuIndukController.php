@@ -56,15 +56,11 @@ class BukuIndukController extends Controller
 
         // Statistik Ringkasan Buku Induk
         $totalSiswa = DB::table('peserta_didik')->count();
-        $totalAktif = DB::table('peserta_didik')
-            ->where(function ($w) {
-                $w->whereNull('status_keaktifan_id_str')
-                  ->orWhere('status_keaktifan_id_str', 'LIKE', '%aktif%')
-                  ->orWhere('status_keaktifan_id_str', '1');
-            })
-            ->count();
         $totalLulus = DB::table('kesiswaan_buku_klaper')->where('status_klaper', 'lulus')->count();
         $totalMutasi = DB::table('kesiswaan_buku_klaper')->whereIn('status_klaper', ['mutasi_keluar', 'do'])->count();
+        $totalKeluarKlaper = $totalLulus + $totalMutasi;
+        // ponytail: status aktif = total siswa dikurangi yang berstatus keluar pada buku klaper.
+        $totalAktif = max(0, $totalSiswa - $totalKeluarKlaper);
         $totalIdentitasTerisi = DB::table('peserta_didik_identitas')
             ->whereNotNull('nik')
             ->where('nik', '!=', '')
@@ -79,12 +75,12 @@ class BukuIndukController extends Controller
         ];
 
         // Query Dasar Siswa dengan Left Join
+        // ponytail: rombel diambil dari kolom denormalisasi peserta_didik (bukan join anggota_rombel) agar 1 siswa = 1 baris.
         $query = DB::table('peserta_didik as pd')
             ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
             ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
             ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
-            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
             ->select([
                 'pd.peserta_didik_id',
                 'pd.nama',
@@ -98,9 +94,10 @@ class BukuIndukController extends Controller
                 'pd.nama_ibu',
                 'pd.nama_wali',
                 'pd.alamat_jalan',
-                'rb.rombongan_belajar_id',
+                'pd.rombongan_belajar_id',
+                'pd.nama_rombel',
                 'rb.nama as rombel_nama',
-                'pdm.foto_url',
+                'pdm.foto_path',
                 'kbk.id as klaper_id',
                 'kbk.nomor_klaper',
                 'kbk.nomor_induk',
@@ -127,7 +124,7 @@ class BukuIndukController extends Controller
 
         // Filter Rombel
         if (!empty($rombelId)) {
-            $query->where('rb.rombongan_belajar_id', $rombelId);
+            $query->where('pd.rombongan_belajar_id', $rombelId);
         }
 
         // Filter Angkatan / Tahun Masuk
@@ -165,7 +162,7 @@ class BukuIndukController extends Controller
 
         // Eksekusi Sorting & Pagination
         if ($sort === 'rombel_nama') {
-            $query->orderBy('rb.nama', $sortDir);
+            $query->orderBy('pd.nama_rombel', $sortDir);
         } elseif ($sort === 'tahun_masuk') {
             $query->orderBy('kbk.tahun_masuk', $sortDir);
         } elseif ($sort === 'status_klaper') {
@@ -175,6 +172,16 @@ class BukuIndukController extends Controller
         }
 
         $items = $query->paginate($perPage)->withQueryString();
+
+        // Lampirkan URL foto (foto_path bukan kolom publik; URL dibentuk dari accessor model)
+        $pageIds = collect($items->items())->pluck('peserta_didik_id')->filter()->all();
+        $metaMap = !empty($pageIds)
+            ? PesertaDidikMeta::whereIn('peserta_didik_id', $pageIds)->get()->keyBy('peserta_didik_id')
+            : collect();
+
+        foreach ($items as $item) {
+            $item->foto_url = $metaMap->get($item->peserta_didik_id)?->foto_url;
+        }
 
         // Master List untuk Filter Dropdown
         $rombelList = DB::table('rombongan_belajar')
@@ -243,11 +250,13 @@ class BukuIndukController extends Controller
         $meta = PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
 
         // Rombel Siswa
-        $rombel = DB::table('anggota_rombel as ar')
-            ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ar.peserta_didik_id', $pd->peserta_didik_id)
-            ->select('rb.nama as rombel_nama', 'rb.tingkat_pendidikan_id')
-            ->first();
+        $rombel = (object) [
+            'rombel_nama' => $pd->nama_rombel
+                ?: (DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id ?? '')->value('nama') ?? '-'),
+            'tingkat_pendidikan_id' => DB::table('rombongan_belajar')
+                ->where('rombongan_belajar_id', $pd->rombongan_belajar_id ?? '')
+                ->value('tingkat_pendidikan_id'),
+        ];
 
         return response()->json([
             'status' => 'success',
@@ -372,6 +381,10 @@ class BukuIndukController extends Controller
             'kewarganegaraan'          => 'nullable|string|max:10',
             'anak_keberapa'            => 'nullable|integer|min:1',
             'jumlah_saudara_kandung'   => 'nullable|integer|min:0',
+            'golongan_darah'           => 'nullable|string|max:5',
+            'penyakit_pernah_diderita' => 'nullable|string|max:150',
+            'kelainan_jasmani'         => 'nullable|string|max:100',
+            'bahasa_sehari_hari'       => 'nullable|string|max:100',
             'alamat_jalan'             => 'nullable|string|max:255',
             'rt'                       => 'nullable|string|max:5',
             'rw'                       => 'nullable|string|max:5',
@@ -413,6 +426,10 @@ class BukuIndukController extends Controller
             'kewarganegaraan'          => $validated['kewarganegaraan'] ?? 'WNI',
             'anak_keberapa'            => $validated['anak_keberapa'] ?? 1,
             'jumlah_saudara_kandung'   => $validated['jumlah_saudara_kandung'] ?? null,
+            'golongan_darah'           => $validated['golongan_darah'] ?? null,
+            'penyakit_pernah_diderita' => $validated['penyakit_pernah_diderita'] ?? null,
+            'kelainan_jasmani'         => $validated['kelainan_jasmani'] ?? null,
+            'bahasa_sehari_hari'       => $validated['bahasa_sehari_hari'] ?? null,
             'alamat_jalan'             => $validated['alamat_jalan'] ?? null,
             'rt'                       => $validated['rt'] ?? null,
             'rw'                       => $validated['rw'] ?? null,
@@ -506,12 +523,11 @@ class BukuIndukController extends Controller
         $sekolah = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        // Rombel Siswa
-        $rombel = DB::table('anggota_rombel as ar')
-            ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ar.peserta_didik_id', $pd->peserta_didik_id)
-            ->select('rb.nama as rombel_nama')
-            ->first();
+        // Rombel Siswa (kolom denormalisasi pada peserta_didik)
+        $rombel = (object) [
+            'rombel_nama' => $pd->nama_rombel
+                ?: (DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id ?? '')->value('nama') ?? '-'),
+        ];
 
         // Cari Kepala Sekolah
         $kepsek = DB::table('gtk')
@@ -564,8 +580,7 @@ class BukuIndukController extends Controller
         $query = DB::table('peserta_didik as pd')
             ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
             ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
-            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
             ->select([
                 'pd.peserta_didik_id',
                 'pd.nama',
@@ -578,7 +593,7 @@ class BukuIndukController extends Controller
                 'pd.nama_ayah',
                 'pd.nama_ibu',
                 'pd.alamat_jalan',
-                'rb.nama as rombel_nama',
+                'pd.nama_rombel as rombel_nama',
                 'kbk.nomor_klaper',
                 'kbk.nomor_induk',
                 'kbk.tahun_masuk',
@@ -587,7 +602,7 @@ class BukuIndukController extends Controller
             ]);
 
         if (!empty($rombelId)) {
-            $query->where('rb.rombongan_belajar_id', $rombelId);
+            $query->where('pd.rombongan_belajar_id', $rombelId);
         }
 
         if (!empty($tahunMasuk)) {

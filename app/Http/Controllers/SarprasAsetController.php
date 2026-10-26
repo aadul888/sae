@@ -64,8 +64,8 @@ class SarprasAsetController extends Controller
         $kategoriList = ['Elektronik', 'Mebel/Furnitur', 'Kendaraan', 'Alat Peraga', 'Mesin', 'Lainnya'];
         $ruangList = DB::table('sarpras_ruang')->orderBy('nama_ruang', 'asc')->get(['id', 'nama_ruang', 'gedung']);
 
-        $perPage = (int) $request->query('per_page', 15);
-        $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
+        $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
+        $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
 
         $list = $query->orderBy('sa.created_at', 'desc')->paginate($perPage)->withQueryString();
 

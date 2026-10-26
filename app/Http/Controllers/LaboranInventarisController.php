@@ -161,12 +161,17 @@ class LaboranInventarisController extends Controller
 
         $request->validate([
             'ruang_lab_nama'    => 'required|string|max:100',
-            'kode_item'         => 'required|string|max:50|unique:laboran_bahan_alat,kode_item',
+            // Kode item OPSIONAL: bila kosong dibuat otomatis oleh sistem.
+            'kode_item'         => 'nullable|string|max:50|unique:laboran_bahan_alat,kode_item',
             'nama_item'         => 'required|string|max:255',
             'jenis'             => 'required|in:alat,bahan_habis_pakai',
             'stok_total'        => 'required|numeric|min:0.01',
             'satuan'            => 'required|string|max:30',
             'kondisi'           => 'required|in:baik,rusak_ringan,rusak_berat,kedaluwarsa',
+            'jumlah_baik'         => 'nullable|numeric|min:0',
+            'jumlah_rusak_ringan' => 'nullable|numeric|min:0',
+            'jumlah_rusak_berat'  => 'nullable|numeric|min:0',
+            'jumlah_kedaluwarsa'  => 'nullable|numeric|min:0',
             'spesifikasi'       => 'nullable|string|max:1000',
             'lokasi_lemari_rak' => 'nullable|string|max:100',
             'tgl_kedaluwarsa'   => 'nullable|date',
@@ -175,28 +180,117 @@ class LaboranInventarisController extends Controller
             'kode_item.unique' => 'Kode item sudah digunakan.',
         ]);
 
-        DB::table('laboran_bahan_alat')->insert([
-            'jurusan_id'        => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
-            'ruang_lab_nama'    => $request->ruang_lab_nama,
-            'kode_item'         => strtoupper(trim($request->kode_item)),
-            'nama_item'         => trim($request->nama_item),
-            'jenis'             => $request->jenis,
-            'spesifikasi'       => $request->spesifikasi,
-            'stok_total'        => $request->stok_total,
-            'stok_tersedia'     => $request->stok_total,
-            'satuan'            => $request->satuan,
-            'kondisi'           => $request->kondisi,
-            'tgl_kedaluwarsa'   => $request->tgl_kedaluwarsa,
-            'lokasi_lemari_rak' => $request->lokasi_lemari_rak,
-            'created_at'        => now(),
-            'updated_at'        => now(),
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['status' => 'success', 'message' => 'Alat/bahan lab berhasil ditambahkan.']);
+        $kode = strtoupper(trim((string) $request->kode_item));
+        if ($kode === '') {
+            $kode = $this->generateKodeItem($request->nama_item, $request->jenis);
         }
 
-        return redirect()->route('dashboard.laboran.inventaris.index')->with('success', 'Alat/bahan lab berhasil ditambahkan.');
+        $stokTotal = (float) $request->stok_total;
+        $rincian = $this->resolveRincianKondisi($request, $stokTotal, $request->kondisi);
+
+        DB::table('laboran_bahan_alat')->insert([
+            'jurusan_id'          => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
+            'ruang_lab_nama'      => $request->ruang_lab_nama,
+            'kode_item'           => $kode,
+            'nama_item'           => trim($request->nama_item),
+            'jenis'               => $request->jenis,
+            'spesifikasi'         => $request->spesifikasi,
+            'stok_total'          => $stokTotal,
+            'stok_tersedia'       => $stokTotal,
+            'jumlah_baik'         => $rincian['baik'],
+            'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+            'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+            'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
+            'satuan'              => $request->satuan,
+            'kondisi'             => $rincian['kondisi'],
+            'tgl_kedaluwarsa'     => $request->tgl_kedaluwarsa,
+            'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        $msg = 'Alat/bahan lab berhasil ditambahkan.' . ($kode !== '' ? " Kode item: {$kode}." : '');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['status' => 'success', 'message' => $msg, 'kode_item' => $kode]);
+        }
+
+        return redirect()->route('dashboard.laboran.inventaris.index')->with('success', $msg);
+    }
+
+    /**
+     * Buat kode item otomatis yang unik.
+     * Format: {PREFIX}-{YYYYMM}-{NNNN}, mis. ALAT-202610-0001.
+     */
+    protected function generateKodeItem(?string $namaItem, ?string $jenis): string
+    {
+        $prefix = $jenis === 'bahan_habis_pakai' ? 'BHP' : 'ALT';
+        $periode = now()->format('Ym');
+        $base = $prefix . '-' . $periode . '-';
+
+        $last = DB::table('laboran_bahan_alat')
+            ->where('kode_item', 'like', $base . '%')
+            ->orderByDesc('kode_item')
+            ->value('kode_item');
+
+        $seq = 1;
+        if ($last) {
+            $tail = substr($last, strlen($base));
+            $seq = (int) $tail + 1;
+        }
+
+        // Jaminan unik (bila ada bentrok karena data lama / race condition)
+        $candidate = $base . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+        $guard = 0;
+        while (DB::table('laboran_bahan_alat')->where('kode_item', $candidate)->exists() && $guard < 9999) {
+            $seq++;
+            $candidate = $base . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+            $guard++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Tentukan rincian jumlah per kondisi.
+     * Bila rincian tidak diisi, seluruh stok dianggap sesuai `kondisi` yang dipilih.
+     *
+     * @return array{baik: float, rusak_ringan: float, rusak_berat: float, kedaluwarsa: float, kondisi: string}
+     */
+    protected function resolveRincianKondisi(Request $request, float $stokTotal, ?string $kondisiDefault): array
+    {
+        $baik  = (float) ($request->input('jumlah_baik') ?? 0);
+        $rr    = (float) ($request->input('jumlah_rusak_ringan') ?? 0);
+        $rb    = (float) ($request->input('jumlah_rusak_berat') ?? 0);
+        $kad   = (float) ($request->input('jumlah_kedaluwarsa') ?? 0);
+        $sum   = $baik + $rr + $rb + $kad;
+
+        // Tidak ada rincian -> seluruh stok mengikuti kondisi default.
+        if ($sum <= 0) {
+            $kondisi = in_array($kondisiDefault, ['baik', 'rusak_ringan', 'rusak_berat', 'kedaluwarsa'], true)
+                ? $kondisiDefault
+                : 'baik';
+
+            $rincian = ['baik' => 0.0, 'rusak_ringan' => 0.0, 'rusak_berat' => 0.0, 'kedaluwarsa' => 0.0];
+            $rincian[$kondisi] = $stokTotal;
+
+            return $rincian + ['kondisi' => $kondisi];
+        }
+
+        // Kondisi dominan dihitung dari jumlah terbanyak (rusak berat diprioritaskan bila seri).
+        $kondisi = 'baik';
+        $max = $baik;
+        if ($rr > $max) { $kondisi = 'rusak_ringan'; $max = $rr; }
+        if ($rb >= $max && $rb > 0) { $kondisi = 'rusak_berat'; $max = $rb; }
+        if ($kad > $max) { $kondisi = 'kedaluwarsa'; }
+
+        return [
+            'baik'          => $baik,
+            'rusak_ringan'  => $rr,
+            'rusak_berat'   => $rb,
+            'kedaluwarsa'   => $kad,
+            'kondisi'       => $kondisi,
+        ];
     }
 
     public function update(Request $request, $id)
@@ -219,33 +313,50 @@ class LaboranInventarisController extends Controller
 
         $request->validate([
             'ruang_lab_nama'    => 'required|string|max:100',
-            'kode_item'         => 'required|string|max:50|unique:laboran_bahan_alat,kode_item,' . $id,
+            // Kode item OPSIONAL: bila dikosongkan akan dibuat otomatis.
+            'kode_item'         => 'nullable|string|max:50|unique:laboran_bahan_alat,kode_item,' . $id,
             'nama_item'         => 'required|string|max:255',
             'jenis'             => 'required|in:alat,bahan_habis_pakai',
             'stok_total'        => 'required|numeric|min:0.01',
             'stok_tersedia'     => 'required|numeric|min:0',
             'satuan'            => 'required|string|max:30',
             'kondisi'           => 'required|in:baik,rusak_ringan,rusak_berat,kedaluwarsa',
+            'jumlah_baik'         => 'nullable|numeric|min:0',
+            'jumlah_rusak_ringan' => 'nullable|numeric|min:0',
+            'jumlah_rusak_berat'  => 'nullable|numeric|min:0',
+            'jumlah_kedaluwarsa'  => 'nullable|numeric|min:0',
             'spesifikasi'       => 'nullable|string|max:1000',
             'lokasi_lemari_rak' => 'nullable|string|max:100',
             'tgl_kedaluwarsa'   => 'nullable|date',
             'jurusan_id'        => 'nullable|string|max:50',
         ]);
 
+        $kode = strtoupper(trim((string) $request->kode_item));
+        if ($kode === '') {
+            $kode = $row->kode_item ?: $this->generateKodeItem($request->nama_item, $request->jenis);
+        }
+
+        $stokTotal = (float) $request->stok_total;
+        $rincian = $this->resolveRincianKondisi($request, $stokTotal, $request->kondisi);
+
         DB::table('laboran_bahan_alat')->where('id', $id)->update([
-            'jurusan_id'        => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
-            'ruang_lab_nama'    => $request->ruang_lab_nama,
-            'kode_item'         => strtoupper(trim($request->kode_item)),
-            'nama_item'         => trim($request->nama_item),
-            'jenis'             => $request->jenis,
-            'spesifikasi'       => $request->spesifikasi,
-            'stok_total'        => $request->stok_total,
-            'stok_tersedia'     => $request->stok_tersedia,
-            'satuan'            => $request->satuan,
-            'kondisi'           => $request->kondisi,
-            'tgl_kedaluwarsa'   => $request->tgl_kedaluwarsa,
-            'lokasi_lemari_rak' => $request->lokasi_lemari_rak,
-            'updated_at'        => now(),
+            'jurusan_id'          => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
+            'ruang_lab_nama'      => $request->ruang_lab_nama,
+            'kode_item'           => $kode,
+            'nama_item'           => trim($request->nama_item),
+            'jenis'               => $request->jenis,
+            'spesifikasi'         => $request->spesifikasi,
+            'stok_total'          => $stokTotal,
+            'stok_tersedia'       => $request->stok_tersedia,
+            'jumlah_baik'         => $rincian['baik'],
+            'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+            'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+            'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
+            'satuan'              => $request->satuan,
+            'kondisi'             => $rincian['kondisi'],
+            'tgl_kedaluwarsa'     => $request->tgl_kedaluwarsa,
+            'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
+            'updated_at'          => now(),
         ]);
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -302,6 +413,10 @@ class LaboranInventarisController extends Controller
             'stok_total',
             'satuan',
             'kondisi',
+            'jumlah_baik',
+            'jumlah_rusak_ringan',
+            'jumlah_rusak_berat',
+            'jumlah_kedaluwarsa',
             'ruang_lab_nama',
             'lokasi_lemari_rak',
             'tgl_kedaluwarsa',
@@ -317,8 +432,29 @@ class LaboranInventarisController extends Controller
                 '5',
                 'unit',
                 'baik',
+                '4',
+                '1',
+                '0',
+                '0',
                 'Lab Biologi',
                 'Lemari A-01',
+                '',
+            ],
+            [
+                '',
+                'Traktor Tangan Mini',
+                'alat',
+                'Mesin Pertanian',
+                'Kapasitas 8 PK, roda dua',
+                '10',
+                'unit',
+                'baik',
+                '5',
+                '3',
+                '2',
+                '0',
+                'Lahan Praktik ATPH',
+                'Gudang Alsintan',
                 '',
             ],
             [
@@ -330,28 +466,23 @@ class LaboranInventarisController extends Controller
                 '20',
                 'botol',
                 'baik',
+                '20',
+                '0',
+                '0',
+                '0',
                 'Lab Kimia',
                 'Rak Bahan C-03',
                 '2028-12-31',
-            ],
-            [
-                'ITM-LAB-003',
-                'Kabel UTP Cat 6 (Roll 305m)',
-                'bahan_habis_pakai',
-                'Jaringan',
-                'Belden Original UTP Cat6 305 Meter',
-                '3',
-                'roll',
-                'baik',
-                'Lab Komputer 1',
-                'Gudang TKJ',
-                '',
             ],
         ];
 
         $meta = [
             'title'    => 'Format Import Inventaris Alat & Bahan Laboratorium',
             'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+            'fields'   => [
+                'Kode Item'      => 'Boleh dikosongkan — sistem akan membuat kode otomatis',
+                'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
+            ],
         ];
 
         $tempPath = storage_path('app/temp_template_inventaris_' . uniqid() . '.xlsx');
@@ -415,13 +546,15 @@ class LaboranInventarisController extends Controller
                 continue;
             }
 
-            $kode = strtoupper((string) ($normalized['kode_item'] ?? ($normalized['kode'] ?? '')));
-            if (!$kode) {
-                $kode = 'ITM-' . strtoupper(substr(uniqid(), -6));
-            }
+            $kode = strtoupper(trim((string) ($normalized['kode_item'] ?? ($normalized['kode'] ?? ''))));
 
             $rawJenis = strtolower((string) ($normalized['jenis'] ?? 'alat'));
             $jenis = in_array($rawJenis, ['bahan', 'bahan_habis_pakai', 'habis_pakai', 'bhp'], true) ? 'bahan_habis_pakai' : 'alat';
+
+            // Kode kosong -> buat otomatis (tidak lagi memakai uniqid acak).
+            if ($kode === '') {
+                $kode = $this->generateKodeItem($nama, $jenis);
+            }
 
             $total = (float) ($normalized['stok_total'] ?? ($normalized['stok'] ?? ($normalized['jumlah'] ?? 1)));
             $tersedia = isset($normalized['stok_tersedia']) ? (float) $normalized['stok_tersedia'] : $total;
@@ -434,6 +567,28 @@ class LaboranInventarisController extends Controller
                 'kedaluwarsa', 'expired' => 'kedaluwarsa',
                 default                  => 'baik',
             };
+
+            // Rincian kondisi per jumlah (opsional). Bila kosong, seluruh stok
+            // dianggap sesuai kolom `kondisi`.
+            $jBaik = (float) ($normalized['jumlah_baik'] ?? ($normalized['baik'] ?? 0));
+            $jRr   = (float) ($normalized['jumlah_rusak_ringan'] ?? ($normalized['rusak_ringan'] ?? 0));
+            $jRb   = (float) ($normalized['jumlah_rusak_berat'] ?? ($normalized['rusak_berat'] ?? 0));
+            $jKad  = (float) ($normalized['jumlah_kedaluwarsa'] ?? ($normalized['kedaluwarsa_jml'] ?? 0));
+
+            $rincian = ['baik' => 0.0, 'rusak_ringan' => 0.0, 'rusak_berat' => 0.0, 'kedaluwarsa' => 0.0];
+            if (($jBaik + $jRr + $jRb + $jKad) > 0) {
+                $rincian = ['baik' => $jBaik, 'rusak_ringan' => $jRr, 'rusak_berat' => $jRb, 'kedaluwarsa' => $jKad];
+
+                // Kondisi dominan mengikuti jumlah terbanyak
+                $dominan = 'baik';
+                $max = $jBaik;
+                if ($jRr > $max) { $dominan = 'rusak_ringan'; $max = $jRr; }
+                if ($jRb >= $max && $jRb > 0) { $dominan = 'rusak_berat'; $max = $jRb; }
+                if ($jKad > $max) { $dominan = 'kedaluwarsa'; }
+                $kondisi = $dominan;
+            } else {
+                $rincian[$kondisi] = $total;
+            }
 
             $ruang = (string) ($normalized['ruang_lab_nama'] ?? ($normalized['lokasi'] ?? ($normalized['ruangan'] ?? 'Lab Utama')));
             $spesifikasi = (string) ($normalized['spesifikasi'] ?? '');
@@ -448,35 +603,43 @@ class LaboranInventarisController extends Controller
 
             if ($existing) {
                 DB::table('laboran_bahan_alat')->where('id', $existing->id)->update([
-                    'nama_item'         => $nama,
-                    'jenis'             => $jenis,
-                    'stok_total'        => $total,
-                    'stok_tersedia'     => $tersedia,
-                    'satuan'            => $satuan,
-                    'kondisi'           => $kondisi,
-                    'ruang_lab_nama'    => $ruang,
-                    'spesifikasi'       => $spesifikasi ?: $existing->spesifikasi,
-                    'lokasi_lemari_rak' => $rak ?: $existing->lokasi_lemari_rak,
-                    'tgl_kedaluwarsa'   => $tglVal ?: $existing->tgl_kedaluwarsa,
-                    'updated_at'        => now(),
+                    'nama_item'           => $nama,
+                    'jenis'               => $jenis,
+                    'stok_total'          => $total,
+                    'stok_tersedia'       => $tersedia,
+                    'jumlah_baik'         => $rincian['baik'],
+                    'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+                    'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+                    'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
+                    'satuan'              => $satuan,
+                    'kondisi'             => $kondisi,
+                    'ruang_lab_nama'      => $ruang,
+                    'spesifikasi'         => $spesifikasi ?: $existing->spesifikasi,
+                    'lokasi_lemari_rak'   => $rak ?: $existing->lokasi_lemari_rak,
+                    'tgl_kedaluwarsa'     => $tglVal ?: $existing->tgl_kedaluwarsa,
+                    'updated_at'          => now(),
                 ]);
                 $updated++;
             } else {
                 DB::table('laboran_bahan_alat')->insert([
-                    'jurusan_id'        => $jurusanId,
-                    'ruang_lab_nama'    => $ruang,
-                    'kode_item'         => $kode,
-                    'nama_item'         => $nama,
-                    'jenis'             => $jenis,
-                    'spesifikasi'       => $spesifikasi ?: null,
-                    'stok_total'        => max(0.01, $total),
-                    'stok_tersedia'     => max(0, $tersedia),
-                    'satuan'            => $satuan,
-                    'kondisi'           => $kondisi,
-                    'tgl_kedaluwarsa'   => $tglVal,
-                    'lokasi_lemari_rak' => $rak ?: null,
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
+                    'jurusan_id'          => $jurusanId,
+                    'ruang_lab_nama'      => $ruang,
+                    'kode_item'           => $kode,
+                    'nama_item'           => $nama,
+                    'jenis'               => $jenis,
+                    'spesifikasi'         => $spesifikasi ?: null,
+                    'stok_total'          => max(0.01, $total),
+                    'stok_tersedia'       => max(0, $tersedia),
+                    'jumlah_baik'         => $rincian['baik'],
+                    'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+                    'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+                    'jumlah_kedaluwarsa'  => $rincian['kedaluwarsa'],
+                    'satuan'              => $satuan,
+                    'kondisi'             => $kondisi,
+                    'tgl_kedaluwarsa'     => $tglVal,
+                    'lokasi_lemari_rak'   => $rak ?: null,
+                    'created_at'          => now(),
+                    'updated_at'          => now(),
                 ]);
                 $imported++;
             }

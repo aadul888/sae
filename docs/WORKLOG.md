@@ -965,3 +965,137 @@ Ketika repositori dinaikkan ke framework Laravel 13, file `composer.lock` memint
 4. **Keseimbangan Tag HTML**: Seluruh 8 berkas Blade yang diubah diverifikasi pembukaan dan penutupan `<div>` seimbang 100%.
 5. **Eksekusi Test Suite Penuh**: **232 passed (2.797 assertions)**, 0 failed, 100% hijau.
 6. **Batas Ukuran Baris Kode**: 0 berkas di direktori `app/` melebihi batas 1.000 baris.
+
+---
+
+## Sesi 15 - 26 Oktober 2026: Lampiran Bukti Aktivitas Tendik Mendukung Berkas Excel
+
+### 1. Ringkasan Kebutuhan
+- Pada modal **Catat Aktivitas Harian** di modul Tendik, lampiran bukti sebelumnya hanya menerima PDF/JPG/PNG/DOC/DOCX. Kebutuhan baru: lampiran bukti juga boleh berupa berkas **Excel (XLS/XLSX/CSV)**.
+
+### 2. Rincian Perubahan Berkas
+| Berkas | Perubahan |
+|---|---|
+| `app/Http/Controllers/TendikAktivitasController.php` | Aturan validasi `lampiran` pada `store()` dan `update()` diperluas menjadi `mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv,txt,xml` + `extensions:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv` + `max:5120`. Ditambahkan pesan validasi Indonesia untuk `lampiran.mimes`, `lampiran.extensions`, dan `lampiran.max`. |
+| `resources/views/dashboard/tendik/aktivitas.blade.php` | Label field diperbarui (PDF/JPG/PNG/DOC/DOCX/XLS/XLSX/CSV), atribut `accept` pada `#inputLampiran` ditambahkan, plus teks bantuan format & batas 5 MB. Tautan lampiran di tabel kini menampilkan ikon & label sesuai ekstensi (Excel hijau, gambar, PDF, dokumen). |
+
+### 3. Alasan Teknis
+- `mimes` pada Laravel memakai `guessExtension()` (deteksi isi berkas). Berkas `.xls` hasil ekspor Dapodik/legacy kadang terdeteksi `text/xml`, dan `.csv` terdeteksi `text/plain`. Karena itu `txt` dan `xml` ikut dicantumkan pada `mimes`.
+- Agar keamanan tetap terjaga, ditambahkan aturan `extensions` (whitelist ekstensi asli) sehingga berkas berbahaya yang di-rename (mis. `.php` menjadi `.xlsx`) tetap ditolak.
+
+### 4. Hasil Pengujian & Verifikasi
+1. **Linting PHP**: `php -l app/Http/Controllers/TendikAktivitasController.php` - 0 error.
+2. **Kompilasi Blade**: hasil `compileString()` untuk `aktivitas.blade.php` lint clean; `php artisan view:clear ; php artisan view:cache` sukses.
+3. **Uji Validasi Nyata (bootstrap Laravel penuh)**: xlsx asli (SimpleXlsxExporter) LOLOS, csv LOLOS, pdf LOLOS, xls OLE2 asli LOLOS, berkas `.php` dan `.xlsx` palsu (header MZ) DITOLAK.
+4. **Test Terkait Tendik**: `php artisan test --no-coverage --filter=Tendik` - 3 passed (9 assertions).
+
+---
+
+## Sesi 15 ? 26 Oktober 2026: Perbaikan Import Excel, Kode Item Otomatis & Rincian Kondisi per Jumlah
+
+### 1. Masalah yang Dilaporkan
+1. **Unggah Excel di Inventaris menggantung tanpa henti** ? tombol berputar terus, tidak ada pesan berhasil maupun gagal.
+2. **Kode item seharusnya tidak wajib** ? bila kosong, sistem membuat kode otomatis.
+3. **Rincian kondisi berdasarkan jumlah** ? mis. 10 traktor: 5 baik, 3 rusak ringan, 2 rusak berat.
+
+### 2. Akar Masalah yang Ditemukan
+
+**A. `ReferenceError` menelan seluruh alur import (penyebab utama tombol menggantung)**
+
+Di `public/js/laboran-inventaris.js` dan `public/js/sarpras-aset.js`, konstanta `csrfToken` dideklarasikan **di dalam** blok `if (btnDelete) { ... }`. Handler submit form import berada di luar blok tersebut, sehingga referensi `csrfToken` melempar `ReferenceError` **sebelum** `fetch()` dijalankan. Karena error terjadi saat argumen `fetch` dievaluasi, blok `.catch()` tidak pernah tercapai ? tombol tetap pada status loading dan tidak ada alert sama sekali.
+
+**B. Deteksi baris header `SimpleXlsxReader` hanya mengenali kolom Dapodik**
+
+`formatRowsWithHeader()` hanya mencari kata kunci `peserta_didik_id`, `nama_pd`, `nisn`, `nipd`, `jk`, atau `tempat lahir`. Template SAE (inventaris/aset) tidak memuat kata kunci itu, sehingga fungsi jatuh ke *fallback* "gunakan baris pertama" ? yaitu **baris judul**, bukan baris header. Akibatnya seluruh baris data dibaca dengan kunci yang salah dan `nama_item` tidak pernah ditemukan, sehingga **0 baris** yang diimpor.
+
+**C. Route hasil pekerjaan sebelumnya hilang**
+
+`routes/web.php` dan `app/Http/Controllers/BukuIndukController.php` pada working tree kembali ke versi sebelum sesi 13?14. Route `inventaris.template`, `inventaris.import`, `jadwal.kbm`, `kebutuhan.jalankan-analisis`, `aset.template`, `aset.import`, dan `pengguna.tugas-tambahan.update` hilang sehingga tombol memanggil endpoint yang tidak ada (500).
+
+### 3. Perubahan
+| Berkas | Perubahan |
+|---|---|
+| `public/js/laboran-inventaris.js` | `getCsrfToken()` dipindah ke scope terluar; handler import ditulis ulang: validasi berkas, `res.text()` + `JSON.parse` defensif, pesan spesifik untuk 419/413/5xx, `restoreBtn()` pada semua jalur (sukses, gagal, exception), `credentials: 'same-origin'`. Ditambah logika rincian kondisi (`setJumlahKondisi`, `getJumlahKondisi`, `syncRincianKondisi`) dan tombol "Semua Baik". |
+| `public/js/sarpras-aset.js` | Perbaikan identik untuk import aset sarpras. |
+| `app/Services/SimpleXlsxReader.php` | Ditambah **deteksi header generik**: memilih baris dengan skor pengenal kolom tertinggi (pola `snake_case`/satu kata), menolak baris yang mengandung angka, tanggal, atau kalimat > 60 karakter. Template SAE kini terbaca benar. |
+| `app/Http/Controllers/LaboranInventarisController.php` | `kode_item` menjadi `nullable`; `generateKodeItem()` membuat kode `ALT-YYYYMM-NNNN` / `BHP-YYYYMM-NNNN` unik; `resolveRincianKondisi()` menghitung rincian & kondisi dominan; `store()`, `update()`, `importExcel()` menyimpan 4 kolom rincian; template Excel diperluas dengan kolom rincian + contoh traktor. |
+| `database/migrations/2026_10_26_160001_add_kondisi_jumlah_columns_to_laboran_bahan_alat.php` | Menambah `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat`, `jumlah_kedaluwarsa` + backfill data lama. |
+| `resources/views/dashboard/laboran/inventaris.blade.php` | Field kode item jadi opsional dengan hint kode otomatis; panel "Rincian Kondisi per Jumlah" (4 input + hint total + tombol Semua Baik); tabel menampilkan rincian kondisi per baris; data-attribute rincian pada tombol edit. |
+| `routes/web.php` | Memulihkan seluruh route yang hilang (template/import inventaris & aset, jadwal.kbm, jalankan-analisis, tugas-tambahan.update). |
+| `app/Http/Controllers/BukuIndukController.php` | `Schema::hasTable()` ? `Table::exists()` (memenuhi guard performa). |
+| `resources/views/dashboard/kesiswaan/buku-induk/*.blade.php` | Migrasi nilai desain mentah ke token (`var(--text-*)`, `var(--radius-*)`, warna aksen) + `aria-label` pada tombol tutup modal. |
+| `resources/views/dashboard/pengguna.blade.php` | Migrasi 10 nilai font-size/border-radius mentah ke token. |
+| `tests/Feature/LaboranJurusanModuleTest.php` | 4 test baru: template inventaris & aset dapat dibaca kembali, import membuat kode otomatis + rincian kondisi, simpan tanpa kode membuat kode otomatis. |
+
+### 4. Perilaku Kode Item Otomatis
+| Kondisi | Hasil |
+|---|---|
+| `kode_item` diisi | Dipakai apa adanya (uppercase, divalidasi unik) |
+| `kode_item` kosong saat **tambah** | Dibuat otomatis: `ALT-202610-0001` (alat) / `BHP-202610-0001` (bahan) |
+| `kode_item` kosong saat **edit** | Kode lama dipertahankan; dibuat baru bila kode lama juga kosong |
+| `kode_item` kosong saat **import** | Dibuat otomatis per baris (tidak lagi memakai `uniqid()` acak) |
+
+### 5. Perilaku Rincian Kondisi
+| Input | Perilaku |
+|---|---|
+| Rincian diisi (mis. 5/3/2/0) | Disimpan ke 4 kolom; `kondisi` = kondisi dengan jumlah terbanyak (rusak berat diprioritaskan bila seri) |
+| Rincian kosong | Seluruh `stok_total` dialokasikan ke `kondisi` yang dipilih |
+| Total rincian ? stok total | UI menampilkan peringatan oranye, penyimpanan tetap diizinkan |
+
+### 6. Verifikasi
+1. **Linting**: `php -l` seluruh berkas PHP + `node --check` 7 berkas JS ? 0 error.
+2. **Uji reader**: template inventaris & aset diunduh lalu dibaca ulang ? header terdeteksi benar, 3 baris data terbaca lengkap termasuk kolom rincian.
+3. **Uji render**: halaman inventaris mengembalikan 200 dan memuat seluruh elemen (tombol import, modal, 4 input rincian, tombol Semua Baik); input `labKode` tidak lagi memiliki atribut `required`.
+4. **Keseimbangan `<div>`**: 7 berkas Blade yang diubah semuanya seimbang.
+5. **View cache**: `php artisan view:clear ; view:cache` sukses.
+6. **Vite build**: `npm run build` sukses.
+7. **Batas baris**: 0 berkas di `app/` melebihi 1.000 baris.
+8. **Test suite penuh**: **236 passed (2.833 assertions), 0 failed** ? termasuk `DesignConsistencyTest`, `AccessibilityGuardTest`, dan `SchemaCheckPerformanceTest` yang sempat gagal karena regresi route & nilai desain mentah.
+
+---
+
+## Sesi 16 - 26 Oktober 2026: Dashboard Induk Sarpras (`dashboard/tendik?bidang=sarpras`)
+
+### 1. Permintaan
+Melengkapi pengelolaan `dashboard/tendik?bidang=sarpras` agar benar-benar menjadi **kendali pusat / induk** seluruh urusan sarana prasarana, dan terelasi dengan Laboran, Teknisi & IT, Fasilitas & Penjaga, serta bidang lain.
+
+### 2. Kondisi Sebelum Perubahan
+- Section `dashboard/tendik/section-sarpras.blade.php` hanya berisi 6 tombol akses cepat + 4 kartu statistik **hardcode** (`33 Ruang`, `6 Unit`, `148 Unit`, `98%`) + 2 chart (gedung & kategori aset).
+- Tidak ada kaitan sama sekali ke modul turunan: work order teknisi, usulan pengadaan laboran, temuan kebersihan penjaga, maupun insiden keamanan.
+- `TendikDashboardStatsService` hanya menyediakan `sarprasCharts` (3 dataset) tanpa KPI turunan.
+
+### 3. Temuan Bug Nyata (diperbaiki dalam sesi ini)
+| Temuan | Dampak | Perbaikan |
+|---|---|---|
+| `SarprasRuangController@index` memanggil view `dashboard.sarpras.ruang-table` yang **tidak ada** | 500 pada request AJAX dengan parameter `ajax_table` | Cabang view hantu dihapus; live-search memakai swap `#tableDataContainer` |
+| Parameter `perPage` (view) vs `per_page` (controller) tidak sinkron pada Ruang & Aset | Pilihan "Tampilkan N entri" diabaikan | Controller membaca `perPage` lalu fallback `per_page`; opsi `100` ikut diterima |
+| Blok navigasi Sarpras di sidebar hanya dirender bila `role === 'tendik'` | Staf Sarpras asli (peran Dapodik `PTK` -> role `guru`) **tidak dapat mengakses menu induknya** | Gerbang memakai kode tugas tambahan `STAF_SARPRAS` + `menu_sarpras`, bukan `$isTendikRole` |
+
+### 4. Perubahan
+| Berkas | Perubahan |
+|---|---|
+| `app/Services/SarprasDashboardService.php` (baru, 706 baris) | Agregator `build()`: `ringkasan` (36 KPI), `charts` (7 dataset), `daftar` (6 tabel tindak lanjut), `lintasBidang` (10 modul turunan + gerbang izin), `penanggungJawab`, `peringatan` (8 aturan otomatis). Peminjaman menghitung **dua sumber**: `sarpras_peminjaman` (legacy) dan `laboran_peminjaman` (terunifikasi). |
+| `resources/views/dashboard/tendik/section-sarpras.blade.php` (ditulis ulang, 745 baris) | 7 blok: akses cepat bergerbang izin, 4 KPI nyata, panel peringatan tindak lanjut, grid kendali 10 modul turunan, 6 chart, 6 tabel tindak lanjut (ruang rusak, aset perbaikan, WO terbaru, peminjaman berjalan, usulan pengadaan, PJ ruang), matriks target & capaian. |
+| `app/Services/TendikDashboardStatsService.php` | `sarprasCharts` kini berasal dari `SarprasDashboardService`; mengekspos `sarprasDashboard`, `sarprasRingkasan`, `sarprasDaftar`, `sarprasLintasBidang`, `sarprasPenanggungJawab`, `sarprasPeringatan`. |
+| `public/js/tendik-cluster-layanan.js` | `initTendik_sarpras()` ditulis ulang: helper `hasData()`, `renderDoughnut()`, 6 chart (kondisi ruang, kondisi aset, kategori aset, status WO, sebaran gedung horizontal, tren peminjaman 6 bulan). Chart tidak dirender bila data kosong agar tidak muncul kanvas hampa. |
+| `app/Http/Controllers/SarprasRuangController.php` | Hapus cabang view hantu; perbaiki pembacaan `perPage`. |
+| `app/Http/Controllers/SarprasAsetController.php` | Perbaiki pembacaan `perPage` + terima opsi 100. |
+| `resources/views/partials/dash-sidebar.blade.php` | 3 lokasi blok Sarpras: gerbang izin diperbaiki, submenu ditambah "Perbaikan & Work Order" (menu_teknisi) dan "Kebersihan Fasilitas" (menu_penjaga). |
+| `tests/Feature/SarprasDashboardTest.php` (baru, 283 baris) | 10 test: render, akurasi KPI, skor kelayakan, bentuk payload chart, agregasi WO, agregasi 2 sumber peminjaman, peringatan, gerbang izin + keberadaan route, konsistensi PJ ruang, ketahanan tabel kosong. |
+| `docs/PROJECT_STRUCTURE.md` | Daftarkan `SarprasDashboardService`. |
+
+### 5. Aturan Bisnis yang Ditegakkan
+1. **Skor Kelayakan Fisik** = (ruang baik + unit aset baik) / (total ruang + total unit aset) x 100.
+2. **Peringatan** hanya muncul bila hitungan > 0 (tidak ada kartu bernilai nol).
+3. **Modul turunan tanpa izin** tetap ditampilkan sebagai kartu **monitoring** (angka beban kerja terlihat, tetapi bukan tautan) agar Sarpras tetap tahu kondisinya tanpa melanggar RBAC.
+4. **Tautan akses cepat & tautan tabel** dijaga `RolePermission::canAccess()`; untuk Staf Sarpras murni, tombol Work Order & Usulan Pengadaan disembunyikan.
+
+### 6. Verifikasi Nyata
+1. **Linting**: `php -l` seluruh berkas PHP yang diubah + `node --check public/js/tendik-cluster-layanan.js` -> 0 error.
+2. **Render**: `GET /dashboard/tendik?bidang=sarpras` -> **200** (154 KB) untuk admin dan untuk akun `STAF_SARPRAS` asli (Dini Fitriani, peran PTK).
+3. **Akurasi data**: KPI cocok dengan tabel nyata (25 ruang, 12 gedung, 4 jenis aset, 52 unit, 14 ruang tanpa PJ, skor 100%).
+4. **Gerbang izin**: HTML admin memuat tautan teknisi/laboran/penjaga/keamanan; HTML Staf Sarpras **tidak** memuatnya (hanya `sarpras/ruang`, `sarpras/aset`, `sarpras/peminjaman`).
+5. **Uji agregasi berdata**: injeksi data uji dalam transaksi lalu `rollBack` -> WO antrean/proses/selesai, peminjaman lintas 2 tabel, usulan pengadaan kritis, temuan kebersihan, ronda, insiden, dan WO darurat semuanya terhitung.
+6. **View cache**: `php artisan view:clear` lalu `view:cache` sukses.
+7. **Batas baris**: seluruh berkas yang disentuh < 1.000 baris (maks 936).
+8. **Test suite penuh**: **246 passed (2.957 assertions), 0 failed** (sebelumnya 236 passed; +10 test baru).

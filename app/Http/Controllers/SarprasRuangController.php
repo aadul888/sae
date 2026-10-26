@@ -62,16 +62,10 @@ class SarprasRuangController extends Controller
             ->distinct()
             ->pluck('gedung');
 
-        $perPage = (int) $request->query('per_page', 15);
-        $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
+        $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
+        $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
 
         $list = $query->orderBy('sr.gedung', 'asc')->orderBy('sr.nama_ruang', 'asc')->paginate($perPage)->withQueryString();
-
-        if ($request->ajax() && $request->has('ajax_table')) {
-            return view('dashboard.sarpras.ruang-table', compact(
-                'list', 'canCreate', 'canRead', 'canUpdate', 'canDelete'
-            ));
-        }
 
         return view('dashboard.sarpras.ruang', compact(
             'list',

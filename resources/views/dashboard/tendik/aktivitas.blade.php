@@ -316,11 +316,25 @@
                                     {{ $item->judul_aktivitas }}
                                 </div>
                                 @if ($item->lampiran_path)
+                                    @php
+                                        $lampiranExt = strtolower(pathinfo($item->lampiran_path, PATHINFO_EXTENSION));
+                                        $isExcel = in_array($lampiranExt, ['xls', 'xlsx', 'csv'], true);
+                                        $isImage = in_array($lampiranExt, ['jpg', 'jpeg', 'png'], true);
+                                        $lampiranIcon = $isExcel
+                                            ? 'fa-file-excel text-success'
+                                            : ($isImage
+                                                ? 'fa-file-image text-info'
+                                                : ($lampiranExt === 'pdf'
+                                                    ? 'fa-file-pdf text-danger'
+                                                    : 'fa-file-lines text-primary'));
+                                    @endphp
                                     <div style="margin-top: 6px;">
                                         <a href="{{ asset('storage/' . $item->lampiran_path) }}" target="_blank"
                                             class="btn btn-outline"
+                                            title="Buka lampiran bukti ({{ strtoupper($lampiranExt ?: 'FILE') }})"
                                             style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-xs, 4px); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                                            <i class="fas fa-paperclip text-primary"></i> Lampiran Dokumen
+                                            <i class="fas {{ $lampiranIcon }}"></i>
+                                            Lampiran {{ $lampiranExt ? strtoupper($lampiranExt) : 'Dokumen' }}
                                         </a>
                                     </div>
                                 @endif
@@ -602,10 +616,16 @@
                     <div class="pm-field" style="margin-bottom: 14px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Lampiran Bukti (Opsional - PDF/JPG/PNG/DOC)
+                            Lampiran Bukti (Opsional - PDF/JPG/PNG/DOC/DOCX/XLS/XLSX/CSV)
                         </label>
                         <input type="file" name="lampiran" id="inputLampiran" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.csv"
                             style="font-size: var(--text-sm, 0.8125rem); height: 38px; border-radius: var(--radius-md, 8px);">
+                        <span
+                            style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px; display: block;">
+                            <i class="fas fa-circle-info me-1"></i> Format yang didukung: PDF, JPG, PNG, DOC/DOCX,
+                            atau Excel (XLS/XLSX/CSV). Maksimal 5 MB.
+                        </span>
                     </div>
                 </div>
 

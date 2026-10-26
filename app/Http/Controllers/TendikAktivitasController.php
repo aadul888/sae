@@ -260,7 +260,11 @@ class TendikAktivitasController extends Controller
             'bidang' => 'required|string',
             'indikator_id' => 'nullable|integer',
             'status' => 'required|in:selesai,proses,tertunda',
-            'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv,txt,xml|extensions:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv|max:5120',
+        ], [
+            'lampiran.mimes' => 'Lampiran bukti harus berformat PDF, JPG, PNG, DOC/DOCX, atau Excel (XLS/XLSX/CSV).',
+            'lampiran.extensions' => 'Ekstensi lampiran bukti harus .pdf, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, atau .csv.',
+            'lampiran.max' => 'Ukuran lampiran bukti maksimal 5 MB.',
         ]);
 
         $lampiranPath = null;
@@ -333,7 +337,11 @@ class TendikAktivitasController extends Controller
             'bidang' => 'required|string',
             'indikator_id' => 'nullable|integer',
             'status' => 'required|in:selesai,proses,tertunda',
-            'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv,txt,xml|extensions:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv|max:5120',
+        ], [
+            'lampiran.mimes' => 'Lampiran bukti harus berformat PDF, JPG, PNG, DOC/DOCX, atau Excel (XLS/XLSX/CSV).',
+            'lampiran.extensions' => 'Ekstensi lampiran bukti harus .pdf, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, atau .csv.',
+            'lampiran.max' => 'Ukuran lampiran bukti maksimal 5 MB.',
         ]);
 
         if ($request->hasFile('lampiran')) {
@@ -407,3 +415,5 @@ class TendikAktivitasController extends Controller
         return redirect()->back()->with('success', 'Aktivitas berhasil dihapus.');
     }
 }
+
+

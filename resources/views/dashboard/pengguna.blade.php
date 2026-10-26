@@ -628,22 +628,22 @@
                                 <div class="jurusan-group-box" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-card, rgba(255,255,255,0.03)); padding: 8px 10px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">
                                         <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-folder-tree text-primary" style="font-size: 0.75rem;"></i>
+                                            <i class="fas fa-folder-tree text-primary" style="font-size: var(--text-xs, 0.75rem);"></i>
                                             <span>{{ $group['name'] }}</span>
                                             @if(!empty($group['singkatan']))
                                                 <span class="badge badge-primary ms-1" style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $group['singkatan'] }}</span>
                                             @endif
                                         </div>
-                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary); font-size: 0.7rem; padding: 1px 6px; cursor: pointer;">
+                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 4px); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 1px 6px; cursor: pointer;">
                                             Pilih Semua
                                         </button>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 4px;">
                                         @foreach ($group['items'] as $it)
-                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: 6px; cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: var(--radius-md, 6px); cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
                                                 <div style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem);">
                                                     <input type="checkbox" name="jurusan_ids[]" value="{{ $it->jurusan_id }}" class="duty-jurusan-check" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;">
-                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: 0.65rem; padding: 2px 6px; font-weight: 600;">
+                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-weight: 600;">
                                                         {{ $it->is_kelas_x ? 'Kelas X (Program)' : 'Kelas XI-XII (Konsentrasi)' }}
                                                     </span>
                                                     <span style="color: var(--text-color); font-weight: 500;">
@@ -735,22 +735,22 @@
                                 <div class="jurusan-group-box" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-card, rgba(255,255,255,0.03)); padding: 8px 10px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">
                                         <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; gap: 6px;">
-                                            <i class="fas fa-folder-tree text-primary" style="font-size: 0.75rem;"></i>
+                                            <i class="fas fa-folder-tree text-primary" style="font-size: var(--text-xs, 0.75rem);"></i>
                                             <span>{{ $group['name'] }}</span>
                                             @if(!empty($group['singkatan']))
                                                 <span class="badge badge-primary ms-1" style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $group['singkatan'] }}</span>
                                             @endif
                                         </div>
-                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary); font-size: 0.7rem; padding: 1px 6px; cursor: pointer;">
+                                        <button type="button" class="btn-toggle-pair" onclick="toggleJurusanGroup(this)" style="background: none; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 4px); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 1px 6px; cursor: pointer;">
                                             Pilih Semua
                                         </button>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 4px;">
                                         @foreach ($group['items'] as $it)
-                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: 6px; cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 4px 6px; border-radius: var(--radius-md, 6px); cursor: pointer; transition: background 0.15s ease;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
                                                 <div style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem);">
                                                     <input type="checkbox" name="jurusan_ids[]" value="{{ $it->jurusan_id }}" class="duty-jurusan-check" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;">
-                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: 0.65rem; padding: 2px 6px; font-weight: 600;">
+                                                    <span class="badge {{ $it->is_kelas_x ? 'badge-info' : 'badge-success' }}" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-weight: 600;">
                                                         {{ $it->is_kelas_x ? 'Kelas X (Program)' : 'Kelas XI-XII (Konsentrasi)' }}
                                                     </span>
                                                     <span style="color: var(--text-color); font-weight: 500;">

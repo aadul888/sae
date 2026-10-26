@@ -362,6 +362,54 @@ class SimpleXlsxReader
             }
         }
 
+        // 3. Deteksi header GENERIK (template SAE non-Dapodik: inventaris, aset, dsb).
+        //    Ciri baris header: banyak sel berupa pengenal kolom (snake_case / tanpa spasi)
+        //    dan TIDAK ada sel yang mengandung angka panjang / tanggal / kalimat panjang.
+        if ($headerIndex === -1) {
+            $bestIdx = -1;
+            $bestScore = 0;
+
+            foreach ($rawRows as $idx => $row) {
+                $nonEmpty = array_values(array_filter($row, fn($v) => trim((string) $v) !== ''));
+                if (count($nonEmpty) < 2) {
+                    continue;
+                }
+
+                $identifierCount = 0;
+                $looksLikeData = false;
+
+                foreach ($nonEmpty as $cell) {
+                    $cell = trim((string) $cell);
+                    if ($cell === '') continue;
+
+                    // Sel data: angka, tanggal, atau kalimat panjang
+                    if (preg_match('/^\d+([.,]\d+)?$/', $cell)) { $looksLikeData = true; continue; }
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}/', $cell)) { $looksLikeData = true; continue; }
+                    if (mb_strlen($cell) > 60) { $looksLikeData = true; continue; }
+
+                    // Pengenal kolom: snake_case, tanpa spasi, atau satu kata
+                    if (preg_match('/^[a-z0-9]+(_[a-z0-9]+)+$/i', $cell) || preg_match('/^[a-zA-Z][a-zA-Z0-9]*$/', $cell)) {
+                        $identifierCount++;
+                    }
+                }
+
+                if ($looksLikeData) {
+                    continue;
+                }
+
+                $score = $identifierCount;
+                if ($score > $bestScore && $identifierCount >= 2) {
+                    $bestScore = $score;
+                    $bestIdx = $idx;
+                }
+            }
+
+            if ($bestIdx !== -1) {
+                $headerIndex = $bestIdx;
+                $headers = array_map(fn($v) => strtolower(trim((string) $v)), $rawRows[$bestIdx]);
+            }
+        }
+
         // Jika tidak ditemukan kata kunci khusus, gunakan baris pertama
         if ($headerIndex === -1 && isset($rawRows[0])) {
             $headerIndex = 0;

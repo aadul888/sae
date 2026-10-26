@@ -260,6 +260,39 @@
                                     @else
                                         <span class="badge badge-danger">Kedaluwarsa</span>
                                     @endif
+
+                                    @php
+                                        $jBaik = (float) ($item->jumlah_baik ?? 0);
+                                        $jRr   = (float) ($item->jumlah_rusak_ringan ?? 0);
+                                        $jRb   = (float) ($item->jumlah_rusak_berat ?? 0);
+                                        $jKad  = (float) ($item->jumlah_kedaluwarsa ?? 0);
+                                        $adaRincian = ($jBaik + $jRr + $jRb + $jKad) > 0;
+                                    @endphp
+
+                                    @if ($adaRincian)
+                                        <div style="margin-top: 5px; display: flex; flex-direction: column; gap: 2px; font-size: var(--text-2xs, 0.6875rem); line-height: 1.35;">
+                                            @if ($jBaik > 0)
+                                                <span style="color: var(--success, #10b981);" title="Jumlah kondisi baik">
+                                                    <i class="fas fa-circle-check me-1"></i>{{ $jBaik }} baik
+                                                </span>
+                                            @endif
+                                            @if ($jRr > 0)
+                                                <span style="color: var(--warning, #f59e0b);" title="Jumlah rusak ringan">
+                                                    <i class="fas fa-triangle-exclamation me-1"></i>{{ $jRr }} rusak ringan
+                                                </span>
+                                            @endif
+                                            @if ($jRb > 0)
+                                                <span style="color: var(--danger, #ef4444);" title="Jumlah rusak berat">
+                                                    <i class="fas fa-circle-exclamation me-1"></i>{{ $jRb }} rusak berat
+                                                </span>
+                                            @endif
+                                            @if ($jKad > 0)
+                                                <span style="color: var(--purple, #8b5cf6);" title="Jumlah kedaluwarsa">
+                                                    <i class="fas fa-hourglass-end me-1"></i>{{ $jKad }} kedaluwarsa
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td data-label="Aksi" style="padding: 14px 18px; text-align: right;">
                                     <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
@@ -271,6 +304,10 @@
                                                 data-stoktotal="{{ (float) $item->stok_total }}"
                                                 data-stoktersedia="{{ (float) $item->stok_tersedia }}"
                                                 data-satuan="{{ $item->satuan }}" data-kondisi="{{ $item->kondisi }}"
+                                                data-jumlahbaik="{{ (float) ($item->jumlah_baik ?? 0) }}"
+                                                data-jumlahrusakringan="{{ (float) ($item->jumlah_rusak_ringan ?? 0) }}"
+                                                data-jumlahrusakberat="{{ (float) ($item->jumlah_rusak_berat ?? 0) }}"
+                                                data-jumlahkedaluwarsa="{{ (float) ($item->jumlah_kedaluwarsa ?? 0) }}"
                                                 data-spek="{{ $item->spesifikasi }}"
                                                 data-rak="{{ $item->lokasi_lemari_rak }}"
                                                 data-jurusan="{{ $item->jurusan_id }}"
@@ -308,251 +345,9 @@
             @endif
         </div>
 
-        {{-- Modal Tambah / Edit Alat Bahan Lab --}}
-        <div id="modalLab" class="modal-backdrop"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card"
-                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 id="modalLabTitle"
-                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
-                        Tambah Alat / Bahan Lab
-                    </h3>
-                    <button type="button" id="btnCloseModalLab"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
-                </div>
+        @include('dashboard.laboran.partials.inventaris-modal-form')
 
-                <form id="formLab" method="POST" action="{{ route('dashboard.laboran.inventaris.store') }}">
-                    @csrf
-                    <input type="hidden" name="_method" id="labMethod" value="POST">
-                    <input type="hidden" name="id" id="labId">
-
-                    @if (isset($daftarAsetSarpras) && $daftarAsetSarpras->isNotEmpty())
-                        <div id="wrapperAsetSarpras"
-                            style="margin-bottom: 14px; padding: 10px 12px; background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3); border-radius: var(--radius-md, 8px);">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--primary); margin: 0;">
-                                    <i class="fas fa-boxes-stacked me-1"></i> Referensi / Salin dari Aset Sarpras
-                                    (Opsional)
-                                </label>
-                                <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Isi otomatis data</small>
-                            </div>
-                            <select id="selectAsetSarpras" class="form-control"
-                                style="font-size: var(--text-sm, 0.8125rem); height: 36px;">
-                                <option value="">-- Ketik Baru atau Pilih Referensi Aset Sarpras --</option>
-                                @foreach ($daftarAsetSarpras as $ast)
-                                    <option value="{{ $ast->id }}" data-nama="{{ $ast->nama_barang }}"
-                                        data-kode="{{ $ast->kode_aset }}" data-ruang="{{ $ast->ruang_nama }}"
-                                        data-satuan="{{ $ast->satuan }}" data-kondisi="{{ $ast->kondisi }}"
-                                        data-spek="{{ $ast->merk_tipe ? 'Merk/Tipe: ' . $ast->merk_tipe : '' }}">
-                                        {{ $ast->nama_barang }} &bull; {{ $ast->kode_aset }} (Lokasi:
-                                        {{ $ast->ruang_nama ?: 'Sarpras' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
-                                    Ruang Lab / Bengkel <span style="color: var(--danger, #ef4444);">*</span>
-                                </label>
-                                <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
-                                    style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
-                                    title="Kelola Ruang di Sarpras & Aset">
-                                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Data Sarpras
-                                </a>
-                            </div>
-                            <select name="ruang_lab_nama" id="labRuang" class="form-control" required>
-                                <option value="">-- Pilih Ruang dari Sarpras &amp; Aset --</option>
-                                @if (isset($daftarRuangSarpras) && $daftarRuangSarpras->isNotEmpty())
-                                    @foreach ($daftarRuangSarpras as $r)
-                                        <option value="{{ $r->nama_ruang }}">
-                                            {{ $r->nama_ruang }} &bull; {{ $r->gedung ?: 'Sarpras' }}
-                                            {{ $r->lantai ? '(Lt. ' . $r->lantai . ')' : '' }}
-                                        </option>
-                                    @endforeach
-                                @else
-                                    @foreach ($daftarLab as $l)
-                                        <option value="{{ $l }}">{{ $l }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
-                                <i class="fas fa-link me-1 text-primary"></i> Terhubung langsung dengan <strong>Ruang &amp;
-                                    Gedung Sarpras</strong>.
-                            </div>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
-                                Item <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <select name="jenis" id="labJenis" class="form-control" required>
-                                <option value="alat">Alat Praktikum</option>
-                                <option value="bahan_habis_pakai">Bahan Habis Pakai</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jurusan
-                            / Kompetensi Keahlian</label>
-                        <select name="jurusan_id" id="labJurusan" class="form-control" {{ !empty($context['unrestricted']) ? '' : 'disabled' }}>
-                            @if (!empty($context['unrestricted']))
-                                <option value="">-- Ikut Penugasan --</option>
-                            @endif
-                            @foreach (($jurusanOptions ?? []) as $j)
-                                <option value="{{ $j->jurusan_id }}" {{ ($context['jurusan_id'] ?? null) === $j->jurusan_id ? 'selected' : '' }}>
-                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
-                            @if (!empty($context['unrestricted']))
-                                <i class="fas fa-info-circle me-1"></i> Kosongkan agar mengikuti jurusan penugasan Anda.
-                            @else
-                                <i class="fas fa-lock me-1"></i> Terkunci pada jurusan penugasan Anda.
-                            @endif
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
-                                Item <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="text" name="kode_item" id="labKode" class="form-control"
-                                placeholder="LAB-IPA-001" required>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                                Alat / Bahan <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="text" name="nama_item" id="labNama" class="form-control"
-                                placeholder="Mikroskop Binokuler / Asam Klorida" required>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
-                                Total <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="number" step="0.01" name="stok_total" id="labStokTotal"
-                                class="form-control" value="1" required>
-                        </div>
-                        <div id="wrapperStokTersedia" style="display: none;">
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
-                                Tersedia</label>
-                            <input type="number" step="0.01" name="stok_tersedia" id="labStokTersedia"
-                                class="form-control" value="1">
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
-                                <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="text" name="satuan" id="labSatuan" class="form-control" value="unit"
-                                placeholder="unit/botol/pcs" required>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
-                                <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <select name="kondisi" id="labKondisi" class="form-control" required>
-                                <option value="baik">Baik</option>
-                                <option value="rusak_ringan">Rusak Ringan</option>
-                                <option value="rusak_berat">Rusak Berat</option>
-                                <option value="kedaluwarsa">Kedaluwarsa</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Kedaluwarsa</label>
-                            <input type="date" name="tgl_kedaluwarsa" id="labExp" class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
-                            Lemari / Rak</label>
-                        <input type="text" name="lokasi_lemari_rak" id="labRak" class="form-control"
-                            placeholder="Lemari A - Rak 2">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Spesifikasi
-                            / Keterangan</label>
-                        <textarea name="spesifikasi" id="labSpek" class="form-control" rows="2"
-                            placeholder="Merk, ukuran, konsentrasi bahan..."></textarea>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                        <button type="button" class="btn btn-secondary" id="btnCancelModalLab">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan
-                            Item</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {{-- Modal Import Inventaris via Excel (Point 7) --}}
-        <div id="modalImportInventaris" class="modal-backdrop"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                    <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
-                        <i class="fas fa-file-excel text-success me-2"></i> Import Inventaris via Excel
-                    </h3>
-                    <button type="button" id="btnCloseModalImport"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
-                </div>
-
-                <div style="margin-bottom: 18px; padding: 12px 14px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md, 8px);">
-                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-color); font-weight: 600; margin-bottom: 4px;">
-                        Unduh Format Template:
-                    </div>
-                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">
-                        Gunakan berkas template resmi agar nama kolom sesuai dengan sistem.
-                    </div>
-                    <a href="{{ route('dashboard.laboran.inventaris.template') }}" class="btn btn-outline"
-                        style="font-size: var(--text-xs, 0.75rem); padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-                        <i class="fas fa-download text-success"></i> Unduh Format Excel (.xlsx)
-                    </a>
-                </div>
-
-                <form id="formImportInventaris" method="POST" action="{{ route('dashboard.laboran.inventaris.import') }}" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group" style="margin-bottom: 18px;">
-                        <label style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                            Pilih Berkas Excel / CSV <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <input type="file" name="file" id="fileImportInventaris" class="form-control" accept=".xlsx,.xls,.csv" required>
-                        <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem); display: block; margin-top: 4px;">
-                            Mendukung .xlsx, .xls, atau .csv (Maks. 10 MB).
-                        </small>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                        <button type="button" class="btn btn-secondary" id="btnCancelModalImport">Batal</button>
-                        <button type="submit" class="btn btn-primary" id="btnSubmitImport">
-                            <i class="fas fa-upload me-1"></i> Mulai Unggah &amp; Import
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        @include('dashboard.laboran.partials.inventaris-modal-import')
     </div>
 
         @push('scripts')

@@ -16,6 +16,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const wrapperAsetSarpras = document.getElementById('wrapperAsetSarpras');
     const selectAsetSarpras = document.getElementById('selectAsetSarpras');
 
+    // Token CSRF dipakai bersama oleh hapus item & import Excel.
+    // WAJIB dideklarasikan di scope terluar: sebelumnya berada di dalam blok
+    // if (btnDelete) sehingga import melempar ReferenceError tanpa alert.
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        const input = document.querySelector('input[name="_token"]');
+        return (meta ? meta.getAttribute('content') : '') || (input ? input.value : '');
+    }
+
     function openModal(isEdit = false, data = {}) {
         if (!modal) return;
         modal.style.display = 'flex';
@@ -36,6 +45,15 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labSpek').value = data.spek || '';
             document.getElementById('labRak').value = data.rak || '';
             document.getElementById('labExp').value = data.exp || '';
+
+            // Rincian kondisi per jumlah
+            setJumlahKondisi({
+                baik: data.jumlahbaik,
+                rusak_ringan: data.jumlahrusakringan,
+                rusak_berat: data.jumlahrusakberat,
+                kedaluwarsa: data.jumlahkedaluwarsa
+            });
+
             const labJurusan = document.getElementById('labJurusan');
             if (labJurusan) labJurusan.value = data.jurusan || '';
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'block';
@@ -45,9 +63,96 @@ document.addEventListener('DOMContentLoaded', function () {
             methodInput.value = 'POST';
             form.action = '/dashboard/laboran/inventaris';
             form.reset();
+            setJumlahKondisi({ baik: 0, rusak_ringan: 0, rusak_berat: 0, kedaluwarsa: 0 });
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'none';
             if (wrapperAsetSarpras) wrapperAsetSarpras.style.display = 'block';
         }
+
+        syncRincianKondisi();
+    }
+
+    // -------------------------------------------------------------------------
+    // Rincian kondisi per jumlah unit
+    // -------------------------------------------------------------------------
+    function setJumlahKondisi(d) {
+        const map = {
+            labJumlahBaik: d.baik,
+            labJumlahRusakRingan: d.rusak_ringan,
+            labJumlahRusakBerat: d.rusak_berat,
+            labJumlahKedaluwarsa: d.kedaluwarsa
+        };
+        Object.keys(map).forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.value = map[id] != null && map[id] !== '' ? map[id] : 0;
+        });
+    }
+
+    function getJumlahKondisi() {
+        const read = function (id) {
+            const el = document.getElementById(id);
+            return el ? (parseFloat(el.value) || 0) : 0;
+        };
+        return {
+            baik: read('labJumlahBaik'),
+            rusak_ringan: read('labJumlahRusakRingan'),
+            rusak_berat: read('labJumlahRusakBerat'),
+            kedaluwarsa: read('labJumlahKedaluwarsa')
+        };
+    }
+
+    function syncRincianKondisi() {
+        const totalEl = document.getElementById('labStokTotal');
+        const total = totalEl ? (parseFloat(totalEl.value) || 0) : 0;
+        const d = getJumlahKondisi();
+        const sum = d.baik + d.rusak_ringan + d.rusak_berat + d.kedaluwarsa;
+
+        const sumEl = document.getElementById('labRincianSum');
+        const totalHintEl = document.getElementById('labRincianTotal');
+        if (sumEl) sumEl.textContent = sum;
+        if (totalHintEl) totalHintEl.textContent = total;
+
+        // Kondisi keseluruhan otomatis mengikuti jumlah terbanyak
+        const kondisiEl = document.getElementById('labKondisi');
+        if (kondisiEl && sum > 0) {
+            let kondisi = 'baik';
+            let max = d.baik;
+            if (d.rusak_ringan > max) { kondisi = 'rusak_ringan'; max = d.rusak_ringan; }
+            if (d.rusak_berat >= max && d.rusak_berat > 0) { kondisi = 'rusak_berat'; max = d.rusak_berat; }
+            if (d.kedaluwarsa > max) { kondisi = 'kedaluwarsa'; }
+            kondisiEl.value = kondisi;
+        }
+
+        // Peringatan visual bila rincian tidak sama dengan stok total
+        const hint = document.getElementById('labRincianHint');
+        if (hint) {
+            if (sum > 0 && total > 0 && Math.abs(sum - total) > 0.001) {
+                hint.style.color = 'var(--warning, #f59e0b)';
+                hint.innerHTML = 'Total rincian <strong>' + sum + '</strong> / <strong>' + total +
+                    '</strong> &mdash; tidak sama dengan stok total.';
+            } else {
+                hint.style.color = 'var(--text-muted)';
+                hint.innerHTML = 'Total rincian: <strong id="labRincianSum">' + sum +
+                    '</strong> / <strong id="labRincianTotal">' + total + '</strong>';
+            }
+        }
+    }
+
+    document.querySelectorAll('.lab-jumlah-kondisi').forEach(function (el) {
+        el.addEventListener('input', syncRincianKondisi);
+    });
+
+    const labStokTotalEl = document.getElementById('labStokTotal');
+    if (labStokTotalEl) {
+        labStokTotalEl.addEventListener('input', syncRincianKondisi);
+    }
+
+    const btnIsiSemuaBaik = document.getElementById('btnIsiSemuaBaik');
+    if (btnIsiSemuaBaik) {
+        btnIsiSemuaBaik.addEventListener('click', function () {
+            const total = labStokTotalEl ? (parseFloat(labStokTotalEl.value) || 0) : 0;
+            setJumlahKondisi({ baik: total, rusak_ringan: 0, rusak_berat: 0, kedaluwarsa: 0 });
+            syncRincianKondisi();
+        });
     }
 
     // Auto-fill form saat memilih aset dari Sarpras & Aset
@@ -122,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btnDelete) {
             const id = btnDelete.dataset.id;
             const nama = btnDelete.dataset.nama || 'item ini';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const csrfToken = getCsrfToken();
 
             if (window.Swal) {
                 Swal.fire({
@@ -161,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (confirm(`Apakah Anda yakin ingin menghapus ${nama}?`)) {
                     fetch(`/dashboard/laboran/inventaris/${id}`, {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
                     }).then(() => location.reload());
                 }
             }
@@ -200,60 +305,113 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formImport) {
         formImport.addEventListener('submit', function (e) {
             e.preventDefault();
+
             const submitBtn = document.getElementById('btnSubmitImport');
             const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+
+            function restoreBtn() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+            }
+
+            function showError(title, msg) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: title, text: msg, icon: 'error' });
+                } else {
+                    alert(title + ': ' + msg);
+                }
+            }
+
+            const fileInput = document.getElementById('fileImportInventaris');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                showError('Berkas Belum Dipilih', 'Pilih berkas Excel (.xlsx/.xls) atau CSV terlebih dahulu.');
+                return;
+            }
+
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengunggah &amp; Mengimpor...';
             }
 
-            const formData = new FormData(formImport);
+            let formData;
+            try {
+                formData = new FormData(formImport);
+            } catch (err) {
+                restoreBtn();
+                showError('Kesalahan Sistem', 'Gagal menyiapkan data unggahan.');
+                return;
+            }
+
             fetch(formImport.action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                credentials: 'same-origin',
                 body: formData
             })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-                if (data.status === 'success') {
+            .then(function (res) {
+                // Server dapat membalas HTML (419/500/redirect) alih-alih JSON.
+                return res.text().then(function (text) {
+                    let parsed = null;
+                    try {
+                        parsed = JSON.parse(text);
+                    } catch (e) {
+                        parsed = null;
+                    }
+
+                    if (parsed) {
+                        return { ok: res.ok, status: res.status, data: parsed };
+                    }
+
+                    // Bukan JSON: teruskan pesan berbasis status HTTP.
+                    let msg = 'Server mengembalikan respons tidak valid (HTTP ' + res.status + ').';
+                    if (res.status === 419) {
+                        msg = 'Sesi halaman telah berakhir. Muat ulang halaman lalu ulangi unggahan.';
+                    } else if (res.status === 413) {
+                        msg = 'Ukuran berkas terlalu besar untuk server. Perkecil berkas lalu ulangi.';
+                    } else if (res.status >= 500) {
+                        msg = 'Terjadi kesalahan pada server saat memproses berkas. Periksa format berkas Anda.';
+                    }
+                    return { ok: false, status: res.status, data: { status: 'error', message: msg } };
+                });
+            })
+            .then(function (result) {
+                restoreBtn();
+                const data = result.data || {};
+
+                if (result.ok && data.status === 'success') {
                     closeModalImport();
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             title: 'Import Berhasil',
-                            text: data.message,
+                            text: data.message || 'Data berhasil diimpor.',
                             icon: 'success'
                         }).then(function () {
                             window.location.reload();
                         });
                     } else {
-                        alert(data.message);
+                        alert(data.message || 'Data berhasil diimpor.');
                         window.location.reload();
                     }
-                } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ title: 'Gagal Import', text: data.message || 'Terjadi kesalahan.', icon: 'error' });
-                    } else {
-                        alert(data.message || 'Gagal import.');
-                    }
+                    return;
                 }
+
+                let errMsg = data.message || 'Terjadi kesalahan saat memproses berkas.';
+                if (data.errors) {
+                    const first = Object.values(data.errors)[0];
+                    if (Array.isArray(first) && first.length > 0) errMsg = first[0];
+                    else if (typeof first === 'string') errMsg = first;
+                }
+                showError('Gagal Import', errMsg);
             })
             .catch(function (err) {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                }
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ title: 'Kesalahan Sistem', text: err.message || 'Gagal mengunggah berkas.', icon: 'error' });
-                } else {
-                    alert(err.message || 'Gagal mengunggah berkas.');
-                }
+                restoreBtn();
+                showError('Kesalahan Sistem', err.message || 'Gagal mengunggah berkas. Periksa koneksi lalu coba lagi.');
             });
         });
     }

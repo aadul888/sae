@@ -322,7 +322,7 @@ const payloadEl = document.getElementById('sectionPiketChartPayload');
 }
 
 function initTendik_sarpras() {
-const payloadEl = document.getElementById('sectionSarprasChartPayload');
+    const payloadEl = document.getElementById('sectionSarprasChartPayload');
     if (!payloadEl || typeof Chart === 'undefined') return;
 
     let payload = {};
@@ -337,8 +337,9 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
     const textColor = isLight ? '#1e293b' : '#f8fafc';
     const textMuted = isLight ? '#64748b' : '#94a3b8';
     const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)';
+    const borderColor = isLight ? '#ffffff' : '#1e293b';
 
-    // Plugin Angka Permanen pada Bar
+    // Plugin angka permanen pada batang
     const barDataLabelsPlugin = {
         id: 'barDataLabelsSarpras',
         afterDatasetsDraw(chart) {
@@ -362,7 +363,7 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
         }
     };
 
-    // Plugin Doughnut Data Labels Permanen di Segmen Lingkaran (Angka & Persen)
+    // Plugin label nilai + persen di dalam donat
     const doughnutDataLabelsPlugin = {
         id: 'doughnutDataLabelsSarpras',
         afterDatasetsDraw(chart) {
@@ -372,6 +373,7 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
 
             const dataset = data.datasets[0];
             const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+            if (total <= 0) return;
 
             ctx.save();
             meta.data.forEach((element, index) => {
@@ -379,7 +381,7 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
                 if (!val || val <= 0) return;
 
                 const pos = element.tooltipPosition();
-                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                const pct = Math.round((val / total) * 100);
 
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 11px Inter, system-ui, sans-serif';
@@ -395,38 +397,87 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
                     ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y);
                 }
             });
-
-            // Total di Tengah Lingkaran Donat
-            if (total > 0 && meta.data[0]) {
-                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
-                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
-
-                ctx.fillStyle = textMuted;
-                ctx.font = '700 8px Inter, system-ui, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('ASET', centerX, centerY - 9);
-
-                ctx.fillStyle = textColor;
-                ctx.font = '800 15px Inter, system-ui, sans-serif';
-                ctx.fillText(Number(total).toLocaleString('id-ID'), centerX, centerY + 7);
-            }
             ctx.restore();
         }
     };
 
-    // 1. Chart Ruang per Gedung (Bar)
-    const ctxGedung = document.getElementById('sarprasChartGedung')?.getContext('2d');
-    if (ctxGedung && payload.gedung) {
-        const labels = Object.keys(payload.gedung);
-        const data = Object.values(payload.gedung);
-        new Chart(ctxGedung, {
+    const hasData = (obj) =>
+        obj && Object.keys(obj).length > 0 && Object.values(obj).some((v) => Number(v) > 0);
+
+    const renderDoughnut = (canvasId, dataObj, palette, centerLabel) => {
+        const ctx = document.getElementById(canvasId)?.getContext('2d');
+        if (!ctx || !hasData(dataObj)) return;
+
+        const labels = Object.keys(dataObj);
+        const values = Object.values(dataObj).map((v) => Number(v) || 0);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: palette,
+                    borderWidth: 2,
+                    borderColor: borderColor,
+                    hoverOffset: 4
+                }]
+            },
+            plugins: [doughnutDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (item) => {
+                                const total = values.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? Math.round((item.parsed / total) * 100) : 0;
+                                return `${item.label}: ${Number(item.parsed).toLocaleString('id-ID')} (${pct}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '62%'
+            }
+        });
+    };
+
+    // 1. Kondisi Ruang (Doughnut)
+    renderDoughnut(
+        'sarprasChartKondisiRuang',
+        payload.kondisiRuang,
+        ['#10b981', '#f59e0b', '#ef4444']
+    );
+
+    // 2. Kondisi Aset per Unit (Doughnut)
+    renderDoughnut(
+        'sarprasChartKondisiAset',
+        payload.kondisiAset,
+        ['#10b981', '#f59e0b', '#ef4444']
+    );
+
+    // 3. Kategori Aset (Doughnut)
+    renderDoughnut(
+        'sarprasChartKategori',
+        payload.kategoriAset,
+        ['#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#ec4899', '#06b6d4']
+    );
+
+    // 4. Status Work Order Teknisi (Bar)
+    const ctxWo = document.getElementById('sarprasChartWorkOrder')?.getContext('2d');
+    if (ctxWo && hasData(payload.statusWorkOrder)) {
+        const labels = Object.keys(payload.statusWorkOrder);
+        const values = Object.values(payload.statusWorkOrder).map((v) => Number(v) || 0);
+
+        new Chart(ctxWo, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    data: data,
-                    backgroundColor: ['rgba(59,130,246,0.85)', 'rgba(16,185,129,0.85)', 'rgba(245,158,11,0.85)', 'rgba(99,102,241,0.85)', 'rgba(6,182,212,0.85)', 'rgba(236,72,153,0.85)'],
+                    data: values,
+                    backgroundColor: ['rgba(245,158,11,0.85)', 'rgba(99,102,241,0.85)', 'rgba(239,68,68,0.85)', 'rgba(16,185,129,0.85)'],
                     borderRadius: 6,
                     maxBarThickness: 34
                 }]
@@ -439,44 +490,117 @@ const payloadEl = document.getElementById('sectionSarprasChartPayload');
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: {
-                            color: textMuted,
-                            font: { size: 9 },
-                            callback: function (val, index) {
-                                const lbl = labels[index] || '';
-                                return lbl.length > 14 ? lbl.substring(0, 12) + '...' : lbl;
-                            }
-                        }
+                        ticks: { color: textMuted, font: { size: 9 } }
                     },
-                    y: { grid: { color: gridColor }, ticks: { color: textMuted, font: { size: 10 } }, beginAtZero: true }
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: textMuted, font: { size: 10 }, precision: 0 },
+                        beginAtZero: true
+                    }
                 }
             }
         });
     }
 
-    // 2. Chart Kategori Aset (Doughnut)
-    const ctxAset = document.getElementById('sarprasChartAset')?.getContext('2d');
-    if (ctxAset && payload.kategoriAset) {
-        const labels = Object.keys(payload.kategoriAset);
-        const data = Object.values(payload.kategoriAset);
-        new Chart(ctxAset, {
-            type: 'doughnut',
+    // 5. Sebaran Ruang per Gedung (Bar Horizontal)
+    const ctxGedung = document.getElementById('sarprasChartGedung')?.getContext('2d');
+    if (ctxGedung && hasData(payload.gedung)) {
+        const gedungLabels = Object.keys(payload.gedung);
+        const gedungValues = Object.values(payload.gedung).map((v) => Number(v) || 0);
+
+        new Chart(ctxGedung, {
+            type: 'bar',
             data: {
-                labels: labels,
+                labels: gedungLabels,
                 datasets: [{
-                    data: data,
-                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#ec4899'],
-                    borderWidth: 2,
-                    borderColor: isLight ? '#ffffff' : '#1e293b',
-                    hoverOffset: 4
+                    data: gedungValues,
+                    backgroundColor: 'rgba(59,130,246,0.85)',
+                    borderRadius: 6,
+                    maxBarThickness: 18
                 }]
             },
-            plugins: [doughnutDataLabelsPlugin],
+            plugins: [barDataLabelsPlugin],
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                cutout: '62%'
+                scales: {
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: textMuted, font: { size: 10 }, precision: 0 },
+                        beginAtZero: true
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: textMuted,
+                            font: { size: 9 },
+                            callback: function (val, index) {
+                                const lbl = gedungLabels[index] || '';
+                                return lbl.length > 18 ? lbl.substring(0, 16) + '…' : lbl;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 6. Tren Peminjaman 6 Bulan (Line)
+    const ctxTren = document.getElementById('sarprasChartTren')?.getContext('2d');
+    const tren = payload.trenPeminjaman || {};
+    const trenLabels = Array.isArray(tren.labels) ? tren.labels : [];
+    const trenPinjam = Array.isArray(tren.pinjam) ? tren.pinjam : [];
+    const trenKembali = Array.isArray(tren.kembali) ? tren.kembali : [];
+    const trenKosong = [...trenPinjam, ...trenKembali].every((v) => Number(v) === 0);
+
+    if (ctxTren && trenLabels.length > 0 && !trenKosong) {
+        new Chart(ctxTren, {
+            type: 'line',
+            data: {
+                labels: trenLabels,
+                datasets: [
+                    {
+                        label: 'Dipinjam',
+                        data: trenPinjam,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.15)',
+                        tension: 0.35,
+                        fill: true,
+                        pointRadius: 3,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Dikembalikan',
+                        data: trenKembali,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.15)',
+                        tension: 0.35,
+                        fill: true,
+                        pointRadius: 3,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { color: textMuted, boxWidth: 10, font: { size: 10 } }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textMuted, font: { size: 9 } } },
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: textMuted, font: { size: 10 }, precision: 0 },
+                        beginAtZero: true
+                    }
+                }
             }
         });
     }
