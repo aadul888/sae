@@ -5,8 +5,12 @@
 /public/storage
 /storage/*.key
 /vendor
+
+# Catatan kerja AI agent — tidak untuk developer.
+# Dokumentasi developer ada di /docs yang WAJIB ter-track git.
 /.agent
 /.agents
+
 .env
 .env.backup
 .env.*
@@ -26,9 +30,3 @@ base.txt
 *.sql
 *.sql.gz
 *.bak
-PANDUAN_LENGKAP_SAE.md
-HAK_AKSES_DAN_FITUR.md
-tupoksi_tas.md
-formulir_dapodik_2027_spesifikasi.md
-Form_Dapodik_2027_rev1.pdf
-/docs
