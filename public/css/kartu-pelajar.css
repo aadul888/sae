@@ -612,6 +612,11 @@
     flex-shrink: 0;
 }
 
+/* Penjajaran Kanan untuk Cetak Single (1 Orang: Depan Atas Kanan, Belakang Bawah Kanan) */
+.kp-sheet-row.kp-row-single {
+    justify-content: flex-end !important;
+}
+
 .kp-sheet-row .kp-card {
     width: 56mm !important;
     height: 87mm !important;
@@ -762,6 +767,10 @@ body.filter-back-only .kp-sheet-cut-gap {
         justify-content: flex-start !important;
         align-items: center !important;
         flex-shrink: 0 !important;
+    }
+
+    .kp-sheet-row.kp-row-single {
+        justify-content: flex-end !important;
     }
 
     .kp-sheet-row .kp-card {

@@ -51,7 +51,8 @@
                 onclick="event.stopPropagation()">
                 <button type="button" onclick="unduhHalamanSingleJpg('both')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-images" style="color: var(--success, #10b981); width: 16px;"></i> Depan &amp; Belakang (2 JPG)
+                    <i class="fas fa-images" style="color: var(--success, #10b981); width: 16px;"></i> Depan &amp;
+                    Belakang (2 JPG)
                 </button>
                 <button type="button" onclick="unduhHalamanSingleJpg('front')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
@@ -59,14 +60,31 @@
                 </button>
                 <button type="button" onclick="unduhHalamanSingleJpg('back')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-image" style="color: var(--text-muted, #94a3b8); width: 16px;"></i> Sisi Belakang Saja (.jpg)
+                    <i class="fas fa-image" style="color: var(--text-muted, #94a3b8); width: 16px;"></i> Sisi Belakang
+                    Saja (.jpg)
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="print-canvas">
-        @include('kartu-pelajar.template', ['card' => $card])
+    <!-- Container Cetak Kartu: 1 Lembar A4 Landscape Presisi, Posisi Kartu di Sebelah Kanan -->
+    <div class="kp-sheet-wrapper kp-single-sheet-wrapper">
+        <div class="kp-a4-sheet kp-single-a4-sheet" data-page="1">
+            <!-- Baris Atas: Sisi Depan Kartu (Di Sebelah Kanan) -->
+            <div class="kp-sheet-row kp-row-front kp-row-single">
+                @include('kartu-pelajar.card-front', ['card' => $card])
+            </div>
+
+            <!-- Jarak Kosong & Garis Panduan Potong Tengah Manual (12mm) -->
+            <div class="kp-sheet-cut-gap">
+                <div class="kp-cut-line"></div>
+            </div>
+
+            <!-- Baris Bawah: Sisi Belakang Kartu (Di Sebelah Kanan) -->
+            <div class="kp-sheet-row kp-row-back kp-row-single">
+                @include('kartu-pelajar.card-back', ['card' => $card])
+            </div>
+        </div>
     </div>
 
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
