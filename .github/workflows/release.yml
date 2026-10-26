@@ -1,0 +1,85 @@
+name: Release
+
+# Membuat GitHub Release otomatis saat tag versi di-push.
+#
+# Cara pakai:
+#   git tag 1.0.5
+#   git push origin 1.0.5
+#
+# Release akan dibuat berisi catatan rilis otomatis.
+# Workflow ini TIDAK melakukan deploy — deploy ke server tetap manual
+# (lihat docs/UPGRADE_SERVER_AAPANEL.md).
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Buat Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # perlu riwayat penuh untuk catatan rilis
+
+      # ---------------------------------------------------------------------
+      # Validasi: tag harus cocok dengan CURRENT_VERSION di UpdateService.php
+      # Mencegah rilis dengan nomor versi yang tidak sesuai kode aplikasi.
+      # ---------------------------------------------------------------------
+      - name: Verifikasi versi tag vs kode
+        id: verify
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          TAG_VERSION="${TAG#v}"   # buang awalan 'v' bila ada
+
+          CODE_VERSION=$(grep -oP "CURRENT_VERSION\s*=\s*'\K[^']+" \
+            app/Services/UpdateService.php | head -n1)
+
+          echo "tag=$TAG"
+          echo "tag_version=$TAG_VERSION"
+          echo "code_version=$CODE_VERSION"
+          echo "version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
+
+          if [ "$TAG_VERSION" != "$CODE_VERSION" ]; then
+            echo "::warning::Versi tag ($TAG_VERSION) berbeda dengan CURRENT_VERSION di kode ($CODE_VERSION)."
+            echo "::warning::Perbarui app/Services/UpdateService.php agar konsisten."
+          else
+            echo "Versi tag cocok dengan kode aplikasi."
+          fi
+
+      - name: Buat GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.verify.outputs.version }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          body: |
+            ## SAE v${{ steps.verify.outputs.version }}
+
+            Rilis otomatis dari tag `${{ github.ref_name }}`.
+
+            ### Cara memperbarui server
+
+            ```bash
+            cd /www/wwwroot/<domain-anda>
+            git fetch --tags
+            git checkout main && git pull origin main
+            bash deploy.sh
+            ```
+
+            `deploy.sh` menjalankan `composer install`, migrasi, dan cache
+            secara otomatis. Panduan lengkap: `docs/UPGRADE_SERVER_AAPANEL.md`.
+
+            ### Persyaratan
+
+            - PHP **>= 8.3**
+            - Ekstensi: `pdo_mysql`, `zip`, `gd`

@@ -18,7 +18,7 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 ## 📋 Persyaratan Sistem
 
 - PHP `>= 8.3` (Laravel 13)
-- Ekstensi PHP: `BCMath`, `Ctype`, `cURL`, `DOM`, `Fileinfo`, `JSON`, `Mbstring`, `OpenSSL`, `PDO`, `PDO_MySQL`, `Tokenizer`, `XML`, `Zip`
+- Ekstensi PHP wajib: `pdo_mysql`, `zip`, `gd` (ekstensi lain sudah menyatu di PHP 8.3)
 - MySQL `>= 8.0` atau MariaDB `>= 10.4`
 - Composer `>= 2.2`
 - Git (opsional, direkomendasikan untuk fitur Update Center)
@@ -27,15 +27,26 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ## 📚 Dokumentasi Pengembangan
 
-| Dokumen | Isi |
+Dokumentasi pengembangan lengkap (arsitektur, standar UI, konvensi kode, RBAC,
+panduan modul, upgrade server) berada di folder **`.agents/docs/`** — folder ini
+**sengaja tidak masuk repositori** agar repo tetap bersih (hanya `README.md` ini
+yang berupa markdown).
+
+| Dokumen di `.agents/docs/` | Isi |
 |---|---|
-| [`docs/README.md`](docs/README.md) | **Indeks dokumentasi** — mulai dari sini |
-| [`docs/UPGRADE_SERVER_AAPANEL.md`](docs/UPGRADE_SERVER_AAPANEL.md) | **Panduan upgrade server aaPanel** (PHP 8.3, composer, migrasi, rollback) |
-| [`docs/UI_DESIGN_STANDARDS.md`](docs/UI_DESIGN_STANDARDS.md) | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen Blade, aturan konsistensi |
-| [`docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md`](docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md) | Alur baku menambah modul/fitur baru |
-| [`docs/code-style-guide.md`](docs/code-style-guide.md) | Konvensi penulisan kode |
-| [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) | Peta struktur folder & arsitektur |
-| [`docs/MODULE_DEPENDENCIES.md`](docs/MODULE_DEPENDENCIES.md) | Ketergantungan antar modul |
+| `README.md` | Indeks dokumentasi — mulai dari sini |
+| `ARSITEKTUR_LENGKAP.md` | Arsitektur sistem menyeluruh dari hulu ke hilir |
+| `UPGRADE_SERVER_AAPANEL.md` | Panduan upgrade server aaPanel (PHP 8.3, composer, migrasi, rollback) |
+| `UI_DESIGN_STANDARDS.md` | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen, konsistensi |
+| `PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md` | Alur baku menambah modul/fitur baru |
+| `code-style-guide.md` | Konvensi penulisan kode |
+| `PROJECT_STRUCTURE.md` | Peta struktur folder & arsitektur |
+| `MODULE_DEPENDENCIES.md` | Ketergantungan antar modul |
+| `HAK_AKSES.md` | Cara kerja RBAC, hak akses, sidebar |
+| `WORKLOG.md` | Riwayat keputusan teknis & hasil tes |
+
+> **Catatan AI Agent:** petunjuk kerja + peta dokumen ada di `.agents/AGENTS.md`,
+> cheat sheet modul di `.agents/skills/SKILL.md`.
 
 ### Ringkasan Standar UI
 

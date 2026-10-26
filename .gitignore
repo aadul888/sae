@@ -7,7 +7,8 @@
 /vendor
 
 # Catatan kerja AI agent — tidak untuk developer.
-# Dokumentasi developer ada di /docs yang WAJIB ter-track git.
+# Dokumentasi pengembangan juga ada di .agents/docs/ (tidak masuk repo).
+# Repo HANYA berisi README.md di root.
 /.agent
 /.agents
 

@@ -114,62 +114,51 @@ class ArchitectureGuardTest extends TestCase
         }
     }
 
-    public function test_developer_docs_are_tracked_in_repo(): void
-    {
-        // Dokumentasi developer tidak boleh hanya berada di .agents/ yang di-ignore.
-        $required = [
-            'docs/README.md',
-            'docs/UI_DESIGN_STANDARDS.md',
-            'docs/PROJECT_STRUCTURE.md',
-            'docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md',
-            'docs/code-style-guide.md',
-            'docs/HAK_AKSES.md',
-            'docs/MODULE_DEPENDENCIES.md',
-            'docs/UPGRADE_SERVER_AAPANEL.md',
-        ];
-
-        foreach ($required as $relative) {
-            $this->assertFileExists(
-                base_path($relative),
-                "Dokumentasi {$relative} hilang. Dokumentasi developer wajib ada di docs/ (ter-track git)."
-            );
-        }
-    }
-
     /**
-     * Mencegah penumpukan dokumen: setiap dokumen di docs/ wajib terdaftar
-     * pada indeks docs/README.md, dan jumlahnya dijaga wajar.
+     * Kebijakan dokumentasi: HANYA README.md yang boleh berada di repo.
+     *
+     * Seluruh dokumentasi pengembangan lain disimpan di `.agents/` (di-ignore git)
+     * agar repo tetap bersih dan tidak dipenuhi berkas markdown.
      */
-    public function test_docs_directory_stays_indexed_and_bounded(): void
+    public function test_only_root_readme_is_tracked_markdown(): void
     {
-        $readme = file_get_contents(base_path('docs/README.md'));
+        $tracked = [];
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(base_path(), \FilesystemIterator::SKIP_DOTS)
+        );
 
-        $files = glob(base_path('docs/*.md'));
-        $unlisted = [];
-
-        foreach ($files as $file) {
-            $name = basename($file);
-            if ($name === 'README.md') {
+        foreach ($it as $file) {
+            if (!$file->isFile() || strtolower($file->getExtension()) !== 'md') {
                 continue;
             }
-            // Setiap dokumen harus ditautkan dari indeks.
-            if (!str_contains($readme, $name)) {
-                $unlisted[] = $name;
+
+            $rel = str_replace('\\', '/', substr($file->getPathname(), strlen(base_path()) + 1));
+
+            // Abaikan folder yang memang tidak masuk repo.
+            if (preg_match('#^(vendor|node_modules|\.agents|\.agent|scratch|storage)/#', $rel)) {
+                continue;
             }
+
+            $tracked[] = $rel;
         }
 
         $this->assertSame(
-            [],
-            $unlisted,
-            'Dokumen berikut belum ditautkan di docs/README.md: ' . implode(', ', $unlisted)
+            ['README.md'],
+            $tracked,
+            'Hanya README.md yang boleh berada di repo. Berkas berikut harus dipindah ke '
+                . ".agents/ (di-ignore git) atau dihapus: " . implode(', ', $tracked)
         );
+    }
 
-        // Batas atas agar dokumentasi tidak kembali menumpuk tanpa kendali.
-        $this->assertLessThanOrEqual(
-            15,
-            count($files),
-            'Jumlah dokumen di docs/ melebihi 15. Gabungkan ke dokumen yang sudah ada '
-                . 'atau arsipkan yang sudah selesai, alih-alih menambah file baru.'
+    /**
+     * Folder docs/ di root proyek tidak boleh ada — dokumentasi pengembangan
+     * disimpan di .agents/docs/ agar tidak ikut ter-commit.
+     */
+    public function test_docs_folder_is_not_in_repo_root(): void
+    {
+        $this->assertDirectoryDoesNotExist(
+            base_path('docs'),
+            'Folder docs/ tidak boleh ada di root proyek. Simpan dokumentasi di .agents/docs/.'
         );
     }
 
