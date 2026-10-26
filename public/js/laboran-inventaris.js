@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labSpek').value = data.spek || '';
             document.getElementById('labRak').value = data.rak || '';
             document.getElementById('labExp').value = data.exp || '';
+            const labJurusan = document.getElementById('labJurusan');
+            if (labJurusan) labJurusan.value = data.jurusan || '';
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'block';
             if (wrapperAsetSarpras) wrapperAsetSarpras.style.display = 'none';
         } else {
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 spek: btnEdit.dataset.spek,
                 rak: btnEdit.dataset.rak,
                 exp: btnEdit.dataset.exp,
+                jurusan: btnEdit.dataset.jurusan,
             };
             openModal(true, data);
         }

@@ -1,28 +1,446 @@
 /**
- * JavaScript Modul Jadwal & Penggunaan Laboratorium
+ * JavaScript Modul Jadwal Praktik & Penggunaan Lokasi (Laboratorium / Bengkel / Lahan / Lapangan)
  * Standar Baku SAE: Vanilla JS, Modal Handling (z-index: 99999), SweetAlert2
+ *
+ * Fitur:
+ *  1. Modal tambah & ubah jadwal (satu form dipakai ulang).
+ *  2. Mata pelajaran otomatis dari kelas (fetch data pembelajaran Dapodik).
+ *  3. Topik / materi praktik bersifat opsional.
+ *  4. Update status sesi + laporan kerusakan.
+ *  5. Hapus jadwal dengan konfirmasi.
  */
 
 document.addEventListener('DOMContentLoaded', function () {
+    if (!window.location.pathname.includes('/dashboard/laboran/jadwal')) {
+        return;
+    }
+
     // -------------------------------------------------------------------------
-    // 1. Modal Tambah Jadwal Praktik
+    // 1. Referensi Elemen
     // -------------------------------------------------------------------------
     const modalJadwal = document.getElementById('modalJadwal');
     const btnOpenModalJadwal = document.getElementById('btnOpenModalJadwal');
     const btnCloseModalJadwal = document.getElementById('btnCloseModalJadwal');
     const btnCancelModalJadwal = document.getElementById('btnCancelModalJadwal');
+    const modalJadwalTitle = document.getElementById('modalJadwalTitle');
     const formJadwal = document.getElementById('formJadwal');
+    const jadwalMethod = document.getElementById('jadwalMethod');
 
-    function openModalJadwal() {
-        if (!modalJadwal) return;
-        if (formJadwal) {
-            formJadwal.reset();
-            const dateInput = formJadwal.querySelector('input[name="tanggal"]');
-            if (dateInput && !dateInput.value) {
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.value = today;
+    const selectJenisLokasi = document.getElementById('selectJenisLokasi');
+    const selectLokasi = document.getElementById('selectLokasi');
+    const selectRombel = document.getElementById('selectRombel');
+    const selectMapel = document.getElementById('selectMapel');
+    const selectGuru = document.getElementById('selectGuru');
+    const inputPembelajaranId = document.getElementById('inputPembelajaranId');
+    const inputMapelId = document.getElementById('inputMapelId');
+    const chkMapelManual = document.getElementById('chkMapelManual');
+    const inputMapelManual = document.getElementById('inputMapelManual');
+    const mapelHint = document.getElementById('mapelHint');
+    const inputTanggal = document.getElementById('inputTanggal');
+    const inputJamMulai = document.getElementById('inputJamMulai');
+    const inputJamSelesai = document.getElementById('inputJamSelesai');
+    const inputTopik = document.getElementById('inputTopik');
+    const inputAlat = document.getElementById('inputAlat');
+
+    const BASE_URL = '/dashboard/laboran/jadwal';
+    const PEMBELAJARAN_URL = BASE_URL + '/pembelajaran';
+
+    let mapelCache = {};
+    let isEditMode = false;
+
+    // -------------------------------------------------------------------------
+    // 2. Util: Alert
+    // -------------------------------------------------------------------------
+    function notifySuccess(message) {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: message,
+                timer: 1400,
+                showConfirmButton: false
+            });
+        }
+        alert(message);
+        return Promise.resolve();
+    }
+
+    function notifyError(title, message) {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({ icon: 'error', title: title, text: message });
+        }
+        alert(title + ': ' + message);
+        return Promise.resolve();
+    }
+
+    function extractErrorMessage(data, fallback) {
+        if (data && data.errors) {
+            const first = Object.values(data.errors)[0];
+            if (Array.isArray(first) && first.length > 0) return first[0];
+            if (typeof first === 'string') return first;
+        }
+        return (data && data.message) || fallback;
+    }
+
+    function csrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        const input = document.querySelector('input[name="_token"]');
+        return (meta ? meta.getAttribute('content') : '') || (input ? input.value : '');
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. Filter Lokasi Berdasarkan Jenis (optgroup)
+    // -------------------------------------------------------------------------
+    function filterLokasiByJenis(jenis, selectedName) {
+        if (!selectLokasi) return;
+
+        const groups = selectLokasi.querySelectorAll('optgroup');
+        let hasVisible = false;
+
+        groups.forEach(function (group) {
+            const match = !jenis || group.dataset.jenis === jenis;
+            group.style.display = match ? '' : 'none';
+            group.disabled = !match;
+            if (match) hasVisible = true;
+        });
+
+        // Opsi tanpa optgroup (fallback) tetap ditampilkan
+        const looseOptions = Array.prototype.slice.call(selectLokasi.querySelectorAll('option:not(optgroup option)'));
+        looseOptions.forEach(function (opt) {
+            if (opt.value === '') return;
+            if (jenis) {
+                opt.style.display = 'none';
+                opt.disabled = true;
+            } else {
+                opt.style.display = '';
+                opt.disabled = false;
+            }
+        });
+
+        if (selectedName) {
+            selectLokasi.value = selectedName;
+            // Bila opsi hasil edit tidak lagi terlihat, tetap pertahankan nilainya
+            if (selectLokasi.value !== selectedName) {
+                const opt = document.createElement('option');
+                opt.value = selectedName;
+                opt.textContent = selectedName;
+                selectLokasi.appendChild(opt);
+                selectLokasi.value = selectedName;
+            }
+        } else {
+            selectLokasi.value = '';
+        }
+
+        if (!hasVisible) {
+            // Tidak ada lokasi pada jenis tersebut; biarkan dropdown kosong agar pengguna sadar
+            selectLokasi.value = '';
+        }
+    }
+
+    // Sinkronkan jenis lokasi ketika pengguna memilih lokasi secara langsung
+    function syncJenisFromLokasi() {
+        if (!selectLokasi || !selectJenisLokasi) return;
+        const opt = selectLokasi.options[selectLokasi.selectedIndex];
+        if (!opt) return;
+        const jenis = opt.dataset ? opt.dataset.jenis : '';
+        if (jenis) {
+            selectJenisLokasi.value = jenis;
+        }
+    }
+
+    if (selectLokasi) {
+        selectLokasi.addEventListener('change', syncJenisFromLokasi);
+    }
+
+    if (selectJenisLokasi) {
+        selectJenisLokasi.addEventListener('change', function () {
+            filterLokasiByJenis(this.value, '');
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Mata Pelajaran Otomatis dari Kelas
+    // -------------------------------------------------------------------------
+    function setMapelOptions(items) {
+        if (!selectMapel) return;
+
+        selectMapel.innerHTML = '';
+
+        if (!items || items.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- Tidak ada mata pelajaran pada kelas ini --';
+            selectMapel.appendChild(opt);
+            selectMapel.disabled = true;
+            if (mapelHint) {
+                mapelHint.innerHTML = '<i class="fas fa-triangle-exclamation me-1" style="color: var(--warning, #f59e0b);"></i>' +
+                    'Kelas ini belum memiliki data pembelajaran. Aktifkan "Isi manual" atau sinkronkan Dapodik.';
+            }
+            return;
+        }
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '-- Pilih Mata Pelajaran --';
+        selectMapel.appendChild(placeholder);
+
+        items.forEach(function (item, idx) {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            let label = item.nama_mata_pelajaran;
+            if (item.nama_guru) {
+                label += ' — ' + item.nama_guru;
+            }
+            opt.textContent = label;
+            selectMapel.appendChild(opt);
+        });
+
+        selectMapel.disabled = false;
+        if (mapelHint) {
+            mapelHint.innerHTML = '<i class="fas fa-circle-check me-1" style="color: var(--success, #10b981);"></i>' +
+                items.length + ' mata pelajaran dimuat otomatis dari kelas.';
+        }
+    }
+
+    function loadMapelForRombel(rombelId, preselect, preselectPtk) {
+        if (!selectMapel) return;
+
+        if (!rombelId) {
+            selectMapel.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+            selectMapel.disabled = true;
+            if (mapelHint) {
+                mapelHint.textContent = 'Pilih kelas untuk memuat daftar mata pelajaran.';
+            }
+            return;
+        }
+
+        if (mapelCache[rombelId]) {
+            applyMapelList(rombelId, mapelCache[rombelId], preselect, preselectPtk);
+            return;
+        }
+
+        selectMapel.innerHTML = '<option value="">Memuat mata pelajaran…</option>';
+        selectMapel.disabled = true;
+        if (mapelHint) {
+            mapelHint.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memuat mata pelajaran dari data kelas…';
+        }
+
+        fetch(PEMBELAJARAN_URL + '?rombel_id=' + encodeURIComponent(rombelId), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('Gagal memuat data mata pelajaran.');
+                return res.json();
+            })
+            .then(function (data) {
+                const items = (data && data.pembelajaran) || [];
+                mapelCache[rombelId] = items;
+                applyMapelList(rombelId, items, preselect, preselectPtk);
+            })
+            .catch(function (err) {
+                setMapelOptions([]);
+                if (mapelHint) {
+                    mapelHint.innerHTML = '<i class="fas fa-triangle-exclamation me-1" style="color: var(--danger, #ef4444);"></i>' +
+                        (err.message || 'Gagal memuat mata pelajaran.');
+                }
+            });
+    }
+
+    function applyMapelList(rombelId, items, preselect, preselectPtk) {
+        setMapelOptions(items);
+
+        if (!selectMapel) return;
+
+        if (preselect) {
+            let foundIdx = -1;
+
+            items.forEach(function (item, idx) {
+                if (foundIdx !== -1) return;
+                const namaMatch = item.nama_mata_pelajaran === preselect;
+                const guruMatch = !preselectPtk || item.ptk_id === preselectPtk;
+                if (namaMatch && guruMatch) {
+                    foundIdx = idx;
+                }
+            });
+
+            // Bila pencocokan ketat gagal, coba cocokkan nama saja
+            if (foundIdx === -1) {
+                items.forEach(function (item, idx) {
+                    if (foundIdx === -1 && item.nama_mata_pelajaran === preselect) {
+                        foundIdx = idx;
+                    }
+                });
+            }
+
+            if (foundIdx !== -1) {
+                selectMapel.value = String(foundIdx);
+                onMapelSelected();
+                return;
             }
         }
+
+        // Default: pilih item pertama bila tidak ada praseleksi
+        if (!preselect && items.length > 0) {
+            selectMapel.value = '0';
+            onMapelSelected();
+        }
+    }
+
+    function onMapelSelected() {
+        if (!selectMapel || !selectRombel) return;
+
+        const rombelId = selectRombel.value;
+        const idx = selectMapel.value;
+        const items = mapelCache[rombelId] || [];
+        const item = idx !== '' ? items[Number(idx)] : null;
+
+        if (!item) {
+            if (inputPembelajaranId) inputPembelajaranId.value = '';
+            if (inputMapelId) inputMapelId.value = '';
+            return;
+        }
+
+        if (inputPembelajaranId) inputPembelajaranId.value = item.pembelajaran_id || '';
+        if (inputMapelId) inputMapelId.value = item.mata_pelajaran_id || '';
+
+        // Guru pengampu terisi otomatis dari pembelajaran (bila belum dipilih manual)
+        if (selectGuru && item.ptk_id) {
+            const hasOption = Array.prototype.some.call(selectGuru.options, function (o) {
+                return o.value === item.ptk_id;
+            });
+            if (!hasOption) {
+                const opt = document.createElement('option');
+                opt.value = item.ptk_id;
+                opt.textContent = item.nama_guru || 'Guru Pengampu';
+                selectGuru.appendChild(opt);
+            }
+            selectGuru.value = item.ptk_id;
+        }
+    }
+
+    if (selectRombel) {
+        selectRombel.addEventListener('change', function () {
+            loadMapelForRombel(this.value, null, null);
+        });
+    }
+
+    if (selectMapel) {
+        selectMapel.addEventListener('change', onMapelSelected);
+    }
+
+    // Mode isi manual: menonaktifkan dropdown mapel & mengaktifkan input teks
+    if (chkMapelManual) {
+        chkMapelManual.addEventListener('change', function () {
+            const manual = this.checked;
+            if (selectMapel) selectMapel.disabled = manual;
+            if (inputMapelManual) {
+                inputMapelManual.disabled = !manual;
+                inputMapelManual.style.display = manual ? 'block' : 'none';
+                if (!manual) inputMapelManual.value = '';
+            }
+            if (manual) {
+                if (inputPembelajaranId) inputPembelajaranId.value = '';
+                if (inputMapelId) inputMapelId.value = '';
+                if (mapelHint) {
+                    mapelHint.innerHTML = '<i class="fas fa-keyboard me-1 text-primary"></i> Mode isi manual aktif.';
+                }
+            } else {
+                onMapelSelected();
+                if (mapelHint) {
+                    mapelHint.innerHTML = '<i class="fas fa-wand-magic-sparkles me-1 text-primary"></i> Mata pelajaran otomatis dari data kelas.';
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. Modal Buka / Tutup
+    // -------------------------------------------------------------------------
+    function defaultTanggal() {
+        const now = new Date();
+        const tzOffset = now.getTimezoneOffset() * 60000;
+        return new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
+    }
+
+    function openModalCreate() {
+        if (!modalJadwal || !formJadwal) return;
+
+        isEditMode = false;
+        formJadwal.reset();
+        formJadwal.action = BASE_URL;
+        if (jadwalMethod) jadwalMethod.value = 'POST';
+        if (modalJadwalTitle) modalJadwalTitle.textContent = 'Jadwalkan Praktik';
+
+        if (inputPembelajaranId) inputPembelajaranId.value = '';
+        if (inputMapelId) inputMapelId.value = '';
+        if (inputTanggal) inputTanggal.value = defaultTanggal();
+        if (inputJamMulai) inputJamMulai.value = '08:00';
+        if (inputJamSelesai) inputJamSelesai.value = '09:30';
+
+        if (chkMapelManual) {
+            chkMapelManual.checked = false;
+            chkMapelManual.dispatchEvent(new Event('change'));
+        }
+
+        if (selectJenisLokasi) {
+            selectJenisLokasi.value = 'lab';
+            filterLokasiByJenis('lab', '');
+        }
+
+        if (selectMapel) {
+            selectMapel.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+            selectMapel.disabled = true;
+        }
+
+        if (selectGuru) selectGuru.value = '';
+
+        modalJadwal.style.display = 'flex';
+    }
+
+    function openModalEdit(data) {
+        if (!modalJadwal || !formJadwal) return;
+
+        isEditMode = true;
+        formJadwal.reset();
+        formJadwal.action = BASE_URL + '/' + data.id;
+        if (jadwalMethod) jadwalMethod.value = 'PUT';
+        if (modalJadwalTitle) modalJadwalTitle.textContent = 'Ubah Jadwal Praktik';
+
+        if (selectJenisLokasi) selectJenisLokasi.value = data.jenis || 'lab';
+        filterLokasiByJenis(data.jenis || 'lab', data.lokasi || '');
+
+        if (inputTanggal) inputTanggal.value = data.tanggal || defaultTanggal();
+        if (inputJamMulai) inputJamMulai.value = data.jamMulai || '08:00';
+        if (inputJamSelesai) inputJamSelesai.value = data.jamSelesai || '09:30';
+        if (inputTopik) inputTopik.value = data.topik || '';
+        if (inputAlat) inputAlat.value = data.alat || '';
+
+        if (selectRombel) selectRombel.value = data.rombelId || '';
+        if (selectGuru) selectGuru.value = data.ptkId || '';
+
+        if (chkMapelManual) {
+            chkMapelManual.checked = false;
+            chkMapelManual.dispatchEvent(new Event('change'));
+        }
+
+        if (inputPembelajaranId) inputPembelajaranId.value = data.pembelajaranId || '';
+        if (inputMapelId) inputMapelId.value = '';
+
+        if (data.rombelId) {
+            loadMapelForRombel(data.rombelId, data.mapel || '', data.ptkId || '');
+        } else if (data.mapel) {
+            // Kelas tidak tersimpan (data lama): pakai mode manual agar mapel tetap terisi
+            if (chkMapelManual) {
+                chkMapelManual.checked = true;
+                chkMapelManual.dispatchEvent(new Event('change'));
+            }
+            if (inputMapelManual) inputMapelManual.value = data.mapel;
+        }
+
         modalJadwal.style.display = 'flex';
     }
 
@@ -31,33 +449,68 @@ document.addEventListener('DOMContentLoaded', function () {
         modalJadwal.style.display = 'none';
     }
 
-    window.openModalJadwal = openModalJadwal;
+    window.openModalJadwal = openModalCreate;
     window.closeModalJadwal = closeModalJadwal;
 
-    if (btnOpenModalJadwal) {
-        btnOpenModalJadwal.addEventListener('click', openModalJadwal);
-    }
-    if (btnCloseModalJadwal) {
-        btnCloseModalJadwal.addEventListener('click', closeModalJadwal);
-    }
-    if (btnCancelModalJadwal) {
-        btnCancelModalJadwal.addEventListener('click', closeModalJadwal);
-    }
+    if (btnOpenModalJadwal) btnOpenModalJadwal.addEventListener('click', openModalCreate);
+    if (btnCloseModalJadwal) btnCloseModalJadwal.addEventListener('click', closeModalJadwal);
+    if (btnCancelModalJadwal) btnCancelModalJadwal.addEventListener('click', closeModalJadwal);
     if (modalJadwal) {
         modalJadwal.addEventListener('click', function (e) {
-            if (e.target === modalJadwal) {
-                closeModalJadwal();
-            }
+            if (e.target === modalJadwal) closeModalJadwal();
         });
     }
 
-    // Submit Form Tambah Jadwal via AJAX
+    // Delegasi tombol ubah jadwal di baris tabel
+    document.addEventListener('click', function (e) {
+        const btnEdit = e.target.closest('.btn-edit-jadwal');
+        if (btnEdit) {
+            openModalEdit({
+                id: btnEdit.dataset.id,
+                lokasi: btnEdit.dataset.lokasi,
+                jenis: btnEdit.dataset.jenis,
+                rombelId: btnEdit.dataset.rombelId,
+                rombelNama: btnEdit.dataset.rombelNama,
+                pembelajaranId: btnEdit.dataset.pembelajaranId,
+                mapel: btnEdit.dataset.mapel,
+                ptkId: btnEdit.dataset.ptkId,
+                guru: btnEdit.dataset.guru,
+                topik: btnEdit.dataset.topik,
+                tanggal: btnEdit.dataset.tanggal,
+                jamMulai: btnEdit.dataset.jamMulai,
+                jamSelesai: btnEdit.dataset.jamSelesai,
+                alat: btnEdit.dataset.alat,
+                status: btnEdit.dataset.status
+            });
+        }
+    });
+
+    // -------------------------------------------------------------------------
+    // 6. Submit Form Jadwal (AJAX)
+    // -------------------------------------------------------------------------
     if (formJadwal) {
         formJadwal.addEventListener('submit', function (e) {
             e.preventDefault();
 
+            // Validasi klien: kelas wajib, mapel wajib (dropdown atau manual)
+            if (selectRombel && !selectRombel.value) {
+                notifyError('Data Belum Lengkap', 'Pilih kelas / rombel terlebih dahulu.');
+                return;
+            }
+
+            const manual = chkMapelManual && chkMapelManual.checked;
+            if (manual) {
+                if (!inputMapelManual || !inputMapelManual.value.trim()) {
+                    notifyError('Data Belum Lengkap', 'Isi nama mata pelajaran.');
+                    return;
+                }
+            } else if (selectMapel && (!selectMapel.value || selectMapel.value === '')) {
+                notifyError('Data Belum Lengkap', 'Pilih mata pelajaran, atau aktifkan "Isi manual".');
+                return;
+            }
+
             const submitBtn = formJadwal.querySelector('button[type="submit"]');
-            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            const originalHtml = submitBtn ? submitBtn.innerHTML : '';
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
@@ -65,66 +518,56 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(formJadwal);
 
+            // Pastikan nama mapel terkirim baik dari dropdown maupun input manual
+            if (manual) {
+                formData.set('mata_pelajaran', (inputMapelManual.value || '').trim());
+                formData.delete('pembelajaran_id');
+                formData.delete('mata_pelajaran_id');
+            } else if (selectMapel && selectRombel) {
+                const items = mapelCache[selectRombel.value] || [];
+                const item = items[Number(selectMapel.value)];
+                if (item) {
+                    formData.set('mata_pelajaran', item.nama_mata_pelajaran || '');
+                    formData.set('pembelajaran_id', item.pembelajaran_id || '');
+                    formData.set('mata_pelajaran_id', item.mata_pelajaran_id || '');
+                }
+            }
+
             fetch(formJadwal.action, {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
+                credentials: 'same-origin',
                 body: formData
             })
-            .then(async function (res) {
-                const data = await res.json().catch(function () { return {}; });
-                if (!res.ok) {
-                    let msg = data.message || 'Terjadi kesalahan saat menyimpan jadwal.';
-                    if (data.errors) {
-                        const firstErr = Object.values(data.errors)[0];
-                        if (Array.isArray(firstErr) && firstErr.length > 0) {
-                            msg = firstErr[0];
-                        }
+                .then(async function (res) {
+                    const data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) {
+                        throw new Error(extractErrorMessage(data, 'Terjadi kesalahan saat menyimpan jadwal.'));
                     }
-                    throw new Error(msg);
-                }
-                return data;
-            })
-            .then(function (res) {
-                closeModalJadwal();
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: res.message || 'Jadwal penggunaan lab berhasil disimpan.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(function () {
-                        window.location.reload();
-                    });
-                } else {
-                    window.location.reload();
-                }
-            })
-            .catch(function (err) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal Menyimpan',
-                        text: err.message || 'Terjadi kesalahan pada sistem.'
-                    });
-                } else {
-                    alert(err.message || 'Terjadi kesalahan pada sistem.');
-                }
-            })
-            .finally(function () {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
-                }
-            });
+                    return data;
+                })
+                .then(function (data) {
+                    closeModalJadwal();
+                    notifySuccess(data.message || 'Jadwal praktik berhasil disimpan.')
+                        .then(function () { window.location.reload(); });
+                })
+                .catch(function (err) {
+                    notifyError('Gagal Menyimpan', err.message || 'Terjadi kesalahan pada sistem.');
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
+                    }
+                });
         });
     }
 
     // -------------------------------------------------------------------------
-    // 2. Modal Update Status & Laporan Kerusakan
+    // 7. Modal Update Status & Laporan Kerusakan
     // -------------------------------------------------------------------------
     const modalStatus = document.getElementById('modalStatus');
     const btnCloseModalStatus = document.getElementById('btnCloseModalStatus');
@@ -141,57 +584,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.closeModalStatus = closeModalStatus;
 
-    if (btnCloseModalStatus) {
-        btnCloseModalStatus.addEventListener('click', closeModalStatus);
-    }
-    if (btnCancelModalStatus) {
-        btnCancelModalStatus.addEventListener('click', closeModalStatus);
-    }
+    if (btnCloseModalStatus) btnCloseModalStatus.addEventListener('click', closeModalStatus);
+    if (btnCancelModalStatus) btnCancelModalStatus.addEventListener('click', closeModalStatus);
     if (modalStatus) {
         modalStatus.addEventListener('click', function (e) {
-            if (e.target === modalStatus) {
-                closeModalStatus();
-            }
+            if (e.target === modalStatus) closeModalStatus();
         });
     }
 
-    // Event Delegation: Tombol Update Status Sesi di Baris Tabel
     document.addEventListener('click', function (e) {
         const btnStatus = e.target.closest('.btn-status-lab');
         if (btnStatus && modalStatus && formStatus) {
-            const id = btnStatus.dataset.id;
-            const mapel = btnStatus.dataset.mapel || '';
-            const status = btnStatus.dataset.status || 'dijadwalkan';
-            const laporan = btnStatus.dataset.laporan || '';
+            formStatus.action = BASE_URL + '/' + btnStatus.dataset.id;
 
-            formStatus.action = `/dashboard/laboran/jadwal/${id}`;
             if (statusDesc) {
-                statusDesc.textContent = `Memperbarui status sesi: ${mapel}`;
+                statusDesc.textContent = 'Memperbarui status sesi: ' + (btnStatus.dataset.mapel || '-');
             }
-            if (selectStatusLab) {
-                selectStatusLab.value = status;
-            }
-            if (inputLaporanKerusakan) {
-                inputLaporanKerusakan.value = laporan;
-            }
+            if (selectStatusLab) selectStatusLab.value = btnStatus.dataset.status || 'dijadwalkan';
+            if (inputLaporanKerusakan) inputLaporanKerusakan.value = btnStatus.dataset.laporan || '';
 
             modalStatus.style.display = 'flex';
         }
     });
 
-    // Submit Form Status via AJAX
     if (formStatus) {
         formStatus.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const submitBtn = formStatus.querySelector('button[type="submit"]');
-            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            const originalHtml = submitBtn ? submitBtn.innerHTML : '';
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
             }
-
-            const formData = new FormData(formStatus);
 
             fetch(formStatus.action, {
                 method: 'POST',
@@ -199,135 +624,82 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
-                body: formData
+                credentials: 'same-origin',
+                body: new FormData(formStatus)
             })
-            .then(async function (res) {
-                const data = await res.json().catch(function () { return {}; });
-                if (!res.ok) {
-                    let msg = data.message || 'Terjadi kesalahan saat memperbarui status.';
-                    if (data.errors) {
-                        const firstErr = Object.values(data.errors)[0];
-                        if (Array.isArray(firstErr) && firstErr.length > 0) {
-                            msg = firstErr[0];
-                        }
+                .then(async function (res) {
+                    const data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) {
+                        throw new Error(extractErrorMessage(data, 'Terjadi kesalahan saat memperbarui status.'));
                     }
-                    throw new Error(msg);
-                }
-                return data;
-            })
-            .then(function (res) {
-                closeModalStatus();
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: res.message || 'Status penggunaan lab berhasil diperbarui.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(function () {
-                        window.location.reload();
-                    });
-                } else {
-                    window.location.reload();
-                }
-            })
-            .catch(function (err) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal Memperbarui',
-                        text: err.message || 'Terjadi kesalahan pada sistem.'
-                    });
-                } else {
-                    alert(err.message || 'Terjadi kesalahan pada sistem.');
-                }
-            })
-            .finally(function () {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
-                }
-            });
+                    return data;
+                })
+                .then(function (data) {
+                    closeModalStatus();
+                    notifySuccess(data.message || 'Status penggunaan lokasi praktik berhasil diperbarui.')
+                        .then(function () { window.location.reload(); });
+                })
+                .catch(function (err) {
+                    notifyError('Gagal Memperbarui', err.message || 'Terjadi kesalahan pada sistem.');
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
+                    }
+                });
         });
     }
 
     // -------------------------------------------------------------------------
-    // 3. Hapus Jadwal Lab dengan Konfirmasi SweetAlert2
+    // 8. Hapus Jadwal
     // -------------------------------------------------------------------------
     document.addEventListener('click', function (e) {
         const btnDelete = e.target.closest('.btn-delete-jadwal');
-        if (btnDelete) {
-            const id = btnDelete.dataset.id;
-            const mapel = btnDelete.dataset.mapel || 'sesi ini';
+        if (!btnDelete) return;
 
-            const doDelete = function () {
-                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                const csrfInput = document.querySelector('input[name="_token"]');
-                const csrfToken = (csrfMeta ? csrfMeta.getAttribute('content') : '') || (csrfInput ? csrfInput.value : '');
+        const id = btnDelete.dataset.id;
+        const mapel = btnDelete.dataset.mapel || 'sesi ini';
 
-                fetch(`/dashboard/laboran/jadwal/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
+        const doDelete = function () {
+            fetch(BASE_URL + '/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
                 .then(async function (res) {
                     const data = await res.json().catch(function () { return {}; });
-                    if (!res.ok) {
-                        throw new Error(data.message || 'Gagal menghapus jadwal.');
-                    }
+                    if (!res.ok) throw new Error(data.message || 'Gagal menghapus jadwal.');
                     return data;
                 })
-                .then(function (res) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Terhapus!',
-                            text: res.message || 'Jadwal berhasil dihapus.',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(function () {
-                            window.location.reload();
-                        });
-                    } else {
-                        window.location.reload();
-                    }
+                .then(function (data) {
+                    notifySuccess(data.message || 'Jadwal berhasil dihapus.')
+                        .then(function () { window.location.reload(); });
                 })
                 .catch(function (err) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal Menghapus',
-                            text: err.message || 'Terjadi kesalahan sistem.'
-                        });
-                    } else {
-                        alert(err.message || 'Terjadi kesalahan sistem.');
-                    }
+                    notifyError('Gagal Menghapus', err.message || 'Terjadi kesalahan sistem.');
                 });
-            };
+        };
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Hapus Jadwal Lab?',
-                    text: `Apakah Anda yakin ingin menghapus jadwal untuk "${mapel}"?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then(function (result) {
-                    if (result.isConfirmed) {
-                        doDelete();
-                    }
-                });
-            } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus jadwal untuk "${mapel}"?`)) {
-                    doDelete();
-                }
-            }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Hapus Jadwal Praktik?',
+                text: 'Apakah Anda yakin ingin menghapus jadwal untuk "' + mapel + '"?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) doDelete();
+            });
+        } else if (confirm('Hapus jadwal untuk "' + mapel + '"?')) {
+            doDelete();
         }
     });
 });

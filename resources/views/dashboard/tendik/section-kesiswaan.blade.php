@@ -2,10 +2,10 @@
 
 <!-- 1. Akses Cepat Menu Kesiswaan (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
-    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Buku Induk & Data Pokok Siswa">
+    <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Pengelolaan Buku Induk Siswa">
         <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-user-graduate"></i>
+            <i class="fas fa-address-book"></i>
         </div>
         <span class="kepegawaian-quick-label">Buku Induk</span>
     </a>

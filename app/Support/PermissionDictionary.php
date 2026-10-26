@@ -240,6 +240,11 @@ final class PermissionDictionary
                     'icon' => 'fa-book-bookmark',
                     'roles' => ['tugas_tambahan'],
                 ],
+                'menu_buku_induk' => [
+                    'label' => 'Kesiswaan: Pengelolaan Buku Induk Siswa',
+                    'icon' => 'fa-address-book',
+                    'roles' => ['tugas_tambahan'],
+                ],
                 'menu_kesiswaan_kedisiplinan' => [
                     'label' => 'Kesiswaan: Kedisiplinan & Tata Tertib',
                     'icon' => 'fa-shield-halved',
@@ -350,6 +355,61 @@ final class PermissionDictionary
                 'menu_laboran_peminjaman' => [
                     'label' => 'Laboratorium: Peminjaman Alat & Sarpras',
                     'icon' => 'fa-hand-holding',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_kebutuhan' => [
+                    'label' => 'Laboratorium: Analisis & Kebutuhan Alat/Bahan',
+                    'icon' => 'fa-clipboard-list',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_perawatan' => [
+                    'label' => 'Laboratorium: Perawatan & K3 Alat',
+                    'icon' => 'fa-screwdriver-wrench',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_pemeriksaan' => [
+                    'label' => 'Laboratorium: Pemeriksaan Ceklist Alat',
+                    'icon' => 'fa-list-check',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_pengadaan' => [
+                    'label' => 'Laboratorium: Usulan Pengadaan',
+                    'icon' => 'fa-file-invoice-dollar',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_kerusakan' => [
+                    'label' => 'Laboratorium: Berita Acara Kerusakan',
+                    'icon' => 'fa-triangle-exclamation',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_laporan' => [
+                    'label' => 'Laboratorium: Laporan Penggunaan & Kerusakan',
+                    'icon' => 'fa-file-lines',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_administrasi' => [
+                    'label' => 'Laboratorium: Buku Administrasi Jurusan',
+                    'icon' => 'fa-folder-open',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_permintaan' => [
+                    'label' => 'Laboratorium: Bon Permintaan Alat & Bahan',
+                    'icon' => 'fa-file-signature',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_arsip' => [
+                    'label' => 'Laboratorium: Arsip Dokumen (Ordner)',
+                    'icon' => 'fa-box-archive',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_jurnal' => [
+                    'label' => 'Laboratorium: Jurnal Kegiatan Harian',
+                    'icon' => 'fa-book',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_kebersihan' => [
+                    'label' => 'Laboratorium: Kebersihan Lingkungan Produktif',
+                    'icon' => 'fa-broom',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],

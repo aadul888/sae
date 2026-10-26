@@ -23,6 +23,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="badge"
+                    style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: 6px 12px; border-radius: var(--radius-md, 8px); font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
+                </span>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalLab"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
@@ -197,6 +201,17 @@
                                         {{ $item->nama_item }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                         {{ $item->kode_item }}</div>
+                                    @if (!empty($item->nama_jurusan) || !empty($item->singkatan))
+                                        <div style="margin-top: 3px;">
+                                            <span class="badge badge-outline" style="font-size: var(--text-2xs, 0.6875rem);">
+                                                <i class="fas fa-graduation-cap me-1"></i>{{ $item->singkatan ?: $item->nama_jurusan }}
+                                            </span>
+                                        </div>
+                                    @elseif (empty($item->jurusan_id))
+                                        <div style="margin-top: 3px;">
+                                            <span class="badge badge-warning" style="font-size: var(--text-2xs, 0.6875rem);">Jurusan belum diset</span>
+                                        </div>
+                                    @endif
                                     @if ($item->tgl_kedaluwarsa)
                                         <div style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #f59e0b);">Exp:
                                             {{ \Carbon\Carbon::parse($item->tgl_kedaluwarsa)->format('d/m/Y') }}</div>
@@ -253,6 +268,7 @@
                                                 data-satuan="{{ $item->satuan }}" data-kondisi="{{ $item->kondisi }}"
                                                 data-spek="{{ $item->spesifikasi }}"
                                                 data-rak="{{ $item->lokasi_lemari_rak }}"
+                                                data-jurusan="{{ $item->jurusan_id }}"
                                                 data-exp="{{ $item->tgl_kedaluwarsa }}" title="Edit Item">
                                                 <i class="fas fa-pen-to-square"></i>
                                             </button>
@@ -377,6 +393,29 @@
                         </div>
                     </div>
 
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jurusan
+                            / Kompetensi Keahlian</label>
+                        <select name="jurusan_id" id="labJurusan" class="form-control" {{ !empty($context['unrestricted']) ? '' : 'disabled' }}>
+                            @if (!empty($context['unrestricted']))
+                                <option value="">-- Ikut Penugasan --</option>
+                            @endif
+                            @foreach (($jurusanOptions ?? []) as $j)
+                                <option value="{{ $j->jurusan_id }}" {{ ($context['jurusan_id'] ?? null) === $j->jurusan_id ? 'selected' : '' }}>
+                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
+                            @if (!empty($context['unrestricted']))
+                                <i class="fas fa-info-circle me-1"></i> Kosongkan agar mengikuti jurusan penugasan Anda.
+                            @else
+                                <i class="fas fa-lock me-1"></i> Terkunci pada jurusan penugasan Anda.
+                            @endif
+                        </div>
+                    </div>
+
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
@@ -462,6 +501,7 @@
                 </form>
             </div>
         </div>
+    </div>
 
         @push('scripts')
             <script

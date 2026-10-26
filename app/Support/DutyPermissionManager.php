@@ -110,6 +110,7 @@ final class DutyPermissionManager
             'menu_kesiswaan',
             'menu_kesiswaan_peserta_didik',
             'menu_kesiswaan_administrasi',
+            'menu_buku_induk',
             'menu_kesiswaan_kedisiplinan',
             'menu_kesiswaan_kegiatan',
             'menu_kesiswaan_prestasi',

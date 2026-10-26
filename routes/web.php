@@ -366,7 +366,17 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 
-        // 2. Kluster Administrasi (Buku Klaper, Mutasi, Kelulusan)
+        // 2. Kluster Pengelolaan Buku Induk Siswa
+        Route::prefix('buku-induk')->name('buku-induk.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\BukuIndukController::class, 'index'])->name('index')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::get('/cetak-rekap', [\App\Http\Controllers\BukuIndukController::class, 'cetakRekap'])->name('cetak-rekap')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/sync', [\App\Http\Controllers\BukuIndukController::class, 'syncBukuInduk'])->name('sync')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+            Route::get('/{id}', [\App\Http\Controllers\BukuIndukController::class, 'show'])->name('show')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::put('/{id}', [\App\Http\Controllers\BukuIndukController::class, 'update'])->name('update')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::get('/{id}/cetak', [\App\Http\Controllers\BukuIndukController::class, 'cetak'])->name('cetak')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+        });
+
+        // 3. Kluster Administrasi (Buku Klaper, Mutasi, Kelulusan)
         Route::prefix('administrasi')->name('administrasi.')->group(function () {
             Route::get('/', [\App\Http\Controllers\KesiswaanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_administrasi,read');
             Route::post('/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->name('klaper.sync')->middleware('permission:menu_kesiswaan_administrasi,create');
@@ -658,11 +668,151 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::put('/inventaris/{id}', [\App\Http\Controllers\LaboranInventarisController::class, 'update'])->name('inventaris.update')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
         Route::delete('/inventaris/{id}', [\App\Http\Controllers\LaboranInventarisController::class, 'destroy'])->name('inventaris.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
 
-        // Jadwal & Penggunaan Lab
+        // Jadwal & Penggunaan Lab / Bengkel / Lahan / Lapangan Praktik
         Route::get('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::post('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'store'])->name('jadwal.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
         Route::put('/jadwal/{id}', [\App\Http\Controllers\LaboranJadwalController::class, 'update'])->name('jadwal.update')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
         Route::delete('/jadwal/{id}', [\App\Http\Controllers\LaboranJadwalController::class, 'destroy'])->name('jadwal.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
+        // Mata pelajaran otomatis dari kelas (data pembelajaran Dapodik)
+        Route::get('/jadwal/pembelajaran', [\App\Http\Controllers\LaboranJadwalController::class, 'pembelajaranByRombel'])->name('jadwal.pembelajaran')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+
+        // Laporan Penggunaan Lokasi Praktik (Bulan, Triwulan, Semester, Tahun)
+        Route::get('/laporan', [\App\Http\Controllers\LaboranJadwalController::class, 'laporan'])->name('laporan.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        Route::get('/laporan/cetak', [\App\Http\Controllers\LaboranJadwalController::class, 'cetakLaporan'])->name('laporan.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+
+        // =====================================================================
+        // MODUL LABORATORIUM PER JURUSAN (Kebutuhan, Perawatan, Ceklist,
+        // Pengadaan, Berita Acara Kerusakan, Peminjaman, Laporan Lengkap)
+        // Seluruh data dibatasi cakupan jurusan via App\Support\LaboranScope.
+        // =====================================================================
+
+        // Dashboard Laboratorium (informatif, per jurusan)
+        Route::get('/dashboard', [\App\Http\Controllers\Laboran\LaboranDashboardController::class, 'index'])
+            ->name('dashboard')->middleware('permission:menu_laboran,read');
+
+        // 1. Analisis & Input Kebutuhan Alat/Bahan
+        Route::prefix('kebutuhan')->name('kebutuhan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+        });
+
+        // 2. Perawatan / Pemeliharaan / Penataan Alat (K3) + Kartu Perawatan
+        Route::prefix('perawatan')->name('perawatan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+
+            // Kartu perawatan
+            Route::post('/kartu', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'storeKartu'])->name('kartu.store')->middleware('permission:menu_laboran,create');
+            Route::put('/kartu/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'updateKartu'])->name('kartu.update')->middleware('permission:menu_laboran,update');
+            Route::delete('/kartu/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'destroyKartu'])->name('kartu.destroy')->middleware('permission:menu_laboran,delete');
+            Route::post('/kartu/{id}/selesai', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'tandaiKartuSelesai'])->name('kartu.selesai')->middleware('permission:menu_laboran,update');
+        });
+
+        // 4. Pemeriksaan / Daftar Ceklist Alat & Bahan
+        Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::post('/{id}/simpan-item', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'simpanItem'])->name('simpan-item')->middleware('permission:menu_laboran,update');
+            Route::post('/{id}/tambah-item', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'tambahItem'])->name('tambah-item')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}/item/{itemId}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'hapusItem'])->name('hapus-item')->middleware('permission:menu_laboran,update');
+        });
+
+        // 5. Daftar Usulan Pengadaan Alat & Bahan Praktik
+        Route::prefix('pengadaan')->name('pengadaan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::post('/{id}/item', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'tambahItem'])->name('item.store')->middleware('permission:menu_laboran,update');
+            Route::put('/{id}/item/{itemId}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'updateItem'])->name('item.update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}/item/{itemId}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'hapusItem'])->name('item.destroy')->middleware('permission:menu_laboran,update');
+        });
+
+        // 6. Berita Acara Kerusakan Alat
+        Route::prefix('kerusakan')->name('kerusakan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranKerusakanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranKerusakanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranKerusakanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranKerusakanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::get('/{id}/cetak', [\App\Http\Controllers\Laboran\LaboranKerusakanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
+
+        // 7. Peminjaman Alat Khusus Jurusan / Laboran
+        Route::prefix('peminjaman-alat')->name('peminjaman-alat.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
+            Route::put('/{id}/status', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'updateStatus'])->name('status')->middleware('permission:menu_laboran,update');
+            Route::post('/{id}/kembalikan', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->name('kembalikan')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::post('/tandai-terlambat', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'tandaiTerlambat'])->name('tandai-terlambat')->middleware('permission:menu_laboran,update');
+        });
+
+        // 8. Laporan Lengkap Penggunaan & Kerusakan Alat
+        Route::prefix('laporan-lengkap')->name('laporan-lengkap.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranLaporanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranLaporanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
+
+        // =====================================================================
+        // KELENGKAPAN TUPOKSI LABORAN (9 Indikator Supervisi)
+        // =====================================================================
+
+        // Indikator 1 — Buku Administrasi Jurusan
+        Route::prefix('administrasi')->name('administrasi.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranAdministrasiController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
+
+        // Indikator 2 — Bon/Form Permintaan Bahan & Alat Praktik
+        Route::prefix('permintaan')->name('permintaan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::post('/{id}/periksa', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'periksaKetersediaan'])->name('periksa')->middleware('permission:menu_laboran,update');
+            Route::post('/{id}/serahkan', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'serahkan'])->name('serahkan')->middleware('permission:menu_laboran,update');
+            Route::get('/{id}/cetak', [\App\Http\Controllers\Laboran\LaboranPermintaanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
+
+        // Indikator 7 — Arsip Dokumen (Ordner Digital)
+        Route::prefix('arsip')->name('arsip.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::post('/arsipkan-massal', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'arsipkanMassal'])->name('arsipkan-massal')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+        });
+
+        // Indikator 8 — Jurnal Kegiatan Harian
+        Route::prefix('jurnal')->name('jurnal.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranJurnalController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranJurnalController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranJurnalController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranJurnalController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranJurnalController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
+
+        // Indikator 9 — Kebersihan Lingkungan Produktif
+        Route::prefix('kebersihan')->name('kebersihan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+        });
     });
 
     // 3. Keamanan / Satpam Pos Gerbang

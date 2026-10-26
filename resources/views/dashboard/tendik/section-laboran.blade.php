@@ -26,6 +26,62 @@
         <span class="kepegawaian-quick-label">Jadwal Praktik</span>
     </a>
 
+    <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Analisis &amp; Kebutuhan Alat/Bahan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Analisis Kebutuhan</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.perawatan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Perawatan &amp; K3 Alat">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-screwdriver-wrench"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Perawatan &amp; K3</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.pemeriksaan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Pemeriksaan Ceklist Alat &amp; Bahan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-list-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Pemeriksaan Ceklist</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.pengadaan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--purple, #8b5cf6);" title="Usulan Pengadaan Alat &amp; Bahan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Usulan Pengadaan</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.kerusakan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Berita Acara Kerusakan Alat">
+        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <span class="kepegawaian-quick-label">BA Kerusakan</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--info, #0ea5e9);" title="Peminjaman Alat Laboratorium">
+        <div class="kepegawaian-quick-icon" style="background: rgba(14, 165, 233, 0.15); color: var(--info, #0ea5e9);">
+            <i class="fas fa-hand-holding"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Peminjaman Alat</span>
+    </a>
+
+    <a href="{{ route('dashboard.laboran.laporan-lengkap.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #ec4899;" title="Laporan Lengkap Penggunaan &amp; Kerusakan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <i class="fas fa-file-lines"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Lengkap</span>
+    </a>
+
     <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'laboran']) }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
         <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">

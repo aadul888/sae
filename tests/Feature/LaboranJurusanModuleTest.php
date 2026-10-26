@@ -1,0 +1,1224 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Support\LaboranScope;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+/**
+ * Pengujian modul Laboratorium per JURUSAN:
+ *  - Pembatasan data per jurusan (LaboranScope).
+ *  - Analisis kebutuhan, perawatan/K3, pemeriksaan ceklist, pengadaan,
+ *    berita acara kerusakan, peminjaman alat, dan laporan lengkap.
+ */
+class LaboranJurusanModuleTest extends TestCase
+{
+    private const JUR_ATPH = '26010475';
+    private const JUR_TKJ  = '16012425';
+
+    private array $created = [];
+
+    private function adminSession(): array
+    {
+        $admin = DB::table('pengguna')->where('peran_id_str', 'Administrator')->first();
+
+        return ['user' => [
+            'id'           => $admin->pengguna_id,
+            'pengguna_id'  => $admin->pengguna_id,
+            'name'         => $admin->nama,
+            'nama'         => $admin->nama,
+            'username'     => $admin->username,
+            'role'         => 'admin',
+            'peran_id_str' => $admin->peran_id_str,
+            'ptk_id'       => $admin->ptk_id ?? null,
+        ]];
+    }
+
+    /**
+     * Sesi laboran dengan jurusan tertentu (memanfaatkan baris tugas LABORAN nyata).
+     */
+    private function laboranSession(?string $jurusanId): array
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'LABORAN')
+            ->where('ptt.is_active', true)
+            ->select('ptt.*')
+            ->first();
+
+        $this->assertNotNull($duty, 'Baris tugas tambahan LABORAN tidak tersedia untuk pengujian.');
+
+        $this->created['duty_id'] = $duty->id;
+        DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->update(['jurusan_id' => $jurusanId]);
+
+        $p = DB::table('pengguna')->where('pengguna_id', $duty->user_id)->first();
+        $this->assertNotNull($p, 'Data pengguna laboran tidak ditemukan.');
+
+        LaboranScope::flush();
+
+        return ['user' => [
+            'id'           => $p->pengguna_id,
+            'pengguna_id'  => $p->pengguna_id,
+            'name'         => $p->nama,
+            'nama'         => $p->nama,
+            'username'     => $p->username,
+            'role'         => 'tendik',
+            'peran_id_str' => $p->peran_id_str,
+            'ptk_id'       => $duty->ptk_id,
+        ]];
+    }
+
+    private function seedItems(): array
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+
+        $atph = DB::table('laboran_bahan_alat')->insertGetId([
+            'ruang_lab_nama' => 'Lahan Praktik ATPH',
+            'kode_item'      => 'TST-ATPH-' . uniqid(),
+            'nama_item'      => 'Cangkul Uji',
+            'jenis'          => 'alat',
+            'stok_total'     => 10,
+            'stok_tersedia'  => 8,
+            'satuan'         => 'unit',
+            'kondisi'        => 'baik',
+            'jurusan_id'     => self::JUR_ATPH,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        $tkj = DB::table('laboran_bahan_alat')->insertGetId([
+            'ruang_lab_nama' => 'Lab Komputer 1',
+            'kode_item'      => 'TST-TKJ-' . uniqid(),
+            'nama_item'      => 'Switch Cisco Uji',
+            'jenis'          => 'alat',
+            'stok_total'     => 5,
+            'stok_tersedia'  => 5,
+            'satuan'         => 'unit',
+            'kondisi'        => 'baik',
+            'jurusan_id'     => self::JUR_TKJ,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        return [$atph, $tkj, $ptk];
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ([
+            'laboran_peminjaman_item', 'laboran_peminjaman',
+            'laboran_berita_acara_kerusakan',
+            'laboran_usulan_pengadaan_item', 'laboran_usulan_pengadaan',
+            'laboran_pemeriksaan_item', 'laboran_pemeriksaan',
+            'laboran_kartu_perawatan', 'laboran_perawatan',
+            'laboran_kebutuhan',
+            'laboran_bahan_alat',
+        ] as $t) {
+            DB::table($t)->delete();
+        }
+
+        // Hanya hapus baris jadwal yang dibuat oleh pengujian (jangan sentuh data nyata)
+        DB::table('laboran_jadwal_penggunaan')
+            ->where('mata_pelajaran', 'like', 'UJI-%')
+            ->delete();
+
+        foreach ([
+            'laboran_permintaan_item', 'laboran_permintaan',
+            'laboran_jurnal', 'laboran_kebersihan',
+            'laboran_administrasi', 'laboran_arsip',
+        ] as $t) {
+            DB::table($t)->delete();
+        }
+
+        if (!empty($this->created['duty_id'])) {
+            DB::table('ptk_tugas_tambahan')->where('id', $this->created['duty_id'])
+                ->update(['jurusan_id' => null]);
+        }
+
+        LaboranScope::flush();
+        parent::tearDown();
+    }
+
+    // =========================================================================
+    // A. SCOPING JURUSAN
+    // =========================================================================
+
+    public function test_scope_menolak_akses_tanpa_penugasan_jurusan(): void
+    {
+        $session = $this->laboranSession(null);
+        $context = LaboranScope::resolve($session['user']);
+
+        $this->assertTrue($context['is_laboran']);
+        // Fallback permisif: penugasan belum diisi -> tidak mengunci data
+        $this->assertTrue($context['unrestricted']);
+        $this->assertNull($context['jurusan_id']);
+    }
+
+    public function test_scope_membatasi_ke_jurusan_penugasan(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $context = LaboranScope::resolve($session['user']);
+
+        $this->assertFalse($context['unrestricted']);
+        $this->assertSame(self::JUR_ATPH, $context['jurusan_id']);
+
+        $this->assertTrue(LaboranScope::allows(self::JUR_ATPH, $context));
+        $this->assertFalse(LaboranScope::allows(self::JUR_TKJ, $context));
+        $this->assertFalse(LaboranScope::allows(null, $context));
+    }
+
+    public function test_scope_memaksa_jurusan_saat_menulis(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $context = LaboranScope::resolve($session['user']);
+
+        // Laboran mencoba menyimpan ke jurusan lain -> dipaksa ke jurusannya
+        $this->assertSame(self::JUR_ATPH, LaboranScope::jurusanForWrite(self::JUR_TKJ, $context));
+    }
+
+    public function test_admin_tidak_dibatasi_jurusan(): void
+    {
+        $session = $this->adminSession();
+        $context = LaboranScope::resolve($session['user']);
+
+        $this->assertTrue($context['is_admin']);
+        $this->assertTrue($context['unrestricted']);
+        $this->assertTrue(LaboranScope::allows(self::JUR_TKJ, $context));
+        $this->assertTrue(LaboranScope::allows(null, $context));
+    }
+
+    public function test_query_terfilter_ke_jurusan(): void
+    {
+        [$atph, $tkj] = $this->seedItems();
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $context = LaboranScope::resolve($session['user']);
+
+        $q = DB::table('laboran_bahan_alat');
+        LaboranScope::apply($q, 'jurusan_id', $context);
+        $items = $q->get();
+
+        $this->assertCount(1, $items);
+        $this->assertSame(self::JUR_ATPH, $items->first()->jurusan_id);
+    }
+
+    public function test_laboran_tidak_bisa_mengubah_data_jurusan_lain(): void
+    {        [, $tkj] = $this->seedItems();
+
+        $tkjId = DB::table('laboran_kebutuhan')->insertGetId([
+            'jurusan_id'       => self::JUR_TKJ,
+            'nama_item'        => 'Kabel UTP TKJ',
+            'jenis'            => 'bahan_habis_pakai',
+            'jumlah_kebutuhan' => 100,
+            'jumlah_tersedia'  => 0,
+            'selisih'          => 100,
+            'satuan'           => 'meter',
+            'prioritas'        => 'kritis',
+            'status'           => 'draf',
+            'tanggal_input'    => now()->toDateString(),
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $this->withSession($session)
+            ->putJson(route('dashboard.laboran.kebutuhan.update', $tkjId), [
+                'nama_item'        => 'DIRETAS',
+                'jenis'            => 'alat',
+                'jumlah_kebutuhan' => 1,
+                'satuan'           => 'unit',
+                'prioritas'        => 'rendah',
+            ])
+            ->assertStatus(404);
+
+        $this->assertSame('Kabel UTP TKJ', DB::table('laboran_kebutuhan')->where('id', $tkjId)->value('nama_item'));
+
+        // Hapus juga harus ditolak
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.laboran.kebutuhan.destroy', $tkjId))
+            ->assertStatus(404);
+
+        $this->assertTrue(DB::table('laboran_kebutuhan')->where('id', $tkjId)->exists());
+    }
+
+    // =========================================================================
+    // A2. SCOPING MODUL LAMA (INVENTARIS & JADWAL)
+    // =========================================================================
+
+    public function test_inventaris_terfilter_per_jurusan(): void
+    {
+        [$atphId, $tkjId] = $this->seedItems();
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $res = $this->withSession($session)->get(route('dashboard.laboran.inventaris.index'));
+
+        $res->assertStatus(200);
+
+        $list = $res->viewData('list');
+        $this->assertCount(1, $list, 'Laboran ATPH hanya boleh melihat 1 item.');
+        $this->assertSame($atphId, $list->first()->id);
+    }
+
+    public function test_laboran_tidak_bisa_mengubah_atau_menghapus_inventaris_jurusan_lain(): void
+    {
+        [, $tkjId] = $this->seedItems();
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $this->withSession($session)
+            ->putJson(route('dashboard.laboran.inventaris.update', $tkjId), [
+                'ruang_lab_nama' => 'X',
+                'kode_item'      => 'UJI-TKJ',
+                'nama_item'      => 'DIRETAS',
+                'jenis'          => 'alat',
+                'stok_total'     => 1,
+                'stok_tersedia'  => 1,
+                'satuan'         => 'unit',
+                'kondisi'        => 'baik',
+            ])
+            ->assertStatus(404);
+
+        $this->assertNotSame('DIRETAS', DB::table('laboran_bahan_alat')->where('id', $tkjId)->value('nama_item'));
+
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.laboran.inventaris.destroy', $tkjId))
+            ->assertStatus(404);
+
+        $this->assertTrue(DB::table('laboran_bahan_alat')->where('id', $tkjId)->exists());
+    }
+
+    public function test_simpan_inventaris_memaksa_jurusan_laboran(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.inventaris.store'), [
+                'ruang_lab_nama' => 'Lahan Praktik ATPH',
+                'kode_item'      => 'UJI-MAPEL-' . uniqid(),
+                'nama_item'      => 'Item Uji Paksa',
+                'jenis'          => 'alat',
+                'stok_total'     => 2,
+                'satuan'         => 'unit',
+                'kondisi'        => 'baik',
+                'jurusan_id'     => self::JUR_TKJ,
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_bahan_alat')->where('nama_item', 'Item Uji Paksa')->first();
+        $this->assertNotNull($row);
+        $this->assertSame(self::JUR_ATPH, $row->jurusan_id, 'Jurusan harus dipaksa ke milik laboran.');
+    }
+
+    public function test_jadwal_terfilter_per_jurusan(): void
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+        $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
+
+        DB::table('laboran_jadwal_penggunaan')->insert([
+            [
+                'jurusan_id'     => self::JUR_ATPH,
+                'ruang_lab_nama' => 'Lahan Praktik ATPH',
+                'ptk_id'         => $ptk,
+                'rombel_id'      => $rombel,
+                'mata_pelajaran' => 'UJI-JADWAL-ATPH',
+                'tanggal'        => now()->toDateString(),
+                'jam_mulai'      => '07:00:00',
+                'jam_selesai'    => '08:30:00',
+                'status'         => 'dijadwalkan',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ],
+            [
+                'jurusan_id'     => self::JUR_TKJ,
+                'ruang_lab_nama' => 'Lab Komputer 1',
+                'ptk_id'         => $ptk,
+                'rombel_id'      => $rombel,
+                'mata_pelajaran' => 'UJI-JADWAL-TKJ',
+                'tanggal'        => now()->toDateString(),
+                'jam_mulai'      => '10:00:00',
+                'jam_selesai'    => '11:30:00',
+                'status'         => 'dijadwalkan',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ],
+        ]);
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $res = $this->withSession($session)->get(route('dashboard.laboran.jadwal.index'));
+
+        $res->assertStatus(200);
+
+        $list = $res->viewData('list');
+        $this->assertCount(1, $list);
+        $this->assertSame('UJI-JADWAL-ATPH', $list->first()->mata_pelajaran);
+    }
+
+    public function test_laboran_tidak_bisa_mengubah_jadwal_jurusan_lain(): void
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+
+        $jadwalId = DB::table('laboran_jadwal_penggunaan')->insertGetId([
+            'jurusan_id'     => self::JUR_TKJ,
+            'ruang_lab_nama' => 'Lab Komputer 1',
+            'ptk_id'         => $ptk,
+            'mata_pelajaran' => 'UJI-LARANG-TKJ',
+            'tanggal'        => now()->toDateString(),
+            'jam_mulai'      => '10:00:00',
+            'jam_selesai'    => '11:30:00',
+            'status'         => 'dijadwalkan',
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $this->withSession($session)
+            ->putJson(route('dashboard.laboran.jadwal.update', $jadwalId), [
+                'form_mode' => 'status',
+                'status'    => 'selesai',
+            ])
+            ->assertStatus(404);
+
+        $this->assertSame('dijadwalkan', DB::table('laboran_jadwal_penggunaan')->where('id', $jadwalId)->value('status'));
+
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.laboran.jadwal.destroy', $jadwalId))
+            ->assertStatus(404);
+
+        $this->assertTrue(DB::table('laboran_jadwal_penggunaan')->where('id', $jadwalId)->exists());
+    }
+
+    public function test_laporan_lokasi_terfilter_per_jurusan(): void
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+
+        DB::table('laboran_jadwal_penggunaan')->insert([
+            [
+                'jurusan_id'     => self::JUR_ATPH,
+                'ruang_lab_nama' => 'Lahan Praktik ATPH',
+                'ptk_id'         => $ptk,
+                'mata_pelajaran' => 'UJI-LAPOR-ATPH',
+                'tanggal'        => '2026-10-05',
+                'jam_mulai'      => '07:00:00',
+                'jam_selesai'    => '08:30:00',
+                'status'         => 'selesai',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ],
+            [
+                'jurusan_id'     => self::JUR_TKJ,
+                'ruang_lab_nama' => 'Lab Komputer 1',
+                'ptk_id'         => $ptk,
+                'mata_pelajaran' => 'UJI-LAPOR-TKJ',
+                'tanggal'        => '2026-10-06',
+                'jam_mulai'      => '10:00:00',
+                'jam_selesai'    => '11:30:00',
+                'status'         => 'selesai',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ],
+        ]);
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $res = $this->withSession($session)
+            ->get(route('dashboard.laboran.laporan.index', ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026]));
+
+        $res->assertStatus(200);
+        $this->assertSame(1, $res->viewData('totalSesi'), 'Hanya sesi jurusan ATPH yang boleh dihitung.');
+    }
+
+    // =========================================================================
+    // B. HALAMAN MODUL
+    // =========================================================================
+
+    public function test_semua_halaman_modul_dapat_diakses(): void
+    {
+        $session = $this->adminSession();
+
+        $routes = [
+            'dashboard.laboran.dashboard',
+            'dashboard.laboran.kebutuhan.index',
+            'dashboard.laboran.perawatan.index',
+            'dashboard.laboran.pemeriksaan.index',
+            'dashboard.laboran.pengadaan.index',
+            'dashboard.laboran.kerusakan.index',
+            'dashboard.laboran.peminjaman-alat.index',
+            'dashboard.laboran.laporan-lengkap.index',
+        ];
+
+        foreach ($routes as $name) {
+            $res = $this->withSession($session)->get(route($name));
+            $this->assertSame(200, $res->getStatusCode(), "Halaman {$name} gagal dimuat.");
+        }
+    }
+
+    public function test_tamu_ditolak_dari_modul_laboran(): void
+    {
+        foreach ([
+            'dashboard.laboran.kebutuhan.index',
+            'dashboard.laboran.perawatan.index',
+            'dashboard.laboran.laporan-lengkap.index',
+        ] as $name) {
+            $this->get(route($name))->assertStatus(302);
+        }
+    }
+
+    // =========================================================================
+    // C. ANALISIS KEBUTUHAN
+    // =========================================================================
+
+    public function test_simpan_kebutuhan_menghitung_selisih(): void
+    {
+        $session = $this->adminSession();
+
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.kebutuhan.store'), [
+            'nama_item'        => 'Traktor Mini Uji',
+            'jenis'            => 'alat',
+            'jumlah_kebutuhan' => 5,
+            'jumlah_tersedia'  => 2,
+            'satuan'           => 'unit',
+            'prioritas'        => 'kritis',
+            'status'           => 'draf',
+            'tanggal_input'    => now()->toDateString(),
+        ]);
+
+        $res->assertStatus(200);
+        $res->assertJsonPath('status', 'success');
+
+        $row = DB::table('laboran_kebutuhan')->where('nama_item', 'Traktor Mini Uji')->first();
+        $this->assertNotNull($row);
+        $this->assertEquals(3, (float) $row->selisih);
+        $this->assertSame('kritis', $row->prioritas);
+    }
+
+    public function test_halaman_kebutuhan_menyajikan_analisis_stok(): void
+    {
+        $this->seedItems();
+
+        $res = $this->withSession($this->adminSession())->get(route('dashboard.laboran.kebutuhan.index'));
+
+        $res->assertStatus(200);
+        $res->assertViewHas('analisis');
+
+        $analisis = $res->viewData('analisis');
+        $this->assertArrayHasKey('kritis', $analisis);
+        $this->assertArrayHasKey('perlu_perhatian', $analisis);
+        $this->assertArrayHasKey('total_item', $analisis);
+    }
+
+    // =========================================================================
+    // D. PERAWATAN & K3
+    // =========================================================================
+
+    public function test_simpan_perawatan_menyimpan_apd_dan_menyesuaikan_kondisi(): void
+    {
+        [$itemId] = $this->seedItems();
+        $session = $this->adminSession();
+
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.perawatan.store'), [
+            'item_id'           => $itemId,
+            'jenis_perawatan'   => 'rutin',
+            'kategori_k3'       => 'mekanik',
+            'tanggal_perawatan' => now()->toDateString(),
+            'uraian_pekerjaan'  => 'Pembersihan dan pelumasan',
+            'apd_digunakan'     => ['Sarung Tangan', 'Sepatu Safety'],
+            'status'            => 'selesai',
+            'kondisi_akhir'     => 'rusak_ringan',
+        ]);
+
+        $res->assertStatus(200);
+
+        $row = DB::table('laboran_perawatan')->where('item_id', $itemId)->first();
+        $this->assertNotNull($row);
+        $this->assertStringStartsWith('PRW/', $row->kode_perawatan);
+        $this->assertSame('mekanik', $row->kategori_k3);
+
+        $apd = json_decode($row->apd_digunakan, true);
+        $this->assertContains('Sarung Tangan', $apd);
+
+        // Kondisi inventaris tersinkron
+        $this->assertSame('rusak_ringan', DB::table('laboran_bahan_alat')->where('id', $itemId)->value('kondisi'));
+    }
+
+    public function test_kartu_perawatan_menghitung_jadwal_berikutnya(): void
+    {
+        [$itemId] = $this->seedItems();
+        $mulai = '2026-01-10';
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.perawatan.kartu.store'), [
+                'item_id'       => $itemId,
+                'nama_alat'     => 'Cangkul Uji',
+                'tanggal_mulai' => $mulai,
+                'interval_hari' => 30,
+                'status'        => 'aktif',
+            ])
+            ->assertStatus(200);
+
+        $kartu = DB::table('laboran_kartu_perawatan')->where('item_id', $itemId)->first();
+        $this->assertNotNull($kartu);
+        $this->assertSame('2026-02-09', $kartu->jadwal_berikutnya);
+        $this->assertStringStartsWith('KRT/', $kartu->kode_kartu);
+    }
+
+    public function test_tandai_kartu_selesai_menggeser_jadwal(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.perawatan.kartu.store'), [
+                'item_id'       => $itemId,
+                'nama_alat'     => 'Cangkul Uji',
+                'tanggal_mulai' => now()->toDateString(),
+                'interval_hari' => 15,
+            ])
+            ->assertStatus(200);
+
+        $kartu = DB::table('laboran_kartu_perawatan')->where('item_id', $itemId)->first();
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.perawatan.kartu.selesai', $kartu->id))
+            ->assertStatus(200);
+
+        $baru = DB::table('laboran_kartu_perawatan')->where('id', $kartu->id)->value('jadwal_berikutnya');
+        $this->assertSame(now()->addDays(15)->toDateString(), $baru);
+    }
+
+    // =========================================================================
+    // E. PEMERIKSAAN CEKLIST
+    // =========================================================================
+
+    public function test_pemeriksaan_membuat_ceklist_dan_menghitung_rekap(): void
+    {
+        [$itemId] = $this->seedItems();
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.pemeriksaan.store'), [
+                'tanggal_pemeriksaan' => now()->toDateString(),
+                'jenis'               => 'bulanan',
+                'item_ids'            => [$itemId],
+                'status'              => 'draf',
+            ])
+            ->assertStatus(200);
+
+        $pemeriksaan = DB::table('laboran_pemeriksaan')->latest('id')->first();
+        $this->assertNotNull($pemeriksaan);
+        $this->assertSame(1, (int) $pemeriksaan->total_item);
+        $this->assertStringStartsWith('PRK/', $pemeriksaan->nomor_pemeriksaan);
+
+        $item = DB::table('laboran_pemeriksaan_item')->where('pemeriksaan_id', $pemeriksaan->id)->first();
+        $this->assertNotNull($item);
+
+        // Ubah hasil menjadi tidak sesuai
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.pemeriksaan.simpan-item', $pemeriksaan->id), [
+                'items' => [[
+                    'id'         => $item->id,
+                    'hasil'      => 'tidak_sesuai',
+                    'keterangan' => 'Gagang longgar',
+                ]],
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('rekap.total_tidak_sesuai', 1);
+
+        $after = DB::table('laboran_pemeriksaan')->where('id', $pemeriksaan->id)->first();
+        $this->assertSame(1, (int) $after->total_tidak_sesuai);
+        $this->assertSame(0, (int) $after->total_sesuai);
+    }
+
+    public function test_halaman_detail_pemeriksaan_menampilkan_item(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.pemeriksaan.store'), [
+                'tanggal_pemeriksaan' => now()->toDateString(),
+                'jenis'               => 'harian',
+                'item_ids'            => [$itemId],
+            ]);
+
+        $pemeriksaan = DB::table('laboran_pemeriksaan')->latest('id')->first();
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.pemeriksaan.show', $pemeriksaan->id));
+
+        $res->assertStatus(200);
+        $res->assertViewHas('items');
+        $this->assertCount(1, $res->viewData('items'));
+    }
+
+    // =========================================================================
+    // F. PENGADAAN
+    // =========================================================================
+
+    public function test_usulan_pengadaan_menarik_item_dari_kebutuhan(): void
+    {
+        $session = $this->adminSession();
+
+        $kebutuhanId = DB::table('laboran_kebutuhan')->insertGetId([
+            'nama_item'        => 'Mikroskop Uji',
+            'jenis'            => 'alat',
+            'jumlah_kebutuhan' => 4,
+            'jumlah_tersedia'  => 1,
+            'selisih'          => 3,
+            'satuan'           => 'unit',
+            'prioritas'        => 'tinggi',
+            'status'           => 'diverifikasi',
+            'tanggal_input'    => now()->toDateString(),
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.pengadaan.store'), [
+                'tanggal_usulan' => now()->toDateString(),
+                'urgensi'        => 'tinggi',
+                'status'         => 'draf',
+                'kebutuhan_ids'  => [$kebutuhanId],
+            ])
+            ->assertStatus(200);
+
+        $usulan = DB::table('laboran_usulan_pengadaan')->latest('id')->first();
+        $this->assertNotNull($usulan);
+        $this->assertSame(1, (int) $usulan->total_item);
+        $this->assertStringStartsWith('USL/', $usulan->nomor_usulan);
+
+        $item = DB::table('laboran_usulan_pengadaan_item')->where('usulan_id', $usulan->id)->first();
+        $this->assertSame('Mikroskop Uji', $item->nama_item);
+        // Jumlah ditarik dari selisih kekurangan
+        $this->assertEquals(3, (float) $item->jumlah);
+    }
+
+    public function test_rekap_usulan_menghitung_subtotal(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.pengadaan.store'), [
+                'tanggal_usulan' => now()->toDateString(),
+                'urgensi'        => 'sedang',
+            ])
+            ->assertStatus(200);
+
+        $usulan = DB::table('laboran_usulan_pengadaan')->latest('id')->first();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.pengadaan.item.store', $usulan->id), [
+                'nama_item'    => 'Gelas Ukur',
+                'jenis'        => 'alat',
+                'jumlah'       => 10,
+                'satuan'       => 'unit',
+                'harga_satuan' => 25000,
+            ])
+            ->assertStatus(200);
+
+        $updated = DB::table('laboran_usulan_pengadaan')->where('id', $usulan->id)->first();
+        $this->assertEquals(250000, (float) $updated->total_estimasi_biaya);
+        $this->assertSame(1, (int) $updated->total_item);
+    }
+
+    // =========================================================================
+    // G. BERITA ACARA KERUSAKAN
+    // =========================================================================
+
+    public function test_berita_acara_kerusakan_menyesuaikan_kondisi_inventaris(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.kerusakan.store'), [
+                'item_id'           => $itemId,
+                'nama_alat'         => 'Cangkul Uji',
+                'tanggal_kejadian'  => now()->toDateString(),
+                'tingkat_kerusakan' => 'berat',
+                'jumlah_rusak'      => 1,
+                'satuan'            => 'unit',
+                'kronologi'         => 'Terjatuh saat praktik',
+                'status'            => 'diajukan',
+            ])
+            ->assertStatus(200);
+
+        $ba = DB::table('laboran_berita_acara_kerusakan')->where('item_id', $itemId)->first();
+        $this->assertNotNull($ba);
+        $this->assertStringStartsWith('BAK/', $ba->nomor_ba);
+
+        // Kerusakan berat -> inventaris menjadi rusak_berat
+        $this->assertSame('rusak_berat', DB::table('laboran_bahan_alat')->where('id', $itemId)->value('kondisi'));
+    }
+
+    public function test_cetak_berita_acara_menghasilkan_dokumen(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.kerusakan.store'), [
+                'item_id'           => $itemId,
+                'nama_alat'         => 'Cangkul Uji',
+                'tanggal_kejadian'  => now()->toDateString(),
+                'tingkat_kerusakan' => 'ringan',
+            ]);
+
+        $ba = DB::table('laboran_berita_acara_kerusakan')->latest('id')->first();
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.kerusakan.cetak', $ba->id));
+
+        $res->assertStatus(200);
+        $res->assertSee('BERITA ACARA KERUSAKAN ALAT', false);
+        $res->assertSee($ba->nomor_ba, false);
+    }
+
+    // =========================================================================
+    // H. PEMINJAMAN ALAT (stok)
+    // =========================================================================
+
+    public function test_peminjaman_mengurangi_dan_mengembalikan_stok(): void
+    {
+        [, $itemId] = $this->seedItems();
+        $session = $this->adminSession();
+
+        $stokAwal = (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia');
+        $this->assertEquals(5, $stokAwal);
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.peminjaman-alat.store'), [
+                'peminjam_tipe'           => 'siswa',
+                'peminjam_nama'           => 'Budi Uji',
+                'peminjam_kelas'          => 'XI TKJ 1',
+                'keperluan'               => 'Praktik jaringan',
+                'tanggal_pinjam'          => now()->toDateString(),
+                'tanggal_kembali_rencana' => now()->addDays(3)->toDateString(),
+                'item_ids'                => [$itemId],
+                'item_jumlah'             => [$itemId => 2],
+            ])
+            ->assertStatus(200);
+
+        $pinjam = DB::table('laboran_peminjaman')->latest('id')->first();
+        $this->assertSame('diajukan', $pinjam->status);
+        $this->assertStringStartsWith('PJM/', $pinjam->nomor_pinjam);
+
+        // Setujui -> belum mengubah stok
+        $this->withSession($session)
+            ->putJson(route('dashboard.laboran.peminjaman-alat.status', $pinjam->id), ['status' => 'disetujui'])
+            ->assertStatus(200);
+        $this->assertEquals(5, (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia'));
+
+        // Serah terima -> stok berkurang
+        $this->withSession($session)
+            ->putJson(route('dashboard.laboran.peminjaman-alat.status', $pinjam->id), ['status' => 'dipinjam'])
+            ->assertStatus(200);
+        $this->assertEquals(3, (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia'));
+
+        // Pengembalian -> stok pulih
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.peminjaman-alat.kembalikan', $pinjam->id), [
+                'kondisi_kembali' => 'baik',
+            ])
+            ->assertStatus(200);
+
+        $this->assertEquals(5, (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia'));
+        $this->assertSame('dikembalikan', DB::table('laboran_peminjaman')->where('id', $pinjam->id)->value('status'));
+    }
+
+    public function test_peminjaman_menolak_stok_tidak_cukup(): void
+    {
+        [, $itemId] = $this->seedItems();
+
+        $res = $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.peminjaman-alat.store'), [
+                'peminjam_tipe'           => 'siswa',
+                'peminjam_nama'           => 'Budi Uji',
+                'keperluan'               => 'Praktik',
+                'tanggal_pinjam'          => now()->toDateString(),
+                'tanggal_kembali_rencana' => now()->addDays(2)->toDateString(),
+                'item_ids'                => [$itemId],
+                'item_jumlah'             => [$itemId => 99],
+            ]);
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('tidak cukup', $res->json('message'));
+        $this->assertSame(0, DB::table('laboran_peminjaman')->count());
+    }
+
+    // =========================================================================
+    // I. LAPORAN LENGKAP
+    // =========================================================================
+
+    public function test_laporan_lengkap_merender_semua_periode(): void
+    {
+        $queries = [
+            ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026],
+            ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026],
+            ['periode' => 'semester', 'semester' => '1', 'tahun_ajaran' => '2026/2027'],
+            ['periode' => 'tahun', 'tahun_ajaran' => '2026/2027'],
+        ];
+
+        foreach ($queries as $q) {
+            $res = $this->withSession($this->adminSession())
+                ->get(route('dashboard.laboran.laporan-lengkap.index', $q));
+
+            $res->assertStatus(200);
+            $res->assertViewHas('range');
+            $res->assertViewHas('rekapLokasi');
+            $res->assertViewHas('rekapTingkat');
+        }
+    }
+
+    public function test_cetak_laporan_lengkap_menghasilkan_dokumen(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.laporan-lengkap.cetak', [
+                'periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026,
+            ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('LAPORAN PENGGUNAAN', false);
+        $res->assertSee('Rekapitulasi Kerusakan Alat', false);
+    }
+
+    public function test_laporan_menghitung_kerusakan_dalam_periode(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        DB::table('laboran_berita_acara_kerusakan')->insert([
+            [
+                'jurusan_id'        => self::JUR_ATPH,
+                'nomor_ba'          => 'BAK/TEST/0001',
+                'nama_alat'         => 'Cangkul Uji',
+                'tanggal_kejadian'  => '2026-10-15',
+                'tanggal_ba'        => '2026-10-15',
+                'tingkat_kerusakan' => 'berat',
+                'jumlah_rusak'      => 1,
+                'satuan'            => 'unit',
+                'estimasi_biaya'    => 500000,
+                'status'            => 'diajukan',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+            [
+                'jurusan_id'        => self::JUR_ATPH,
+                'nomor_ba'          => 'BAK/TEST/0002',
+                'nama_alat'         => 'Cangkul Uji',
+                'tanggal_kejadian'  => '2026-11-20',
+                'tanggal_ba'        => '2026-11-20',
+                'tingkat_kerusakan' => 'ringan',
+                'jumlah_rusak'      => 1,
+                'satuan'            => 'unit',
+                'estimasi_biaya'    => 0,
+                'status'            => 'diajukan',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+        ]);
+
+        $oktober = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026]));
+
+        $this->assertSame(1, $oktober->viewData('totalKerusakan'));
+        $this->assertSame(1, $oktober->viewData('totalRusakBerat'));
+
+        $tw4 = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026]));
+
+        $this->assertSame(2, $tw4->viewData('totalKerusakan'));
+    }
+
+    // =========================================================================
+    // J. HAK AKSES
+    // =========================================================================
+
+    public function test_permission_key_modul_baru_terdaftar_di_dictionary(): void
+    {
+        $base = \App\Support\PermissionDictionary::base();
+        $keys = [];
+
+        foreach ($base as $cluster) {
+            foreach (array_keys($cluster) as $key) {
+                $keys[] = $key;
+            }
+        }
+
+        foreach ([
+            'menu_laboran_kebutuhan',
+            'menu_laboran_perawatan',
+            'menu_laboran_pemeriksaan',
+            'menu_laboran_pengadaan',
+            'menu_laboran_kerusakan',
+            'menu_laboran_laporan',
+        ] as $expected) {
+            $this->assertContains($expected, $keys, "Permission key {$expected} belum terdaftar.");
+        }
+    }
+
+    public function test_default_permission_laboran_mencakup_modul_baru(): void
+    {
+        $defaults = \App\Support\DutyPermissionDefaults::forDuty('LABORAN');
+
+        foreach ([
+            'menu_laboran_kebutuhan',
+            'menu_laboran_perawatan',
+            'menu_laboran_pemeriksaan',
+            'menu_laboran_pengadaan',
+            'menu_laboran_kerusakan',
+            'menu_laboran_laporan',
+        ] as $expected) {
+            $this->assertContains($expected, $defaults, "Default LABORAN belum memuat {$expected}.");
+        }
+    }
+
+    // =========================================================================
+    // K. KELENGKAPAN TUPOKSI (9 INDIKATOR SUPERVISI)
+    // =========================================================================
+
+    public function test_permission_key_tupoksi_terdaftar(): void
+    {
+        $base = \App\Support\PermissionDictionary::base();
+        $keys = [];
+        foreach ($base as $cluster) {
+            foreach (array_keys($cluster) as $key) {
+                $keys[] = $key;
+            }
+        }
+
+        $expected = [
+            'menu_laboran_administrasi', // #1 Buku Administrasi Jurusan
+            'menu_laboran_permintaan',   // #2 Bon Permintaan
+            'menu_laboran_arsip',        // #7 Arsip/Ordner
+            'menu_laboran_jurnal',       // #8 Jurnal Kegiatan
+            'menu_laboran_kebersihan',   // #9 Kebersihan
+        ];
+
+        foreach ($expected as $key) {
+            $this->assertContains($key, $keys, "Permission key {$key} belum terdaftar.");
+            $this->assertContains(
+                $key,
+                \App\Support\DutyPermissionDefaults::forDuty('LABORAN'),
+                "Default LABORAN belum memuat {$key}."
+            );
+        }
+    }
+
+    public function test_halaman_tupoksi_dapat_diakses(): void
+    {
+        $session = $this->adminSession();
+
+        foreach ([
+            'dashboard.laboran.administrasi.index',
+            'dashboard.laboran.permintaan.index',
+            'dashboard.laboran.arsip.index',
+            'dashboard.laboran.jurnal.index',
+            'dashboard.laboran.kebersihan.index',
+        ] as $name) {
+            $res = $this->withSession($session)->get(route($name));
+            $this->assertSame(200, $res->getStatusCode(), "Halaman {$name} gagal dimuat.");
+        }
+    }
+
+    public function test_permintaan_serah_terima_mengurangi_stok_bahan_habis_pakai(): void
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+
+        $itemId = DB::table('laboran_bahan_alat')->insertGetId([
+            'ruang_lab_nama' => 'Lahan Praktik ATPH',
+            'kode_item'      => 'TPM-' . uniqid(),
+            'nama_item'      => 'Pupuk Uji Permintaan',
+            'jenis'          => 'bahan_habis_pakai',
+            'stok_total'     => 50,
+            'stok_tersedia'  => 50,
+            'satuan'         => 'kg',
+            'kondisi'        => 'baik',
+            'jurusan_id'     => self::JUR_ATPH,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.permintaan.store'), [
+                'tanggal_permintaan' => now()->toDateString(),
+                'pemohon_nama'       => 'Guru Uji',
+                'keperluan'          => 'Praktik pemupukan',
+                'item_ids'           => [$itemId],
+                'item_jumlah'        => [$itemId => 10],
+            ])
+            ->assertStatus(200);
+
+        $permintaan = DB::table('laboran_permintaan')->latest('id')->first();
+        $this->assertNotNull($permintaan);
+        $this->assertStringStartsWith('PMT/', $permintaan->nomor_permintaan);
+
+        // Periksa ketersediaan
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.permintaan.periksa', $permintaan->id))
+            ->assertStatus(200);
+
+        $it = DB::table('laboran_permintaan_item')->where('permintaan_id', $permintaan->id)->first();
+        $this->assertSame('tersedia', $it->status_ketersediaan);
+
+        // Serah terima -> stok bahan habis pakai berkurang
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.permintaan.serahkan', $permintaan->id), [
+                'item_diberikan' => [$it->id => 10],
+            ])
+            ->assertStatus(200);
+
+        $this->assertEquals(40, (float) DB::table('laboran_bahan_alat')->where('id', $itemId)->value('stok_tersedia'));
+        $this->assertSame('diserahkan', DB::table('laboran_permintaan')->where('id', $permintaan->id)->value('status'));
+    }
+
+    public function test_permintaan_alat_tidak_mengurangi_stok(): void
+    {
+        [$alatId] = $this->seedItems(); // jenis = alat
+
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.permintaan.store'), [
+                'tanggal_permintaan' => now()->toDateString(),
+                'pemohon_nama'       => 'Guru Uji',
+                'item_ids'           => [$alatId],
+                'item_jumlah'        => [$alatId => 2],
+            ])
+            ->assertStatus(200);
+
+        $permintaan = DB::table('laboran_permintaan')->latest('id')->first();
+        $it = DB::table('laboran_permintaan_item')->where('permintaan_id', $permintaan->id)->first();
+        $stokAwal = (float) DB::table('laboran_bahan_alat')->where('id', $alatId)->value('stok_tersedia');
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.permintaan.serahkan', $permintaan->id), [
+                'item_diberikan' => [$it->id => 2],
+            ])
+            ->assertStatus(200);
+
+        // Alat dipinjam, stok tidak berkurang
+        $this->assertEquals(
+            $stokAwal,
+            (float) DB::table('laboran_bahan_alat')->where('id', $alatId)->value('stok_tersedia'),
+            'Alat tidak boleh mengurangi stok saat serah terima permintaan.'
+        );
+    }
+
+    public function test_jurnal_menghitung_durasi_dan_kategori_tupoksi(): void
+    {
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jurnal.store'), [
+                'tanggal'    => now()->toDateString(),
+                'kegiatan'   => 'Menyiapkan alat praktik',
+                'kategori'   => 'penyiapan',
+                'jam_mulai'  => '07:00',
+                'jam_selesai' => '09:00',
+                'status'     => 'selesai',
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_jurnal')->latest('id')->first();
+        $this->assertNotNull($row);
+        $this->assertSame(120, (int) $row->durasi_menit, 'Durasi harus 120 menit (07:00-09:00).');
+        $this->assertSame('penyiapan', $row->kategori);
+
+        // Kategori terpetakan ke indikator tupoksi
+        $kategori = \App\Http\Controllers\Laboran\LaboranJurnalController::KATEGORI;
+        $this->assertSame(2, $kategori['penyiapan'][1], 'Kategori penyiapan harus terpetakan ke Tupoksi #2.');
+        $this->assertSame(1, $kategori['administrasi'][1]);
+        $this->assertSame(9, $kategori['kebersihan'][1]);
+    }
+
+    public function test_kebersihan_menyimpan_dokumentasi(): void
+    {
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.kebersihan.store'), [
+                'tanggal_kegiatan'  => now()->toDateString(),
+                'area'              => 'Lahan Praktik ATPH',
+                'jenis_kegiatan'    => 'harian',
+                'uraian_kegiatan'   => 'Membersihkan gulma',
+                'kondisi_akhir'     => 'bersih',
+                'jumlah_petugas'    => 3,
+                'dokumentasi_paths' => ['storage/lab/foto1.jpg', 'storage/lab/foto2.jpg'],
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_kebersihan')->latest('id')->first();
+        $this->assertNotNull($row);
+        $this->assertStringStartsWith('KBR/', $row->nomor_kegiatan);
+
+        $paths = json_decode($row->dokumentasi_paths, true);
+        $this->assertCount(2, $paths);
+        $this->assertContains('storage/lab/foto1.jpg', $paths);
+    }
+
+    public function test_administrasi_mencatat_dokumen_jurusan(): void
+    {
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.administrasi.store'), [
+                'tanggal'       => now()->toDateString(),
+                'jenis_dokumen' => 'surat_masuk',
+                'perihal'       => 'Undangan Rapat Jurusan',
+                'asal_tujuan'   => 'Dinas Pendidikan',
+                'status'        => 'aktif',
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_administrasi')->latest('id')->first();
+        $this->assertNotNull($row);
+        $this->assertSame('surat_masuk', $row->jenis_dokumen);
+        $this->assertSame('Undangan Rapat Jurusan', $row->perihal);
+    }
+
+    public function test_arsip_massal_menarik_dokumen_dari_modul_lain(): void
+    {
+        $ptk = (string) DB::table('gtk')->value('ptk_id');
+
+        // Buat 1 BA kerusakan
+        DB::table('laboran_berita_acara_kerusakan')->insert([
+            'jurusan_id'        => self::JUR_ATPH,
+            'nomor_ba'          => 'BAK/ARSIP/' . uniqid(),
+            'nama_alat'         => 'Alat Arsip Uji',
+            'tanggal_kejadian'  => now()->toDateString(),
+            'tanggal_ba'        => now()->toDateString(),
+            'tingkat_kerusakan' => 'ringan',
+            'jumlah_rusak'      => 1,
+            'satuan'            => 'unit',
+            'status'            => 'diajukan',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.arsip.arsipkan-massal'), [
+                'kategori' => 'berita_acara_kerusakan',
+            ])
+            ->assertStatus(200);
+
+        $this->assertGreaterThan(0, DB::table('laboran_arsip')
+            ->where('kategori', 'berita_acara_kerusakan')
+            ->count());
+
+        $arsip = DB::table('laboran_arsip')->where('kategori', 'berita_acara_kerusakan')->first();
+        $this->assertStringStartsWith('ARS/', $arsip->kode_arsip);
+        $this->assertSame('laboran_berita_acara_kerusakan', $arsip->sumber_tabel);
+    }
+
+    public function test_pemeriksaan_mendukung_jenis_sebelum_dan_sesudah_pakai(): void
+    {
+        [$itemId] = $this->seedItems();
+
+        foreach (['sebelum_pakai', 'sesudah_pakai'] as $jenis) {
+            $this->withSession($this->adminSession())
+                ->postJson(route('dashboard.laboran.pemeriksaan.store'), [
+                    'tanggal_pemeriksaan' => now()->toDateString(),
+                    'jenis'               => $jenis,
+                    'item_ids'            => [$itemId],
+                    'status'              => 'draf',
+                ])
+                ->assertStatus(200);
+
+            $row = DB::table('laboran_pemeriksaan')->latest('id')->first();
+            $this->assertSame($jenis, $row->jenis);
+        }
+    }
+}

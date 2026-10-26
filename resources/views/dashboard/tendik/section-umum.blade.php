@@ -204,10 +204,10 @@
         <span class="kepegawaian-quick-label">Data Guru</span>
     </a>
 
-    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #14b8a6;" title="Data Pokok Siswa">
+    <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: #14b8a6;" title="Pengelolaan Buku Induk Siswa">
         <div class="kepegawaian-quick-icon" style="background: rgba(20, 184, 166, 0.15); color: #14b8a6;">
-            <i class="fas fa-user-graduate"></i>
+            <i class="fas fa-address-book"></i>
         </div>
         <span class="kepegawaian-quick-label">Buku Induk Siswa</span>
     </a>

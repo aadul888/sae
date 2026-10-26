@@ -266,6 +266,9 @@ class UserController extends Controller
 
         $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
         $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
+        $jurusanList = \App\Support\Table::exists('jurusan_meta')
+            ? DB::table('jurusan_meta')->select('jurusan_id', 'nama_jurusan', 'singkatan')->orderBy('nama_jurusan')->get()
+            : collect();
 
         return view('dashboard.pengguna', compact(
             'admins',
@@ -277,6 +280,7 @@ class UserController extends Controller
             'refTugasList',
             'ptkList',
             'rombelList',
+            'jurusanList',
             'counts',
             'activeTab',
             'q',
@@ -532,12 +536,14 @@ class UserController extends Controller
             'tmt_tugas' => 'nullable|date',
             'tst_tugas' => 'nullable|date',
             'rombel_id' => 'nullable|string',
+            'jurusan_id' => 'nullable|string|max:50',
             'keterangan' => 'nullable|string',
         ]);
 
         $ptkId = $request->input('ptk_id');
         $tugasId = (int) $request->input('tugas_tambahan_id');
         $rombelId = $request->input('rombel_id');
+        $jurusanId = $request->input('jurusan_id');
 
         $tugas = DB::table('ref_tugas_tambahan')->where('id', $tugasId)->first();
         if (!$tugas) {
@@ -607,6 +613,7 @@ class UserController extends Controller
             'tmt_tugas' => $request->input('tmt_tugas'),
             'tst_tugas' => $request->input('tst_tugas'),
             'rombel_id' => $rombelId,
+            'jurusan_id' => $jurusanId,
             'keterangan' => $request->input('keterangan'),
             'is_active' => true,
         ]);

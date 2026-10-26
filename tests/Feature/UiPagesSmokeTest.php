@@ -41,6 +41,21 @@ class UiPagesSmokeTest extends TestCase
             '/dashboard/kesiswaan/kedisiplinan',
             '/dashboard/persuratan/keluar',
             '/dashboard/persuratan/masuk',
+            '/dashboard/laboran/dashboard',
+            '/dashboard/laboran/jadwal',
+            '/dashboard/laboran/kebutuhan',
+            '/dashboard/laboran/perawatan',
+            '/dashboard/laboran/pemeriksaan',
+            '/dashboard/laboran/pengadaan',
+            '/dashboard/laboran/kerusakan',
+            '/dashboard/laboran/peminjaman-alat',
+            '/dashboard/laboran/laporan',
+            '/dashboard/laboran/laporan-lengkap',
+            '/dashboard/laboran/administrasi',
+            '/dashboard/laboran/permintaan',
+            '/dashboard/laboran/arsip',
+            '/dashboard/laboran/jurnal',
+            '/dashboard/laboran/kebersihan',
         ];
 
         foreach ($paths as $path) {

@@ -105,7 +105,8 @@
             <i class="fas fa-money-bill-trend-up"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #0ea5e9; white-space: nowrap;">
+            <div class="dash-stat-value"
+                style="font-size: var(--text-2xl, 1.5rem); color: #0ea5e9; white-space: nowrap;">
                 Rp {{ number_format($totalNominal, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Total Dana Cair</div>
@@ -128,7 +129,9 @@
         </div>
         <div
             style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary);">
-            <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981);"></i> Tahun {{ $activeTahun }}
+            <i class="fas fa-circle-dot"
+                style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981);"></i> Tahun
+            {{ $activeTahun }}
             Real-Time
         </div>
     </div>
@@ -157,8 +160,7 @@
                     {{ $pctTerpakai }}% Terisi
                 </span>
             </div>
-            <div
-                style="position: relative; height: 250px; width: 100%; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; height: 250px; width: 100%;">
                 <canvas id="chartPipStatus"></canvas>
             </div>
             <div
@@ -271,10 +273,12 @@
                             <div
                                 style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981); font-weight: 700; text-transform: uppercase;">
                                 Sudah Pernah Terima PIP</div>
-                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success, #10b981); margin: 4px 0;">
+                            <div
+                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success, #10b981); margin: 4px 0;">
                                 {{ $d['wali_sudah_pip'] ?? 0 }}
                             </div>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Tercatat di riwayat SiPintar
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Tercatat di
+                                riwayat SiPintar
                             </div>
                         </div>
                         <div
@@ -282,15 +286,18 @@
                             <div
                                 style="font-size: var(--text-sm, 0.8125rem); color: var(--warning, #f59e0b); font-weight: 700; text-transform: uppercase;">
                                 Belum Pernah Terima PIP</div>
-                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--warning, #f59e0b); margin: 4px 0;">
+                            <div
+                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--warning, #f59e0b); margin: 4px 0;">
                                 {{ $d['wali_belum_pip'] ?? 0 }}
                             </div>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Peluang prioritas usulan baru
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Peluang
+                                prioritas usulan baru
                             </div>
                         </div>
                     </div>
                 </div>
-                <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5; margin: 0;">
+                <p
+                    style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5; margin: 0;">
                     <i class="fas fa-lightbulb text-warning me-1"></i> <strong>Tips Wali Kelas:</strong> Utamakan
                     mengajukan peserta didik yang berada pada desil terendah (DTSEN 1-4) atau rentan putus sekolah yang
                     belum pernah menerima PIP sebelumnya.
@@ -402,7 +409,8 @@
                 </div>
 
                 <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'kuota', 'tahun' => $activeTahun])) }}"
-                    class="btn btn-outline btn-sm" style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
+                    class="btn btn-outline btn-sm"
+                    style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
                     <i class="fas fa-sliders me-1"></i> Atur Kuota
                 </a>
             </div>
@@ -457,7 +465,8 @@
                             <td style="text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);"
                                 data-label="No"><span class="rekap-row-no">{{ $loop->iteration }}</span></td>
                             <td style="padding: 10px 14px;" data-label="Rombongan Belajar">
-                                <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
+                                <div
+                                    style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                     {{ $r->nama }}</div>
                                 @if (!empty($r->ptk_id_str))
                                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
@@ -476,7 +485,8 @@
                                         {{ $kategoriTingkat === 'kelas_awal' ? 'Kelas Awal' : 'Kelas Berjalan' }}
                                     </span>
                                 </div>
-                                <div style="font-size: var(--text-xs, 0.75rem); margin-top: 3px;">{{ $r->jurusan_id_str ?: '-' }}
+                                <div style="font-size: var(--text-xs, 0.75rem); margin-top: 3px;">
+                                    {{ $r->jurusan_id_str ?: '-' }}
                                 </div>
                             </td>
                             <td style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 600;"
@@ -512,13 +522,15 @@
                                     <span class="badge badge-danger"
                                         style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">Belum Usul</span>
                                 @else
-                                    <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">Ada
+                                    <span class="badge badge-warning"
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">Ada
                                         Kuota</span>
                                 @endif
                             </td>
                             <td style="padding: 10px 14px; text-align: center;" data-label="Aksi">
                                 <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'usulan', 'tahun' => $activeTahun, 'rombel_id' => $r->rombongan_belajar_id])) }}"
-                                    class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: var(--text-xs, 0.75rem);"
+                                    class="btn btn-outline btn-sm"
+                                    style="padding: 4px 8px; font-size: var(--text-xs, 0.75rem);"
                                     title="Lihat Usulan Kelas Ini">
                                     <i class="fas fa-eye me-1"></i> Buka
                                 </a>
@@ -546,7 +558,8 @@
                 style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-bolt text-warning"></i> Usulan PIP Terbaru
                 @if (!empty($d['total_usulan_diubah']) && $d['total_usulan_diubah'] > 0)
-                    <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px; font-weight: 700;">
+                    <span class="badge badge-warning"
+                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px; font-weight: 700;">
                         <i class="fas fa-pen-to-square me-1"></i> {{ $d['total_usulan_diubah'] }} usulan diperbarui
                     </span>
                 @endif
@@ -588,7 +601,8 @@
             <tbody>
                 @forelse ($usulanTerbaru as $u)
                     <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);" data-label="No">
+                        <td style="text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);"
+                            data-label="No">
                             {{ $loop->iteration }}</td>
                         <td style="padding: 10px 14px;" data-label="Peserta Didik">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -597,9 +611,11 @@
                                     style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
                                     onerror="this.src='/img/logo-dark.png'">
                                 <div>
-                                    <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
+                                    <div
+                                        style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">
                                         {{ $u->nama_pd }}</div>
-                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
+                                    <div
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace;">
                                         NISN: {{ $u->nisn ?: '-' }}</div>
                                 </div>
                             </div>
@@ -617,17 +633,20 @@
                         <td style="padding: 10px 14px;" data-label="Alasan Usulan">
                             <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                 @forelse ($u->alasan_list as $al)
-                                    <span class="badge badge-outline" style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
+                                    <span class="badge badge-outline"
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                         {{ $al }}
                                     </span>
                                 @empty
-                                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">-</span>
+                                    <span
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">-</span>
                                 @endforelse
                             </div>
                             @if (!empty($u->diubah_at))
                                 <div
                                     style="margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                                    <span class="badge badge-warning" style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;"
+                                    <span class="badge badge-warning"
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;"
                                         title="{{ $u->perubahan_terakhir }}">
                                         <i class="fas fa-pen-to-square me-1"></i> Diperbarui
                                         ({{ \Carbon\Carbon::parse($u->diubah_at)->format('d/m H:i') }})
@@ -637,15 +656,18 @@
                         </td>
                         <td style="padding: 10px 14px; text-align: center;" data-label="Status">
                             @if ($u->status_verifikasi === 'sudah_diajukan')
-                                <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
+                                <span class="badge badge-success"
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
                                     <i class="fas fa-check-circle me-1"></i> Sudah Diusulkan
                                 </span>
                             @elseif ($u->status_verifikasi === 'ditolak')
-                                <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
+                                <span class="badge badge-danger"
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
                                     <i class="fas fa-times-circle me-1"></i> Ditolak
                                 </span>
                             @else
-                                <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
+                                <span class="badge badge-warning"
+                                    style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;">
                                     <i class="fas fa-clock me-1"></i> Belum Diusulkan
                                 </span>
                             @endif

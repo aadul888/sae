@@ -1,31 +1,42 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Jadwal Penggunaan Lab — Laboratorium SAE')
-@section('dash_title', 'Jadwal Lab')
+@section('title', 'Jadwal Praktik & Penggunaan Lokasi — Laboratorium SAE')
+@section('dash_title', 'Jadwal Praktik')
 
 @section('content')
     <div class="dash-content-inner">
-        {{-- 1. Header Banner & Action Button --}}
+        {{-- 1. Header Banner & Action Buttons --}}
         <div class="dash-banner"
-            style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 14px;">
+            style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; margin-bottom: var(--space-9);">
+            <div style="display: flex; align-items: center; gap: var(--space-7);">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); flex-shrink: 0;">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div>
-                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                        Jadwal &amp; Penggunaan Lab
+                    <h2 style="font-size: var(--text-xl); font-weight: var(--font-extrabold); color: var(--text-color); margin: 0;">
+                        Jadwal Praktik &amp; Penggunaan Lokasi
                     </h2>
-                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                        Penjadwalan sesi praktikum, pemakaian ruang lab komputer/IPA/bengkel, dan log pasca-praktik.
+                    <div style="font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-1);">
+                        Penjadwalan guru untuk praktik di laboratorium, bengkel, lahan/kebun, dan lapangan sekolah.
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
+                <span class="badge"
+                    style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
+                    <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
+                </span>
+                @if ($canRead)
+                    <a href="{{ route('dashboard.laboran.laporan.index') }}" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
+                        title="Laporan Penggunaan Lokasi Praktik (Bulan, Triwulan, Semester, Tahun)">
+                        <i class="fas fa-file-lines"></i>
+                    </a>
+                @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
                         title="Jadwalkan Praktik Baru">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -34,13 +45,14 @@
         </div>
 
         {{-- 2. Stat Grid (4 Kartu Ringkasan) --}}
-        <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+        <div class="dash-stat-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: var(--space-10); gap: var(--space-7);">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statTotal }}</div>
+                    <div class="dash-stat-value">{{ number_format($statTotal, 0, ',', '.') }}</div>
                     <div class="dash-stat-label">Total Sesi Terjadwal</div>
                 </div>
             </div>
@@ -49,16 +61,16 @@
                     <i class="fas fa-calendar-day"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statHariIni }}</div>
+                    <div class="dash-stat-value">{{ number_format($statHariIni, 0, ',', '.') }}</div>
                     <div class="dash-stat-label">Praktik Hari Ini</div>
                 </div>
             </div>
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <i class="fas fa-spinner"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statBerlangsung }}</div>
+                    <div class="dash-stat-value">{{ number_format($statBerlangsung, 0, ',', '.') }}</div>
                     <div class="dash-stat-label">Sedang Berlangsung</div>
                 </div>
             </div>
@@ -67,73 +79,64 @@
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statSelesai }}</div>
+                    <div class="dash-stat-value">{{ number_format($statSelesai, 0, ',', '.') }}</div>
                     <div class="dash-stat-label">Praktik Selesai</div>
                 </div>
             </div>
         </div>
 
-        {{-- Unified Datatable Jadwal Pemakaian Lab (Toolbar + Table + Pagination dalam 1 Card Terpadu) --}}
+        {{-- 3. Datatable Terpadu --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">
-            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
             <div class="datatable-toolbar">
-                <form method="GET" action="{{ route('dashboard.laboran.jadwal.index') }}" id="filterForm"
-                    style="margin: 0;">
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <form method="GET" action="{{ route('dashboard.laboran.jadwal.index') }}" id="filterForm" style="margin: 0;">
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center;">
                             <div class="toolbar-entries">
                                 <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                                 <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                     @foreach ([10, 15, 25, 50, 100] as $n)
-                                        <option value="{{ $n }}"
-                                            {{ request('perPage', 15) == $n ? 'selected' : '' }}>
+                                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                             {{ $n }}</option>
                                     @endforeach
                                 </select>
                                 <span>entri</span>
                             </div>
 
-                            <select name="lab" id="filterLab" class="toolbar-filter-select" style="height: 38px;">
-                                <option value="">Semua Ruang</option>
-                                @if (isset($daftarRuangSarpras) && $daftarRuangSarpras->isNotEmpty())
-                                    @foreach ($daftarRuangSarpras as $r)
-                                        <option value="{{ $r->nama_ruang }}"
-                                            {{ $labFilter === $r->nama_ruang ? 'selected' : '' }}>
-                                            {{ $r->nama_ruang }} {{ $r->gedung ? "({$r->gedung})" : '' }}
-                                        </option>
-                                    @endforeach
-                                @else
-                                    @foreach ($daftarLab as $lab)
-                                        <option value="{{ $lab }}" {{ $labFilter === $lab ? 'selected' : '' }}>
-                                            {{ $lab }}</option>
-                                    @endforeach
-                                @endif
+                            <select name="jenis" id="filterJenis" class="toolbar-filter-select" style="height: 38px;"
+                                title="Filter Jenis Lokasi">
+                                <option value="">Semua Jenis Lokasi</option>
+                                @foreach ($jenisLokasiLabels ?? \App\Http\Controllers\LaboranJadwalController::JENIS_LOKASI as $jKey => $jLabel)
+                                    <option value="{{ $jKey }}" {{ $jenisFilter === $jKey ? 'selected' : '' }}>
+                                        {{ $jLabel }}</option>
+                                @endforeach
                             </select>
 
-                            <select name="status" id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
+                            <select name="lab" id="filterLab" class="toolbar-filter-select" style="height: 38px;"
+                                title="Filter Lokasi Praktik">
+                                <option value="">Semua Lokasi</option>
+                                @foreach ($daftarLab as $lab)
+                                    <option value="{{ $lab }}" {{ $labFilter === $lab ? 'selected' : '' }}>
+                                        {{ $lab }}</option>
+                                @endforeach
+                            </select>
+
+                            <select name="status" id="filterStatus" class="toolbar-filter-select" style="height: 38px;"
+                                title="Filter Status Sesi">
                                 <option value="">Semua Status</option>
-                                <option value="dijadwalkan" {{ $statusFilter === 'dijadwalkan' ? 'selected' : '' }}>
-                                    Dijadwalkan
-                                </option>
-                                <option value="berlangsung" {{ $statusFilter === 'berlangsung' ? 'selected' : '' }}>
-                                    Berlangsung
-                                </option>
-                                <option value="selesai" {{ $statusFilter === 'selesai' ? 'selected' : '' }}>Selesai
-                                </option>
-                                <option value="batal" {{ $statusFilter === 'batal' ? 'selected' : '' }}>Dibatalkan
-                                </option>
+                                @foreach (\App\Http\Controllers\LaboranJadwalController::STATUS_LIST as $sKey => $sLabel)
+                                    <option value="{{ $sKey }}" {{ $statusFilter === $sKey ? 'selected' : '' }}>
+                                        {{ $sLabel }}</option>
+                                @endforeach
                             </select>
 
                             <input type="date" name="tanggal" id="filterTanggal" value="{{ $tanggalFilter }}"
                                 class="form-control"
-                                style="height: 38px; font-size: var(--text-sm, 0.8125rem); padding: 0 10px; border-radius: var(--radius-md, 8px);"
-                                title="Filter Tanggal">
+                                style="height: 38px; font-size: var(--text-sm); padding: 0 var(--space-5); border-radius: var(--radius-md);"
+                                title="Filter Tanggal Praktik">
 
-                            @if ($search || $labFilter || $statusFilter || $tanggalFilter)
-                                <a href="{{ route('dashboard.laboran.jadwal.index') }}"
-                                    class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                            @if ($search || $labFilter || $jenisFilter || $statusFilter || $tanggalFilter)
+                                <a href="{{ route('dashboard.laboran.jadwal.index') }}" class="btn btn-outline btn-reset-filter"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
@@ -141,7 +144,7 @@
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" name="q" id="liveSearch" value="{{ $search }}"
-                                placeholder="Cari mapel, topik praktik, guru, atau kelas..." autocomplete="off">
+                                placeholder="Cari mapel, topik, guru, kelas, atau lokasi..." autocomplete="off">
                             <button type="button" id="clearSearch" class="clear-search {{ $search ? 'visible' : '' }}"
                                 title="Hapus pencarian">
                                 <i class="fas fa-times"></i>
@@ -151,70 +154,99 @@
                 </form>
             </div>
 
-            <!-- 2. Konten Datatable Responsive Stack -->
             <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Lab &amp; Tanggal</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">
+                                Lokasi &amp; Tanggal</th>
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">
                                 Mapel &amp; Topik</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Guru &amp; Rombel</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">
+                                Guru &amp; Kelas</th>
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Waktu Sesi</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">
                                 Status</th>
-                            <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            <th style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($list as $idx => $item)
-                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td data-label="No"
-                                    style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
+                            @php
+                                $jenisKey = $item->jenis_lokasi ?: 'lainnya';
+                                $jenisLabel = \App\Http\Controllers\LaboranJadwalController::JENIS_LOKASI[$jenisKey] ?? 'Lokasi Lainnya';
+                                $jenisIcon = match ($jenisKey) {
+                                    'lab' => 'fa-flask',
+                                    'bengkel' => 'fa-screwdriver-wrench',
+                                    'lahan' => 'fa-seedling',
+                                    'lapangan' => 'fa-futbol',
+                                    default => 'fa-location-dot',
+                                };
+                                $jenisColor = match ($jenisKey) {
+                                    'lab' => 'var(--primary, #3b82f6)',
+                                    'bengkel' => 'var(--warning, #f59e0b)',
+                                    'lahan' => 'var(--success, #10b981)',
+                                    'lapangan' => 'var(--purple, #8b5cf6)',
+                                    default => 'var(--text-muted)',
+                                };
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td data-label="No" style="padding: var(--space-7) var(--space-8); font-size: var(--text-base); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
                                 </td>
-                                <td data-label="Lab & Tanggal" style="padding: 14px 18px;">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
-                                        {{ $item->ruang_lab_nama }}</div>
-                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"><i
-                                            class="fas fa-calendar-day text-primary me-1"></i>
-                                        {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y') }}</div>
+                                <td data-label="Lokasi & Tanggal" style="padding: var(--space-7) var(--space-8);">
+                                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">
+                                        {{ $item->ruang_lab_nama }}
+                                    </div>
+                                    <div style="font-size: var(--text-xs); color: {{ $jenisColor }}; font-weight: var(--font-semibold); margin-top: var(--space-1);">
+                                        <i class="fas {{ $jenisIcon }} me-1"></i>{{ $jenisLabel }}
+                                    </div>
+                                    <div style="font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-1);">
+                                        <i class="fas fa-calendar-day text-primary me-1"></i>
+                                        {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y') }}
+                                    </div>
                                 </td>
-                                <td data-label="Mapel" style="padding: 14px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
-                                        {{ $item->mata_pelajaran }}</div>
-                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-weight: 500;">
-                                        {{ $item->topik_praktik }}</div>
-                                    @if ($item->laporan_kerusakan)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--danger, #ef4444); margin-top: 3px;"><i
-                                                class="fas fa-circle-exclamation me-1"></i> Catatan:
-                                            {{ $item->laporan_kerusakan }}</div>
+                                <td data-label="Mapel & Topik" style="padding: var(--space-7) var(--space-8);">
+                                    <div style="font-weight: var(--font-semibold); color: var(--text-color); font-size: var(--text-base);">
+                                        {{ $item->mata_pelajaran }}
+                                    </div>
+                                    @if (!empty($item->topik_praktik))
+                                        <div style="font-size: var(--text-sm); color: var(--primary); font-weight: var(--font-medium);">
+                                            {{ $item->topik_praktik }}
+                                        </div>
+                                    @else
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted); font-style: italic;">
+                                            Topik belum diisi
+                                        </div>
+                                    @endif
+                                    @if (!empty($item->alat_bahan_digunakan))
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-1);">
+                                            <i class="fas fa-toolbox me-1"></i>{{ \Illuminate\Support\Str::limit($item->alat_bahan_digunakan, 60) }}
+                                        </div>
+                                    @endif
+                                    @if (!empty($item->laporan_kerusakan))
+                                        <div style="font-size: var(--text-xs); color: var(--danger, #ef4444); margin-top: var(--space-1);">
+                                            <i class="fas fa-circle-exclamation me-1"></i>
+                                            {{ \Illuminate\Support\Str::limit($item->laporan_kerusakan, 60) }}
+                                        </div>
                                     @endif
                                 </td>
-                                <td data-label="Guru" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
-                                    <div style="font-weight: 600; color: var(--text-color);">{{ $item->guru_nama ?: '-' }}
+                                <td data-label="Guru & Kelas" style="padding: var(--space-7) var(--space-8); font-size: var(--text-base);">
+                                    <div style="font-weight: var(--font-semibold); color: var(--text-color);">
+                                        {{ $item->guru_nama ?: '-' }}
                                     </div>
-                                    <span class="badge badge-outline"
-                                        style="font-size: var(--text-xs, 0.75rem);">{{ $item->rombel_nama ?: 'Seluruh Siswa' }}</span>
+                                    <span class="badge badge-outline" style="font-size: var(--text-xs);">
+                                        {{ $item->rombel_nama ?: 'Seluruh Siswa' }}
+                                    </span>
                                 </td>
-                                <td data-label="Waktu"
-                                    style="padding: 14px 18px; text-align: center; font-size: var(--text-base, 0.875rem); font-family: monospace;">
-                                    {{ substr($item->jam_mulai, 0, 5) }} - {{ substr($item->jam_selesai, 0, 5) }}
+                                <td data-label="Waktu" style="padding: var(--space-7) var(--space-8); text-align: center; font-size: var(--text-base); font-family: var(--font-family-mono);">
+                                    {{ substr((string) $item->jam_mulai, 0, 5) }} - {{ substr((string) $item->jam_selesai, 0, 5) }}
                                 </td>
-                                <td data-label="Status" style="padding: 14px 18px; text-align: center;">
+                                <td data-label="Status" style="padding: var(--space-7) var(--space-8); text-align: center;">
                                     @if ($item->status === 'dijadwalkan')
                                         <span class="badge badge-info">Dijadwalkan</span>
                                     @elseif ($item->status === 'berlangsung')
@@ -225,14 +257,33 @@
                                         <span class="badge badge-danger">Batal</span>
                                     @endif
                                 </td>
-                                <td data-label="Aksi" style="padding: 14px 18px; text-align: right;">
-                                    <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
+                                <td data-label="Aksi" style="padding: var(--space-7) var(--space-8); text-align: right;">
+                                    <div class="table-actions" style="justify-content: flex-end; gap: var(--space-3);">
                                         @if ($canUpdate)
+                                            <button type="button" class="btn-icon btn-edit-jadwal"
+                                                data-id="{{ $item->id }}"
+                                                data-lokasi="{{ $item->ruang_lab_nama }}"
+                                                data-jenis="{{ $jenisKey }}"
+                                                data-rombel-id="{{ $item->rombel_id }}"
+                                                data-rombel-nama="{{ $item->rombel_nama }}"
+                                                data-pembelajaran-id="{{ $item->pembelajaran_id }}"
+                                                data-mapel="{{ $item->mata_pelajaran }}"
+                                                data-ptk-id="{{ $item->ptk_id }}"
+                                                data-guru="{{ $item->guru_nama }}"
+                                                data-topik="{{ $item->topik_praktik }}"
+                                                data-tanggal="{{ $item->tanggal }}"
+                                                data-jam-mulai="{{ substr((string) $item->jam_mulai, 0, 5) }}"
+                                                data-jam-selesai="{{ substr((string) $item->jam_selesai, 0, 5) }}"
+                                                data-alat="{{ $item->alat_bahan_digunakan }}"
+                                                data-status="{{ $item->status }}"
+                                                title="Ubah Detail Jadwal">
+                                                <i class="fas fa-pen-to-square" style="color: var(--primary);"></i>
+                                            </button>
                                             <button type="button" class="btn-icon btn-status-lab"
                                                 data-id="{{ $item->id }}" data-mapel="{{ $item->mata_pelajaran }}"
                                                 data-status="{{ $item->status }}"
                                                 data-laporan="{{ $item->laporan_kerusakan }}" title="Update Status Sesi">
-                                                <i class="fas fa-sliders" style="color: var(--primary);"></i>
+                                                <i class="fas fa-sliders" style="color: var(--success, #10b981);"></i>
                                             </button>
                                         @endif
                                         @if ($canDelete)
@@ -247,9 +298,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
-                                    <div>Belum ada jadwal penggunaan lab yang cocok.</div>
+                                <td colspan="7" style="padding: var(--space-11); text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl); opacity: 0.5;"></i>
+                                    <div>Belum ada jadwal praktik yang cocok dengan filter.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -257,7 +308,6 @@
                 </table>
             </div>
 
-            {{-- 3. Pagination Footer Resmi SAE --}}
             @if ($list->hasPages())
                 <div class="datatable-footer">
                     @include('partials.datatable-pagination', ['paginator' => $list])
@@ -265,133 +315,174 @@
             @endif
         </div>
 
-        {{-- Modal Tambah Jadwal Praktik --}}
+        {{-- Modal Tambah / Ubah Jadwal Praktik --}}
         <div id="modalJadwal" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                style="width: 100%; max-width: 680px; max-height: 92vh; overflow-y: auto; padding: var(--space-10); border-radius: var(--radius-lg);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-9);">
                     <h3 id="modalJadwalTitle"
-                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
-                        Jadwalkan Penggunaan Lab
+                        style="margin: 0; font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--text-color);">
+                        Jadwalkan Praktik
                     </h3>
                     <button type="button" id="btnCloseModalJadwal"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl); color: var(--text-muted); cursor: pointer;"
+                        title="Tutup">&times;</button>
                 </div>
 
                 <form id="formJadwal" method="POST" action="{{ route('dashboard.laboran.jadwal.store') }}">
                     @csrf
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <input type="hidden" name="_method" id="jadwalMethod" value="POST">
+                    <input type="hidden" name="jurusan_id" id="inputJadwalJurusan" value="{{ $context['jurusan_id'] ?? '' }}">
+                    <input type="hidden" name="pembelajaran_id" id="inputPembelajaranId">
+                    <input type="hidden" name="mata_pelajaran_id" id="inputMapelId">
+
+                    {{-- Baris 1: Jenis lokasi + Lokasi --}}
+                    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
-                                    Ruang Lab / Bengkel <span style="color: var(--danger, #ef4444);">*</span>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Jenis Lokasi <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="jenis_lokasi" id="selectJenisLokasi" class="form-control" required>
+                                @foreach (\App\Http\Controllers\LaboranJadwalController::JENIS_LOKASI as $jKey => $jLabel)
+                                    <option value="{{ $jKey }}">{{ $jLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                                <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
+                                    Lokasi Praktik <span style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
-                                    style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
-                                    title="Kelola Ruang di Sarpras & Aset">
+                                    style="font-size: var(--text-xs); color: var(--primary); text-decoration: none;"
+                                    title="Kelola Data Ruang, Lahan & Lapangan di Sarpras">
                                     <i class="fas fa-arrow-up-right-from-square me-1"></i> Data Sarpras
                                 </a>
                             </div>
-                            <select name="ruang_lab_nama" class="form-control" required>
-                                <option value="">-- Pilih Ruang dari Sarpras &amp; Aset --</option>
-                                @if (isset($daftarRuangSarpras) && $daftarRuangSarpras->isNotEmpty())
-                                    @foreach ($daftarRuangSarpras as $r)
-                                        <option value="{{ $r->nama_ruang }}">
-                                            {{ $r->nama_ruang }} &bull; {{ $r->gedung ?: 'Sarpras' }}
-                                            {{ $r->lantai ? '(Lt. ' . $r->lantai . ')' : '' }}
-                                        </option>
-                                    @endforeach
-                                @else
-                                    @foreach ($daftarLab as $l)
-                                        <option value="{{ $l }}">{{ $l }}</option>
-                                    @endforeach
-                                @endif
+                            <select name="ruang_lab_nama" id="selectLokasi" class="form-control" required>
+                                <option value="">-- Pilih Lokasi --</option>
+                                @foreach ($lokasiByJenis as $jKey => $rows)
+                                    @if ($rows->isNotEmpty())
+                                        <optgroup label="{{ \App\Http\Controllers\LaboranJadwalController::JENIS_LOKASI[$jKey] ?? $jKey }}"
+                                            data-jenis="{{ $jKey }}">
+                                            @foreach ($rows as $r)
+                                                <option value="{{ $r->nama_ruang }}" data-jenis="{{ $jKey }}">
+                                                    {{ $r->nama_ruang }}{{ !empty($r->gedung) ? ' • ' . $r->gedung : '' }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                @endforeach
                             </select>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
-                                <i class="fas fa-link me-1 text-primary"></i> Data ruang terintegrasi dari <strong>Sarpras
-                                    &amp; Aset</strong>.
+                            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                                <i class="fas fa-link me-1 text-primary"></i> Terintegrasi dengan <strong>Sarpras &amp;
+                                    Aset</strong> (lab, bengkel, lahan, lapangan).
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Baris 2: Kelas + Mapel otomatis --}}
+                    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-6); margin-bottom: var(--space-7);">
+                        <div>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Kelas / Rombel <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="rombel_id" id="selectRombel" class="form-control" required>
+                                <option value="">-- Pilih Kelas --</option>
+                                @foreach ($allRombel as $rb)
+                                    <option value="{{ $rb->rombongan_belajar_id }}">
+                                        {{ $rb->nama }}{{ !empty($rb->jurusan_id_str) ? ' — ' . $rb->jurusan_id_str : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                                <i class="fas fa-wand-magic-sparkles me-1 text-primary"></i> Mata pelajaran diambil otomatis
+                                dari data kelas.
                             </div>
                         </div>
                         <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Praktik <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" class="form-control"
-                                required>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                                <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
+                                    Mata Pelajaran <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <label style="font-size: var(--text-xs); color: var(--text-muted); margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer;"
+                                    title="Aktifkan bila mata pelajaran tidak tersedia pada data kelas">
+                                    <input type="checkbox" id="chkMapelManual" style="cursor: pointer;">
+                                    Isi manual
+                                </label>
+                            </div>
+                            <select id="selectMapel" class="form-control" disabled>
+                                <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                            </select>
+                            <input type="text" id="inputMapelManual" class="form-control" placeholder="Contoh: Praktik Kejuruan"
+                                style="display: none;" disabled>
+                            <div id="mapelHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                                Pilih kelas untuk memuat daftar mata pelajaran.
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    {{-- Baris 3: Guru pengampu + Tanggal --}}
+                    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Guru
-                                Pengampu <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <select name="ptk_id" class="form-control" required>
-                                <option value="">-- Pilih Guru --</option>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Guru Pengampu
+                            </label>
+                            <select name="ptk_id" id="selectGuru" class="form-control">
+                                <option value="">-- Otomatis dari Mata Pelajaran --</option>
                                 @foreach ($allGtk as $g)
-                                    <option value="{{ $g->ptk_id }}">{{ $g->nama }}</option>
+                                    <option value="{{ $g->ptk_id }}">{{ $g->nama }}{{ !empty($g->nip) ? ' — ' . $g->nip : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kelas
-                                / Rombel</label>
-                            <select name="rombel_id" class="form-control">
-                                <option value="">-- Semua Siswa / Umum --</option>
-                                @foreach ($allRombel as $rb)
-                                    <option value="{{ $rb->rombongan_belajar_id }}">{{ $rb->nama }}</option>
-                                @endforeach
-                            </select>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Tanggal Praktik <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <input type="date" name="tanggal" id="inputTanggal" class="form-control" required>
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    {{-- Baris 4: Jam mulai + selesai --}}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Mata
-                                Pelajaran <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="text" name="mata_pelajaran" class="form-control"
-                                placeholder="Contoh: Pemrograman Web / Kimia Dasar" required>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Jam Mulai <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <input type="time" name="jam_mulai" id="inputJamMulai" class="form-control" value="08:00" required>
                         </div>
                         <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Topik
-                                / Materi Praktik <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="text" name="topik_praktik" class="form-control"
-                                placeholder="Contoh: Reaksi Redoks / Desain Database" required>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
-                                Mulai <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="time" name="jam_mulai" class="form-control" value="08:00" required>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
-                                Selesai <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="time" name="jam_selesai" class="form-control" value="09:30" required>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Jam Selesai <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <input type="time" name="jam_selesai" id="inputJamSelesai" class="form-control" value="09:30" required>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kebutuhan
-                            Alat / Bahan Praktik</label>
-                        <textarea name="alat_bahan_digunakan" class="form-control" rows="2"
-                            placeholder="Sebutkan alat, komputer, cairan kimia, atau bahan yang diperlukan..."></textarea>
+                    {{-- Baris 5: Topik (opsional) --}}
+                    <div class="form-group" style="margin-bottom: var(--space-7);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Topik / Materi Praktik
+                            <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(opsional)</span>
+                        </label>
+                        <input type="text" name="topik_praktik" id="inputTopik" class="form-control"
+                            placeholder="Contoh: Pengukuran pH tanah / Konfigurasi VLAN / Reaksi Redoks">
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    {{-- Baris 6: Alat & bahan --}}
+                    <div class="form-group" style="margin-bottom: var(--space-9);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Kebutuhan Alat / Bahan Praktik
+                            <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(opsional)</span>
+                        </label>
+                        <textarea name="alat_bahan_digunakan" id="inputAlat" class="form-control" rows="2"
+                            placeholder="Sebutkan alat, komputer, cangkul, bibit, bahan kimia, atau bahan yang diperlukan..."></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: var(--space-4);">
                         <button type="button" class="btn btn-secondary" id="btnCancelModalJadwal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan
-                            Jadwal</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Jadwal</button>
                     </div>
                 </form>
             </div>
@@ -400,50 +491,51 @@
         {{-- Modal Update Status & Laporan Kerusakan --}}
         <div id="modalStatus" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card" style="width: 100%; max-width: 480px; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
-                        Update Status Praktikum
+            <div class="card" style="width: 100%; max-width: 480px; padding: var(--space-10); border-radius: var(--radius-lg);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8);">
+                    <h3 style="margin: 0; font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--text-color);">
+                        Update Status Praktik
                     </h3>
                     <button type="button" id="btnCloseModalStatus"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-xl); color: var(--text-muted); cursor: pointer;"
+                        title="Tutup">&times;</button>
                 </div>
 
                 <form id="formStatus" method="POST" action="">
                     @csrf
                     @method('PUT')
-                    <p id="statusDesc" style="font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 16px;"></p>
+                    <input type="hidden" name="form_mode" value="status">
+                    <p id="statusDesc" style="font-size: var(--text-base); color: var(--text-color); margin-bottom: var(--space-8);"></p>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                            Status <span style="color: var(--danger, #ef4444);">*</span></label>
+                    <div class="form-group" style="margin-bottom: var(--space-7);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Pilih Status <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
                         <select name="status" id="selectStatusLab" class="form-control" required>
-                            <option value="dijadwalkan">Dijadwalkan</option>
-                            <option value="berlangsung">Sedang Berlangsung</option>
-                            <option value="selesai">Praktik Selesai</option>
-                            <option value="batal">Dibatalkan</option>
+                            @foreach (\App\Http\Controllers\LaboranJadwalController::STATUS_LIST as $sKey => $sLabel)
+                                <option value="{{ $sKey }}">{{ $sLabel }}</option>
+                            @endforeach
                         </select>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Laporan
-                            Kerusakan / Insiden Pasca-Praktik</label>
+                    <div class="form-group" style="margin-bottom: var(--space-9);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Laporan Kerusakan / Insiden Pasca-Praktik
+                        </label>
                         <textarea name="laporan_kerusakan" id="inputLaporanKerusakan" class="form-control" rows="2"
-                            placeholder="Catat jika ada alat pecah, mouse/keyboard rusak, atau insiden..."></textarea>
+                            placeholder="Catat jika ada alat rusak, lahan terganggu, atau insiden lain..."></textarea>
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <div style="display: flex; justify-content: flex-end; gap: var(--space-4);">
                         <button type="button" class="btn btn-secondary" id="btnCancelModalStatus">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-check me-1"></i> Simpan
-                            Status</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check me-1"></i> Simpan Status</button>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
 
-        @push('scripts')
+    @push('scripts')
             <script
                 src="{{ asset('js/laboran-jadwal.js') }}?v={{ file_exists(public_path('js/laboran-jadwal.js')) ? filemtime(public_path('js/laboran-jadwal.js')) : time() }}">
             </script>

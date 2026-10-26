@@ -233,6 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnCancelDutyModal = document.getElementById("btnCancelDutyModal");
     const dutyTugasSelect = document.getElementById("dutyTugasSelect");
     const dutyRombelWrap = document.getElementById("dutyRombelWrap");
+    const dutyJurusanWrap = document.getElementById("dutyJurusanWrap");
     const dutyRombelSelect = document.getElementById("dutyRombelSelect");
     const formAddDuty = document.getElementById("formAddDuty");
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
@@ -268,6 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 dutyRombelWrap.style.display = "none";
                 if (dutyRombelSelect) dutyRombelSelect.required = false;
             }
+            if (dutyJurusanWrap) dutyJurusanWrap.style.display = "none";
         }
     };
 
@@ -280,6 +282,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Tugas yang memerlukan penetapan jurusan (scoping data per jurusan)
+    const JURUSAN_DUTIES = ["LABORAN", "KAPROG", "KEPALA_LAB"];
+
     if (dutyTugasSelect && dutyRombelWrap) {
         dutyTugasSelect.addEventListener("change", () => {
             const selectedOpt = dutyTugasSelect.options[dutyTugasSelect.selectedIndex];
@@ -287,6 +292,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const isWali = kode === "WALI_KELAS";
             dutyRombelWrap.style.display = isWali ? "block" : "none";
             if (dutyRombelSelect) dutyRombelSelect.required = isWali;
+
+            if (dutyJurusanWrap) {
+                const needsJurusan = JURUSAN_DUTIES.includes(kode);
+                dutyJurusanWrap.style.display = needsJurusan ? "block" : "none";
+            }
         });
     }
 

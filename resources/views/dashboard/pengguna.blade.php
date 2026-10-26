@@ -558,6 +558,21 @@
                         </select>
                     </div>
 
+                    <div class="form-group-compact full-width" id="dutyJurusanWrap" style="display: none;">
+                        <label>Jurusan / Kompetensi Keahlian</label>
+                        <select name="jurusan_id" id="dutyJurusanSelect">
+                            <option value="">-- Semua Jurusan (Lintas Jurusan) --</option>
+                            @foreach (($jurusanList ?? []) as $j)
+                                <option value="{{ $j->jurusan_id }}">
+                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle"></i> Wajib untuk Laboran &amp; Kaprog: menentukan cakupan data yang boleh dikelola.
+                        </small>
+                    </div>
+
                     <div class="form-group-compact">
                         <label>Nomor SK</label>
                         <input type="text" name="nomor_sk" placeholder="Misal: 421.3/SK-01/2026">

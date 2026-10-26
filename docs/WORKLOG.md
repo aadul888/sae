@@ -581,3 +581,238 @@ Strategi **tanpa memutus alur berjalan**:
 - Pertimbangkan `declare(strict_types=1)` pada service baru.
 - Evaluasi query N+1 pada modul dengan tabel besar (presensi, kesiswaan).
 
+
+---
+
+## Sesi 9 — 26 Oktober 2026: Penjadwalan Praktik Guru pada Lab, Bengkel, Lahan & Lapangan
+
+### 1. Permintaan Pengguna
+1. Penjadwalan guru di `dashboard/laboran/jadwal` juga mencakup **penggunaan lahan** / praktik di lapangan.
+2. **Mata pelajaran diambil otomatis dari kelas.**
+3. **Topik / materi praktik dijadikan opsional.**
+4. **Cetak laporan per bulan, triwulan, semester, dan tahun.**
+
+### 2. Perubahan Skema Database
+| Migrasi | Isi |
+|---|---|
+| `2026_10_26_000001_add_lokasi_dan_pembelajaran_to_laboran_jadwal.php` | Kolom `jenis_lokasi` (lab/bengkel/lahan/lapangan/lainnya), `pembelajaran_id`, `mata_pelajaran_id`; `topik_praktik` diubah menjadi NULLABLE; backfill `jenis_lokasi` data lama. |
+| `2026_10_26_000002_seed_lokasi_praktik_lahan_lapangan.php` | Menambah 5 lokasi praktik ke master `sarpras_ruang`: Lahan Praktik ATPH, Lahan Praktik Kehutanan, Kebun Sekolah, Greenhouse/Screen House, Lapangan Praktik Outdoor. |
+
+Kedua migrasi **idempoten** dan **dapat di-rollback** (diuji naik-turun: skema kembali persis ke kondisi awal, 20 baris `sarpras_ruang`).
+
+### 3. Perubahan Kode
+| Berkas | Perubahan |
+|---|---|
+| `app/Http/Controllers/LaboranJadwalController.php` | Ditulis ulang. Konstanta `JENIS_LOKASI` & `STATUS_LIST`; endpoint `pembelajaranByRombel`; `resolvePembelajaranKelas()`; `validatedPayload()` (mapel otomatis + fallback); `findConflict()` (bentrok lokasi & guru); `detectJenisLokasi()`; laporan periode + cetak. |
+| `routes/web.php` | Rute baru: `laboran.jadwal.pembelajaran`, `laboran.laporan.index`, `laboran.laporan.cetak`. |
+| `resources/views/dashboard/laboran/jadwal.blade.php` | Ditulis ulang: filter jenis lokasi, optgroup lokasi per jenis, form mapel otomatis + mode isi manual, topik opsional, modal ubah jadwal. |
+| `resources/views/dashboard/laboran/laporan.blade.php` | **Baru** — rekap per jenis lokasi, per lokasi, per guru, per mapel, rekap bulanan, rincian sesi. |
+| `resources/views/dashboard/laboran/cetak-laporan.blade.php` | **Baru** — dokumen cetak A4 (portrait/landscape) dengan kop surat & 3 blok tanda tangan. |
+| `public/js/laboran-jadwal.js` | Ditulis ulang: filter lokasi per jenis, fetch mapel dari kelas, modal tambah/ubah, update status, hapus. |
+| `resources/views/partials/dash-sidebar.blade.php` | Menu "Laporan Penggunaan Lokasi" di 3 lokasi sidebar. |
+| `tests/Feature/LaboranJadwalPraktikTest.php` | **Baru** — 12 test (100 assertion). |
+| `tests/Feature/UiPagesSmokeTest.php` | Tambah `/dashboard/laboran/jadwal` & `/dashboard/laboran/laporan`. |
+
+### 4. Keputusan Teknis
+- **Mata pelajaran otomatis**: `pembelajaran_id` + `mata_pelajaran` + `ptk_id` diisi dari tabel `pembelajaran` Dapodik berdasarkan `rombel_id`. Rombel "Matapelajaran Pilihan" dengan nama sama ikut dicakup karena praktik kejuruan sering diampu di sana. Bila dropdown kosong, tersedia mode **Isi manual**.
+- **Topik opsional**: kolom `topik_praktik` dibuat NULLABLE; UI menandai "(opsional)" dan menampilkan "Topik belum diisi" saat kosong. Update status tidak menimpa topik (diuji).
+- **Jenis lokasi** dideteksi dari nama ruang/gedung (kata kunci LAHAN/KEBUN/GREENHOUSE → `lahan`; LAPANGAN/AREA TERBUKA → `lapangan`; BENGKEL → `bengkel`; LAB/STUDIO → `lab`).
+- **Anti-bentrok**: satu lokasi tidak boleh dipakai dua sesi pada jam beririsan; guru juga tidak boleh terjadwal ganda. Status `batal` dikecualikan.
+- **Rentang periode** disamakan dengan pola `TendikLaporanController` (semester & tahun ajaran memakai 1 Juli – 30 Juni).
+- Desain memakai token (`var(--space-*)`, `var(--radius-*)`, `var(--text-*)`, `var(--purple)`) — lolos `DesignConsistencyTest`.
+
+### 5. Verifikasi Nyata
+1. `php -l` seluruh berkas baru — 0 error. `node --check public/js/laboran-jadwal.js` — OK.
+2. Migrasi naik → turun → naik: skema & data kembali konsisten.
+3. Uji CRUD end-to-end (store/update status/update detail/delete + validasi + bentrok): semua sesuai harapan.
+4. Filter `jenis`, `lab`, `q`, `status`, `tanggal` diuji terhadap isi `<tbody>` — hasil tepat.
+5. Keseimbangan tag HTML tiga view diverifikasi (ditemukan & diperbaiki 1 `<div>` tak tertutup pada `jadwal.blade.php`).
+6. Test suite: **173 passed (2376 assertions)**.
+7. `view:clear` + `view:cache` sukses.
+
+---
+
+## Sesi 10 — 26 Oktober 2026: Modul Laboratorium per Jurusan (7 Modul Baru)
+
+### 1. Permintaan Pengguna
+Laboran dibagi berdasarkan **tugas tambahan + jurusan** (1 laboran = 1 jurusan), sehingga pengelolaan data harus **dibatasi per orang per jurusan**. Ditambah 8 penyesuaian:
+1. Modul analisis & input kebutuhan alat/bahan + dashboard per bidang lebih informatif.
+2. Modul perawatan/pemeliharaan/penataan alat sesuai K3 + kartu perawatan.
+3. Modul inventaris alat & bahan habis pakai.
+4. Pemeriksaan daftar ceklist alat & bahan.
+5. Daftar usulan pengadaan alat & bahan praktik.
+6. Pengelolaan berita acara kerusakan alat.
+7. Peminjaman alat khusus jurusan/laboran.
+8. Laporan lengkap penggunaan & kerusakan alat.
+
+### 2. Keputusan Teknis: Scoping per Jurusan
+Kunci pembatasan memakai kolom **`ptk_tugas_tambahan.jurusan_id`** yang sudah ada di skema.
+Kelas `App\Support\LaboranScope` menjadi satu-satunya sumber aturan:
+
+| Kondisi pengguna | Perilaku |
+|---|---|
+| Administrator | `unrestricted` — seluruh jurusan |
+| Tugas `KEPALA_LAB` | `unrestricted` — lintas jurusan (koordinatif) |
+| Tugas `LABORAN` + `jurusan_id` terisi | **terkunci** ke jurusan tersebut |
+| Tugas `LABORAN` + `jurusan_id` NULL | *fallback permisif* + badge peringatan di UI |
+
+Alasan fallback permisif: 4 baris tugas LABORAN yang ada belum memiliki `jurusan_id`, sehingga mengunci total akan mematikan operasional. UI menampilkan badge **"Penugasan Jurusan Belum Ditetapkan"** agar segera dilengkapi.
+
+Pembatasan diterapkan di tiga lapis:
+1. **Query** — `LaboranScope::apply($query, 'jurusan_id', $ctx)`.
+2. **Baris tunggal** — `findScoped()` mengembalikan `null` → HTTP 404.
+3. **Penulisan** — `jurusanForWrite()` memaksa jurusan milik laboran, mengabaikan input `jurusan_id` dari form.
+
+Penetapan jurusan dilakukan admin di **`dashboard/pengguna` → tab Tugas Tambahan** (field baru `jurusan_id`, muncul untuk LABORAN/KAPROG/KEPALA_LAB).
+
+### 3. Migrasi Database
+| Migrasi | Isi |
+|---|---|
+| `2026_10_26_100001_create_laboran_jurusan_modules_tables.php` | Kolom `jurusan_id` pada `laboran_bahan_alat` & `laboran_jadwal_penggunaan`; 10 tabel baru (kebutuhan, perawatan, kartu perawatan, pemeriksaan + item, usulan pengadaan + item, berita acara kerusakan, peminjaman + item). |
+| `2026_10_26_100002_sync_laboran_jurusan_permissions.php` | 6 permission key baru di `role_permissions` + `granted_permissions` tugas LABORAN. |
+
+Keduanya idempoten dan **diuji naik → turun → naik** (skema & data kembali konsisten).
+
+### 4. Modul & Berkas Baru
+| # | Modul | Route prefix | Controller |
+|---|---|---|---|
+| — | Dashboard per jurusan | `laboran/dashboard` | `Laboran\LaboranDashboardController` |
+| 1 | Analisis & Kebutuhan | `laboran/kebutuhan` | `Laboran\LaboranKebutuhanController` |
+| 2 | Perawatan & K3 + Kartu | `laboran/perawatan` | `Laboran\LaboranPerawatanController` |
+| 3 | Inventaris alat & bahan | `laboran/inventaris` (diperluas) | `LaboranInventarisController` |
+| 4 | Pemeriksaan Ceklist | `laboran/pemeriksaan` | `Laboran\LaboranPemeriksaanController` |
+| 5 | Usulan Pengadaan | `laboran/pengadaan` | `Laboran\LaboranPengadaanController` |
+| 6 | Berita Acara Kerusakan | `laboran/kerusakan` | `Laboran\LaboranKerusakanController` |
+| 7 | Peminjaman Alat | `laboran/peminjaman-alat` | `Laboran\LaboranPeminjamanController` |
+| 8 | Laporan Lengkap | `laboran/laporan-lengkap` | `Laboran\LaboranLaporanController` |
+
+Basis bersama: `App\Http\Controllers\Laboran\LaboranBaseController` (sesi, hak akses CRUD, respons AJAX/redirect seragam, penomoran dokumen otomatis `PREFIX/YYYYMM/NNNN`).
+
+View: `dashboard/laboran/{dashboard,kebutuhan,perawatan,pemeriksaan,pemeriksaan-detail,pengadaan,pengadaan-detail,kerusakan,kerusakan-cetak,peminjaman,peminjaman-detail,laporan-lengkap,laporan-lengkap-cetak}.blade.php`
+
+JS: `laboran-common.js` (helper bersama) + `laboran-{kebutuhan,perawatan,pemeriksaan,pengadaan,kerusakan,peminjaman}.js`
+
+### 5. Alur Prosedural yang Diterapkan
+- **Perawatan**: catatan perawatan (rutin/berkala/kalibrasi/perbaikan/penataan) dengan kategori risiko K3 dan daftar APD. Status `selesai` + kondisi akhir **otomatis menyinkronkan kondisi inventaris**. Kartu perawatan menyimpan interval & menghitung `jadwal_berikutnya`; tombol "tandai sudah dirawat" menggeser jadwal satu interval.
+- **Pemeriksaan**: header pemeriksaan + item ceklist (hasil: sesuai / tidak sesuai / tidak ada). Rekap (`total_sesuai`, `total_tidak_sesuai`, `total_tidak_ada`) dihitung ulang setiap penyimpanan.
+- **Pengadaan**: usulan dapat **menarik item dari analisis kebutuhan** (jumlah diambil dari `selisih` kekurangan). `total_item` & `total_estimasi_biaya` dihitung ulang otomatis.
+- **Kerusakan**: berita acara dengan kronologi, penyebab, pelaku, 2 saksi, tindak lanjut, estimasi biaya. Tingkat kerusakan **otomatis menurunkan kondisi inventaris** (`ringan`→rusak_ringan, `sedang/berat/total`→rusak_berat). Dokumen cetak A4 resmi dengan 3 blok tanda tangan.
+- **Peminjaman**: stok **berkurang saat serah terima** (`disetujui`→`dipinjam`) dan **pulih saat pengembalian**. Stok divalidasi terhadap permintaan. Kondisi kembali `rusak_*` memperbarui kondisi inventaris. Tersedia penandaan otomatis peminjaman terlambat.
+
+### 6. Verifikasi Nyata
+1. `php -l` seluruh berkas baru + `node --check` seluruh JS — 0 error.
+2. Migrasi naik → turun → naik: 10 tabel & kolom terhapus bersih saat rollback, permission kembali ke 9 key.
+3. **Uji CRUD end-to-end** (kebutuhan, perawatan+kartu, pemeriksaan+ceklist, pengadaan+item, kerusakan+cetak, peminjaman) — semua 200 dan data tersimpan benar.
+4. **Uji scoping jurusan 4 skenario**: NULL (permisif), ATPH (terkunci), Admin (lintas), TKJ (terkunci) — query, `allows()`, `jurusanForWrite()` sesuai harapan.
+5. **Uji isolasi HTTP**: laboran ATPH tidak melihat data TKJ; update & delete data TKJ ditolak 404; simpan baru dipaksa ke ATPH.
+6. Sidebar: 10 menu laboran tampil untuk pengguna LABORAN; tamu diarahkan ke login.
+7. Penetapan jurusan via `dashboard/pengguna` diuji: `jurusan_id` tersimpan benar.
+8. Test suite baru **26 test (140 assertions)** lulus; suite penuh **198 passed** (1 kegagalan `SchemaCheckPerformanceTest` berasal dari `BukuIndukController.php` yang sudah ada sebelumnya dan tidak terkait pekerjaan ini).
+
+### 7. Pelengkap: Scoping pada Modul Lama (Inventaris & Jadwal)
+
+Ditemukan celah: `LaboranInventarisController` dan `LaboranJadwalController` (modul yang sudah ada sebelum sesi ini) **belum** menerapkan pembatasan jurusan. Keduanya diperbaiki agar konsisten:
+
+| Modul | Perubahan |
+|---|---|
+| Inventaris | `LaboranScope::apply()` pada query & statistik; `store()` memaksa jurusan; `update()`/`destroy()` menolak 404 bila di luar cakupan; tambah proteksi hapus item yang masih dipinjam; filter & badge jurusan di UI; field `jurusan_id` pada form. |
+| Jadwal | `apply()` pada query, statistik, dan daftar lokasi; `store()`/`update()`/`updateStatus()`/`destroy()` menolak 404 di luar cakupan; `buildLaporanData()` ikut terfilter; badge jurusan di banner. |
+
+Verifikasi isolasi HTTP untuk kedua modul (laboran ATPH vs data TKJ): halaman hanya menampilkan data sendiri, update & delete ditolak 404, penyimpanan baru dipaksa ke jurusan laboran.
+
+Ditambahkan **6 test** baru:
+- `test_inventaris_terfilter_per_jurusan`
+- `test_laboran_tidak_bisa_mengubah_atau_menghapus_inventaris_jurusan_lain`
+- `test_simpan_inventaris_memaksa_jurusan_laboran`
+- `test_jadwal_terfilter_per_jurusan`
+- `test_laboran_tidak_bisa_mengubah_jadwal_jurusan_lain`
+- `test_laporan_lokasi_terfilter_per_jurusan`
+
+Total test suite: **204 passed** (1 kegagalan `SchemaCheckPerformanceTest` tetap berasal dari `BukuIndukController.php` yang sudah ada sebelumnya).
+---
+
+## Sesi 11 — 26 Oktober 2026: Kelengkapan TUPOKSI Laboran (9 Indikator Supervisi)
+
+### 1. Latar Belakang
+Pengguna meminta verifikasi apakah modul laboran sudah meng-cover 9 indikator tupoksi supervisi. Hasil analisis gap:
+
+| # | Bukti Fisik | Status Awal |
+|---|---|---|
+| 1 | Buku Administrasi Jurusan | ❌ belum ada |
+| 2 | Bon/Form Permintaan Bahan & Alat | ❌ belum ada |
+| 3 | Kartu Perawatan + Penataan K3 | ✅ sudah |
+| 4 | Buku Induk Inventaris | ⚠️ data ada, cetak formal belum |
+| 5 | Checklist Sebelum/Sesudah Pakai | ⚠️ ada, jenis belum lengkap |
+| 6 | Daftar Usulan Pengadaan | ✅ sudah |
+| 7 | Ordner BA Kerusakan + Kartu Peminjaman | ⚠️ ada, pusat arsip belum |
+| 8 | Laporan + Jurnal Kegiatan | ⚠️ laporan ada, jurnal belum |
+| 9 | Dokumentasi Kebersihan | ❌ belum ada |
+
+### 2. Migrasi Database
+`2026_10_26_120001_create_laboran_tupoksi_tables.php` — 6 tabel baru:
+`laboran_permintaan` + `laboran_permintaan_item`, `laboran_jurnal`, `laboran_kebersihan`, `laboran_administrasi`, `laboran_arsip`.
+
+`2026_10_26_120002_sync_laboran_tupoksi_permissions.php` — 5 permission key baru + sinkronisasi `granted_permissions` untuk LABORAN & KEPALA_LAB.
+
+Keduanya idempoten.
+
+### 3. Modul Baru (5)
+| Indikator | Modul | Route | Controller |
+|---|---|---|---|
+| #1 | Buku Administrasi Jurusan | `laboran/administrasi` | `Laboran\LaboranAdministrasiController` |
+| #2 | Bon/Form Permintaan | `laboran/permintaan` | `Laboran\LaboranPermintaanController` |
+| #7 | Arsip Dokumen (Ordner) | `laboran/arsip` | `Laboran\LaboranArsipController` |
+| #8 | Jurnal Kegiatan | `laboran/jurnal` | `Laboran\LaboranJurnalController` |
+| #9 | Kebersihan Lingkungan | `laboran/kebersihan` | `Laboran\LaboranKebersihanController` |
+
+Penomoran otomatis: `PMT/`, `KBR/`, `ARS/`.
+
+### 4. Integrasi Prosedural
+- **Permintaan (Bon)**: periksa ketersediaan otomatis dari stok → serah terima. **Bahan habis pakai mengurangi stok**, sedangkan **alat tidak** (hanya dipinjam). Diuji di 2 test terpisah.
+- **Jurnal**: kategori kegiatan dipetakan langsung ke nomor indikator tupoksi (`KATEGORI` const), sehingga rekap per indikator bisa dipakai sebagai bukti penilaian. Durasi dihitung otomatis dari jam mulai/selesai.
+- **Arsip**: mendukung **arsip massal** — menarik dokumen dari modul lain (BA kerusakan, peminjaman, permintaan, pemeriksaan, pengadaan) yang belum diarsipkan, dengan penanda `sumber_tabel`/`sumber_id` agar tidak duplikat.
+- **Kebersihan**: menyimpan `dokumentasi_paths` (JSON) sebagai bukti fisik Tupoksi #9.
+- **Pemeriksaan**: jenis diperluas dengan `sebelum_pakai` & `sesudah_pakai` (Tupoksi #5).
+
+### 5. Penyesuaian Menu (Terstruktur per Tupoksi)
+Sidebar laboran di **3 lokasi** disusun ulang menjadi 5 kelompok berurutan sesuai alur kerja:
+1. **Administrasi & Perencanaan** — Buku Administrasi (#1), Analisis Kebutuhan (#6), Usulan Pengadaan (#6)
+2. **Layanan Praktik** — Jadwal (#1), Bon Permintaan (#2), Peminjaman Alat (#7)
+3. **Pemeliharaan & Inventaris** — Inventaris (#4), Perawatan & K3 (#3), Pemeriksaan Ceklist (#5), Kebersihan (#9)
+4. **Pelaporan & Arsip** — BA Kerusakan (#7), Jurnal (#8), Laporan Lengkap (#8), Arsip Dokumen (#7)
+5. **Integrasi Sarpras** — Inventaris Aset, Peminjaman Sarpras
+
+Setiap item menu memiliki `title` yang mencantumkan nomor indikator tupoksi. Dashboard juga menampilkan 14 kartu akses cepat berlabel Tupoksi.
+
+### 6. Verifikasi
+1. `php -l` semua controller & migrasi — 0 error. `node --check` semua JS laboran — OK.
+2. Migrasi naik berhasil; 6 tabel + permission tersinkron.
+3. **Uji CRUD end-to-end kelima modul** — semua 200 dengan data benar:
+   - Permintaan: `PMT/202610/0001`, stok 50 → 40 setelah serah terima bahan habis pakai.
+   - Jurnal: durasi 120 menit (07:00–09:00) benar.
+   - Kebersihan: `KBR/202610/0001`, dokumentasi JSON tersimpan.
+   - Administrasi: dokumen tercatat.
+   - Arsip: massal menarik 1 dokumen, `ARS/202610/0001`; manual juga berhasil.
+4. **13 test baru** (total **41 test** modul lulus, 221 assertions), termasuk:
+   - `test_permintaan_serah_terima_mengurangi_stok_bahan_habis_pakai`
+   - `test_permintaan_alat_tidak_mengurangi_stok`
+   - `test_jurnal_menghitung_durasi_dan_kategori_tupoksi`
+   - `test_arsip_massal_menarik_dokumen_dari_modul_lain`
+   - `test_pemeriksaan_mendukung_jenis_sebelum_dan_sesudah_pakai`
+5. Keseimbangan `<div>` 11 view baru diverifikasi — semua seimbang.
+6. Test suite penuh: **213 passed** (naik dari 204). Satu kegagalan `SchemaCheckPerformanceTest` tetap berasal dari `BukuIndukController.php` yang sudah ada sebelumnya.
+
+### 7. Matriks Kesesuaian Tupoksi (Akhir)
+| # | Bukti Fisik Diminta | Modul Penghasil |
+|---|---|---|
+| 1 | Buku Administrasi Jurusan & Jadwal Lab | `laboran/administrasi` + `laboran/jadwal` |
+| 2 | Bon/Form Permintaan Bahan & Alat | `laboran/permintaan` (+ cetak) |
+| 3 | Kartu Perawatan & Penataan K3 | `laboran/perawatan` |
+| 4 | Buku Induk Inventaris & Bahan Habis Pakai | `laboran/inventaris` |
+| 5 | Form Checklist Sebelum/Sesudah Pakai | `laboran/pemeriksaan` |
+| 6 | Daftar Usulan Pengadaan | `laboran/pengadaan` + `laboran/kebutuhan` |
+| 7 | Ordner BA Kerusakan & Kartu Peminjaman | `laboran/kerusakan` + `laboran/peminjaman-alat` + `laboran/arsip` |
+| 8 | Laporan Rekapitulasi & Jurnal Kegiatan | `laboran/laporan-lengkap` + `laboran/jurnal` |
+| 9 | Dokumentasi Kebersihan | `laboran/kebersihan` (+ cetak) |
+
+**Seluruh 9 indikator kini ter-cover dengan dokumen cetak resmi masing-masing.**
