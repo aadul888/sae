@@ -14,6 +14,41 @@
                     @csrf
                     <input type="hidden" name="_method" id="kebutuhanMethod" value="POST">
 
+                    {{-- Referensi Cepat dari Inventaris Lab (Auto-Fill) --}}
+                    @if (isset($inventarisList) && $inventarisList->isNotEmpty())
+                        <div id="wrapperInventarisRef"
+                            style="margin-bottom: var(--space-6); padding: 12px 14px; background: rgba(59,130,246,0.06); border: 1px dashed rgba(59,130,246,0.3); border-radius: var(--radius-md, 8px);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--primary); margin: 0;">
+                                    <i class="fas fa-boxes-stacked me-1"></i> Pilih Referensi Inventaris Lab (Auto-Fill)
+                                </label>
+                                <small style="color: var(--text-muted); font-size: var(--text-xs);">Otomatis isi nama, spek, ketersediaan &amp; satuan</small>
+                            </div>
+                            <select id="selectInventarisRef" class="form-control" style="font-size: var(--text-sm); height: 38px;">
+                                <option value="">-- Ketik Baru atau Pilih dari Inventaris --</option>
+                                @foreach ($inventarisList as $inv)
+                                    <option value="{{ $inv->id }}"
+                                        data-nama="{{ $inv->nama_item }}"
+                                        data-jenis="{{ $inv->jenis }}"
+                                        data-kategori="{{ $inv->kategori ?? '' }}"
+                                        data-lokasi="{{ $inv->ruang_lab_nama }}"
+                                        data-satuan="{{ $inv->satuan }}"
+                                        data-spek="{{ $inv->spesifikasi }}"
+                                        data-total="{{ (float) $inv->stok_total }}"
+                                        data-tersedia="{{ (float) ($inv->jumlah_baik > 0 ? $inv->jumlah_baik : $inv->stok_tersedia) }}"
+                                        data-kondisi="{{ $inv->kondisi }}"
+                                        data-rusakberat="{{ (float) ($inv->jumlah_rusak_berat ?? 0) }}"
+                                        data-rusakringan="{{ (float) ($inv->jumlah_rusak_ringan ?? 0) }}"
+                                        data-kadaluwarsa="{{ (float) ($inv->jumlah_kedaluwarsa ?? 0) }}"
+                                        data-exp="{{ $inv->tgl_kedaluwarsa }}"
+                                        data-jurusan="{{ $inv->jurusan_id ?? '' }}">
+                                        {{ $inv->nama_item }} &bull; {{ $inv->kode_item }} (Stok: {{ (float)$inv->stok_tersedia }}/{{ (float)$inv->stok_total }} {{ $inv->satuan }} - {{ $inv->kondisi }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
@@ -54,15 +89,15 @@
                         <textarea name="spesifikasi" id="kbSpesifikasi" class="form-control" rows="2" placeholder="Detail teknis, ukuran, bahan, atau tipe yang dibutuhkan..."></textarea>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-4);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Jumlah Kebutuhan <span style="color: var(--danger, #ef4444);">*</span>
+                                Jumlah Kebutuhan (Ideal) <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="number" step="0.01" min="0" name="jumlah_kebutuhan" id="kbKebutuhan" class="form-control" value="1" required>
                         </div>
                         <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Jumlah Tersedia</label>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Jumlah Tersedia (Laik Pakai)</label>
                             <input type="number" step="0.01" min="0" name="jumlah_tersedia" id="kbTersedia" class="form-control" value="0">
                         </div>
                         <div>
@@ -71,6 +106,16 @@
                             </label>
                             <input type="text" name="satuan" id="kbSatuan" class="form-control" value="unit" required>
                         </div>
+                    </div>
+
+                    {{-- Live Kalkulasi Kekurangan / Selisih --}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(59,130,246,0.04); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-6);">
+                        <span style="font-size: var(--text-sm); color: var(--text-muted);">
+                            <i class="fas fa-calculator text-primary me-1"></i> Kekurangan (Selisih yang dibutuhkan):
+                        </span>
+                        <span id="labelKekurangan" style="font-size: var(--text-md); font-weight: var(--font-bold); color: var(--danger, #ef4444);">
+                            1 unit
+                        </span>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">

@@ -123,6 +123,9 @@ final class SarprasDashboardService
             'ronda_temuan'       => 0,
             // Keamanan (turunan)
             'insiden_aktif'      => 0,
+            // Persediaan barang habis pakai / ATK
+            'persediaan_total'   => 0,
+            'persediaan_menipis' => 0,
         ];
 
         if (Table::exists('sarpras_ruang')) {
@@ -253,6 +256,13 @@ final class SarprasDashboardService
         if (Table::exists('keamanan_insiden')) {
             $r['insiden_aktif'] = (int) DB::table('keamanan_insiden')
                 ->where('status_penyelesaian', 'dalam_penanganan')
+                ->count();
+        }
+
+        if (Table::exists('sarpras_persediaan')) {
+            $r['persediaan_total'] = (int) DB::table('sarpras_persediaan')->count();
+            $r['persediaan_menipis'] = (int) DB::table('sarpras_persediaan')
+                ->whereRaw('stok_saat_ini <= stok_minimum')
                 ->count();
         }
 
@@ -756,6 +766,14 @@ final class SarprasDashboardService
                 'icon'  => 'fa-broom',
                 'text'  => 'Temuan kebersihan/sanitasi memerlukan tindak lanjut',
                 'count' => (int) $r['kebersihan_masalah'],
+            ];
+        }
+        if (($r['persediaan_menipis'] ?? 0) > 0) {
+            $hasil[] = [
+                'tone'  => 'warning',
+                'icon'  => 'fa-boxes-packing',
+                'text'  => 'Barang persediaan / ATK stok menipis perlu pengadaan',
+                'count' => (int) $r['persediaan_menipis'],
             ];
         }
 

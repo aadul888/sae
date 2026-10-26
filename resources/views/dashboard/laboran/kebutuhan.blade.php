@@ -94,58 +94,183 @@
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-7);">
                 {{-- Kritis --}}
-                <div style="border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(239,68,68,0.04);">
+                <div style="border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(239,68,68,0.04); display: flex; flex-direction: column;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-5);">
                         <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--danger, #ef4444);">
                             <i class="fas fa-circle-exclamation me-1"></i> Stok Kritis / Rusak Berat
                         </span>
                         <span class="badge badge-danger" style="font-size: var(--text-2xs);">{{ $analisis['jumlah_kritis'] }}</span>
                     </div>
-                    @forelse ($analisis['kritis'] as $it)
-                        <div style="display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
-                            <span style="font-weight: var(--font-semibold); color: var(--text-color);">{{ \Illuminate\Support\Str::limit($it->nama_item, 30) }}</span>
-                            <span style="color: var(--danger, #ef4444); white-space: nowrap;">{{ (float) $it->stok_tersedia }} {{ $it->satuan }}</span>
-                        </div>
-                    @empty
-                        <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item kritis.</p>
-                    @endforelse
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-3);">
+                        @forelse ($analisis['kritis'] as $it)
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
+                                    <div style="color: var(--danger, #ef4444); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? ((float)$it->stok_tersedia . ' ' . $it->satuan) }}</div>
+                                </div>
+                                @if ($canCreate)
+                                    <button type="button" class="btn btn-outline btn-quick-kebutuhan"
+                                        style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
+                                        data-nama="{{ $it->nama_item }}"
+                                        data-jenis="{{ $it->jenis }}"
+                                        data-kategori="{{ $it->kategori ?? '' }}"
+                                        data-lokasi="{{ $it->ruang_lab_nama ?? '' }}"
+                                        data-satuan="{{ $it->satuan }}"
+                                        data-kebutuhan="{{ (float) $it->stok_total }}"
+                                        data-tersedia="{{ (float) ($it->jumlah_baik > 0 ? $it->jumlah_baik : $it->stok_tersedia) }}"
+                                        data-prioritas="kritis"
+                                        data-sumber="kerusakan"
+                                        data-analisis="Kondisi kritis/rusak berat: {{ $it->ringkasan_masalah ?? 'membutuhkan pengadaan unit baru' }}."
+                                        title="Buat usulan kebutuhan untuk item ini">
+                                        <i class="fas fa-plus me-1"></i> Analisis
+                                    </button>
+                                @endif
+                            </div>
+                        @empty
+                            <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item kritis.</p>
+                        @endforelse
+                    </div>
                 </div>
 
                 {{-- Perlu perhatian --}}
-                <div style="border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(245,158,11,0.04);">
+                <div style="border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(245,158,11,0.04); display: flex; flex-direction: column;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-5);">
                         <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--warning, #f59e0b);">
                             <i class="fas fa-triangle-exclamation me-1"></i> Stok Menipis / Rusak Ringan
                         </span>
                         <span class="badge badge-warning" style="font-size: var(--text-2xs);">{{ $analisis['jumlah_perhatian'] }}</span>
                     </div>
-                    @forelse ($analisis['perlu_perhatian'] as $it)
-                        <div style="display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
-                            <span style="font-weight: var(--font-semibold); color: var(--text-color);">{{ \Illuminate\Support\Str::limit($it->nama_item, 30) }}</span>
-                            <span style="color: var(--warning, #f59e0b); white-space: nowrap;">{{ (float) $it->stok_tersedia }}/{{ (float) $it->stok_total }}</span>
-                        </div>
-                    @empty
-                        <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item menipis.</p>
-                    @endforelse
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-3);">
+                        @forelse ($analisis['perlu_perhatian'] as $it)
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
+                                    <div style="color: var(--warning, #f59e0b); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? ((float)$it->stok_tersedia . '/' . (float)$it->stok_total . ' ' . $it->satuan) }}</div>
+                                </div>
+                                @if ($canCreate)
+                                    <button type="button" class="btn btn-outline btn-quick-kebutuhan"
+                                        style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
+                                        data-nama="{{ $it->nama_item }}"
+                                        data-jenis="{{ $it->jenis }}"
+                                        data-kategori="{{ $it->kategori ?? '' }}"
+                                        data-lokasi="{{ $it->ruang_lab_nama ?? '' }}"
+                                        data-satuan="{{ $it->satuan }}"
+                                        data-kebutuhan="{{ (float) $it->stok_total }}"
+                                        data-tersedia="{{ (float) ($it->jumlah_baik > 0 ? $it->jumlah_baik : $it->stok_tersedia) }}"
+                                        data-prioritas="tinggi"
+                                        data-sumber="praktik"
+                                        data-analisis="Perhatian: {{ $it->ringkasan_masalah ?? 'stok menipis' }}."
+                                        title="Buat usulan kebutuhan untuk item ini">
+                                        <i class="fas fa-plus me-1"></i> Analisis
+                                    </button>
+                                @endif
+                            </div>
+                        @empty
+                            <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item menipis.</p>
+                        @endforelse
+                    </div>
                 </div>
 
                 {{-- Kedaluwarsa --}}
-                <div style="border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(139,92,246,0.04);">
+                <div style="border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(139,92,246,0.04); display: flex; flex-direction: column;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-5);">
                         <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--purple, #8b5cf6);">
                             <i class="fas fa-hourglass-end me-1"></i> Mendekati / Lewat Kedaluwarsa
                         </span>
                         <span class="badge" style="font-size: var(--text-2xs); background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6);">{{ $analisis['jumlah_kadaluwarsa'] }}</span>
                     </div>
-                    @forelse ($analisis['kadaluwarsa'] as $it)
-                        <div style="display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
-                            <span style="font-weight: var(--font-semibold); color: var(--text-color);">{{ \Illuminate\Support\Str::limit($it->nama_item, 26) }}</span>
-                            <span style="color: var(--purple, #8b5cf6); white-space: nowrap;">{{ \Carbon\Carbon::parse($it->tgl_kedaluwarsa)->format('d/m/Y') }}</span>
-                        </div>
-                    @empty
-                        <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item kedaluwarsa.</p>
-                    @endforelse
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-3);">
+                        @forelse ($analisis['kadaluwarsa'] as $it)
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
+                                    <div style="color: var(--purple, #8b5cf6); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? 'Kedaluwarsa' }}</div>
+                                </div>
+                                @if ($canCreate)
+                                    <button type="button" class="btn btn-outline btn-quick-kebutuhan"
+                                        style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
+                                        data-nama="{{ $it->nama_item }}"
+                                        data-jenis="{{ $it->jenis }}"
+                                        data-kategori="{{ $it->kategori ?? '' }}"
+                                        data-lokasi="{{ $it->ruang_lab_nama ?? '' }}"
+                                        data-satuan="{{ $it->satuan }}"
+                                        data-kebutuhan="{{ (float) $it->stok_total }}"
+                                        data-tersedia="0"
+                                        data-prioritas="tinggi"
+                                        data-sumber="praktik"
+                                        data-analisis="Bahan kedaluwarsa: {{ $it->ringkasan_masalah ?? 'butuh penggantian bahan segar' }}."
+                                        title="Buat usulan kebutuhan untuk item ini">
+                                        <i class="fas fa-plus me-1"></i> Analisis
+                                    </button>
+                                @endif
+                            </div>
+                        @empty
+                            <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Tidak ada item kedaluwarsa.</p>
+                        @endforelse
+                    </div>
                 </div>
+
+                {{-- Temuan Berita Acara Kerusakan & Ceklist Pemeriksaan --}}
+                @if (($analisis['jumlah_ba'] ?? 0) > 0 || ($analisis['jumlah_ceklist'] ?? 0) > 0)
+                    <div style="border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius-lg); padding: var(--space-7); background: rgba(59,130,246,0.04); display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-5);">
+                            <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--primary, #3b82f6);">
+                                <i class="fas fa-clipboard-check me-1"></i> Temuan Lapangan &amp; BA
+                            </span>
+                            <span class="badge badge-primary" style="font-size: var(--text-2xs);">{{ ($analisis['jumlah_ba'] ?? 0) + ($analisis['jumlah_ceklist'] ?? 0) }}</span>
+                        </div>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-3);">
+                            @foreach ($analisis['ba_kerusakan'] ?? [] as $ba)
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $ba->nama_alat }}</div>
+                                        <div style="color: var(--danger, #ef4444); font-size: var(--text-2xs);">BA: {{ $ba->nomor_ba }} &bull; {{ (float)$ba->jumlah_rusak }} {{ $ba->satuan }} rusak ({{ $ba->tingkat_kerusakan }})</div>
+                                    </div>
+                                    @if ($canCreate)
+                                        <button type="button" class="btn btn-outline btn-quick-kebutuhan"
+                                            style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
+                                            data-nama="{{ $ba->nama_alat }}"
+                                            data-jenis="alat"
+                                            data-satuan="{{ $ba->satuan ?: 'unit' }}"
+                                            data-kebutuhan="{{ (float) $ba->jumlah_rusak }}"
+                                            data-tersedia="0"
+                                            data-prioritas="kritis"
+                                            data-sumber="kerusakan"
+                                            data-analisis="Berdasarkan Berita Acara Kerusakan {{ $ba->nomor_ba }} ({{ (float)$ba->jumlah_rusak }} {{ $ba->satuan }} rusak {{ $ba->tingkat_kerusakan }}). Penyebab: {{ $ba->penyebab ?: 'Kerusakan saat praktikum' }}."
+                                            title="Buat usulan kebutuhan dari BA Kerusakan">
+                                            <i class="fas fa-plus me-1"></i> Analisis
+                                        </button>
+                                    @endif
+                                </div>
+                            @endforeach
+
+                            @foreach ($analisis['ceklist_temuan'] ?? [] as $ck)
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color); font-size: var(--text-xs);">
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $ck->nama_item }}</div>
+                                        <div style="color: var(--warning, #f59e0b); font-size: var(--text-2xs);">Ceklist: {{ $ck->ruang_lab_nama }} &bull; {{ $ck->hasil === 'tidak_ada' ? 'Alat Tidak Ditemukan' : 'Tidak Sesuai Standar' }}</div>
+                                    </div>
+                                    @if ($canCreate)
+                                        <button type="button" class="btn btn-outline btn-quick-kebutuhan"
+                                            style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
+                                            data-nama="{{ $ck->nama_item }}"
+                                            data-jenis="alat"
+                                            data-lokasi="{{ $ck->ruang_lab_nama }}"
+                                            data-satuan="unit"
+                                            data-kebutuhan="1"
+                                            data-tersedia="0"
+                                            data-prioritas="{{ $ck->hasil === 'tidak_ada' ? 'kritis' : 'sedang' }}"
+                                            data-sumber="praktik"
+                                            data-analisis="Temuan pemeriksaan di {{ $ck->ruang_lab_nama }}: {{ $ck->hasil === 'tidak_ada' ? 'Alat hilang/tidak ditemukan' : 'Kondisi fisik/fungsi tidak sesuai kelayakan' }}. Catatan: {{ $ck->keterangan ?: ($ck->tindak_lanjut ?: '-') }}."
+                                            title="Buat usulan kebutuhan dari Temuan Ceklist">
+                                            <i class="fas fa-plus me-1"></i> Analisis
+                                        </button>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 

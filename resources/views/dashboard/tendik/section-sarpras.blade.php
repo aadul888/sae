@@ -60,6 +60,14 @@
         <span class="kepegawaian-quick-label">Ruang &amp; Gedung</span>
     </a>
 
+    <a href="{{ route('dashboard.sarpras.kir.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--primary-light, #6366f1);" title="Kartu Inventaris Ruangan (KIR)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Kartu KIR</span>
+    </a>
+
     <a href="{{ route('dashboard.sarpras.aset.index') }}" class="kepegawaian-quick-btn"
         style="--quick-color: var(--success, #10b981);" title="Inventaris &amp; Aset Sarpras">
         <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
@@ -68,12 +76,28 @@
         <span class="kepegawaian-quick-label">Inventaris Aset</span>
     </a>
 
-    <a href="{{ route('dashboard.sarpras.peminjaman.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--warning, #f59e0b);" title="Peminjaman &amp; Pengembalian Sarpras">
+    <a href="{{ route('dashboard.sarpras.persediaan.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--warning, #f59e0b);" title="Barang Habis Pakai &amp; ATK Sekolah">
         <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-boxes-packing"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Barang ATK/BHP</span>
+    </a>
+
+    <a href="{{ route('dashboard.sarpras.peminjaman.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--accent, #06b6d4);" title="Peminjaman &amp; Pengembalian Sarpras">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-hand-holding"></i>
         </div>
         <span class="kepegawaian-quick-label">Peminjaman</span>
+    </a>
+
+    <a href="{{ route('dashboard.sarpras.laporan.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--success, #10b981);" title="Buku Induk &amp; Laporan Inventaris">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-book-bookmark"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Buku Induk Aset</span>
     </a>
 
     @if ($canModul('menu_teknisi'))

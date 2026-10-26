@@ -33,6 +33,12 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('asetKategori').value = data.kategori || 'Elektronik';
             document.getElementById('asetMerk').value = data.merk || '';
             document.getElementById('asetTahun').value = data.tahun || new Date().getFullYear();
+            const asetTgl = document.getElementById('asetTanggalPerolehan');
+            if (asetTgl) asetTgl.value = data.tglperolehan || '';
+            const asetNoSeri = document.getElementById('asetNoSeri');
+            if (asetNoSeri) asetNoSeri.value = data.noseri || '';
+            const asetHarga = document.getElementById('asetHarga');
+            if (asetHarga) asetHarga.value = data.harga || '';
             document.getElementById('asetSumber').value = data.sumber || 'BOS Reguler';
             document.getElementById('asetKondisi').value = data.kondisi || 'baik';
             document.getElementById('asetRuang').value = data.ruang || '';
@@ -41,11 +47,27 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('asetJumlah').value = data.jumlah || 1;
             document.getElementById('asetSatuan').value = data.satuan || 'unit';
             document.getElementById('asetStatus').value = data.status || 'tersedia';
+
+            const jBaik = document.getElementById('asetJumlahBaik');
+            const jRR = document.getElementById('asetJumlahRusakRingan');
+            const jRB = document.getElementById('asetJumlahRusakBerat');
+            const jml = parseInt(data.jumlah) || 1;
+            if (jBaik) jBaik.value = data.baik !== undefined ? data.baik : (data.kondisi === 'baik' ? jml : 0);
+            if (jRR) jRR.value = data.rr !== undefined ? data.rr : (data.kondisi === 'rusak_ringan' ? jml : 0);
+            if (jRB) jRB.value = data.rb !== undefined ? data.rb : (data.kondisi === 'rusak_berat' ? jml : 0);
+            syncRincianKondisi();
         } else {
             modalTitle.textContent = 'Tambah Aset Sarpras';
             methodInput.value = 'POST';
             form.action = '/dashboard/sarpras/aset';
             form.reset();
+            const jBaik = document.getElementById('asetJumlahBaik');
+            const jRR = document.getElementById('asetJumlahRusakRingan');
+            const jRB = document.getElementById('asetJumlahRusakBerat');
+            if (jBaik) jBaik.value = 1;
+            if (jRR) jRR.value = 0;
+            if (jRB) jRB.value = 0;
+            syncRincianKondisi();
         }
     }
 
@@ -55,6 +77,71 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.openModalAset = (isEdit, data) => openModal(isEdit, data);
     window.closeModalAset = closeModal;
+
+    const inputJumlah = document.getElementById('asetJumlah');
+    const inputTglPerolehan = document.getElementById('asetTanggalPerolehan');
+    const inputTahun = document.getElementById('asetTahun');
+    const elRincianSum = document.getElementById('asetRincianSum');
+    const elRincianTotal = document.getElementById('asetRincianTotal');
+    const btnSemuaBaik = document.getElementById('btnAsetSemuaBaik');
+
+    function syncRincianKondisi() {
+        if (!elRincianSum || !elRincianTotal) return;
+        const total = parseInt(inputJumlah?.value) || 0;
+        const b = parseInt(document.getElementById('asetJumlahBaik')?.value) || 0;
+        const rr = parseInt(document.getElementById('asetJumlahRusakRingan')?.value) || 0;
+        const rb = parseInt(document.getElementById('asetJumlahRusakBerat')?.value) || 0;
+        const sum = b + rr + rb;
+
+        elRincianTotal.textContent = total;
+        elRincianSum.textContent = sum;
+
+        if (sum > total) {
+            elRincianSum.style.color = 'var(--danger, #ef4444)';
+        } else if (sum === total && total > 0) {
+            elRincianSum.style.color = 'var(--success, #10b981)';
+            const elKondisi = document.getElementById('asetKondisi');
+            if (elKondisi) {
+                if (rb >= b && rb >= rr && rb > 0) elKondisi.value = 'rusak_berat';
+                else if (rr > b && rr > rb) elKondisi.value = 'rusak_ringan';
+                else elKondisi.value = 'baik';
+            }
+        } else {
+            elRincianSum.style.color = 'var(--text-muted)';
+        }
+    }
+
+    if (inputTglPerolehan && inputTahun) {
+        inputTglPerolehan.addEventListener('change', function () {
+            if (this.value) {
+                const parts = this.value.split('-');
+                if (parts[0]) inputTahun.value = parts[0];
+            }
+        });
+    }
+
+    if (inputJumlah) {
+        inputJumlah.addEventListener('input', syncRincianKondisi);
+    }
+
+    document.querySelectorAll('.aset-jumlah-kondisi').forEach(function (inp) {
+        inp.addEventListener('input', syncRincianKondisi);
+    });
+
+    if (btnSemuaBaik) {
+        btnSemuaBaik.addEventListener('click', function () {
+            const total = parseInt(inputJumlah?.value) || 1;
+            const jBaik = document.getElementById('asetJumlahBaik');
+            const jRR = document.getElementById('asetJumlahRusakRingan');
+            const jRB = document.getElementById('asetJumlahRusakBerat');
+            if (jBaik) jBaik.value = total;
+            if (jRR) jRR.value = 0;
+            if (jRB) jRB.value = 0;
+            const elKondisi = document.getElementById('asetKondisi');
+            if (elKondisi) elKondisi.value = 'baik';
+            syncRincianKondisi();
+        });
+    }
 
     if (btnOpen) btnOpen.addEventListener('click', () => openModal(false));
     if (btnClose) btnClose.addEventListener('click', closeModal);
@@ -77,8 +164,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 kategori: btnEdit.dataset.kategori,
                 merk: btnEdit.dataset.merk,
                 tahun: btnEdit.dataset.tahun,
+                tglperolehan: btnEdit.dataset.tglperolehan,
+                noseri: btnEdit.dataset.noseri,
+                harga: btnEdit.dataset.harga,
                 sumber: btnEdit.dataset.sumber,
                 kondisi: btnEdit.dataset.kondisi,
+                baik: btnEdit.dataset.baik,
+                rr: btnEdit.dataset.rr,
+                rb: btnEdit.dataset.rb,
                 ruang: btnEdit.dataset.ruang,
                 jurusan: btnEdit.dataset.jurusan,
                 jumlah: btnEdit.dataset.jumlah,

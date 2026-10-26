@@ -22,6 +22,14 @@
                                 <span class="nav-label">Ruang &amp; Gedung</span>
                             </a>
                         @endif
+                        @if ($can('menu_sarpras_ruang') || $can('menu_sarpras'))
+                            <a href="{{ route('dashboard.sarpras.kir.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.kir*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-clipboard-check"></i></span>
+                                <span class="nav-label">Kartu Inventaris Ruang</span>
+                            </a>
+                        @endif
                         @if ($can('menu_inventaris') || $can('menu_sarpras'))
                             <a href="{{ route('dashboard.sarpras.aset.index') }}"
                                 class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.aset*') ? 'active' : '' }}">
@@ -30,12 +38,28 @@
                                 <span class="nav-label">Inventaris &amp; Aset</span>
                             </a>
                         @endif
+                        @if ($can('menu_inventaris') || $can('menu_sarpras'))
+                            <a href="{{ route('dashboard.sarpras.persediaan.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.persediaan*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-boxes-packing"></i></span>
+                                <span class="nav-label">Barang Habis Pakai</span>
+                            </a>
+                        @endif
                         @if ($can('menu_sarpras_peminjaman') || $can('menu_sarpras'))
                             <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
                                 class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
                                 <span class="nav-icon nested-icon"><i
                                         class="fas fa-fw fa-hand-holding"></i></span>
                                 <span class="nav-label">Peminjaman Sarpras</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_inventaris') || $can('menu_sarpras'))
+                            <a href="{{ route('dashboard.sarpras.laporan.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.laporan*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-book-bookmark"></i></span>
+                                <span class="nav-label">Buku Induk &amp; Laporan</span>
                             </a>
                         @endif
                         @if ($can('menu_teknisi'))

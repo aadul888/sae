@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RolePermission;
+use App\Services\SarprasAsetImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -188,23 +189,47 @@ class SarprasAsetController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_aset' => 'required|string|max:50|unique:sarpras_aset,kode_aset',
-            'nama_barang' => 'required|string|max:255',
-            'kategori' => 'required|string|max:100',
-            'merk_tipe' => 'nullable|string|max:100',
-            'tahun_perolehan' => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
-            'sumber_dana' => 'required|string|max:50',
-            'harga_perolehan' => 'nullable|numeric|min:0',
-            'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
-            'ruang_id' => 'nullable|exists:sarpras_ruang,id',
-            'jurusan_id' => 'nullable|string|max:50',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:30',
-            'foto' => 'nullable|image|max:3072',
+            'kode_aset'           => 'nullable|string|max:50|unique:sarpras_aset,kode_aset',
+            'nama_barang'         => 'required|string|max:255',
+            'kategori'            => 'required|string|max:100',
+            'merk_tipe'           => 'nullable|string|max:100',
+            'no_seri_pabrik'      => 'nullable|string|max:100',
+            'tahun_perolehan'     => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+            'tanggal_perolehan'   => 'nullable|date',
+            'sumber_dana'         => 'required|string|max:50',
+            'harga_perolehan'     => 'nullable|numeric|min:0',
+            'kondisi'             => 'nullable|in:baik,rusak_ringan,rusak_berat',
+            'jumlah_baik'         => 'nullable|integer|min:0',
+            'jumlah_rusak_ringan' => 'nullable|integer|min:0',
+            'jumlah_rusak_berat'  => 'nullable|integer|min:0',
+            'ruang_id'            => 'nullable|exists:sarpras_ruang,id',
+            'jurusan_id'          => 'nullable|string|max:50',
+            'jumlah'              => 'required|integer|min:1',
+            'satuan'              => 'required|string|max:30',
+            'foto'                => 'nullable|image|max:3072',
         ], [
-            'kode_aset.unique' => 'Kode aset sudah digunakan.',
+            'kode_aset.unique'    => 'Kode aset sudah digunakan.',
             'nama_barang.required' => 'Nama barang wajib diisi.',
         ]);
+
+        $service = new SarprasAsetImportService();
+
+        $kode = strtoupper(trim((string) $request->kode_aset));
+        if ($kode === '') {
+            $kode = $service->generateKodeAset();
+        }
+
+        $jumlah = max(1, (int) $request->jumlah);
+        [$kondisi, $rincian] = $service->resolveKondisi($request->all(), $jumlah);
+
+        $tgl = $request->filled('tanggal_perolehan') ? $request->tanggal_perolehan : null;
+        $tahun = (int) $request->tahun_perolehan;
+        if ($tahun <= 0 && $tgl) {
+            $tahun = (int) \Carbon\Carbon::parse($tgl)->format('Y');
+        }
+        if ($tahun <= 0) {
+            $tahun = (int) date('Y');
+        }
 
         $fotoPath = null;
         if ($request->hasFile('foto')) {
@@ -212,23 +237,27 @@ class SarprasAsetController extends Controller
         }
 
         DB::table('sarpras_aset')->insert([
-            'kode_aset' => strtoupper(trim($request->kode_aset)),
-            'nama_barang' => trim($request->nama_barang),
-            'kategori' => $request->kategori,
-            'merk_tipe' => $request->merk_tipe,
-            'no_seri_pabrik' => $request->no_seri_pabrik,
-            'tahun_perolehan' => $request->tahun_perolehan,
-            'sumber_dana' => $request->sumber_dana,
-            'harga_perolehan' => $request->harga_perolehan ?? 0,
-            'kondisi' => $request->kondisi,
-            'ruang_id' => $request->ruang_id,
-            'jurusan_id' => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
-            'jumlah' => $request->jumlah,
-            'satuan' => $request->satuan,
+            'kode_aset'           => $kode,
+            'nama_barang'         => trim($request->nama_barang),
+            'kategori'            => $request->kategori,
+            'merk_tipe'           => $request->merk_tipe,
+            'no_seri_pabrik'      => $request->no_seri_pabrik,
+            'tahun_perolehan'     => $tahun,
+            'tanggal_perolehan'   => $tgl,
+            'sumber_dana'         => $request->sumber_dana,
+            'harga_perolehan'     => $request->harga_perolehan ?? 0,
+            'kondisi'             => $kondisi,
+            'jumlah_baik'         => $rincian['baik'],
+            'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+            'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+            'ruang_id'            => $request->ruang_id,
+            'jurusan_id'          => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
+            'jumlah'              => $jumlah,
+            'satuan'              => $request->satuan,
             'status_ketersediaan' => 'tersedia',
-            'foto' => $fotoPath,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'foto'                => $fotoPath,
+            'created_at'          => now(),
+            'updated_at'          => now(),
         ]);
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -241,38 +270,57 @@ class SarprasAsetController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_aset' => 'required|string|max:50|unique:sarpras_aset,kode_aset,' . $id,
-            'nama_barang' => 'required|string|max:255',
-            'kategori' => 'required|string|max:100',
-            'merk_tipe' => 'nullable|string|max:100',
-            'tahun_perolehan' => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
-            'sumber_dana' => 'required|string|max:50',
-            'harga_perolehan' => 'nullable|numeric|min:0',
-            'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
-            'ruang_id' => 'nullable|exists:sarpras_ruang,id',
-            'jurusan_id' => 'nullable|string|max:50',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:30',
+            'kode_aset'           => 'required|string|max:50|unique:sarpras_aset,kode_aset,' . $id,
+            'nama_barang'         => 'required|string|max:255',
+            'kategori'            => 'required|string|max:100',
+            'merk_tipe'           => 'nullable|string|max:100',
+            'no_seri_pabrik'      => 'nullable|string|max:100',
+            'tahun_perolehan'     => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+            'tanggal_perolehan'   => 'nullable|date',
+            'sumber_dana'         => 'required|string|max:50',
+            'harga_perolehan'     => 'nullable|numeric|min:0',
+            'kondisi'             => 'nullable|in:baik,rusak_ringan,rusak_berat',
+            'jumlah_baik'         => 'nullable|integer|min:0',
+            'jumlah_rusak_ringan' => 'nullable|integer|min:0',
+            'jumlah_rusak_berat'  => 'nullable|integer|min:0',
+            'ruang_id'            => 'nullable|exists:sarpras_ruang,id',
+            'jurusan_id'          => 'nullable|string|max:50',
+            'jumlah'              => 'required|integer|min:1',
+            'satuan'              => 'required|string|max:30',
             'status_ketersediaan' => 'required|in:tersedia,dipinjam,perbaikan,dihapuskan',
-            'foto' => 'nullable|image|max:3072',
+            'foto'                => 'nullable|image|max:3072',
         ]);
 
+        $service = new SarprasAsetImportService();
+        $jumlah = max(1, (int) $request->jumlah);
+        [$kondisi, $rincian] = $service->resolveKondisi($request->all(), $jumlah);
+
+        $tgl = $request->filled('tanggal_perolehan') ? $request->tanggal_perolehan : null;
+        $tahun = (int) $request->tahun_perolehan;
+        if ($tahun <= 0 && $tgl) {
+            $tahun = (int) \Carbon\Carbon::parse($tgl)->format('Y');
+        }
+
         $data = [
-            'kode_aset' => strtoupper(trim($request->kode_aset)),
-            'nama_barang' => trim($request->nama_barang),
-            'kategori' => $request->kategori,
-            'merk_tipe' => $request->merk_tipe,
-            'no_seri_pabrik' => $request->no_seri_pabrik,
-            'tahun_perolehan' => $request->tahun_perolehan,
-            'sumber_dana' => $request->sumber_dana,
-            'harga_perolehan' => $request->harga_perolehan ?? 0,
-            'kondisi' => $request->kondisi,
-            'ruang_id' => $request->ruang_id,
-            'jurusan_id' => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
-            'jumlah' => $request->jumlah,
-            'satuan' => $request->satuan,
+            'kode_aset'           => strtoupper(trim($request->kode_aset)),
+            'nama_barang'         => trim($request->nama_barang),
+            'kategori'            => $request->kategori,
+            'merk_tipe'           => $request->merk_tipe,
+            'no_seri_pabrik'      => $request->no_seri_pabrik,
+            'tahun_perolehan'     => $tahun ?: null,
+            'tanggal_perolehan'   => $tgl,
+            'sumber_dana'         => $request->sumber_dana,
+            'harga_perolehan'     => $request->harga_perolehan ?? 0,
+            'kondisi'             => $kondisi,
+            'jumlah_baik'         => $rincian['baik'],
+            'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
+            'jumlah_rusak_berat'  => $rincian['rusak_berat'],
+            'ruang_id'            => $request->ruang_id,
+            'jurusan_id'          => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
+            'jumlah'              => $jumlah,
+            'satuan'              => $request->satuan,
             'status_ketersediaan' => $request->status_ketersediaan,
-            'updated_at' => now(),
+            'updated_at'          => now(),
         ];
 
         if ($request->hasFile('foto')) {
@@ -301,250 +349,38 @@ class SarprasAsetController extends Controller
     }
 
     /**
-     * Download format template Excel untuk import aset sarpras (Point 7).
+     * Download format template Excel untuk import aset sarpras.
      */
-    public function templateExcel()
+    public function templateExcel(?SarprasAsetImportService $service = null)
     {
-        $headers = [
-            'kode_aset',
-            'nama_barang',
-            'kategori',
-            'merk_tipe',
-            'no_seri_pabrik',
-            'tahun_perolehan',
-            'sumber_dana',
-            'harga_perolehan',
-            'kondisi',
-            'nama_ruang',
-            'jurusan',
-            'jumlah',
-            'satuan',
-        ];
-
-        $rows = [
-            [
-                'AST-SRP-001',
-                'Proyektor Epson EB-X500',
-                'Elektronik',
-                'Epson EB-X500 3600 Lumens',
-                'SN-EPS-9921',
-                '2024',
-                'BOS',
-                '6500000',
-                'baik',
-                'Ruang Guru',
-                '',
-                '2',
-                'unit',
-            ],
-            [
-                'AST-SRP-002',
-                'Genset Silent 5000 Watt',
-                'Mesin & Utilitas',
-                'Honda EU5000i',
-                'SN-HND-5542',
-                '2023',
-                'DAK',
-                '18000000',
-                'baik',
-                'Ruang Genset',
-                '',
-                '1',
-                'unit',
-            ],
-            [
-                'AST-SRP-003',
-                'Server Rack 24U & Switch Gigabit',
-                'Elektronik',
-                'Cisco Catalyst 2960',
-                'SN-CSC-1102',
-                '2024',
-                'BOS',
-                '14500000',
-                'baik',
-                'Lab Komputer 1',
-                'TKJ',
-                '2',
-                'unit',
-            ],
-            [
-                'AST-SRP-004',
-                'Kursi Siswa Kayu Jati',
-                'Mebel',
-                'Standar Kemdikbud',
-                '',
-                '2022',
-                'Komite',
-                '250000',
-                'baik',
-                'Kelas X-1',
-                '',
-                '36',
-                'unit',
-            ],
-        ];
-
-        $meta = [
-            'title'    => 'Format Import Sarpras & Aset Sekolah',
-            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
-        ];
-
-        $tempPath = storage_path('app/temp_template_aset_' . uniqid() . '.xlsx');
-        \App\Services\SimpleXlsxExporter::export($tempPath, $meta, $headers, $rows, [
-            'sheetName' => 'Aset Sarpras',
-        ]);
+        $service = $service ?? app(SarprasAsetImportService::class);
+        $tempPath = $service->generateTemplateFile();
 
         return response()->download($tempPath, 'Format_Import_Aset_Sarpras.xlsx')->deleteFileAfterSend(true);
     }
 
     /**
-     * Import aset sarpras via Excel (.xlsx, .xls, .csv) (Point 7).
+     * Import aset sarpras via Excel (.xlsx, .xls, .csv).
      */
-    public function importExcel(Request $request)
+    public function importExcel(Request $request, SarprasAsetImportService $service)
     {
         $request->validate([
             'file' => 'required|file|max:10240',
         ]);
 
-        $file = $request->file('file');
-        $ext = strtolower($file->getClientOriginalExtension());
-        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Format berkas tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.',
-            ], 422);
-        }
-
         try {
-            $rows = \App\Services\SimpleXlsxReader::readFile($file->getRealPath());
+            $hasil = $service->import($request->file('file'));
         } catch (\Throwable $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Gagal membaca berkas: ' . $e->getMessage(),
+                'message' => $e->getMessage(),
             ], 422);
-        }
-
-        if (empty($rows)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Berkas Excel kosong atau tidak memiliki data baris.',
-            ], 422);
-        }
-
-        $ruangMap = DB::table('sarpras_ruang')->pluck('id', 'nama_ruang')->toArray();
-
-        $jurusanMap = [];
-        $jRows = DB::table('jurusan_meta')->get(['jurusan_id', 'nama_jurusan', 'singkatan']);
-        foreach ($jRows as $jr) {
-            $jurusanMap[strtolower(trim((string) $jr->jurusan_id))] = (string) $jr->jurusan_id;
-            if ($jr->singkatan) {
-                $jurusanMap[strtolower(trim((string) $jr->singkatan))] = (string) $jr->jurusan_id;
-            }
-            if ($jr->nama_jurusan) {
-                $jurusanMap[strtolower(trim((string) $jr->nama_jurusan))] = (string) $jr->jurusan_id;
-            }
-        }
-
-        $imported = 0;
-        $updated = 0;
-
-        foreach ($rows as $r) {
-            $normalized = [];
-            foreach ($r as $k => $v) {
-                $cleanKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', (string) $k))));
-                $normalized[$cleanKey] = is_string($v) ? trim($v) : $v;
-            }
-
-            $nama = $normalized['nama_barang'] ?? ($normalized['nama_aset'] ?? ($normalized['nama'] ?? ''));
-            if (!$nama) {
-                continue;
-            }
-
-            $kode = strtoupper((string) ($normalized['kode_aset'] ?? ($normalized['kode'] ?? '')));
-            if (!$kode) {
-                $kode = 'AST-' . strtoupper(substr(uniqid(), -6));
-            }
-
-            $kategori = (string) ($normalized['kategori'] ?? 'Lainnya');
-            $merkTipe = (string) ($normalized['merk_tipe'] ?? ($normalized['merk'] ?? ''));
-            $noSeri   = (string) ($normalized['no_seri_pabrik'] ?? ($normalized['no_seri'] ?? ''));
-            $tahun    = !empty($normalized['tahun_perolehan']) ? (int) $normalized['tahun_perolehan'] : (!empty($normalized['tahun_pengadaan']) ? (int) $normalized['tahun_pengadaan'] : (int) date('Y'));
-            $sumberDana = (string) ($normalized['sumber_dana'] ?? 'BOS');
-            $harga    = (float) ($normalized['harga_perolehan'] ?? ($normalized['harga'] ?? 0));
-            $jumlah   = max(1, (int) ($normalized['jumlah'] ?? 1));
-            $satuan   = (string) ($normalized['satuan'] ?? 'unit');
-
-            $rawKondisi = strtolower((string) ($normalized['kondisi'] ?? 'baik'));
-            $kondisi = match ($rawKondisi) {
-                'rusak_ringan', 'ringan' => 'rusak_ringan',
-                'rusak_berat', 'berat'   => 'rusak_berat',
-                default                  => 'baik',
-            };
-
-            $namaRuang = (string) ($normalized['nama_ruang'] ?? ($normalized['lokasi_ruang'] ?? ($normalized['ruang'] ?? '')));
-            $ruangId   = null;
-            if ($namaRuang !== '') {
-                $ruangId = $ruangMap[$namaRuang] ?? null;
-                if (!$ruangId) {
-                    // Cari parsial
-                    foreach ($ruangMap as $rNama => $rId) {
-                        if (stripos($rNama, $namaRuang) !== false || stripos($namaRuang, $rNama) !== false) {
-                            $ruangId = $rId;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            $rawJurusan = strtolower(trim((string) ($normalized['jurusan'] ?? ($normalized['jurusan_id'] ?? ($normalized['program_keahlian'] ?? '')))));
-            $jurusanId  = $rawJurusan !== '' ? ($jurusanMap[$rawJurusan] ?? null) : null;
-
-            $existing = DB::table('sarpras_aset')->where('kode_aset', $kode)->first();
-
-            if ($existing) {
-                DB::table('sarpras_aset')->where('id', $existing->id)->update([
-                    'nama_barang'         => $nama,
-                    'kategori'            => $kategori,
-                    'merk_tipe'           => $merkTipe ?: $existing->merk_tipe,
-                    'no_seri_pabrik'      => $noSeri ?: $existing->no_seri_pabrik,
-                    'tahun_perolehan'     => $tahun ?: $existing->tahun_perolehan,
-                    'sumber_dana'         => $sumberDana,
-                    'harga_perolehan'     => $harga ?: $existing->harga_perolehan,
-                    'kondisi'             => $kondisi,
-                    'ruang_id'            => $ruangId ?: $existing->ruang_id,
-                    'jurusan_id'          => $jurusanId ?: $existing->jurusan_id,
-                    'jumlah'              => $jumlah,
-                    'satuan'              => $satuan,
-                    'updated_at'          => now(),
-                ]);
-                $updated++;
-            } else {
-                DB::table('sarpras_aset')->insert([
-                    'kode_aset'           => $kode,
-                    'nama_barang'         => $nama,
-                    'kategori'            => $kategori,
-                    'merk_tipe'           => $merkTipe ?: null,
-                    'no_seri_pabrik'      => $noSeri ?: null,
-                    'tahun_perolehan'     => $tahun,
-                    'sumber_dana'         => $sumberDana,
-                    'harga_perolehan'     => $harga,
-                    'kondisi'             => $kondisi,
-                    'ruang_id'            => $ruangId,
-                    'jurusan_id'          => $jurusanId,
-                    'jumlah'              => $jumlah,
-                    'satuan'              => $satuan,
-                    'status_ketersediaan' => 'tersedia',
-                    'created_at'          => now(),
-                    'updated_at'          => now(),
-                ]);
-                $imported++;
-            }
         }
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Import selesai: {$imported} aset baru ditambahkan, {$updated} aset diperbarui.",
-            'count'   => $imported + $updated,
+            'message' => "Import selesai: {$hasil['imported']} aset baru ditambahkan, {$hasil['updated']} aset diperbarui.",
+            'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }
 }

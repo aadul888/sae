@@ -123,12 +123,75 @@ class ArchitectureGuardTest extends TestCase
             'docs/PROJECT_STRUCTURE.md',
             'docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md',
             'docs/code-style-guide.md',
+            'docs/HAK_AKSES.md',
+            'docs/MODULE_DEPENDENCIES.md',
+            'docs/UPGRADE_SERVER_AAPANEL.md',
         ];
 
         foreach ($required as $relative) {
             $this->assertFileExists(
                 base_path($relative),
                 "Dokumentasi {$relative} hilang. Dokumentasi developer wajib ada di docs/ (ter-track git)."
+            );
+        }
+    }
+
+    /**
+     * Mencegah penumpukan dokumen: setiap dokumen di docs/ wajib terdaftar
+     * pada indeks docs/README.md, dan jumlahnya dijaga wajar.
+     */
+    public function test_docs_directory_stays_indexed_and_bounded(): void
+    {
+        $readme = file_get_contents(base_path('docs/README.md'));
+
+        $files = glob(base_path('docs/*.md'));
+        $unlisted = [];
+
+        foreach ($files as $file) {
+            $name = basename($file);
+            if ($name === 'README.md') {
+                continue;
+            }
+            // Setiap dokumen harus ditautkan dari indeks.
+            if (!str_contains($readme, $name)) {
+                $unlisted[] = $name;
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $unlisted,
+            'Dokumen berikut belum ditautkan di docs/README.md: ' . implode(', ', $unlisted)
+        );
+
+        // Batas atas agar dokumentasi tidak kembali menumpuk tanpa kendali.
+        $this->assertLessThanOrEqual(
+            15,
+            count($files),
+            'Jumlah dokumen di docs/ melebihi 15. Gabungkan ke dokumen yang sudah ada '
+                . 'atau arsipkan yang sudah selesai, alih-alih menambah file baru.'
+        );
+    }
+
+    /**
+     * Dokumen yang sudah selesai/usang harus berada di .agents/archive,
+     * bukan bercampur dengan panduan aktif.
+     */
+    public function test_no_stale_documents_in_active_agent_root(): void
+    {
+        $stale = [
+            'REFACTORING_PLAN.md',
+            'FILES_OVER_1000_LINES.md',
+            'PRD.md',
+            'HAK_AKSES_DAN_FITUR.md',
+            'SARAN-MENU-TENDIK-PER-BIDANG.md',
+            'tupoksi_tas.md',
+        ];
+
+        foreach ($stale as $name) {
+            $this->assertFileDoesNotExist(
+                base_path('.agents/' . $name),
+                "Dokumen selesai/usang '{$name}' seharusnya berada di .agents/archive/, bukan di root .agents/."
             );
         }
     }

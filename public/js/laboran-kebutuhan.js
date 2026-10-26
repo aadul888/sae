@@ -18,12 +18,98 @@ document.addEventListener('DOMContentLoaded', function () {
     // Helper bersama (laboran-common.js dimuat lebih dulu oleh Blade).
     const L = window.SAELaboran;
 
-    function openCreate() {
+    const selectInventarisRef = document.getElementById('selectInventarisRef');
+    const kbKebutuhan = document.getElementById('kbKebutuhan');
+    const kbTersedia = document.getElementById('kbTersedia');
+    const kbSatuan = document.getElementById('kbSatuan');
+    const kbPrioritas = document.getElementById('kbPrioritas');
+    const labelKekurangan = document.getElementById('labelKekurangan');
+
+    function kalkulasiSelisih(autoPrioritas = false) {
+        const keb = kbKebutuhan ? (parseFloat(kbKebutuhan.value) || 0) : 0;
+        const ter = kbTersedia ? (parseFloat(kbTersedia.value) || 0) : 0;
+        const sel = Math.max(0, keb - ter);
+        const sat = kbSatuan ? (kbSatuan.value || 'unit') : 'unit';
+
+        if (labelKekurangan) {
+            labelKekurangan.textContent = sel + ' ' + sat;
+            labelKekurangan.style.color = sel > 0 ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)';
+        }
+
+        if (autoPrioritas && kbPrioritas) {
+            if (ter <= 0 || sel >= keb) {
+                kbPrioritas.value = 'kritis';
+            } else if (keb > 0 && (sel / keb) >= 0.5) {
+                kbPrioritas.value = 'tinggi';
+            } else if (sel > 0) {
+                kbPrioritas.value = 'sedang';
+            } else {
+                kbPrioritas.value = 'rendah';
+            }
+        }
+    }
+
+    if (kbKebutuhan) kbKebutuhan.addEventListener('input', () => kalkulasiSelisih(false));
+    if (kbTersedia) kbTersedia.addEventListener('input', () => kalkulasiSelisih(false));
+    if (kbSatuan) kbSatuan.addEventListener('input', () => kalkulasiSelisih(false));
+
+    if (selectInventarisRef) {
+        selectInventarisRef.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!opt || !this.value) return;
+
+            const setVal = function (id, v) {
+                const el = document.getElementById(id);
+                if (el && v != null) el.value = v;
+            };
+
+            setVal('kbNama', opt.dataset.nama || '');
+            setVal('kbJenis', opt.dataset.jenis || 'alat');
+            setVal('kbKategori', opt.dataset.kategori || '');
+            setVal('kbLokasi', opt.dataset.lokasi || '');
+            setVal('kbSatuan', opt.dataset.satuan || 'unit');
+            setVal('kbSpesifikasi', opt.dataset.spek || '');
+
+            const total = parseFloat(opt.dataset.total) || 1;
+            const tersedia = parseFloat(opt.dataset.tersedia) || 0;
+            const rusakBerat = parseFloat(opt.dataset.rusakberat) || 0;
+            const rusakRingan = parseFloat(opt.dataset.rusakringan) || 0;
+
+            setVal('kbKebutuhan', total);
+            setVal('kbTersedia', tersedia);
+
+            // Susun kalimat justifikasi otomatis
+            const kbAnalisis = document.getElementById('kbAnalisis');
+            const kbSumber = document.getElementById('kbSumber');
+            if (kbAnalisis) {
+                let alasan = [];
+                if (rusakBerat > 0) {
+                    alasan.push(`Ditemukan ${rusakBerat} ${opt.dataset.satuan} rusak berat.`);
+                    if (kbSumber) kbSumber.value = 'kerusakan';
+                }
+                if (rusakRingan > 0) {
+                    alasan.push(`Terdapat ${rusakRingan} ${opt.dataset.satuan} rusak ringan.`);
+                    if (kbSumber && rusakBerat <= 0) kbSumber.value = 'kerusakan';
+                }
+                if (tersedia <= 0) {
+                    alasan.push(`Stok habis total.`);
+                    if (kbSumber && rusakBerat <= 0) kbSumber.value = 'praktik';
+                }
+                alasan.push(`Kapasitas ideal: ${total} ${opt.dataset.satuan}, tersedia laik: ${tersedia} ${opt.dataset.satuan}.`);
+                kbAnalisis.value = alasan.join(' ');
+            }
+
+            kalkulasiSelisih(true);
+        });
+    }
+
+    function openCreate(prefill = null) {
         if (!form) return;
         form.reset();
         form.action = STORE_URL;
         if (methodInput) methodInput.value = 'POST';
         if (title) title.textContent = 'Tambah Kebutuhan';
+        if (selectInventarisRef) selectInventarisRef.value = '';
 
         const tgl = document.getElementById('kbTanggal');
         if (tgl) {
@@ -31,6 +117,25 @@ document.addEventListener('DOMContentLoaded', function () {
             tgl.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
         }
 
+        if (prefill) {
+            const set = function (id, val) {
+                const el = document.getElementById(id);
+                if (el && val != null) el.value = val;
+            };
+            set('kbNama', prefill.nama);
+            set('kbJenis', prefill.jenis || 'alat');
+            set('kbKategori', prefill.kategori || '');
+            set('kbSpesifikasi', prefill.spesifikasi || '');
+            set('kbKebutuhan', prefill.kebutuhan || 1);
+            set('kbTersedia', prefill.tersedia || 0);
+            set('kbSatuan', prefill.satuan || 'unit');
+            set('kbPrioritas', prefill.prioritas || 'kritis');
+            set('kbSumber', prefill.sumber || 'praktik');
+            set('kbAnalisis', prefill.analisis || '');
+            set('kbLokasi', prefill.lokasi || '');
+        }
+
+        kalkulasiSelisih(!prefill);
         L.openModal(modal);
     }
 
@@ -40,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.action = STORE_URL + '/' + d.id;
         if (methodInput) methodInput.value = 'PUT';
         if (title) title.textContent = 'Ubah Data Kebutuhan';
+        if (selectInventarisRef) selectInventarisRef.value = '';
 
         const set = function (id, val) {
             const el = document.getElementById(id);
@@ -64,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         set('kbStatus', d.status);
         set('kbJurusan', d.jurusan);
 
+        kalkulasiSelisih(false);
         L.openModal(modal);
     }
 
@@ -81,6 +188,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Tombol Tambah di header banner
         if (e.target.closest('#btnOpenKebutuhan')) {
             openCreate();
+            return;
+        }
+
+        // Tombol Quick Analisis dari kartu panel analisis ketersediaan
+        const quickBtn = e.target.closest('.btn-quick-kebutuhan');
+        if (quickBtn) {
+            openCreate({
+                nama: quickBtn.dataset.nama,
+                jenis: quickBtn.dataset.jenis,
+                kategori: quickBtn.dataset.kategori,
+                lokasi: quickBtn.dataset.lokasi,
+                satuan: quickBtn.dataset.satuan,
+                kebutuhan: quickBtn.dataset.kebutuhan,
+                tersedia: quickBtn.dataset.tersedia,
+                prioritas: quickBtn.dataset.prioritas,
+                sumber: quickBtn.dataset.sumber,
+                analisis: quickBtn.dataset.analisis,
+            });
             return;
         }
 

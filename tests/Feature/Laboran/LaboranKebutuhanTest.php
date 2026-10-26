@@ -50,19 +50,53 @@ class LaboranKebutuhanTest extends LaboranTestCase
     {
         $session = $this->adminSession();
 
-        // Buat 1 item inventaris kritis (stok habis)
+        // 1. Buat 1 item inventaris kritis (stok habis)
         DB::table('laboran_bahan_alat')->insert([
-            'ruang_lab_nama' => 'Lab Komputer 1',
-            'kode_item'      => 'KRIT-UJI-' . uniqid(),
-            'nama_item'      => 'Kabel LAN Uji Habis',
-            'jenis'          => 'bahan_habis_pakai',
-            'stok_total'     => 10,
-            'stok_tersedia'  => 0, // Habis
-            'satuan'         => 'roll',
-            'kondisi'        => 'rusak_berat',
-            'jurusan_id'     => self::JUR_TKJ,
-            'created_at'     => now(),
-            'updated_at'     => now(),
+            'ruang_lab_nama'      => 'Lab Komputer 1',
+            'kode_item'           => 'KRIT-UJI-' . uniqid(),
+            'nama_item'           => 'Kabel LAN Uji Habis',
+            'jenis'               => 'bahan_habis_pakai',
+            'stok_total'          => 10,
+            'stok_tersedia'       => 0, // Habis
+            'satuan'              => 'roll',
+            'kondisi'             => 'rusak_berat',
+            'jurusan_id'          => self::JUR_TKJ,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        // 2. Buat item alat dengan kondisi rincian (10 unit: 5 baik, 3 rusak ringan, 2 rusak berat)
+        DB::table('laboran_bahan_alat')->insert([
+            'ruang_lab_nama'      => 'Lahan Praktik Pertanian',
+            'kode_item'           => 'ALT-TRK-' . uniqid(),
+            'nama_item'           => 'Traktor Lahan Uji',
+            'jenis'               => 'alat',
+            'stok_total'          => 10,
+            'stok_tersedia'       => 10,
+            'jumlah_baik'         => 5,
+            'jumlah_rusak_ringan' => 3,
+            'jumlah_rusak_berat'  => 2,
+            'satuan'              => 'unit',
+            'kondisi'             => 'baik',
+            'jurusan_id'          => self::JUR_ATPH,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        // 3. Buat Berita Acara Kerusakan
+        DB::table('laboran_berita_acara_kerusakan')->insert([
+            'jurusan_id'        => self::JUR_ATPH,
+            'nomor_ba'          => 'BAK/TEST/' . uniqid(),
+            'nama_alat'         => 'Sensor pH Tanah Digital Uji',
+            'tanggal_kejadian'  => now()->toDateString(),
+            'tanggal_ba'        => now()->toDateString(),
+            'tingkat_kerusakan' => 'berat',
+            'jumlah_rusak'      => 4,
+            'satuan'            => 'unit',
+            'penyebab'          => 'Uji tanah lapangan',
+            'status'            => 'disetujui',
+            'created_at'        => now(),
+            'updated_at'        => now(),
         ]);
 
         $this->withSession($session)
@@ -73,5 +107,17 @@ class LaboranKebutuhanTest extends LaboranTestCase
         $kebutuhan = DB::table('laboran_kebutuhan')->where('nama_item', 'Kabel LAN Uji Habis')->first();
         $this->assertNotNull($kebutuhan, 'Analisis otomatis harus memasukkan item kritis ke daftar kebutuhan.');
         $this->assertSame('kritis', $kebutuhan->prioritas);
+
+        // Traktor dengan 2 rusak berat harus terdeteksi dan dihitung selisihnya
+        $kebTraktor = DB::table('laboran_kebutuhan')->where('nama_item', 'Traktor Lahan Uji')->first();
+        $this->assertNotNull($kebTraktor, 'Traktor dengan rusak berat harus otomatis masuk kebutuhan.');
+        $this->assertSame('kritis', $kebTraktor->prioritas);
+        $this->assertGreaterThanOrEqual(2, (float) $kebTraktor->selisih);
+
+        // BA Kerusakan harus otomatis masuk kebutuhan
+        $kebBa = DB::table('laboran_kebutuhan')->where('nama_item', 'Sensor pH Tanah Digital Uji')->first();
+        $this->assertNotNull($kebBa, 'Alat di Berita Acara Kerusakan harus otomatis masuk kebutuhan.');
+        $this->assertSame('kerusakan', $kebBa->sumber_analisis);
+        $this->assertEquals(4, (float) $kebBa->selisih);
     }
 }

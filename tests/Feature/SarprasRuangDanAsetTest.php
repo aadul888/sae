@@ -184,4 +184,52 @@ class SarprasRuangDanAsetTest extends TestCase
         $this->assertStringContainsString('ALT-TEST-LAB-01', $html);
         $this->assertStringContainsString('TKJ', $html);
     }
+
+    public function test_aset_store_auto_generates_kode_and_saves_rincian_kondisi(): void
+    {
+        $session = ['user' => $this->adminSession()];
+
+        $response = $this->withSession($session)->postJson(route('dashboard.sarpras.aset.store'), [
+            'kode_aset'           => '', // dikosongkan agar dibuat otomatis
+            'nama_barang'         => 'Traktor Roda Dua Alat Praktik',
+            'kategori'            => 'Mesin',
+            'tanggal_perolehan'   => '2025-05-10',
+            'tahun_perolehan'     => '2025',
+            'sumber_dana'         => 'DAK Fisik',
+            'harga_perolehan'     => 35000000,
+            'jumlah'              => 10,
+            'satuan'              => 'unit',
+            'jumlah_baik'         => 6,
+            'jumlah_rusak_ringan' => 3,
+            'jumlah_rusak_berat'  => 1,
+            'jurusan_id'          => '26010475', // ATPH
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['status' => 'success']);
+
+        $aset = DB::table('sarpras_aset')->where('nama_barang', 'Traktor Roda Dua Alat Praktik')->first();
+        $this->assertNotNull($aset);
+        $this->createdAset[] = $aset->id;
+
+        // Kode dibuat otomatis dengan format AST-YYYYMM-NNNN
+        $this->assertMatchesRegularExpression('/^AST-\d{6}-\d{4}$/', $aset->kode_aset);
+        $this->assertEquals(6, $aset->jumlah_baik);
+        $this->assertEquals(3, $aset->jumlah_rusak_ringan);
+        $this->assertEquals(1, $aset->jumlah_rusak_berat);
+        $this->assertEquals('baik', $aset->kondisi); // kondisi dominan
+        $this->assertEquals('2025-05-10', $aset->tanggal_perolehan);
+        $this->assertEquals('2025', $aset->tahun_perolehan);
+        $this->assertEquals('26010475', $aset->jurusan_id);
+    }
+
+    public function test_aset_template_download_and_service_generation(): void
+    {
+        $session = ['user' => $this->adminSession()];
+
+        $res = $this->withSession($session)->get(route('dashboard.sarpras.aset.template'));
+        $res->assertStatus(200);
+        $res->assertHeader('content-disposition');
+        $this->assertStringContainsString('Format_Import_Aset_Sarpras.xlsx', $res->headers->get('content-disposition'));
+    }
 }

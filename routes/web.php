@@ -663,6 +663,22 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/peminjaman/{id}/kembali', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->name('peminjaman.kembali')->middleware('permission:menu_sarpras|menu_laboran,update');
         Route::post('/peminjaman/{id}/kembalikan', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->middleware('permission:menu_sarpras|menu_laboran,update');
         Route::delete('/peminjaman/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'destroy'])->name('peminjaman.destroy')->middleware('permission:menu_sarpras|menu_laboran,delete');
+
+        // Kartu Inventaris Ruangan (KIR)
+        Route::get('/kir', [\App\Http\Controllers\SarprasKirController::class, 'index'])->name('kir.index')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
+        Route::get('/kir/{id}/cetak', [\App\Http\Controllers\SarprasKirController::class, 'cetak'])->name('kir.cetak')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
+        Route::get('/kir/{id}', [\App\Http\Controllers\SarprasKirController::class, 'show'])->name('kir.show')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
+
+        // Barang Habis Pakai & ATK (Persediaan & Mutasi)
+        Route::get('/persediaan', [\App\Http\Controllers\SarprasPersediaanController::class, 'index'])->name('persediaan.index')->middleware('permission:menu_sarpras|menu_inventaris,read');
+        Route::post('/persediaan', [\App\Http\Controllers\SarprasPersediaanController::class, 'store'])->name('persediaan.store')->middleware('permission:menu_sarpras|menu_inventaris,create');
+        Route::put('/persediaan/{id}', [\App\Http\Controllers\SarprasPersediaanController::class, 'update'])->name('persediaan.update')->middleware('permission:menu_sarpras|menu_inventaris,update');
+        Route::delete('/persediaan/{id}', [\App\Http\Controllers\SarprasPersediaanController::class, 'destroy'])->name('persediaan.destroy')->middleware('permission:menu_sarpras|menu_inventaris,delete');
+        Route::post('/persediaan/{id}/mutasi', [\App\Http\Controllers\SarprasPersediaanController::class, 'mutasi'])->name('persediaan.mutasi')->middleware('permission:menu_sarpras|menu_inventaris,create');
+
+        // Buku Induk Inventaris & Laporan Sarpras
+        Route::get('/laporan', [\App\Http\Controllers\SarprasLaporanController::class, 'index'])->name('laporan.index')->middleware('permission:menu_sarpras|menu_inventaris,read');
+        Route::get('/laporan/cetak', [\App\Http\Controllers\SarprasLaporanController::class, 'cetak'])->name('laporan.cetak')->middleware('permission:menu_sarpras|menu_inventaris,read');
     });
 
     // 2. Laboratorium & Laboran

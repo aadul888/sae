@@ -86,6 +86,16 @@ class LaboranKebutuhanController extends LaboranBaseController
         // Analisis otomatis: item yang stoknya menipis / rusak
         $analisis = $this->buildAnalisisStok($context);
 
+        // Daftar inventaris aktif untuk referensi auto-fill di form input kebutuhan
+        $invQuery = DB::table('laboran_bahan_alat');
+        LaboranScope::apply($invQuery, 'jurusan_id', $context);
+        $inventarisList = $invQuery->orderBy('nama_item')->get([
+            'id', 'kode_item', 'nama_item', 'jenis', 'spesifikasi',
+            'stok_total', 'stok_tersedia', 'jumlah_baik', 'jumlah_rusak_ringan',
+            'jumlah_rusak_berat', 'jumlah_kedaluwarsa', 'satuan', 'kondisi',
+            'ruang_lab_nama', 'lokasi_lemari_rak', 'tgl_kedaluwarsa', 'jurusan_id'
+        ]);
+
         $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
 
@@ -102,7 +112,7 @@ class LaboranKebutuhanController extends LaboranBaseController
         return view('dashboard.laboran.kebutuhan', array_merge(
             compact(
                 'list', 'search', 'jenisFilter', 'prioritasFilter', 'statusFilter', 'labFilter',
-                'statTotal', 'statKritis', 'statBelum', 'statDisetujui', 'analisis', 'perPage'
+                'statTotal', 'statKritis', 'statBelum', 'statDisetujui', 'analisis', 'inventarisList', 'perPage'
             ),
             $this->abilities(),
             [
@@ -119,52 +129,98 @@ class LaboranKebutuhanController extends LaboranBaseController
     }
 
     /**
-     * Analisis otomatis ketersediaan stok (item tipis / rusak / kedaluwarsa).
+     * Analisis otomatis ketersediaan stok & kerusakan (item rusak, habis, menipis, kedaluwarsa, BA kerusakan, ceklist).
      */
     protected function buildAnalisisStok(array $context): array
     {
         $q = DB::table('laboran_bahan_alat');
         LaboranScope::apply($q, 'jurusan_id', $context);
 
-        $items = $q->get(['id', 'kode_item', 'nama_item', 'jenis', 'satuan', 'stok_total', 'stok_tersedia', 'kondisi', 'ruang_lab_nama', 'tgl_kedaluwarsa']);
+        $items = $q->get([
+            'id', 'kode_item', 'nama_item', 'jenis', 'satuan',
+            'stok_total', 'stok_tersedia', 'jumlah_baik', 'jumlah_rusak_ringan',
+            'jumlah_rusak_berat', 'jumlah_kedaluwarsa', 'kondisi', 'ruang_lab_nama', 'tgl_kedaluwarsa'
+        ]);
 
         $kritis = [];
         $perluPerhatian = [];
         $kadaluwarsa = [];
 
         foreach ($items as $it) {
-            $tersedia = (float) $it->stok_tersedia;
-            $total    = (float) $it->stok_total;
+            $tersedia       = (float) $it->stok_tersedia;
+            $total          = (float) $it->stok_total;
+            $rusakBerat     = (float) ($it->jumlah_rusak_berat ?? 0);
+            $rusakRingan    = (float) ($it->jumlah_rusak_ringan ?? 0);
+            $kadaluwarsaJml = (float) ($it->jumlah_kedaluwarsa ?? 0);
 
-            if ($it->kondisi === 'rusak_berat' || $tersedia <= 0) {
+            // Kategori Kritis: ada rusak berat, kondisi rusak berat, atau stok habis total
+            if ($it->kondisi === 'rusak_berat' || $rusakBerat > 0 || $tersedia <= 0) {
+                $it->ringkasan_masalah = $rusakBerat > 0
+                    ? "{$rusakBerat} {$it->satuan} rusak berat"
+                    : ($tersedia <= 0 ? "Stok habis (0 {$it->satuan})" : "Kondisi rusak berat");
+                $it->rekomendasi_selisih = $rusakBerat > 0 ? $rusakBerat : max(1, $total > 0 ? $total : 1);
                 $kritis[] = $it;
                 continue;
             }
 
-            if ($it->kondisi !== 'baik' || ($total > 0 && $tersedia / max($total, 1) <= 0.25)) {
+            // Kategori Perlu Perhatian: ada rusak ringan atau stok menipis (<= 25%)
+            if ($it->kondisi === 'rusak_ringan' || $rusakRingan > 0 || ($total > 0 && ($tersedia / $total) <= 0.25)) {
+                $it->ringkasan_masalah = $rusakRingan > 0
+                    ? "{$rusakRingan} {$it->satuan} rusak ringan"
+                    : "Stok menipis ({$tersedia}/{$total} {$it->satuan})";
+                $it->rekomendasi_selisih = $rusakRingan > 0 ? $rusakRingan : max(1, $total - $tersedia);
                 $perluPerhatian[] = $it;
             }
 
-            if (!empty($it->tgl_kedaluwarsa)) {
+            // Kategori Kedaluwarsa: ada jumlah kedaluwarsa atau tanggal expired sudah lewat / mendekati
+            $isExp = false;
+            if ($it->kondisi === 'kedaluwarsa' || $kadaluwarsaJml > 0) {
+                $isExp = true;
+            } elseif (!empty($it->tgl_kedaluwarsa)) {
                 try {
                     $exp = \Carbon\Carbon::parse($it->tgl_kedaluwarsa);
                     if ($exp->isPast() || $exp->diffInDays(now(), false) >= -60) {
-                        $kadaluwarsa[] = $it;
+                        $isExp = true;
                     }
-                } catch (\Throwable $e) {
-                    // abaikan tanggal tidak valid
-                }
+                } catch (\Throwable $e) {}
+            }
+
+            if ($isExp) {
+                $it->ringkasan_masalah = $kadaluwarsaJml > 0
+                    ? "{$kadaluwarsaJml} {$it->satuan} kedaluwarsa"
+                    : (!empty($it->tgl_kedaluwarsa) ? \Carbon\Carbon::parse($it->tgl_kedaluwarsa)->format('d/m/Y') : 'Kedaluwarsa');
+                $it->rekomendasi_selisih = $kadaluwarsaJml > 0 ? $kadaluwarsaJml : max(1, $total > 0 ? $total : 1);
+                $kadaluwarsa[] = $it;
             }
         }
 
+        // Temuan dari Berita Acara Kerusakan aktif
+        $baQuery = DB::table('laboran_berita_acara_kerusakan as ba')
+            ->whereIn('ba.status', ['diajukan', 'disetujui'])
+            ->select('ba.id', 'ba.nomor_ba', 'ba.nama_alat', 'ba.jumlah_rusak', 'ba.satuan', 'ba.tingkat_kerusakan', 'ba.penyebab', 'ba.jurusan_id');
+        LaboranScope::apply($baQuery, 'ba.jurusan_id', $context);
+        $baList = $baQuery->orderByDesc('ba.id')->limit(10)->get();
+
+        // Temuan dari Ceklist Pemeriksaan
+        $ceklistQuery = DB::table('laboran_pemeriksaan_item as pi')
+            ->join('laboran_pemeriksaan as p', 'pi.pemeriksaan_id', '=', 'p.id')
+            ->whereIn('pi.hasil', ['tidak_sesuai', 'tidak_ada'])
+            ->select('pi.id', 'pi.nama_item', 'pi.hasil', 'pi.keterangan', 'pi.tindak_lanjut', 'p.ruang_lab_nama', 'p.jurusan_id');
+        LaboranScope::apply($ceklistQuery, 'p.jurusan_id', $context);
+        $ceklistList = $ceklistQuery->orderByDesc('pi.id')->limit(10)->get();
+
         return [
-            'total_item'      => $items->count(),
-            'kritis'          => array_slice($kritis, 0, 10),
-            'perlu_perhatian' => array_slice($perluPerhatian, 0, 10),
-            'kadaluwarsa'     => array_slice($kadaluwarsa, 0, 10),
-            'jumlah_kritis'   => count($kritis),
-            'jumlah_perhatian' => count($perluPerhatian),
+            'total_item'         => $items->count(),
+            'kritis'             => array_slice($kritis, 0, 10),
+            'perlu_perhatian'    => array_slice($perluPerhatian, 0, 10),
+            'kadaluwarsa'        => array_slice($kadaluwarsa, 0, 10),
+            'jumlah_kritis'      => count($kritis),
+            'jumlah_perhatian'   => count($perluPerhatian),
             'jumlah_kadaluwarsa' => count($kadaluwarsa),
+            'ba_kerusakan'       => $baList,
+            'jumlah_ba'          => $baList->count(),
+            'ceklist_temuan'     => $ceklistList,
+            'jumlah_ceklist'     => $ceklistList->count(),
         ];
     }
 
@@ -299,46 +355,94 @@ class LaboranKebutuhanController extends LaboranBaseController
     }
 
     /**
-     * Jalankan analisis kebutuhan otomatis dari kondisi stok nyata dan kerusakan alat (Point 3).
+     * Jalankan analisis kebutuhan otomatis dari kondisi fisik stok nyata, kerusakan alat, dan temuan pemeriksaan.
      */
     public function jalankanAnalisis(Request $request)
     {
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
+        $countNew = 0;
+        $countUpdated = 0;
+
+        // 1. ANALISIS DARI INVENTARIS ALAT & BAHAN
         $q = DB::table('laboran_bahan_alat');
         LaboranScope::apply($q, 'jurusan_id', $context);
         $items = $q->get();
 
-        $countNew = 0;
-        $countUpdated = 0;
-
         foreach ($items as $it) {
-            $tersedia = (float) $it->stok_tersedia;
-            $total    = (float) $it->stok_total;
+            $total          = max(1, (float) $it->stok_total);
+            $tersedia       = (float) $it->stok_tersedia;
+            $jBaik          = (float) ($it->jumlah_baik ?? 0);
+            $jRusakBerat    = (float) ($it->jumlah_rusak_berat ?? 0);
+            $jRusakRingan   = (float) ($it->jumlah_rusak_ringan ?? 0);
+            $jKedaluwarsa   = (float) ($it->jumlah_kedaluwarsa ?? 0);
+
+            // Ketersediaan laik pakai
+            $laik = $jBaik > 0 ? $jBaik : max(0, $tersedia - $jRusakBerat);
 
             $perluUsulan = false;
-            $prioritas = 'sedang';
-            $alasan = [];
+            $prioritas   = 'sedang';
+            $sumber      = 'praktik';
+            $alasan      = [];
+            $kebutuhan   = $total;
+            $tersediaJml = $laik;
+            $selisih     = max(0, $total - $laik);
 
-            if ($it->kondisi === 'rusak_berat') {
+            // Cek kondisi rusak berat / habis
+            if ($it->kondisi === 'rusak_berat' || $jRusakBerat > 0) {
                 $perluUsulan = true;
-                $prioritas = 'kritis';
-                $alasan[] = 'Kondisi alat rusak berat';
-            } elseif ($it->kondisi === 'rusak_ringan') {
+                $prioritas   = 'kritis';
+                $sumber      = 'kerusakan';
+                $qtyRb       = $jRusakBerat > 0 ? $jRusakBerat : max(1, $total - $laik);
+                $selisih     = max($selisih, $qtyRb);
+                $alasan[]    = "Terdapat {$qtyRb} {$it->satuan} dalam kondisi rusak berat yang memerlukan pengadaan unit pengganti.";
+            } elseif ($tersedia <= 0) {
                 $perluUsulan = true;
-                $prioritas = 'tinggi';
-                $alasan[] = 'Kondisi alat rusak ringan';
+                $prioritas   = 'kritis';
+                $sumber      = 'praktik';
+                $selisih     = $total;
+                $tersediaJml = 0;
+                $alasan[]    = "Stok habis total (0 {$it->satuan}). Memerlukan pengadaan baru untuk KBM praktik.";
             }
 
-            if ($tersedia <= 0) {
-                $perluUsulan = true;
-                $prioritas = 'kritis';
-                $alasan[] = 'Stok habis (0 ' . $it->satuan . ')';
-            } elseif ($total > 0 && ($tersedia / $total) <= 0.25) {
+            // Cek kedaluwarsa
+            $isExp = false;
+            if ($it->kondisi === 'kedaluwarsa' || $jKedaluwarsa > 0) {
+                $isExp = true;
+            } elseif (!empty($it->tgl_kedaluwarsa)) {
+                try {
+                    $exp = \Carbon\Carbon::parse($it->tgl_kedaluwarsa);
+                    if ($exp->isPast() || $exp->diffInDays(now(), false) >= -60) {
+                        $isExp = true;
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            if ($isExp) {
                 $perluUsulan = true;
                 if ($prioritas !== 'kritis') $prioritas = 'tinggi';
-                $alasan[] = 'Stok tersisa <= 25% (' . $tersedia . '/' . $total . ' ' . $it->satuan . ')';
+                $sumber = 'praktik';
+                $qtyExp = $jKedaluwarsa > 0 ? $jKedaluwarsa : $total;
+                $selisih = max($selisih, $qtyExp);
+                $alasan[] = "Bahan telah melewati batas masa kedaluwarsa. Membutuhkan pengadaan bahan baru.";
+            }
+
+            // Cek stok menipis (<= 25%)
+            if ($total > 0 && ($tersedia / $total) <= 0.25 && $tersedia > 0) {
+                $perluUsulan = true;
+                if ($prioritas !== 'kritis') $prioritas = 'tinggi';
+                $sumber = 'praktik';
+                $alasan[] = "Stok menipis tersisa " . (float)$tersedia . "/{$total} {$it->satuan} (<= 25%).";
+            }
+
+            // Cek rusak ringan
+            if ($it->kondisi === 'rusak_ringan' || $jRusakRingan > 0) {
+                $perluUsulan = true;
+                if ($prioritas === 'sedang') $prioritas = 'sedang';
+                if ($sumber === 'praktik') $sumber = 'kerusakan';
+                $qtyRr = $jRusakRingan > 0 ? $jRusakRingan : 1;
+                $alasan[] = "Terdapat {$qtyRr} {$it->satuan} rusak ringan yang memerlukan suku cadang atau servis perbaikan.";
             }
 
             if ($perluUsulan) {
@@ -352,15 +456,16 @@ class LaboranKebutuhanController extends LaboranBaseController
                     ->whereIn('status', ['draf', 'diverifikasi', 'disetujui'])
                     ->first();
 
-                $kebutuhanIdeal = max(1, $total > 0 ? $total : 1);
-                $selisih = max(0, $kebutuhanIdeal - $tersedia);
+                $selisihFinal = max(1, (float) $selisih);
 
                 if ($existing) {
                     DB::table('laboran_kebutuhan')->where('id', $existing->id)->update([
-                        'jumlah_tersedia'    => $tersedia,
-                        'selisih'            => $selisih,
+                        'jumlah_kebutuhan'   => max((float)$existing->jumlah_kebutuhan, $kebutuhan),
+                        'jumlah_tersedia'    => $tersediaJml,
+                        'selisih'            => $selisihFinal,
                         'prioritas'          => $prioritas,
-                        'analisis_kebutuhan' => implode(', ', $alasan) . ' (Analisis Otomatis Stok)',
+                        'sumber_analisis'    => $sumber,
+                        'analisis_kebutuhan' => implode(' ', $alasan) . ' [Analisis Otomatis Inventaris]',
                         'updated_at'         => now(),
                     ]);
                     $countUpdated++;
@@ -372,13 +477,13 @@ class LaboranKebutuhanController extends LaboranBaseController
                         'jenis'              => $it->jenis ?: 'alat',
                         'kategori'           => $it->kategori ?? null,
                         'spesifikasi'        => $it->spesifikasi ?? null,
-                        'jumlah_kebutuhan'   => $kebutuhanIdeal,
-                        'jumlah_tersedia'    => $tersedia,
+                        'jumlah_kebutuhan'   => $kebutuhan,
+                        'jumlah_tersedia'    => $tersediaJml,
                         'satuan'             => $it->satuan ?: 'unit',
-                        'selisih'            => $selisih,
+                        'selisih'            => $selisihFinal,
                         'prioritas'          => $prioritas,
-                        'sumber_analisis'    => 'kerusakan',
-                        'analisis_kebutuhan' => implode(', ', $alasan) . ' (Analisis Otomatis Stok)',
+                        'sumber_analisis'    => $sumber,
+                        'analisis_kebutuhan' => implode(' ', $alasan) . ' [Analisis Otomatis Inventaris]',
                         'status'             => 'diverifikasi',
                         'tanggal_input'      => now()->toDateString(),
                         'dibuat_oleh_ptk_id' => $context['ptk_id'],
@@ -390,10 +495,87 @@ class LaboranKebutuhanController extends LaboranBaseController
             }
         }
 
+        // 2. ANALISIS DARI BERITA ACARA KERUSAKAN ALAT
+        $baQuery = DB::table('laboran_berita_acara_kerusakan')
+            ->whereIn('status', ['diajukan', 'disetujui']);
+        LaboranScope::apply($baQuery, 'jurusan_id', $context);
+        $baList = $baQuery->get();
+
+        foreach ($baList as $ba) {
+            $existing = DB::table('laboran_kebutuhan')
+                ->where('nama_item', $ba->nama_alat)
+                ->whereIn('status', ['draf', 'diverifikasi', 'disetujui'])
+                ->first();
+
+            if (!$existing) {
+                $jmlRusak = max(1, (float) $ba->jumlah_rusak);
+                $prio = in_array($ba->tingkat_kerusakan, ['berat', 'total'], true) ? 'kritis' : 'tinggi';
+
+                DB::table('laboran_kebutuhan')->insert([
+                    'jurusan_id'         => $ba->jurusan_id ?: LaboranScope::jurusanForWrite(null, $context),
+                    'ruang_lab_nama'     => null,
+                    'nama_item'          => $ba->nama_alat,
+                    'jenis'              => 'alat',
+                    'jumlah_kebutuhan'   => $jmlRusak,
+                    'jumlah_tersedia'    => 0,
+                    'satuan'             => $ba->satuan ?: 'unit',
+                    'selisih'            => $jmlRusak,
+                    'prioritas'          => $prio,
+                    'sumber_analisis'    => 'kerusakan',
+                    'analisis_kebutuhan' => "Berdasarkan Berita Acara Kerusakan No. {$ba->nomor_ba}: {$jmlRusak} {$ba->satuan} rusak ({$ba->tingkat_kerusakan}). Penyebab: " . ($ba->penyebab ?: 'Kerusakan saat praktikum.') . " [Analisis Otomatis BA Kerusakan]",
+                    'status'             => 'diverifikasi',
+                    'tanggal_input'      => now()->toDateString(),
+                    'dibuat_oleh_ptk_id' => $context['ptk_id'],
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+                $countNew++;
+            }
+        }
+
+        // 3. ANALISIS DARI TEMUAN PEMERIKSAAN CEKLIST
+        $ceklistQuery = DB::table('laboran_pemeriksaan_item as pi')
+            ->join('laboran_pemeriksaan as p', 'pi.pemeriksaan_id', '=', 'p.id')
+            ->whereIn('pi.hasil', ['tidak_sesuai', 'tidak_ada'])
+            ->select('pi.*', 'p.ruang_lab_nama', 'p.jurusan_id', 'p.nomor_pemeriksaan');
+        LaboranScope::apply($ceklistQuery, 'p.jurusan_id', $context);
+        $ceklistList = $ceklistQuery->get();
+
+        foreach ($ceklistList as $ck) {
+            $existing = DB::table('laboran_kebutuhan')
+                ->where('nama_item', $ck->nama_item)
+                ->whereIn('status', ['draf', 'diverifikasi', 'disetujui'])
+                ->first();
+
+            if (!$existing) {
+                $prio = $ck->hasil === 'tidak_ada' ? 'kritis' : 'sedang';
+
+                DB::table('laboran_kebutuhan')->insert([
+                    'jurusan_id'         => $ck->jurusan_id ?: LaboranScope::jurusanForWrite(null, $context),
+                    'ruang_lab_nama'     => $ck->ruang_lab_nama,
+                    'nama_item'          => $ck->nama_item,
+                    'jenis'              => 'alat',
+                    'jumlah_kebutuhan'   => 1,
+                    'jumlah_tersedia'    => 0,
+                    'satuan'             => 'unit',
+                    'selisih'            => 1,
+                    'prioritas'          => $prio,
+                    'sumber_analisis'    => 'praktik',
+                    'analisis_kebutuhan' => "Temuan pemeriksaan berkala (" . ($ck->hasil === 'tidak_ada' ? 'alat hilang/tidak ditemukan' : 'kondisi tidak sesuai standar kelayakan') . ") di {$ck->ruang_lab_nama}. Catatan: " . ($ck->keterangan ?: ($ck->tindak_lanjut ?: '-')) . " [Analisis Otomatis Ceklist]",
+                    'status'             => 'diverifikasi',
+                    'tanggal_input'      => now()->toDateString(),
+                    'dibuat_oleh_ptk_id' => $context['ptk_id'],
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+                $countNew++;
+            }
+        }
+
         $totalProcessed = $countNew + $countUpdated;
         $msg = $totalProcessed > 0
-            ? "Analisis kebutuhan selesai. {$countNew} item kebutuhan baru ditambahkan dan {$countUpdated} item diperbarui berdasarkan kondisi stok nyata."
-            : "Analisis kebutuhan selesai. Semua stok inventaris saat ini dalam kondisi baik dan mencukupi.";
+            ? "Analisis kebutuhan berhasil dijalankan. {$countNew} item kebutuhan baru berhasil ditambahkan dan {$countUpdated} item diperbarui berdasarkan data inventaris, berita acara kerusakan, dan ceklist pemeriksaan."
+            : "Analisis kebutuhan selesai. Semua alat & bahan laboratorium saat ini dalam kondisi lengkap, laik pakai, dan mencukupi.";
 
         return $this->respond($request, true, $msg, 200, [
             'count_new'     => $countNew,
