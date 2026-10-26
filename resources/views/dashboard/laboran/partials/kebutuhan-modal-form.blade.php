@@ -35,14 +35,13 @@
                                         data-satuan="{{ $inv->satuan }}"
                                         data-spek="{{ $inv->spesifikasi }}"
                                         data-total="{{ (float) $inv->stok_total }}"
-                                        data-tersedia="{{ (float) ($inv->jumlah_baik > 0 ? $inv->jumlah_baik : $inv->stok_tersedia) }}"
-                                        data-kondisi="{{ $inv->kondisi }}"
+                                        data-tersedia="{{ (float) $inv->jumlah_baik }}"
                                         data-rusakberat="{{ (float) ($inv->jumlah_rusak_berat ?? 0) }}"
                                         data-rusakringan="{{ (float) ($inv->jumlah_rusak_ringan ?? 0) }}"
                                         data-kadaluwarsa="{{ (float) ($inv->jumlah_kedaluwarsa ?? 0) }}"
                                         data-exp="{{ $inv->tgl_kedaluwarsa }}"
                                         data-jurusan="{{ $inv->jurusan_id ?? '' }}">
-                                        {{ $inv->nama_item }} &bull; {{ $inv->kode_item }} (Stok: {{ (float)$inv->stok_tersedia }}/{{ (float)$inv->stok_total }} {{ $inv->satuan }} - {{ $inv->kondisi }})
+                                        {{ $inv->nama_item }} &bull; {{ $inv->kode_item }} (Laik pakai: {{ (float)$inv->jumlah_baik }}/{{ (float)$inv->stok_total }} {{ $inv->satuan }} - {{ $inv->kondisi }})
                                     </option>
                                 @endforeach
                             </select>

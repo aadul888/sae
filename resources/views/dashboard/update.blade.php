@@ -146,13 +146,25 @@
             </div>
 
             <div id="updateLogBox"
-                style="flex: 1; min-height: 250px; max-height: 320px; background: var(--text-main, #0f172a); color: #38bdf8; font-family: monospace; font-size: var(--text-sm, 0.8125rem); padding: 14px; border-radius: var(--radius-lg, 12px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.08);">
-                <div style="color: var(--text-muted, #64748b);">// Siap menerima proses update sistem...</div>
+                style="flex: 1; min-height: 250px; max-height: 320px; background: #0b0f19; color: #e2e8f0; font-family: monospace; font-size: var(--text-sm, 0.8125rem); padding: 14px; border-radius: var(--radius-lg, 12px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); -webkit-text-fill-color: currentColor;">
+                <div style="color: #94a3b8;">// Siap menerima proses update sistem...</div>
             </div>
         </div>
     </div>
 
 @endsection
+
+@push('styles')
+    <style>
+        /* Log box tetap dark di kedua tema agar teks selalu kontras */
+        #updateLogBox,
+        #updateLogBox div {
+            background-color: #0b0f19 !important;
+            color: #e2e8f0 !important;
+            -webkit-text-fill-color: currentColor !important;
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script src="{{ asset('js/update.js') }}?v={{ filemtime(public_path('js/update.js')) }}"></script>

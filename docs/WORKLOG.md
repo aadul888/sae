@@ -4,6 +4,34 @@ Dokumen ini mencatat ringkasan aktivitas audit, perbaikan, keputusan teknis, dan
 
 ---
 
+## Sesi 21 — 26 Oktober 2026: Analisis Kebutuhan Berbasis Kesehatan Unit Individual
+
+**Tujuan:** memastikan analisis & kebutuhan mempertimbangkan kesehatan/kondisi unit
+secara individual, bukan hanya rasio kuantitas. Kasus stok "1/1" (terisi penuh)
+dengan kondisi rusak ringan/berat harus tetap masuk analisis karena tidak laik pakai.
+
+**Perubahan:**
+- `LaboranKebutuhanController` — metode baru `evaluasiKesehatanItem()` sebagai satu sumber
+  logika kesehatan unit (zero duplication), dipakai bersama oleh `buildAnalisisStok()` dan
+  `jalankanAnalisis()`. Ketersediaan laik pakai kini mengacu pada `jumlah_baik`
+  (dengan fallback ke `stok_tersedia - rusak_berat` bila rincian belum diisi untuk
+  kompatibilitas data lama). Deteksi baru: `jumlah_baik = 0` walau stok terisi penuh →
+  Kritis ("N/N unit tidak laik pakai"); sebagian unit tidak laik walau kuantitas penuh →
+  Perhatian dengan rincian (rusak ringan/kedaluwarsa/rusak berat).
+- `kebutuhan.blade.php` & `kebutuhan-modal-form.blade.php` — tombol Quick Analisis dan
+  auto-fill inventaris kini mengirim `jumlah_baik` (bukan stok_tersedia) sebagai
+  "tersedia laik pakai"; label opsi inventaris menampilkan "Laik pakai: X/Y".
+- `laboran-kebutuhan.js` — justifikasi auto-fill menambahkan deteksi kedaluwarsa dan
+  kalimat "Seluruh unit tidak laik pakai meski kuantitas tercatat ada".
+- `LaboranKebutuhanTest` — test baru `stok_penuh_tapi_rusak_tetap_masuk_analisis`
+  (stok 1/1, jumlah_baik 0 → harus terdeteksi, selisih 1, tersedia 0).
+- `docs/` dipulihkan dari commit `1a2e74c` (commit `3ede6ac` menghapus seluruh folder
+  docs sehingga `ArchitectureGuardTest` gagal).
+
+**Verifikasi:** `php artisan test --no-coverage` → 273 passed (3.159 assertions), 0 failed.
+
+---
+
 ## Sesi 1 — 21 Oktober 2026: Audit Proyek & Pembentukan Sistem Catatan Kerja (Fase 1 & Fase 2)
 
 ### 1. Tujuan Sesi

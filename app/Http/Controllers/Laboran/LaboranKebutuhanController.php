@@ -129,6 +129,72 @@ class LaboranKebutuhanController extends LaboranBaseController
     }
 
     /**
+     * Evaluasi kesehatan unit individual sebuah item inventaris.
+     *
+     * Ketersediaan laik pakai mengacu pada `jumlah_baik` (bukan sekadar stok_tersedia),
+     * sehingga kasus stok "1/1" dengan kondisi rusak tetap terdeteksi tidak laik.
+     *
+     * @return array{0:string,1:string,2:float,3:float} [kategori, ringkasan, selisih, laik]
+     */
+    protected function evaluasiKesehatanItem(object $it): array
+    {
+        $total        = max(0, (float) $it->stok_total);
+        $tersedia     = (float) $it->stok_tersedia;
+        $jBaik        = (float) ($it->jumlah_baik ?? 0);
+        $jRusakRingan = (float) ($it->jumlah_rusak_ringan ?? 0);
+        $jRusakBerat  = (float) ($it->jumlah_rusak_berat ?? 0);
+        $jKadaluwarsa = (float) ($it->jumlah_kedaluwarsa ?? 0);
+
+        // Jika rincian kondisi belum pernah diisi, anggap semua unit tersedia laik (kompatibilitas data lama).
+        $adaRincian = ($jBaik + $jRusakRingan + $jRusakBerat + $jKadaluwarsa) > 0;
+        $laik = $adaRincian ? $jBaik : max(0, $tersedia - $jRusakBerat);
+
+        $tidakLaik = max(0, $total - $laik);
+
+        // KRITIS: tidak ada satu pun unit yang laik pakai walau kuantitas terisi penuh.
+        if ($total > 0 && $laik <= 0 && $tersedia > 0) {
+            return ['kritis', "{$total}/{$total} unit tidak laik pakai (kondisi rusak/kedaluwarsa)", $total, $laik];
+        }
+
+        // KRITIS: kondisi dominan rusak berat.
+        if ($it->kondisi === 'rusak_berat' || $jRusakBerat > 0) {
+            $qty = $jRusakBerat > 0 ? $jRusakBerat : max(1, $tidakLaik);
+            return ['kritis', "{$qty} {$it->satuan} rusak berat", $qty, $laik];
+        }
+
+        // KRITIS: stok habis total.
+        if ($tersedia <= 0 && $total <= 0) {
+            return ['kritis', "Stok habis (0 {$it->satuan})", max(1, $total > 0 ? $total : 1), 0];
+        }
+        if ($tersedia <= 0) {
+            return ['kritis', "Stok habis (0 {$it->satuan})", $total, 0];
+        }
+
+        // PERHATIAN: sebagian unit tidak laik walau kuantitas masih terisi penuh.
+        if ($tidakLaik > 0) {
+            $bagian = [];
+            if ($jRusakRingan > 0) $bagian[] = "{$jRusakRingan} rusak ringan";
+            if ($jKadaluwarsa > 0) $bagian[] = "{$jKadaluwarsa} kedaluwarsa";
+            if ($jRusakBerat > 0)  $bagian[] = "{$jRusakBerat} rusak berat";
+            $rincian = !empty($bagian) ? ' (' . implode(', ', $bagian) . ')' : '';
+            return ['perhatian', "Hanya {$laik}/{$total} {$it->satuan} laik pakai{$rincian}", $tidakLaik, $laik];
+        }
+
+        // PERHATIAN: kondisi dominan rusak ringan.
+        if ($it->kondisi === 'rusak_ringan' || $jRusakRingan > 0) {
+            $qty = $jRusakRingan > 0 ? $jRusakRingan : 1;
+            return ['perhatian', "{$qty} {$it->satuan} rusak ringan", $qty, $laik];
+        }
+
+        // PERHATIAN: stok menipis (<= 25%).
+        if ($total > 0 && ($tersedia / $total) <= 0.25) {
+            return ['perhatian', "Stok menipis ({$tersedia}/{$total} {$it->satuan})", max(1, $total - $tersedia), $laik];
+        }
+
+        return ['', '', 0, $laik];
+    }
+
+    /**
      * Analisis otomatis ketersediaan stok & kerusakan (item rusak, habis, menipis, kedaluwarsa, BA kerusakan, ceklist).
      */
     protected function buildAnalisisStok(array $context): array
@@ -147,29 +213,21 @@ class LaboranKebutuhanController extends LaboranBaseController
         $kadaluwarsa = [];
 
         foreach ($items as $it) {
+            $kadaluwarsaJml = (float) ($it->jumlah_kedaluwarsa ?? 0);
             $tersedia       = (float) $it->stok_tersedia;
             $total          = (float) $it->stok_total;
-            $rusakBerat     = (float) ($it->jumlah_rusak_berat ?? 0);
-            $rusakRingan    = (float) ($it->jumlah_rusak_ringan ?? 0);
-            $kadaluwarsaJml = (float) ($it->jumlah_kedaluwarsa ?? 0);
 
-            // Kategori Kritis: ada rusak berat, kondisi rusak berat, atau stok habis total
-            if ($it->kondisi === 'rusak_berat' || $rusakBerat > 0 || $tersedia <= 0) {
-                $it->ringkasan_masalah = $rusakBerat > 0
-                    ? "{$rusakBerat} {$it->satuan} rusak berat"
-                    : ($tersedia <= 0 ? "Stok habis (0 {$it->satuan})" : "Kondisi rusak berat");
-                $it->rekomendasi_selisih = $rusakBerat > 0 ? $rusakBerat : max(1, $total > 0 ? $total : 1);
-                $kritis[] = $it;
-                continue;
-            }
+            [$kategori, $ringkasan, $selisih, $laik] = $this->evaluasiKesehatanItem($it);
 
-            // Kategori Perlu Perhatian: ada rusak ringan atau stok menipis (<= 25%)
-            if ($it->kondisi === 'rusak_ringan' || $rusakRingan > 0 || ($total > 0 && ($tersedia / $total) <= 0.25)) {
-                $it->ringkasan_masalah = $rusakRingan > 0
-                    ? "{$rusakRingan} {$it->satuan} rusak ringan"
-                    : "Stok menipis ({$tersedia}/{$total} {$it->satuan})";
-                $it->rekomendasi_selisih = $rusakRingan > 0 ? $rusakRingan : max(1, $total - $tersedia);
-                $perluPerhatian[] = $it;
+            if ($kategori !== '') {
+                $it->ringkasan_masalah = $ringkasan;
+                $it->rekomendasi_selisih = $selisih;
+
+                if ($kategori === 'kritis') {
+                    $kritis[] = $it;
+                } else {
+                    $perluPerhatian[] = $it;
+                }
             }
 
             // Kategori Kedaluwarsa: ada jumlah kedaluwarsa atau tanggal expired sudah lewat / mendekati
@@ -371,42 +429,21 @@ class LaboranKebutuhanController extends LaboranBaseController
         $items = $q->get();
 
         foreach ($items as $it) {
-            $total          = max(1, (float) $it->stok_total);
-            $tersedia       = (float) $it->stok_tersedia;
-            $jBaik          = (float) ($it->jumlah_baik ?? 0);
-            $jRusakBerat    = (float) ($it->jumlah_rusak_berat ?? 0);
-            $jRusakRingan   = (float) ($it->jumlah_rusak_ringan ?? 0);
-            $jKedaluwarsa   = (float) ($it->jumlah_kedaluwarsa ?? 0);
+            $total = max(1, (float) $it->stok_total);
+            $tersedia = (float) $it->stok_tersedia;
 
-            // Ketersediaan laik pakai
-            $laik = $jBaik > 0 ? $jBaik : max(0, $tersedia - $jRusakBerat);
+            [$kategori, $ringkasan, $selisihKategori, $laik] = $this->evaluasiKesehatanItem($it);
 
-            $perluUsulan = false;
-            $prioritas   = 'sedang';
-            $sumber      = 'praktik';
-            $alasan      = [];
+            $perluUsulan = $kategori !== '';
+            $prioritas   = $kategori === 'kritis' ? 'kritis' : ($kategori === 'perhatian' ? 'tinggi' : 'sedang');
+            $sumber      = str_contains($ringkasan, 'rusak') ? 'kerusakan' : 'praktik';
+            $alasan      = $perluUsulan ? [$ringkasan . '. Memerlukan tindak lanjut pengadaan/perbaikan.'] : [];
             $kebutuhan   = $total;
             $tersediaJml = $laik;
-            $selisih     = max(0, $total - $laik);
+            $selisih     = $selisihKategori;
 
-            // Cek kondisi rusak berat / habis
-            if ($it->kondisi === 'rusak_berat' || $jRusakBerat > 0) {
-                $perluUsulan = true;
-                $prioritas   = 'kritis';
-                $sumber      = 'kerusakan';
-                $qtyRb       = $jRusakBerat > 0 ? $jRusakBerat : max(1, $total - $laik);
-                $selisih     = max($selisih, $qtyRb);
-                $alasan[]    = "Terdapat {$qtyRb} {$it->satuan} dalam kondisi rusak berat yang memerlukan pengadaan unit pengganti.";
-            } elseif ($tersedia <= 0) {
-                $perluUsulan = true;
-                $prioritas   = 'kritis';
-                $sumber      = 'praktik';
-                $selisih     = $total;
-                $tersediaJml = 0;
-                $alasan[]    = "Stok habis total (0 {$it->satuan}). Memerlukan pengadaan baru untuk KBM praktik.";
-            }
-
-            // Cek kedaluwarsa
+            // Cek kedaluwarsa (lapisan prioritas di atas evaluasi kesehatan)
+            $jKedaluwarsa = (float) ($it->jumlah_kedaluwarsa ?? 0);
             $isExp = false;
             if ($it->kondisi === 'kedaluwarsa' || $jKedaluwarsa > 0) {
                 $isExp = true;
@@ -426,23 +463,6 @@ class LaboranKebutuhanController extends LaboranBaseController
                 $qtyExp = $jKedaluwarsa > 0 ? $jKedaluwarsa : $total;
                 $selisih = max($selisih, $qtyExp);
                 $alasan[] = "Bahan telah melewati batas masa kedaluwarsa. Membutuhkan pengadaan bahan baru.";
-            }
-
-            // Cek stok menipis (<= 25%)
-            if ($total > 0 && ($tersedia / $total) <= 0.25 && $tersedia > 0) {
-                $perluUsulan = true;
-                if ($prioritas !== 'kritis') $prioritas = 'tinggi';
-                $sumber = 'praktik';
-                $alasan[] = "Stok menipis tersisa " . (float)$tersedia . "/{$total} {$it->satuan} (<= 25%).";
-            }
-
-            // Cek rusak ringan
-            if ($it->kondisi === 'rusak_ringan' || $jRusakRingan > 0) {
-                $perluUsulan = true;
-                if ($prioritas === 'sedang') $prioritas = 'sedang';
-                if ($sumber === 'praktik') $sumber = 'kerusakan';
-                $qtyRr = $jRusakRingan > 0 ? $jRusakRingan : 1;
-                $alasan[] = "Terdapat {$qtyRr} {$it->satuan} rusak ringan yang memerlukan suku cadang atau servis perbaikan.";
             }
 
             if ($perluUsulan) {

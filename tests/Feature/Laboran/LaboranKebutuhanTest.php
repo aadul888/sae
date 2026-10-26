@@ -120,4 +120,50 @@ class LaboranKebutuhanTest extends LaboranTestCase
         $this->assertSame('kerusakan', $kebBa->sumber_analisis);
         $this->assertEquals(4, (float) $kebBa->selisih);
     }
+
+    public function test_stok_penuh_tapi_rusak_tetap_masuk_analisis(): void
+    {
+        // Kasus: stok 1/1 (terisi penuh secara kuantitas) TAPI kondisi rusak —
+        // analisis berbasis kesehatan unit harus tetap mendeteksi sebagai kritis.
+        DB::table('laboran_bahan_alat')->insert([
+            'ruang_lab_nama'      => 'Lab Tanaman Uji',
+            'kode_item'           => 'ALT-1on1-' . uniqid(),
+            'nama_item'           => 'Alat Ukur Suhu Tanah Uji',
+            'jenis'               => 'alat',
+            'stok_total'          => 1,
+            'stok_tersedia'       => 1,
+            'jumlah_baik'         => 0,
+            'jumlah_rusak_ringan' => 1,
+            'jumlah_rusak_berat'  => 0,
+            'jumlah_kedaluwarsa'  => 0,
+            'satuan'              => 'unit',
+            'kondisi'             => 'rusak_ringan',
+            'jurusan_id'          => self::JUR_ATPH,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        $res = $this->withSession($this->adminSession())->get(route('dashboard.laboran.kebutuhan.index'));
+        $res->assertStatus(200);
+
+        $analisis = $res->viewData('analisis');
+        $semua = array_merge($analisis['kritis'], $analisis['perlu_perhatian']);
+        $terdeteksi = collect($semua)->first(fn ($it) => $it->nama_item === 'Alat Ukur Suhu Tanah Uji');
+
+        $this->assertNotNull($terdeteksi, 'Item stok 1/1 dengan kondisi rusak harus tetap terdeteksi oleh analisis kesehatan unit.');
+        $this->assertStringContainsString('laik pakai', $terdeteksi->ringkasan_masalah ?? '');
+        $this->assertGreaterThan(0, (float) $terdeteksi->rekomendasi_selisih);
+
+        // Jalankan analisis: item harus masuk daftar kebutuhan dengan tersedia laik = 0
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.kebutuhan.jalankan-analisis'))
+            ->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $keb = DB::table('laboran_kebutuhan')->where('nama_item', 'Alat Ukur Suhu Tanah Uji')->first();
+        $this->assertNotNull($keb, 'Item tidak laik pakai walau stok 1/1 harus masuk daftar kebutuhan.');
+        $this->assertEquals(0, (float) $keb->jumlah_tersedia);
+        $this->assertEquals(1, (float) $keb->selisih);
+        $this->assertStringContainsString('tidak laik pakai', (string) $keb->analisis_kebutuhan);
+    }
 }

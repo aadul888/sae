@@ -71,14 +71,15 @@ document.addEventListener('DOMContentLoaded', function () {
             setVal('kbSpesifikasi', opt.dataset.spek || '');
 
             const total = parseFloat(opt.dataset.total) || 1;
-            const tersedia = parseFloat(opt.dataset.tersedia) || 0;
+            const laik = parseFloat(opt.dataset.tersedia) || 0;
             const rusakBerat = parseFloat(opt.dataset.rusakberat) || 0;
             const rusakRingan = parseFloat(opt.dataset.rusakringan) || 0;
+            const kadaluwarsa = parseFloat(opt.dataset.kadaluwarsa) || 0;
 
             setVal('kbKebutuhan', total);
-            setVal('kbTersedia', tersedia);
+            setVal('kbTersedia', laik);
 
-            // Susun kalimat justifikasi otomatis
+            // Susun kalimat justifikasi otomatis (kesehatan unit individual, bukan hanya kuantitas)
             const kbAnalisis = document.getElementById('kbAnalisis');
             const kbSumber = document.getElementById('kbSumber');
             if (kbAnalisis) {
@@ -91,11 +92,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     alasan.push(`Terdapat ${rusakRingan} ${opt.dataset.satuan} rusak ringan.`);
                     if (kbSumber && rusakBerat <= 0) kbSumber.value = 'kerusakan';
                 }
-                if (tersedia <= 0) {
+                if (kadaluwarsa > 0) {
+                    alasan.push(`Terdapat ${kadaluwarsa} ${opt.dataset.satuan} kedaluwarsa.`);
+                }
+                if (laik <= 0 && total > 0) {
+                    alasan.push(`Seluruh unit (${total} ${opt.dataset.satuan}) tidak laik pakai meski kuantitas tercatat ada.`);
+                    if (kbSumber && rusakBerat <= 0) kbSumber.value = 'praktik';
+                } else if (total > 0 && laik <= 0) {
                     alasan.push(`Stok habis total.`);
                     if (kbSumber && rusakBerat <= 0) kbSumber.value = 'praktik';
                 }
-                alasan.push(`Kapasitas ideal: ${total} ${opt.dataset.satuan}, tersedia laik: ${tersedia} ${opt.dataset.satuan}.`);
+                alasan.push(`Kapasitas ideal: ${total} ${opt.dataset.satuan}, tersedia laik pakai: ${laik} ${opt.dataset.satuan}.`);
                 kbAnalisis.value = alasan.join(' ');
             }
 
