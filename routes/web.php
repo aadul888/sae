@@ -208,6 +208,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy')->middleware('permission:fitur_pengguna_hapus');
     Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword')->middleware('permission:fitur_pengguna_reset');
     Route::post('/pengguna/tugas-tambahan/store', [UserController::class, 'storeTugasTambahan'])->name('pengguna.tugas-tambahan.store')->middleware('permission:menu_pengguna,create');
+    Route::put('/pengguna/tugas-tambahan/{id}', [UserController::class, 'updateTugasTambahan'])->name('pengguna.tugas-tambahan.update')->middleware('permission:menu_pengguna,update');
     Route::delete('/pengguna/tugas-tambahan/{id}', [UserController::class, 'destroyTugasTambahan'])->name('pengguna.tugas-tambahan.destroy')->middleware('permission:menu_pengguna,delete');
     Route::post('/pengguna/tugas-tambahan/sync-wali', [UserController::class, 'syncWaliKelas'])->name('pengguna.tugas-tambahan.sync-wali')->middleware('permission:menu_pengguna,update');
 

@@ -40,6 +40,21 @@
             </div>
         </div>
 
+        {{-- Peringatan: penugasan jurusan belum ditetapkan (scoping belum aktif) --}}
+        @if (!empty($scopeContext['is_laboran']) && !empty($scopeContext['unrestricted']))
+            <div class="dash-alert"
+                style="display: flex; gap: var(--space-5); align-items: flex-start; background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35); border-left: 4px solid var(--warning, #f59e0b); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); margin-bottom: var(--space-8);">
+                <i class="fas fa-triangle-exclamation"
+                    style="color: var(--warning, #f59e0b); font-size: var(--text-lg); margin-top: 2px; flex-shrink: 0;"></i>
+                <div style="font-size: var(--text-sm); color: var(--text-color); line-height: 1.6;">
+                    <strong>Penugasan jurusan belum ditetapkan.</strong>
+                    Saat ini Anda dapat melihat &amp; mengelola data <em>semua jurusan</em>. Agar pembatasan data
+                    per jurusan aktif, minta Administrator menetapkan jurusan pada penugasan Laboran Anda melalui
+                    <strong>Manajemen Pengguna &rarr; tab Tugas Tambahan &rarr; ikon pensil</strong>.
+                </div>
+            </div>
+        @endif
+
         {{-- 2. Statistik Utama (4 Kartu) --}}
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: var(--space-9); gap: var(--space-7);">

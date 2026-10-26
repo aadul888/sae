@@ -322,16 +322,31 @@ class UpdateService
             $newCommit = $zipResult['sha'] ?? null;
         }
 
-        // 2. Jalankan Migrasi Database
-        try {
-            Artisan::call('migrate', ['--force' => true]);
-            $logs[] = "[MIGRATE] " . trim(Artisan::output());
-        } catch (\Throwable $e) {
+        // 2. Sinkronkan dependensi Composer SEBELUM migrasi.
+        //    Langkah ini wajib: bila kode sudah diperbarui tetapi folder vendor
+        //    masih versi lama, artisan akan gagal dengan error seperti
+        //    "Method Illuminate\Database\MySqlConnection::hasDirectConnection
+        //    does not exist" karena framework baru memanggil API yang belum ada
+        //    di vendor lama.
+        $depsOk = $this->syncComposerDependencies($logs);
+        if (!$depsOk) {
             $success = false;
-            $logs[] = "[MIGRATE ERROR] " . $e->getMessage();
+            $logs[] = "[DEPS] Dependensi Composer gagal disinkronkan. Migrasi dilewati "
+                . "agar database tidak berubah dengan vendor yang tidak sesuai.";
         }
 
-        // 3. Catat Versi & Waktu Update ke Database
+        // 3. Jalankan Migrasi Database (hanya bila dependensi siap)
+        if ($depsOk) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+                $logs[] = "[MIGRATE] " . trim(Artisan::output());
+            } catch (\Throwable $e) {
+                $success = false;
+                $logs[] = "[MIGRATE ERROR] " . $e->getMessage();
+            }
+        }
+
+        // 4. Catat Versi & Waktu Update ke Database
         try {
             if (Table::exists('settings')) {
                 $commitShort = $newCommit ? substr($newCommit, 0, 7) : null;
@@ -356,7 +371,7 @@ class UpdateService
             $logs[] = "[VERSION ERROR] " . $e->getMessage();
         }
 
-        // 4. Clear Caches, Symlink Storage & Optimize
+        // 5. Clear Caches, Symlink Storage & Optimize
         try {
             if (!file_exists(public_path('storage'))) {
                 Artisan::call('storage:link');
@@ -382,10 +397,10 @@ class UpdateService
             $logs[] = "[OPTIMIZE NOTICE] " . $e->getMessage();
         }
 
-        // 5. Normalisasi Permission storage & cache setelah update
+        // 6. Normalisasi Permission storage & cache setelah update
         $this->ensurePermissions();
 
-        // 6. Otomatis laporkan pembaruan versi ke sae-core
+        // 7. Otomatis laporkan pembaruan versi ke sae-core
         try {
             \App\Services\MonitoringReporterService::reportAsync();
             $logs[] = "[MONITORING] Laporan status pasca-update terkirim ke sae-core.";
@@ -396,6 +411,154 @@ class UpdateService
             'logs' => $logs,
             'timestamp' => now()->toDateTimeString(),
         ];
+    }
+
+    /**
+     * Sinkronkan dependensi Composer setelah kode diperbarui.
+     *
+     * Latar belakang masalah: proses update sebelumnya hanya melakukan git pull
+     * lalu langsung `migrate`. Bila kode sudah naik ke Laravel 13 tetapi folder
+     * `vendor/` masih Laravel 12, migrasi gagal dengan pesan:
+     *
+     *   Method Illuminate\Database\MySqlConnection::hasDirectConnection does not exist.
+     *
+     * Metode itu baru ada di framework versi lebih baru, sehingga vendor harus
+     * disinkronkan lebih dulu.
+     *
+     * @param  array<int, string>  $logs  Ditambahkan secara by-reference.
+     * @return bool  True bila dependensi siap dipakai.
+     */
+    protected function syncComposerDependencies(array &$logs): bool
+    {
+        // Cari Composer: perintah global, composer.phar lokal, atau binary aaPanel.
+        $composerCmd = null;
+
+        $candidates = [
+            'composer',
+            'php ' . escapeshellarg(base_path('composer.phar')),
+        ];
+
+        // aaPanel menyimpan composer di dalam folder PHP-nya.
+        foreach (glob('/www/server/php/*/bin/composer') ?: [] as $aaComposer) {
+            $candidates[] = escapeshellarg($aaComposer);
+        }
+
+        foreach ($candidates as $candidate) {
+            $probe = trim(@shell_exec($candidate . ' --version 2>&1') ?: '');
+            if ($probe !== '' && stripos($probe, 'composer') !== false && stripos($probe, 'not found') === false) {
+                $composerCmd = $candidate;
+                break;
+            }
+        }
+
+        if ($composerCmd === null) {
+            $logs[] = "[DEPS] Composer tidak ditemukan. Jalankan manual: composer install --no-dev --optimize-autoloader";
+            return false;
+        }
+
+        // Deteksi apakah lock file lebih baru dari autoload hasil install.
+        $lockFile = base_path('composer.lock');
+        $installedFile = base_path('vendor/composer/installed.json');
+
+        if (!file_exists($lockFile)) {
+            $logs[] = "[DEPS] composer.lock tidak ada — sinkronisasi dependensi dilewati.";
+            return true;
+        }
+
+        $needsInstall = !file_exists($installedFile);
+
+        // Bandingkan versi framework terpasang dengan yang diminta composer.lock.
+        // Perbandingan versi lebih andal daripada mtime, karena git pull selalu
+        // memperbarui mtime composer.lock sehingga cek mtime akan memicu
+        // composer install pada setiap update meski versi sebenarnya sama.
+        $lock = json_decode((string) @file_get_contents($lockFile), true);
+        $lockedFramework = null;
+        foreach (($lock['packages'] ?? []) as $pkg) {
+            if (($pkg['name'] ?? '') === 'laravel/framework') {
+                $lockedFramework = $pkg['version'] ?? null;
+                break;
+            }
+        }
+
+        $installedFramework = null;
+        if (file_exists($installedFile)) {
+            $installed = json_decode((string) @file_get_contents($installedFile), true);
+            foreach (($installed['packages'] ?? []) as $pkg) {
+                if (($pkg['name'] ?? '') === 'laravel/framework') {
+                    $installedFramework = $pkg['version'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if ($lockedFramework !== null && $installedFramework !== null && $lockedFramework !== $installedFramework) {
+            $needsInstall = true;
+            $logs[] = "[DEPS] Versi framework tidak sesuai: terpasang {$installedFramework}, dibutuhkan {$lockedFramework}.";
+        }
+
+        // Bila versi framework sama, periksa apakah ada paket lain yang berubah
+        // dengan membandingkan sidik jari daftar paket pada lock vs terpasang.
+        if (!$needsInstall && $lockedFramework !== null && $installedFramework !== null) {
+            $lockedNames = [];
+            foreach (($lock['packages'] ?? []) as $pkg) {
+                $lockedNames[] = ($pkg['name'] ?? '') . '@' . ($pkg['version'] ?? '');
+            }
+            $installedNames = [];
+            foreach (($installed['packages'] ?? []) as $pkg) {
+                $installedNames[] = ($pkg['name'] ?? '') . '@' . ($pkg['version'] ?? '');
+            }
+            sort($lockedNames);
+            sort($installedNames);
+
+            if ($lockedNames !== $installedNames) {
+                $needsInstall = true;
+                $logs[] = "[DEPS] Daftar paket berbeda antara composer.lock dan vendor/.";
+            }
+        }
+
+        if (!$needsInstall) {
+            $logs[] = "[DEPS] Dependensi sudah sesuai ({$installedFramework}).";
+            return true;
+        }
+
+        // Jalankan composer install. Batas waktu diperpanjang karena proses ini berat.
+        @set_time_limit(600);
+        $basePath = escapeshellarg(base_path());
+        $output = @shell_exec(
+            'cd ' . $basePath . ' && COMPOSER_MEMORY_LIMIT=-1 ' . $composerCmd
+            . ' install --no-dev --optimize-autoloader --no-interaction 2>&1'
+        );
+
+        $output = trim((string) $output);
+        if ($output !== '') {
+            $logs[] = "[DEPS] " . $output;
+        }
+
+        // Verifikasi hasil: framework harus sesuai composer.lock.
+        $verifyInstalled = null;
+        if (file_exists($installedFile)) {
+            $installed = json_decode((string) @file_get_contents($installedFile), true);
+            foreach (($installed['packages'] ?? []) as $pkg) {
+                if (($pkg['name'] ?? '') === 'laravel/framework') {
+                    $verifyInstalled = $pkg['version'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if ($lockedFramework !== null && $verifyInstalled !== $lockedFramework) {
+            $logs[] = "[DEPS ERROR] composer install selesai tetapi framework masih {$verifyInstalled} "
+                . "(dibutuhkan {$lockedFramework}). Periksa izin tulis folder vendor/ atau jalankan manual di server.";
+            return false;
+        }
+
+        // Muat ulang autoloader agar kelas baru langsung dikenali proses ini.
+        if (file_exists(base_path('vendor/autoload.php'))) {
+            @require_once base_path('vendor/autoload.php');
+        }
+
+        $logs[] = "[DEPS] Dependensi berhasil disinkronkan ke framework {$verifyInstalled}.";
+        return true;
     }
 
     /**

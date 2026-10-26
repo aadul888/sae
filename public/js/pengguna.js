@@ -342,6 +342,110 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // =========================================================================
+    // Ubah Penugasan Tugas Tambahan (termasuk penetapan Jurusan)
+    // =========================================================================
+    const editDutyModal = document.getElementById("modalEditDuty");
+    const btnCloseEditDuty = document.getElementById("btnCloseEditDuty");
+    const btnCancelEditDuty = document.getElementById("btnCancelEditDuty");
+    const formEditDuty = document.getElementById("formEditDuty");
+    const editDutyJurusanWrap = document.getElementById("editDutyJurusanWrap");
+    const editDutyRombelWrap = document.getElementById("editDutyRombelWrap");
+    const editDutyJurusan = document.getElementById("editDutyJurusan");
+    const editDutyRombel = document.getElementById("editDutyRombel");
+
+    const closeEditDutyModal = () => {
+        if (editDutyModal) editDutyModal.style.display = "none";
+    };
+
+    if (btnCloseEditDuty) btnCloseEditDuty.addEventListener("click", closeEditDutyModal);
+    if (btnCancelEditDuty) btnCancelEditDuty.addEventListener("click", closeEditDutyModal);
+
+    if (editDutyModal) {
+        editDutyModal.addEventListener("click", (e) => {
+            if (e.target === editDutyModal) closeEditDutyModal();
+        });
+    }
+
+    document.querySelectorAll(".btn-edit-duty").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (!editDutyModal) return;
+
+            const d = btn.dataset;
+            const kode = d.tugasKode || "";
+            const needsJurusan = JURUSAN_DUTIES.includes(kode);
+            const isWali = kode === "WALI_KELAS";
+
+            const info = document.getElementById("editDutyInfo");
+            if (info) info.value = `${d.ptkNama || "-"} — ${d.tugasNama || "-"}`;
+
+            if (formEditDuty) {
+                const base = dutyModal?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
+                formEditDuty.action = `${base}/${d.id}`;
+                formEditDuty.dataset.id = d.id;
+            }
+
+            if (editDutyJurusanWrap) editDutyJurusanWrap.style.display = needsJurusan ? "block" : "none";
+            if (editDutyRombelWrap) editDutyRombelWrap.style.display = isWali ? "block" : "none";
+            if (editDutyJurusan) editDutyJurusan.value = d.jurusan || "";
+            if (editDutyRombel) editDutyRombel.value = d.rombel || "";
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val || "";
+            };
+            setVal("editDutyNomorSk", d.nomorSk);
+            setVal("editDutyTmt", d.tmt);
+            setVal("editDutyTst", d.tst);
+            setVal("editDutyKeterangan", d.keterangan);
+            setVal("editDutyAktif", d.aktif === "1" ? "1" : "0");
+
+            editDutyModal.style.display = "flex";
+        });
+    });
+
+    if (formEditDuty) {
+        formEditDuty.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("btnSubmitEditDuty");
+            const originalText = btnSubmit ? btnSubmit.innerHTML : "";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+            }
+
+            const payload = Object.fromEntries(new FormData(formEditDuty).entries());
+            delete payload._method;
+            delete payload._token;
+
+            try {
+                const res = await fetch(formEditDuty.action, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    showToast(data.message, "success");
+                    closeEditDutyModal();
+                    setTimeout(() => window.location.reload(), 600);
+                } else {
+                    throw new Error(data.message || "Gagal memperbarui penugasan");
+                }
+            } catch (err) {
+                showToast(err.message, "danger");
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+            }
+        });
+    }
+
     // Hapus Penugasan Tugas Tambahan
     document.querySelectorAll(".btn-delete-duty").forEach((btn) => {
         btn.addEventListener("click", async () => {

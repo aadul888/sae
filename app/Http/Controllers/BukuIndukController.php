@@ -16,7 +16,7 @@ use App\Services\QrCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Table;
 
 class BukuIndukController extends Controller
 {
@@ -225,7 +225,7 @@ class BukuIndukController extends Controller
         }
 
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 
@@ -349,7 +349,7 @@ class BukuIndukController extends Controller
         }
 
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 
@@ -445,7 +445,7 @@ class BukuIndukController extends Controller
         $klaper->save();
 
         // 3. Sinkronkan nilai inti ke peserta_didik jika aktif
-        if (Schema::hasTable('peserta_didik')) {
+        if (Table::exists('peserta_didik')) {
             DB::table('peserta_didik')
                 ->where('peserta_didik_id', $pd->peserta_didik_id)
                 ->update([
@@ -492,7 +492,7 @@ class BukuIndukController extends Controller
         if ($res = $this->checkAuth()) return $res;
 
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
             $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
         }
 

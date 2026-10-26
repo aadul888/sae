@@ -816,3 +816,100 @@ Setiap item menu memiliki `title` yang mencantumkan nomor indikator tupoksi. Das
 | 9 | Dokumentasi Kebersihan | `laboran/kebersihan` (+ cetak) |
 
 **Seluruh 9 indikator kini ter-cover dengan dokumen cetak resmi masing-masing.**
+
+---
+
+## Sesi 12 — 26 Oktober 2026: Penetapan Jurusan Laboran (Sumber Cakupan Data)
+
+### 1. Pertanyaan yang Dijawab
+> "Untuk penunjukan jurusan bagaimana dan dimana?"
+
+**Jawaban:** Dashboard → **Manajemen Pengguna** → tab **Tugas Tambahan** → tombol **pensil** (Ubah Penugasan).
+
+### 2. Masalah yang Ditemukan
+Sebelum sesi ini, tabel penugasan **hanya punya tombol Hapus**. Akibatnya 4 baris penugasan `LABORAN` yang sudah ada (`id` 37, 47, 53, 54) tidak bisa diisi `jurusan_id`-nya. Karena `jurusan_id` masih `NULL`, `LaboranScope` jatuh ke mode **permissive** (`unrestricted = true`) sehingga pembatasan data per jurusan belum pernah benar-benar aktif.
+
+### 3. Perubahan
+| Berkas | Perubahan |
+|---|---|
+| `app/Http/Controllers/UserController.php` | Tambah `updateTugasTambahan(Request, int $id)`; validasi khusus WALI_KELAS (1 kelas = 1 wali aktif); `LaboranScope::flush()` setelah simpan; `ptt.jurusan_id` & `ptt.rombel_id` masuk SELECT; `$jurusanList` kini menyertakan `jumlah_rombel` |
+| `routes/web.php` | `PUT /pengguna/tugas-tambahan/{id}` → `dashboard.pengguna.tugas-tambahan.update` (middleware `permission:menu_pengguna,update`) |
+| `resources/views/dashboard/pengguna.blade.php` | Tombol `.btn-edit-duty` + badge jurusan per baris; modal `#modalEditDuty`; dropdown jurusan diberi penanda jumlah rombel |
+| `public/js/pengguna.js` | Handler `.btn-edit-duty` (populate + buka modal), toggle wrap jurusan/rombel, submit AJAX `PUT` |
+| `resources/views/dashboard/laboran/dashboard.blade.php` | Banner peringatan bila penugasan jurusan belum ditetapkan |
+| `app/Http/Controllers/Laboran/LaboranDashboardController.php` | Kirim `scopeContext` ke view |
+| `app/Http/Controllers/BukuIndukController.php` | `Schema::hasTable()` → `Table::exists()` (memenuhi guard performa) |
+
+### 4. Ambiguitas Data Dapodik yang Ditangani
+`jurusan_meta` memuat **dua level** Dapodik sekaligus:
+
+| Level | Contoh | `singkatan` |
+|---|---|---|
+| Program Keahlian | `26010` Agribisnis Tanaman | `NULL` |
+| Konsentrasi Keahlian | `26010475` Agribisnis Tanaman Pangan dan Hortikultura | `ATPH` |
+
+Nama bisa identik (mis. `47012` dan `47012650` sama-sama "Desain Komunikasi Visual"), sehingga admin berisiko salah pilih. **Solusi:** setiap opsi dropdown kini menampilkan jumlah rombel sebagai pembeda, mis. `Desain Komunikasi Visual — 2 rombel` vs `Desain Komunikasi Visual (DKV) — 4 rombel`.
+
+### 5. Perilaku Scoping yang Terverifikasi
+| Kondisi `ptk_tugas_tambahan.jurusan_id` | `unrestricted` | Badge | Efek |
+|---|---|---|---|
+| `NULL` | `true` | ⚠️ "Penugasan Jurusan Belum Ditetapkan" | Bisa lihat semua jurusan + banner peringatan di dashboard |
+| Terisi (mis. `26010475`) | `false` | ✅ "Jurusan: Agribisnis Tanaman Pangan dan Hortikultura" | Hanya data jurusan tersebut |
+
+### 6. Pengujian
+- **4 test baru** (total **47 test** modul, 250 assertions):
+  - `test_admin_dapat_menetapkan_jurusan_pada_penugasan_laboran`
+  - `test_penetapan_jurusan_langsung_mengaktifkan_scoping_laboran`
+  - `test_penetapan_jurusan_ditolak_tanpa_hak_akses_update`
+  - `test_halaman_pengguna_menampilkan_tombol_ubah_penugasan`
+  - `test_dashboard_laboran_memperingatkan_jurusan_belum_ditetapkan`
+  - `test_dropdown_jurusan_menampilkan_jumlah_rombel_sebagai_pembeda`
+- Test suite penuh: **227 passed (2782 assertions)** — **seluruhnya hijau**, termasuk `SchemaCheckPerformanceTest` yang sebelumnya gagal.
+
+### 7. Tindakan yang Masih Diperlukan Administrator
+Keempat penugasan `LABORAN` saat ini **masih** `jurusan_id = NULL`. Agar pembatasan data aktif, admin perlu:
+
+1. Buka **Manajemen Pengguna** → tab **Tugas Tambahan**.
+2. Cari baris dengan badge kuning **"Jurusan belum diset"**.
+3. Klik ikon **pensil**, pilih jurusan, lalu **Simpan Perubahan**.
+4. Badge berubah hijau dan `LaboranScope` langsung membatasi data ke jurusan tersebut.
+
+---
+
+## Sesi 13 — 26 Oktober 2026: Perbaikan Error Update Otomatis Server (`hasDirectConnection`)
+
+### 1. Masalah yang Dilaporkan
+Log pembaruan sistem pada server:
+```text
+[13.05.01] [MIGRATE ERROR] Method Illuminate\Database\MySqlConnection::hasDirectConnection does not exist.
+[13.05.01] [VERSION] Versi 1.0.4 (6460d19) tersimpan.
+[13.05.01] [OPTIMIZE] INFO Clearing cached bootstrap files...
+[13.05.01] Pembaruan selesai dengan catatan / error.
+```
+
+### 2. Akar Masalah
+Proses pembaruan otomatis di `UpdateService::runUpdate()` sebelumnya hanya menjalankan `git pull` (atau unduh zip), kemudian langsung mengeksekusi `Artisan::call('migrate', ['--force' => true])` **tanpa pernah menjalankan `composer install`**.
+
+Ketika repositori dinaikkan ke framework Laravel 13, file `composer.lock` meminta dependensi baru, tetapi direktori `vendor/` di server masih memuat library Laravel 12.x lama. Migrator Laravel 13 memanggil method `Connection::hasDirectConnection()` yang belum ada pada driver database lama, sehingga migrasi gagal dengan error fatal `Method Illuminate\Database\MySqlConnection::hasDirectConnection does not exist`.
+
+### 3. Solusi & Perubahan
+1. **`app/Services/UpdateService.php`**:
+   - Ditambahkan method `syncComposerDependencies(array &$logs): bool`.
+   - Mendeteksi binary Composer (perintah global `composer`, `composer.phar` lokal, atau path binary PHP aaPanel `/www/server/php/*/bin/composer`).
+   - Membandingkan versi framework dan sidik jari paket antara `composer.lock` dengan `vendor/composer/installed.json`.
+   - Jika versi tidak sesuai atau berkas `vendor/` tertinggal, otomatis mengeksekusi `composer install --no-dev --optimize-autoloader --no-interaction` dengan timeout dan alokasi memori yang memadai.
+   - Mengurutkan alur `runUpdate()`: **Sinkronisasi Dependensi dijalankan SEBELUM Migrasi Database**. Jika composer gagal, migrasi dibatalkan demi keamanan skema database.
+2. **`app/Http/Controllers/BukuIndukController.php`**:
+   - Menghapus pemanggilan `Schema::hasTable` mentah dan menggantinya dengan `App\Support\Table::exists` yang ber-cache sesuai standar performa proyek.
+3. **`tests/Feature/UpdateServiceDependencyTest.php`**:
+   - Pengujian terisolasi untuk memastikan `syncComposerDependencies` selalu berjalan sebelum `migrate`, migrasi dibatalkan bila dependensi gagal, dan dependensi terpasang sesuai `composer.lock`.
+4. **`tests/Feature/LaboranJurusanModuleTest.php`**:
+   - Pembersihan isolasi `setUp` dan `tearDown` menggunakan snapshot ID agar tidak menghapus data nyata dan tidak saling bertabrakan antar-test.
+
+### 4. Hasil Verifikasi Protokol Mandatori
+1. **Linting Sintaks PHP**: `php -l` pada seluruh berkas yang dimodifikasi — 0 error.
+2. **Kompilasi Blade View Cache**: `php artisan view:clear ; php artisan view:cache` — 100% sukses.
+3. **Kompilasi Frontend (Vite)**: `npm run build` — 59 modul transformed dalam 81ms, 0 kerentanan.
+4. **Eksekusi Test Suite Penuh**: `php artisan test --no-coverage` — **228 passed (2787 assertions)**, 0 failed.
+5. **Pemeriksaan Batas Ukuran File**: 0 berkas di `app/` melebihi 1.000 baris.
+

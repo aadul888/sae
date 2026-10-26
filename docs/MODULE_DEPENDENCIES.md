@@ -163,6 +163,29 @@ Modul laboran dipetakan langsung ke 9 indikator tupoksi supervisi agar setiap bu
 - **Arsip massal:** `laboran/arsip` dapat menarik dokumen dari modul lain (`laboran_berita_acara_kerusakan`, `laboran_peminjaman`, `laboran_permintaan`, `laboran_pemeriksaan`, `laboran_usulan_pengadaan`) dengan penanda `sumber_tabel` + `sumber_id` untuk mencegah duplikasi.
 - **Penomoran:** `PMT/YYYYMM/NNNN` (permintaan), `KBR/…` (kebersihan), `ARS/…` (arsip).
 
+### G4. Sumber Cakupan Data Laboran — Penetapan Jurusan
+Seluruh pembatasan data laboran berasal dari **satu sumber**: kolom `ptk_tugas_tambahan.jurusan_id` pada baris penugasan dengan `ref_tugas_tambahan.kode IN ('LABORAN','KAPROG','KEPALA_LAB')`.
+
+**Alur penetapan (UI):** `dashboard/pengguna` → tab **Tugas Tambahan** → tombol **pensil** (`.btn-edit-duty`) → modal `#modalEditDuty` → pilih Jurusan → **Simpan Perubahan**.
+
+| Lapisan | Berkas | Peran |
+|---|---|---|
+| Route | `routes/web.php` → `dashboard.pengguna.tugas-tambahan.update` (PUT) | middleware `permission:menu_pengguna,update` |
+| Controller | `UserController::updateTugasTambahan()` | validasi, simpan, `LaboranScope::flush()` |
+| View | `dashboard/pengguna.blade.php` | badge status jurusan + modal ubah |
+| JS | `public/js/pengguna.js` | populate modal, toggle wrap, submit AJAX |
+| Konsumen | `App\Support\LaboranScope::resolve()` | menentukan `unrestricted` / `jurusan_id` |
+
+**Matriks perilaku:**
+| `jurusan_id` | `unrestricted` | Badge | Efek |
+|---|---|---|---|
+| `NULL` | `true` | ⚠️ "Penugasan Jurusan Belum Ditetapkan" | Lintas jurusan + banner peringatan di dashboard laboran |
+| Terisi | `false` | ✅ "Jurusan: {nama}" | Hanya data jurusan tersebut; `jurusanForWrite()` memaksa jurusan sendiri |
+
+**Catatan penting — ambiguitas `jurusan_meta`:** tabel ini memuat dua level Dapodik (Program Keahlian tanpa `singkatan`, dan Konsentrasi Keahlian ber-`singkatan`), dan nama keduanya bisa identik. Karena itu opsi dropdown menyertakan **jumlah rombel** sebagai pembeda. Untuk scoping laboran, gunakan level **Konsentrasi Keahlian** karena `rombongan_belajar.jurusan_id` mayoritas mengacu ke sana.
+
+**Peringatan:** jika `jurusan_id` masih `NULL`, sistem **tidak memblokir** operasi (permissive fallback) — ini disengaja agar modul tidak lumpuh sebelum admin menetapkan penugasan. Peringatan visual wajib dianggap tindakan yang harus segera diselesaikan.
+
 ### H. Realtime Mutation & Notifikasi Sistem
 - **Komponen Inti:** `App\Http\Middleware\BroadcastDataChanges`, `App\Services\RealtimeService`, `App\Services\SystemNotificationService`, `App\Http\Controllers\RealtimeController`.
 - **Keterkaitan:**

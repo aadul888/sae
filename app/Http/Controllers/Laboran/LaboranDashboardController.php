@@ -221,8 +221,9 @@ class LaboranDashboardController extends LaboranBaseController
             ),
             $this->abilities(),
             [
-                'context'    => $context,
-                'scopeBadge' => LaboranScope::badge($context),
+                'context'       => $context,
+                'scopeContext'  => $context,
+                'scopeBadge'    => LaboranScope::badge($context),
             ]
         ));
     }

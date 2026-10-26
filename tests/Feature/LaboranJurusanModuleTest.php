@@ -19,6 +19,54 @@ class LaboranJurusanModuleTest extends TestCase
 
     private array $created = [];
 
+    /**
+     * Tabel modul laboran yang dibersihkan setelah setiap test.
+     * Baris yang TIDAK ada saat setUp() dianggap dibuat oleh test ini.
+     */
+    private const LAB_TABLES = [
+        'laboran_bahan_alat',
+        'laboran_kebutuhan',
+        'laboran_perawatan',
+        'laboran_kartu_perawatan',
+        'laboran_pemeriksaan',
+        'laboran_pemeriksaan_item',
+        'laboran_usulan_pengadaan',
+        'laboran_usulan_pengadaan_item',
+        'laboran_berita_acara_kerusakan',
+        'laboran_peminjaman',
+        'laboran_peminjaman_item',
+        'laboran_jadwal_penggunaan',
+        'laboran_permintaan',
+        'laboran_permintaan_item',
+        'laboran_jurnal',
+        'laboran_kebersihan',
+        'laboran_administrasi',
+        'laboran_arsip',
+    ];
+
+    /** @var array<string, array<int, int>> id yang sudah ada SEBELUM test (milik data nyata) */
+    private array $preexistingIds = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Snapshot id awal. Test dijalankan pada database yang juga memuat data
+        // nyata, sehingga cleanup harus menghapus HANYA baris baru — bukan
+        // mengosongkan tabel.
+        $this->preexistingIds = [];
+        foreach (self::LAB_TABLES as $table) {
+            try {
+                if (!\App\Support\Table::exists($table)) {
+                    continue;
+                }
+                $this->preexistingIds[$table] = DB::table($table)->pluck('id')->all();
+            } catch (\Throwable $e) {
+                $this->preexistingIds[$table] = [];
+            }
+        }
+    }
+
     private function adminSession(): array
     {
         $admin = DB::table('pengguna')->where('peran_id_str', 'Administrator')->first();
@@ -106,35 +154,31 @@ class LaboranJurusanModuleTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach ([
-            'laboran_peminjaman_item', 'laboran_peminjaman',
-            'laboran_berita_acara_kerusakan',
-            'laboran_usulan_pengadaan_item', 'laboran_usulan_pengadaan',
-            'laboran_pemeriksaan_item', 'laboran_pemeriksaan',
-            'laboran_kartu_perawatan', 'laboran_perawatan',
-            'laboran_kebutuhan',
-            'laboran_bahan_alat',
-        ] as $t) {
-            DB::table($t)->delete();
-        }
-
-        // Hanya hapus baris jadwal yang dibuat oleh pengujian (jangan sentuh data nyata)
-        DB::table('laboran_jadwal_penggunaan')
-            ->where('mata_pelajaran', 'like', 'UJI-%')
-            ->delete();
-
-        foreach ([
-            'laboran_permintaan_item', 'laboran_permintaan',
-            'laboran_jurnal', 'laboran_kebersihan',
-            'laboran_administrasi', 'laboran_arsip',
-        ] as $t) {
-            DB::table($t)->delete();
+        // Hapus HANYA baris yang tidak ada pada snapshot setUp().
+        // Cara ini tahan terhadap insert lewat controller, insert massal, maupun
+        // insertGetId yang lupa dilacak — dan tetap aman terhadap data nyata.
+        foreach (self::LAB_TABLES as $table) {
+            try {
+                if (!\App\Support\Table::exists($table)) {
+                    continue;
+                }
+                $preexisting = $this->preexistingIds[$table] ?? [];
+                $query = DB::table($table);
+                if (!empty($preexisting)) {
+                    $query->whereNotIn('id', $preexisting);
+                }
+                $query->delete();
+            } catch (\Throwable $e) {
+                // Tabel/kolom mungkin tidak ada pada skema lama — abaikan.
+            }
         }
 
         if (!empty($this->created['duty_id'])) {
             DB::table('ptk_tugas_tambahan')->where('id', $this->created['duty_id'])
                 ->update(['jurusan_id' => null]);
         }
+
+        $this->preexistingIds = [];
 
         LaboranScope::flush();
         parent::tearDown();
@@ -315,13 +359,17 @@ class LaboranJurusanModuleTest extends TestCase
         $ptk = (string) DB::table('gtk')->value('ptk_id');
         $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
 
+        // Prefix unik per test agar data antar-test tidak saling bertabrakan
+        // saat tearDown menghapus berdasarkan pola LIKE.
+        $tag = 'UJI-' . uniqid() . '-';
+
         DB::table('laboran_jadwal_penggunaan')->insert([
             [
                 'jurusan_id'     => self::JUR_ATPH,
                 'ruang_lab_nama' => 'Lahan Praktik ATPH',
                 'ptk_id'         => $ptk,
                 'rombel_id'      => $rombel,
-                'mata_pelajaran' => 'UJI-JADWAL-ATPH',
+                'mata_pelajaran' => $tag . 'ATPH',
                 'tanggal'        => now()->toDateString(),
                 'jam_mulai'      => '07:00:00',
                 'jam_selesai'    => '08:30:00',
@@ -334,7 +382,7 @@ class LaboranJurusanModuleTest extends TestCase
                 'ruang_lab_nama' => 'Lab Komputer 1',
                 'ptk_id'         => $ptk,
                 'rombel_id'      => $rombel,
-                'mata_pelajaran' => 'UJI-JADWAL-TKJ',
+                'mata_pelajaran' => $tag . 'TKJ',
                 'tanggal'        => now()->toDateString(),
                 'jam_mulai'      => '10:00:00',
                 'jam_selesai'    => '11:30:00',
@@ -351,7 +399,7 @@ class LaboranJurusanModuleTest extends TestCase
 
         $list = $res->viewData('list');
         $this->assertCount(1, $list);
-        $this->assertSame('UJI-JADWAL-ATPH', $list->first()->mata_pelajaran);
+        $this->assertSame($tag . 'ATPH', $list->first()->mata_pelajaran);
     }
 
     public function test_laboran_tidak_bisa_mengubah_jadwal_jurusan_lain(): void
@@ -1220,5 +1268,210 @@ class LaboranJurusanModuleTest extends TestCase
             $row = DB::table('laboran_pemeriksaan')->latest('id')->first();
             $this->assertSame($jenis, $row->jenis);
         }
+    }
+
+    // =========================================================================
+    // H. PENETAPAN JURUSAN PADA PENUGASAN (SUMBER SCOPING)
+    // =========================================================================
+
+    public function test_admin_dapat_menetapkan_jurusan_pada_penugasan_laboran(): void
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'LABORAN')
+            ->select('ptt.*')
+            ->first();
+
+        $this->assertNotNull($duty, 'Baris tugas tambahan LABORAN tidak tersedia untuk pengujian.');
+        $this->created['duty_id'] = $duty->id;
+
+        DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->update(['jurusan_id' => null]);
+        LaboranScope::flush();
+
+        $this->withSession($this->adminSession())
+            ->putJson(route('dashboard.pengguna.tugas-tambahan.update', $duty->id), [
+                'jurusan_id' => self::JUR_ATPH,
+                'is_active'  => 1,
+            ])
+            ->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $this->assertSame(
+            self::JUR_ATPH,
+            DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->value('jurusan_id')
+        );
+    }
+
+    public function test_penetapan_jurusan_langsung_mengaktifkan_scoping_laboran(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        // Sebelum ditetapkan: permissive (unrestricted)
+        LaboranScope::flush();
+        DB::table('ptk_tugas_tambahan')->where('id', $this->created['duty_id'])
+            ->update(['jurusan_id' => null]);
+        LaboranScope::flush();
+
+        $permissive = LaboranScope::resolve($session['user']);
+        $this->assertTrue($permissive['unrestricted'], 'Tanpa jurusan, scope harus permissive.');
+
+        // Tetapkan jurusan via endpoint
+        $this->withSession($this->adminSession())
+            ->putJson(route('dashboard.pengguna.tugas-tambahan.update', $this->created['duty_id']), [
+                'jurusan_id' => self::JUR_TKJ,
+                'is_active'  => 1,
+            ])
+            ->assertStatus(200);
+
+        LaboranScope::flush();
+        $locked = LaboranScope::resolve($session['user']);
+
+        $this->assertFalse($locked['unrestricted']);
+        $this->assertSame(self::JUR_TKJ, $locked['jurusan_id']);
+    }
+
+    public function test_penetapan_jurusan_ditolak_tanpa_hak_akses_update(): void
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'LABORAN')
+            ->select('ptt.*')
+            ->first();
+
+        $this->created['duty_id'] = $duty->id;
+
+        // Kondisi awal ditetapkan secara eksplisit agar pengujian tidak bergantung urutan
+        DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->update(['jurusan_id' => self::JUR_TKJ]);
+        LaboranScope::flush();
+
+        // Sesi pengguna tanpa peran apa pun
+        $res = $this->withSession(['user' => [
+            'id'           => 999999,
+            'pengguna_id'  => 999999,
+            'name'         => 'Tanpa Hak',
+            'nama'         => 'Tanpa Hak',
+            'username'     => 'tanpa_hak',
+            'role'         => 'peserta_didik',
+            'peran_id_str' => 'Peserta Didik',
+            'ptk_id'       => null,
+        ]])->putJson(route('dashboard.pengguna.tugas-tambahan.update', $duty->id), [
+            'jurusan_id' => self::JUR_ATPH,
+        ]);
+
+        $this->assertContains($res->getStatusCode(), [403, 302]);
+
+        // Nilai jurusan tidak boleh berubah
+        $this->assertSame(
+            self::JUR_TKJ,
+            DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->value('jurusan_id')
+        );
+    }
+
+    public function test_halaman_pengguna_menampilkan_tombol_ubah_penugasan(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.pengguna.index', ['tab' => 'tugas_tambahan']));
+
+        $res->assertStatus(200);
+        $html = $res->getContent();
+
+        $this->assertStringContainsString('btn-edit-duty', $html);
+        $this->assertStringContainsString('modalEditDuty', $html);
+        $this->assertStringContainsString('editDutyJurusan', $html);
+    }
+
+    public function test_dashboard_laboran_memperingatkan_jurusan_belum_ditetapkan(): void
+    {
+        $session = $this->laboranSession(null);
+
+        $res = $this->withSession($session)->get(route('dashboard.laboran.dashboard'));
+        $res->assertStatus(200);
+        $this->assertStringContainsString('Penugasan jurusan belum ditetapkan', $res->getContent());
+
+        // Setelah jurusan ditetapkan, peringatan hilang
+        DB::table('ptk_tugas_tambahan')->where('id', $this->created['duty_id'])
+            ->update(['jurusan_id' => self::JUR_ATPH]);
+        LaboranScope::flush();
+
+        $res2 = $this->withSession($session)->get(route('dashboard.laboran.dashboard'));
+        $res2->assertStatus(200);
+        $this->assertStringNotContainsString('Penugasan jurusan belum ditetapkan', $res2->getContent());
+    }
+
+    public function test_dropdown_jurusan_menampilkan_jumlah_rombel_sebagai_pembeda(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.pengguna.index', ['tab' => 'tugas_tambahan']));
+
+        $res->assertStatus(200);
+        $html = $res->getContent();
+
+        // Label pembeda level Program vs Konsentrasi Keahlian
+        $normalized = preg_replace('/\s+/', ' ', $html);
+        $this->assertStringContainsString('rombel </option>', $normalized);
+    }
+
+    /**
+     * REGRESI: baris WALI_KELAS menyimpan jurusan hasil sinkronisasi Dapodik.
+     * Mengubah penugasan tidak boleh menghapus jurusan tersebut.
+     */
+    public function test_ubah_penugasan_wali_kelas_tidak_menghapus_jurusan(): void
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'WALI_KELAS')
+            ->whereNotNull('ptt.jurusan_id')
+            ->select('ptt.*')
+            ->first();
+
+        $this->assertNotNull($duty, 'Baris WALI_KELAS dengan jurusan tidak tersedia.');
+        $jurusanAwal = $duty->jurusan_id;
+
+        // Kirim payload seperti yang dikirim form (jurusan tidak termasuk karena
+        // field jurusan disembunyikan untuk WALI_KELAS).
+        $this->withSession($this->adminSession())
+            ->putJson(route('dashboard.pengguna.tugas-tambahan.update', $duty->id), [
+                'rombel_id'  => $duty->rombel_id,
+                'nomor_sk'   => $duty->nomor_sk,
+                'keterangan' => $duty->keterangan,
+                'is_active'  => 1,
+            ])
+            ->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $this->assertSame(
+            $jurusanAwal,
+            DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->value('jurusan_id'),
+            'Jurusan WALI_KELAS tidak boleh hilang saat penugasan diubah.'
+        );
+    }
+
+    /**
+     * REGRESI: admin boleh mengosongkan jurusan pada penugasan LABORAN
+     * (mis. laboran dipindah menjadi lintas jurusan).
+     */
+    public function test_admin_dapat_mengosongkan_jurusan_laboran(): void
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'LABORAN')
+            ->select('ptt.*')
+            ->first();
+
+        $this->created['duty_id'] = $duty->id;
+        DB::table('ptk_tugas_tambahan')->where('id', $duty->id)
+            ->update(['jurusan_id' => self::JUR_ATPH]);
+        LaboranScope::flush();
+
+        $this->withSession($this->adminSession())
+            ->putJson(route('dashboard.pengguna.tugas-tambahan.update', $duty->id), [
+                'jurusan_id' => '',
+                'is_active'  => 1,
+            ])
+            ->assertStatus(200);
+
+        $this->assertNull(
+            DB::table('ptk_tugas_tambahan')->where('id', $duty->id)->value('jurusan_id')
+        );
     }
 }

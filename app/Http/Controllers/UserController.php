@@ -191,6 +191,8 @@ class UserController extends Controller
                 'ptt.tst_tugas',
                 'ptt.keterangan',
                 'ptt.is_active',
+                'ptt.jurusan_id',
+                'ptt.rombel_id',
                 'rtt.kode as tugas_kode',
                 'rtt.nama as tugas_nama',
                 'rtt.kelompok as tugas_kelompok',
@@ -266,9 +268,28 @@ class UserController extends Controller
 
         $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
         $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
-        $jurusanList = \App\Support\Table::exists('jurusan_meta')
-            ? DB::table('jurusan_meta')->select('jurusan_id', 'nama_jurusan', 'singkatan')->orderBy('nama_jurusan')->get()
-            : collect();
+        // Daftar jurusan untuk penetapan cakupan Laboran/Kaprog.
+        // jurusan_meta memuat dua level Dapodik (Program & Konsentrasi Keahlian) dengan
+        // nama yang bisa sama, sehingga disertakan jumlah rombel sebagai pembeda.
+        $jurusanList = collect();
+        if (\App\Support\Table::exists('jurusan_meta')) {
+            $rombelPerJurusan = \App\Support\Table::exists('rombongan_belajar')
+                ? DB::table('rombongan_belajar')
+                    ->whereNotNull('jurusan_id')
+                    ->select('jurusan_id', DB::raw('COUNT(*) as jumlah'))
+                    ->groupBy('jurusan_id')
+                    ->pluck('jumlah', 'jurusan_id')
+                : collect();
+
+            $jurusanList = DB::table('jurusan_meta')
+                ->select('jurusan_id', 'nama_jurusan', 'singkatan')
+                ->orderBy('nama_jurusan')
+                ->orderBy('jurusan_id')
+                ->get()
+                ->each(function ($j) use ($rombelPerJurusan) {
+                    $j->jumlah_rombel = (int) ($rombelPerJurusan[$j->jurusan_id] ?? 0);
+                });
+        }
 
         return view('dashboard.pengguna', compact(
             'admins',
@@ -623,6 +644,91 @@ class UserController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Penugasan tugas tambahan berhasil disimpan.',
+        ]);
+    }
+
+    /**
+     * Ubah penugasan tugas tambahan (termasuk penetapan JURUSAN untuk Laboran/Kaprog).
+     */
+    public function updateTugasTambahan(Request $request, int $id): \Illuminate\Http\JsonResponse
+    {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+        }
+
+        $duty = \App\Models\PtkTugasTambahan::find($id);
+        if (!$duty) {
+            return response()->json(['status' => 'error', 'message' => 'Penugasan tidak ditemukan.'], 404);
+        }
+
+        $request->validate([
+            'jurusan_id'      => 'nullable|string|max:50',
+            'rombel_id'       => 'nullable|string',
+            'nomor_sk'        => 'nullable|string|max:100',
+            'tmt_tugas'       => 'nullable|date',
+            'tst_tugas'       => 'nullable|date',
+            'keterangan'      => 'nullable|string',
+            'is_active'       => 'nullable|boolean',
+        ]);
+
+        $ref = DB::table('ref_tugas_tambahan')->where('id', $duty->tugas_tambahan_id)->first();
+        $kode = $ref->kode ?? null;
+
+        // Validasi khusus Wali Kelas: satu kelas hanya boleh 1 wali aktif
+        $rombelId = $request->input('rombel_id');
+
+        // Wali Kelas: jurusan diturunkan dari rombel (bukan diisi manual), karena
+        // jurusan pada baris WALI_KELAS berasal dari sinkronisasi Dapodik.
+        $jurusanDariRombel = null;
+        if ($kode === 'WALI_KELAS' && $rombelId) {
+            $jurusanDariRombel = DB::table('rombongan_belajar')
+                ->where('rombongan_belajar_id', $rombelId)
+                ->value('jurusan_id');
+        }
+
+        if ($kode === 'WALI_KELAS' && $rombelId) {
+            $existing = \App\Models\PtkTugasTambahan::where('tugas_tambahan_id', $duty->tugas_tambahan_id)
+                ->where('rombel_id', $rombelId)
+                ->where('is_active', true)
+                ->where('id', '<>', $duty->id)
+                ->first();
+
+            if ($existing) {
+                $ptkName = DB::table('gtk')->where('ptk_id', $existing->ptk_id)->value('nama') ?? 'Guru lain';
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName}).",
+                ], 422);
+            }
+        }
+
+        $duty->update([
+            // WALI_KELAS: jurusan mengikuti rombel (sumbernya sinkronisasi Dapodik),
+            // jadi tidak boleh dihapus/diubah dari form. Tugas lain (LABORAN/KAPROG/
+            // KEPALA_LAB): jurusan dapat diubah admin, termasuk dikosongkan.
+            'jurusan_id' => $kode === 'WALI_KELAS'
+                ? ($jurusanDariRombel ?? $duty->jurusan_id)
+                : ($request->has('jurusan_id') ? ($request->input('jurusan_id') ?: null) : $duty->jurusan_id),
+            'rombel_id'  => $request->has('rombel_id') ? ($rombelId ?: null) : $duty->rombel_id,
+            'nomor_sk'   => $request->input('nomor_sk', $duty->nomor_sk),
+            'tmt_tugas'  => $request->input('tmt_tugas', $duty->tmt_tugas),
+            'tst_tugas'  => $request->input('tst_tugas', $duty->tst_tugas),
+            'keterangan' => $request->input('keterangan', $duty->keterangan),
+            'is_active'  => $request->has('is_active') ? (bool) $request->input('is_active') : $duty->is_active,
+        ]);
+
+        \App\Models\RolePermission::clearRuntimeCache();
+
+        // Cakupan jurusan laboran berubah -> bersihkan cache scope
+        if (class_exists(\App\Support\LaboranScope::class)) {
+            \App\Support\LaboranScope::flush();
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Penugasan tugas tambahan berhasil diperbarui.',
         ]);
     }
 
