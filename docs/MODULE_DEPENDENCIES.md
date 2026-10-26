@@ -100,19 +100,22 @@ Dokumen ini mencatat dependensi antarmodul dan alur keterkaitan data yang telah 
   - Verifikasi keaslian publik surat dapat diakses tanpa login via rute `/v/doc/{doc_id}` (`SuratPublicVerifyController`).
 
 ### G. Laboratorium — Penjadwalan Praktik & Laporan Penggunaan Lokasi
-- **Komponen Inti:** `App\Http\Controllers\LaboranJadwalController`, `App\Http\Controllers\LaboranInventarisController`.
-- **Tabel Basis Data Terkait:** `laboran_jadwal_penggunaan`, `laboran_bahan_alat`, `sarpras_ruang`, `pembelajaran`, `gtk`, `rombongan_belajar`.
+- **Komponen Inti:** `App\Http\Controllers\LaboranJadwalController`, `App\Services\LaboranJadwalService`, `App\Http\Controllers\LaboranInventarisController`.
+- **Tabel Basis Data Terkait:** `laboran_jadwal_penggunaan`, `laboran_bahan_alat`, `sarpras_ruang`, `jadwal_kbm`, `pembelajaran`, `gtk`, `rombongan_belajar`.
 - **Keterkaitan Antarmodul:**
+  - **Integrasi Jadwal KBM Aktif**: Form jadwal dapat memilih slot dari `jadwal_kbm` aktif kelas terkait (endpoint `laboran.jadwal.kbm`), otomatis mengisi mapel, jam pelajaran, dan guru pengampu.
+  - **Pemberlakuan Jadwal (Berkala)**: Terdapat 3 opsi pemberlakuan: `sekali` (sesi tunggal), `bulanan` (dibuat rutin setiap minggu selama 1 bulan penuh), dan `semester` (dibuat rutin setiap minggu selama 1 semester). Sesi dihubungkan dengan `jadwal_seri_id`.
+  - **Kolaborasi Multi-Guru (Tim Teaching)**: Input jadwal mendukung lebih dari 1 guru (`ptk_id` utama + array `ptk_ids`). Deteksi bentrok memvalidasi ketersediaan lokasi dan memastikan tidak ada satu pun guru yang bentrok jadwal pada jam yang sama di lokasi lain.
   - **Lokasi praktik** diambil dari master `sarpras_ruang` (Sarpras & Aset) dan diklasifikasikan otomatis ke `jenis_lokasi`: `lab`, `bengkel`, `lahan`, `lapangan`, `lainnya`. Penambahan lokasi baru cukup dilakukan di modul Sarpras.
   - **Mata pelajaran & guru pengampu** diambil otomatis dari `pembelajaran` Dapodik berdasarkan `rombel_id` (endpoint `laboran.jadwal.pembelajaran`). Rombel jenis "Matapelajaran Pilihan" dengan nama sama ikut dicakup karena praktik kejuruan sering diampu di sana.
   - **Topik / materi praktik** bersifat opsional (`topik_praktik` NULLABLE).
   - **Laporan** (`laboran.laporan.index` & `laboran.laporan.cetak`) memakai pola rentang periode yang sama dengan `TendikLaporanController`: bulanan, triwulan (3 bulan), semester (Juli–Desember / Januari–Juni), dan tahun ajaran (1 Juli – 30 Juni).
   - Penanda tangan laporan: petugas laboran yang login, Kepala Laboratorium (`ref_tugas_tambahan.kode = KEPALA_LAB`), dan Kepala Sekolah (`gtk.jenis_ptk_id_str`/`jabatan_ptk_id_str`).
-  - **Validasi bentrok**: satu lokasi tidak boleh dipakai dua sesi dengan jam beririsan pada tanggal yang sama; guru juga tidak boleh terjadwal ganda. Status `batal` dikecualikan dari pengecekan.
+  - **Validasi bentrok**: satu lokasi tidak boleh dipakai dua sesi dengan jam beririsan pada tanggal yang sama; seluruh guru yang terlibat juga dipastikan bebas bentrok. Status `batal` dikecualikan dari pengecekan.
 
 ### G2. Laboratorium per JURUSAN — Tata Kelola Alat & Bahan Praktik
 - **Komponen Inti:** `App\Support\LaboranScope`, `App\Http\Controllers\Laboran\LaboranBaseController`, serta controller `Laboran\Laboran{Dashboard,Kebutuhan,Perawatan,Pemeriksaan,Pengadaan,Kerusakan,Peminjaman,Laporan}Controller`.
-- **Tabel Basis Data Terkait:** `laboran_bahan_alat`, `laboran_kebutuhan`, `laboran_perawatan`, `laboran_kartu_perawatan`, `laboran_pemeriksaan`, `laboran_pemeriksaan_item`, `laboran_usulan_pengadaan`, `laboran_usulan_pengadaan_item`, `laboran_berita_acara_kerusakan`, `laboran_peminjaman`, `laboran_peminjaman_item`, `ptk_tugas_tambahan`, `jurusan_meta`.
+- **Tabel Basis Data Terkait:** `laboran_bahan_alat`, `laboran_kebutuhan`, `laboran_perawatan`, `laboran_kartu_perawatan`, `laboran_pemeriksaan`, `laboran_pemeriksaan_item`, `laboran_usulan_pengadaan`, `laboran_usulan_pengadaan_item`, `laboran_berita_acara_kerusakan`, `laboran_peminjaman`, `laboran_peminjaman_item`, `ptk_tugas_tambahan`, `jurusan_meta`, `sarpras_aset`.
 
 - **Aturan Scoping (WAJIB dipahami sebelum mengubah modul laboran):**
   Setiap Laboran ditugaskan pada **satu jurusan** melalui `ptk_tugas_tambahan.jurusan_id`. `LaboranScope::resolve()` menghasilkan konteks:
@@ -126,10 +129,11 @@ Dokumen ini mencatat dependensi antarmodul dan alur keterkaitan data yang telah 
 
   Tiga lapis penegakan: (1) `LaboranScope::apply()` pada query, (2) `findScoped()` untuk baris tunggal (gagal → 404), (3) `LaboranScope::jurusanForWrite()` yang **memaksa** jurusan milik laboran saat menyimpan (mengabaikan `jurusan_id` dari form).
 
-  > **Catatan operasional:** saat ini keempat baris tugas LABORAN di database belum memiliki `jurusan_id`, sehingga berlaku fallback permisif. Lengkapi melalui `dashboard/pengguna` → tab Tugas Tambahan agar pembatasan aktif.
-
 - **Alur Prosedural antar-Modul:**
-  - **Kebutuhan → Pengadaan**: usulan pengadaan dapat menarik item dari `laboran_kebutuhan` (status `diverifikasi`/`disetujui` yang belum masuk usulan). Jumlah ditarik dari `selisih` (kekurangan).
+  - **Analisis Kebutuhan Otomatis**: Tombol "Jalankan Analisis" memindai seluruh item inventaris yang berstatus rusak berat/ringan, stok kritis/habis, atau mendekati kedaluwarsa, lalu otomatis memasukkan kekurangannya ke tabel `laboran_kebutuhan`.
+  - **Kebutuhan → Pengadaan**: Usulan pengadaan menarik item dari `laboran_kebutuhan` (status `diverifikasi`/`disetujui` yang belum masuk usulan). Form usulan pengadaan dilengkapi pilihan jenis pengadaan (`semua`, `alat`, `bahan_habis_pakai`) serta jumlah kekurangan item yang jelas. Nama pemohon dan sumber dana dihilangkan sesuai kebutuhan operasional.
+  - **Peminjaman Alat Terpadu (Laboran & Sarpras)**: Modul peminjaman sarpras dan peminjaman alat laboran disatukan menjadi 1 modul peminjaman terpadu (`dashboard.laboran.peminjaman-alat.index`). Peminjam dipilih secara otomatis dari database (dropdown Siswa dengan rombel otomatis, dropdown GTK dengan NIP otomatis). Item yang dipinjam dapat berasal dari inventaris lab maupun aset sarpras sekaligus.
+  - **Import via Excel**: Modul Inventaris Lab (`laboran/inventaris`) dan Aset Sarpras (`sarpras/aset`) menyediakan unduh berkas template resmi (`.xlsx`) dan fitur import massal berbasis `SimpleXlsxReader`.
   - **Perawatan → Inventaris**: perawatan berstatus `selesai` dengan `kondisi_akhir` menyinkronkan `laboran_bahan_alat.kondisi`. `kondisi_akhir = tidak_laik` dipetakan ke `rusak_berat`.
   - **Kerusakan → Inventaris**: berita acara menurunkan kondisi alat (`ringan`→`rusak_ringan`, `sedang`/`berat`/`total`→`rusak_berat`).
   - **Peminjaman → Inventaris**: stok berkurang saat transisi `disetujui`→`dipinjam`, dan pulih saat `dikembalikan`. Kondisi kembali `rusak_ringan`/`rusak_berat` memperbarui kondisi alat. `hilang` tidak mengembalikan stok.
@@ -140,7 +144,7 @@ Dokumen ini mencatat dependensi antarmodul dan alur keterkaitan data yang telah 
 - **Penomoran Dokumen Otomatis** (dari `LaboranBaseController::generateNomor()`):
   `PRW/YYYYMM/NNNN` (perawatan), `KRT/…` (kartu), `PRK/…` (pemeriksaan), `USL/…` (usulan pengadaan), `BAK/…` (berita acara kerusakan), `PJM/…` (peminjaman).
 
-- **Permission Key:** `menu_laboran_kebutuhan`, `menu_laboran_perawatan`, `menu_laboran_pemeriksaan`, `menu_laboran_pengadaan`, `menu_laboran_kerusakan`, `menu_laboran_laporan`, `menu_laboran_administrasi`, `menu_laboran_permintaan`, `menu_laboran_arsip`, `menu_laboran_jurnal`, `menu_laboran_kebersihan` (terdaftar di `PermissionDictionary` dan `DutyPermissionDefaults::forDuty('LABORAN')`).
+- **Permission Key:** `menu_laboran_kebutuhan`, `menu_laboran_perawatan`, `menu_laboran_pemeriksaan`, `menu_laboran_pengadaan`, `menu_laboran_kerusakan`, `menu_laboran_laporan`, `menu_laboran_arsip`, `menu_laboran_jurnal`, `menu_laboran_kebersihan` (terdaftar di `PermissionDictionary` dan `DutyPermissionDefaults::forDuty('LABORAN')`). Modul Administrasi Jurusan dan Bon Permintaan dihapus dari sistem.
 
 ### G3. Kelengkapan TUPOKSI Laboran — Pemetaan 9 Indikator Supervisi
 Modul laboran dipetakan langsung ke 9 indikator tupoksi supervisi agar setiap bukti fisik punya penghasil dokumen:

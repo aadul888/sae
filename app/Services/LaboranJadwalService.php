@@ -645,7 +645,7 @@ class LaboranJadwalService
         ];
     }
 
-    protected function resolvePetugasLaboran(): ?object
+    protected function resolvePetugasLaboran(): array
     {
         $user = session('user');
         $nama = is_array($user) ? ($user['nama'] ?? $user['name'] ?? null) : ($user->nama ?? $user->name ?? null);

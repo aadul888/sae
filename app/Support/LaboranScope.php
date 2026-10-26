@@ -72,7 +72,7 @@ final class LaboranScope
                         $q->orWhere('ptt.ptk_id', $ptkId);
                     }
                 })
-                ->whereIn('rtt.kode', ['LABORAN', 'KEPALA_LAB'])
+                ->whereIn('rtt.kode', ['LABORAN', 'KEPALA_LAB', 'KAPROG'])
                 ->select('rtt.kode', 'ptt.jurusan_id', 'ptt.ptk_id', 'ptt.user_id')
                 ->get();
         }
@@ -80,9 +80,21 @@ final class LaboranScope
         $isLaboran   = $duties->contains('kode', 'LABORAN');
         $isKepalaLab = $duties->contains('kode', 'KEPALA_LAB');
 
-        // Jurusan yang ditugaskan pada baris LABORAN
-        $jurusanIds = $duties->where('kode', 'LABORAN')
-            ->pluck('jurusan_id')
+        // Jurusan yang ditugaskan pada baris LABORAN atau KAPROG (bisa multi-jurusan dipisah koma atau JSON)
+        $jurusanIds = $duties->whereIn('kode', ['LABORAN', 'KAPROG'])
+            ->flatMap(function ($d) {
+                if (empty($d->jurusan_id)) {
+                    return [];
+                }
+                $raw = trim((string) $d->jurusan_id);
+                if (str_starts_with($raw, '[')) {
+                    $decoded = json_decode($raw, true);
+                    if (is_array($decoded)) {
+                        return $decoded;
+                    }
+                }
+                return array_map('trim', explode(',', $raw));
+            })
             ->filter(fn($v) => !empty($v))
             ->unique()
             ->values()
@@ -99,8 +111,15 @@ final class LaboranScope
         }
 
         $jurusanNama = null;
-        if ($jurusanId && Table::exists('jurusan_meta')) {
-            $jurusanNama = DB::table('jurusan_meta')->where('jurusan_id', $jurusanId)->value('nama_jurusan');
+        if (!empty($jurusanIds) && Table::exists('jurusan_meta')) {
+            $namaList = DB::table('jurusan_meta')
+                ->whereIn('jurusan_id', $jurusanIds)
+                ->pluck('nama_jurusan')
+                ->filter()
+                ->all();
+            if (!empty($namaList)) {
+                $jurusanNama = implode(', ', $namaList);
+            }
         }
         if (!$jurusanNama && $jurusanId) {
             $jurusanNama = DB::table('rombongan_belajar')->where('jurusan_id', $jurusanId)->value('jurusan_id_str');
@@ -179,7 +198,11 @@ final class LaboranScope
             return $inputJurusanId ?: $context['jurusan_id'];
         }
 
-        return $context['jurusan_id'];
+        if (!empty($inputJurusanId) && in_array($inputJurusanId, $context['jurusan_ids'], true)) {
+            return $inputJurusanId;
+        }
+
+        return $context['jurusan_id'] ?? ($context['jurusan_ids'][0] ?? null);
     }
 
     /**

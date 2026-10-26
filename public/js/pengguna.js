@@ -271,7 +271,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (rombelSelect) rombelSelect.required = false;
             }
             const jurusanWrap = document.getElementById("dutyJurusanWrap");
-            if (jurusanWrap) jurusanWrap.style.display = "none";
+            if (jurusanWrap) {
+                jurusanWrap.style.display = "none";
+                document.querySelectorAll("#dutyJurusanWrap .duty-jurusan-check").forEach(chk => {
+                    chk.checked = false;
+                });
+            }
         }
     };
 
@@ -308,7 +313,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const formData = new FormData(formAddDuty);
-            const payload = Object.fromEntries(formData.entries());
+            const payload = {};
+            formData.forEach((value, key) => {
+                if (key.endsWith("[]")) {
+                    const cleanKey = key.slice(0, -2);
+                    if (!payload[cleanKey]) payload[cleanKey] = [];
+                    payload[cleanKey].push(value);
+                } else {
+                    payload[key] = value;
+                }
+            });
             const storeUrl = dutyModal?.dataset.storeUrl || "/dashboard/pengguna/tugas-tambahan/store";
 
             try {
@@ -349,7 +363,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.closeEditDutyModal = function () {
         const modal = document.getElementById("modalEditDuty");
-        if (modal) modal.style.display = "none";
+        if (modal) {
+            modal.style.display = "none";
+            document.querySelectorAll("#editDutyJurusanWrap .duty-jurusan-check").forEach(chk => {
+                chk.checked = false;
+            });
+        }
     };
 
     if (btnCloseEditDuty) btnCloseEditDuty.addEventListener("click", window.closeEditDutyModal);
@@ -381,13 +400,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const editDutyJurusanWrap = document.getElementById("editDutyJurusanWrap");
         const editDutyRombelWrap = document.getElementById("editDutyRombelWrap");
-        const editDutyJurusan = document.getElementById("editDutyJurusan");
         const editDutyRombel = document.getElementById("editDutyRombel");
 
         if (editDutyJurusanWrap) editDutyJurusanWrap.style.display = needsJurusan ? "block" : "none";
         if (editDutyRombelWrap) editDutyRombelWrap.style.display = isWali ? "block" : "none";
-        if (editDutyJurusan) editDutyJurusan.value = d.jurusan || d.jurusan_id || "";
         if (editDutyRombel) editDutyRombel.value = d.rombel || d.rombel_id || "";
+
+        // Centang checkbox jurusan yang tersimpan
+        const rawJurusan = d.jurusan || d.jurusan_id || "";
+        let selectedJurusanIds = [];
+        if (typeof rawJurusan === "string" && rawJurusan.trim().startsWith("[")) {
+            try { selectedJurusanIds = JSON.parse(rawJurusan); } catch (e) { selectedJurusanIds = []; }
+        } else if (typeof rawJurusan === "string") {
+            selectedJurusanIds = rawJurusan.split(",").map(s => s.trim()).filter(Boolean);
+        } else if (Array.isArray(rawJurusan)) {
+            selectedJurusanIds = rawJurusan;
+        }
+
+        document.querySelectorAll("#editDutyJurusanWrap .duty-jurusan-check").forEach(chk => {
+            chk.checked = selectedJurusanIds.includes(chk.value);
+        });
 
         const setVal = (id, val) => {
             const el = document.getElementById(id);
@@ -421,7 +453,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
             }
 
-            const payload = Object.fromEntries(new FormData(formEditDuty).entries());
+            const formData = new FormData(formEditDuty);
+            const payload = {};
+            formData.forEach((value, key) => {
+                if (key.endsWith("[]")) {
+                    const cleanKey = key.slice(0, -2);
+                    if (!payload[cleanKey]) payload[cleanKey] = [];
+                    payload[cleanKey].push(value);
+                } else {
+                    payload[key] = value;
+                }
+            });
             delete payload._method;
             delete payload._token;
 

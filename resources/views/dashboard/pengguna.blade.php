@@ -253,17 +253,30 @@
                                 <td style="padding: 14px 18px; font-size: var(--text-sm, 0.8125rem);" data-label="Rombel / Info">
                                     @if ($item->tugas_kode === 'LABORAN' || $item->tugas_kode === 'KAPROG' || $item->tugas_kode === 'KEPALA_LAB')
                                         @php
-                                            $jurusanNama = null;
+                                            $jIds = [];
                                             if (!empty($item->jurusan_id)) {
-                                                $jurusanNama = \Illuminate\Support\Facades\DB::table('jurusan_meta')
-                                                    ->where('jurusan_id', $item->jurusan_id)
-                                                    ->value('nama_jurusan');
+                                                $rawJ = trim((string) $item->jurusan_id);
+                                                if (str_starts_with($rawJ, '[')) {
+                                                    $decoded = json_decode($rawJ, true);
+                                                    $jIds = is_array($decoded) ? $decoded : [];
+                                                } else {
+                                                    $jIds = array_filter(array_map('trim', explode(',', $rawJ)));
+                                                }
                                             }
+                                            $jList = !empty($jIds)
+                                                ? \Illuminate\Support\Facades\DB::table('jurusan_meta')
+                                                    ->whereIn('jurusan_id', $jIds)
+                                                    ->get(['jurusan_id', 'nama_jurusan', 'singkatan'])
+                                                : collect();
                                         @endphp
-                                        @if ($jurusanNama)
-                                            <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem);">
-                                                <i class="fas fa-graduation-cap me-1"></i> {{ $jurusanNama }}
-                                            </span>
+                                        @if ($jList->isNotEmpty())
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                                @foreach ($jList as $jItem)
+                                                    <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem);" title="{{ $jItem->nama_jurusan }}">
+                                                        <i class="fas fa-graduation-cap me-1"></i> {{ !empty($jItem->singkatan) ? $jItem->singkatan : Str::limit($jItem->nama_jurusan, 20) }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem);"
                                                 title="Segera tetapkan jurusan agar pembatasan data aktif">
@@ -602,18 +615,23 @@
                     </div>
 
                     <div class="form-group-compact full-width" id="dutyJurusanWrap" style="display: none;">
-                        <label>Jurusan / Kompetensi Keahlian</label>
-                        <select name="jurusan_id" id="dutyJurusanSelect">
-                            <option value="">-- Semua Jurusan (Lintas Jurusan) --</option>
+                        <label>Jurusan / Bidang Keahlian (Bisa Pilih Lebih dari 1)</label>
+                        <div class="jurusan-checkbox-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 10px; background: var(--bg-hover, rgba(255,255,255,0.03)); display: flex; flex-direction: column; gap: 8px;">
                             @foreach (($jurusanList ?? []) as $j)
-                                <option value="{{ $j->jurusan_id }}">
-                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
-                                    &mdash; {{ $j->jumlah_rombel ?? 0 }} rombel
-                                </option>
+                                <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
+                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $j->jurusan_id }}" class="duty-jurusan-check" style="accent-color: var(--primary);">
+                                    <span>
+                                        <strong>{{ $j->nama_jurusan }}</strong>
+                                        @if(!empty($j->singkatan))
+                                            <span class="badge badge-outline ms-1" style="font-size: var(--text-xs, 0.75rem);">{{ $j->singkatan }}</span>
+                                        @endif
+                                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">({{ $j->jumlah_rombel ?? 0 }} rombel)</span>
+                                    </span>
+                                </label>
                             @endforeach
-                        </select>
-                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
-                            <i class="fas fa-info-circle"></i> Wajib untuk Laboran &amp; Kaprog: menentukan cakupan data yang boleh dikelola.
+                        </div>
+                        <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih satu atau lebih jurusan (misal: Program Keahlian untuk Kelas X dan Konsentrasi Keahlian untuk Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan.
                         </small>
                     </div>
 
@@ -675,19 +693,23 @@
                     </div>
 
                     <div class="form-group-compact full-width" id="editDutyJurusanWrap" style="display: none;">
-                        <label>Jurusan / Kompetensi Keahlian</label>
-                        <select name="jurusan_id" id="editDutyJurusan" class="form-control">
-                            <option value="">-- Semua Jurusan (Lintas Jurusan) --</option>
+                        <label>Jurusan / Bidang Keahlian (Bisa Pilih Lebih dari 1)</label>
+                        <div class="jurusan-checkbox-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 10px; background: var(--bg-hover, rgba(255,255,255,0.03)); display: flex; flex-direction: column; gap: 8px;">
                             @foreach (($jurusanList ?? []) as $j)
-                                <option value="{{ $j->jurusan_id }}">
-                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
-                                    &mdash; {{ $j->jumlah_rombel ?? 0 }} rombel
-                                </option>
+                                <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
+                                    <input type="checkbox" name="jurusan_ids[]" value="{{ $j->jurusan_id }}" class="duty-jurusan-check" style="accent-color: var(--primary);">
+                                    <span>
+                                        <strong>{{ $j->nama_jurusan }}</strong>
+                                        @if(!empty($j->singkatan))
+                                            <span class="badge badge-outline ms-1" style="font-size: var(--text-xs, 0.75rem);">{{ $j->singkatan }}</span>
+                                        @endif
+                                        <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">({{ $j->jumlah_rombel ?? 0 }} rombel)</span>
+                                    </span>
+                                </label>
                             @endforeach
-                        </select>
-                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
-                            <i class="fas fa-info-circle"></i> Menentukan cakupan data Laboratorium yang boleh dikelola
-                            (per jurusan).
+                        </div>
+                        <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Pilih satu atau lebih jurusan (misal: Program Keahlian untuk Kelas X dan Konsentrasi Keahlian untuk Kelas XI &amp; XII). Kosongkan jika berlaku lintas semua jurusan.
                         </small>
                     </div>
 

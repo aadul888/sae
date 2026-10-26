@@ -913,3 +913,55 @@ Ketika repositori dinaikkan ke framework Laravel 13, file `composer.lock` memint
 4. **Eksekusi Test Suite Penuh**: `php artisan test --no-coverage` — **228 passed (2787 assertions)**, 0 failed.
 5. **Pemeriksaan Batas Ukuran File**: 0 berkas di `app/` melebihi 1.000 baris.
 
+
+---
+
+## Sesi 14 ? 26 Oktober 2026: Penyelarasan Jadwal KBM, Multi-Guru, Analisis Otomatis, Unifikasi Peminjaman & Import Excel
+
+### 1. Ringkasan Kebutuhan
+1. Penyesuaian jadwal penggunaan lab/lahan praktik sesuai jadwal KBM yang berlaku, serta 2 opsi pemberlakuan jadwal: **Bulanan** dan **Semester**.
+2. Input jadwal lokasi praktik mendukung **lebih dari 1 guru** (tim teaching) dengan deteksi bentrok lokasi dan seluruh guru.
+3. Mengaktifkan tombol & fungsi **Analisis Kebutuhan**.
+4. Di Usulan Pengadaan: **nama pemohon dan sumber dana dihilangkan**, ditambahkan **pilihan jenis alat dan bahan** serta tampilan jumlah & kuantitas kebutuhan.
+5. Menghapus modul **Administrasi Jurusan** dan **Bon Permintaan**.
+6. Nama peminjam dibuat otomatis (dropdown Siswa & GTK) serta **peminjaman alat dan sarpras disatukan menjadi 1 modul peminjaman**.
+7. Menambahkan fitur **Import via Excel (.xlsx/.xls/.csv)** pada Inventaris Lab dan Aset Sarpras, lengkap dengan unduh template resmi.
+
+### 2. Rincian Perubahan Berkas
+| Berkas | Perubahan |
+|---|---|
+| `database/migrations/2026_10_26_140001_enhance_laboran_features.php` | Migrasi penambahan kolom `pemberlakuan`, `ptk_ids`, `guru_pendamping`, `jadwal_seri_id` pada `laboran_jadwal_penggunaan`; kolom `jenis` pada `laboran_usulan_pengadaan`; kolom `sumber`, `aset_id` pada `laboran_peminjaman_item`; serta penyesuaian nullable untuk `ptk_id`, `sumber_dana`, `pemohon_nama`. |
+| `app/Services/LaboranJadwalService.php` | Berkas service baru: mengisolasi logika penghitungan tanggal berulang (bulanan/semester), deteksi bentrok lokasi & seluruh guru pendamping, ekstraksi KBM slots dari `jadwal_kbm`, serta agregasi laporan periode. |
+| `app/Http/Controllers/LaboranJadwalController.php` | Didekomposisi dari 880 baris menjadi 502 baris (hemat token & patuh batas 1.000 baris). Menambahkan endpoint `kbmByRombel`, penanganan multi-guru, dan penyimpanan batch seri jadwal. |
+| `resources/views/dashboard/laboran/jadwal.blade.php` | Form modal baru: dropdown Jadwal KBM aktif (auto-fill), pilihan Pemberlakuan (Sekali, Bulanan, Semester), input Guru Utama + checklist Guru Pendamping (Tim Teaching). |
+| `public/js/laboran-jadwal.js` | Fetch otomatis slot KBM aktif saat memilih kelas, auto-fill mapel/jam/guru, sinkronisasi hint pemberlakuan, serta penanganan checkbox multi-guru. |
+| `app/Http/Controllers/Laboran/LaboranKebutuhanController.php` | Menambahkan method `jalankanAnalisis(Request)`: memindai inventaris kritis/habis/rusak secara otomatis dan menyinkronkannya ke daftar kebutuhan. |
+| `resources/views/dashboard/laboran/kebutuhan.blade.php` | Tombol "Jalankan Analisis" di banner header dan "Terapkan ke Daftar Kebutuhan" di panel analisis ketersediaan stok. |
+| `public/js/laboran-kebutuhan.js` | Handler konfirmasi SweetAlert2 dan pemanggilan AJAX untuk menjalankan analisis kebutuhan otomatis. |
+| `app/Http/Controllers/Laboran/LaboranPengadaanController.php` | Menghilangkan kewajiban pemohon dan sumber dana, menambahkan dukungan `jenis` pengadaan (Semua, Alat, Bahan Habis Pakai), dan filter jenis. |
+| `resources/views/dashboard/laboran/pengadaan.blade.php` | Modal tanpa input pemohon & sumber dana; terdapat pilihan jenis alat & bahan; kolom tabel diganti menjadi Jenis & Kebutuhan dengan kuantitas yang jelas. |
+| `resources/views/dashboard/laboran/pengadaan-detail.blade.php` | Menyesuaikan tampilan detail dengan jenis pengadaan. |
+| `public/js/laboran-pengadaan.js` | Menyesuaikan openCreate & openEdit untuk jenis pengadaan. |
+| `routes/web.php` | Menghapus route administrasi & permintaan; menambahkan route kbm, jalankan-analisis, template/import inventaris, template/import aset, dan pengalihan sarpras peminjaman ke peminjaman alat terpadu. |
+| `resources/views/partials/dash-sidebar.blade.php` | Menghapus link menu Buku Administrasi Jurusan dan Bon Permintaan di seluruh layout sidebar. |
+| `resources/views/dashboard/laboran/dashboard.blade.php` | Menghapus kartu akses cepat Administrasi Jurusan dan Bon Permintaan. |
+| `app/Http/Controllers/Laboran/LaboranPeminjamanController.php` | Memuat daftar Siswa & Guru aktif; mendukung peminjaman alat inventaris lab sekaligus aset sarpras; pembaruan status mutasi ketersediaan aset sarpras saat dipinjam/dikembalikan. |
+| `app/Http/Controllers/SarprasPeminjamanController.php` | `index()` dialihkan langsung ke modul peminjaman terpadu (`dashboard.laboran.peminjaman-alat.index`). |
+| `resources/views/dashboard/laboran/peminjaman.blade.php` | Modal pemilihan otomatis peminjam (dropdown Siswa dengan rombel otomatis, dropdown GTK dengan NIP otomatis); seksi pemilihan alat terpadu dari inventaris lab dan aset sarpras. |
+| `public/js/laboran-peminjaman.js` | Sinkronisasi UI tipe peminjam dan auto-fill nama, ID, serta kelas/unit. |
+| `app/Http/Controllers/LaboranInventarisController.php` | Menambahkan method `templateExcel()` dan `importExcel(Request)` menggunakan `SimpleXlsxReader`. |
+| `resources/views/dashboard/laboran/inventaris.blade.php` | Tombol & modal Import Inventaris via Excel dengan link unduh template resmi. |
+| `public/js/laboran-inventaris.js` | Handler modal import dan submit form upload berkas inventaris. |
+| `app/Http/Controllers/SarprasAsetController.php` | Menambahkan method `templateExcel()` dan `importExcel(Request)` menggunakan `SimpleXlsxReader`. |
+| `resources/views/dashboard/sarpras/aset.blade.php` | Tombol & modal Import Aset via Excel dengan link unduh template resmi. |
+| `public/js/sarpras-aset.js` | Handler modal import dan submit form upload berkas aset sarpras. |
+| `tests/Feature/LaboranJurusanModuleTest.php` | Memperbarui pengujian: menambah tes pemberlakuan berkala jadwal, multi-guru & deteksi bentrok, slot KBM, analisis otomatis, jenis usulan pengadaan, peminjaman siswa/sarpras terpadu, dan import Excel; menghapus tes administrasi/permintaan. |
+| `tests/Feature/UiPagesSmokeTest.php` | Menghapus jalur administrasi dan permintaan dari smoke test. |
+
+### 3. Hasil Pengujian & Verifikasi
+1. **Linting PHP**: Seluruh berkas PHP lint clean tanpa syntax error.
+2. **Kompilasi View Cache**: `php artisan view:clear ; php artisan view:cache` sukses 100%.
+3. **Kompilasi Vite**: `npm run build` sukses (59 modul ditransformasikan dalam 69ms).
+4. **Keseimbangan Tag HTML**: Seluruh 8 berkas Blade yang diubah diverifikasi pembukaan dan penutupan `<div>` seimbang 100%.
+5. **Eksekusi Test Suite Penuh**: **232 passed (2.797 assertions)**, 0 failed, 100% hijau.
+6. **Batas Ukuran Baris Kode**: 0 berkas di direktori `app/` melebihi batas 1.000 baris.

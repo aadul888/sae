@@ -557,14 +557,24 @@ class UserController extends Controller
             'tmt_tugas' => 'nullable|date',
             'tst_tugas' => 'nullable|date',
             'rombel_id' => 'nullable|string',
-            'jurusan_id' => 'nullable|string|max:50',
+            'jurusan_id' => 'nullable',
+            'jurusan_ids' => 'nullable|array',
+            'jurusan_ids.*' => 'nullable|string|max:50',
             'keterangan' => 'nullable|string',
         ]);
 
         $ptkId = $request->input('ptk_id');
         $tugasId = (int) $request->input('tugas_tambahan_id');
         $rombelId = $request->input('rombel_id');
-        $jurusanId = $request->input('jurusan_id');
+
+        $rawJurusan = $request->input('jurusan_ids') ?? $request->input('jurusan_id');
+        $jurusanId = null;
+        if (is_array($rawJurusan)) {
+            $filtered = array_values(array_filter(array_map('trim', $rawJurusan)));
+            $jurusanId = !empty($filtered) ? implode(',', $filtered) : null;
+        } elseif (is_string($rawJurusan) && trim($rawJurusan) !== '') {
+            $jurusanId = trim($rawJurusan);
+        }
 
         $tugas = DB::table('ref_tugas_tambahan')->where('id', $tugasId)->first();
         if (!$tugas) {
@@ -669,7 +679,9 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'jurusan_id'      => 'nullable|string|max:50',
+            'jurusan_id'      => 'nullable',
+            'jurusan_ids'     => 'nullable|array',
+            'jurusan_ids.*'   => 'nullable|string|max:50',
             'rombel_id'       => 'nullable|string',
             'nomor_sk'        => 'nullable|string|max:100',
             'tmt_tugas'       => 'nullable|date',
@@ -713,13 +725,24 @@ class UserController extends Controller
             }
         }
 
+        $rawJurusan = $request->input('jurusan_ids') ?? $request->input('jurusan_id');
+        $jurusanId = null;
+        if (is_array($rawJurusan)) {
+            $filtered = array_values(array_filter(array_map('trim', $rawJurusan)));
+            $jurusanId = !empty($filtered) ? implode(',', $filtered) : null;
+        } elseif (is_string($rawJurusan) && trim($rawJurusan) !== '') {
+            $jurusanId = trim($rawJurusan);
+        }
+
+        $hasJurusanInput = $request->has('jurusan_ids') || $request->has('jurusan_id');
+
         $duty->update([
             // WALI_KELAS: jurusan mengikuti rombel (sumbernya sinkronisasi Dapodik),
             // jadi tidak boleh dihapus/diubah dari form. Tugas lain (LABORAN/KAPROG/
             // KEPALA_LAB): jurusan dapat diubah admin, termasuk dikosongkan.
             'jurusan_id' => $kode === 'WALI_KELAS'
                 ? ($jurusanDariRombel ?? $duty->jurusan_id)
-                : ($request->has('jurusan_id') ? ($request->input('jurusan_id') ?: null) : $duty->jurusan_id),
+                : ($hasJurusanInput ? $jurusanId : $duty->jurusan_id),
             'rombel_id'  => $request->has('rombel_id') ? ($rombelId ?: null) : $duty->rombel_id,
             'nomor_sk'   => $request->input('nomor_sk', $duty->nomor_sk),
             'tmt_tugas'  => $request->input('tmt_tugas', $duty->tmt_tugas),
