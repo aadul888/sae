@@ -570,6 +570,11 @@ class LaboranJadwalController extends Controller
         ];
     }
 
+    protected function resolveDateRange(string $tipe, int $bulan, int $tahun, int $triwulan, string $semester, string $tahunAjaran): array
+    {
+        return $this->service->resolveDateRange($tipe, $bulan, $tahun, $triwulan, $semester, $tahunAjaran);
+    }
+
     public static function detectJenisLokasi(?string $namaRuang, ?string $gedung = null): string
     {
         return (new LaboranJadwalService())->detectJenisLokasi($namaRuang, $gedung);
