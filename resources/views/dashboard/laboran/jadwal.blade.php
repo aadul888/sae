@@ -28,10 +28,10 @@
                     <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
                 </span>
                 @if ($canRead)
-                    <a href="{{ route('dashboard.laboran.jadwal-per-guru.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.laboran.jadwal.cetak', array_merge(request()->query(), ['mode' => ($modeDiberlakukan === 'semester') ? 'semester' : 'mingguan', 'auto' => 1])) }}" target="_blank" class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                        title="Jadwal Praktik per Guru (Mingguan / Bulanan)">
-                        <i class="fas fa-user-clock"></i>
+                        title="Cetak Jadwal Praktik ({{ $modeDiberlakukan === 'semester' ? 'Semester' : 'Mingguan' }})">
+                        <i class="fas fa-print"></i>
                     </a>
                     <a href="{{ route('dashboard.laboran.laporan.index') }}" class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
@@ -89,6 +89,69 @@
                 </div>
             </div>
         </div>
+
+        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) — laboran memilih & mengaktifkan salah satu --}}
+        @if ($canRead)
+            <div class="periode-nav-wrapper" style="margin-bottom: var(--space-8);">
+                <div class="periode-nav-desktop">
+                    @foreach ($modePemberlakuanLabels as $mKey => $mLabel)
+                        <a href="{{ route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => $mKey]) }}"
+                            class="periode-nav-tab {{ ($pengaturanJadwal->mode_pemberlakuan ?? 'mingguan') === $mKey ? 'active' : '' }}">
+                            <i class="fas {{ $mKey === 'mingguan' ? 'fa-calendar-week' : 'fa-calendar-range' }}"></i>
+                            {{ $mLabel }}
+                            @if ($modeDiberlakukan === $mKey)
+                                <span class="badge badge-success" style="font-size: var(--text-2xs); margin-left: 6px;">
+                                    <i class="fas fa-check-circle me-1"></i> Diberlakukan
+                                </span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            @php
+                $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'mingguan';
+                $isActive = ($pengaturanJadwal->status ?? 'draft') === 'aktif';
+                $isActiveMode = $modeDiberlakukan === $activeMode;
+            @endphp
+            <div class="card" style="padding: var(--space-7) var(--space-9); margin-bottom: var(--space-9); display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); flex-wrap: wrap;">
+                <div>
+                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base); margin-bottom: 2px;">
+                        <i class="fas fa-sliders text-primary me-1"></i>
+                        Pemberlakuan Penentuan Jadwal: <strong style="color: var(--primary);">{{ $modePemberlakuanLabels[$activeMode] ?? $activeMode }}</strong>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--text-muted);">
+                        @if ($activeMode === 'mingguan')
+                            Jadwal praktik ditentukan per minggu: pilih hari praktik (bisa lebih dari satu) yang berulang setiap minggu, dengan acuan tanggal awal berlaku.
+                        @else
+                            Jadwal praktik ditentukan per semester (Ganjil Juli–Desember / Genap Januari–Juni) sesuai tahun ajaran berjalan, dengan pemetaan hari praktik.
+                        @endif
+                        @if ($isActive)
+                            <span class="badge badge-success" style="margin-left: 6px;">
+                                <i class="fas fa-circle-check me-1"></i> Aktif
+                            </span>
+                        @else
+                            <span class="badge badge-warning" style="margin-left: 6px;">
+                                <i class="fas fa-pause me-1"></i> Draft
+                            </span>
+                        @endif
+                    </div>
+                </div>
+                @if ($canUpdate)
+                    <button type="button" class="btn {{ $isActiveMode ? 'btn-outline' : 'btn-primary' }} btn-toggle-pemberlakuan-lab"
+                        data-mode="{{ $activeMode }}"
+                        data-status="{{ $isActiveMode ? 'draft' : 'aktif' }}"
+                        data-url="{{ route('dashboard.laboran.jadwal.toggle-pemberlakuan') }}"
+                        title="{{ $isActiveMode ? 'Matikan pemberlakuan mode ini (kembali ke draft)' : 'Aktifkan mode ini sebagai acuan penentuan jadwal praktik' }}">
+                        @if ($isActiveMode)
+                            <i class="fas fa-pause me-1"></i> Matikan Pemberlakuan
+                        @else
+                            <i class="fas fa-play me-1"></i> Aktifkan Pemberlakuan
+                        @endif
+                    </button>
+                @endif
+            </div>
+        @endif
 
         {{-- 3. Datatable Terpadu --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">

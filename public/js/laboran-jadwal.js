@@ -414,16 +414,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (labelTanggalAwal) {
-            labelTanggalAwal.textContent = mode === 'bulanan' ? 'Tanggal Bulan Berlaku' : 'Tanggal Awal Berlaku';
+            labelTanggalAwal.textContent = mode === 'bulanan' ? 'Tanggal Bulan Berlaku'
+                : (mode === 'semester' ? 'Tanggal Awal Semester Berlaku' : 'Tanggal Awal Berlaku');
         }
         if (labelTanggalAkhir) {
-            labelTanggalAkhir.textContent = mode === 'bulanan' ? 'Tanggal Akhir Bulan' : 'Tanggal Akhir Berlaku';
+            labelTanggalAkhir.textContent = mode === 'bulanan' ? 'Tanggal Akhir Bulan'
+                : (mode === 'semester' ? 'Tanggal Akhir Semester Berlaku' : 'Tanggal Akhir Berlaku');
         }
 
         if (pemberlakuanHint) {
             pemberlakuanHint.innerHTML = mode === 'bulanan'
                 ? '<i class="fas fa-calendar-days text-primary me-1"></i> Jadwal dibuat untuk <strong>seluruh bulan</strong> pada hari yang dipilih (Senin–Sabtu).'
-                : '<i class="fas fa-calendar-week text-primary me-1"></i> Jadwal dibuat <strong>berulang setiap minggu</strong> pada hari yang dipilih, selama rentang tanggal.';
+                : (mode === 'semester'
+                    ? '<i class="fas fa-calendar-range text-primary me-1"></i> Jadwal dibuat untuk <strong>satu semester penuh</strong> (Ganjil Juli–Desember / Genap Januari–Juni) pada hari yang dipilih.'
+                    : '<i class="fas fa-calendar-week text-primary me-1"></i> Jadwal dibuat <strong>berulang setiap minggu</strong> pada hari yang dipilih, selama rentang tanggal.');
         }
     }
 
@@ -872,6 +876,70 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         } else if (confirm('Hapus jadwal untuk "' + mapel + '"?')) {
             doDelete();
+        }
+    });
+
+    // -------------------------------------------------------------------------
+    // 9. Pemberlakuan Jadwal (Aktifkan Mode Mingguan / Semester)
+    // -------------------------------------------------------------------------
+    document.addEventListener('click', function (e) {
+        const btnToggle = e.target.closest('.btn-toggle-pemberlakuan-lab');
+        if (!btnToggle) return;
+
+        const mode = btnToggle.dataset.mode || 'mingguan';
+        const status = btnToggle.dataset.status || 'aktif';
+        const url = btnToggle.dataset.url || BASE_URL + '/pemberlakuan';
+
+        const doToggle = function () {
+            btnToggle.disabled = true;
+            const original = btnToggle.innerHTML;
+            btnToggle.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ mode: mode, status: status })
+            })
+                .then(async function (res) {
+                    const data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) throw new Error(data.message || 'Gagal mengubah pemberlakuan jadwal.');
+                    return data;
+                })
+                .then(function (data) {
+                    notifySuccess(data.message || 'Pemberlakuan jadwal berhasil diperbarui.')
+                        .then(function () { window.location.reload(); });
+                })
+                .catch(function (err) {
+                    btnToggle.disabled = false;
+                    btnToggle.innerHTML = original;
+                    notifyError('Gagal', err.message || 'Terjadi kesalahan pada sistem.');
+                });
+        };
+
+        const modeLabel = mode === 'semester' ? 'Semester' : 'Mingguan';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: status === 'aktif' ? 'Aktifkan Pemberlakuan ' + modeLabel + '?' : 'Matikan Pemberlakuan?',
+                html: status === 'aktif'
+                    ? 'Mode <strong>' + modeLabel + '</strong> akan menjadi acuan penentuan jadwal praktik yang diberlakukan.'
+                    : 'Pemberlakuan jadwal akan kembali ke status <strong>draft</strong>.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) doToggle();
+            });
+        } else {
+            doToggle();
         }
     });
 });

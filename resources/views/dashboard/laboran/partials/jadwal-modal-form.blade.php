@@ -113,15 +113,15 @@
                             style="display: none;" disabled>
                     </div>
 
-                    {{-- Pemberlakuan Jadwal: 2 Tab (Mingguan / Bulanan) --}}
+                    {{-- Pemberlakuan Jadwal: 2 Tab (Mingguan / Semester) --}}
                     <div style="margin-bottom: var(--space-7);">
                         <div class="periode-nav-wrapper" style="margin-bottom: var(--space-5);">
                             <div class="periode-nav-desktop">
                                 <button type="button" class="periode-nav-tab active" data-pemberlakuan-tab="mingguan">
                                     <i class="fas fa-calendar-week"></i> Mingguan
                                 </button>
-                                <button type="button" class="periode-nav-tab" data-pemberlakuan-tab="bulanan">
-                                    <i class="fas fa-calendar-days"></i> Bulanan
+                                <button type="button" class="periode-nav-tab" data-pemberlakuan-tab="semester">
+                                    <i class="fas fa-calendar-range"></i> Semester
                                 </button>
                             </div>
                         </div>
@@ -131,7 +131,7 @@
                             style="font-size: var(--text-xs); color: var(--text-muted); padding: 8px 12px; background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md, 8px);">
                             <i class="fas fa-info-circle text-primary me-1"></i>
                             <strong>Mingguan:</strong> pilih satu/lebih hari lalu isi tanggal awal — jadwal dibuat
-                            berulang setiap minggu pada hari tersebut selama satu bulan.
+                            berulang setiap minggu pada hari tersebut sesuai rentang tanggal.
                         </div>
                     </div>
 

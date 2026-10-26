@@ -178,29 +178,13 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     }
 
     // =========================================================================
-    // JADWAL PER GURU
+    // JADWAL PER GURU (kini diakses langsung via cetak dari halaman jadwal)
     // =========================================================================
-
-    public function test_halaman_jadwal_per_guru_merender_mode_mingguan_dan_bulanan(): void
-    {
-        $session = $this->adminSession();
-
-        foreach ([
-            ['mode' => 'mingguan'],
-            ['mode' => 'bulanan', 'bulan' => 10, 'tahun' => 2026],
-        ] as $q) {
-            $res = $this->withSession($session)->get(route('dashboard.laboran.jadwal-per-guru.index', $q));
-            $res->assertStatus(200);
-            $res->assertViewHas('perHari');
-            $res->assertViewHas('perTanggal');
-            $res->assertViewHas('label');
-        }
-    }
 
     public function test_cetak_jadwal_per_guru_menghasilkan_dokumen(): void
     {
         $res = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.jadwal-per-guru.cetak', [
+            ->get(route('dashboard.laboran.jadwal.cetak', [
                 'mode' => 'mingguan', 'tanggal' => '2026-11-02',
             ]));
 
@@ -208,37 +192,71 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
         $res->assertSee('JADWAL PRAKTIK PER GURU', false);
     }
 
-    public function test_jadwal_per_guru_memfilter_berdasarkan_guru(): void
+    public function test_cetak_jadwal_mode_semester_menghasilkan_dokumen(): void
     {
-        $rombel = $this->kelasReguler();
-        $tanggal = '2026-11-03'; // Selasa
-        $guruA = DB::table('gtk')->value('ptk_id');
-        $guruB = DB::table('gtk')->skip(1)->value('ptk_id');
-
-        foreach ([[$guruA, '07:00', '08:30'], [$guruB, '09:00', '10:30']] as [$ptk, $mulai, $selesai]) {
-            DB::table('laboran_jadwal_penggunaan')->insert([
-                'jurusan_id'     => self::JUR_ATPH,
-                'ruang_lab_nama' => 'Lahan Praktik ATPH',
-                'jenis_lokasi'   => 'lahan',
-                'ptk_id'         => $ptk,
-                'rombel_id'      => $rombel->rombongan_belajar_id,
-                'mata_pelajaran' => 'UJI-PERGURU',
-                'tanggal'        => $tanggal,
-                'jam_mulai'      => $mulai . ':00',
-                'jam_selesai'    => $selesai . ':00',
-                'status'         => 'dijadwalkan',
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
-        }
-
-        $res = $this->withSession($this->adminSession())->get(
-            route('dashboard.laboran.jadwal-per-guru.index', [
-                'mode' => 'mingguan', 'tanggal' => $tanggal, 'ptk_id' => $guruA,
-            ])
-        );
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.cetak', [
+                'mode' => 'semester', 'semester' => '1', 'tahun' => 2026,
+            ]));
 
         $res->assertStatus(200);
-        $this->assertSame(1, $res->viewData('totalSesi'), 'Filter guru harus menyisakan 1 sesi.');
+        $res->assertSee('Semester', false);
     }
+
+    public function test_pemberlakuan_jadwal_dapat_diaktifkan_per_mode(): void
+    {
+        $session = $this->adminSession();
+
+        // Aktifkan mode semester
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
+                'mode'   => 'semester',
+                'status' => 'aktif',
+            ])
+            ->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $this->assertSame('semester', $row->mode_pemberlakuan);
+        $this->assertSame('aktif', $row->status);
+        $this->assertSame('semester', \App\Services\LaboranJadwalService::getModeDiberlakukan());
+
+        // Kembali ke draft
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
+                'mode'   => 'semester',
+                'status' => 'draft',
+            ])
+            ->assertStatus(200);
+
+        $this->assertNull(\App\Services\LaboranJadwalService::getModeDiberlakukan());
+    }
+
+    public function test_pemberlakuan_mode_eksklusif_mingguan_mengganti_semester(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
+                'mode' => 'semester', 'status' => 'aktif',
+            ])->assertStatus(200);
+
+        // Aktifkan mingguan -> hanya satu mode yang diberlakukan
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
+                'mode' => 'mingguan', 'status' => 'aktif',
+            ])->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $this->assertSame('mingguan', $row->mode_pemberlakuan);
+        $this->assertSame('mingguan', \App\Services\LaboranJadwalService::getModeDiberlakukan());
+
+        // Matikan
+        $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
+                'mode' => 'mingguan', 'status' => 'draft',
+            ])->assertStatus(200);
+    }
+
 }
+

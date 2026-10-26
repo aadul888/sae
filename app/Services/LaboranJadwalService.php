@@ -749,19 +749,29 @@ class LaboranJadwalService
         $context = LaboranScope::resolve();
 
         $mode  = strtolower((string) $request->query('mode', 'mingguan'));
-        if (!in_array($mode, ['mingguan', 'bulanan'], true)) {
+        if (!in_array($mode, ['mingguan', 'bulanan', 'semester'], true)) {
             $mode = 'mingguan';
         }
 
         $ptkId = trim((string) $request->query('ptk_id', ''));
         $bulan = max(1, min(12, (int) $request->query('bulan', date('n'))));
         $tahun = (int) $request->query('tahun', date('Y'));
+        $semester = (string) $request->query('semester', date('n') >= 7 ? '1' : '2');
 
-        // Rentang: minggu berjalan (Senin–Sabtu) atau satu bulan penuh.
+        // Rentang: minggu berjalan (Senin–Sabtu), satu bulan penuh, atau satu semester.
         if ($mode === 'bulanan') {
             $start = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
             $end   = $start->copy()->endOfMonth();
             $label = 'Bulan ' . $start->translatedFormat('F Y');
+        } elseif ($mode === 'semester') {
+            $curYear = $tahun ?: (int) date('Y');
+            $tahunAjaran = $request->query('tahun_ajaran', $semester === '1'
+                ? "{$curYear}/" . ($curYear + 1)
+                : ($curYear - 1) . "/{$curYear}");
+            $range = $this->resolveDateRange('semester', $bulan, $curYear, 1, $semester, $tahunAjaran);
+            $start = Carbon::parse($range['start']);
+            $end   = Carbon::parse($range['end']);
+            $label = $range['label'];
         } else {
             $acuan = $request->filled('tanggal')
                 ? Carbon::parse((string) $request->query('tanggal'))
@@ -801,8 +811,20 @@ class LaboranJadwalService
             )->values();
         }
 
-        // Kelompokkan per tanggal (untuk mode bulanan)
+        // Kelompokkan per tanggal (untuk mode bulanan & semester)
         $perTanggal = $items->groupBy('tanggal')->sortKeys()->toArray();
+        // Semester juga dikelompokkan per bulan agar cetak terstruktur
+        $perBulan = [];
+        if ($mode === 'semester') {
+            $perBulan = $items
+                ->groupBy(fn($i) => Carbon::parse($i->tanggal)->format('Y-m'))
+                ->sortKeys()
+                ->map(fn($g, $ym) => [
+                    'label' => Carbon::createFromFormat('Y-m', $ym)->translatedFormat('F Y'),
+                    'rows'  => $g->sortBy('jam_mulai')->values(),
+                ])
+                ->toArray();
+        }
 
         $totalMenit = 0;
         foreach ($items as $it) {
@@ -828,6 +850,8 @@ class LaboranJadwalService
             'items'       => $items,
             'perHari'     => $perHari,
             'perTanggal'  => $perTanggal,
+            'perBulan'    => $perBulan,
+            'semester'    => $semester,
             'totalSesi'   => $items->count(),
             'totalMenit'  => $totalMenit,
             'hariAktif'   => $items->pluck('tanggal')->unique()->count(),
@@ -838,6 +862,47 @@ class LaboranJadwalService
             'statusLabels' => self::STATUS_LIST,
             'jenisLabels'  => self::JENIS_LOKASI,
         ];
+    }
+
+    // =========================================================================
+    // PENGATURAN PEMBERLAKUAN JADWAL (Mingguan / Semester)
+    // =========================================================================
+
+    public const MODE_PEMBERLAKUAN = [
+        'mingguan' => 'Mingguan',
+        'semester' => 'Semester',
+    ];
+
+    /**
+     * Ambil baris pengaturan pemberlakuan jadwal laboran (singleton).
+     */
+    public static function getPengaturanJadwal(): object
+    {
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        if (!$row) {
+            DB::table('laboran_jadwal_pengaturan')->insert([
+                'id'                => 1,
+                'mode_pemberlakuan' => 'mingguan',
+                'status'            => 'draft',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+            $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        }
+
+        return $row;
+    }
+
+    /**
+     * Mode pemberlakuan yang sedang diberlakukan ('mingguan' | 'semester' | null).
+     */
+    public static function getModeDiberlakukan(): ?string
+    {
+        $row = self::getPengaturanJadwal();
+
+        return ($row->status === 'aktif' && in_array($row->mode_pemberlakuan, ['mingguan', 'semester'], true))
+            ? $row->mode_pemberlakuan
+            : null;
     }
 
     protected function resolvePetugasLaboran(): array

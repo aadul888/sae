@@ -165,12 +165,18 @@ class LaboranJadwalController extends Controller
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
 
+        // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester)
+        $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
+        $modeDiberlakukan = LaboranJadwalService::getModeDiberlakukan();
+        $modePemberlakuanLabels = LaboranJadwalService::MODE_PEMBERLAKUAN;
+
         return view('dashboard.laboran.jadwal', compact(
             'list', 'search', 'labFilter', 'jenisFilter', 'statusFilter', 'tanggalFilter',
             'daftarLab', 'daftarRuangSarpras', 'lokasiTambahan', 'lokasiByJenis',
             'allGtk', 'allRombel', 'statTotal', 'statHariIni', 'statBerlangsung', 'statSelesai',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'perPage',
-            'jenisLokasiLabels', 'statusLabels'
+            'jenisLokasiLabels', 'statusLabels',
+            'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels'
         ) + [
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),
@@ -434,6 +440,46 @@ class LaboranJadwalController extends Controller
     }
 
     // =========================================================================
+    // 3b. PEMBERLAKUAN JADWAL (AKTIFKAN MODE MINGGUAN / SEMESTER)
+    // =========================================================================
+
+    /**
+     * Aktifkan / matikan pemberlakuan salah satu mode jadwal (mingguan / semester).
+     * Pola eksklusif seperti pemberlakuan Jadwal KBM: hanya satu mode aktif.
+     */
+    public function togglePemberlakuan(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update')) {
+            return $this->jsonOrRedirect($request, false, 'Anda tidak memiliki hak untuk mengubah pemberlakuan jadwal.', 403);
+        }
+
+        $data = $request->validate([
+            'mode'   => 'required|in:mingguan,semester',
+            'status' => 'required|in:aktif,draft',
+        ]);
+
+        $ptkId = $this->currentPtkId();
+
+        DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+            'mode_pemberlakuan'       => $data['mode'],
+            'status'                  => $data['status'],
+            'diberlakukan_oleh_ptk_id' => $data['status'] === 'aktif' ? $ptkId : null,
+            'updated_at'              => now(),
+        ]);
+
+        $label = LaboranJadwalService::MODE_PEMBERLAKUAN[$data['mode']];
+        $msg = $data['status'] === 'aktif'
+            ? "Pemberlakuan jadwal <strong>{$label}</strong> berhasil diaktifkan sebagai acuan penentuan jadwal praktik."
+            : "Pemberlakuan jadwal {$label} dimatikan (draft).";
+
+        return $this->jsonOrRedirect($request, true, $msg);
+    }
+
+    // =========================================================================
     // 3. LAPORAN PER PERIODE
     // =========================================================================
 
@@ -453,18 +499,6 @@ class LaboranJadwalController extends Controller
         $data = $this->service->buildLaporanData($request);
 
         return view('dashboard.laboran.cetak-laporan', $data);
-    }
-
-    /**
-     * Jadwal praktik PER GURU (mingguan / bulanan) — siap cetak.
-     */
-    public function jadwalPerGuru(Request $request)
-    {
-        if ($res = $this->checkAuth()) return $res;
-
-        $data = $this->service->buildJadwalPerGuru($request);
-
-        return view('dashboard.laboran.jadwal-per-guru', $data);
     }
 
     public function cetakJadwalPerGuru(Request $request)

@@ -135,7 +135,7 @@
         <div>
             <strong>JADWAL PRAKTIK PER GURU</strong><br>
             Periode: {{ $label }}
-            ({{ $mode === 'bulanan' ? 'Bulanan' : 'Mingguan' }})
+            ({{ $mode === 'bulanan' ? 'Bulanan' : ($mode === 'semester' ? 'Semester' : 'Mingguan') }})
         </div>
         <div style="text-align: right;">
             @if ($guru)
@@ -151,6 +151,44 @@
 
     @if ($totalSesi === 0)
         <p class="empty">Tidak ada jadwal praktik pada periode ini.</p>
+    @elseif ($mode === 'semester')
+        {{-- Cetak semester: dikelompokkan per bulan --}}
+        @foreach ($perBulan as $blok)
+            <div class="meta" style="margin-top: 14px;">
+                <div><strong>{{ $blok['label'] }}</strong> &bull; {{ count($blok['rows']) }} sesi</div>
+            </div>
+            <table class="sched">
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">Tanggal</th>
+                        <th style="width: 11%;">Jam</th>
+                        <th style="width: 18%;">Lokasi</th>
+                        <th style="width: 15%;">Kelas</th>
+                        <th style="width: 20%;">Mata Pelajaran</th>
+                        <th style="width: 24%;">Guru</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($blok['rows'] as $r)
+                        <tr>
+                            <td class="mono">{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('d/m/Y') }}
+                                <div class="muted">{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('l') }}</div>
+                            </td>
+                            <td class="mono center">{{ substr((string) $r->jam_mulai, 0, 5) }}&ndash;{{ substr((string) $r->jam_selesai, 0, 5) }}</td>
+                            <td>{{ $r->ruang_lab_nama }}</td>
+                            <td>{{ $r->rombel_nama ?: '-' }}</td>
+                            <td>{{ $r->mata_pelajaran }}</td>
+                            <td>
+                                {{ $r->guru_nama ?: '-' }}
+                                @if (!empty($r->guru_pendamping))
+                                    <div class="muted">+ {{ $r->guru_pendamping }}</div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endforeach
     @elseif ($mode === 'mingguan')
         <table class="sched">
             <thead>

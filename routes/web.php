@@ -704,9 +704,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Laporan Penggunaan Lokasi Praktik (Bulan, Triwulan, Semester, Tahun)
         Route::get('/laporan', [\App\Http\Controllers\LaboranJadwalController::class, 'laporan'])->name('laporan.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::get('/laporan/cetak', [\App\Http\Controllers\LaboranJadwalController::class, 'cetakLaporan'])->name('laporan.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
-        // Jadwal per guru (mingguan / bulanan) + cetak
-        Route::get('/jadwal-per-guru', [\App\Http\Controllers\LaboranJadwalController::class, 'jadwalPerGuru'])->name('jadwal-per-guru.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
-        Route::get('/jadwal-per-guru/cetak', [\App\Http\Controllers\LaboranJadwalController::class, 'cetakJadwalPerGuru'])->name('jadwal-per-guru.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        // Cetak jadwal praktik (mingguan / semester)
+        Route::get('/jadwal/cetak', [\App\Http\Controllers\LaboranJadwalController::class, 'cetakJadwalPerGuru'])->name('jadwal.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        // Pemberlakuan jadwal (aktifkan mode mingguan / semester)
+        Route::post('/jadwal/pemberlakuan', [\App\Http\Controllers\LaboranJadwalController::class, 'togglePemberlakuan'])->name('jadwal.toggle-pemberlakuan')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
 
         // =====================================================================
         // MODUL LABORATORIUM PER JURUSAN (Kebutuhan, Perawatan, Ceklist,

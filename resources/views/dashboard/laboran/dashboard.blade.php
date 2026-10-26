@@ -157,9 +157,7 @@
                 <i class="fas fa-grip text-primary"></i> Modul Laboratorium
             </h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-5);">
-                {{-- Kelompok: Administrasi & Perencanaan --}}
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-5);">
-                    @foreach ([
+                @foreach ([
                         ['route' => 'dashboard.laboran.kebutuhan.index', 'icon' => 'fa-clipboard-list', 'label' => 'Analisis Kebutuhan', 'desc' => 'Tupoksi #6', 'color' => 'var(--accent, #06b6d4)'],
                         ['route' => 'dashboard.laboran.pengadaan.index', 'icon' => 'fa-file-invoice-dollar', 'label' => 'Usulan Pengadaan', 'desc' => 'Tupoksi #6', 'color' => 'var(--purple, #8b5cf6)'],
                         ['route' => 'dashboard.laboran.jadwal.index', 'icon' => 'fa-calendar-days', 'label' => 'Jadwal Praktik', 'desc' => 'Tupoksi #1', 'color' => 'var(--primary, #3b82f6)'],
@@ -185,7 +183,6 @@
                             </span>
                         </a>
                     @endforeach
-                </div>
             </div>
         </div>
 
