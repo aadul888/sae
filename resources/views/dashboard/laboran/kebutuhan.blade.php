@@ -26,9 +26,14 @@
                     <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
                 </span>
                 @if ($canCreate)
+                    <button type="button" class="btn btn-outline" id="btnJalankanAnalisis"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
+                        title="Jalankan Analisis Otomatis dari Kondisi Stok &amp; Kerusakan">
+                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Jalankan Analisis
+                    </button>
                     <button type="button" class="btn btn-primary" id="btnOpenKebutuhan"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tambah Data Kebutuhan">
+                        title="Tambah Data Kebutuhan Manual">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -78,6 +83,13 @@
                         Dihitung dari {{ $analisis['total_item'] }} item inventaris dalam cakupan Anda.
                     </p>
                 </div>
+                @if ($canCreate)
+                    <button type="button" class="btn btn-primary btn-sm btn-trigger-analisis"
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: var(--text-xs); border-radius: var(--radius-md);"
+                        title="Proses &amp; masukkan hasil analisis stok kritis ke daftar kebutuhan">
+                        <i class="fas fa-sync-alt"></i> Terapkan ke Daftar Kebutuhan
+                    </button>
+                @endif
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-7);">

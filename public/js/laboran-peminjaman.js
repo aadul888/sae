@@ -28,6 +28,65 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalPeminjaman');
     const form = document.getElementById('formPeminjaman');
     const btnOpen = document.getElementById('btnOpenPeminjaman');
+    const pjTipe = document.getElementById('pjTipe');
+    const wrapPeminjamSiswa = document.getElementById('wrapPeminjamSiswa');
+    const wrapPeminjamGtk = document.getElementById('wrapPeminjamGtk');
+    const selectPeminjamSiswa = document.getElementById('selectPeminjamSiswa');
+    const selectPeminjamGtk = document.getElementById('selectPeminjamGtk');
+    const pjNama = document.getElementById('pjNama');
+    const pjId = document.getElementById('pjId');
+    const pjKelas = document.getElementById('pjKelas');
+
+    function syncPeminjamTipeUI() {
+        const tipe = pjTipe ? pjTipe.value : 'siswa';
+        if (wrapPeminjamSiswa) wrapPeminjamSiswa.style.display = tipe === 'siswa' ? 'block' : 'none';
+        if (wrapPeminjamGtk) wrapPeminjamGtk.style.display = (tipe === 'guru' || tipe === 'tendik') ? 'block' : 'none';
+        if (pjNama) {
+            pjNama.style.display = tipe === 'umum' ? 'block' : 'none';
+            pjNama.required = tipe === 'umum';
+        }
+    }
+
+    if (pjTipe) {
+        pjTipe.addEventListener('change', function () {
+            syncPeminjamTipeUI();
+            if (pjId) pjId.value = '';
+            if (pjNama) pjNama.value = '';
+            if (pjKelas) pjKelas.value = '';
+            if (selectPeminjamSiswa) selectPeminjamSiswa.value = '';
+            if (selectPeminjamGtk) selectPeminjamGtk.value = '';
+        });
+    }
+
+    if (selectPeminjamSiswa) {
+        selectPeminjamSiswa.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!opt || !this.value) {
+                if (pjId) pjId.value = '';
+                if (pjNama) pjNama.value = '';
+                if (pjKelas) pjKelas.value = '';
+                return;
+            }
+            if (pjId) pjId.value = this.value;
+            if (pjNama) pjNama.value = opt.dataset.nama || '';
+            if (pjKelas) pjKelas.value = opt.dataset.kelas || '';
+        });
+    }
+
+    if (selectPeminjamGtk) {
+        selectPeminjamGtk.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!opt || !this.value) {
+                if (pjId) pjId.value = '';
+                if (pjNama) pjNama.value = '';
+                if (pjKelas) pjKelas.value = '';
+                return;
+            }
+            if (pjId) pjId.value = this.value;
+            if (pjNama) pjNama.value = opt.dataset.nama || '';
+            if (pjKelas) pjKelas.value = opt.dataset.kelas || '';
+        });
+    }
 
     if (btnOpen) {
         btnOpen.addEventListener('click', function () {
@@ -36,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tgl) tgl.value = today();
             const kembali = document.getElementById('pjKembali');
             if (kembali) kembali.value = daysFromNow(3);
+            syncPeminjamTipeUI();
             L.openModal(modal);
         });
     }

@@ -160,11 +160,9 @@
                 {{-- Kelompok: Administrasi & Perencanaan --}}
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-5);">
                     @foreach ([
-                        ['route' => 'dashboard.laboran.administrasi.index', 'icon' => 'fa-folder-open', 'label' => 'Administrasi Jurusan', 'desc' => 'Tupoksi #1', 'color' => 'var(--primary, #6366f1)'],
                         ['route' => 'dashboard.laboran.kebutuhan.index', 'icon' => 'fa-clipboard-list', 'label' => 'Analisis Kebutuhan', 'desc' => 'Tupoksi #6', 'color' => 'var(--accent, #06b6d4)'],
                         ['route' => 'dashboard.laboran.pengadaan.index', 'icon' => 'fa-file-invoice-dollar', 'label' => 'Usulan Pengadaan', 'desc' => 'Tupoksi #6', 'color' => 'var(--purple, #8b5cf6)'],
                         ['route' => 'dashboard.laboran.jadwal.index', 'icon' => 'fa-calendar-days', 'label' => 'Jadwal Praktik', 'desc' => 'Tupoksi #1', 'color' => 'var(--primary, #3b82f6)'],
-                        ['route' => 'dashboard.laboran.permintaan.index', 'icon' => 'fa-file-signature', 'label' => 'Bon Permintaan', 'desc' => 'Tupoksi #2', 'color' => 'var(--info, #0ea5e9)'],
                         ['route' => 'dashboard.laboran.inventaris.index', 'icon' => 'fa-vials', 'label' => 'Inventaris Alat & Bahan', 'desc' => 'Tupoksi #4', 'color' => 'var(--primary, #3b82f6)'],
                         ['route' => 'dashboard.laboran.perawatan.index', 'icon' => 'fa-screwdriver-wrench', 'label' => 'Perawatan & K3', 'desc' => 'Tupoksi #3', 'color' => 'var(--warning, #f59e0b)'],
                         ['route' => 'dashboard.laboran.pemeriksaan.index', 'icon' => 'fa-list-check', 'label' => 'Pemeriksaan Ceklist', 'desc' => 'Tupoksi #5', 'color' => 'var(--success, #10b981)'],

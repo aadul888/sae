@@ -90,6 +90,13 @@
                                 @endforeach
                             </select>
 
+                            <select name="jenis" id="filterJenis" class="toolbar-filter-select" style="height: 38px;" title="Filter Jenis">
+                                <option value="">Semua Jenis</option>
+                                @foreach ($jenisList as $k => $v)
+                                    <option value="{{ $k }}" {{ ($jenisFilter ?? '') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
+                            </select>
+
                             <select name="urgensi" id="filterUrgensi" class="toolbar-filter-select" style="height: 38px;" title="Filter Urgensi">
                                 <option value="">Semua Urgensi</option>
                                 @foreach ($urgensiList as $k => $v)
@@ -97,7 +104,7 @@
                                 @endforeach
                             </select>
 
-                            @if ($search || $statusFilter || $urgensiFilter)
+                            @if ($search || $statusFilter || $urgensiFilter || !empty($jenisFilter))
                                 <a href="{{ route('dashboard.laboran.pengadaan.index') }}" class="btn btn-outline"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
@@ -118,7 +125,7 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
                             <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Nomor / Tanggal</th>
-                            <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Pemohon &amp; Justifikasi</th>
+                            <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Jenis &amp; Justifikasi Usulan</th>
                             <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">Item</th>
                             <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: right;">Estimasi</th>
                             <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">Urgensi</th>
@@ -139,11 +146,16 @@
                                         <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-top: var(--space-2);">{{ $u->singkatan ?: $u->nama_jurusan }}</span>
                                     @endif
                                 </td>
-                                <td data-label="Pemohon" style="padding: var(--space-6) var(--space-7);">
-                                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">{{ $u->pemohon_nama ?: '—' }}</div>
-                                    <div style="font-size: var(--text-xs); color: var(--text-muted);"><i class="fas fa-wallet me-1"></i>{{ $sumberDanaList[$u->sumber_dana] ?? $u->sumber_dana }}</div>
+                                <td data-label="Jenis &amp; Justifikasi" style="padding: var(--space-6) var(--space-7);">
+                                    <div style="display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2);">
+                                        <span class="badge badge-primary" style="font-size: var(--text-2xs);">
+                                            <i class="fas fa-boxes-stacked me-1"></i> {{ $jenisList[$u->jenis ?? 'semua'] ?? 'Semua' }}
+                                        </span>
+                                    </div>
                                     @if ($u->justifikasi)
-                                        <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">{{ \Illuminate\Support\Str::limit($u->justifikasi, 70) }}</div>
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">{{ \Illuminate\Support\Str::limit($u->justifikasi, 75) }}</div>
+                                    @else
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted); font-style: italic;">Tidak ada catatan justifikasi.</div>
                                     @endif
                                 </td>
                                 <td data-label="Item" style="padding: var(--space-6) var(--space-7); text-align: center; font-weight: var(--font-bold); font-size: var(--text-base);">
@@ -185,7 +197,7 @@
                                             <button type="button" class="btn-icon btn-edit-pengadaan"
                                                 data-id="{{ $u->id }}" data-ta="{{ $u->tahun_ajaran }}"
                                                 data-semester="{{ $u->semester }}" data-tanggal="{{ $u->tanggal_usulan }}"
-                                                data-pemohon="{{ $u->pemohon_nama }}" data-dana="{{ $u->sumber_dana }}"
+                                                data-jenis="{{ $u->jenis ?? 'semua' }}"
                                                 data-urgensi="{{ $u->urgensi }}" data-status="{{ $u->status }}"
                                                 data-justifikasi="{{ $u->justifikasi }}"
                                                 data-catatan="{{ $u->catatan_verifikasi }}"
@@ -258,23 +270,19 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Pemohon</label>
-                            <input type="text" name="pemohon_nama" id="pgPemohon" class="form-control" placeholder="Nama pemohon">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Sumber Dana</label>
-                            <select name="sumber_dana" id="pgDana" class="form-control">
-                                @foreach ($sumberDanaList as $k => $v)
-                                    <option value="{{ $k }}">{{ $v }}</option>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Jenis Pengadaan <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="jenis" id="pgJenis" class="form-control" required>
+                                @foreach ($jenisList as $jk => $jv)
+                                    <option value="{{ $jk }}">{{ $jv }}</option>
                                 @endforeach
                             </select>
+                            <small style="font-size: var(--text-xs); color: var(--text-muted); display: block; margin-top: 4px;">Pilihan jenis alat dan bahan</small>
                         </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Urgensi <span style="color: var(--danger, #ef4444);">*</span>
+                                Tingkat Urgensi <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select name="urgensi" id="pgUrgensi" class="form-control" required>
                                 @foreach ($urgensiList as $k => $v)
@@ -282,34 +290,39 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Status</label>
-                            <select name="status" id="pgStatus" class="form-control">
-                                @foreach ($statusList as $k => $v)
-                                    <option value="{{ $k }}">{{ $v }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    </div>
+
+                    <div style="margin-bottom: var(--space-6);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Status Usulan</label>
+                        <select name="status" id="pgStatus" class="form-control">
+                            @foreach ($statusList as $k => $v)
+                                <option value="{{ $k }}">{{ $v }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: var(--space-6);">
-                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Justifikasi</label>
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Justifikasi / Catatan Pengadaan</label>
                         <textarea name="justifikasi" id="pgJustifikasi" class="form-control" rows="2" placeholder="Alasan kebutuhan pengadaan..."></textarea>
                     </div>
 
                     <div class="form-group" id="kebutuhanWrap" style="margin-bottom: var(--space-6);">
                         <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                             Tarik dari Analisis Kebutuhan
-                            <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(opsional)</span>
+                            <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(pilih item untuk dimasukkan otomatis)</span>
                         </label>
-                        <div style="max-height: 200px; overflow-y: auto; padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <div style="max-height: 220px; overflow-y: auto; padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                             @forelse ($kebutuhanTersedia as $kb)
-                                <label style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); color: var(--text-color); cursor: pointer; margin-bottom: var(--space-3);">
-                                    <input type="checkbox" name="kebutuhan_ids[]" value="{{ $kb->id }}" style="cursor: pointer;">
-                                    <span>{{ $kb->nama_item }}
-                                        <span style="color: var(--text-muted); font-size: var(--text-xs);">
-                                            (kurang {{ (float) $kb->selisih }} {{ $kb->satuan }})
+                                <label style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--text-sm); color: var(--text-color); cursor: pointer; margin-bottom: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="display: flex; align-items: center; gap: var(--space-3);">
+                                        <input type="checkbox" name="kebutuhan_ids[]" value="{{ $kb->id }}" style="cursor: pointer;">
+                                        <span>
+                                            <strong>{{ $kb->nama_item }}</strong>
+                                            <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-left: 6px;">{{ $kb->jenis === 'alat' ? 'Alat' : 'Bahan' }}</span>
                                         </span>
+                                    </span>
+                                    <span style="color: var(--danger, #ef4444); font-size: var(--text-xs); font-weight: var(--font-bold); white-space: nowrap;">
+                                        Kekurangan: {{ (float) $kb->selisih }} {{ $kb->satuan }}
                                     </span>
                                 </label>
                             @empty

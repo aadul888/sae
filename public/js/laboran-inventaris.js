@@ -167,4 +167,94 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+
+    // =========================================================================
+    // Modal Import via Excel (Point 7)
+    // =========================================================================
+    const modalImport = document.getElementById('modalImportInventaris');
+    const btnOpenImport = document.getElementById('btnOpenImportInventaris');
+    const btnCloseImport = document.getElementById('btnCloseModalImport');
+    const btnCancelImport = document.getElementById('btnCancelModalImport');
+    const formImport = document.getElementById('formImportInventaris');
+
+    function openModalImport() {
+        if (!modalImport) return;
+        if (formImport) formImport.reset();
+        modalImport.style.display = 'flex';
+    }
+
+    function closeModalImport() {
+        if (!modalImport) return;
+        modalImport.style.display = 'none';
+    }
+
+    if (btnOpenImport) btnOpenImport.addEventListener('click', openModalImport);
+    if (btnCloseImport) btnCloseImport.addEventListener('click', closeModalImport);
+    if (btnCancelImport) btnCancelImport.addEventListener('click', closeModalImport);
+    if (modalImport) {
+        modalImport.addEventListener('click', function (e) {
+            if (e.target === modalImport) closeModalImport();
+        });
+    }
+
+    if (formImport) {
+        formImport.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitImport');
+            const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengunggah &amp; Mengimpor...';
+            }
+
+            const formData = new FormData(formImport);
+            fetch(formImport.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+                if (data.status === 'success') {
+                    closeModalImport();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Import Berhasil',
+                            text: data.message,
+                            icon: 'success'
+                        }).then(function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        alert(data.message);
+                        window.location.reload();
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ title: 'Gagal Import', text: data.message || 'Terjadi kesalahan.', icon: 'error' });
+                    } else {
+                        alert(data.message || 'Gagal import.');
+                    }
+                }
+            })
+            .catch(function (err) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: 'Kesalahan Sistem', text: err.message || 'Gagal mengunggah berkas.', icon: 'error' });
+                } else {
+                    alert(err.message || 'Gagal mengunggah berkas.');
+                }
+            });
+        });
+    }
 });

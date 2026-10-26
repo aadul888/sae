@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectGuru = document.getElementById('selectGuru');
     const inputPembelajaranId = document.getElementById('inputPembelajaranId');
     const inputMapelId = document.getElementById('inputMapelId');
+    const selectKbmSlot = document.getElementById('selectKbmSlot');
+    const selectPemberlakuan = document.getElementById('selectPemberlakuan');
+    const pemberlakuanHint = document.getElementById('pemberlakuanHint');
     const chkMapelManual = document.getElementById('chkMapelManual');
     const inputMapelManual = document.getElementById('inputMapelManual');
     const mapelHint = document.getElementById('mapelHint');
@@ -322,9 +325,110 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    let kbmCache = {};
+
+    function loadKbmSlotsForRombel(rombelId) {
+        if (!selectKbmSlot) return;
+
+        if (!rombelId) {
+            selectKbmSlot.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+            selectKbmSlot.disabled = true;
+            return;
+        }
+
+        selectKbmSlot.innerHTML = '<option value="">Memuat jadwal KBM…</option>';
+        selectKbmSlot.disabled = true;
+
+        if (kbmCache[rombelId]) {
+            applyKbmSlots(kbmCache[rombelId]);
+            return;
+        }
+
+        fetch(BASE_URL + '/kbm?rombel_id=' + encodeURIComponent(rombelId), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            const list = (data && data.kbm) || [];
+            kbmCache[rombelId] = list;
+            applyKbmSlots(list);
+        })
+        .catch(function () {
+            selectKbmSlot.innerHTML = '<option value="">-- Tidak ada jadwal KBM aktif --</option>';
+            selectKbmSlot.disabled = true;
+        });
+    }
+
+    function applyKbmSlots(slots) {
+        if (!selectKbmSlot) return;
+
+        selectKbmSlot.innerHTML = '';
+        if (!slots || slots.length === 0) {
+            selectKbmSlot.innerHTML = '<option value="">-- Tidak ada jadwal KBM aktif untuk kelas ini --</option>';
+            selectKbmSlot.disabled = true;
+            return;
+        }
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '-- Pilih Slot Jadwal KBM (Auto-Fill) --';
+        selectKbmSlot.appendChild(placeholder);
+
+        slots.forEach(function (slot, idx) {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            opt.textContent = slot.label;
+            selectKbmSlot.appendChild(opt);
+        });
+
+        selectKbmSlot.disabled = false;
+    }
+
+    if (selectKbmSlot) {
+        selectKbmSlot.addEventListener('change', function () {
+            const rombelId = selectRombel ? selectRombel.value : '';
+            const slots = kbmCache[rombelId] || [];
+            const idx = this.value;
+            const slot = idx !== '' ? slots[Number(idx)] : null;
+            if (!slot) return;
+
+            // Auto-fill mapel
+            if (slot.nama_mata_pelajaran) {
+                if (chkMapelManual && chkMapelManual.checked) {
+                    chkMapelManual.checked = false;
+                    chkMapelManual.dispatchEvent(new Event('change'));
+                }
+                loadMapelForRombel(rombelId, slot.nama_mata_pelajaran, slot.ptk_id);
+            }
+
+            // Auto-fill jam
+            if (inputJamMulai && slot.jam_mulai) inputJamMulai.value = slot.jam_mulai;
+            if (inputJamSelesai && slot.jam_selesai) inputJamSelesai.value = slot.jam_selesai;
+
+            // Auto-fill guru
+            if (selectGuru && slot.ptk_id) {
+                selectGuru.value = slot.ptk_id;
+            }
+        });
+    }
+
+    if (selectPemberlakuan && pemberlakuanHint) {
+        selectPemberlakuan.addEventListener('change', function () {
+            if (this.value === 'bulanan') {
+                pemberlakuanHint.innerHTML = '<i class="fas fa-calendar-alt text-primary me-1"></i> Jadwal akan otomatis dibuat <strong>setiap minggu selama 1 bulan penuh</strong> sesuai hari tanggal yang dipilih.';
+            } else if (this.value === 'semester') {
+                pemberlakuanHint.innerHTML = '<i class="fas fa-calendar-week text-primary me-1"></i> Jadwal akan otomatis dibuat <strong>setiap minggu selama 1 semester penuh</strong> sesuai hari tanggal yang dipilih.';
+            } else {
+                pemberlakuanHint.innerHTML = 'Hanya dijadwalkan untuk 1 sesi pada tanggal ini saja.';
+            }
+        });
+    }
+
     if (selectRombel) {
         selectRombel.addEventListener('change', function () {
             loadMapelForRombel(this.value, null, null);
+            loadKbmSlotsForRombel(this.value);
         });
     }
 
@@ -398,6 +502,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectGuru) selectGuru.value = '';
 
+        if (selectPemberlakuan) {
+            selectPemberlakuan.value = 'sekali';
+            selectPemberlakuan.dispatchEvent(new Event('change'));
+        }
+
+        document.querySelectorAll('.chk-guru-pendamping').forEach(function (chk) {
+            chk.checked = false;
+        });
+
         modalJadwal.style.display = 'flex';
     }
 
@@ -421,6 +534,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectRombel) selectRombel.value = data.rombelId || '';
         if (selectGuru) selectGuru.value = data.ptkId || '';
+
+        if (selectPemberlakuan) {
+            selectPemberlakuan.value = data.pemberlakuan || 'sekali';
+            selectPemberlakuan.dispatchEvent(new Event('change'));
+        }
+
+        // Checklist guru pendamping
+        let ptkList = [];
+        if (data.ptkIds) {
+            try {
+                ptkList = Array.isArray(data.ptkIds) ? data.ptkIds : JSON.parse(data.ptkIds);
+            } catch (e) {
+                ptkList = [];
+            }
+        }
+        document.querySelectorAll('.chk-guru-pendamping').forEach(function (chk) {
+            chk.checked = ptkList.indexOf(chk.value) !== -1 && chk.value !== data.ptkId;
+        });
 
         if (chkMapelManual) {
             chkMapelManual.checked = false;
@@ -474,6 +605,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 pembelajaranId: btnEdit.dataset.pembelajaranId,
                 mapel: btnEdit.dataset.mapel,
                 ptkId: btnEdit.dataset.ptkId,
+                ptkIds: btnEdit.dataset.ptkIds,
+                pemberlakuan: btnEdit.dataset.pemberlakuan,
                 guru: btnEdit.dataset.guru,
                 topik: btnEdit.dataset.topik,
                 tanggal: btnEdit.dataset.tanggal,

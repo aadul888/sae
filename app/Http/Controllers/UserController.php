@@ -650,16 +650,22 @@ class UserController extends Controller
     /**
      * Ubah penugasan tugas tambahan (termasuk penetapan JURUSAN untuk Laboran/Kaprog).
      */
-    public function updateTugasTambahan(Request $request, int $id): \Illuminate\Http\JsonResponse
+    public function updateTugasTambahan(Request $request, int $id)
     {
         $authUser = session('user');
         if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+            }
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses.');
         }
 
         $duty = \App\Models\PtkTugasTambahan::find($id);
         if (!$duty) {
-            return response()->json(['status' => 'error', 'message' => 'Penugasan tidak ditemukan.'], 404);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Penugasan tidak ditemukan.'], 404);
+            }
+            return redirect()->route('dashboard.pengguna.index', ['tab' => 'tugas_tambahan'])->with('error', 'Penugasan tidak ditemukan.');
         }
 
         $request->validate([
@@ -697,10 +703,13 @@ class UserController extends Controller
             if ($existing) {
                 $ptkName = DB::table('gtk')->where('ptk_id', $existing->ptk_id)->value('nama') ?? 'Guru lain';
 
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName}).",
-                ], 422);
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName}).",
+                    ], 422);
+                }
+                return back()->withErrors(['rombel_id' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName})."])->withInput();
             }
         }
 
@@ -726,29 +735,42 @@ class UserController extends Controller
             \App\Support\LaboranScope::flush();
         }
 
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Penugasan tugas tambahan berhasil diperbarui.',
-        ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Penugasan tugas tambahan berhasil diperbarui.',
+            ]);
+        }
+
+        return redirect()->route('dashboard.pengguna.index', ['tab' => 'tugas_tambahan'])
+            ->with('success', 'Penugasan tugas tambahan berhasil diperbarui.');
     }
 
     /**
      * Hapus penugasan tugas tambahan
      */
-    public function destroyTugasTambahan(int $id): \Illuminate\Http\JsonResponse
+    public function destroyTugasTambahan(Request $request, int $id)
     {
         $authUser = session('user');
         if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'delete')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+            }
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses.');
         }
 
         \App\Models\PtkTugasTambahan::where('id', $id)->delete();
         \App\Models\RolePermission::clearRuntimeCache();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Penugasan tugas tambahan berhasil dihapus.',
-        ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Penugasan tugas tambahan berhasil dihapus.',
+            ]);
+        }
+
+        return redirect()->route('dashboard.pengguna.index', ['tab' => 'tugas_tambahan'])
+            ->with('success', 'Penugasan tugas tambahan berhasil dihapus.');
     }
 
     /**

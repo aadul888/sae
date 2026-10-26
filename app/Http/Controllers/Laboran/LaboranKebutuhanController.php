@@ -297,4 +297,107 @@ class LaboranKebutuhanController extends LaboranBaseController
 
         return $this->respond($request, true, 'Data kebutuhan berhasil dihapus.');
     }
+
+    /**
+     * Jalankan analisis kebutuhan otomatis dari kondisi stok nyata dan kerusakan alat (Point 3).
+     */
+    public function jalankanAnalisis(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
+        $q = DB::table('laboran_bahan_alat');
+        LaboranScope::apply($q, 'jurusan_id', $context);
+        $items = $q->get();
+
+        $countNew = 0;
+        $countUpdated = 0;
+
+        foreach ($items as $it) {
+            $tersedia = (float) $it->stok_tersedia;
+            $total    = (float) $it->stok_total;
+
+            $perluUsulan = false;
+            $prioritas = 'sedang';
+            $alasan = [];
+
+            if ($it->kondisi === 'rusak_berat') {
+                $perluUsulan = true;
+                $prioritas = 'kritis';
+                $alasan[] = 'Kondisi alat rusak berat';
+            } elseif ($it->kondisi === 'rusak_ringan') {
+                $perluUsulan = true;
+                $prioritas = 'tinggi';
+                $alasan[] = 'Kondisi alat rusak ringan';
+            }
+
+            if ($tersedia <= 0) {
+                $perluUsulan = true;
+                $prioritas = 'kritis';
+                $alasan[] = 'Stok habis (0 ' . $it->satuan . ')';
+            } elseif ($total > 0 && ($tersedia / $total) <= 0.25) {
+                $perluUsulan = true;
+                if ($prioritas !== 'kritis') $prioritas = 'tinggi';
+                $alasan[] = 'Stok tersisa <= 25% (' . $tersedia . '/' . $total . ' ' . $it->satuan . ')';
+            }
+
+            if ($perluUsulan) {
+                $existing = DB::table('laboran_kebutuhan')
+                    ->where('nama_item', $it->nama_item)
+                    ->where(function ($w) use ($it) {
+                        if (!empty($it->jurusan_id)) {
+                            $w->where('jurusan_id', $it->jurusan_id);
+                        }
+                    })
+                    ->whereIn('status', ['draf', 'diverifikasi', 'disetujui'])
+                    ->first();
+
+                $kebutuhanIdeal = max(1, $total > 0 ? $total : 1);
+                $selisih = max(0, $kebutuhanIdeal - $tersedia);
+
+                if ($existing) {
+                    DB::table('laboran_kebutuhan')->where('id', $existing->id)->update([
+                        'jumlah_tersedia'    => $tersedia,
+                        'selisih'            => $selisih,
+                        'prioritas'          => $prioritas,
+                        'analisis_kebutuhan' => implode(', ', $alasan) . ' (Analisis Otomatis Stok)',
+                        'updated_at'         => now(),
+                    ]);
+                    $countUpdated++;
+                } else {
+                    DB::table('laboran_kebutuhan')->insert([
+                        'jurusan_id'         => $it->jurusan_id ?: LaboranScope::jurusanForWrite(null, $context),
+                        'ruang_lab_nama'     => $it->ruang_lab_nama,
+                        'nama_item'          => $it->nama_item,
+                        'jenis'              => $it->jenis ?: 'alat',
+                        'kategori'           => $it->kategori ?? null,
+                        'spesifikasi'        => $it->spesifikasi ?? null,
+                        'jumlah_kebutuhan'   => $kebutuhanIdeal,
+                        'jumlah_tersedia'    => $tersedia,
+                        'satuan'             => $it->satuan ?: 'unit',
+                        'selisih'            => $selisih,
+                        'prioritas'          => $prioritas,
+                        'sumber_analisis'    => 'kerusakan',
+                        'analisis_kebutuhan' => implode(', ', $alasan) . ' (Analisis Otomatis Stok)',
+                        'status'             => 'diverifikasi',
+                        'tanggal_input'      => now()->toDateString(),
+                        'dibuat_oleh_ptk_id' => $context['ptk_id'],
+                        'created_at'         => now(),
+                        'updated_at'         => now(),
+                    ]);
+                    $countNew++;
+                }
+            }
+        }
+
+        $totalProcessed = $countNew + $countUpdated;
+        $msg = $totalProcessed > 0
+            ? "Analisis kebutuhan selesai. {$countNew} item kebutuhan baru ditambahkan dan {$countUpdated} item diperbarui berdasarkan kondisi stok nyata."
+            : "Analisis kebutuhan selesai. Semua stok inventaris saat ini dalam kondisi baik dan mencukupi.";
+
+        return $this->respond($request, true, $msg, 200, [
+            'count_new'     => $countNew,
+            'count_updated' => $countUpdated,
+        ]);
+    }
 }

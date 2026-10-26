@@ -239,9 +239,21 @@
                                     <div style="font-weight: var(--font-semibold); color: var(--text-color);">
                                         {{ $item->guru_nama ?: '-' }}
                                     </div>
-                                    <span class="badge badge-outline" style="font-size: var(--text-xs);">
-                                        {{ $item->rombel_nama ?: 'Seluruh Siswa' }}
-                                    </span>
+                                    @if (!empty($item->guru_pendamping))
+                                        <div style="font-size: var(--text-xs); color: var(--primary); margin-top: 2px;" title="Guru Pendamping: {{ $item->guru_pendamping }}">
+                                            <i class="fas fa-users me-1"></i>+ {{ $item->guru_pendamping }}
+                                        </div>
+                                    @endif
+                                    <div style="margin-top: var(--space-2); display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                                        <span class="badge badge-outline" style="font-size: var(--text-xs);">
+                                            {{ $item->rombel_nama ?: 'Seluruh Siswa' }}
+                                        </span>
+                                        @if (!empty($item->pemberlakuan) && $item->pemberlakuan !== 'sekali')
+                                            <span class="badge badge-primary" style="font-size: var(--text-2xs);" title="Penjadwalan Berkala">
+                                                <i class="fas fa-repeat me-1"></i>{{ ucfirst($item->pemberlakuan) }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td data-label="Waktu" style="padding: var(--space-7) var(--space-8); text-align: center; font-size: var(--text-base); font-family: var(--font-family-mono);">
                                     {{ substr((string) $item->jam_mulai, 0, 5) }} - {{ substr((string) $item->jam_selesai, 0, 5) }}
@@ -269,6 +281,9 @@
                                                 data-pembelajaran-id="{{ $item->pembelajaran_id }}"
                                                 data-mapel="{{ $item->mata_pelajaran }}"
                                                 data-ptk-id="{{ $item->ptk_id }}"
+                                                data-ptk-ids="{{ $item->ptk_ids }}"
+                                                data-pendamping="{{ $item->guru_pendamping }}"
+                                                data-pemberlakuan="{{ $item->pemberlakuan ?? 'sekali' }}"
                                                 data-guru="{{ $item->guru_nama }}"
                                                 data-topik="{{ $item->topik_praktik }}"
                                                 data-tanggal="{{ $item->tanggal }}"
@@ -382,69 +397,78 @@
                         </div>
                     </div>
 
-                    {{-- Baris 2: Kelas + Mapel otomatis --}}
-                    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-6); margin-bottom: var(--space-7);">
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Kelas / Rombel <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <select name="rombel_id" id="selectRombel" class="form-control" required>
-                                <option value="">-- Pilih Kelas --</option>
-                                @foreach ($allRombel as $rb)
-                                    <option value="{{ $rb->rombongan_belajar_id }}">
-                                        {{ $rb->nama }}{{ !empty($rb->jurusan_id_str) ? ' — ' . $rb->jurusan_id_str : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
-                                <i class="fas fa-wand-magic-sparkles me-1 text-primary"></i> Mata pelajaran diambil otomatis
-                                dari data kelas.
-                            </div>
-                        </div>
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
-                                <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
-                                    Mata Pelajaran <span style="color: var(--danger, #ef4444);">*</span>
-                                </label>
-                                <label style="font-size: var(--text-xs); color: var(--text-muted); margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer;"
-                                    title="Aktifkan bila mata pelajaran tidak tersedia pada data kelas">
-                                    <input type="checkbox" id="chkMapelManual" style="cursor: pointer;">
-                                    Isi manual
-                                </label>
-                            </div>
-                            <select id="selectMapel" class="form-control" disabled>
-                                <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
-                            </select>
-                            <input type="text" id="inputMapelManual" class="form-control" placeholder="Contoh: Praktik Kejuruan"
-                                style="display: none;" disabled>
-                            <div id="mapelHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
-                                Pilih kelas untuk memuat daftar mata pelajaran.
-                            </div>
+                    {{-- Baris 2: Kelas + KBM yang berlaku --}}
+                    <div style="margin-bottom: var(--space-7);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Kelas / Rombel <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="rombel_id" id="selectRombel" class="form-control" required>
+                            <option value="">-- Pilih Kelas --</option>
+                            @foreach ($allRombel as $rb)
+                                <option value="{{ $rb->rombongan_belajar_id }}">
+                                    {{ $rb->nama }}{{ !empty($rb->jurusan_id_str) ? ' — ' . $rb->jurusan_id_str : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Pilihan Sesuai Jadwal KBM yang berlaku (Point 1) --}}
+                    <div style="margin-bottom: var(--space-7); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md); padding: var(--space-6);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--primary);">
+                            <i class="fas fa-calendar-check me-1"></i> Sesuaikan Jadwal KBM yang Berlaku
+                            <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(otomatis terisi)</span>
+                        </label>
+                        <select id="selectKbmSlot" class="form-control" disabled>
+                            <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                        </select>
+                        <div id="kbmSlotHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                            Pilih slot jadwal KBM untuk mengisi mapel, jam pelajaran, dan guru pengampu secara otomatis.
                         </div>
                     </div>
 
-                    {{-- Baris 3: Guru pengampu + Tanggal --}}
-                    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
+                    {{-- Mapel --}}
+                    <div style="margin-bottom: var(--space-7);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                            <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
+                                Mata Pelajaran <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <label style="font-size: var(--text-xs); color: var(--text-muted); margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer;"
+                                title="Aktifkan bila mata pelajaran tidak tersedia pada data kelas">
+                                <input type="checkbox" id="chkMapelManual" style="cursor: pointer;">
+                                Isi manual
+                            </label>
+                        </div>
+                        <select id="selectMapel" class="form-control" disabled>
+                            <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                        </select>
+                        <input type="text" id="inputMapelManual" class="form-control" placeholder="Contoh: Praktik Kejuruan"
+                            style="display: none;" disabled>
+                    </div>
+
+                    {{-- Pemberlakuan Jadwal (Bulanan atau Semester) --}}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Guru Pengampu
+                                Pemberlakuan Jadwal <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
-                            <select name="ptk_id" id="selectGuru" class="form-control">
-                                <option value="">-- Otomatis dari Mata Pelajaran --</option>
-                                @foreach ($allGtk as $g)
-                                    <option value="{{ $g->ptk_id }}">{{ $g->nama }}{{ !empty($g->nip) ? ' — ' . $g->nip : '' }}</option>
-                                @endforeach
+                            <select name="pemberlakuan" id="selectPemberlakuan" class="form-control" required>
+                                <option value="sekali">Sekali Saja (Satu Tanggal Sesi)</option>
+                                <option value="bulanan">Bulanan (Rutin Setiap Minggu selama 1 Bulan)</option>
+                                <option value="semester">Semester (Rutin Setiap Minggu selama 1 Semester)</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Tanggal Praktik <span style="color: var(--danger, #ef4444);">*</span>
+                                Tanggal Praktik / Tanggal Mulai <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" name="tanggal" id="inputTanggal" class="form-control" required>
+                            <div id="pemberlakuanHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                                Hari dari tanggal ini akan dipakai bila memilih jadwal rutin mingguan.
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Baris 4: Jam mulai + selesai --}}
+                    {{-- Jam mulai + selesai --}}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
@@ -457,6 +481,41 @@
                                 Jam Selesai <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="time" name="jam_selesai" id="inputJamSelesai" class="form-control" value="09:30" required>
+                        </div>
+                    </div>
+
+                    {{-- Guru Pengampu: Bisa lebih dari 1 guru (Point 2) --}}
+                    <div style="margin-bottom: var(--space-7);">
+                        <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                            Guru Pengampu Utama <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="ptk_id" id="selectGuru" class="form-control" required>
+                            <option value="">-- Pilih Guru Utama --</option>
+                            @foreach ($allGtk as $g)
+                                <option value="{{ $g->ptk_id }}">{{ $g->nama }}{{ !empty($g->nip) ? ' — ' . $g->nip : '' }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: var(--space-7);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                            <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
+                                Guru Pendamping / Kolaborasi (Bisa &gt; 1 Guru)
+                            </label>
+                            <span style="font-size: var(--text-xs); color: var(--primary); font-weight: var(--font-semibold);">
+                                <i class="fas fa-users me-1"></i> Tim Teaching
+                            </span>
+                        </div>
+                        <div style="max-height: 140px; overflow-y: auto; padding: var(--space-4) var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
+                            @foreach ($allGtk as $g)
+                                <label style="display: flex; align-items: center; gap: var(--space-3); padding: 4px 0; font-size: var(--text-sm); cursor: pointer;">
+                                    <input type="checkbox" name="ptk_ids[]" value="{{ $g->ptk_id }}" class="chk-guru-pendamping" style="cursor: pointer;">
+                                    <span>{{ $g->nama }}{{ !empty($g->nip) ? ' (' . $g->nip . ')' : '' }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                            <i class="fas fa-shield-halved text-primary me-1"></i> Setiap guru yang dipilih akan otomatis dideteksi agar tidak bentrok dengan jadwal lain.
                         </div>
                     </div>
 

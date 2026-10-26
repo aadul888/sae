@@ -199,4 +199,216 @@ class SarprasAsetController extends Controller
 
         return response()->json(['status' => 'success', 'message' => 'Data aset berhasil dihapus.']);
     }
+
+    /**
+     * Download format template Excel untuk import aset sarpras (Point 7).
+     */
+    public function templateExcel()
+    {
+        $headers = [
+            'kode_aset',
+            'nama_barang',
+            'kategori',
+            'merk_tipe',
+            'no_seri_pabrik',
+            'tahun_perolehan',
+            'sumber_dana',
+            'harga_perolehan',
+            'kondisi',
+            'nama_ruang',
+            'jumlah',
+            'satuan',
+        ];
+
+        $rows = [
+            [
+                'AST-SRP-001',
+                'Proyektor Epson EB-X500',
+                'Elektronik',
+                'Epson EB-X500 3600 Lumens',
+                'SN-EPS-9921',
+                '2024',
+                'BOS',
+                '6500000',
+                'baik',
+                'Ruang Guru',
+                '2',
+                'unit',
+            ],
+            [
+                'AST-SRP-002',
+                'Genset Silent 5000 Watt',
+                'Mesin & Utilitas',
+                'Honda EU5000i',
+                'SN-HND-5542',
+                '2023',
+                'DAK',
+                '18000000',
+                'baik',
+                'Ruang Genset',
+                '1',
+                'unit',
+            ],
+            [
+                'AST-SRP-003',
+                'Kursi Siswa Kayu Jati',
+                'Mebel',
+                'Standar Kemdikbud',
+                '',
+                '2022',
+                'Komite',
+                '250000',
+                'baik',
+                'Kelas X-1',
+                '36',
+                'unit',
+            ],
+        ];
+
+        $meta = [
+            'title'    => 'Format Import Sarpras & Aset Sekolah',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+        ];
+
+        $tempPath = storage_path('app/temp_template_aset_' . uniqid() . '.xlsx');
+        \App\Services\SimpleXlsxExporter::export($tempPath, $meta, $headers, $rows, [
+            'sheetName' => 'Aset Sarpras',
+        ]);
+
+        return response()->download($tempPath, 'Format_Import_Aset_Sarpras.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import aset sarpras via Excel (.xlsx, .xls, .csv) (Point 7).
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240',
+        ]);
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Format berkas tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.',
+            ], 422);
+        }
+
+        try {
+            $rows = \App\Services\SimpleXlsxReader::readFile($file->getRealPath());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal membaca berkas: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Berkas Excel kosong atau tidak memiliki data baris.',
+            ], 422);
+        }
+
+        $ruangMap = DB::table('sarpras_ruang')->pluck('id', 'nama_ruang')->toArray();
+
+        $imported = 0;
+        $updated = 0;
+
+        foreach ($rows as $r) {
+            $normalized = [];
+            foreach ($r as $k => $v) {
+                $cleanKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', (string) $k))));
+                $normalized[$cleanKey] = is_string($v) ? trim($v) : $v;
+            }
+
+            $nama = $normalized['nama_barang'] ?? ($normalized['nama_aset'] ?? ($normalized['nama'] ?? ''));
+            if (!$nama) {
+                continue;
+            }
+
+            $kode = strtoupper((string) ($normalized['kode_aset'] ?? ($normalized['kode'] ?? '')));
+            if (!$kode) {
+                $kode = 'AST-' . strtoupper(substr(uniqid(), -6));
+            }
+
+            $kategori = (string) ($normalized['kategori'] ?? 'Lainnya');
+            $merkTipe = (string) ($normalized['merk_tipe'] ?? ($normalized['merk'] ?? ''));
+            $noSeri   = (string) ($normalized['no_seri_pabrik'] ?? ($normalized['no_seri'] ?? ''));
+            $tahun    = !empty($normalized['tahun_perolehan']) ? (int) $normalized['tahun_perolehan'] : (!empty($normalized['tahun_pengadaan']) ? (int) $normalized['tahun_pengadaan'] : (int) date('Y'));
+            $sumberDana = (string) ($normalized['sumber_dana'] ?? 'BOS');
+            $harga    = (float) ($normalized['harga_perolehan'] ?? ($normalized['harga'] ?? 0));
+            $jumlah   = max(1, (int) ($normalized['jumlah'] ?? 1));
+            $satuan   = (string) ($normalized['satuan'] ?? 'unit');
+
+            $rawKondisi = strtolower((string) ($normalized['kondisi'] ?? 'baik'));
+            $kondisi = match ($rawKondisi) {
+                'rusak_ringan', 'ringan' => 'rusak_ringan',
+                'rusak_berat', 'berat'   => 'rusak_berat',
+                default                  => 'baik',
+            };
+
+            $namaRuang = (string) ($normalized['nama_ruang'] ?? ($normalized['lokasi_ruang'] ?? ($normalized['ruang'] ?? '')));
+            $ruangId   = null;
+            if ($namaRuang !== '') {
+                $ruangId = $ruangMap[$namaRuang] ?? null;
+                if (!$ruangId) {
+                    // Cari parsial
+                    foreach ($ruangMap as $rNama => $rId) {
+                        if (stripos($rNama, $namaRuang) !== false || stripos($namaRuang, $rNama) !== false) {
+                            $ruangId = $rId;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $existing = DB::table('sarpras_aset')->where('kode_aset', $kode)->first();
+
+            if ($existing) {
+                DB::table('sarpras_aset')->where('id', $existing->id)->update([
+                    'nama_barang'         => $nama,
+                    'kategori'            => $kategori,
+                    'merk_tipe'           => $merkTipe ?: $existing->merk_tipe,
+                    'no_seri_pabrik'      => $noSeri ?: $existing->no_seri_pabrik,
+                    'tahun_perolehan'     => $tahun ?: $existing->tahun_perolehan,
+                    'sumber_dana'         => $sumberDana,
+                    'harga_perolehan'     => $harga ?: $existing->harga_perolehan,
+                    'kondisi'             => $kondisi,
+                    'ruang_id'            => $ruangId ?: $existing->ruang_id,
+                    'jumlah'              => $jumlah,
+                    'satuan'              => $satuan,
+                    'updated_at'          => now(),
+                ]);
+                $updated++;
+            } else {
+                DB::table('sarpras_aset')->insert([
+                    'kode_aset'           => $kode,
+                    'nama_barang'         => $nama,
+                    'kategori'            => $kategori,
+                    'merk_tipe'           => $merkTipe ?: null,
+                    'no_seri_pabrik'      => $noSeri ?: null,
+                    'tahun_perolehan'     => $tahun,
+                    'sumber_dana'         => $sumberDana,
+                    'harga_perolehan'     => $harga,
+                    'kondisi'             => $kondisi,
+                    'ruang_id'            => $ruangId,
+                    'jumlah'              => $jumlah,
+                    'satuan'              => $satuan,
+                    'status_ketersediaan' => 'tersedia',
+                    'created_at'          => now(),
+                    'updated_at'          => now(),
+                ]);
+                $imported++;
+            }
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Import selesai: {$imported} aset baru ditambahkan, {$updated} aset diperbarui.",
+            'count'   => $imported + $updated,
+        ]);
+    }
 }

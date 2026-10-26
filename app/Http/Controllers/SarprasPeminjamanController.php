@@ -16,75 +16,8 @@ class SarprasPeminjamanController extends Controller
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
-
-        $search = trim($request->query('q', ''));
-        $statusFilter = trim($request->query('status', ''));
-
-        $query = DB::table('sarpras_peminjaman as sp')
-            ->join('sarpras_aset as sa', 'sp.aset_id', '=', 'sa.id')
-            ->select('sp.*', 'sa.nama_barang', 'sa.kode_aset', 'sa.kategori');
-
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('sp.nomor_pinjam', 'like', "%{$search}%")
-                  ->orWhere('sp.peminjam_nama', 'like', "%{$search}%")
-                  ->orWhere('sp.keperluan', 'like', "%{$search}%")
-                  ->orWhere('sa.nama_barang', 'like', "%{$search}%");
-            });
-        }
-
-        if ($statusFilter !== '') {
-            $query->where('sp.status', $statusFilter);
-        }
-
-        // Stats
-        $statTotal = DB::table('sarpras_peminjaman')->count();
-        $statDipinjam = DB::table('sarpras_peminjaman')->where('status', 'dipinjam')->count();
-        $statKembali = DB::table('sarpras_peminjaman')->where('status', 'kembali')->count();
-        $statTerlambat = DB::table('sarpras_peminjaman')
-            ->where('status', 'dipinjam')
-            ->where('tanggal_kembali_rencana', '<', now()->toDateString())
-            ->count();
-
-        $asetTersedia = DB::table('sarpras_aset')
-            ->where('status_ketersediaan', 'tersedia')
-            ->orderBy('nama_barang', 'asc')
-            ->get(['id', 'nama_barang', 'kode_aset', 'jumlah', 'satuan', 'kondisi']);
-
-        // Ruang tetap dimuat sebagai daftar ringkas untuk kebutuhan form.
-        $daftarRuang = DB::table('sarpras_ruang')
-            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai')
-            ->orderBy('nama_ruang', 'asc')
-            ->get();
-
-        $perPage = (int) $request->query('per_page', 15);
-        $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
-
-        $list = $query->orderBy('sp.created_at', 'desc')->paginate($perPage)->withQueryString();
-
-        return view('dashboard.sarpras.peminjaman', compact(
-            'list',
-            'search',
-            'statusFilter',
-            'statTotal',
-            'statDipinjam',
-            'statKembali',
-            'statTerlambat',
-            'asetTersedia',
-            'daftarRuang',
-            'canCreate',
-            'canRead',
-            'canUpdate',
-            'canDelete',
-            'perPage'
-        ));
+        // Modul peminjaman sarpras dan laboran digabung menjadi satu peminjaman alat terpadu (Point 6)
+        return redirect()->route('dashboard.laboran.peminjaman-alat.index');
     }
 
     public function store(Request $request)

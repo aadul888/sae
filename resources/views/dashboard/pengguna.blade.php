@@ -280,31 +280,38 @@
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                    @if ($canUpdate)
-                                        <button type="button" class="btn-icon btn-edit-duty"
-                                            data-id="{{ $item->id }}"
-                                            data-ptk-nama="{{ $item->ptk_nama }}"
-                                            data-tugas-nama="{{ $item->tugas_nama }}"
-                                            data-tugas-kode="{{ $item->tugas_kode }}"
-                                            data-jurusan="{{ $item->jurusan_id }}"
-                                            data-rombel="{{ $item->rombel_id }}"
-                                            data-nomor-sk="{{ $item->nomor_sk }}"
-                                            data-tmt="{{ $item->tmt_tugas }}"
-                                            data-tst="{{ $item->tst_tugas }}"
-                                            data-keterangan="{{ $item->keterangan }}"
-                                            data-aktif="{{ $item->is_active ? 1 : 0 }}"
-                                            title="Ubah Penugasan / Tetapkan Jurusan">
-                                            <i class="fas fa-pen-to-square" style="color: var(--primary);"></i>
-                                        </button>
-                                    @endif
-                                    @if ($canDelete)
-                                        <button type="button" class="btn-icon danger btn-delete-duty"
-                                            data-id="{{ $item->id }}"
-                                            data-name="{{ $item->ptk_nama }} ({{ $item->tugas_nama }})"
-                                            title="Hapus Penugasan">
-                                            <i class="fas fa-trash-can"></i>
-                                        </button>
-                                    @endif
+                                    <div class="table-actions">
+                                        @if ($canUpdate)
+                                            <button type="button" class="btn-icon btn-edit-duty"
+                                                data-id="{{ $item->id }}"
+                                                data-ptk-nama="{{ $item->ptk_nama }}"
+                                                data-tugas-nama="{{ $item->tugas_nama }}"
+                                                data-tugas-kode="{{ $item->tugas_kode }}"
+                                                data-jurusan="{{ $item->jurusan_id }}"
+                                                data-rombel="{{ $item->rombel_id }}"
+                                                data-nomor-sk="{{ $item->nomor_sk }}"
+                                                data-tmt="{{ $item->tmt_tugas }}"
+                                                data-tst="{{ $item->tst_tugas }}"
+                                                data-keterangan="{{ $item->keterangan }}"
+                                                data-aktif="{{ $item->is_active ? 1 : 0 }}"
+                                                onclick="openEditDutyModal(this)"
+                                                title="Ubah Penugasan / Tetapkan Jurusan">
+                                                <i class="fas fa-pen-to-square"></i>
+                                            </button>
+                                        @endif
+                                        @if ($canDelete)
+                                            <form action="{{ route('dashboard.pengguna.tugas-tambahan.destroy', $item->id) }}"
+                                                method="POST" style="display: inline; margin: 0;"
+                                                data-action-type="delete-duty"
+                                                data-name="{{ $item->ptk_nama }} ({{ $item->tugas_nama }})">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-icon danger" title="Hapus Penugasan">
+                                                    <i class="fas fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -633,105 +640,106 @@
 
                 <div
                     style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <button type="button" class="btn btn-outline" id="btnCancelDutyModal"
+                    <button type="button" class="btn btn-outline" id="btnCancelDutyModal" onclick="closeDutyModal()"
                         style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
                     <button type="submit" class="btn btn-primary" id="btnSubmitDutyModal"
                         style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Simpan Penugasan</button>
                 </div>
             </form>
         </div>
+    </div>
 
-        {{-- Modal Ubah Penugasan (termasuk penetapan Jurusan Laboran/Kaprog) --}}
-        <div id="modalEditDuty" class="modal-backdrop"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card"
-                style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                    <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
-                        Ubah Penugasan Tugas Tambahan
-                    </h3>
-                    <button type="button" id="btnCloseEditDuty"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;"
-                        title="Tutup">&times;</button>
+    {{-- Modal Ubah Penugasan (termasuk penetapan Jurusan Laboran/Kaprog) --}}
+    <div id="modalEditDuty" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card"
+            style="max-width: 540px; width: 92%; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
+                    <i class="fas fa-pen-to-square text-primary me-2"></i> Ubah Penugasan Tugas Tambahan
+                </h3>
+                <button type="button" id="btnCloseEditDuty" onclick="closeEditDutyModal()"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-md, 1rem);" aria-label="Tutup"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <form id="formEditDuty" method="POST" action="">
+                @csrf
+                @method('PUT')
+
+                <div class="modal-form-grid">
+                    <div class="form-group-compact full-width">
+                        <label>Personel / Tugas</label>
+                        <input type="text" id="editDutyInfo" class="form-control" readonly
+                            style="background: var(--bg-hover); cursor: not-allowed;">
+                    </div>
+
+                    <div class="form-group-compact full-width" id="editDutyJurusanWrap" style="display: none;">
+                        <label>Jurusan / Kompetensi Keahlian</label>
+                        <select name="jurusan_id" id="editDutyJurusan" class="form-control">
+                            <option value="">-- Semua Jurusan (Lintas Jurusan) --</option>
+                            @foreach (($jurusanList ?? []) as $j)
+                                <option value="{{ $j->jurusan_id }}">
+                                    {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
+                                    &mdash; {{ $j->jumlah_rombel ?? 0 }} rombel
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle"></i> Menentukan cakupan data Laboratorium yang boleh dikelola
+                            (per jurusan).
+                        </small>
+                    </div>
+
+                    <div class="form-group-compact full-width" id="editDutyRombelWrap" style="display: none;">
+                        <label>Rombongan Belajar (Wali Kelas)</label>
+                        <select name="rombel_id" id="editDutyRombel" class="form-control">
+                            <option value="">-- Pilih Rombel --</option>
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label>Nomor SK</label>
+                        <input type="text" name="nomor_sk" id="editDutyNomorSk" class="form-control">
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label>TMT Tugas</label>
+                        <input type="date" name="tmt_tugas" id="editDutyTmt" class="form-control">
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label>TST Tugas</label>
+                        <input type="date" name="tst_tugas" id="editDutyTst" class="form-control">
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label>Status</label>
+                        <select name="is_active" id="editDutyAktif" class="form-control">
+                            <option value="1">Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-compact full-width">
+                        <label>Keterangan</label>
+                        <input type="text" name="keterangan" id="editDutyKeterangan" class="form-control">
+                    </div>
                 </div>
 
-                <form id="formEditDuty" method="POST" action="">
-                    @csrf
-                    @method('PUT')
-
-                    <div class="modal-form-grid">
-                        <div class="form-group-compact full-width">
-                            <label>Personel / Tugas</label>
-                            <input type="text" id="editDutyInfo" class="form-control" readonly
-                                style="background: var(--bg-hover); cursor: not-allowed;">
-                        </div>
-
-                        <div class="form-group-compact full-width" id="editDutyJurusanWrap" style="display: none;">
-                            <label>Jurusan / Kompetensi Keahlian</label>
-                            <select name="jurusan_id" id="editDutyJurusan" class="form-control">
-                                <option value="">-- Semua Jurusan (Lintas Jurusan) --</option>
-                                @foreach (($jurusanList ?? []) as $j)
-                                    <option value="{{ $j->jurusan_id }}">
-                                        {{ $j->nama_jurusan }}{{ !empty($j->singkatan) ? ' (' . $j->singkatan . ')' : '' }}
-                                        &mdash; {{ $j->jumlah_rombel ?? 0 }} rombel
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
-                                <i class="fas fa-info-circle"></i> Menentukan cakupan data Laboratorium yang boleh dikelola
-                                (per jurusan).
-                            </small>
-                        </div>
-
-                        <div class="form-group-compact full-width" id="editDutyRombelWrap" style="display: none;">
-                            <label>Rombongan Belajar (Wali Kelas)</label>
-                            <select name="rombel_id" id="editDutyRombel" class="form-control">
-                                <option value="">-- Pilih Rombel --</option>
-                                @foreach ($rombelList as $r)
-                                    <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="form-group-compact">
-                            <label>Nomor SK</label>
-                            <input type="text" name="nomor_sk" id="editDutyNomorSk" class="form-control">
-                        </div>
-
-                        <div class="form-group-compact">
-                            <label>TMT Tugas</label>
-                            <input type="date" name="tmt_tugas" id="editDutyTmt" class="form-control">
-                        </div>
-
-                        <div class="form-group-compact">
-                            <label>TST Tugas</label>
-                            <input type="date" name="tst_tugas" id="editDutyTst" class="form-control">
-                        </div>
-
-                        <div class="form-group-compact">
-                            <label>Status</label>
-                            <select name="is_active" id="editDutyAktif" class="form-control">
-                                <option value="1">Aktif</option>
-                                <option value="0">Nonaktif</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group-compact full-width">
-                            <label>Keterangan</label>
-                            <input type="text" name="keterangan" id="editDutyKeterangan" class="form-control">
-                        </div>
-                    </div>
-
-                    <div
-                        style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                        <button type="button" class="btn btn-outline" id="btnCancelEditDuty"
-                            style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
-                        <button type="submit" class="btn btn-primary" id="btnSubmitEditDuty"
-                            style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Simpan Perubahan</button>
-                    </div>
-                </form>
-            </div>
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" class="btn btn-outline" id="btnCancelEditDuty" onclick="closeEditDutyModal()"
+                        style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem);">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitEditDuty"
+                        style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem);">Simpan Perubahan</button>
+                </div>
+            </form>
         </div>
+    </div>
     </div>
 
     @push('scripts')

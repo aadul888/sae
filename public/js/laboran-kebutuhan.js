@@ -101,6 +101,66 @@ document.addEventListener('DOMContentLoaded', function () {
         if (delBtn) {
             L.deleteData(STORE_URL + '/' + delBtn.dataset.id, delBtn.dataset.nama || 'data ini');
         }
+
+        const triggerAnalisis = e.target.closest('#btnJalankanAnalisis, .btn-trigger-analisis');
+        if (triggerAnalisis) {
+            Swal.fire({
+                title: 'Jalankan Analisis Kebutuhan?',
+                html: 'Sistem akan memindai stok inventaris yang <strong>kritis, habis, rusak</strong>, atau menipis dalam cakupan jurusan Anda dan otomatis memasukkannya ke daftar kebutuhan.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Jalankan Sekarang',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Menganalisis Ketersediaan...',
+                    html: 'Sedang memindai inventaris dan riwayat kerusakan...',
+                    allowOutsideClick: false,
+                    didOpen: function () {
+                        Swal.showLoading();
+                    }
+                });
+
+                fetch(STORE_URL + '/jalankan-analisis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.status === 'success' || data.success) {
+                        Swal.fire({
+                            title: 'Analisis Selesai',
+                            text: data.message || 'Hasil analisis berhasil diterapkan.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Galat',
+                            text: data.message || 'Gagal menjalankan analisis kebutuhan.',
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(function (err) {
+                    Swal.fire({
+                        title: 'Kesalahan Sistem',
+                        text: err.message || 'Terjadi kesalahan saat memproses analisis.',
+                        icon: 'error'
+                    });
+                });
+            });
+        }
     });
 
     if (form) {

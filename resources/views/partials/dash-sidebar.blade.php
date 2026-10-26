@@ -963,14 +963,6 @@
                                 <div style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                                     Administrasi &amp; Perencanaan
                                 </div>
-                                @if ($can('menu_laboran_administrasi') || $can('menu_laboran'))
-                                    <a href="{{ route('dashboard.laboran.administrasi.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
-                                        title="Tupoksi #1 — Buku Administrasi Jurusan">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                                        <span class="nav-label">Buku Administrasi Jurusan</span>
-                                    </a>
-                                @endif
                                 @if ($can('menu_laboran_kebutuhan') || $can('menu_laboran'))
                                     <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
@@ -998,14 +990,6 @@
                                         title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
                                         <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                                         <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
-                                    </a>
-                                @endif
-                                @if ($can('menu_laboran_permintaan') || $can('menu_laboran'))
-                                    <a href="{{ route('dashboard.laboran.permintaan.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
-                                        title="Tupoksi #2 — Bon/Form Permintaan Bahan &amp; Alat">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-signature"></i></span>
-                                        <span class="nav-label">Bon Permintaan</span>
                                     </a>
                                 @endif
                                 @if ($can('menu_laboran_peminjaman') || $can('menu_laboran'))
@@ -1604,12 +1588,6 @@
                 <div style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Administrasi &amp; Perencanaan
                 </div>
-                <a href="{{ route('dashboard.laboran.administrasi.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
-                    title="Tupoksi #1 — Buku Administrasi Jurusan">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                    <span class="nav-label">Buku Administrasi Jurusan</span>
-                </a>
                 <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
                     title="Tupoksi #6 — Pendataan Kebutuhan">
@@ -1632,12 +1610,6 @@
                     title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                     <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
-                </a>
-                <a href="{{ route('dashboard.laboran.permintaan.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
-                    title="Tupoksi #2 — Bon/Form Permintaan">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
-                    <span class="nav-label">Bon Permintaan</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.peminjaman-alat*') ? 'active' : '' }}"
@@ -2576,18 +2548,6 @@
                             title="Tupoksi #8 — Laporan Rekapitulasi">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-lines"></i></span>
                             <span class="nav-label">Laporan Lengkap</span>
-                        </a>
-                        <a href="{{ route('dashboard.laboran.administrasi.index') }}"
-                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.administrasi*') ? 'active' : '' }}"
-                            title="Tupoksi #1 — Buku Administrasi Jurusan">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                            <span class="nav-label">Administrasi Jurusan</span>
-                        </a>
-                        <a href="{{ route('dashboard.laboran.permintaan.index') }}"
-                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.permintaan*') ? 'active' : '' }}"
-                            title="Tupoksi #2 — Bon/Form Permintaan">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-signature"></i></span>
-                            <span class="nav-label">Bon Permintaan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.jurnal.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jurnal*') ? 'active' : '' }}"

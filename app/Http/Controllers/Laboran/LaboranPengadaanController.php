@@ -30,6 +30,12 @@ class LaboranPengadaanController extends LaboranBaseController
         'kritis' => 'Kritis',
     ];
 
+    public const JENIS_PENGADAAN = [
+        'semua'             => 'Semua (Alat & Bahan)',
+        'alat'              => 'Alat Praktik',
+        'bahan_habis_pakai' => 'Bahan Habis Pakai',
+    ];
+
     public const SUMBER_DANA = [
         'BOS'     => 'Dana BOS',
         'DAK'     => 'Dana DAK',
@@ -46,6 +52,7 @@ class LaboranPengadaanController extends LaboranBaseController
         $search       = trim((string) $request->query('q', ''));
         $statusFilter = trim((string) $request->query('status', ''));
         $urgensiFilter = trim((string) $request->query('urgensi', ''));
+        $jenisFilter  = trim((string) $request->query('jenis', ''));
 
         $query = DB::table('laboran_usulan_pengadaan as u')
             ->leftJoin('jurusan_meta as jm', 'u.jurusan_id', '=', 'jm.jurusan_id')
@@ -62,6 +69,9 @@ class LaboranPengadaanController extends LaboranBaseController
         }
         if ($statusFilter !== '')  $query->where('u.status', $statusFilter);
         if ($urgensiFilter !== '') $query->where('u.urgensi', $urgensiFilter);
+        if ($jenisFilter !== '' && array_key_exists($jenisFilter, self::JENIS_PENGADAAN)) {
+            $query->where('u.jenis', $jenisFilter);
+        }
 
         $statBase = DB::table('laboran_usulan_pengadaan');
         LaboranScope::apply($statBase, 'jurusan_id', $context);
@@ -99,7 +109,7 @@ class LaboranPengadaanController extends LaboranBaseController
         $kebutuhanTersedia = $kebutuhanTersedia->orderBy('k.nama_item')->limit(200)->get();
 
         return view('dashboard.laboran.pengadaan', array_merge(
-            compact('list', 'search', 'statusFilter', 'urgensiFilter', 'perPage',
+            compact('list', 'search', 'statusFilter', 'urgensiFilter', 'jenisFilter', 'perPage',
                 'statTotal', 'statDiajukan', 'statDisetujui', 'statBiaya', 'kebutuhanTersedia'),
             $this->abilities(),
             [
@@ -107,6 +117,7 @@ class LaboranPengadaanController extends LaboranBaseController
                 'scopeBadge'     => LaboranScope::badge($context),
                 'statusList'     => self::STATUS,
                 'urgensiList'    => self::URGENSI,
+                'jenisList'      => self::JENIS_PENGADAAN,
                 'sumberDanaList' => self::SUMBER_DANA,
                 'jurusanOptions' => LaboranScope::jurusanOptions($context),
             ]
@@ -155,8 +166,9 @@ class LaboranPengadaanController extends LaboranBaseController
             'tahun_ajaran'   => 'nullable|string|max:20',
             'semester'       => 'nullable|string|max:10',
             'tanggal_usulan' => 'required|date',
+            'jenis'          => 'nullable|in:semua,alat,bahan_habis_pakai',
             'pemohon_nama'   => 'nullable|string|max:150',
-            'sumber_dana'    => 'nullable|in:BOS,DAK,Komite,Yayasan,Hibah',
+            'sumber_dana'    => 'nullable|string|max:40',
             'urgensi'        => 'required|in:rendah,sedang,tinggi,kritis',
             'status'         => 'nullable|in:draf,diajukan,diverifikasi,disetujui,ditolak,direalisasi',
             'justifikasi'    => 'nullable|string|max:2000',
@@ -170,10 +182,11 @@ class LaboranPengadaanController extends LaboranBaseController
             'nomor_usulan'   => $this->generateNomor('laboran_usulan_pengadaan', 'nomor_usulan', 'USL'),
             'tahun_ajaran'   => $data['tahun_ajaran'] ?? null,
             'semester'       => $data['semester'] ?? null,
+            'jenis'          => $data['jenis'] ?? 'semua',
             'tanggal_usulan' => $data['tanggal_usulan'],
             'pemohon_ptk_id' => $context['ptk_id'],
             'pemohon_nama'   => $data['pemohon_nama'] ?? $context['nama'],
-            'sumber_dana'    => $data['sumber_dana'] ?? 'BOS',
+            'sumber_dana'    => $data['sumber_dana'] ?? null,
             'urgensi'        => $data['urgensi'],
             'status'         => $data['status'] ?? 'draf',
             'justifikasi'    => $data['justifikasi'] ?? null,
@@ -209,8 +222,9 @@ class LaboranPengadaanController extends LaboranBaseController
             'tahun_ajaran'       => 'nullable|string|max:20',
             'semester'           => 'nullable|string|max:10',
             'tanggal_usulan'     => 'required|date',
+            'jenis'              => 'nullable|in:semua,alat,bahan_habis_pakai',
             'pemohon_nama'       => 'nullable|string|max:150',
-            'sumber_dana'        => 'nullable|in:BOS,DAK,Komite,Yayasan,Hibah',
+            'sumber_dana'        => 'nullable|string|max:40',
             'urgensi'            => 'required|in:rendah,sedang,tinggi,kritis',
             'status'             => 'nullable|in:draf,diajukan,diverifikasi,disetujui,ditolak,direalisasi',
             'justifikasi'        => 'nullable|string|max:2000',
@@ -220,6 +234,7 @@ class LaboranPengadaanController extends LaboranBaseController
         $update = [
             'tahun_ajaran'       => $data['tahun_ajaran'] ?? null,
             'semester'           => $data['semester'] ?? null,
+            'jenis'              => $data['jenis'] ?? $row->jenis ?? 'semua',
             'tanggal_usulan'     => $data['tanggal_usulan'],
             'pemohon_nama'       => $data['pemohon_nama'] ?? $row->pemohon_nama,
             'sumber_dana'        => $data['sumber_dana'] ?? $row->sumber_dana,

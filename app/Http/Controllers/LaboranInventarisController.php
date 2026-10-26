@@ -287,4 +287,205 @@ class LaboranInventarisController extends Controller
 
         return response()->json(['status' => 'success', 'message' => 'Data alat/bahan berhasil dihapus.']);
     }
+
+    /**
+     * Download format berkas Excel untuk import inventaris laboratorium (Point 7).
+     */
+    public function templateExcel()
+    {
+        $headers = [
+            'kode_item',
+            'nama_item',
+            'jenis',
+            'kategori',
+            'spesifikasi',
+            'stok_total',
+            'satuan',
+            'kondisi',
+            'ruang_lab_nama',
+            'lokasi_lemari_rak',
+            'tgl_kedaluwarsa',
+        ];
+
+        $rows = [
+            [
+                'ITM-LAB-001',
+                'Mikroskop Binokuler Digital',
+                'alat',
+                'Optik',
+                'Perbesaran 1000x, kamera USB 5MP',
+                '5',
+                'unit',
+                'baik',
+                'Lab Biologi',
+                'Lemari A-01',
+                '',
+            ],
+            [
+                'ITM-LAB-002',
+                'Alkohol 70% 1 Liter',
+                'bahan_habis_pakai',
+                'Bahan Kimia',
+                'Kemasan botol 1000 ml teknis',
+                '20',
+                'botol',
+                'baik',
+                'Lab Kimia',
+                'Rak Bahan C-03',
+                '2028-12-31',
+            ],
+            [
+                'ITM-LAB-003',
+                'Kabel UTP Cat 6 (Roll 305m)',
+                'bahan_habis_pakai',
+                'Jaringan',
+                'Belden Original UTP Cat6 305 Meter',
+                '3',
+                'roll',
+                'baik',
+                'Lab Komputer 1',
+                'Gudang TKJ',
+                '',
+            ],
+        ];
+
+        $meta = [
+            'title'    => 'Format Import Inventaris Alat & Bahan Laboratorium',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+        ];
+
+        $tempPath = storage_path('app/temp_template_inventaris_' . uniqid() . '.xlsx');
+        \App\Services\SimpleXlsxExporter::export($tempPath, $meta, $headers, $rows, [
+            'sheetName' => 'Inventaris Lab',
+        ]);
+
+        return response()->download($tempPath, 'Format_Import_Inventaris_Laboratorium.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import inventaris alat & bahan via Excel (.xlsx, .xls, .csv) (Point 7).
+     */
+    public function importExcel(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $context = LaboranScope::resolve();
+        $request->validate([
+            'file' => 'required|file|max:10240',
+        ]);
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Format berkas tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.',
+            ], 422);
+        }
+
+        try {
+            $rows = \App\Services\SimpleXlsxReader::readFile($file->getRealPath());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal membaca berkas: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Berkas Excel kosong atau tidak memiliki data baris.',
+            ], 422);
+        }
+
+        $imported = 0;
+        $updated = 0;
+        $jurusanId = LaboranScope::jurusanForWrite($request->input('jurusan_id'), $context);
+
+        foreach ($rows as $r) {
+            $normalized = [];
+            foreach ($r as $k => $v) {
+                $cleanKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', (string) $k))));
+                $normalized[$cleanKey] = is_string($v) ? trim($v) : $v;
+            }
+
+            $nama = $normalized['nama_item'] ?? ($normalized['nama_barang'] ?? ($normalized['nama'] ?? ''));
+            if (!$nama) {
+                continue;
+            }
+
+            $kode = strtoupper((string) ($normalized['kode_item'] ?? ($normalized['kode'] ?? '')));
+            if (!$kode) {
+                $kode = 'ITM-' . strtoupper(substr(uniqid(), -6));
+            }
+
+            $rawJenis = strtolower((string) ($normalized['jenis'] ?? 'alat'));
+            $jenis = in_array($rawJenis, ['bahan', 'bahan_habis_pakai', 'habis_pakai', 'bhp'], true) ? 'bahan_habis_pakai' : 'alat';
+
+            $total = (float) ($normalized['stok_total'] ?? ($normalized['stok'] ?? ($normalized['jumlah'] ?? 1)));
+            $tersedia = isset($normalized['stok_tersedia']) ? (float) $normalized['stok_tersedia'] : $total;
+            $satuan = (string) ($normalized['satuan'] ?? 'unit');
+
+            $rawKondisi = strtolower((string) ($normalized['kondisi'] ?? 'baik'));
+            $kondisi = match ($rawKondisi) {
+                'rusak_ringan', 'ringan' => 'rusak_ringan',
+                'rusak_berat', 'berat'   => 'rusak_berat',
+                'kedaluwarsa', 'expired' => 'kedaluwarsa',
+                default                  => 'baik',
+            };
+
+            $ruang = (string) ($normalized['ruang_lab_nama'] ?? ($normalized['lokasi'] ?? ($normalized['ruangan'] ?? 'Lab Utama')));
+            $spesifikasi = (string) ($normalized['spesifikasi'] ?? '');
+            $rak = (string) ($normalized['lokasi_lemari_rak'] ?? ($normalized['rak'] ?? ($normalized['lemari'] ?? '')));
+            $kadaluwarsa = (string) ($normalized['tgl_kedaluwarsa'] ?? ($normalized['kedaluwarsa'] ?? ''));
+            $tglVal = null;
+            if ($kadaluwarsa) {
+                try { $tglVal = \Carbon\Carbon::parse($kadaluwarsa)->toDateString(); } catch (\Throwable $e) {}
+            }
+
+            $existing = DB::table('laboran_bahan_alat')->where('kode_item', $kode)->first();
+
+            if ($existing) {
+                DB::table('laboran_bahan_alat')->where('id', $existing->id)->update([
+                    'nama_item'         => $nama,
+                    'jenis'             => $jenis,
+                    'stok_total'        => $total,
+                    'stok_tersedia'     => $tersedia,
+                    'satuan'            => $satuan,
+                    'kondisi'           => $kondisi,
+                    'ruang_lab_nama'    => $ruang,
+                    'spesifikasi'       => $spesifikasi ?: $existing->spesifikasi,
+                    'lokasi_lemari_rak' => $rak ?: $existing->lokasi_lemari_rak,
+                    'tgl_kedaluwarsa'   => $tglVal ?: $existing->tgl_kedaluwarsa,
+                    'updated_at'        => now(),
+                ]);
+                $updated++;
+            } else {
+                DB::table('laboran_bahan_alat')->insert([
+                    'jurusan_id'        => $jurusanId,
+                    'ruang_lab_nama'    => $ruang,
+                    'kode_item'         => $kode,
+                    'nama_item'         => $nama,
+                    'jenis'             => $jenis,
+                    'spesifikasi'       => $spesifikasi ?: null,
+                    'stok_total'        => max(0.01, $total),
+                    'stok_tersedia'     => max(0, $tersedia),
+                    'satuan'            => $satuan,
+                    'kondisi'           => $kondisi,
+                    'tgl_kedaluwarsa'   => $tglVal,
+                    'lokasi_lemari_rak' => $rak ?: null,
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]);
+                $imported++;
+            }
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Import selesai: {$imported} item baru ditambahkan, {$updated} item diperbarui.",
+            'count'   => $imported + $updated,
+        ]);
+    }
 }

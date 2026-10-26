@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         set('pgTanggal', d.tanggal);
         set('pgTA', d.ta);
         set('pgSemester', d.semester);
-        set('pgPemohon', d.pemohon);
-        set('pgDana', d.dana);
+        set('pgJenis', d.jenis || 'semua');
         set('pgUrgensi', d.urgensi);
         set('pgStatus', d.status);
         set('pgJustifikasi', d.justifikasi);
@@ -96,8 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ta: editBtn.dataset.ta,
                 semester: editBtn.dataset.semester,
                 tanggal: editBtn.dataset.tanggal,
-                pemohon: editBtn.dataset.pemohon,
-                dana: editBtn.dataset.dana,
+                jenis: editBtn.dataset.jenis,
                 urgensi: editBtn.dataset.urgensi,
                 status: editBtn.dataset.status,
                 justifikasi: editBtn.dataset.justifikasi,

@@ -65,11 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     window.closeUserModal = function () {
-        modal.style.display = "none";
-    };
-
-    window.onclick = function (event) {
-        if (event.target === modal) closeUserModal();
+        if (modal) modal.style.display = "none";
     };
 
     // --- Live Search with Debounce ---
@@ -193,11 +189,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const type = targetForm.dataset.actionType;
         const nama = targetForm.dataset.name || "item ini";
         const role = (targetForm.dataset.role || "").toLowerCase();
-        const isDelete = type === "delete";
+        const isDelete = type === "delete" || type === "delete-duty";
 
-        const title = isDelete ? "Hapus Pengguna?" : "Reset Password?";
+        const title = isDelete ? (type === "delete-duty" ? "Hapus Penugasan?" : "Hapus Pengguna?") : "Reset Password?";
         let msg = "";
-        if (isDelete) {
+        if (type === "delete-duty") {
+            msg = `Yakin ingin menghapus penugasan tugas tambahan untuk <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`;
+        } else if (isDelete) {
             msg = `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`;
         } else if (role.includes("peserta didik")) {
             msg = `Reset password akun peserta didik <strong>${nama}</strong> ke default (NISN)?`;
@@ -209,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
             msg = `Reset password akun <strong>${nama}</strong> ke password default sistem?`;
         }
 
-        const confirmBtnText = isDelete ? "Ya, Hapus Akun" : "Ya, Reset Password";
+        const confirmBtnText = isDelete ? (type === "delete-duty" ? "Ya, Hapus Penugasan" : "Ya, Hapus Akun") : "Ya, Reset Password";
 
         const confirmed = await window.SAE.confirm(
             msg,
@@ -255,32 +253,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    if (btnOpenAssignModal && dutyModal) {
-        btnOpenAssignModal.addEventListener("click", () => {
-            dutyModal.style.display = "flex";
-        });
-    }
+    window.openDutyModal = function () {
+        const modal = document.getElementById("dutyModal");
+        if (modal) modal.style.display = "flex";
+    };
 
-    const closeDutyModal = () => {
-        if (dutyModal) {
-            dutyModal.style.display = "none";
-            if (formAddDuty) formAddDuty.reset();
-            if (dutyRombelWrap) {
-                dutyRombelWrap.style.display = "none";
-                if (dutyRombelSelect) dutyRombelSelect.required = false;
+    window.closeDutyModal = function () {
+        const modal = document.getElementById("dutyModal");
+        if (modal) {
+            modal.style.display = "none";
+            const form = document.getElementById("formAddDuty");
+            if (form) form.reset();
+            const rombelWrap = document.getElementById("dutyRombelWrap");
+            const rombelSelect = document.getElementById("dutyRombelSelect");
+            if (rombelWrap) {
+                rombelWrap.style.display = "none";
+                if (rombelSelect) rombelSelect.required = false;
             }
-            if (dutyJurusanWrap) dutyJurusanWrap.style.display = "none";
+            const jurusanWrap = document.getElementById("dutyJurusanWrap");
+            if (jurusanWrap) jurusanWrap.style.display = "none";
         }
     };
 
-    if (btnCloseDutyModal) btnCloseDutyModal.addEventListener("click", closeDutyModal);
-    if (btnCancelDutyModal) btnCancelDutyModal.addEventListener("click", closeDutyModal);
-
-    if (dutyModal) {
-        dutyModal.addEventListener("click", (e) => {
-            if (e.target === dutyModal) closeDutyModal();
-        });
-    }
+    if (btnOpenAssignModal) btnOpenAssignModal.addEventListener("click", window.openDutyModal);
+    if (btnCloseDutyModal) btnCloseDutyModal.addEventListener("click", window.closeDutyModal);
+    if (btnCancelDutyModal) btnCancelDutyModal.addEventListener("click", window.closeDutyModal);
 
     // Tugas yang memerlukan penetapan jurusan (scoping data per jurusan)
     const JURUSAN_DUTIES = ["LABORAN", "KAPROG", "KEPALA_LAB"];
@@ -320,14 +317,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
+                        "X-CSRF-TOKEN": csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || ""
                     },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.status === "success") {
                     showToast(data.message, "success");
-                    closeDutyModal();
+                    window.closeDutyModal();
                     setTimeout(() => window.location.reload(), 600);
                 } else {
                     throw new Error(data.message || "Gagal menyimpan penugasan");
@@ -349,59 +346,69 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnCloseEditDuty = document.getElementById("btnCloseEditDuty");
     const btnCancelEditDuty = document.getElementById("btnCancelEditDuty");
     const formEditDuty = document.getElementById("formEditDuty");
-    const editDutyJurusanWrap = document.getElementById("editDutyJurusanWrap");
-    const editDutyRombelWrap = document.getElementById("editDutyRombelWrap");
-    const editDutyJurusan = document.getElementById("editDutyJurusan");
-    const editDutyRombel = document.getElementById("editDutyRombel");
 
-    const closeEditDutyModal = () => {
-        if (editDutyModal) editDutyModal.style.display = "none";
+    window.closeEditDutyModal = function () {
+        const modal = document.getElementById("modalEditDuty");
+        if (modal) modal.style.display = "none";
     };
 
-    if (btnCloseEditDuty) btnCloseEditDuty.addEventListener("click", closeEditDutyModal);
-    if (btnCancelEditDuty) btnCancelEditDuty.addEventListener("click", closeEditDutyModal);
+    if (btnCloseEditDuty) btnCloseEditDuty.addEventListener("click", window.closeEditDutyModal);
+    if (btnCancelEditDuty) btnCancelEditDuty.addEventListener("click", window.closeEditDutyModal);
 
-    if (editDutyModal) {
-        editDutyModal.addEventListener("click", (e) => {
-            if (e.target === editDutyModal) closeEditDutyModal();
-        });
-    }
+    window.openEditDutyModal = function (trigger) {
+        const modal = document.getElementById("modalEditDuty");
+        if (!modal) return;
 
-    document.querySelectorAll(".btn-edit-duty").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            if (!editDutyModal) return;
+        const d = (trigger instanceof HTMLElement) ? trigger.dataset : (trigger || {});
+        const kode = d.tugasKode || d.tugas_kode || "";
+        const needsJurusan = JURUSAN_DUTIES.includes(kode);
+        const isWali = kode === "WALI_KELAS";
 
-            const d = btn.dataset;
-            const kode = d.tugasKode || "";
-            const needsJurusan = JURUSAN_DUTIES.includes(kode);
-            const isWali = kode === "WALI_KELAS";
+        const ptkNama = d.ptkNama || d.ptk_nama || "-";
+        const tugasNama = d.tugasNama || d.tugas_nama || "-";
 
-            const info = document.getElementById("editDutyInfo");
-            if (info) info.value = `${d.ptkNama || "-"} — ${d.tugasNama || "-"}`;
+        const info = document.getElementById("editDutyInfo");
+        if (info) info.value = `${ptkNama} — ${tugasNama}`;
 
-            if (formEditDuty) {
-                const base = dutyModal?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
-                formEditDuty.action = `${base}/${d.id}`;
-                formEditDuty.dataset.id = d.id;
-            }
+        const form = document.getElementById("formEditDuty");
+        if (form) {
+            const dutyModalEl = document.getElementById("dutyModal");
+            const base = dutyModalEl?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
+            const dutyId = d.id;
+            form.action = `${base}/${dutyId}`;
+            form.dataset.id = dutyId;
+        }
 
-            if (editDutyJurusanWrap) editDutyJurusanWrap.style.display = needsJurusan ? "block" : "none";
-            if (editDutyRombelWrap) editDutyRombelWrap.style.display = isWali ? "block" : "none";
-            if (editDutyJurusan) editDutyJurusan.value = d.jurusan || "";
-            if (editDutyRombel) editDutyRombel.value = d.rombel || "";
+        const editDutyJurusanWrap = document.getElementById("editDutyJurusanWrap");
+        const editDutyRombelWrap = document.getElementById("editDutyRombelWrap");
+        const editDutyJurusan = document.getElementById("editDutyJurusan");
+        const editDutyRombel = document.getElementById("editDutyRombel");
 
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if (el) el.value = val || "";
-            };
-            setVal("editDutyNomorSk", d.nomorSk);
-            setVal("editDutyTmt", d.tmt);
-            setVal("editDutyTst", d.tst);
-            setVal("editDutyKeterangan", d.keterangan);
-            setVal("editDutyAktif", d.aktif === "1" ? "1" : "0");
+        if (editDutyJurusanWrap) editDutyJurusanWrap.style.display = needsJurusan ? "block" : "none";
+        if (editDutyRombelWrap) editDutyRombelWrap.style.display = isWali ? "block" : "none";
+        if (editDutyJurusan) editDutyJurusan.value = d.jurusan || d.jurusan_id || "";
+        if (editDutyRombel) editDutyRombel.value = d.rombel || d.rombel_id || "";
 
-            editDutyModal.style.display = "flex";
-        });
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || "";
+        };
+        setVal("editDutyNomorSk", d.nomorSk || d.nomor_sk);
+        setVal("editDutyTmt", d.tmt || d.tmt_tugas);
+        setVal("editDutyTst", d.tst || d.tst_tugas);
+        setVal("editDutyKeterangan", d.keterangan);
+        setVal("editDutyAktif", (d.aktif === "1" || d.is_active == 1) ? "1" : "0");
+
+        modal.style.display = "flex";
+    };
+
+    // Delegasi click untuk tombol edit duty
+    document.addEventListener("click", function (e) {
+        const btn = e.target.closest(".btn-edit-duty");
+        if (btn) {
+            e.preventDefault();
+            window.openEditDutyModal(btn);
+        }
     });
 
     if (formEditDuty) {
@@ -418,20 +425,22 @@ document.addEventListener("DOMContentLoaded", function () {
             delete payload._method;
             delete payload._token;
 
+            const token = csrfToken || formEditDuty.querySelector('input[name="_token"]')?.value || document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
             try {
                 const res = await fetch(formEditDuty.action, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
+                        "X-CSRF-TOKEN": token
                     },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (data.status === "success") {
-                    showToast(data.message, "success");
-                    closeEditDutyModal();
+                if (res.ok && data.status === "success") {
+                    showToast(data.message || "Penugasan berhasil diperbarui.", "success");
+                    window.closeEditDutyModal();
                     setTimeout(() => window.location.reload(), 600);
                 } else {
                     throw new Error(data.message || "Gagal memperbarui penugasan");
@@ -446,56 +455,59 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Hapus Penugasan Tugas Tambahan
-    document.querySelectorAll(".btn-delete-duty").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const id = btn.dataset.id;
-            const name = btn.dataset.name;
-            const destroyBaseUrl = dutyModal?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
+    // Fallback Hapus Penugasan Tugas Tambahan (jika tombol tidak berada di dalam form[data-action-type])
+    document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".btn-delete-duty");
+        if (!btn || btn.closest("form[data-action-type]")) return;
 
-            let confirmed = false;
-            const confirmMsg = `Hapus penugasan tugas tambahan untuk <strong>${name}</strong>?`;
-            if (window.SAE && typeof window.SAE.confirm === "function") {
-                confirmed = await window.SAE.confirm(confirmMsg, "Hapus Penugasan?", "danger", "Ya, Hapus", "Batal");
-            } else if (typeof Swal !== "undefined") {
-                const result = await Swal.fire({
-                    title: "Hapus Penugasan?",
-                    html: confirmMsg,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Ya, Hapus",
-                    cancelButtonText: "Batal"
-                });
-                confirmed = result.isConfirmed;
-            }
+        e.preventDefault();
+        const id = btn.dataset.id;
+        const name = btn.dataset.name || "item ini";
+        const dutyModalEl = document.getElementById("dutyModal");
+        const destroyBaseUrl = dutyModalEl?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
 
-            if (!confirmed) return;
+        let confirmed = false;
+        const confirmMsg = `Hapus penugasan tugas tambahan untuk <strong>${name}</strong>?`;
+        if (window.SAE && typeof window.SAE.confirm === "function") {
+            confirmed = await window.SAE.confirm(confirmMsg, "Hapus Penugasan?", "danger", "Ya, Hapus Penugasan", "Batal");
+        } else if (typeof Swal !== "undefined") {
+            const result = await Swal.fire({
+                title: "Hapus Penugasan?",
+                html: confirmMsg,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus Penugasan",
+                cancelButtonText: "Batal"
+            });
+            confirmed = result.isConfirmed;
+        }
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        if (!confirmed) return;
 
-            try {
-                const res = await fetch(`${destroyBaseUrl}/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrfToken
-                    }
-                });
-                const data = await res.json();
-                if (data.status === "success") {
-                    showToast(data.message || "Penugasan berhasil dihapus", "success");
-                    setTimeout(() => window.location.reload(), 600);
-                } else {
-                    throw new Error(data.message || "Gagal menghapus penugasan");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await fetch(`${destroyBaseUrl}/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || ""
                 }
-            } catch (err) {
-                showToast(err.message, "danger");
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-trash-can"></i>';
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+                showToast(data.message || "Penugasan berhasil dihapus", "success");
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                throw new Error(data.message || "Gagal menghapus penugasan");
             }
-        });
+        } catch (err) {
+            showToast(err.message, "danger");
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash-can"></i>';
+        }
     });
 
     // Pemicu Sinkronisasi Wali Kelas dari Dapodik
@@ -508,6 +520,66 @@ document.addEventListener("DOMContentLoaded", function () {
             let confirmed = false;
             const confirmMsg = "Sistem akan membaca wali kelas seluruh rombel reguler aktif dari Dapodik dan menyinkronkan penugasan tugas tambahan secara otomatis.";
             if (window.SAE && typeof window.SAE.confirm === "function") {
+                confirmed = await window.SAE.confirm(confirmMsg, "Tarik Wali Kelas?", "info", "Ya, Sinkronkan", "Batal");
+            } else if (typeof Swal !== "undefined") {
+                const result = await Swal.fire({
+                    title: "Tarik Wali Kelas?",
+                    text: confirmMsg,
+                    icon: "info",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Sinkronkan",
+                    cancelButtonText: "Batal"
+                });
+                confirmed = result.isConfirmed;
+            }
+
+            if (!confirmed) return;
+
+            btnSyncWaliKelas.disabled = true;
+            btnSyncWaliKelas.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyinkronkan...';
+
+            try {
+                const res = await fetch(syncUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || ""
+                    }
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    showToast(data.message, "success");
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    throw new Error(data.message || "Gagal menyinkronkan");
+                }
+            } catch (err) {
+                showToast(err.message, "danger");
+            } finally {
+                btnSyncWaliKelas.disabled = false;
+                btnSyncWaliKelas.innerHTML = originalHtml;
+            }
+        });
+    }
+
+    // Backdrop click dan ESC key untuk seluruh modal pengguna & tugas tambahan
+    window.addEventListener("click", function (event) {
+        const userM = document.getElementById("userModal");
+        if (event.target === userM) closeUserModal();
+        const dutyM = document.getElementById("dutyModal");
+        if (event.target === dutyM) window.closeDutyModal();
+        const editDutyM = document.getElementById("modalEditDuty");
+        if (event.target === editDutyM) window.closeEditDutyModal();
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            closeUserModal();
+            window.closeDutyModal();
+            window.closeEditDutyModal();
+        }
+    });
                 confirmed = await window.SAE.confirm(confirmMsg, "Tarik Wali Kelas?", "info", "Ya, Sinkronkan", "Batal");
             } else if (typeof Swal !== "undefined") {
                 const result = await Swal.fire({

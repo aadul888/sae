@@ -18,7 +18,7 @@
                     </h2>
                     <div style="font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-1);">
                         {{ \Carbon\Carbon::parse($usulan->tanggal_usulan)->translatedFormat('d F Y') }}
-                        &bull; {{ $usulan->pemohon_nama ?: '—' }}
+                        &bull; {{ \App\Http\Controllers\Laboran\LaboranPengadaanController::JENIS_PENGADAAN[$usulan->jenis ?? 'semua'] ?? 'Semua' }}
                         @if ($jurusan) &bull; {{ $jurusan->nama_jurusan }} @endif
                     </div>
                 </div>
@@ -83,8 +83,10 @@
                     <div style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color);">{{ $usulan->semester === '1' ? 'Ganjil' : ($usulan->semester === '2' ? 'Genap' : '—') }}</div>
                 </div>
                 <div>
-                    <div style="font-size: var(--text-2xs); text-transform: uppercase; font-weight: var(--font-bold); color: var(--text-muted); margin-bottom: var(--space-1);">Sumber Dana</div>
-                    <div style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color);">{{ $sumberDanaList[$usulan->sumber_dana] ?? $usulan->sumber_dana }}</div>
+                    <div style="font-size: var(--text-2xs); text-transform: uppercase; font-weight: var(--font-bold); color: var(--text-muted); margin-bottom: var(--space-1);">Jenis Pengadaan</div>
+                    <div style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color);">
+                        {{ \App\Http\Controllers\Laboran\LaboranPengadaanController::JENIS_PENGADAAN[$usulan->jenis ?? 'semua'] ?? 'Semua (Alat & Bahan)' }}
+                    </div>
                 </div>
                 <div>
                     <div style="font-size: var(--text-2xs); text-transform: uppercase; font-weight: var(--font-bold); color: var(--text-muted); margin-bottom: var(--space-1);">Tanggal Verifikasi</div>
