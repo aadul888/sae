@@ -2,12 +2,16 @@
 
 Panduan pengembangan aplikasi SAE (Sistem Aplikasi Edukasi).
 
+> **Ini satu-satunya sumber dokumentasi developer.** Folder `.agents/` hanya berisi
+> catatan kerja AI agent (di-ignore git). Bila mencari panduan, Anda berada di tempat yang benar.
+
 ---
 
 ## Mulai dari mana?
 
 | Kalau Anda ingin… | Baca |
 |---|---|
+| **Memahami sistem secara menyeluruh (hulu–hilir)** | [ARSITEKTUR_LENGKAP.md](ARSITEKTUR_LENGKAP.md) |
 | **Melakukan upgrade di server aaPanel** | [UPGRADE_SERVER_AAPANEL.md](UPGRADE_SERVER_AAPANEL.md) |
 | Memahami struktur folder & arsitektur | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) |
 | Membuat modul/fitur baru | [PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md](PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md) |
@@ -15,19 +19,37 @@ Panduan pengembangan aplikasi SAE (Sistem Aplikasi Edukasi).
 | Menulis kode sesuai gaya proyek | [code-style-guide.md](code-style-guide.md) |
 | Membuat tombol, ikon, atau datatable | [STANDAR_TOMBOL_ICON_DAN_DATATABLE.md](STANDAR_TOMBOL_ICON_DAN_DATATABLE.md) |
 | Mengetahui ketergantungan antar modul | [MODULE_DEPENDENCIES.md](MODULE_DEPENDENCIES.md) |
+| **Mengatur hak akses / menu sidebar (RBAC)** | [HAK_AKSES.md](HAK_AKSES.md) |
 | Mengubah sistem secara efisien (hindari efek samping) | [PANDUAN_EFISIENSI_PERUBAHAN_SISTEM.md](PANDUAN_EFISIENSI_PERUBAHAN_SISTEM.md) |
+| Spesifikasi formulir Dapodik 2027 | [formulir_dapodik_2027_spesifikasi.md](formulir_dapodik_2027_spesifikasi.md) |
+| Spesifikasi sistem presensi | [fitur-presensi.md](fitur-presensi.md) |
+| Riwayat keputusan teknis & hasil tes | [WORKLOG.md](WORKLOG.md) |
+
+### Untuk AI Agent
+
+Catatan kerja agent ada di `.agents/` (tidak di-commit):
+
+| Kebutuhan | Dokumen |
+|---|---|
+| Petunjuk kerja + peta dokumen | `.agents/AGENTS.md` |
+| Cheat sheet modul (scaffolding, styling, RBAC) | `.agents/skills/SKILL.md` |
+| Prosedur buat modul | `.agents/workflows/create-module.md` |
+| Prosedur debug memory leak | `.agents/workflows/debug-memory-leak.md` |
+| Arsip historis (jangan jadi acuan) | `.agents/archive/` |
 
 ---
 
 ## Urutan baca yang disarankan (developer baru)
 
-1. **PROJECT_STRUCTURE.md** — peta keseluruhan: di mana controller, service, model, view.
-2. **code-style-guide.md** — konvensi penamaan dan penulisan kode.
-3. **PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md** — alur baku menambah modul (controller → service → route → view → hak akses).
-4. **UI_DESIGN_STANDARDS.md** — sebelum menyentuh Blade atau CSS.
-5. **MODULE_DEPENDENCIES.md** — agar tidak memutus modul lain saat mengubah sesuatu.
+1. **ARSITEKTUR_LENGKAP.md** — gambaran menyeluruh sistem dari hulu ke hilir (baca sekali).
+2. **PROJECT_STRUCTURE.md** — peta keseluruhan: di mana controller, service, model, view.
+3. **code-style-guide.md** — konvensi penamaan dan penulisan kode.
+4. **PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md** — alur baku menambah modul (controller → service → route → view → hak akses).
+5. **UI_DESIGN_STANDARDS.md** — sebelum menyentuh Blade atau CSS.
+6. **MODULE_DEPENDENCIES.md** — agar tidak memutus modul lain saat mengubah sesuatu.
 
 **Untuk operator/deployer:** mulai dari **UPGRADE_SERVER_AAPANEL.md**.
+**Untuk AI agent:** baca `.agents/AGENTS.md` (peta dokumen) lalu `.agents/skills/SKILL.md`.
 
 ---
 
