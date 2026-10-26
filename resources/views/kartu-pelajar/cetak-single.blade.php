@@ -18,7 +18,7 @@
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
 </head>
 
-<body>
+<body class="cetak-single-body" style="background: #475569; min-height: 100vh; margin: 0; padding: 0;">
 
     <div class="no-print-bar">
         <a href="javascript:if(window.history.length>1){window.history.back();}else{window.close();}"

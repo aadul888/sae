@@ -8,6 +8,7 @@ Panduan pengembangan aplikasi SAE (Sistem Aplikasi Edukasi).
 
 | Kalau Anda ingin… | Baca |
 |---|---|
+| **Melakukan upgrade di server aaPanel** | [UPGRADE_SERVER_AAPANEL.md](UPGRADE_SERVER_AAPANEL.md) |
 | Memahami struktur folder & arsitektur | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) |
 | Membuat modul/fitur baru | [PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md](PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md) |
 | Mengubah tampilan / antarmuka | [UI_DESIGN_STANDARDS.md](UI_DESIGN_STANDARDS.md) |
@@ -25,6 +26,8 @@ Panduan pengembangan aplikasi SAE (Sistem Aplikasi Edukasi).
 3. **PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md** — alur baku menambah modul (controller → service → route → view → hak akses).
 4. **UI_DESIGN_STANDARDS.md** — sebelum menyentuh Blade atau CSS.
 5. **MODULE_DEPENDENCIES.md** — agar tidak memutus modul lain saat mengubah sesuatu.
+
+**Untuk operator/deployer:** mulai dari **UPGRADE_SERVER_AAPANEL.md**.
 
 ---
 

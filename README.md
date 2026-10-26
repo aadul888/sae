@@ -30,6 +30,7 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 | Dokumen | Isi |
 |---|---|
 | [`docs/README.md`](docs/README.md) | **Indeks dokumentasi** — mulai dari sini |
+| [`docs/UPGRADE_SERVER_AAPANEL.md`](docs/UPGRADE_SERVER_AAPANEL.md) | **Panduan upgrade server aaPanel** (PHP 8.3, composer, migrasi, rollback) |
 | [`docs/UI_DESIGN_STANDARDS.md`](docs/UI_DESIGN_STANDARDS.md) | **Wajib dibaca** sebelum mengubah antarmuka: design token, komponen Blade, aturan konsistensi |
 | [`docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md`](docs/PANDUAN_PEMBUATAN_MODUL_DAN_FITUR.md) | Alur baku menambah modul/fitur baru |
 | [`docs/code-style-guide.md`](docs/code-style-guide.md) | Konvensi penulisan kode |
