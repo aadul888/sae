@@ -665,11 +665,11 @@ class LaboranJadwalService
                 ->select('gtk.nama', 'gtk.nip')
                 ->first();
             if ($row) {
-                return (object) ['nama' => $row->nama, 'nip' => $row->nip];
+                return ['nama' => $row->nama, 'nip' => $row->nip];
             }
         }
 
-        return (object) [
+        return [
             'nama' => $nama ?: 'Petugas Laboratorium',
             'nip'  => $nip ?: null,
         ];

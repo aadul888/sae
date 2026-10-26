@@ -19,9 +19,9 @@ class LaboranJadwalController extends Controller
 
     protected LaboranJadwalService $service;
 
-    public function __construct(LaboranJadwalService $service)
+    public function __construct(?LaboranJadwalService $service = null)
     {
-        $this->service = $service;
+        $this->service = $service ?? app(LaboranJadwalService::class);
     }
 
     // =========================================================================
