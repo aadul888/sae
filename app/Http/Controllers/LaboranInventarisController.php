@@ -176,6 +176,8 @@ class LaboranInventarisController extends Controller
             'spesifikasi'       => 'nullable|string|max:1000',
             'lokasi_lemari_rak' => 'nullable|string|max:100',
             'tgl_kedaluwarsa'   => 'nullable|date',
+            'tanggal_pengadaan' => 'nullable|date',
+            'tahun_pengadaan'   => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
             'jurusan_id'        => 'nullable|string|max:50',
         ], [
             'kode_item.unique' => 'Kode item sudah digunakan.',
@@ -206,6 +208,8 @@ class LaboranInventarisController extends Controller
             'kondisi'             => $rincian['kondisi'],
             'tgl_kedaluwarsa'     => $request->tgl_kedaluwarsa,
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
+            'tanggal_pengadaan'   => $request->tanggal_pengadaan,
+            'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
             'created_at'          => now(),
             'updated_at'          => now(),
         ]);
@@ -304,6 +308,8 @@ class LaboranInventarisController extends Controller
             'spesifikasi'       => 'nullable|string|max:1000',
             'lokasi_lemari_rak' => 'nullable|string|max:100',
             'tgl_kedaluwarsa'   => 'nullable|date',
+            'tanggal_pengadaan' => 'nullable|date',
+            'tahun_pengadaan'   => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
             'jurusan_id'        => 'nullable|string|max:50',
         ]);
 
@@ -332,6 +338,8 @@ class LaboranInventarisController extends Controller
             'kondisi'             => $rincian['kondisi'],
             'tgl_kedaluwarsa'     => $request->tgl_kedaluwarsa,
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
+            'tanggal_pengadaan'   => $request->tanggal_pengadaan,
+            'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
             'updated_at'          => now(),
         ]);
 

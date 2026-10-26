@@ -32,6 +32,8 @@ class LaboranInventarisImportService
         'ruang_lab_nama',
         'lokasi_lemari_rak',
         'tgl_kedaluwarsa',
+        'tanggal_pengadaan',
+        'tahun_pengadaan',
     ];
 
     /**
@@ -44,19 +46,19 @@ class LaboranInventarisImportService
                 'ITM-LAB-001', 'Mikroskop Binokuler Digital', 'alat', 'Optik',
                 'Perbesaran 1000x, kamera USB 5MP',
                 '5', 'unit', 'baik', '4', '1', '0', '0',
-                'Lab Biologi', 'Lemari A-01', '',
+                'Lab Biologi', 'Lemari A-01', '', '2024-07-15', '2024',
             ],
             [
                 '', 'Traktor Tangan Mini', 'alat', 'Mesin Pertanian',
                 'Kapasitas 8 PK, roda dua',
                 '10', 'unit', 'baik', '5', '3', '2', '0',
-                'Lahan Praktik ATPH', 'Gudang Alsintan', '',
+                'Lahan Praktik ATPH', 'Gudang Alsintan', '', '2023-02-20', '2023',
             ],
             [
                 'ITM-LAB-002', 'Alkohol 70% 1 Liter', 'bahan_habis_pakai', 'Bahan Kimia',
                 'Kemasan botol 1000 ml teknis',
                 '20', 'botol', 'baik', '20', '0', '0', '0',
-                'Lab Kimia', 'Rak Bahan C-03', '2028-12-31',
+                'Lab Kimia', 'Rak Bahan C-03', '2028-12-31', '2025-01-10', '2025',
             ],
         ];
     }
@@ -69,6 +71,7 @@ class LaboranInventarisImportService
             'fields'   => [
                 'Kode Item'       => 'Boleh dikosongkan — sistem akan membuat kode otomatis',
                 'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
+                'Data Pengadaan'  => 'tanggal_pengadaan (YYYY-MM-DD) & tahun_pengadaan; tahun terisi otomatis dari tanggal',
             ],
         ];
     }
@@ -163,6 +166,22 @@ class LaboranInventarisImportService
 
         [$kondisi, $rincian] = $this->resolveKondisi($n, $total);
 
+        // Data pengadaan
+        $tglPengadaanRaw = (string) ($n['tanggal_pengadaan'] ?? ($n['tgl_pengadaan'] ?? ''));
+        $tglPengadaan = null;
+        if ($tglPengadaanRaw !== '') {
+            try {
+                $tglPengadaan = Carbon::parse($tglPengadaanRaw)->toDateString();
+            } catch (\Throwable $e) {
+                $tglPengadaan = null;
+            }
+        }
+
+        $tahunPengadaan = (int) ($n['tahun_pengadaan'] ?? 0);
+        if ($tahunPengadaan <= 0 && $tglPengadaan !== null) {
+            $tahunPengadaan = (int) Carbon::parse($tglPengadaan)->format('Y');
+        }
+
         $kadaluwarsa = (string) ($n['tgl_kedaluwarsa'] ?? ($n['kedaluwarsa'] ?? ''));
         $tglVal = null;
         if ($kadaluwarsa !== '') {
@@ -189,6 +208,8 @@ class LaboranInventarisImportService
             'lokasi_lemari_rak'   => (string) ($n['lokasi_lemari_rak'] ?? ($n['rak'] ?? ($n['lemari'] ?? ''))),
             'spesifikasi'         => (string) ($n['spesifikasi'] ?? ''),
             'tgl_kedaluwarsa'     => $tglVal,
+            'tanggal_pengadaan'   => $tglPengadaan,
+            'tahun_pengadaan'     => $tahunPengadaan > 0 ? $tahunPengadaan : null,
         ];
     }
 
@@ -266,6 +287,8 @@ class LaboranInventarisImportService
             'spesifikasi'         => $d['spesifikasi'] ?: $existing->spesifikasi,
             'lokasi_lemari_rak'   => $d['lokasi_lemari_rak'] ?: $existing->lokasi_lemari_rak,
             'tgl_kedaluwarsa'     => $d['tgl_kedaluwarsa'] ?: $existing->tgl_kedaluwarsa,
+            'tanggal_pengadaan'   => $d['tanggal_pengadaan'] ?: $existing->tanggal_pengadaan,
+            'tahun_pengadaan'     => $d['tahun_pengadaan'] ?: $existing->tahun_pengadaan,
             'updated_at'          => now(),
         ]);
     }
@@ -288,6 +311,8 @@ class LaboranInventarisImportService
             'satuan'              => $d['satuan'],
             'kondisi'             => $d['kondisi'],
             'tgl_kedaluwarsa'     => $d['tgl_kedaluwarsa'],
+            'tanggal_pengadaan'   => $d['tanggal_pengadaan'],
+            'tahun_pengadaan'     => $d['tahun_pengadaan'],
             'lokasi_lemari_rak'   => $d['lokasi_lemari_rak'] ?: null,
             'created_at'          => now(),
             'updated_at'          => now(),

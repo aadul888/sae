@@ -104,7 +104,13 @@ Dokumen ini mencatat dependensi antarmodul dan alur keterkaitan data yang telah 
 - **Tabel Basis Data Terkait:** `laboran_jadwal_penggunaan`, `laboran_bahan_alat`, `sarpras_ruang`, `jadwal_kbm`, `pembelajaran`, `gtk`, `rombongan_belajar`.
 - **Keterkaitan Antarmodul:**
   - **Integrasi Jadwal KBM Aktif**: Form jadwal dapat memilih slot dari `jadwal_kbm` aktif kelas terkait (endpoint `laboran.jadwal.kbm`), otomatis mengisi mapel, jam pelajaran, dan guru pengampu.
-  - **Pemberlakuan Jadwal (Berkala)**: Terdapat 3 opsi pemberlakuan: `sekali` (sesi tunggal), `bulanan` (dibuat rutin setiap minggu selama 1 bulan penuh), dan `semester` (dibuat rutin setiap minggu selama 1 semester). Sesi dihubungkan dengan `jadwal_seri_id`.
+  - **Pemberlakuan Jadwal (Berkala)**: Dua tab utama — **Mingguan** dan **Bulanan** — dengan pemetaan hari manual (`hari[]`, Senin–Sabtu) seperti input Jadwal KBM.
+    - `mingguan`: hari terpilih diulang setiap minggu dalam rentang tanggal; tanpa `tanggal_akhir` otomatis 1 bulan penuh.
+    - `bulanan`: seluruh hari terpilih dalam satu bulan penuh (memakai `pemberlakuan_bulan`/`pemberlakuan_tahun`).
+    - `sekali` & `semester` tetap diterima demi kompatibilitas data lama.
+    - Logika di `LaboranJadwalService::generateDates()` + helper `resolveTargetDaysOfWeek()` & `resolveDateWindow()`. Sesi seri ditandai `jadwal_seri_id`.
+  - **Lokasi Bersamaan**: `LaboranJadwalService::JENIS_LOKASI_BERSAMAAN = ['lahan', 'lapangan']`. Untuk jenis ini bentrok **lokasi** tidak diperiksa (area terbuka dapat menampung beberapa rombel pada jam sama), tetapi bentrok **guru** tetap divalidasi. Laboratorium & bengkel tetap eksklusif.
+  - **Jadwal per Guru**: `dashboard.laboran.jadwal-per-guru.index` & `.cetak` menampilkan rekap mingguan/bulanan per guru (filter `ptk_id` juga mencocokkan guru pendamping di `ptk_ids`), dengan dokumen cetak A4 landscape. Data disusun oleh `LaboranJadwalService::buildJadwalPerGuru()`.
   - **Kolaborasi Multi-Guru (Tim Teaching)**: Input jadwal mendukung lebih dari 1 guru (`ptk_id` utama + array `ptk_ids`). Deteksi bentrok memvalidasi ketersediaan lokasi dan memastikan tidak ada satu pun guru yang bentrok jadwal pada jam yang sama di lokasi lain.
   - **Lokasi praktik** diambil dari master `sarpras_ruang` (Sarpras & Aset) dan diklasifikasikan otomatis ke `jenis_lokasi`: `lab`, `bengkel`, `lahan`, `lapangan`, `lainnya`. Penambahan lokasi baru cukup dilakukan di modul Sarpras.
   - **Mata pelajaran & guru pengampu** diambil otomatis dari `pembelajaran` Dapodik berdasarkan `rombel_id` (endpoint `laboran.jadwal.pembelajaran`). Rombel jenis "Matapelajaran Pilihan" dengan nama sama ikut dicakup karena praktik kejuruan sering diampu di sana.
@@ -138,6 +144,7 @@ Dokumen ini mencatat dependensi antarmodul dan alur keterkaitan data yang telah 
     - `kode_item` bersifat **opsional**; bila kosong dibuat otomatis oleh `LaboranInventarisController::generateKodeItem()` dengan format `ALT-YYYYMM-NNNN` (alat) atau `BHP-YYYYMM-NNNN` (bahan habis pakai), dijamin unik.
     - Handler JS import wajib memakai `getCsrfToken()` di scope terluar dan `res.text()` + `JSON.parse` defensif, agar kegagalan 419/413/5xx tetap memunculkan pesan galat alih-alih menggantung.
 
+  - **Data Pengadaan**: `laboran_bahan_alat` menyimpan `tanggal_pengadaan` (date) & `tahun_pengadaan` (smallint). Tahun diturunkan otomatis dari tanggal bila tidak diisi (JS & backend). Keduanya didukung pada form modal, tabel inventaris, serta kolom template/import Excel.
   - **Rincian Kondisi per Jumlah**: `laboran_bahan_alat` menyimpan `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat`, `jumlah_kedaluwarsa` (mis. 10 traktor = 5 baik + 3 rusak ringan + 2 rusak berat). Kolom `kondisi` tetap dipertahankan sebagai **kondisi dominan** (jumlah terbanyak; rusak berat diprioritaskan bila seri) agar modul perawatan, kerusakan, dan peminjaman tidak perlu diubah. `LaboranInventarisController::resolveRincianKondisi()` menormalkan input: bila rincian kosong, seluruh `stok_total` dialokasikan ke `kondisi` yang dipilih.
   - **Perawatan → Inventaris**: perawatan berstatus `selesai` dengan `kondisi_akhir` menyinkronkan `laboran_bahan_alat.kondisi`. `kondisi_akhir = tidak_laik` dipetakan ke `rusak_berat`.
   - **Kerusakan → Inventaris**: berita acara menurunkan kondisi alat (`ringan`→`rusak_ringan`, `sedang`/`berat`/`total`→`rusak_berat`).

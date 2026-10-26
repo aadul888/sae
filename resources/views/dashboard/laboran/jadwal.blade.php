@@ -28,6 +28,11 @@
                     <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
                 </span>
                 @if ($canRead)
+                    <a href="{{ route('dashboard.laboran.jadwal-per-guru.index') }}" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
+                        title="Jadwal Praktik per Guru (Mingguan / Bulanan)">
+                        <i class="fas fa-user-clock"></i>
+                    </a>
                     <a href="{{ route('dashboard.laboran.laporan.index') }}" class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
                         title="Laporan Penggunaan Lokasi Praktik (Bulan, Triwulan, Semester, Tahun)">

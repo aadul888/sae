@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('ruangNama').value = data.nama || '';
             document.getElementById('ruangGedung').value = data.gedung || '';
             document.getElementById('ruangLantai').value = data.lantai || '';
+            document.getElementById('ruangPanjang').value = data.panjang || '';
+            document.getElementById('ruangLebar').value = data.lebar || '';
+            document.getElementById('ruangLuas').value = data.luas || '';
             const ruangPj = document.getElementById('ruangPj');
             const ruangPjId = document.getElementById('ruangPjId');
             if (ruangPj) ruangPj.value = '';
@@ -51,6 +54,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnClose) btnClose.addEventListener('click', closeModal);
     if (btnCancel) btnCancel.addEventListener('click', closeModal);
 
+    const inputPanjang = document.getElementById('ruangPanjang');
+    const inputLebar = document.getElementById('ruangLebar');
+    const inputLuas = document.getElementById('ruangLuas');
+
+    function hitungLuasOtomatis() {
+        if (!inputPanjang || !inputLebar || !inputLuas) return;
+        const p = parseFloat(inputPanjang.value);
+        const l = parseFloat(inputLebar.value);
+        if (!isNaN(p) && !isNaN(l) && p > 0 && l > 0) {
+            inputLuas.value = (p * l).toFixed(2);
+        }
+    }
+
+    if (inputPanjang) inputPanjang.addEventListener('input', hitungLuasOtomatis);
+    if (inputLebar) inputLebar.addEventListener('input', hitungLuasOtomatis);
+
     if (modal) {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
@@ -67,6 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 nama: btnEdit.dataset.nama,
                 gedung: btnEdit.dataset.gedung,
                 lantai: btnEdit.dataset.lantai,
+                panjang: btnEdit.dataset.panjang,
+                lebar: btnEdit.dataset.lebar,
+                luas: btnEdit.dataset.luas,
                 pj: btnEdit.dataset.pj,
                 kondisi: btnEdit.dataset.kondisi,
                 keterangan: btnEdit.dataset.keterangan,

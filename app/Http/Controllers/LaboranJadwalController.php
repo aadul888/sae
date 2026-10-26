@@ -286,8 +286,12 @@ class LaboranJadwalController extends Controller
         $tahun        = $request->filled('pemberlakuan_tahun') ? (int) $request->input('pemberlakuan_tahun') : null;
         $semester     = $request->filled('pemberlakuan_semester') ? (string) $request->input('pemberlakuan_semester') : null;
         $tahunAjaran  = $request->filled('pemberlakuan_ta') ? (string) $request->input('pemberlakuan_ta') : null;
+        $hari         = (array) $request->input('hari', []);
+        $tanggalAkhir = $request->filled('tanggal_akhir') ? (string) $request->input('tanggal_akhir') : null;
 
-        $targetDates = $this->service->generateDates($pemberlakuan, $baseTanggal, $bulan, $tahun, $semester, $tahunAjaran);
+        $targetDates = $this->service->generateDates(
+            $pemberlakuan, $baseTanggal, $bulan, $tahun, $semester, $tahunAjaran, $hari, $tanggalAkhir
+        );
 
         if ($conflict = $this->service->findConflictForDates($data, $targetDates)) {
             return $this->jsonOrRedirect($request, false, $conflict, 422);
@@ -451,6 +455,27 @@ class LaboranJadwalController extends Controller
         return view('dashboard.laboran.cetak-laporan', $data);
     }
 
+    /**
+     * Jadwal praktik PER GURU (mingguan / bulanan) — siap cetak.
+     */
+    public function jadwalPerGuru(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $data = $this->service->buildJadwalPerGuru($request);
+
+        return view('dashboard.laboran.jadwal-per-guru', $data);
+    }
+
+    public function cetakJadwalPerGuru(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $data = $this->service->buildJadwalPerGuru($request);
+
+        return view('dashboard.laboran.jadwal-per-guru-cetak', $data);
+    }
+
     // =========================================================================
     // 4. HELPER
     // =========================================================================
@@ -470,7 +495,10 @@ class LaboranJadwalController extends Controller
             'guru_pendamping'      => 'nullable|string|max:500',
             'topik_praktik'        => 'nullable|string|max:255',
             'tanggal'              => 'required|date',
-            'pemberlakuan'         => 'nullable|in:sekali,bulanan,semester',
+            'pemberlakuan'         => 'nullable|in:sekali,mingguan,bulanan,semester',
+            'hari'                 => 'nullable|array',
+            'hari.*'               => 'nullable|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'tanggal_akhir'        => 'nullable|date|after_or_equal:tanggal',
             'jam_mulai'            => 'required',
             'jam_selesai'          => 'required|after:jam_mulai',
             'alat_bahan_digunakan' => 'nullable|string|max:1000',
@@ -561,7 +589,7 @@ class LaboranJadwalController extends Controller
             'guru_pendamping'      => $companionNames,
             'topik_praktik'        => $topik !== '' ? $topik : null,
             'tanggal'              => $validated['tanggal'],
-            'pemberlakuan'         => $validated['pemberlakuan'] ?? 'sekali',
+            'pemberlakuan'         => $validated['pemberlakuan'] ?? 'mingguan',
             'jam_mulai'            => $validated['jam_mulai'],
             'jam_selesai'          => $validated['jam_selesai'],
             'alat_bahan_digunakan' => $validated['alat_bahan_digunakan'] ?? null,

@@ -126,6 +126,47 @@ class LaboranInventarisImportTest extends LaboranTestCase
     }
 
     /**
+     * Data pengadaan: tanggal & tahun perolehan tersimpan, dan tahun
+     * diturunkan otomatis dari tanggal bila tidak diisi.
+     */
+    public function test_inventaris_menyimpan_tanggal_dan_tahun_pengadaan(): void
+    {
+        $session = $this->adminSession();
+
+        // Tahun diturunkan dari tanggal
+        $this->withSession($session)->postJson(route('dashboard.laboran.inventaris.store'), [
+            'ruang_lab_nama'    => 'Lab Komputer 1',
+            'kode_item'         => 'UJI-PGD-' . uniqid(),
+            'nama_item'         => 'Item Uji Pengadaan A',
+            'jenis'             => 'alat',
+            'stok_total'        => 3,
+            'satuan'            => 'unit',
+            'kondisi'           => 'baik',
+            'tanggal_pengadaan' => '2024-03-15',
+        ])->assertStatus(200);
+
+        $a = DB::table('laboran_bahan_alat')->where('nama_item', 'Item Uji Pengadaan A')->first();
+        $this->assertNotNull($a);
+        $this->assertSame('2024-03-15', $a->tanggal_pengadaan);
+        $this->assertSame(2024, (int) $a->tahun_pengadaan, 'Tahun harus diturunkan dari tanggal pengadaan.');
+
+        // Tahun eksplisit dipakai apa adanya
+        $this->withSession($session)->postJson(route('dashboard.laboran.inventaris.store'), [
+            'ruang_lab_nama'    => 'Lab Komputer 1',
+            'kode_item'         => 'UJI-PGD-' . uniqid(),
+            'nama_item'         => 'Item Uji Pengadaan B',
+            'jenis'             => 'alat',
+            'stok_total'        => 1,
+            'satuan'            => 'unit',
+            'kondisi'           => 'baik',
+            'tahun_pengadaan'   => 2021,
+        ])->assertStatus(200);
+
+        $b = DB::table('laboran_bahan_alat')->where('nama_item', 'Item Uji Pengadaan B')->first();
+        $this->assertSame(2021, (int) $b->tahun_pengadaan);
+    }
+
+    /**
      * Tulis konten CSV ke berkas sementara dan kembalikan path-nya.
      */
     private function makeCsv(string $content): string

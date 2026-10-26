@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputPembelajaranId = document.getElementById('inputPembelajaranId');
     const inputMapelId = document.getElementById('inputMapelId');
     const selectKbmSlot = document.getElementById('selectKbmSlot');
-    const selectPemberlakuan = document.getElementById('selectPemberlakuan');
     const pemberlakuanHint = document.getElementById('pemberlakuanHint');
     const chkMapelManual = document.getElementById('chkMapelManual');
     const inputMapelManual = document.getElementById('inputMapelManual');
@@ -392,15 +391,74 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (selectPemberlakuan && pemberlakuanHint) {
-        selectPemberlakuan.addEventListener('change', function () {
-            if (this.value === 'bulanan') {
-                pemberlakuanHint.innerHTML = '<i class="fas fa-calendar-alt text-primary me-1"></i> Jadwal akan otomatis dibuat <strong>setiap minggu selama 1 bulan penuh</strong> sesuai hari tanggal yang dipilih.';
-            } else if (this.value === 'semester') {
-                pemberlakuanHint.innerHTML = '<i class="fas fa-calendar-week text-primary me-1"></i> Jadwal akan otomatis dibuat <strong>setiap minggu selama 1 semester penuh</strong> sesuai hari tanggal yang dipilih.';
-            } else {
-                pemberlakuanHint.innerHTML = 'Hanya dijadwalkan untuk 1 sesi pada tanggal ini saja.';
+    // =========================================================================
+    // Pemberlakuan: 2 tab (Mingguan / Bulanan)
+    // =========================================================================
+    const inputPemberlakuan = document.getElementById('inputPemberlakuan');
+    const wrapHariMingguan = document.getElementById('wrapHariMingguan');
+    const labelTanggalAwal = document.getElementById('labelTanggalAwal');
+    const labelTanggalAkhir = document.getElementById('labelTanggalAkhir');
+
+    function applyPemberlakuan(mode) {
+        if (!inputPemberlakuan) return;
+        inputPemberlakuan.value = mode;
+
+        // Sorot tab aktif
+        document.querySelectorAll('[data-pemberlakuan-tab]').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.pemberlakuanTab === mode);
+        });
+
+        // Pemetaan hari hanya relevan untuk mingguan
+        if (wrapHariMingguan) {
+            wrapHariMingguan.style.display = (mode === 'mingguan') ? 'block' : 'none';
+        }
+
+        if (labelTanggalAwal) {
+            labelTanggalAwal.textContent = mode === 'bulanan' ? 'Tanggal Bulan Berlaku' : 'Tanggal Awal Berlaku';
+        }
+        if (labelTanggalAkhir) {
+            labelTanggalAkhir.textContent = mode === 'bulanan' ? 'Tanggal Akhir Bulan' : 'Tanggal Akhir Berlaku';
+        }
+
+        if (pemberlakuanHint) {
+            pemberlakuanHint.innerHTML = mode === 'bulanan'
+                ? '<i class="fas fa-calendar-days text-primary me-1"></i> Jadwal dibuat untuk <strong>seluruh bulan</strong> pada hari yang dipilih (Senin–Sabtu).'
+                : '<i class="fas fa-calendar-week text-primary me-1"></i> Jadwal dibuat <strong>berulang setiap minggu</strong> pada hari yang dipilih, selama rentang tanggal.';
+        }
+    }
+
+    document.querySelectorAll('[data-pemberlakuan-tab]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyPemberlakuan(this.dataset.pemberlakuanTab);
+        });
+    });
+
+    // Sinkronkan checkbox hari dengan tanggal awal saat pertama dipilih
+    const chkHariList = document.querySelectorAll('.chk-hari-praktik');
+    chkHariList.forEach(function (chk) {
+        chk.addEventListener('change', function () {
+            if (this.checked && inputTanggal && inputTanggal.value) {
+                // tidak menimpa tanggal, hanya penanda visual
             }
+        });
+    });
+
+    // Saat tanggal awal dipilih dan belum ada hari tercentang, centang otomatis
+    // sesuai nama hari tanggal tersebut.
+    if (inputTanggal) {
+        inputTanggal.addEventListener('change', function () {
+            if (!this.value) return;
+
+            const adaTercentang = Array.prototype.some.call(chkHariList, function (c) { return c.checked; });
+            if (adaTercentang) return;
+
+            const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const d = new Date(this.value + 'T00:00:00');
+            const hari = namaHari[d.getDay()];
+
+            chkHariList.forEach(function (c) {
+                if (c.value === hari) c.checked = true;
+            });
         });
     }
 
@@ -481,10 +539,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectGuru) selectGuru.value = '';
 
-        if (selectPemberlakuan) {
-            selectPemberlakuan.value = 'sekali';
-            selectPemberlakuan.dispatchEvent(new Event('change'));
-        }
+        applyPemberlakuan('mingguan');
+        chkHariList.forEach(function (c) { c.checked = false; });
+        if (inputTanggalAkhir) inputTanggalAkhir.value = '';
 
         document.querySelectorAll('.chk-guru-pendamping').forEach(function (chk) {
             chk.checked = false;
@@ -514,9 +571,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectRombel) selectRombel.value = data.rombelId || '';
         if (selectGuru) selectGuru.value = data.ptkId || '';
 
-        if (selectPemberlakuan) {
-            selectPemberlakuan.value = data.pemberlakuan || 'sekali';
-            selectPemberlakuan.dispatchEvent(new Event('change'));
+        // Saat mengubah jadwal, pemberlakuan dikunci ke sesi tunggal
+        // agar tidak menduplikasi rangkaian yang sudah ada.
+        applyPemberlakuan('mingguan');
+        if (wrapHariMingguan) wrapHariMingguan.style.display = 'none';
+        if (pemberlakuanHint) {
+            pemberlakuanHint.innerHTML = '<i class="fas fa-pen-to-square text-primary me-1"></i> Mode ubah: hanya sesi ini yang diperbarui.';
         }
 
         // Checklist guru pendamping

@@ -46,11 +46,18 @@
                         </div>
                         @if ($can('menu_laboran_jadwal') || $can('menu_laboran'))
                             <a href="{{ route('dashboard.laboran.jadwal.index') }}"
-                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') && !request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}"
                                 title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
                                 <span class="nav-icon nested-icon"><i
                                         class="fas fa-fw fa-calendar-days"></i></span>
                                 <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
+                            </a>
+                            <a href="{{ route('dashboard.laboran.jadwal-per-guru.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}"
+                                title="Jadwal Praktik per Guru (Mingguan / Bulanan)">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-user-clock"></i></span>
+                                <span class="nav-label">Jadwal per Guru</span>
                             </a>
                         @endif
                         @if ($can('menu_laboran_peminjaman') || $can('menu_laboran'))

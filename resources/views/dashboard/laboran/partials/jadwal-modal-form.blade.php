@@ -113,25 +113,65 @@
                             style="display: none;" disabled>
                     </div>
 
-                    {{-- Pemberlakuan Jadwal (Bulanan atau Semester) --}}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-7);">
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Pemberlakuan Jadwal <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <select name="pemberlakuan" id="selectPemberlakuan" class="form-control" required>
-                                <option value="sekali">Sekali Saja (Satu Tanggal Sesi)</option>
-                                <option value="bulanan">Bulanan (Rutin Setiap Minggu selama 1 Bulan)</option>
-                                <option value="semester">Semester (Rutin Setiap Minggu selama 1 Semester)</option>
-                            </select>
+                    {{-- Pemberlakuan Jadwal: 2 Tab (Mingguan / Bulanan) --}}
+                    <div style="margin-bottom: var(--space-7);">
+                        <div class="periode-nav-wrapper" style="margin-bottom: var(--space-5);">
+                            <div class="periode-nav-desktop">
+                                <button type="button" class="periode-nav-tab active" data-pemberlakuan-tab="mingguan">
+                                    <i class="fas fa-calendar-week"></i> Mingguan
+                                </button>
+                                <button type="button" class="periode-nav-tab" data-pemberlakuan-tab="bulanan">
+                                    <i class="fas fa-calendar-days"></i> Bulanan
+                                </button>
+                            </div>
                         </div>
+                        <input type="hidden" name="pemberlakuan" id="inputPemberlakuan" value="mingguan">
+
+                        <div id="hintPemberlakuan"
+                            style="font-size: var(--text-xs); color: var(--text-muted); padding: 8px 12px; background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md, 8px);">
+                            <i class="fas fa-info-circle text-primary me-1"></i>
+                            <strong>Mingguan:</strong> pilih satu/lebih hari lalu isi tanggal awal — jadwal dibuat
+                            berulang setiap minggu pada hari tersebut selama satu bulan.
+                        </div>
+                    </div>
+
+                    {{-- Pemetaan Hari (gaya input manual Jadwal KBM) --}}
+                    <div id="wrapHariMingguan" style="margin-bottom: var(--space-7);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-3);">
+                            <label style="font-size: var(--text-base); font-weight: var(--font-semibold); color: var(--text-color); margin: 0;">
+                                Hari Praktik <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <span style="font-size: var(--text-xs); color: var(--text-muted);">Boleh pilih lebih dari satu hari</span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari)
+                                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); cursor: pointer; font-size: var(--text-sm); background: var(--bg-hover);">
+                                    <input type="checkbox" name="hari[]" value="{{ $hari }}" class="chk-hari-praktik"
+                                        style="cursor: pointer; accent-color: var(--primary);">
+                                    <span>{{ $hari }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Tanggal Praktik / Tanggal Mulai <span style="color: var(--danger, #ef4444);">*</span>
+                                <span id="labelTanggalAwal">Tanggal Awal Berlaku</span> <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" name="tanggal" id="inputTanggal" class="form-control" required>
                             <div id="pemberlakuanHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
-                                Hari dari tanggal ini akan dipakai bila memilih jadwal rutin mingguan.
+                                Tanggal pertama praktik dijadwalkan.
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                <span id="labelTanggalAkhir">Tanggal Akhir Berlaku</span>
+                                <span style="font-size: var(--text-xs); font-weight: var(--font-normal); color: var(--text-muted);">(opsional)</span>
+                            </label>
+                            <input type="date" name="tanggal_akhir" id="inputTanggalAkhir" class="form-control">
+                            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                                Kosongkan untuk 1 bulan penuh (Mingguan) atau 1 semester (Bulanan).
                             </div>
                         </div>
                     </div>

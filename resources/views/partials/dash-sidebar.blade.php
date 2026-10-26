@@ -1095,10 +1095,16 @@
                     Layanan Praktik
                 </div>
                 <a href="{{ route('dashboard.laboran.jadwal.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jadwal*') && !request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}"
                     title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                     <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
+                </a>
+
+                <a href="{{ route('dashboard.laboran.jadwal-per-guru.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-clock"></i></span>
+                    <span class="nav-label">Jadwal per Guru</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.peminjaman-alat*') ? 'active' : '' }}"
@@ -2016,9 +2022,15 @@
                             <span class="nav-label">Alat &amp; Bahan Lab</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.jadwal.index') }}"
-                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}">
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') && !request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal &amp; Pemakaian</span>
+                        </a>
+
+                        <a href="{{ route('dashboard.laboran.jadwal-per-guru.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal-per-guru*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-user-clock"></i></span>
+                            <span class="nav-label">Jadwal per Guru</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}">

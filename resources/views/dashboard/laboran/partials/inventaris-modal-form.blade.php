@@ -2,7 +2,7 @@
         <div id="modalLab" class="modal-backdrop"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
-                style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
+                style="width: 100%; max-width: 780px; max-height: 92vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="modalLabTitle"
                         style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
@@ -44,7 +44,7 @@
                         </div>
                     @endif
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
                         <div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -111,7 +111,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
@@ -134,7 +134,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
@@ -170,7 +170,7 @@
                             </span>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                             <div>
                                 <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 600; margin-bottom: 4px; color: var(--success, #10b981);">
                                     <i class="fas fa-circle-check me-1"></i> Baik
@@ -216,7 +216,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
@@ -236,6 +236,25 @@
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
                                 Kedaluwarsa</label>
                             <input type="date" name="tgl_kedaluwarsa" id="labExp" class="form-control">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                Pengadaan</label>
+                            <input type="date" name="tanggal_pengadaan" id="labTglPengadaan" class="form-control">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tahun
+                                Pengadaan</label>
+                            <input type="number" name="tahun_pengadaan" id="labTahunPengadaan" class="form-control"
+                                min="1900" max="{{ date('Y') + 1 }}" placeholder="{{ date('Y') }}">
+                            <small style="display: block; margin-top: 4px; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                Terisi otomatis dari tanggal pengadaan.
+                            </small>
                         </div>
                     </div>
 

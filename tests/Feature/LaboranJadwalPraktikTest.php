@@ -173,16 +173,20 @@ class LaboranJadwalPraktikTest extends TestCase
         $res->assertJsonValidationErrors(['rombel_id']);
     }
 
-    public function test_simpan_jadwal_menolak_bentrok_lokasi(): void
+    /**
+     * Laboratorium bersifat eksklusif: satu lokasi tidak boleh dipakai
+     * dua sesi dengan jam beririsan.
+     */
+    public function test_simpan_jadwal_menolak_bentrok_lokasi_lab(): void
     {
         $rombel = $this->kelasReguler();
         $tanggal = now()->addDays(2)->toDateString();
 
         $payload = [
-            'ruang_lab_nama' => 'Lapangan Praktik Outdoor',
-            'jenis_lokasi'   => 'lapangan',
+            'ruang_lab_nama' => 'Lab Komputer 1',
+            'jenis_lokasi'   => 'lab',
             'rombel_id'      => $rombel->rombongan_belajar_id,
-            'mata_pelajaran' => 'Pendidikan Jasmani, Olahraga, dan Kesehatan',
+            'mata_pelajaran' => 'Informatika',
             'tanggal'        => $tanggal,
             'jam_mulai'      => '07:00',
             'jam_selesai'    => '08:30',
@@ -200,7 +204,90 @@ class LaboranJadwalPraktikTest extends TestCase
         $res->assertStatus(422);
         $res->assertJsonPath('status', 'error');
         $this->assertStringContainsString('sudah dipakai', $res->json('message'));
-        $this->assertSame(1, DB::table('laboran_jadwal_penggunaan')->count());
+
+        // Hanya 1 sesi tersimpan untuk lokasi & tanggal tersebut
+        $this->assertSame(1, DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', 'Lab Komputer 1')
+            ->where('tanggal', $tanggal)
+            ->count());
+    }
+
+    /**
+     * Lahan & lapangan adalah area terbuka: beberapa rombel boleh praktik
+     * bersamaan pada jam yang sama (mis. olah tanah di petak berbeda).
+     */
+    public function test_lapangan_dan_lahan_mengizinkan_jadwal_bersamaan(): void
+    {
+        $rombel = $this->kelasReguler();
+        $tanggal = now()->addDays(3)->toDateString();
+
+        $payload = [
+            'ruang_lab_nama' => 'Lapangan Praktik Outdoor',
+            'jenis_lokasi'   => 'lapangan',
+            'rombel_id'      => $rombel->rombongan_belajar_id,
+            'mata_pelajaran' => 'Pendidikan Jasmani, Olahraga, dan Kesehatan',
+            'tanggal'        => $tanggal,
+            'jam_mulai'      => '07:00',
+            'jam_selesai'    => '08:30',
+        ];
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), $payload)
+            ->assertStatus(200);
+
+        // Sesi kedua pada lokasi & jam yang sama harus DITERIMA,
+        // dengan guru berbeda (bentrok guru tetap divalidasi terpisah).
+        $gtkLain = DB::table('gtk')->skip(1)->value('ptk_id');
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($payload, [
+                'jam_mulai'   => '07:30',
+                'jam_selesai' => '09:00',
+                'ptk_id'      => $gtkLain,
+            ]))
+            ->assertStatus(200);
+
+        $this->assertSame(2, DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', 'Lapangan Praktik Outdoor')
+            ->where('tanggal', $tanggal)
+            ->count());
+    }
+
+    /**
+     * Bentrok GURU tetap ditolak meskipun lokasinya lahan/lapangan.
+     */
+    public function test_bentrok_guru_tetap_ditolak_di_lapangan(): void
+    {
+        $rombel = $this->kelasReguler();
+        $tanggal = now()->addDays(4)->toDateString();
+        $ptkId = (string) DB::table('gtk')->value('ptk_id');
+
+        $payload = [
+            'ruang_lab_nama' => 'Lapangan Praktik Outdoor',
+            'jenis_lokasi'   => 'lapangan',
+            'rombel_id'      => $rombel->rombongan_belajar_id,
+            'mata_pelajaran' => 'Pendidikan Jasmani',
+            'tanggal'        => $tanggal,
+            'jam_mulai'      => '07:00',
+            'jam_selesai'    => '08:30',
+            'ptk_id'         => $ptkId,
+        ];
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), $payload)
+            ->assertStatus(200);
+
+        // Guru sama, jam beririsan, lokasi berbeda -> harus 422
+        $res = $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($payload, [
+                'ruang_lab_nama' => 'Lahan Praktik ATPH',
+                'jenis_lokasi'   => 'lahan',
+                'jam_mulai'      => '08:00',
+                'jam_selesai'    => '09:00',
+            ]));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('sudah memiliki jadwal praktik lain', $res->json('message'));
     }
 
     public function test_ubah_status_tidak_menghapus_topik(): void

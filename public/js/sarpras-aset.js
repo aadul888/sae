@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('asetSumber').value = data.sumber || 'BOS Reguler';
             document.getElementById('asetKondisi').value = data.kondisi || 'baik';
             document.getElementById('asetRuang').value = data.ruang || '';
+            const asetJurusan = document.getElementById('asetJurusan');
+            if (asetJurusan) asetJurusan.value = data.jurusan || '';
             document.getElementById('asetJumlah').value = data.jumlah || 1;
             document.getElementById('asetSatuan').value = data.satuan || 'unit';
             document.getElementById('asetStatus').value = data.status || 'tersedia';
@@ -78,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sumber: btnEdit.dataset.sumber,
                 kondisi: btnEdit.dataset.kondisi,
                 ruang: btnEdit.dataset.ruang,
+                jurusan: btnEdit.dataset.jurusan,
                 jumlah: btnEdit.dataset.jumlah,
                 satuan: btnEdit.dataset.satuan,
                 status: btnEdit.dataset.status,

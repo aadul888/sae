@@ -92,6 +92,9 @@ class SarprasRuangController extends Controller
             'nama_ruang' => 'required|string|max:255',
             'gedung' => 'nullable|string|max:100',
             'lantai' => 'nullable|string|max:20',
+            'panjang' => 'nullable|numeric|min:0|max:9999.99',
+            'lebar' => 'nullable|numeric|min:0|max:9999.99',
+            'luas' => 'nullable|numeric|min:0|max:999999.99',
             'penanggung_jawab_ptk_id' => 'nullable|string|max:100',
             'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
             'keterangan' => 'nullable|string|max:500',
@@ -100,11 +103,21 @@ class SarprasRuangController extends Controller
             'nama_ruang.required' => 'Nama ruang wajib diisi.',
         ]);
 
+        $panjang = $request->filled('panjang') ? (float) $request->panjang : null;
+        $lebar = $request->filled('lebar') ? (float) $request->lebar : null;
+        $luas = $request->filled('luas') ? (float) $request->luas : null;
+        if (($luas === null || $luas == 0) && $panjang !== null && $lebar !== null) {
+            $luas = round($panjang * $lebar, 2);
+        }
+
         DB::table('sarpras_ruang')->insert([
             'kode_ruang' => strtoupper(trim($request->kode_ruang)),
             'nama_ruang' => trim($request->nama_ruang),
             'gedung' => $request->gedung,
             'lantai' => $request->lantai,
+            'panjang' => $panjang,
+            'lebar' => $lebar,
+            'luas' => $luas,
             'penanggung_jawab_ptk_id' => $request->penanggung_jawab_ptk_id,
             'kondisi' => $request->kondisi,
             'keterangan' => $request->keterangan,
@@ -126,16 +139,29 @@ class SarprasRuangController extends Controller
             'nama_ruang' => 'required|string|max:255',
             'gedung' => 'nullable|string|max:100',
             'lantai' => 'nullable|string|max:20',
+            'panjang' => 'nullable|numeric|min:0|max:9999.99',
+            'lebar' => 'nullable|numeric|min:0|max:9999.99',
+            'luas' => 'nullable|numeric|min:0|max:999999.99',
             'penanggung_jawab_ptk_id' => 'nullable|string|max:100',
             'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
             'keterangan' => 'nullable|string|max:500',
         ]);
+
+        $panjang = $request->filled('panjang') ? (float) $request->panjang : null;
+        $lebar = $request->filled('lebar') ? (float) $request->lebar : null;
+        $luas = $request->filled('luas') ? (float) $request->luas : null;
+        if (($luas === null || $luas == 0) && $panjang !== null && $lebar !== null) {
+            $luas = round($panjang * $lebar, 2);
+        }
 
         DB::table('sarpras_ruang')->where('id', $id)->update([
             'kode_ruang' => strtoupper(trim($request->kode_ruang)),
             'nama_ruang' => trim($request->nama_ruang),
             'gedung' => $request->gedung,
             'lantai' => $request->lantai,
+            'panjang' => $panjang,
+            'lebar' => $lebar,
+            'luas' => $luas,
             'penanggung_jawab_ptk_id' => $request->penanggung_jawab_ptk_id,
             'kondisi' => $request->kondisi,
             'keterangan' => $request->keterangan,

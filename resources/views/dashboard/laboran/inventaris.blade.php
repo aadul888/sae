@@ -227,6 +227,17 @@
                                     </div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Rak:
                                         {{ $item->lokasi_lemari_rak ?: '-' }}</div>
+                                    @if (!empty($item->tahun_pengadaan) || !empty($item->tanggal_pengadaan))
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;"
+                                            title="Tanggal / Tahun Pengadaan">
+                                            <i class="fas fa-calendar-plus me-1"></i>
+                                            @if (!empty($item->tanggal_pengadaan))
+                                                {{ \Carbon\Carbon::parse($item->tanggal_pengadaan)->translatedFormat('d M Y') }}
+                                            @else
+                                                {{ $item->tahun_pengadaan }}
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td data-label="Jenis" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <span class="badge {{ $item->jenis === 'alat' ? 'badge-info' : 'badge-primary' }}"
@@ -311,7 +322,9 @@
                                                 data-spek="{{ $item->spesifikasi }}"
                                                 data-rak="{{ $item->lokasi_lemari_rak }}"
                                                 data-jurusan="{{ $item->jurusan_id }}"
-                                                data-exp="{{ $item->tgl_kedaluwarsa }}" title="Edit Item">
+                                                data-exp="{{ $item->tgl_kedaluwarsa }}"
+                                                data-tglpengadaan="{{ $item->tanggal_pengadaan }}"
+                                                data-tahunpengadaan="{{ $item->tahun_pengadaan }}" title="Edit Item">
                                                 <i class="fas fa-pen-to-square"></i>
                                             </button>
                                         @endif

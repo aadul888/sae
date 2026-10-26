@@ -26,6 +26,18 @@ class LaboranJadwalService
         'batal'       => 'Dibatalkan',
     ];
 
+    /**
+     * Jenis lokasi yang mengizinkan BEBERAPA sesi bersamaan pada jam yang sama.
+     *
+     * Lahan/kebun dan lapangan merupakan area terbuka yang dapat menampung
+     * beberapa rombel sekaligus (mis. 3 kelas praktik olah tanah di petak
+     * berbeda). Laboratorium dan bengkel tetap eksklusif karena keterbatasan
+     * daya tampung dan alat.
+     *
+     * Bentrok GURU tetap diperiksa untuk semua jenis lokasi.
+     */
+    public const JENIS_LOKASI_BERSAMAAN = ['lahan', 'lapangan'];
+
     public const HARI_MAP = [
         0 => 'Minggu',
         1 => 'Senin',
@@ -95,61 +107,126 @@ class LaboranJadwalService
     }
 
     /**
-     * Hitung tanggal-tanggal sesi sesuai pilihan pemberlakuan (sekali, bulanan, semester).
+     * Hitung tanggal-tanggal sesi sesuai pilihan pemberlakuan.
+     *
+     * Mode yang didukung:
+     *  - `mingguan` : hari tertentu (boleh >1) diulang tiap minggu dalam rentang tanggal.
+     *  - `bulanan`  : hari tertentu (boleh >1) diulang tiap minggu selama 1 bulan penuh.
+     *  - `sekali`   : satu sesi pada `tanggal` saja (kompatibilitas data lama).
+     *
+     * `semester` masih diterima demi kompatibilitas data lama dan diperlakukan
+     * seperti `bulanan` dengan rentang 1 semester.
+     *
+     * @param array<int,string> $hari Daftar nama hari (Senin..Sabtu). Bila kosong,
+     *                                hari diturunkan dari `$baseTanggal`.
      */
-    public function generateDates(string $pemberlakuan, string $baseTanggal, ?int $bulan = null, ?int $tahun = null, ?string $semester = null, ?string $tahunAjaran = null): array
-    {
+    public function generateDates(
+        string $pemberlakuan,
+        string $baseTanggal,
+        ?int $bulan = null,
+        ?int $tahun = null,
+        ?string $semester = null,
+        ?string $tahunAjaran = null,
+        array $hari = [],
+        ?string $tanggalAkhir = null
+    ): array {
         $base = Carbon::parse($baseTanggal);
-        if ($pemberlakuan === 'sekali' || empty($pemberlakuan)) {
+
+        if ($pemberlakuan === 'sekali' || $pemberlakuan === '') {
             return [$base->toDateString()];
         }
 
-        $targetDayOfWeek = $base->dayOfWeek; // 0 (Minggu) .. 6 (Sabtu)
+        // Hari yang dipilih -> daftar dayOfWeek Carbon (0=Minggu..6=Sabtu)
+        $targetDays = $this->resolveTargetDaysOfWeek($hari, $base);
+
+        // Rentang tanggal
+        [$start, $end] = $this->resolveDateWindow(
+            $pemberlakuan, $base, $bulan, $tahun, $semester, $tahunAjaran, $tanggalAkhir
+        );
+
         $dates = [];
+        $curr = $start->copy();
+        while ($curr->lte($end)) {
+            if (in_array($curr->dayOfWeek, $targetDays, true)) {
+                $dates[] = $curr->toDateString();
+            }
+            $curr->addDay();
+        }
+
+        return !empty($dates) ? $dates : [$base->toDateString()];
+    }
+
+    /**
+     * Ubah daftar nama hari menjadi indeks dayOfWeek Carbon.
+     *
+     * @param array<int,string> $hari
+     * @return array<int,int>
+     */
+    protected function resolveTargetDaysOfWeek(array $hari, Carbon $base): array
+    {
+        $map = [
+            'minggu' => 0, 'senin' => 1, 'selasa' => 2, 'rabu' => 3,
+            'kamis' => 4, 'jumat' => 5, 'sabtu' => 6,
+        ];
+
+        $days = [];
+        foreach ($hari as $h) {
+            $key = strtolower(trim((string) $h));
+            if (isset($map[$key])) {
+                $days[] = $map[$key];
+            }
+        }
+
+        return !empty($days) ? array_values(array_unique($days)) : [$base->dayOfWeek];
+    }
+
+    /**
+     * Tentukan rentang tanggal [start, end] untuk pemberlakuan tertentu.
+     *
+     * @return array{0:Carbon, 1:Carbon}
+     */
+    protected function resolveDateWindow(
+        string $pemberlakuan,
+        Carbon $base,
+        ?int $bulan,
+        ?int $tahun,
+        ?string $semester,
+        ?string $tahunAjaran,
+        ?string $tanggalAkhir
+    ): array {
+        // Rentang eksplisit menang atas perhitungan otomatis.
+        if (!empty($tanggalAkhir)) {
+            $end = Carbon::parse($tanggalAkhir);
+            $start = $base->copy();
+
+            return $end->lt($start) ? [$end->copy(), $start] : [$start, $end];
+        }
 
         if ($pemberlakuan === 'bulanan') {
             $b = $bulan ?: $base->month;
             $y = $tahun ?: $base->year;
-            $start = Carbon::createFromDate($y, $b, 1)->startOfMonth();
-            $end = Carbon::createFromDate($y, $b, 1)->endOfMonth();
 
-            $curr = $start->copy();
-            while ($curr->lte($end)) {
-                if ($curr->dayOfWeek === $targetDayOfWeek) {
-                    $dates[] = $curr->toDateString();
-                }
-                $curr->addDay();
-            }
-
-            return !empty($dates) ? $dates : [$base->toDateString()];
+            return [
+                Carbon::createFromDate($y, $b, 1)->startOfMonth(),
+                Carbon::createFromDate($y, $b, 1)->endOfMonth(),
+            ];
         }
 
         if ($pemberlakuan === 'semester') {
-            $parts = explode('/', $tahunAjaran ?: ($base->month >= 7 ? $base->year . '/' . ($base->year + 1) : ($base->year - 1) . '/' . $base->year));
+            $parts = explode('/', $tahunAjaran ?: ($base->month >= 7
+                ? $base->year . '/' . ($base->year + 1)
+                : ($base->year - 1) . '/' . $base->year));
             $y1 = (int) ($parts[0] ?? $base->year);
             $y2 = (int) ($parts[1] ?? ($y1 + 1));
             $sem = $semester ?: ($base->month >= 7 ? '1' : '2');
 
-            if ($sem === '1') {
-                $start = Carbon::createFromDate($y1, 7, 1);
-                $end = Carbon::createFromDate($y1, 12, 31);
-            } else {
-                $start = Carbon::createFromDate($y2, 1, 1);
-                $end = Carbon::createFromDate($y2, 6, 30);
-            }
-
-            $curr = $start->copy();
-            while ($curr->lte($end)) {
-                if ($curr->dayOfWeek === $targetDayOfWeek) {
-                    $dates[] = $curr->toDateString();
-                }
-                $curr->addDay();
-            }
-
-            return !empty($dates) ? $dates : [$base->toDateString()];
+            return $sem === '1'
+                ? [Carbon::createFromDate($y1, 7, 1), Carbon::createFromDate($y1, 12, 31)]
+                : [Carbon::createFromDate($y2, 1, 1), Carbon::createFromDate($y2, 6, 30)];
         }
 
-        return [$base->toDateString()];
+        // `mingguan` tanpa tanggal akhir: sebulan penuh sejak tanggal awal.
+        return [$base->copy(), $base->copy()->addMonthNoOverflow()->subDay()];
     }
 
     /**
@@ -234,17 +311,23 @@ class LaboranJadwalService
             $base->where('id', '<>', $ignoreId);
         }
 
-        // 1. Bentrok Lokasi
-        $bentrokLokasi = (clone $base)
-            ->where('ruang_lab_nama', $data['ruang_lab_nama'])
-            ->first();
+        // 1. Bentrok Lokasi — hanya untuk lokasi eksklusif (lab/bengkel).
+        //    Lahan & lapangan boleh dipakai beberapa sesi bersamaan.
+        $jenisLokasi = $data['jenis_lokasi'] ?? null;
+        $bolehBersamaan = in_array($jenisLokasi, self::JENIS_LOKASI_BERSAMAAN, true);
 
-        if ($bentrokLokasi) {
-            $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
-            return 'Lokasi "' . $data['ruang_lab_nama'] . '" sudah dipakai pada ' . $tglStr . ' '
-                . substr((string) $bentrokLokasi->jam_mulai, 0, 5) . ' - '
-                . substr((string) $bentrokLokasi->jam_selesai, 0, 5)
-                . ' (' . $bentrokLokasi->mata_pelajaran . '). Pilih jam atau lokasi lain.';
+        if (!$bolehBersamaan) {
+            $bentrokLokasi = (clone $base)
+                ->where('ruang_lab_nama', $data['ruang_lab_nama'])
+                ->first();
+
+            if ($bentrokLokasi) {
+                $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
+                return 'Lokasi "' . $data['ruang_lab_nama'] . '" sudah dipakai pada ' . $tglStr . ' '
+                    . substr((string) $bentrokLokasi->jam_mulai, 0, 5) . ' - '
+                    . substr((string) $bentrokLokasi->jam_selesai, 0, 5)
+                    . ' (' . $bentrokLokasi->mata_pelajaran . '). Pilih jam atau lokasi lain.';
+            }
         }
 
         // 2. Bentrok Guru (memeriksa Guru Utama dan SEMUA Guru Pendamping)
@@ -642,6 +725,118 @@ class LaboranJadwalService
             'kepalaLab'         => $kepalaLab,
             'petugas'           => $petugas,
             'orientasi'         => $orientasi,
+        ];
+    }
+
+    /**
+     * Susun jadwal praktik PER GURU untuk satu minggu atau satu bulan.
+     *
+     * Hasil dikelompokkan per hari (Senin..Sabtu) agar siap dicetak sebagai
+     * tabel jadwal mingguan, atau per tanggal untuk tampilan bulanan.
+     *
+     * @param string $mode 'mingguan' | 'bulanan'
+     * @return array{
+     *   mode:string, label:string, start:string, end:string,
+     *   guru:?object, items:\Illuminate\Support\Collection,
+     *   perHari:array<string,\Illuminate\Support\Collection>,
+     *   perTanggal:array<string,\Illuminate\Support\Collection>,
+     *   totalSesi:int, totalMenit:int, hariAktif:int, lokasiUnik:int,
+     *   daftarGuru:\Illuminate\Support\Collection, sekolah:?object, petugas:array
+     * }
+     */
+    public function buildJadwalPerGuru(Request $request): array
+    {
+        $context = LaboranScope::resolve();
+
+        $mode  = strtolower((string) $request->query('mode', 'mingguan'));
+        if (!in_array($mode, ['mingguan', 'bulanan'], true)) {
+            $mode = 'mingguan';
+        }
+
+        $ptkId = trim((string) $request->query('ptk_id', ''));
+        $bulan = max(1, min(12, (int) $request->query('bulan', date('n'))));
+        $tahun = (int) $request->query('tahun', date('Y'));
+
+        // Rentang: minggu berjalan (Senin–Sabtu) atau satu bulan penuh.
+        if ($mode === 'bulanan') {
+            $start = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
+            $end   = $start->copy()->endOfMonth();
+            $label = 'Bulan ' . $start->translatedFormat('F Y');
+        } else {
+            $acuan = $request->filled('tanggal')
+                ? Carbon::parse((string) $request->query('tanggal'))
+                : Carbon::now();
+
+            // Senin sebagai awal minggu; Sabtu sebagai akhir (sekolah 6 hari).
+            $start = $acuan->copy()->startOfWeek(Carbon::MONDAY);
+            $end   = $start->copy()->addDays(5);
+            $label = 'Minggu ' . $start->translatedFormat('d M Y') . ' s.d. ' . $end->translatedFormat('d M Y');
+        }
+
+        $query = DB::table('laboran_jadwal_penggunaan as ljp')
+            ->leftJoin('gtk', 'ljp.ptk_id', '=', 'gtk.ptk_id')
+            ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
+            ->whereBetween('ljp.tanggal', [$start->toDateString(), $end->toDateString()])
+            ->where('ljp.status', '<>', 'batal')
+            ->select('ljp.*', 'gtk.nama as guru_nama', 'gtk.nip as guru_nip', 'rb.nama as rombel_nama')
+            ->orderBy('ljp.tanggal')
+            ->orderBy('ljp.jam_mulai');
+
+        LaboranScope::apply($query, 'ljp.jurusan_id', $context);
+
+        if ($ptkId !== '') {
+            $query->where(function ($q) use ($ptkId) {
+                $q->where('ljp.ptk_id', $ptkId)
+                  ->orWhere('ljp.ptk_ids', 'like', '%"' . $ptkId . '"%');
+            });
+        }
+
+        $items = $query->get();
+
+        // Kelompokkan per nama hari (untuk mode mingguan)
+        $perHari = [];
+        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $hari) {
+            $perHari[$hari] = $items->filter(
+                fn($i) => Carbon::parse($i->tanggal)->translatedFormat('l') === $hari
+            )->values();
+        }
+
+        // Kelompokkan per tanggal (untuk mode bulanan)
+        $perTanggal = $items->groupBy('tanggal')->sortKeys()->toArray();
+
+        $totalMenit = 0;
+        foreach ($items as $it) {
+            $totalMenit += $this->durasiMenit($it->jam_mulai, $it->jam_selesai);
+        }
+
+        $guru = $ptkId !== '' ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : null;
+
+        $daftarGuru = DB::table('gtk')
+            ->whereIn('ptk_id', DB::table('laboran_jadwal_penggunaan')->select('ptk_id')->distinct())
+            ->orderBy('nama')
+            ->get(['ptk_id', 'nama', 'nip']);
+
+        return [
+            'mode'        => $mode,
+            'label'       => $label,
+            'start'       => $start->toDateString(),
+            'end'         => $end->toDateString(),
+            'bulan'       => $bulan,
+            'tahun'       => $tahun,
+            'guru'        => $guru,
+            'ptkId'       => $ptkId,
+            'items'       => $items,
+            'perHari'     => $perHari,
+            'perTanggal'  => $perTanggal,
+            'totalSesi'   => $items->count(),
+            'totalMenit'  => $totalMenit,
+            'hariAktif'   => $items->pluck('tanggal')->unique()->count(),
+            'lokasiUnik'  => $items->pluck('ruang_lab_nama')->unique()->count(),
+            'daftarGuru'  => $daftarGuru,
+            'sekolah'     => Sekolah::first(),
+            'petugas'     => $this->resolvePetugasLaboran(),
+            'statusLabels' => self::STATUS_LIST,
+            'jenisLabels'  => self::JENIS_LOKASI,
         ];
     }
 

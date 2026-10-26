@@ -1185,3 +1185,92 @@ Modul **Administrasi Jurusan** dan **Bon Permintaan** dihapus menyeluruh:
 5. **Modal ter-render**: seluruh id modal/field kunci (`modalLab`, `modalImportInventaris`, `modalJadwal`, `modalStatus`, `modalPerawatan`, `modalKartu`, `modalPeminjaman`, `modalKembali`, `modalKebutuhan`) terverifikasi ADA di HTML hasil render.
 6. **Menu sidebar**: 12/12 label menu laboran tampil untuk pengguna LABORAN; label modul yang dihapus sudah tidak muncul.
 7. **Test suite penuh**: **246 passed (2.975 assertions), 0 failed**.
+
+---
+
+## Sesi 17 — 26 Oktober 2026: Penyesuaian Modal, Jadwal Bersamaan, Pemberlakuan 2 Tab & Data Pengadaan
+
+### 1. Modal Tambah Alat/Bahan Diperlebar
+`resources/views/dashboard/laboran/partials/inventaris-modal-form.blade.php`:
+- Lebar maksimum **580px → 780px**, tinggi maksimum 90vh → 92vh.
+- Seluruh grid formulir diubah ke `repeat(auto-fit, minmax(...))` agar menyesuaikan lebar:
+  - grid 3 kolom → `minmax(150px, 1fr)`
+  - grid 2 kolom → `minmax(210px, 1fr)`
+  - grid 1fr/2fr (kode + nama) → `minmax(220px, 1fr)`
+  - panel rincian kondisi → `minmax(130px, 1fr)`
+
+### 2. Jadwal Lahan & Lapangan Boleh Ganda
+`app/Services/LaboranJadwalService.php`:
+- Konstanta baru `JENIS_LOKASI_BERSAMAAN = ['lahan', 'lapangan']`.
+- `findConflictSingleDate()` melewati pemeriksaan bentrok lokasi untuk jenis tersebut — area terbuka dapat menampung beberapa rombel pada jam sama (mis. olah tanah di petak berbeda).
+- **Bentrok guru tetap diperiksa** untuk semua jenis lokasi.
+- Laboratorium & bengkel tetap eksklusif.
+
+### 3. Pemberlakuan Jadwal: 2 Tab + Pemetaan Hari Manual
+**Blade** (`partials/jadwal-modal-form.blade.php`):
+- `select pemberlakuan` diganti **2 tab** (`periode-nav-wrapper`): **Mingguan** & **Bulanan**, dengan `input hidden#inputPemberlakuan`.
+- Panel **Hari Praktik** berupa checkbox Senin–Sabtu (`name="hari[]"`), tampil hanya pada mode Mingguan.
+- Input **Tanggal Awal** & **Tanggal Akhir** (opsional) menggantikan satu field tanggal.
+
+**Service** (`LaboranJadwalService`):
+- `generateDates()` dirombak menerima `$hari[]` dan `$tanggalAkhir`:
+  - `mingguan` → hari terpilih diulang tiap minggu; tanpa tanggal akhir = 1 bulan penuh.
+  - `bulanan` → seluruh bulan pada hari terpilih.
+  - `sekali` / `semester` tetap didukung untuk kompatibilitas data lama.
+- Helper baru `resolveTargetDaysOfWeek()` (nama hari → indeks Carbon, fallback ke hari tanggal awal) dan `resolveDateWindow()` (rentang eksplisit menang atas perhitungan otomatis).
+
+**Controller**: meneruskan `hari[]` & `tanggal_akhir`; validasi `pemberlakuan` diperluas (`mingguan`), default `mingguan`.
+
+**JS**: `applyPemberlakuan(mode)` menangani tab aktif, visibilitas panel hari, dan label tanggal; hari tercentang otomatis mengikuti tanggal awal bila belum ada pilihan.
+
+### 4. Cetak Jadwal per Guru (Mingguan / Bulanan)
+- Route baru: `dashboard.laboran.jadwal-per-guru.index` & `.cetak`.
+- `LaboranJadwalService::buildJadwalPerGuru()` mengelompokkan sesi **per hari** (mingguan) atau **per tanggal** (bulanan), dengan filter guru (`ptk_id` juga mencocokkan `ptk_ids` guru pendamping).
+- View baru: `jadwal-per-guru.blade.php` (halaman interaktif dengan filter mode/guru/bulan) dan `jadwal-per-guru-cetak.blade.php` (dokumen A4 landscape siap cetak, 3 kolom tanda tangan).
+- Tautan ditambahkan pada banner halaman jadwal dan sidebar (`dash-sidebar-laboran` + 2 blok di `dash-sidebar`).
+
+### 5. Data Pengadaan pada Inventaris
+- Migrasi `2026_10_26_190001_add_pengadaan_date_to_laboran_bahan_alat.php`: kolom `tanggal_pengadaan` (date) & `tahun_pengadaan` (smallint).
+- Form modal: input **Tanggal Pengadaan** & **Tahun Pengadaan**; tahun terisi otomatis dari tanggal (JS + backend).
+- Tabel inventaris menampilkan tanggal/tahun pengadaan di kolom Lab.
+- Tombol edit membawa `data-tglpengadaan` & `data-tahunpengadaan`.
+- `LaboranInventarisImportService`: header template diperluas (`tanggal_pengadaan`, `tahun_pengadaan`), contoh baris diperbarui, parsing + fallback tahun dari tanggal, dan penyimpanan pada insert/update.
+
+### 6. Verifikasi
+1. **Lint**: seluruh PHP & JS terkait — 0 error.
+2. **Batas ukuran**: 80 berkas modul laboran diperiksa, **0 pelanggaran** > 1.000 baris (terbesar 877).
+3. **Render**: `/dashboard/laboran/jadwal-per-guru` (mingguan & bulanan) dan `/cetak` keduanya **200**.
+4. **Modal**: `labTglPengadaan`, `labTahunPengadaan`, `max-width: 780px`, serta `data-tglpengadaan`/`data-tahunpengadaan` terverifikasi ADA.
+5. **Sidebar**: label "Jadwal per Guru" tampil untuk pengguna LABORAN.
+6. **Test suite**: **258 passed (3.032 assertions), 0 failed** — termasuk 9 test baru di `LaboranJadwalLanjutanTest` dan 1 test pengadaan di `LaboranInventarisImportTest`.
+
+---
+
+## Sesi 18 — 26 Oktober 2026: Dimensi Fisik Ruang (P x L & Luas) & Integrasi Aset Sarpras Lintas Jurusan (Laboran)
+
+### 1. Permintaan
+1. Dalam input ruang dan gedung, tambahkan ukuran panjang, lebar, dan luas.
+2. Di inventaris dan aset, selain input aset umum sarpras, tampilkan juga dan hubungkan dengan inventaris & aset per jurusan yang di-input laboran.
+
+### 2. Rincian Perubahan
+| Berkas | Perubahan |
+|---|---|
+| `database/migrations/2026_10_26_210001_add_dimensi_to_sarpras_ruang_and_jurusan_to_sarpras_aset.php` | Migrasi penambahan kolom `panjang` (decimal 8,2), `lebar` (decimal 8,2), `luas` (decimal 10,2) pada tabel `sarpras_ruang`, serta `jurusan_id` (string 50 index) pada tabel `sarpras_aset`. |
+| `app/Http/Controllers/SarprasRuangController.php` | Menangani input & validasi `panjang`, `lebar`, `luas`. Otomatis menghitung luas (`panjang * lebar`) jika luas kosong/0, dengan dukungan custom luas untuk ruang berdenah tak beraturan. |
+| `resources/views/dashboard/sarpras/ruang.blade.php` | Menampilkan dimensi `Panjang × Lebar (Luas m²)` pada kolom Gedung & Lantai tabel ruang. Input form modal memiliki 3 field `Panjang (m)`, `Lebar (m)`, dan `Luas (m²)`. |
+| `public/js/sarpras-ruang.js` | Auto-kalkulasi luas secara interaktif saat mengetik panjang dan lebar, populasi data atribut edit (`data-panjang`, `data-lebar`, `data-luas`). |
+| `app/Http/Controllers/SarprasAsetController.php` | Menambahkan dukungan `$tab` ('sarpras' vs 'laboran'), filter `jurusan_id` (Umum atau per jurusan), penyimpanan `jurusan_id` pada `store`/`update`, query lintas jurusan untuk data laboran (`laboran_bahan_alat`), serta dukungan kolom jurusan pada format Excel import & template. |
+| `resources/views/dashboard/sarpras/aset.blade.php` | Menambahkan switcher tab (`dash-desktop-tabs`): **Aset Sekolah & Sarpras** vs **Inventaris Jurusan (Laboran)**. Stat card dinamis menyesuaikan tab. Tabel Aset Sarpras menampilkan badge jurusan (Umum / singkatan jurusan), toolbar memiliki filter alokasi jurusan, modal input mendukung pilihan alokasi jurusan. |
+| `resources/views/dashboard/sarpras/partials-aset-laboran.blade.php` (baru, 190 baris) | Partial khusus tab inventaris jurusan (laboran) dengan toolbar filter jurusan, jenis (alat/BHP), kondisi, lab, pencarian live, rincian kondisi per unit (baik/RR/RB/Exp), serta tautan langsung ke modul laboran. Menjaga `aset.blade.php` tetap modular dan di bawah 600 baris. |
+| `public/js/sarpras-aset.js` | Populasi data atribut jurusan pada modal edit aset (`data-jurusan`). |
+| `app/Services/SarprasDashboardService.php` | Menambahkan ringkasan `total_luas_ruang` dan `aset_jurusan_unit`. |
+| `tests/Feature/SarprasRuangDanAsetTest.php` (baru, 160 baris) | 5 test: store ruang + auto-hitung luas, update custom luas, store aset dengan alokasi jurusan, render tab sarpras & laboran, dan pencarian inventaris laboran per jurusan. |
+
+### 3. Hasil Verifikasi Protokol Mandatori
+1. **Linting Sintaks PHP**: `php -l` seluruh berkas PHP yang diubah — 0 error.
+2. **Linting JavaScript**: `node --check` seluruh berkas JS — 0 error.
+3. **Kompilasi Blade**: `php artisan view:clear ; php artisan view:cache` — 100% sukses.
+4. **Kompilasi Frontend (Vite)**: `npm run build` — 59 modul transformed dalam 82ms.
+5. **Eksekusi Test Suite**: `php artisan test --filter="SarprasDashboardTest|SarprasRuangDanAsetTest" --no-coverage` — 15 passed (147 assertions), 0 failed.
+6. **Guard Tests**: `DesignConsistencyTest`, `AccessibilityGuardTest`, `ArchitectureGuardTest`, `SchemaCheckPerformanceTest` — 21 passed (1330 assertions), 0 failed.
+7. **Pemeriksaan Batas Ukuran File**: 0 berkas di `app/` melebihi 1.000 baris.

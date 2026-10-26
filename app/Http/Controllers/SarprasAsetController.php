@@ -25,62 +25,158 @@ class SarprasAsetController extends Controller
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'update') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
 
-        $search = trim($request->query('q', ''));
+        $tab = $request->query('tab', 'sarpras');
+        if (!in_array($tab, ['sarpras', 'laboran'], true)) {
+            $tab = 'sarpras';
+        }
+
+        $search         = trim($request->query('q', ''));
         $kategoriFilter = trim($request->query('kategori', ''));
-        $kondisiFilter = trim($request->query('kondisi', ''));
-        $ruangFilter = trim($request->query('ruang_id', ''));
+        $kondisiFilter  = trim($request->query('kondisi', ''));
+        $ruangFilter    = trim($request->query('ruang_id', ''));
+        $jurusanFilter  = trim($request->query('jurusan_id', ''));
+        $jenisFilter    = trim($request->query('jenis', ''));
+        $labFilter      = trim($request->query('lab', ''));
 
-        $query = DB::table('sarpras_aset as sa')
-            ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
-            ->select('sa.*', 'sr.nama_ruang', 'sr.gedung');
+        $jurusanList = DB::table('jurusan_meta')
+            ->orderBy('nama_jurusan', 'asc')
+            ->get(['jurusan_id', 'nama_jurusan', 'singkatan']);
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('sa.kode_aset', 'like', "%{$search}%")
-                  ->orWhere('sa.nama_barang', 'like', "%{$search}%")
-                  ->orWhere('sa.merk_tipe', 'like', "%{$search}%")
-                  ->orWhere('sr.nama_ruang', 'like', "%{$search}%");
-            });
-        }
+        // Stats Sarpras
+        $statTotal     = (int) (DB::table('sarpras_aset')->sum('jumlah') ?: 0);
+        $statTersedia  = (int) (DB::table('sarpras_aset')->where('status_ketersediaan', 'tersedia')->sum('jumlah') ?: 0);
+        $statDipinjam  = (int) (DB::table('sarpras_aset')->where('status_ketersediaan', 'dipinjam')->sum('jumlah') ?: 0);
+        $statPerbaikan = (int) (DB::table('sarpras_aset')->whereIn('status_ketersediaan', ['perbaikan', 'rusak_berat'])->sum('jumlah') ?: 0);
 
-        if ($kategoriFilter !== '') {
-            $query->where('sa.kategori', $kategoriFilter);
-        }
-
-        if ($kondisiFilter !== '') {
-            $query->where('sa.kondisi', $kondisiFilter);
-        }
-
-        if ($ruangFilter !== '') {
-            $query->where('sa.ruang_id', $ruangFilter);
-        }
-
-        // Stats
-        $statTotal = DB::table('sarpras_aset')->sum('jumlah') ?: 0;
-        $statTersedia = DB::table('sarpras_aset')->where('status_ketersediaan', 'tersedia')->sum('jumlah') ?: 0;
-        $statDipinjam = DB::table('sarpras_aset')->where('status_ketersediaan', 'dipinjam')->sum('jumlah') ?: 0;
-        $statPerbaikan = DB::table('sarpras_aset')->whereIn('status_ketersediaan', ['perbaikan', 'rusak_berat'])->sum('jumlah') ?: 0;
+        // Stats Laboran
+        $statLabTotal  = (int) DB::table('laboran_bahan_alat')->count();
+        $statLabAlat   = (int) DB::table('laboran_bahan_alat')->where('jenis', 'alat')->count();
+        $statLabBahan  = (int) DB::table('laboran_bahan_alat')->where('jenis', 'bahan_habis_pakai')->count();
+        $statLabKritis = (int) DB::table('laboran_bahan_alat')
+            ->where(function ($q) {
+                $q->where('stok_tersedia', '<=', 2)
+                  ->orWhere('kondisi', '<>', 'baik');
+            })->count();
 
         $kategoriList = ['Elektronik', 'Mebel/Furnitur', 'Kendaraan', 'Alat Peraga', 'Mesin', 'Lainnya'];
         $ruangList = DB::table('sarpras_ruang')->orderBy('nama_ruang', 'asc')->get(['id', 'nama_ruang', 'gedung']);
 
+        $daftarLab = DB::table('sarpras_ruang')
+            ->orderBy('nama_ruang', 'asc')
+            ->pluck('nama_ruang')
+            ->toArray();
+        $existingLabs = DB::table('laboran_bahan_alat')
+            ->whereNotNull('ruang_lab_nama')
+            ->distinct()
+            ->pluck('ruang_lab_nama')
+            ->toArray();
+        if (!empty($existingLabs)) {
+            $daftarLab = array_values(array_unique(array_merge($daftarLab, $existingLabs)));
+        }
+
         $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
 
-        $list = $query->orderBy('sa.created_at', 'desc')->paginate($perPage)->withQueryString();
+        $list = collect();
+        $labList = collect();
+
+        if ($tab === 'sarpras') {
+            $query = DB::table('sarpras_aset as sa')
+                ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
+                ->leftJoin('jurusan_meta as jm', 'sa.jurusan_id', '=', 'jm.jurusan_id')
+                ->select('sa.*', 'sr.nama_ruang', 'sr.gedung', 'jm.nama_jurusan', 'jm.singkatan as jurusan_singkatan');
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('sa.kode_aset', 'like', "%{$search}%")
+                      ->orWhere('sa.nama_barang', 'like', "%{$search}%")
+                      ->orWhere('sa.merk_tipe', 'like', "%{$search}%")
+                      ->orWhere('sr.nama_ruang', 'like', "%{$search}%")
+                      ->orWhere('jm.nama_jurusan', 'like', "%{$search}%")
+                      ->orWhere('jm.singkatan', 'like', "%{$search}%");
+                });
+            }
+
+            if ($kategoriFilter !== '') {
+                $query->where('sa.kategori', $kategoriFilter);
+            }
+
+            if ($kondisiFilter !== '') {
+                $query->where('sa.kondisi', $kondisiFilter);
+            }
+
+            if ($ruangFilter !== '') {
+                $query->where('sa.ruang_id', $ruangFilter);
+            }
+
+            if ($jurusanFilter !== '') {
+                if ($jurusanFilter === 'umum') {
+                    $query->whereNull('sa.jurusan_id');
+                } else {
+                    $query->where('sa.jurusan_id', $jurusanFilter);
+                }
+            }
+
+            $list = $query->orderBy('sa.created_at', 'desc')->paginate($perPage)->withQueryString();
+        } else {
+            // Tab 2: Inventaris & Alat Praktik Jurusan (di-input Laboran)
+            $labQuery = DB::table('laboran_bahan_alat as lba')
+                ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+                ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan as jurusan_singkatan');
+
+            if ($search !== '') {
+                $labQuery->where(function ($q) use ($search) {
+                    $q->where('lba.kode_item', 'like', "%{$search}%")
+                      ->orWhere('lba.nama_item', 'like', "%{$search}%")
+                      ->orWhere('lba.spesifikasi', 'like', "%{$search}%")
+                      ->orWhere('lba.ruang_lab_nama', 'like', "%{$search}%")
+                      ->orWhere('jm.nama_jurusan', 'like', "%{$search}%")
+                      ->orWhere('jm.singkatan', 'like', "%{$search}%");
+                });
+            }
+
+            if ($jurusanFilter !== '') {
+                $labQuery->where('lba.jurusan_id', $jurusanFilter);
+            }
+
+            if ($jenisFilter !== '') {
+                $labQuery->where('lba.jenis', $jenisFilter);
+            }
+
+            if ($kondisiFilter !== '') {
+                $labQuery->where('lba.kondisi', $kondisiFilter);
+            }
+
+            if ($labFilter !== '') {
+                $labQuery->where('lba.ruang_lab_nama', $labFilter);
+            }
+
+            $labList = $labQuery->orderBy('lba.nama_item', 'asc')->paginate($perPage)->withQueryString();
+        }
 
         return view('dashboard.sarpras.aset', compact(
+            'tab',
             'list',
+            'labList',
             'search',
             'kategoriFilter',
             'kondisiFilter',
             'ruangFilter',
+            'jurusanFilter',
+            'jenisFilter',
+            'labFilter',
             'kategoriList',
             'ruangList',
+            'jurusanList',
+            'daftarLab',
             'statTotal',
             'statTersedia',
             'statDipinjam',
             'statPerbaikan',
+            'statLabTotal',
+            'statLabAlat',
+            'statLabBahan',
+            'statLabKritis',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -101,6 +197,7 @@ class SarprasAsetController extends Controller
             'harga_perolehan' => 'nullable|numeric|min:0',
             'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
             'ruang_id' => 'nullable|exists:sarpras_ruang,id',
+            'jurusan_id' => 'nullable|string|max:50',
             'jumlah' => 'required|integer|min:1',
             'satuan' => 'required|string|max:30',
             'foto' => 'nullable|image|max:3072',
@@ -125,6 +222,7 @@ class SarprasAsetController extends Controller
             'harga_perolehan' => $request->harga_perolehan ?? 0,
             'kondisi' => $request->kondisi,
             'ruang_id' => $request->ruang_id,
+            'jurusan_id' => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
             'jumlah' => $request->jumlah,
             'satuan' => $request->satuan,
             'status_ketersediaan' => 'tersedia',
@@ -152,6 +250,7 @@ class SarprasAsetController extends Controller
             'harga_perolehan' => 'nullable|numeric|min:0',
             'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat',
             'ruang_id' => 'nullable|exists:sarpras_ruang,id',
+            'jurusan_id' => 'nullable|string|max:50',
             'jumlah' => 'required|integer|min:1',
             'satuan' => 'required|string|max:30',
             'status_ketersediaan' => 'required|in:tersedia,dipinjam,perbaikan,dihapuskan',
@@ -169,6 +268,7 @@ class SarprasAsetController extends Controller
             'harga_perolehan' => $request->harga_perolehan ?? 0,
             'kondisi' => $request->kondisi,
             'ruang_id' => $request->ruang_id,
+            'jurusan_id' => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
             'jumlah' => $request->jumlah,
             'satuan' => $request->satuan,
             'status_ketersediaan' => $request->status_ketersediaan,
@@ -216,6 +316,7 @@ class SarprasAsetController extends Controller
             'harga_perolehan',
             'kondisi',
             'nama_ruang',
+            'jurusan',
             'jumlah',
             'satuan',
         ];
@@ -232,6 +333,7 @@ class SarprasAsetController extends Controller
                 '6500000',
                 'baik',
                 'Ruang Guru',
+                '',
                 '2',
                 'unit',
             ],
@@ -246,11 +348,27 @@ class SarprasAsetController extends Controller
                 '18000000',
                 'baik',
                 'Ruang Genset',
+                '',
                 '1',
                 'unit',
             ],
             [
                 'AST-SRP-003',
+                'Server Rack 24U & Switch Gigabit',
+                'Elektronik',
+                'Cisco Catalyst 2960',
+                'SN-CSC-1102',
+                '2024',
+                'BOS',
+                '14500000',
+                'baik',
+                'Lab Komputer 1',
+                'TKJ',
+                '2',
+                'unit',
+            ],
+            [
+                'AST-SRP-004',
                 'Kursi Siswa Kayu Jati',
                 'Mebel',
                 'Standar Kemdikbud',
@@ -260,6 +378,7 @@ class SarprasAsetController extends Controller
                 '250000',
                 'baik',
                 'Kelas X-1',
+                '',
                 '36',
                 'unit',
             ],
@@ -314,6 +433,18 @@ class SarprasAsetController extends Controller
 
         $ruangMap = DB::table('sarpras_ruang')->pluck('id', 'nama_ruang')->toArray();
 
+        $jurusanMap = [];
+        $jRows = DB::table('jurusan_meta')->get(['jurusan_id', 'nama_jurusan', 'singkatan']);
+        foreach ($jRows as $jr) {
+            $jurusanMap[strtolower(trim((string) $jr->jurusan_id))] = (string) $jr->jurusan_id;
+            if ($jr->singkatan) {
+                $jurusanMap[strtolower(trim((string) $jr->singkatan))] = (string) $jr->jurusan_id;
+            }
+            if ($jr->nama_jurusan) {
+                $jurusanMap[strtolower(trim((string) $jr->nama_jurusan))] = (string) $jr->jurusan_id;
+            }
+        }
+
         $imported = 0;
         $updated = 0;
 
@@ -365,6 +496,9 @@ class SarprasAsetController extends Controller
                 }
             }
 
+            $rawJurusan = strtolower(trim((string) ($normalized['jurusan'] ?? ($normalized['jurusan_id'] ?? ($normalized['program_keahlian'] ?? '')))));
+            $jurusanId  = $rawJurusan !== '' ? ($jurusanMap[$rawJurusan] ?? null) : null;
+
             $existing = DB::table('sarpras_aset')->where('kode_aset', $kode)->first();
 
             if ($existing) {
@@ -378,6 +512,7 @@ class SarprasAsetController extends Controller
                     'harga_perolehan'     => $harga ?: $existing->harga_perolehan,
                     'kondisi'             => $kondisi,
                     'ruang_id'            => $ruangId ?: $existing->ruang_id,
+                    'jurusan_id'          => $jurusanId ?: $existing->jurusan_id,
                     'jumlah'              => $jumlah,
                     'satuan'              => $satuan,
                     'updated_at'          => now(),
@@ -395,6 +530,7 @@ class SarprasAsetController extends Controller
                     'harga_perolehan'     => $harga,
                     'kondisi'             => $kondisi,
                     'ruang_id'            => $ruangId,
+                    'jurusan_id'          => $jurusanId,
                     'jumlah'              => $jumlah,
                     'satuan'              => $satuan,
                     'status_ketersediaan' => 'tersedia',

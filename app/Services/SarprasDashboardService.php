@@ -86,6 +86,7 @@ final class SarprasDashboardService
             'ruang_rusak_berat'  => 0,
             'ruang_tanpa_pj'     => 0,
             'gedung_total'       => 0,
+            'total_luas_ruang'   => 0.0,
             // Inventaris aset
             'aset_jenis'         => 0,
             'aset_unit'          => 0,
@@ -94,6 +95,7 @@ final class SarprasDashboardService
             'aset_perbaikan'     => 0,
             'aset_dipinjam'      => 0,
             'aset_tanpa_ruang'   => 0,
+            'aset_jurusan_unit'  => 0,
             'aset_nilai'         => 0.0,
             // Peminjaman sarpras
             'pinjam_total'       => 0,
@@ -138,6 +140,7 @@ final class SarprasDashboardService
                 ->where('gedung', '<>', '')
                 ->distinct()
                 ->count('gedung');
+            $r['total_luas_ruang'] = (float) (DB::table('sarpras_ruang')->sum('luas') ?: 0);
         }
 
         if (Table::exists('sarpras_aset')) {
@@ -154,6 +157,7 @@ final class SarprasDashboardService
                 ->where('status_ketersediaan', 'dipinjam')
                 ->count();
             $r['aset_tanpa_ruang'] = (int) DB::table('sarpras_aset')->whereNull('ruang_id')->count();
+            $r['aset_jurusan_unit'] = (int) (DB::table('sarpras_aset')->whereNotNull('jurusan_id')->where('jurusan_id', '<>', '')->sum('jumlah') ?: 0);
             $r['aset_nilai'] = (float) (DB::table('sarpras_aset')
                 ->sum(DB::raw('COALESCE(harga_perolehan, 0) * COALESCE(jumlah, 1)')) ?: 0);
         }

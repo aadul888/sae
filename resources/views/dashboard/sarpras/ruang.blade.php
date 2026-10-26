@@ -177,6 +177,17 @@
                                     <div><i class="fas fa-landmark text-muted me-1"></i> {{ $item->gedung ?: '-' }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Lantai:
                                         {{ $item->lantai ?: '1' }}</div>
+                                    @if ($item->panjang || $item->lebar || $item->luas)
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--primary, #3b82f6); margin-top: 3px;" title="Ukuran &amp; Luas Ruang">
+                                            <i class="fas fa-ruler-combined me-1"></i>
+                                            @if ($item->panjang && $item->lebar)
+                                                {{ (float) $item->panjang }}m × {{ (float) $item->lebar }}m
+                                            @endif
+                                            @if ($item->luas)
+                                                ({{ (float) $item->luas }} m²)
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td data-label="PJ" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-color);">{{ $item->pj_nama ?: '-' }}
@@ -203,6 +214,9 @@
                                                 data-id="{{ $item->id }}" data-kode="{{ $item->kode_ruang }}"
                                                 data-nama="{{ $item->nama_ruang }}" data-gedung="{{ $item->gedung }}"
                                                 data-lantai="{{ $item->lantai }}"
+                                                data-panjang="{{ $item->panjang }}"
+                                                data-lebar="{{ $item->lebar }}"
+                                                data-luas="{{ $item->luas }}"
                                                 data-pj="{{ $item->penanggung_jawab_ptk_id }}"
                                                 data-kondisi="{{ $item->kondisi }}"
                                                 data-keterangan="{{ $item->keterangan }}" title="Edit Ruang">
@@ -287,6 +301,27 @@
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lantai</label>
                             <input type="text" name="lantai" id="ruangLantai" class="form-control"
                                 placeholder="Lantai 1">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Panjang (m)</label>
+                            <input type="number" step="0.01" min="0" name="panjang" id="ruangPanjang" class="form-control"
+                                placeholder="mis. 9.00">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lebar (m)</label>
+                            <input type="number" step="0.01" min="0" name="lebar" id="ruangLebar" class="form-control"
+                                placeholder="mis. 8.00">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Luas (m²)</label>
+                            <input type="number" step="0.01" min="0" name="luas" id="ruangLuas" class="form-control"
+                                placeholder="Otomatis (P × L)">
                         </div>
                     </div>
 

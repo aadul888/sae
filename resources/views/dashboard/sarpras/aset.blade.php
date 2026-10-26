@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                @if ($canCreate)
+                @if ($canCreate && $tab === 'sarpras')
                     <button type="button" class="btn btn-outline" id="btnOpenImportAset"
                         style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
                         title="Import Aset via Excel">
@@ -34,65 +34,161 @@
                         title="Tambah Aset Baru">
                         <i class="fas fa-plus"></i>
                     </button>
+                @elseif ($tab === 'laboran')
+                    <a href="{{ route('dashboard.laboran.inventaris.index') }}" class="btn btn-outline"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
+                        title="Buka Modul Inventaris Laboran Penuh">
+                        <i class="fas fa-flask text-primary"></i> Modul Laboran Penuh
+                    </a>
                 @endif
             </div>
         </div>
 
         {{-- 2. Stat Grid (4 Kartu Ringkasan) --}}
-        <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-                    <i class="fas fa-cubes"></i>
+        @if ($tab === 'laboran')
+            <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
+                        <i class="fas fa-vials"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statLabTotal ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Total Item Jurusan</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statTotal }}</div>
-                    <div class="dash-stat-label">Total Unit Aset</div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+                        <i class="fas fa-screwdriver-wrench"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statLabAlat ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Alat Praktik</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statLabBahan ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Bahan Habis Pakai</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statLabKritis ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Stok Kritis / Rusak</div>
+                    </div>
                 </div>
             </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-                    <i class="fas fa-check-double"></i>
+        @else
+            <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statTotal ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Total Unit Aset</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statTersedia }}</div>
-                    <div class="dash-stat-label">Unit Tersedia</div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statTersedia ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Unit Tersedia</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+                        <i class="fas fa-hand-holding-box"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statDipinjam ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Sedang Dipinjam</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($statPerbaikan ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">Perbaikan / Rusak</div>
+                    </div>
                 </div>
             </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-                    <i class="fas fa-hand-holding-box"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statDipinjam }}</div>
-                    <div class="dash-stat-label">Sedang Dipinjam</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
-                    <i class="fas fa-wrench"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $statPerbaikan }}</div>
-                    <div class="dash-stat-label">Perbaikan / Rusak</div>
+        @endif
+
+        {{-- 3. Navigasi Tab Baku SAE (Posisi Di Bawah Card Statistik) --}}
+        <!-- Desktop Segmented Tabs -->
+        <div class="dash-tabs-nav dash-desktop-tabs" style="margin-bottom: 20px;">
+            <a href="{{ route('dashboard.sarpras.aset.index', ['tab' => 'sarpras']) }}"
+                class="btn {{ $tab === 'sarpras' ? 'btn-primary' : 'btn-outline' }}" style="text-decoration: none;">
+                <i class="fas fa-boxes-stacked me-1"></i> Aset Sekolah &amp; Sarpras ({{ number_format($statTotal ?? 0) }})
+            </a>
+            <a href="{{ route('dashboard.sarpras.aset.index', ['tab' => 'laboran']) }}"
+                class="btn {{ $tab === 'laboran' ? 'btn-primary' : 'btn-outline' }}" style="text-decoration: none;">
+                <i class="fas fa-flask-vial me-1"></i> Inventaris Jurusan (Laboran) ({{ number_format($statLabTotal ?? 0) }})
+            </a>
+        </div>
+
+        <!-- Mobile Custom Dropdown Selector Baku SAE -->
+        <div class="dash-mobile-tab-select-wrap" style="margin-bottom: 20px;">
+            <div class="dash-custom-dropdown">
+                <button type="button" class="custom-dropdown-trigger" id="asetMobileDropdownTrigger" aria-haspopup="listbox" aria-expanded="false">
+                    <div class="custom-dropdown-trigger-label">
+                        <i class="fas {{ $tab === 'sarpras' ? 'fa-boxes-stacked' : 'fa-flask-vial' }} text-primary me-2"></i>
+                        <span>{{ $tab === 'sarpras' ? 'Aset Sekolah & Sarpras' : 'Inventaris Jurusan (Laboran)' }}</span>
+                        <span class="badge badge-primary badge-sm ms-2">{{ $tab === 'sarpras' ? number_format($statTotal ?? 0) : number_format($statLabTotal ?? 0) }}</span>
+                    </div>
+                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                </button>
+                <div class="custom-dropdown-menu" role="listbox">
+                    <a href="{{ route('dashboard.sarpras.aset.index', ['tab' => 'sarpras']) }}"
+                        class="custom-dropdown-item {{ $tab === 'sarpras' ? 'active' : '' }}">
+                        <div class="dropdown-item-left">
+                            <i class="fas fa-boxes-stacked text-primary me-2"></i>
+                            <span>Aset Sekolah &amp; Sarpras</span>
+                        </div>
+                        <span class="badge {{ $tab === 'sarpras' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ number_format($statTotal ?? 0) }}</span>
+                    </a>
+                    <a href="{{ route('dashboard.sarpras.aset.index', ['tab' => 'laboran']) }}"
+                        class="custom-dropdown-item {{ $tab === 'laboran' ? 'active' : '' }}">
+                        <div class="dropdown-item-left">
+                            <i class="fas fa-flask-vial text-primary me-2"></i>
+                            <span>Inventaris Jurusan (Laboran)</span>
+                        </div>
+                        <span class="badge {{ $tab === 'laboran' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ number_format($statLabTotal ?? 0) }}</span>
+                    </a>
                 </div>
             </div>
         </div>
 
-        {{-- Unified Datatable Aset & Inventaris (Toolbar + Table + Pagination dalam 1 Card Terpadu) --}}
-        <div class="card datatable-card-wrapper" id="tableDataContainer">
-            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
-            <div class="datatable-toolbar">
-                <form method="GET" action="{{ route('dashboard.sarpras.aset.index') }}" id="filterForm"
-                    style="margin: 0;">
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                            <div class="toolbar-entries">
-                                <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                                <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
-                                    @foreach ([10, 15, 25, 50, 100] as $n)
-                                        <option value="{{ $n }}"
-                                            {{ request('perPage', 15) == $n ? 'selected' : '' }}>
+        @if ($tab === 'laboran')
+            @include('dashboard.sarpras.partials-aset-laboran')
+        @else
+            {{-- Unified Datatable Aset & Inventaris (Toolbar + Table + Pagination dalam 1 Card Terpadu) --}}
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.sarpras.aset.index') }}" id="filterForm"
+                        style="margin: 0;">
+                        <input type="hidden" name="tab" value="sarpras">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ request('perPage', 15) == $n ? 'selected' : '' }}>
                                             {{ $n }}</option>
                                     @endforeach
                                 </select>
@@ -124,8 +220,18 @@
                                 @endforeach
                             </select>
 
-                            @if ($search || $kategoriFilter || $kondisiFilter || $ruangFilter)
-                                <a href="{{ route('dashboard.sarpras.aset.index') }}"
+                            <select name="jurusan_id" id="filterJurusan" class="toolbar-filter-select" style="height: 38px;">
+                                <option value="">Semua Alokasi Unit</option>
+                                <option value="umum" {{ $jurusanFilter === 'umum' ? 'selected' : '' }}>Umum Sekolah</option>
+                                @foreach ($jurusanList as $jur)
+                                    <option value="{{ $jur->jurusan_id }}" {{ $jurusanFilter == $jur->jurusan_id ? 'selected' : '' }}>
+                                        {{ $jur->singkatan ? $jur->singkatan . ' — ' : '' }}{{ $jur->nama_jurusan }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @if ($search || $kategoriFilter || $kondisiFilter || $ruangFilter || $jurusanFilter)
+                                <a href="{{ route('dashboard.sarpras.aset.index', ['tab' => 'sarpras']) }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
@@ -221,6 +327,17 @@
                                         <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">{{ $item->gedung }}
                                         </div>
                                     @endif
+                                    <div style="margin-top: 4px;">
+                                        @if ($item->jurusan_singkatan || $item->nama_jurusan)
+                                            <span class="badge" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.25);" title="{{ $item->nama_jurusan }}">
+                                                <i class="fas fa-graduation-cap me-1"></i>{{ $item->jurusan_singkatan ?: $item->nama_jurusan }}
+                                            </span>
+                                        @else
+                                            <span class="badge" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; background: rgba(148,163,184,0.15); color: var(--text-muted);">
+                                                Umum
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td data-label="Jumlah"
                                     style="padding: 14px 18px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700;">
@@ -266,6 +383,7 @@
                                                 data-sumber="{{ $item->sumber_dana }}"
                                                 data-harga="{{ $item->harga_perolehan }}"
                                                 data-kondisi="{{ $item->kondisi }}" data-ruang="{{ $item->ruang_id }}"
+                                                data-jurusan="{{ $item->jurusan_id }}"
                                                 data-jumlah="{{ $item->jumlah }}" data-satuan="{{ $item->satuan }}"
                                                 data-status="{{ $item->status_ketersediaan }}" title="Edit Aset">
                                                 <i class="fas fa-pen-to-square"></i>
@@ -300,6 +418,7 @@
                 </div>
             @endif
         </div>
+        @endif
 
         {{-- Modal Tambah / Edit Aset --}}
         <div id="modalAset" class="modal-backdrop"
@@ -395,6 +514,7 @@
                                 <option value="Hibah / Bantuan">Hibah / Bantuan</option>
                             </select>
                         </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Ruang
@@ -404,6 +524,19 @@
                                 @foreach ($ruangList as $r)
                                     <option value="{{ $r->id }}">{{ $r->nama_ruang }}
                                         ({{ $r->gedung ?: 'Gedung' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Alokasi
+                                Unit / Jurusan</label>
+                            <select name="jurusan_id" id="asetJurusan" class="form-control">
+                                <option value="">Umum (Seluruh Sekolah)</option>
+                                @foreach ($jurusanList as $jur)
+                                    <option value="{{ $jur->jurusan_id }}">
+                                        {{ $jur->singkatan ? $jur->singkatan . ' — ' : '' }}{{ $jur->nama_jurusan }}
                                     </option>
                                 @endforeach
                             </select>

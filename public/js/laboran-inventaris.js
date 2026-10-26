@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labSpek').value = data.spek || '';
             document.getElementById('labRak').value = data.rak || '';
             document.getElementById('labExp').value = data.exp || '';
+            document.getElementById('labTglPengadaan').value = data.tglpengadaan || '';
+            document.getElementById('labTahunPengadaan').value = data.tahunpengadaan || '';
 
             // Rincian kondisi per jumlah
             setJumlahKondisi({
@@ -155,6 +157,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Tahun pengadaan terisi otomatis dari tanggal pengadaan.
+    const labTglPengadaan = document.getElementById('labTglPengadaan');
+    const labTahunPengadaan = document.getElementById('labTahunPengadaan');
+    if (labTglPengadaan && labTahunPengadaan) {
+        labTglPengadaan.addEventListener('change', function () {
+            if (!this.value) return;
+            const tahun = this.value.slice(0, 4);
+            if (/^\d{4}$/.test(tahun)) labTahunPengadaan.value = tahun;
+        });
+    }
+
     // Auto-fill form saat memilih aset dari Sarpras & Aset
     if (selectAsetSarpras) {
         selectAsetSarpras.addEventListener('change', function () {
@@ -217,6 +230,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 spek: btnEdit.dataset.spek,
                 rak: btnEdit.dataset.rak,
                 exp: btnEdit.dataset.exp,
+                tglpengadaan: btnEdit.dataset.tglpengadaan,
+                tahunpengadaan: btnEdit.dataset.tahunpengadaan,
                 jurusan: btnEdit.dataset.jurusan,
             };
             openModal(true, data);
