@@ -84,6 +84,9 @@ class LaboranJadwalGridTest extends LaboranTestCase
         $res->assertSee('UJI-GRID-MATRIKS', false);
         $res->assertSee('Lahan Praktik ATPH', false);
         $res->assertSee('Isi Jadwal', false);
+        // Sesi multi-JP tampil sebagai satu kartu membentang (rowspan), bukan teks "Lanjutan sesi"
+        $res->assertSee('rowspan="2"', false);
+        $res->assertDontSee('Lanjutan sesi', false);
     }
 
     public function test_mode_tabel_tetap_menampilkan_rekap(): void

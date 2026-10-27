@@ -293,6 +293,54 @@ class LaboranJadwalController extends Controller
             }
         }
 
+        // Klaster baris kontigu per hari → satu <td rowspan> per klaster (pola Jadwal KBM).
+        // Aman untuk multi-sesi per jam: seluruh sesi dalam klaster tampil di satu sel.
+        $gridClusters = [];
+        foreach ($gridLokasi as $hari) {
+            $rowContent = [];
+            foreach ($gridMatrix[$hari] ?? [] as $r => $items) {
+                $rowContent[(int) $r] = true;
+                foreach ($items as $it) {
+                    for ($k = (int) $r + 1; $k <= (int) $it['slotAkhir']; $k++) {
+                        $rowContent[$k] = true;
+                    }
+                }
+            }
+            ksort($rowContent);
+
+            $clusters = [];
+            $cur = null;
+            foreach (array_keys($rowContent) as $r) {
+                if ($cur !== null && $r === $cur['end'] + 1) {
+                    $cur['end'] = $r;
+                } else {
+                    if ($cur !== null) {
+                        $clusters[] = $cur;
+                    }
+                    $cur = ['start' => $r, 'end' => $r];
+                }
+            }
+            if ($cur !== null) {
+                $clusters[] = $cur;
+            }
+
+            foreach ($clusters as $c) {
+                $sesi = [];
+                foreach ($gridMatrix[$hari] ?? [] as $r => $items) {
+                    if ($r >= $c['start'] && $r <= $c['end']) {
+                        foreach ($items as $it) {
+                            $it['rowStart'] = (int) $r;
+                            $sesi[] = $it;
+                        }
+                    }
+                }
+                $gridClusters[$hari][$c['start']] = [
+                    'span' => $c['end'] - $c['start'] + 1,
+                    'sesi' => $sesi,
+                ];
+            }
+        }
+
         // Hitung sesi per hari untuk badge header (jumlah sesi unik terjadwal pada hari tersebut)
         $countPerHari = [];
         foreach ($gridMatrix as $h => $slotsMap) {
@@ -344,7 +392,7 @@ class LaboranJadwalController extends Controller
             'jenisLokasiLabels', 'statusLabels',
             'pengaturanJadwal', 'activeMode', 'modeDiberlakukan', 'modePemberlakuanLabels',
             'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
-            'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
+            'gridOccupied', 'gridClusters', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
             'perluPilihMode'
         ) + [
             'context'        => $context,

@@ -231,7 +231,7 @@
                                             }
                                         }
 
-                                        $sesiList = ($slot && isset($gridMatrix[$hari][$row])) ? $gridMatrix[$hari][$row] : [];
+                                        $cluster = $gridClusters[$hari][$row] ?? null;
                                     @endphp
 
                                     @if (!$slot)
@@ -248,12 +248,12 @@
                                                 <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">{{ $slot['mulai'] }} - {{ $slot['selesai'] }}</div>
                                             </div>
                                         </td>
-                                    @elseif (count($sesiList) > 0)
-                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
-                                            @foreach ($sesiList as $sesi)
+                                    @elseif ($cluster)
+                                        <td rowspan="{{ $cluster['span'] }}" style="height: {{ $cluster['span'] * 64 }}px; padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
+                                            @foreach ($cluster['sesi'] as $sesi)
                                                 @php
                                                     $item = $sesi['item'];
-                                                    $durasi = max(1, (int) $sesi['slotAkhir'] - (int) $row + 1);
+                                                    $durasi = max(1, (int) $sesi['slotAkhir'] - (int) $sesi['rowStart'] + 1);
                                                     $jenisKeyG = $item->jenis_lokasi ?: 'lainnya';
                                                     $borderCol = match ($jenisKeyG) {
                                                         'lab' => 'var(--primary)',
@@ -270,7 +270,7 @@
                                                         default => 'fa-location-dot',
                                                     };
                                                 @endphp
-                                                <div class="jadwal-grid-card" style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 4px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 4px; box-sizing: border-box; display: flex; flex-direction: column;">
+                                                <div class="jadwal-grid-card" style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 4px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; margin-bottom: 4px; min-height: {{ max(54, $durasi * 64 - 10) }}px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                                                     <div>
                                                         <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->mata_pelajaran }}">
                                                             {{ $item->mata_pelajaran }}
@@ -326,14 +326,7 @@
                                                 </div>
                                             @endforeach
                                         </td>
-                                    @elseif (!empty($gridOccupied[$hari][$row]))
-                                        {{-- Slot ini adalah lanjutan sesi dari jam pelajaran sebelumnya --}}
-                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background: rgba(99,102,241,0.02); text-align: center; vertical-align: middle;">
-                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--primary); font-weight: 600; opacity: 0.75;">
-                                                <i class="fas fa-arrow-up me-1"></i> Lanjutan sesi
-                                            </div>
-                                        </td>
-                                    @else
+                                    @elseif (empty($gridOccupied[$hari][$row]))
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle; text-align: center; height: 64px; box-sizing: border-box;">
                                             @if ($canCreate)
                                                 <button type="button" class="btn-quick-slot"
