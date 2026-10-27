@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 use App\Models\RolePermission;
 use App\Services\LaboranJadwalService;
 use App\Support\LaboranScope;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -169,36 +170,47 @@ class LaboranJadwalController extends Controller
             $selectedHari = 'Senin';
         }
 
-        // Slot jam pelajaran dari pengaturan KBM (Jam ke-1..N dengan jam mulai/selesai)
-        $timeSlots = \App\Models\JadwalPengaturan::getSlots($selectedHari);
+        // Slot jam pelajaran per hari dari Pengaturan KBM (Jam ke-1..N per hari,
+        // termasuk Upacara, Pembiasaan, dan Istirahat) — setiap hari aktif.
+        $dailySlotCounts = \App\Models\JadwalPengaturan::getDailySlotCounts();
+        $slotsPerHari = [];
+        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h) {
+            $slotsPerHari[$h] = \App\Models\JadwalPengaturan::getSlots($h);
+        }
+        $timeSlots = $slotsPerHari[$selectedHari];
 
-        // Matriks: baris = Jam Pelajaran, KOLOM = HARI (Senin–Sabtu).
+        // Matriks: baris = Jam Pelajaran (maks JP antar hari), KOLOM = HARI.
         // Lokasi praktik tampil di dalam kartu sesi bersama mapel/guru/kelas.
         $gridLokasi = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-        // Sesi pada hari terpilih (semua lokasi), status <> batal.
-        $dayQuery = DB::table('laboran_jadwal_penggunaan as ljp')
+        // Sesi seluruh hari (status <> batal) — hari lain tetap aktif diinput.
+        $allQuery = DB::table('laboran_jadwal_penggunaan as ljp')
             ->leftJoin('gtk as g', 'ljp.ptk_id', '=', 'g.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
             ->where('ljp.status', '<>', 'batal')
             ->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
-        LaboranScope::apply($dayQuery, 'ljp.jurusan_id', $context);
+        LaboranScope::apply($allQuery, 'ljp.jurusan_id', $context);
+        $allSchedules = $allQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
 
         // MySQL DAYNAME() mengembalikan nama Inggris; petakan ke nama Indonesia.
-        $hariDb = ['Senin' => 'Monday', 'Selasa' => 'Tuesday', 'Rabu' => 'Wednesday',
-            'Kamis' => 'Thursday', 'Jumat' => 'Friday', 'Sabtu' => 'Saturday'][$selectedHari] ?? 'Monday';
-        $dayQuery->whereRaw('DAYNAME(ljp.tanggal) = ?', [$hariDb]);
-        $daySchedules = $dayQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
+        $dayNameMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
 
-        // Matriks [hari][slotJP] — satu kolom per hari memuat seluruh sesi hari itu.
+        // Matriks [hari][slotJP] — setiap hari memuat sesinya sendiri (multi sesi per jam didukung).
         $gridMatrix = [];
-        foreach ($daySchedules as $item) {
+        foreach ($allSchedules as $item) {
+            $hari = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
+            if (!in_array($hari, $gridLokasi, true)) {
+                continue;
+            }
+            $slots = $slotsPerHari[$hari];
+
             $mulai = substr((string) $item->jam_mulai, 0, 5);
             $selesai = substr((string) $item->jam_selesai, 0, 5);
 
             $slotMulai = null;
             $slotSelesai = null;
-            foreach ($timeSlots as $ke => $slot) {
+            foreach ($slots as $ke => $slot) {
                 if ($slotMulai === null && $mulai >= $slot['mulai'] && $mulai < $slot['selesai']) {
                     $slotMulai = (int) $ke;
                 }
@@ -212,23 +224,48 @@ class LaboranJadwalController extends Controller
             $slotSelesai = $slotSelesai ?? $slotMulai;
 
             // Beberapa guru dapat memakai lokasi berbeda pada jam sama — simpan sebagai daftar.
-            $gridMatrix[$selectedHari][$slotMulai][] = [
+            $gridMatrix[$hari][$slotMulai][] = [
                 'item'     => $item,
                 'slotAkhir' => $slotSelesai,
             ];
         }
 
-        // Hitung sesi per hari untuk badge tab hari (MySQL DAYNAME -> Indonesia)
-        $hariDbMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
-            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
-        $countPerHari = DB::table('laboran_jadwal_penggunaan')
-            ->selectRaw('DAYNAME(tanggal) as hari, COUNT(*) as total')
-            ->where('status', '<>', 'batal');
-        LaboranScope::apply($countPerHari, 'jurusan_id', $context);
-        $countPerHari = $countPerHari->groupBy(DB::raw('DAYNAME(tanggal)'))
-            ->get()
-            ->mapWithKeys(fn ($r) => [$hariDbMap[$r->hari] ?? $r->hari => (int) $r->total])
-            ->toArray();
+        // Hitung sesi per hari untuk badge header (MySQL DAYNAME -> Indonesia)
+        $countPerHari = [];
+        foreach ($allSchedules as $item) {
+            $hari = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
+            if (in_array($hari, $gridLokasi, true)) {
+                $countPerHari[$hari] = ($countPerHari[$hari] ?? 0) + 1;
+            }
+        }
+
+        // Maks JP antar hari untuk tinggi baris matriks
+        $maxSlots = 0;
+        foreach ($slotsPerHari as $h => $slots) {
+            $maxSlots = max($maxSlots, count($slots));
+        }
+
+        // Rutinitas harian (Upacara / Pembiasaan / Istirahat) dari Pengaturan KBM
+        $pengaturanKbm = \App\Models\JadwalPengaturan::getSettings();
+        $upacaraConfig = $pengaturanKbm->upacara ?? [];
+        $pembiasaanConfig = $pengaturanKbm->pembiasaan ?? [];
+        $rutinitas = [
+            'upacara' => [
+                'aktif'  => !empty($upacaraConfig['aktif']),
+                'hari'   => $upacaraConfig['hari'] ?? 'Senin',
+                'jam_ke' => (int) ($upacaraConfig['jam_ke'] ?? 1),
+                'durasi' => (int) ($upacaraConfig['durasi_menit'] ?? 45),
+                'nama'   => $upacaraConfig['nama'] ?? 'Upacara Bendera',
+            ],
+            'pembiasaan' => [
+                'aktif'  => !empty($pembiasaanConfig['aktif']),
+                'hari'   => $pembiasaanConfig['hari'] ?? 'Jumat',
+                'jam_ke' => (int) ($pembiasaanConfig['jam_ke'] ?? 1),
+                'durasi' => (int) ($pembiasaanConfig['durasi_menit'] ?? 40),
+                'nama'   => $pembiasaanConfig['nama'] ?? 'Pembiasaan',
+            ],
+            'slotCounts' => $dailySlotCounts,
+        ];
 
         $gridOccupied = [];
 
@@ -258,7 +295,7 @@ class LaboranJadwalController extends Controller
             'jenisLokasiLabels', 'statusLabels',
             'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels',
             'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
-            'gridOccupied', 'countPerHari'
+            'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas'
         ) + [
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),
@@ -288,13 +325,33 @@ class LaboranJadwalController extends Controller
      * AJAX: slot jam pelajaran (JP) dari Pengaturan KBM — dipakai dropdown
      * alokasi waktu modal jadwal (Jam ke-1 s/d Jam ke-N).
      */
-    public function slotList()
+    public function slotList(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
+        $tanggal = trim((string) $request->query('tanggal', ''));
+        $hari = null;
+        if ($tanggal !== '') {
+            $dayMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+                'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
+            $hari = $dayMap[date('l', strtotime($tanggal))] ?? null;
+            if (!in_array($hari, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true)) {
+                $hari = null;
+            }
+        }
+
+        // Slot per hari (menghormati jumlah JP per hari, Upacara, Pembiasaan,
+        // dan Istirahat dari Pengaturan Jadwal KBM).
+        $slotsPerHari = [];
+        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h) {
+            $slotsPerHari[$h] = \App\Models\JadwalPengaturan::getSlots($h);
+        }
+
         return response()->json([
             'status' => 'success',
-            'slots'  => \App\Models\JadwalPengaturan::getSlots(),
+            'hari'   => $hari,
+            'slots'  => $slotsPerHari[$hari ?? 'Senin'] ?? [],
+            'per_hari' => $slotsPerHari,
         ]);
     }
 

@@ -183,19 +183,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // -------------------------------------------------------------------------
     // 5. Slot Jam Pelajaran (Alokasi Waktu JP)
     // -------------------------------------------------------------------------
+    let slotPerHariCache = null;
+
     function fillJamKeSlots(slots, preselectMulai, preselectSelesai) {
         if (!selectJamKeMulai || !selectJamKeSelesai) return;
 
         selectJamKeMulai.innerHTML = '';
         selectJamKeSelesai.innerHTML = '';
 
-        if (!slots || slots.length === 0) {
+        if (!slots || Object.keys(slots).length === 0) {
             for (let k = 1; k <= 10; k++) {
                 selectJamKeMulai.appendChild(new Option('Jam ke-' + k, k));
                 selectJamKeSelesai.appendChild(new Option('Jam ke-' + k, k));
             }
             if (alokasiHint) {
-                alokasiHint.innerHTML = '<i class="fas fa-triangle-exclamation me-1" style="color: var(--warning, #f59e0b);"></i> Slot KBM tidak tersedia â€” durasi default 45 menit per JP dipakai.';
+                alokasiHint.innerHTML = '<i class="fas fa-triangle-exclamation me-1" style="color: var(--warning, #f59e0b);"></i> Slot KBM tidak tersedia — durasi default 45 menit per JP dipakai.';
             }
             selectJamKeMulai.value = preselectMulai || '1';
             selectJamKeSelesai.value = preselectSelesai || '1';
@@ -205,7 +207,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const keys = Object.keys(slots);
         keys.forEach(function (ke) {
             const s = slots[ke];
-            const label = 'Jam ke-' + s.ke + ' (' + s.mulai + ' - ' + s.selesai + ')' + (s.is_break ? ' Istirahat' : '');
+            let label = 'Jam ke-' + s.ke + ' (' + s.mulai + ' - ' + s.selesai + ')';
+            if (s.is_break) label += ' Istirahat';
             selectJamKeMulai.appendChild(new Option(label, s.ke));
             selectJamKeSelesai.appendChild(new Option(label, s.ke));
         });
@@ -215,13 +218,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function loadJamKeSlots(preselectMulai, preselectSelesai, resolveFromJam) {
+        // Ambil slot per hari dari Pengaturan KBM (Upacara, Pembiasaan,
+        // Istirahat, dan jumlah JP per hari ikut tersertakan).
         fetch(BASE_URL + '/slots', {
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             credentials: 'same-origin'
         })
             .then(function (res) { return res.json(); })
             .then(function (data) {
-                const slots = (data && data.slots) || [];
+                slotPerHariCache = (data && data.per_hari) || null;
+                const hari = data && data.hari ? data.hari : 'Senin';
+                const perHari = data && data.per_hari ? data.per_hari : {};
+                const slots = perHari[hari] || (data && data.slots) || [];
+
                 if (resolveFromJam && preselectMulai) {
                     // Terjemahkan jam tersimpan (HH:MM) ke nomor JP terdekat
                     const mulai = cariSlotKe(slots, preselectMulai, 'jam_mulai');
@@ -339,10 +348,28 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectJamKeSelesai) selectJamKeSelesai.value = btnSlot.dataset.jamKe;
         }
 
+        // Tanggal awal mengikuti kolom hari terklik pada minggu berjalan
+        if (btnSlot.dataset.hari && inputTanggal && inputTanggal.value) {
+            const hariTarget = btnSlot.dataset.hari;
+            const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const d = new Date(inputTanggal.value + 'T00:00:00');
+            // Cari tanggal hari-target terdekat dalam rentang minggu berjalan (Senin-mulai)
+            const day = d.getDay(); // 0 = Minggu
+            const senin = new Date(d);
+            senin.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+            const idxTarget = namaHari.indexOf(hariTarget); // Senin=1..Sabtu=6
+            const selisih = idxTarget - 1; // Senin = 0 hari dari Senin
+            const hasil = new Date(senin);
+            hasil.setDate(senin.getDate() + selisih);
+            const tzOffset = hasil.getTimezoneOffset() * 60000;
+            inputTanggal.value = new Date(hasil.getTime() - tzOffset).toISOString().split('T')[0];
+        }
+
         if (guruMapelHint) {
-            guruMapelHint.innerHTML = '<i class="fas fa-wand-magic-sparkles text-primary me-1"></i> Slot Jam Ke-' +
-                (btnSlot.dataset.jamKe || '') + ' (' + (btnSlot.dataset.jamMulai || '') + '-' +
-                (btnSlot.dataset.jamSelesai || '') + ') dipilih dari matriks.';
+            guruMapelHint.innerHTML = '<i class="fas fa-wand-magic-sparkles text-primary me-1"></i> Slot ' +
+                (btnSlot.dataset.hari || '') + ' Jam Ke-' + (btnSlot.dataset.jamKe || '') +
+                ' (' + (btnSlot.dataset.jamMulai || '') + '-' + (btnSlot.dataset.jamSelesai || '') +
+                ') dipilih dari matriks.';
         }
     });
 
@@ -434,6 +461,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (selectRombel) {
         selectRombel.addEventListener('change', function () {
             loadGuruMapel(this.value, null);
+        });
+    }
+
+    // Tanggal berubah -> slot jam pelajaran mengikuti hari tanggal (Pengaturan KBM)
+    if (inputTanggal) {
+        inputTanggal.addEventListener('change', function () {
+            loadJamKeSlots(null, null);
         });
     }
 

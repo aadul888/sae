@@ -1,6 +1,6 @@
-@extends('layouts.dashboard')
+﻿@extends('layouts.dashboard')
 
-@section('title', 'Jadwal Praktik & Penggunaan Lokasi — Laboratorium SAE')
+@section('title', 'Jadwal Praktik & Penggunaan Lokasi â€” Laboratorium SAE')
 @section('dash_title', 'Jadwal Praktik')
 
 @section('content')
@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) — eksklusif: hanya satu mode berlaku --}}
+        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) â€” eksklusif: hanya satu mode berlaku --}}
         @if ($canRead)
             @php
                 $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'mingguan';
@@ -142,7 +142,7 @@
                         @if ($activeMode === 'mingguan')
                             Jadwal praktik ditentukan per minggu: pilih hari praktik (bisa lebih dari satu) yang berulang setiap minggu, dengan acuan tanggal awal berlaku.
                         @else
-                            Jadwal praktik ditentukan per semester (Ganjil Juli–Desember / Genap Januari–Juni) sesuai tahun ajaran berjalan, dengan pemetaan hari praktik.
+                            Jadwal praktik ditentukan per semester (Ganjil Juliâ€“Desember / Genap Januariâ€“Juni) sesuai tahun ajaran berjalan, dengan pemetaan hari praktik.
                         @endif
                         @if ($isActive)
                             <span class="badge badge-success" style="margin-left: 6px;">
@@ -176,20 +176,19 @@
             <!-- Bar Informasi Jam Pelajaran -->
             <div class="card" id="jadwalTabBarContainer" style="padding: 12px 16px; margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        @if (count($timeSlots) > 0)
-                            <span class="badge badge-primary" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
-                                <i class="fas fa-clock me-1"></i> KBM {{ $selectedHari }}: {{ count($timeSlots) }} JP
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span class="badge badge-primary" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
+                            <i class="fas fa-clock me-1"></i> Slot Jam Pelajaran per Hari (Pengaturan KBM)
+                        </span>
+                        @foreach ($gridLokasi as $h)
+                            @php
+                                $jpH = $rutinitas['slotCounts'][$h] ?? 0;
+                            @endphp
+                            <span class="badge {{ $selectedHari === $h ? 'badge-primary' : 'badge-outline' }}"
+                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; {{ $selectedHari === $h ? 'border-color: var(--primary);' : '' }}">
+                                {{ $h }}: {{ $jpH }} JP
                             </span>
-                            <span style="font-weight: 600; color: var(--text-color);">
-                                {{ $timeSlots[1]['mulai'] ?? '07:15' }} s/d {{ end($timeSlots)['selesai'] ?? '' }} WIB
-                            </span>
-                        @else
-                            <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border: 1px solid var(--border-color);">
-                                <i class="fas fa-calendar-xmark me-1"></i> KBM {{ $selectedHari }}: 0 JP
-                            </span>
-                            <span style="font-weight: 600; color: var(--text-muted);">Libur / Tanpa Jam Pelajaran</span>
-                        @endif
+                        @endforeach
                     </div>
                     <div style="display: flex; gap: 14px;">
                         <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>
@@ -225,37 +224,54 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($timeSlots as $slotKey => $slot)
+                        @for ($row = 1; $row <= max(1, $maxSlots); $row++)
                             <tr style="height: 64px;">
                                 <td style="position: sticky; left: 0; z-index: 10; background: var(--bg-card); height: 64px; box-sizing: border-box; padding: 6px 10px; border-bottom: 1px solid var(--border-color); border-right: 2px solid var(--border-color); vertical-align: middle;">
                                     <div style="font-weight: 800; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; justify-content: space-between;">
-                                        <span>Jam Ke-{{ $slot['ke'] }}</span>
-                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); font-weight: 700; padding: 2px 5px;">JP</span>
-                                    </div>
-                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px; font-weight: 600;">
-                                        {{ $slot['mulai'] }} - {{ $slot['selesai'] }}
+                                        <span>Jam Ke-{{ $row }}</span>
                                     </div>
                                 </td>
 
                                 @foreach ($gridLokasi as $hari)
                                     @php
-                                        $isIstirahat = !empty($slot['is_break']);
                                         $isHariAktif = $selectedHari === $hari;
-                                        $sesiList = ($isHariAktif && isset($gridMatrix[$hari][$slotKey])) ? $gridMatrix[$hari][$slotKey] : [];
+                                        $slot = $slotsPerHari[$hari][$row] ?? null;
+
+                                        // Rutinitas hari ini (Upacara / Pembiasaan / Istirahat) dari Pengaturan KBM
+                                        $rutinLabel = null;
+                                        if ($slot) {
+                                            if ($rutinitas['upacara']['aktif'] && $rutinitas['upacara']['hari'] === $hari && $row === $rutinitas['upacara']['jam_ke']) {
+                                                $rutinLabel = 'Upacara';
+                                            } elseif ($rutinitas['pembiasaan']['aktif'] && $rutinitas['pembiasaan']['hari'] === $hari && $row === $rutinitas['pembiasaan']['jam_ke']) {
+                                                $rutinLabel = 'Pembiasaan';
+                                            } elseif (!empty($slot['is_break'])) {
+                                                $rutinLabel = 'Istirahat';
+                                            }
+                                        }
+
+                                        $sesiList = ($slot && isset($gridMatrix[$hari][$row])) ? $gridMatrix[$hari][$row] : [];
                                     @endphp
 
-                                    @if ($isIstirahat)
-                                        <td rowspan="1" style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background: rgba(245,158,11,0.05); text-align: center; vertical-align: middle;">
-                                            <span class="badge" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-2xs, 0.6875rem); font-weight: 700;">
-                                                <i class="fas fa-mug-hot me-1"></i> Istirahat
-                                            </span>
+                                    @if (!$slot)
+                                        {{-- JP hari ini sudah habis sebelum baris maksimum --}}
+                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background: rgba(127,127,127,0.06); text-align: center; vertical-align: middle;">
+                                            <span style="color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">â€”</span>
+                                        </td>
+                                    @elseif ($rutinLabel)
+                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle;">
+                                            <div style="text-align: center; padding: 6px 4px; border-radius: var(--radius-sm, 6px); background: {{ $rutinLabel === 'Upacara' ? 'rgba(239,68,68,0.06)' : ($rutinLabel === 'Pembiasaan' ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)') }}; border: 1px dashed {{ $rutinLabel === 'Upacara' ? 'rgba(239,68,68,0.35)' : ($rutinLabel === 'Pembiasaan' ? 'rgba(16,185,129,0.35)' : 'rgba(245,158,11,0.35)') }};">
+                                                <i class="fas {{ $rutinLabel === 'Upacara' ? 'fa-flag text-danger' : ($rutinLabel === 'Pembiasaan' ? 'fa-hands-praying text-success' : 'fa-mug-hot text-warning') }}"
+                                                    style="font-size: var(--text-sm, 0.8125rem);"></i>
+                                                <div style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; color: var(--text-muted); margin-top: 2px;">{{ $rutinLabel }}</div>
+                                                <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">{{ $slot['mulai'] }} - {{ $slot['selesai'] }}</div>
+                                            </div>
                                         </td>
                                     @elseif (count($sesiList) > 0)
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
                                             @foreach ($sesiList as $sesi)
                                                 @php
                                                     $item = $sesi['item'];
-                                                    $durasi = max(1, (int) $sesi['slotAkhir'] - (int) $slotKey + 1);
+                                                    $durasi = max(1, (int) $sesi['slotAkhir'] - (int) $row + 1);
                                                     $jenisKeyG = $item->jenis_lokasi ?: 'lainnya';
                                                     $borderCol = match ($jenisKeyG) {
                                                         'lab' => 'var(--primary)',
@@ -293,7 +309,7 @@
                                                     </div>
                                                     <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                                         <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">{{ $durasi }} JP</span>
-                                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 600;">{{ substr((string) $item->jam_mulai, 0, 5) }}–{{ substr((string) $item->jam_selesai, 0, 5) }}</span>
+                                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 600;">{{ substr((string) $item->jam_mulai, 0, 5) }}â€“{{ substr((string) $item->jam_selesai, 0, 5) }}</span>
                                                         @if ($canUpdate || $canDelete)
                                                             <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
                                                                 @if ($canUpdate)
@@ -306,8 +322,6 @@
                                                                         data-pembelajaran-id="{{ $item->pembelajaran_id }}"
                                                                         data-mapel="{{ $item->mata_pelajaran }}"
                                                                         data-ptk-id="{{ $item->ptk_id }}"
-                                                                        data-ptk-ids="{{ $item->ptk_ids }}"
-                                                                        data-guru="{{ $item->guru_nama }}"
                                                                         data-tanggal="{{ $item->tanggal }}"
                                                                         data-jam-mulai="{{ substr((string) $item->jam_mulai, 0, 5) }}"
                                                                         data-jam-selesai="{{ substr((string) $item->jam_selesai, 0, 5) }}"
@@ -331,10 +345,10 @@
                                         </td>
                                     @else
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle; text-align: center; height: 64px; box-sizing: border-box;">
-                                            @if ($canCreate && $isHariAktif)
+                                            @if ($canCreate)
                                                 <button type="button" class="btn-quick-slot"
-                                                    title="Klik untuk mengisi jadwal {{ $selectedHari }} Jam Ke-{{ $slot['ke'] }}"
-                                                    data-hari="{{ $selectedHari }}" data-jam-ke="{{ $slot['ke'] }}"
+                                                    title="Klik untuk mengisi jadwal {{ $hari }} Jam Ke-{{ $row }}"
+                                                    data-hari="{{ $hari }}" data-jam-ke="{{ $row }}"
                                                     data-jam-mulai="{{ $slot['mulai'] }}" data-jam-selesai="{{ $slot['selesai'] }}"
                                                     style="width: 100%; height: 100%; min-height: 54px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm, 6px); background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: all 0.2s ease;">
                                                     <i class="fas fa-plus" style="font-size: var(--text-xs, 0.75rem);"></i>
@@ -347,15 +361,7 @@
                                     @endif
                                 @endforeach
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
-                                    <i class="fas fa-calendar-xmark mb-3" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
-                                    <div style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">Tidak Ada Jam Pelajaran</div>
-                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Slot jam pelajaran diatur 0 JP. Atur jam pelajaran pada Pengaturan Jadwal KBM.</div>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endfor
                     </tbody>
                 </table>
             </div>
