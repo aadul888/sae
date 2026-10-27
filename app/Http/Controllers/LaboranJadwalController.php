@@ -247,7 +247,9 @@ class LaboranJadwalController extends Controller
             'allGtk', 'allRombel', 'statTotal', 'statHariIni', 'statBerlangsung', 'statSelesai',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'perPage',
             'jenisLokasiLabels', 'statusLabels',
-            'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels'
+            'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels',
+            'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
+            'gridOccupied', 'countPerHari'
         ) + [
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),

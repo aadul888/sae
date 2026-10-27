@@ -508,6 +508,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // -------------------------------------------------------------------------
+    // 4b. Quick Slot dari Matriks Grid (prefill lokasi, hari, jam)
+    // -------------------------------------------------------------------------
+    document.addEventListener('click', function (e) {
+        const btnSlot = e.target.closest('.btn-quick-slot');
+        if (!btnSlot || !modalJadwal) return;
+
+        openModalCreate();
+
+        // Prefill lokasi + jenis
+        if (btnSlot.dataset.lokasi) {
+            filterLokasiByJenis(btnSlot.dataset.jenis || '', btnSlot.dataset.lokasi);
+        }
+
+        // Prefill jam dari slot
+        if (inputJamMulai && btnSlot.dataset.jamMulai) {
+            inputJamMulai.value = btnSlot.dataset.jamMulai;
+        }
+        if (inputJamSelesai && btnSlot.dataset.jamSelesai) {
+            inputJamSelesai.value = btnSlot.dataset.jamSelesai;
+        }
+
+        // Prefill hari praktik sesuai tab hari yang terbuka
+        if (btnSlot.dataset.hari && inputTanggal) {
+            chkHariList.forEach(function (c) {
+                c.checked = c.value === btnSlot.dataset.hari;
+            });
+        }
+
+        if (pemberlakuanHint) {
+            pemberlakuanHint.innerHTML = '<i class="fas fa-wand-magic-sparkles text-primary me-1"></i> Slot ' +
+                (btnSlot.dataset.hari || '') + ' jam ' + (btnSlot.dataset.jamMulai || '') + '-' +
+                (btnSlot.dataset.jamSelesai || '') + ' pada ' + (btnSlot.dataset.lokasi || '') + ' dipilih dari matriks.';
+        }
+    });
+
+    // -------------------------------------------------------------------------
     // 5. Modal Buka / Tutup
     // -------------------------------------------------------------------------
     function defaultTanggal() {
