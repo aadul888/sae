@@ -83,6 +83,7 @@
         fetch(form.action, {
             method: 'POST',
             headers: {
+                'X-CSRF-TOKEN': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
