@@ -80,7 +80,7 @@
                 @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        data-active-mode="{{ $activeMode ?? 'semester' }}"
+                        data-active-mode="{{ $pengaturanJadwal->mode_pemberlakuan ?? 'semester' }}"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
                         title="Jadwalkan Praktik Baru">
                         <i class="fas fa-plus"></i>

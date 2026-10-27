@@ -86,18 +86,12 @@ class LaboranJadwalController extends Controller
 
         LaboranScope::apply($query, 'ljp.jurusan_id', $context);
 
-        // Filter ketat sesuai mode pemberlakuan aktif (hanya 1 acuan berlaku, default: semester)
-        if ($activeMode === 'semester') {
-            $query->where(function ($w) {
-                $w->where('ljp.pemberlakuan', 'semester')
-                  ->orWhereNull('ljp.pemberlakuan');
-            });
-        } else {
-            $query->where(function ($w) {
-                $w->where('ljp.pemberlakuan', 'mingguan')
-                  ->orWhere('ljp.pemberlakuan', 'sekali');
-            });
-        }
+        // Filter ketat sesuai mode pemberlakuan aktif (hanya 1 acuan berlaku: mingguan / semester)
+        $query->where(function ($w) use ($activeMode) {
+            $w->where('ljp.pemberlakuan', $activeMode)
+              ->orWhere('ljp.pemberlakuan', 'sekali')
+              ->orWhereNull('ljp.pemberlakuan');
+        });
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -127,18 +121,12 @@ class LaboranJadwalController extends Controller
         }
 
         // Statistik ringkas (dalam cakupan jurusan & mode pemberlakuan aktif)
-        $statBase = DB::table('laboran_jadwal_penggunaan');
-        if ($activeMode === 'semester') {
-            $statBase->where(function ($w) {
-                $w->where('pemberlakuan', 'semester')
+        $statBase = DB::table('laboran_jadwal_penggunaan')
+            ->where(function ($w) use ($activeMode) {
+                $w->where('pemberlakuan', $activeMode)
+                  ->orWhere('pemberlakuan', 'sekali')
                   ->orWhereNull('pemberlakuan');
             });
-        } else {
-            $statBase->where(function ($w) {
-                $w->where('pemberlakuan', 'mingguan')
-                  ->orWhere('pemberlakuan', 'sekali');
-            });
-        }
         LaboranScope::apply($statBase, 'jurusan_id', $context);
 
         $statTotal       = (clone $statBase)->count();
@@ -237,19 +225,12 @@ class LaboranJadwalController extends Controller
         $allQuery = DB::table('laboran_jadwal_penggunaan as ljp')
             ->leftJoin('gtk as g', 'ljp.ptk_id', '=', 'g.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ljp.status', '<>', 'batal');
-
-        if ($activeMode === 'semester') {
-            $allQuery->where(function ($w) {
-                $w->where('ljp.pemberlakuan', 'semester')
+            ->where('ljp.status', '<>', 'batal')
+            ->where(function ($w) use ($activeMode) {
+                $w->where('ljp.pemberlakuan', $activeMode)
+                  ->orWhere('ljp.pemberlakuan', 'sekali')
                   ->orWhereNull('ljp.pemberlakuan');
             });
-        } else {
-            $allQuery->where(function ($w) {
-                $w->where('ljp.pemberlakuan', 'mingguan')
-                  ->orWhere('ljp.pemberlakuan', 'sekali');
-            });
-        }
 
         $allQuery->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
         LaboranScope::apply($allQuery, 'ljp.jurusan_id', $context);
@@ -821,6 +802,14 @@ class LaboranJadwalController extends Controller
         $y = (int) date('Y');
 
         return date('n') >= 7 ? "{$y}/" . ($y + 1) : ($y - 1) . "/{$y}";
+    }
+
+    /**
+     * Semester yang sedang berjalan (1 = Ganjil: Juli-Desember, 2 = Genap: Januari-Juni).
+     */
+    public static function semesterAktif(): string
+    {
+        return (int) date('n') >= 7 ? '1' : '2';
     }
 
     protected function validatedPayload(Request $request): array

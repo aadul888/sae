@@ -927,7 +927,7 @@ class LaboranJadwalService
 
         return ($row->status === 'aktif' && in_array($row->mode_pemberlakuan, ['semester', 'mingguan'], true))
             ? $row->mode_pemberlakuan
-            : 'semester';
+            : null;
     }
 
     protected function resolvePetugasLaboran(): array

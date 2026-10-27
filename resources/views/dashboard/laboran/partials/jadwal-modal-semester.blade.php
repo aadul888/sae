@@ -10,7 +10,7 @@
                     Jadwalkan Praktik (Semester)
                 </h3>
                 <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
-                    Penjadwalan berlaku 1 semester penuh untuk hari dan tahun ajaran aktif.
+                    Penjadwalan berlaku 1 semester penuh untuk hari pada periode terpilih.
                 </div>
             </div>
             <button type="button" class="btn-close-modal-jadwal" data-target="modalJadwalSemester"
@@ -24,8 +24,40 @@
             <input type="hidden" name="jurusan_id" value="{{ $context['jurusan_id'] ?? '' }}">
             <input type="hidden" name="pemberlakuan" value="semester">
             <input type="hidden" name="jenis_lokasi" id="inputJenisLokasiSemester" value="lab">
+            {{-- Tanggal acuan (dipakai saat mengubah sesi agar tanggal sesi tetap terjaga) --}}
+            <input type="hidden" name="tanggal" id="inputTanggalSemester">
 
-            {{-- 1. Lokasi / Tempat Praktik --}}
+            @php $semesterAktif = \App\Http\Controllers\LaboranJadwalController::semesterAktif(); @endphp
+
+            {{-- 1. Periode Semester & Tahun Ajaran --}}
+            <div style="margin-bottom: var(--space-7); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5);">
+                    <div>
+                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                            <i class="fas fa-calendar-check text-primary me-1"></i> Semester <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="pemberlakuan_semester" id="selectPemberlakuanSemesterS" class="form-control">
+                            <option value="1" {{ $semesterAktif === '1' ? 'selected' : '' }}>Semester 1 (Ganjil: Juli – Desember)</option>
+                            <option value="2" {{ $semesterAktif === '2' ? 'selected' : '' }}>Semester 2 (Genap: Januari – Juni)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                            <i class="fas fa-calendar-days text-primary me-1"></i> Tahun Ajaran <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="pemberlakuan_ta" id="selectPemberlakuanTaS" class="form-control">
+                            @foreach (\App\Http\Controllers\LaboranJadwalController::tahunAjaranOptions() as $ta)
+                                <option value="{{ $ta }}" {{ $ta === (\App\Http\Controllers\LaboranJadwalController::tahunAjaranAktif()) ? 'selected' : '' }}>{{ $ta }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-3);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Jadwal berlaku otomatis untuk seluruh semester pada tahun ajaran terpilih.
+                </div>
+            </div>
+
+            {{-- 2. Lokasi / Tempat Praktik --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                     <i class="fas fa-location-dot text-primary me-1"></i> Lokasi / Tempat Praktik <span style="color: var(--danger, #ef4444);">*</span>
@@ -46,7 +78,7 @@
                 </select>
             </div>
 
-            {{-- 2. Kelas / Rombel --}}
+            {{-- 3. Kelas / Rombel --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                     <i class="fas fa-users-rectangle text-primary me-1"></i> Kelas <span style="color: var(--danger, #ef4444);">*</span>
@@ -61,7 +93,7 @@
                 </select>
             </div>
 
-            {{-- 3. Guru Pengampu & Mata Pelajaran --}}
+            {{-- 4. Guru Pengampu & Mata Pelajaran --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                     <i class="fas fa-chalkboard-user text-primary me-1"></i> Guru Pengampu & Mata Pelajaran <span style="color: var(--danger, #ef4444);">*</span>
@@ -74,7 +106,7 @@
                 </div>
             </div>
 
-            {{-- 4. Hari Praktik --}}
+            {{-- 5. Hari Praktik --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                     <i class="fas fa-calendar-day text-primary me-1"></i> Hari Praktik <span style="color: var(--danger, #ef4444);">*</span>
@@ -89,8 +121,8 @@
                 </select>
             </div>
 
-            {{-- 5. Alokasi Waktu: Jam Ke-1 s/d Jam Ke-N --}}
-            <div style="margin-bottom: var(--space-7);">
+            {{-- 6. Alokasi Waktu: Jam Ke-1 s/d Jam Ke-N --}}
+            <div style="margin-bottom: var(--space-8);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                     <i class="fas fa-clock text-primary me-1"></i> Alokasi Waktu Jam Pelajaran (JP) <span style="color: var(--danger, #ef4444);">*</span>
                 </label>
@@ -106,66 +138,6 @@
                             <option value="">-- Jam Selesai --</option>
                         </select>
                     </div>
-                </div>
-            </div>
-
-            {{-- 6. Periode Semester & Tahun Ajaran --}}
-            <div style="margin-bottom: var(--space-7); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5);">
-                    <div>
-                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
-                            Semester <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <select name="pemberlakuan_semester" id="selectPemberlakuanSemesterS" class="form-control">
-                            <option value="1">Semester 1 (Ganjil: Juli – Desember)</option>
-                            <option value="2">Semester 2 (Genap: Januari – Juni)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
-                            Tahun Ajaran <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <select name="pemberlakuan_ta" id="selectPemberlakuanTaS" class="form-control">
-                            @foreach (\App\Http\Controllers\LaboranJadwalController::tahunAjaranOptions() as $ta)
-                                <option value="{{ $ta }}" {{ $ta === (\App\Http\Controllers\LaboranJadwalController::tahunAjaranAktif()) ? 'selected' : '' }}>{{ $ta }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {{-- 7. Penentuan Minggu Ke-, Tanggal Awal & Sampai Minggu Ke- --}}
-            <div style="margin-bottom: var(--space-8); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); align-items: end;">
-                    <div>
-                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
-                            Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <select name="pemberlakuan_minggu" id="selectPemberlakuanMingguS" class="form-control">
-                            @for ($m = 1; $m <= 24; $m++)
-                                <option value="{{ $m }}">Minggu ke-{{ $m }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
-                            Tanggal Awal <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <input type="date" name="tanggal" id="inputTanggalSemester" class="form-control" required>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
-                            Sampai Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
-                        </label>
-                        <select name="pemberlakuan_minggu_akhir" id="selectPemberlakuanMingguAkhirS" class="form-control">
-                            @for ($m = 1; $m <= 24; $m++)
-                                <option value="{{ $m }}" {{ $m === 18 ? 'selected' : '' }}>Minggu ke-{{ $m }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                </div>
-                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-3);">
-                    <i class="fas fa-circle-info text-primary me-1"></i> Penjadwalan berulang per minggu dari tanggal awal (Minggu ke-N) s.d. minggu akhir (Minggu ke-M).
                 </div>
             </div>
 

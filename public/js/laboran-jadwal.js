@@ -50,8 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectPemberlakuanSemesterS = document.getElementById('selectPemberlakuanSemesterS');
     const selectPemberlakuanTaS = document.getElementById('selectPemberlakuanTaS');
     const inputTanggalSemester = document.getElementById('inputTanggalSemester');
-    const selectPemberlakuanMingguS = document.getElementById('selectPemberlakuanMingguS');
-    const selectPemberlakuanMingguAkhirS = document.getElementById('selectPemberlakuanMingguAkhirS');
 
     // -------------------------------------------------------------------------
     // 3. Util: Alert & CSRF
@@ -353,8 +351,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     selectHariSemester.value = hariNama;
                 }
             }
-            if (selectPemberlakuanMingguS) selectPemberlakuanMingguS.value = '1';
-            if (selectPemberlakuanMingguAkhirS) selectPemberlakuanMingguAkhirS.value = '18';
             loadSlotsForHari(selectHariSemester ? selectHariSemester.value : 'Senin', selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
         } else {
@@ -539,8 +535,8 @@ document.addEventListener('DOMContentLoaded', function () {
         selectJamKeMulaiSemester,
         selectJamKeSelesaiSemester,
         inputTanggalSemester,
-        selectPemberlakuanMingguS,
-        selectPemberlakuanMingguAkhirS,
+        null,
+        null,
         modalJadwalSemester
     );
 
