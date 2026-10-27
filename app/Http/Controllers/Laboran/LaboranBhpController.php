@@ -28,6 +28,14 @@ class LaboranBhpController extends Controller
         'kedaluwarsa'  => 'Kedaluwarsa',
     ];
 
+    public const SUMBER_DANA = [
+        'BOS Reguler'      => 'BOS Reguler',
+        'BOS Kinerja'      => 'BOS Kinerja',
+        'DAK Fisik'        => 'DAK Fisik',
+        'Komite / Yayasan' => 'Komite / Yayasan',
+        'Hibah / Bantuan'  => 'Hibah / Bantuan',
+    ];
+
     public function index(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
@@ -44,6 +52,7 @@ class LaboranBhpController extends Controller
         $search        = trim($request->query('q', ''));
         $labFilter     = trim($request->query('lab', ''));
         $kondisiFilter = trim($request->query('kondisi', ''));
+        $sumberFilter  = trim($request->query('sumber_dana', ''));
         $expFilter     = trim($request->query('exp', ''));
 
         $query = DB::table('laboran_bahan_alat as lba')
@@ -68,6 +77,10 @@ class LaboranBhpController extends Controller
 
         if ($kondisiFilter !== '') {
             $query->where('lba.kondisi', $kondisiFilter);
+        }
+
+        if ($sumberFilter !== '') {
+            $query->where('lba.sumber_dana', $sumberFilter);
         }
 
         if ($expFilter === 'segera') {
@@ -115,6 +128,7 @@ class LaboranBhpController extends Controller
             'search'        => $search,
             'labFilter'     => $labFilter,
             'kondisiFilter' => $kondisiFilter,
+            'sumberFilter'  => $sumberFilter,
             'expFilter'     => $expFilter,
             'daftarLab'     => $daftarLab,
             'statTotal'     => $statTotal,
@@ -129,6 +143,7 @@ class LaboranBhpController extends Controller
             'context'       => $context,
             'scopeBadge'    => LaboranScope::badge($context),
             'kondisiList'   => self::KONDISI,
+            'sumberDanaList' => self::SUMBER_DANA,
         ]);
     }
 
@@ -154,6 +169,7 @@ class LaboranBhpController extends Controller
             'tgl_kedaluwarsa'     => 'nullable|date',
             'tanggal_pengadaan'   => 'nullable|date',
             'tahun_pengadaan'     => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'sumber_dana'         => 'nullable|string|max:50',
             'jurusan_id'          => 'nullable|string|max:50',
         ]);
 
@@ -194,6 +210,7 @@ class LaboranBhpController extends Controller
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
             'tanggal_pengadaan'   => $request->tanggal_pengadaan,
             'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
+            'sumber_dana'         => $request->input('sumber_dana', 'BOS Reguler') ?: 'BOS Reguler',
             'created_at'          => now(),
             'updated_at'          => now(),
         ]);
@@ -231,6 +248,7 @@ class LaboranBhpController extends Controller
             'tgl_kedaluwarsa'     => 'nullable|date',
             'tanggal_pengadaan'   => 'nullable|date',
             'tahun_pengadaan'     => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'sumber_dana'         => 'nullable|string|max:50',
             'jurusan_id'          => 'nullable|string|max:50',
         ]);
 
@@ -253,6 +271,7 @@ class LaboranBhpController extends Controller
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
             'tanggal_pengadaan'   => $request->tanggal_pengadaan,
             'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
+            'sumber_dana'         => $request->input('sumber_dana', $row->sumber_dana ?? 'BOS Reguler') ?: 'BOS Reguler',
             'updated_at'          => now(),
         ]);
 
@@ -340,13 +359,14 @@ class LaboranBhpController extends Controller
         ]);
     }
 
-    public function templateExcel(LaboranInventarisImportService $service)
+    public function templateExcel(?LaboranInventarisImportService $service = null)
     {
-        if ($res = $this->checkAuth()) return $res;
+        $service = $service ?? app(LaboranInventarisImportService::class);
+        $path = $service->generateTemplateFileBhp();
 
-        $path = $service->generateTemplateFile();
-
-        return response()->download($path, 'template-bahan-habis-pakai.xlsx')->deleteFileAfterSend(true);
+        return response()->download($path, 'Format_Import_Bahan_Habis_Pakai.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function importExcel(Request $request, LaboranInventarisImportService $service)

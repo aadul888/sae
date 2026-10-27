@@ -41,19 +41,52 @@
                             <i class="fas fa-list me-1"></i> Rekap Tabel
                         </a>
                     </div>
-                    <a href="{{ route('dashboard.laboran.jadwal.cetak', array_merge(request()->query(), ['mode' => ($modeDiberlakukan === 'semester') ? 'semester' : 'mingguan', 'auto' => 1])) }}" target="_blank" class="btn btn-outline"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                        title="Cetak Jadwal Praktik ({{ $modeDiberlakukan === 'semester' ? 'Semester' : 'Mingguan' }})">
-                        <i class="fas fa-print"></i>
-                    </a>
-                    <a href="{{ route('dashboard.laboran.laporan.index') }}" class="btn btn-outline"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                        title="Laporan Penggunaan Lokasi Praktik (Bulan, Triwulan, Semester, Tahun)">
-                        <i class="fas fa-file-lines"></i>
-                    </a>
+
+                    {{-- Dropdown Cetak Jadwal Multi-Mode --}}
+                    <div style="position: relative; display: inline-block;">
+                        <button type="button" class="btn btn-outline" id="btnDropdownCetakJadwal"
+                            style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
+                            title="Pilihan Cetak Jadwal Praktik">
+                            <i class="fas fa-print"></i> Cetak <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                        </button>
+                        <div id="dropdownMenuCetakJadwal"
+                            style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.25); min-width: 220px; z-index: 1000; overflow: hidden;">
+                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode' => 'mingguan', 'auto' => 1]) }}" target="_blank"
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm); border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-calendar-week text-primary" style="width: 16px;"></i>
+                                <div>
+                                    <strong>Jadwal Mingguan</strong>
+                                    <div style="font-size: var(--text-2xs); color: var(--text-muted);">Sesi berulang per minggu</div>
+                                </div>
+                            </a>
+                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode' => 'semester', 'auto' => 1]) }}" target="_blank"
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm); border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-calendar-range text-success" style="width: 16px;"></i>
+                                <div>
+                                    <strong>Jadwal Semester</strong>
+                                    <div style="font-size: var(--text-2xs); color: var(--text-muted);">Rekap per bulan satu semester</div>
+                                </div>
+                            </a>
+                            <a href="{{ route('dashboard.laboran.laporan.index') }}"
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm);">
+                                <i class="fas fa-file-lines text-warning" style="width: 16px;"></i>
+                                <div>
+                                    <strong>Laporan Lokasi</strong>
+                                    <div style="font-size: var(--text-2xs); color: var(--text-muted);">Bulan, triwulan, tahunan</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline" id="btnBukaModalPilihMode"
+                        style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
+                        title="Ubah Mode Pemberlakuan Jadwal">
+                        <i class="fas fa-sliders text-primary"></i> Mode: {{ ucfirst($activeMode ?? 'Mingguan') }}
+                    </button>
                 @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
+                        data-active-mode="{{ $activeMode ?? 'mingguan' }}"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
                         title="Jadwalkan Praktik Baru">
                         <i class="fas fa-plus"></i>
@@ -612,8 +645,9 @@
         </div>
         @endif
 
-        @include('dashboard.laboran.partials.jadwal-modal-form')
-
+        @include('dashboard.laboran.partials.jadwal-modal-mingguan')
+        @include('dashboard.laboran.partials.jadwal-modal-semester')
+        @include('dashboard.laboran.partials.jadwal-modal-pilih-mode')
         @include('dashboard.laboran.partials.jadwal-modal-status')
     </div>
 

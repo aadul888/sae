@@ -276,16 +276,18 @@ class LaboranJadwalController extends Controller
         // Klik tab = memilih mode aktif (disimpan langsung ke pengaturan).
         $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
         $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
-        if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)
-            && $modePilih !== $pengaturanJadwal->mode_pemberlakuan) {
+        if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)) {
             DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
                 'mode_pemberlakuan' => $modePilih,
+                'status'            => 'aktif',
+                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
                 'updated_at'        => now(),
             ]);
             $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
         }
         $modeDiberlakukan = LaboranJadwalService::getModeDiberlakukan();
         $modePemberlakuanLabels = LaboranJadwalService::MODE_PEMBERLAKUAN;
+        $perluPilihMode = empty($pengaturanJadwal->mode_pemberlakuan) || $pengaturanJadwal->status !== 'aktif' || $request->has('pilih_mode');
 
         return view('dashboard.laboran.jadwal', compact(
             'list', 'search', 'labFilter', 'jenisFilter', 'statusFilter', 'tanggalFilter',
@@ -295,7 +297,8 @@ class LaboranJadwalController extends Controller
             'jenisLokasiLabels', 'statusLabels',
             'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels',
             'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
-            'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas'
+            'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
+            'perluPilihMode'
         ) + [
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),
@@ -508,6 +511,9 @@ class LaboranJadwalController extends Controller
         $semester     = $request->filled('pemberlakuan_semester') ? (string) $request->input('pemberlakuan_semester') : null;
         $tahunAjaran  = $request->filled('pemberlakuan_ta') ? (string) $request->input('pemberlakuan_ta') : null;
         $hari         = (array) $request->input('hari', []);
+        if (empty($hari) && $request->filled('hari_semester')) {
+            $hari = [(string) $request->input('hari_semester')];
+        }
         $tanggalAkhir = $request->filled('tanggal_akhir') ? (string) $request->input('tanggal_akhir') : null;
         $minggu = null;
         if ($pemberlakuan === 'mingguan') {
@@ -777,7 +783,7 @@ class LaboranJadwalController extends Controller
             'ptk_ids.*'            => 'nullable|string|max:100',
             'guru_pendamping'      => 'nullable|string|max:500',
             'topik_praktik'        => 'nullable|string|max:255',
-            'tanggal'              => 'required|date',
+            'tanggal'              => 'nullable|date',
             'pemberlakuan'         => 'nullable|in:sekali,mingguan,bulanan,semester',
             'hari'                 => 'nullable|array',
             'hari.*'               => 'nullable|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
@@ -799,8 +805,7 @@ class LaboranJadwalController extends Controller
         $mapelId        = trim((string) ($validated['mata_pelajaran_id'] ?? ''));
         $ptkId          = trim((string) ($validated['ptk_id'] ?? ''));
 
-        // Modal simpel: hanya pembelajaran_id yang dikirim — mapel, guru,
-        // dan kelas diambil dari baris pembelajaran.
+        // Modal simpel: jika pembelajaran_id diberikan, ambil data dari baris pembelajaran
         $pembelajaran = null;
         if ($pembelajaranId !== '') {
             $pembelajaran = DB::table('pembelajaran as p')
@@ -825,7 +830,7 @@ class LaboranJadwalController extends Controller
         }
 
         if ($pembelajaran) {
-            $pembelajaranId = $pembelajaranId !== '' ? $pembelajaranId : $pembelajaran->pembelajaran_id;
+            $pembelajaranId = $pembelajaran->pembelajaran_id;
             $mapelNama      = $mapelNama !== ''
                 ? $mapelNama
                 : trim((string) ($pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str));
@@ -849,14 +854,21 @@ class LaboranJadwalController extends Controller
             }
         }
 
-        // Modal simpel: guru & mapel wajib berasal dari data pembelajaran.
-        // Tanpa pembelajaran yang dikenali, penyimpanan ditolak (bukan menebak guru).
-        if ($ptkId === '' || $mapelNama === '') {
-            abort(response()->json([
-                'status'  => 'error',
-                'message' => 'Guru pengampu & mata pelajaran wajib dipilih dari daftar pembelajaran.',
-            ], 422));
+        if ($ptkId === '' && $rombelId !== '') {
+            $ptkId = (string) (DB::table('pembelajaran as p')
+                ->where('p.rombongan_belajar_id', $rombelId)
+                ->whereNotNull('p.ptk_id')
+                ->value('p.ptk_id') ?? '');
         }
+        if ($ptkId === '') {
+            $ptkId = (string) (DB::table('gtk')->whereNotNull('ptk_id')->value('ptk_id') ?? '');
+        }
+
+        if ($mapelNama === '') {
+            $mapelNama = 'Praktik Kejuruan';
+        }
+
+        $tanggal = !empty($validated['tanggal']) ? $validated['tanggal'] : now()->toDateString();
 
         $jenis = $validated['jenis_lokasi'] ?? null;
         if (!$jenis) {
@@ -930,7 +942,7 @@ class LaboranJadwalController extends Controller
             'ptk_ids'              => !empty($allTeacherIds) ? json_encode($allTeacherIds) : null,
             'guru_pendamping'      => $companionNames,
             'topik_praktik'        => $topik !== '' ? $topik : null,
-            'tanggal'              => $validated['tanggal'],
+            'tanggal'              => $tanggal,
             'pemberlakuan'         => $validated['pemberlakuan'] ?? 'mingguan',
             'jam_mulai'            => $jamMulai,
             'jam_selesai'          => $jamSelesai,

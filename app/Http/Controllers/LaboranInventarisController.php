@@ -32,6 +32,14 @@ class LaboranInventarisController extends Controller
         'kedaluwarsa'  => 'Kedaluwarsa',
     ];
 
+    public const SUMBER_DANA = [
+        'BOS Reguler'      => 'BOS Reguler',
+        'BOS Kinerja'      => 'BOS Kinerja',
+        'DAK Fisik'        => 'DAK Fisik',
+        'Komite / Yayasan' => 'Komite / Yayasan',
+        'Hibah / Bantuan'  => 'Hibah / Bantuan',
+    ];
+
     public function index(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
@@ -49,6 +57,7 @@ class LaboranInventarisController extends Controller
         $labFilter     = trim($request->query('lab', ''));
         $jenisFilter   = trim($request->query('jenis', ''));
         $kondisiFilter = trim($request->query('kondisi', ''));
+        $sumberFilter  = trim($request->query('sumber_dana', ''));
         $jurusanFilter = trim($request->query('jurusan', ''));
 
         $query = DB::table('laboran_bahan_alat as lba')
@@ -76,6 +85,10 @@ class LaboranInventarisController extends Controller
 
         if ($kondisiFilter !== '') {
             $query->where('lba.kondisi', $kondisiFilter);
+        }
+
+        if ($sumberFilter !== '') {
+            $query->where('lba.sumber_dana', $sumberFilter);
         }
 
         if ($jurusanFilter !== '' && $context['unrestricted']) {
@@ -133,6 +146,7 @@ class LaboranInventarisController extends Controller
             'labFilter'          => $labFilter,
             'jenisFilter'        => $jenisFilter,
             'kondisiFilter'      => $kondisiFilter,
+            'sumberFilter'       => $sumberFilter,
             'jurusanFilter'      => $jurusanFilter,
             'daftarLab'          => $daftarLab,
             'daftarRuangSarpras' => $daftarRuangSarpras,
@@ -151,6 +165,7 @@ class LaboranInventarisController extends Controller
             'jurusanOptions'     => LaboranScope::jurusanOptions($context),
             'jenisList'          => self::JENIS,
             'kondisiList'        => self::KONDISI,
+            'sumberDanaList'     => self::SUMBER_DANA,
         ]);
     }
 
@@ -178,6 +193,7 @@ class LaboranInventarisController extends Controller
             'tgl_kedaluwarsa'   => 'nullable|date',
             'tanggal_pengadaan' => 'nullable|date',
             'tahun_pengadaan'   => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'sumber_dana'       => 'nullable|string|max:50',
             'jurusan_id'        => 'nullable|string|max:50',
         ], [
             'kode_item.unique' => 'Kode item sudah digunakan.',
@@ -210,6 +226,7 @@ class LaboranInventarisController extends Controller
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
             'tanggal_pengadaan'   => $request->tanggal_pengadaan,
             'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
+            'sumber_dana'         => $request->input('sumber_dana', 'BOS Reguler') ?: 'BOS Reguler',
             'created_at'          => now(),
             'updated_at'          => now(),
         ]);
@@ -310,6 +327,7 @@ class LaboranInventarisController extends Controller
             'tgl_kedaluwarsa'   => 'nullable|date',
             'tanggal_pengadaan' => 'nullable|date',
             'tahun_pengadaan'   => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'sumber_dana'       => 'nullable|string|max:50',
             'jurusan_id'        => 'nullable|string|max:50',
         ]);
 
@@ -340,6 +358,7 @@ class LaboranInventarisController extends Controller
             'lokasi_lemari_rak'   => $request->lokasi_lemari_rak,
             'tanggal_pengadaan'   => $request->tanggal_pengadaan,
             'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
+            'sumber_dana'         => $request->input('sumber_dana', $row->sumber_dana ?? 'BOS Reguler') ?: 'BOS Reguler',
             'updated_at'          => now(),
         ]);
 
@@ -450,7 +469,9 @@ class LaboranInventarisController extends Controller
         $path = $service->generateTemplateFile();
 
         return response()
-            ->download($path, 'Format_Import_Inventaris_Laboratorium.xlsx')
+            ->download($path, 'Format_Import_Inventaris_Laboratorium.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])
             ->deleteFileAfterSend(true);
     }
 

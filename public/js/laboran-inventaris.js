@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labExp').value = data.exp || '';
             document.getElementById('labTglPengadaan').value = data.tglpengadaan || '';
             document.getElementById('labTahunPengadaan').value = data.tahunpengadaan || '';
+            const elSumber = document.getElementById('labSumberDana');
+            if (elSumber) elSumber.value = data.sumber || 'BOS Reguler';
 
             // Rincian kondisi per jumlah
             setJumlahKondisi({
@@ -232,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 exp: btnEdit.dataset.exp,
                 tglpengadaan: btnEdit.dataset.tglpengadaan,
                 tahunpengadaan: btnEdit.dataset.tahunpengadaan,
+                sumber: btnEdit.dataset.sumber,
                 jurusan: btnEdit.dataset.jurusan,
             };
             openModal(true, data);

@@ -27,6 +27,14 @@
                     style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: 6px 12px; border-radius: var(--radius-md, 8px); font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
                 </span>
+                @if ($canRead)
+                    <a href="{{ route('dashboard.laboran.bhp.cetak', request()->query()) }}" target="_blank"
+                        class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Cetak Laporan Bahan Habis Pakai">
+                        <i class="fas fa-print"></i>
+                    </a>
+                @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnOpenImportBhp"
                         style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
@@ -124,7 +132,16 @@
                                 <option value="kadaluarsa" {{ $expFilter === 'kadaluarsa' ? 'selected' : '' }}>Sudah Kedaluwarsa</option>
                             </select>
 
-                            @if ($search || $labFilter || $kondisiFilter || $expFilter)
+                            <select name="sumber_dana" id="filterSumberDanaBhp" class="toolbar-filter-select" style="height: 38px;">
+                                <option value="">Semua Sumber Anggaran</option>
+                                @foreach ($sumberDanaList as $sdKey => $sdLabel)
+                                    <option value="{{ $sdKey }}" {{ ($sumberFilter ?? '') === $sdKey ? 'selected' : '' }}>
+                                        {{ $sdLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @if ($search || $labFilter || $kondisiFilter || $expFilter || !empty($sumberFilter))
                                 <a href="{{ route('dashboard.laboran.bhp.index') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -252,7 +269,8 @@
                                                 data-jurusan="{{ $item->jurusan_id }}"
                                                 data-exp="{{ $item->tgl_kedaluwarsa }}"
                                                 data-tglpengadaan="{{ $item->tanggal_pengadaan }}"
-                                                data-tahunpengadaan="{{ $item->tahun_pengadaan }}" title="Edit Bahan">
+                                                data-tahunpengadaan="{{ $item->tahun_pengadaan }}"
+                                                data-sumber="{{ $item->sumber_dana }}" title="Edit Bahan">
                                                 <i class="fas fa-pen-to-square"></i>
                                             </button>
                                         @endif

@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('bhpExp').value = data.exp || '';
             document.getElementById('bhpTglPengadaan').value = data.tglpengadaan || '';
             document.getElementById('bhpTahunPengadaan').value = data.tahunpengadaan || '';
+            const elSumber = document.getElementById('bhpSumberDana');
+            if (elSumber) elSumber.value = data.sumber || 'BOS Reguler';
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'block';
         } else {
             modalTitle.textContent = 'Tambah Bahan Habis Pakai';
@@ -96,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 exp: btnEdit.dataset.exp,
                 tglpengadaan: btnEdit.dataset.tglpengadaan,
                 tahunpengadaan: btnEdit.dataset.tahunpengadaan,
+                sumber: btnEdit.dataset.sumber,
             });
             return;
         }

@@ -239,7 +239,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px;">
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
@@ -255,6 +255,17 @@
                             <small style="display: block; margin-top: 4px; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                 Terisi otomatis dari tanggal pengadaan.
                             </small>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Sumber Anggaran</label>
+                            <select name="sumber_dana" id="labSumberDana" class="form-control">
+                                <option value="BOS Reguler">BOS Reguler</option>
+                                <option value="BOS Kinerja">BOS Kinerja</option>
+                                <option value="DAK Fisik">DAK Fisik</option>
+                                <option value="Komite / Yayasan">Komite / Yayasan</option>
+                                <option value="Hibah / Bantuan">Hibah / Bantuan</option>
+                            </select>
                         </div>
                     </div>
 

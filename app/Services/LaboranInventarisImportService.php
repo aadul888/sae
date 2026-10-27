@@ -34,6 +34,7 @@ class LaboranInventarisImportService
         'tgl_kedaluwarsa',
         'tanggal_pengadaan',
         'tahun_pengadaan',
+        'sumber_dana',
     ];
 
     /**
@@ -46,19 +47,43 @@ class LaboranInventarisImportService
                 'ITM-LAB-001', 'Mikroskop Binokuler Digital', 'alat', 'Optik',
                 'Perbesaran 1000x, kamera USB 5MP',
                 '5', 'unit', 'baik', '4', '1', '0', '0',
-                'Lab Biologi', 'Lemari A-01', '', '2024-07-15', '2024',
+                'Lab Biologi', 'Lemari A-01', '', '2024-07-15', '2024', 'BOS Reguler',
             ],
             [
                 '', 'Traktor Tangan Mini', 'alat', 'Mesin Pertanian',
                 'Kapasitas 8 PK, roda dua',
                 '10', 'unit', 'baik', '5', '3', '2', '0',
-                'Lahan Praktik ATPH', 'Gudang Alsintan', '', '2023-02-20', '2023',
+                'Lahan Praktik ATPH', 'Gudang Alsintan', '', '2023-02-20', '2023', 'DAK Fisik',
             ],
             [
                 'ITM-LAB-002', 'Alkohol 70% 1 Liter', 'bahan_habis_pakai', 'Bahan Kimia',
                 'Kemasan botol 1000 ml teknis',
                 '20', 'botol', 'baik', '20', '0', '0', '0',
-                'Lab Kimia', 'Rak Bahan C-03', '2028-12-31', '2025-01-10', '2025',
+                'Lab Kimia', 'Rak Bahan C-03', '2028-12-31', '2025-01-10', '2025', 'BOS Reguler',
+            ],
+        ];
+    }
+
+    public function contohBarisBhp(): array
+    {
+        return [
+            [
+                'BHP-202610-0001', 'Alkohol 70% 1 Liter', 'bahan_habis_pakai', 'Bahan Kimia',
+                'Kemasan botol 1000 ml teknis',
+                '20', 'botol', 'baik', '20', '0', '0', '0',
+                'Lab Kimia', 'Rak Bahan C-03', '2028-12-31', '2025-01-10', '2025', 'BOS Reguler',
+            ],
+            [
+                '', 'Aquades Murni 5 Liter', 'bahan_habis_pakai', 'Bahan Kimia',
+                'Air demineralisasi untuk praktikum',
+                '10', 'jerigen', 'baik', '10', '0', '0', '0',
+                'Lab IPA', 'Rak A-02', '2029-06-30', '2025-02-15', '2025', 'BOS Reguler',
+            ],
+            [
+                '', 'Pupuk NPK Mutiara 16-16-16 1 Kg', 'bahan_habis_pakai', 'Bahan Pertanian',
+                'Pupuk majemuk untuk praktik pemupukan',
+                '15', 'kantong', 'baik', '15', '0', '0', '0',
+                'Lahan Praktik ATPH', 'Gudang Pupuk', '2027-10-20', '2024-11-05', '2024', 'Komite / Yayasan',
             ],
         ];
     }
@@ -71,7 +96,20 @@ class LaboranInventarisImportService
             'fields'   => [
                 'Kode Item'       => 'Boleh dikosongkan — sistem akan membuat kode otomatis',
                 'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
-                'Data Pengadaan'  => 'tanggal_pengadaan (YYYY-MM-DD) & tahun_pengadaan; tahun terisi otomatis dari tanggal',
+                'Data Pengadaan'  => 'tanggal_pengadaan (YYYY-MM-DD), tahun_pengadaan & sumber_dana (BOS Reguler, DAK, dll)',
+            ],
+        ];
+    }
+
+    public function metaTemplateBhp(): array
+    {
+        return [
+            'title'    => 'Format Import Bahan Habis Pakai (BHP)',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+            'fields'   => [
+                'Kode Item'       => 'Boleh dikosongkan — sistem akan membuat kode otomatis (BHP-YYYYMM-NNNN)',
+                'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
+                'Data Pengadaan'  => 'tanggal_pengadaan (YYYY-MM-DD), tahun_pengadaan & sumber_dana (BOS Reguler, DAK, dll)',
             ],
         ];
     }
@@ -85,6 +123,20 @@ class LaboranInventarisImportService
 
         SimpleXlsxExporter::export($path, $this->metaTemplate(), self::HEADERS, $this->contohBaris(), [
             'sheetName' => 'Inventaris Lab',
+        ]);
+
+        return $path;
+    }
+
+    /**
+     * Hasilkan berkas template .xlsx khusus Bahan Habis Pakai.
+     */
+    public function generateTemplateFileBhp(): string
+    {
+        $path = storage_path('app/temp_template_bhp_' . uniqid() . '.xlsx');
+
+        SimpleXlsxExporter::export($path, $this->metaTemplateBhp(), self::HEADERS, $this->contohBarisBhp(), [
+            'sheetName' => 'Bahan Habis Pakai',
         ]);
 
         return $path;
@@ -215,6 +267,7 @@ class LaboranInventarisImportService
             'tgl_kedaluwarsa'     => $tglVal,
             'tanggal_pengadaan'   => $tglPengadaan,
             'tahun_pengadaan'     => $tahunPengadaan > 0 ? $tahunPengadaan : null,
+            'sumber_dana'         => (string) ($n['sumber_dana'] ?? ($n['sumber'] ?? ($n['sumber_anggaran'] ?? 'BOS'))),
         ];
     }
 
@@ -294,6 +347,7 @@ class LaboranInventarisImportService
             'tgl_kedaluwarsa'     => $d['tgl_kedaluwarsa'] ?: $existing->tgl_kedaluwarsa,
             'tanggal_pengadaan'   => $d['tanggal_pengadaan'] ?: $existing->tanggal_pengadaan,
             'tahun_pengadaan'     => $d['tahun_pengadaan'] ?: $existing->tahun_pengadaan,
+            'sumber_dana'         => $d['sumber_dana'] ?: ($existing->sumber_dana ?? 'BOS'),
             'updated_at'          => now(),
         ]);
     }
@@ -318,6 +372,7 @@ class LaboranInventarisImportService
             'tgl_kedaluwarsa'     => $d['tgl_kedaluwarsa'],
             'tanggal_pengadaan'   => $d['tanggal_pengadaan'],
             'tahun_pengadaan'     => $d['tahun_pengadaan'],
+            'sumber_dana'         => $d['sumber_dana'] ?: 'BOS',
             'lokasi_lemari_rak'   => $d['lokasi_lemari_rak'] ?: null,
             'created_at'          => now(),
             'updated_at'          => now(),
