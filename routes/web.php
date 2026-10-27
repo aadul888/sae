@@ -690,6 +690,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/inventaris', [\App\Http\Controllers\LaboranInventarisController::class, 'store'])->name('inventaris.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
         Route::put('/inventaris/{id}', [\App\Http\Controllers\LaboranInventarisController::class, 'update'])->name('inventaris.update')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
         Route::delete('/inventaris/{id}', [\App\Http\Controllers\LaboranInventarisController::class, 'destroy'])->name('inventaris.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
+        Route::post('/inventaris/bulk-delete', [\App\Http\Controllers\LaboranInventarisController::class, 'destroyBulk'])->name('inventaris.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
 
         // Jadwal & Penggunaan Lab / Bengkel / Lahan / Lapangan Praktik
         Route::get('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');

@@ -317,6 +317,79 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // =========================================================================
+    // Hapus Massal via Ceklist (Bulk Delete)
+    // =========================================================================
+    const chkAllLab = document.getElementById('chkAllLab');
+    const btnBulkDelete = document.getElementById('btnBulkDeleteLab');
+    const countBulk = document.getElementById('countBulkLab');
+
+    function syncBulkState() {
+        const checked = document.querySelectorAll('.chk-item-lab:checked').length;
+        if (countBulk) countBulk.textContent = checked;
+        if (btnBulkDelete) {
+            btnBulkDelete.disabled = checked === 0;
+            btnBulkDelete.style.opacity = checked === 0 ? '0.5' : '1';
+            btnBulkDelete.style.cursor = checked === 0 ? 'not-allowed' : 'pointer';
+        }
+    }
+
+    if (chkAllLab) {
+        chkAllLab.addEventListener('change', function () {
+            document.querySelectorAll('.chk-item-lab').forEach(function (c) { c.checked = chkAllLab.checked; });
+            syncBulkState();
+        });
+    }
+
+    document.addEventListener('change', function (e) {
+        if (e.target.classList && e.target.classList.contains('chk-item-lab')) {
+            syncBulkState();
+        }
+    });
+
+    if (btnBulkDelete) {
+        btnBulkDelete.addEventListener('click', function () {
+            const ids = Array.from(document.querySelectorAll('.chk-item-lab:checked')).map(function (c) { return c.value; });
+            if (ids.length === 0) return;
+
+            const doBulk = function () {
+                fetch('/dashboard/laboran/inventaris/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: ids })
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (res.status === 'success') {
+                        Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                    }
+                })
+                .catch(function () {
+                    Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
+                });
+            };
+
+            Swal.fire({
+                title: 'Hapus ' + ids.length + ' Item Lab?',
+                text: 'Item yang sedang dipinjam akan dilewati otomatis.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then(function (res) {
+                if (res.isConfirmed) doBulk();
+            });
+        });
+    }
+
     if (formImport) {
         formImport.addEventListener('submit', function (e) {
             e.preventDefault();

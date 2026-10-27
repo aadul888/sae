@@ -162,6 +162,67 @@ class LaboranJadwalController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        // ==================== Matriks Grid (pola Jadwal KBM) ====================
+        $viewMode    = $request->get('view_mode', 'grid');
+        $selectedHari = $request->get('hari_grid') ?: 'Senin';
+        if (!in_array($selectedHari, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true)) {
+            $selectedHari = 'Senin';
+        }
+
+        // Slot jam pelajaran dari pengaturan KBM (Jam ke-1..N dengan jam mulai/selesai)
+        $timeSlots = \App\Models\JadwalPengaturan::getSlots($selectedHari);
+
+        // Seluruh lokasi praktik (kolom matriks): master Sarpras + lokasi tercatat
+        $gridLokasi = collect($daftarLab)->sort()->values();
+
+        // Sesi jadwal hari terpilih (status <> batal, semua tanggal berkala ditata sama)
+        $dayQuery = DB::table('laboran_jadwal_penggunaan as ljp')
+            ->leftJoin('gtk as g', 'ljp.ptk_id', '=', 'g.ptk_id')
+            ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
+            ->where('ljp.status', '<>', 'batal')
+            ->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
+        LaboranScope::apply($dayQuery, 'ljp.jurusan_id', $context);
+
+        // Hari grid cocok dengan nama hari tanggal yang direkam — sesi mingguan
+        // berulang pada hari yang sama, sehingga cukup filter nama hari tanggalnya.
+        $dayQuery->whereRaw("DAYNAME(ljp.tanggal) = ?", [$selectedHari]);
+        $daySchedules = $dayQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
+
+        $gridMatrix = [];
+        $gridOccupied = [];
+        foreach ($daySchedules as $item) {
+            $lokasi = (string) $item->ruang_lab_nama;
+            $mulai = substr((string) $item->jam_mulai, 0, 5);
+            $selesai = substr((string) $item->jam_selesai, 0, 5);
+
+            $slotMulai = null;
+            $slotSelesai = null;
+            foreach ($timeSlots as $ke => $slot) {
+                if ($slotMulai === null && $mulai >= $slot['mulai'] && $mulai < $slot['selesai']) {
+                    $slotMulai = (int) $ke;
+                }
+                if ($slotSelesai === null && $selesai > $slot['mulai'] && $selesai <= $slot['selesai']) {
+                    $slotSelesai = (int) $ke;
+                }
+            }
+            if ($slotMulai === null) {
+                continue; // Di luar rentang jam pelajaran KBM (mis. malam) — lewati
+            }
+            $slotSelesai = $slotSelesai ?? $slotMulai;
+
+            $gridMatrix[$lokasi][$slotMulai] = $item;
+            for ($k = $slotMulai + 1; $k <= $slotSelesai; $k++) {
+                $gridOccupied[$lokasi][$k] = $item->id;
+            }
+        }
+
+        // Hitung sesi per hari untuk badge tab hari
+        $countPerHari = DB::table('laboran_jadwal_penggunaan')
+            ->selectRaw('DAYNAME(tanggal) as hari, COUNT(*) as total')
+            ->where('status', '<>', 'batal');
+        LaboranScope::apply($countPerHari, 'jurusan_id', $context);
+        $countPerHari = $countPerHari->groupBy(DB::raw('DAYNAME(tanggal)'))->pluck('total', 'hari')->toArray();
+
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
 
@@ -524,6 +585,29 @@ class LaboranJadwalController extends Controller
     // 4. HELPER
     // =========================================================================
 
+    /**
+     * Daftar opsi tahun ajaran (±3 tahun sekitar tahun berjalan).
+     *
+     * @return array<int,string>
+     */
+    public static function tahunAjaranOptions(): array
+    {
+        $y = (int) date('Y');
+        $ops = [];
+        for ($i = $y - 1; $i <= $y + 2; $i++) {
+            $ops[] = $i . '/' . ($i + 1);
+        }
+
+        return $ops;
+    }
+
+    public static function tahunAjaranAktif(): string
+    {
+        $y = (int) date('Y');
+
+        return date('n') >= 7 ? "{$y}/" . ($y + 1) : ($y - 1) . "/{$y}";
+    }
+
     protected function validatedPayload(Request $request): array
     {
         $validated = $request->validate([
@@ -599,6 +683,20 @@ class LaboranJadwalController extends Controller
                 $ptkId          = $ptkId !== '' ? $ptkId : (string) ($fallback->ptk_id ?? '');
                 $pembelajaranId = $pembelajaranId !== '' ? $pembelajaranId : $fallback->pembelajaran_id;
             }
+        }
+
+        // Guru pengampu wajib ada: kolom ptk_id di tabel jadwal bersifat NOT NULL.
+        // Bila pembelajaran tidak ditemukan (mapel input bebas), ambil satu guru
+        // dari kelas yang sama atau guru siapa pun sebagai penanggung jawab sesi.
+        if ($ptkId === '' && $rombelId !== '') {
+            $ptkId = (string) (DB::table('pembelajaran as p')
+                ->join('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
+                ->where('p.rombongan_belajar_id', $rombelId)
+                ->orderBy('p.nama_mata_pelajaran')
+                ->value('p.ptk_id') ?? '');
+        }
+        if ($ptkId === '') {
+            $ptkId = (string) (DB::table('gtk')->orderBy('nama')->value('ptk_id') ?? '');
         }
 
         if ($mapelNama === '') {

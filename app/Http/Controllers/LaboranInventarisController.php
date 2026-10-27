@@ -384,6 +384,64 @@ class LaboranInventarisController extends Controller
     }
 
     /**
+     * Hapus banyak item inventaris sekaligus (ceklist). Hanya item dalam
+     * cakupan jurusan yang dihapus; item yang sedang dipinjam dilewati.
+     */
+    public function destroyBulk(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $context = LaboranScope::resolve();
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+        if (empty($ids)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Pilih minimal satu item untuk dihapus.',
+            ], 422);
+        }
+
+        $allowed = DB::table('laboran_bahan_alat')
+            ->whereIn('id', $ids)
+            ->get(['id', 'jurusan_id', 'nama_item']);
+
+        $deleted = 0;
+        $skipped = [];
+        foreach ($allowed as $row) {
+            if (!LaboranScope::allows($row->jurusan_id ?? null, $context)) {
+                $skipped[] = $row->nama_item;
+                continue;
+            }
+
+            $dipinjam = DB::table('laboran_peminjaman_item as pi')
+                ->join('laboran_peminjaman as p', 'pi.peminjaman_id', '=', 'p.id')
+                ->where('pi.item_id', $row->id)
+                ->whereIn('p.status', ['diajukan', 'disetujui', 'dipinjam', 'terlambat'])
+                ->exists();
+
+            if ($dipinjam) {
+                $skipped[] = $row->nama_item;
+                continue;
+            }
+
+            DB::table('laboran_bahan_alat')->where('id', $row->id)->delete();
+            $deleted++;
+        }
+
+        $msg = "{$deleted} data alat/bahan berhasil dihapus.";
+        if (!empty($skipped)) {
+            $msg .= ' Dilewati (dipinjam / di luar cakupan jurusan): ' . implode(', ', array_slice($skipped, 0, 5))
+                . (count($skipped) > 5 ? ' …' : '');
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => $msg,
+            'deleted' => $deleted,
+            'skipped' => count($skipped),
+        ]);
+    }
+
+    /**
      * Unduh format berkas Excel untuk import inventaris laboratorium.
      */
     public function templateExcel(?LaboranInventarisImportService $service = null)

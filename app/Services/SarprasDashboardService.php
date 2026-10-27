@@ -689,7 +689,6 @@ final class SarprasDashboardService
             ->select('gtk.nama', 'gtk.nip', 'gtk.jabatan_ptk_id_str as jabatan', DB::raw('COUNT(sr.id) as jumlah_ruang'))
             ->groupBy('gtk.ptk_id', 'gtk.nama', 'gtk.nip', 'gtk.jabatan_ptk_id_str')
             ->orderByDesc('jumlah_ruang')
-            ->limit(8)
             ->get()
             ->map(fn ($row) => (array) $row)
             ->all();

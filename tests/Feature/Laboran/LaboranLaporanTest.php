@@ -41,6 +41,11 @@ class LaboranLaporanTest extends LaboranTestCase
         $res->assertSee('Rekapitulasi Kerusakan Alat', false);
     }
 
+    /**
+     * Pengujian hitungan kerusakan memakai periode Februari 2027 yang bebas
+     * data nyata (baris produksi mencatat kejadian Okt/Nov 2026), sehingga
+     * snapshot cleanup tidak memengaruhi asersi.
+     */
     public function test_laporan_menghitung_kerusakan_dalam_periode(): void
     {
         $this->seedItems();
@@ -50,8 +55,8 @@ class LaboranLaporanTest extends LaboranTestCase
                 'jurusan_id'        => self::JUR_ATPH,
                 'nomor_ba'          => 'BAK/TEST/0001',
                 'nama_alat'         => 'Cangkul Uji',
-                'tanggal_kejadian'  => '2026-10-15',
-                'tanggal_ba'        => '2026-10-15',
+                'tanggal_kejadian'  => '2027-02-15',
+                'tanggal_ba'        => '2027-02-15',
                 'tingkat_kerusakan' => 'berat',
                 'jumlah_rusak'      => 1,
                 'satuan'            => 'unit',
@@ -64,8 +69,8 @@ class LaboranLaporanTest extends LaboranTestCase
                 'jurusan_id'        => self::JUR_ATPH,
                 'nomor_ba'          => 'BAK/TEST/0002',
                 'nama_alat'         => 'Cangkul Uji',
-                'tanggal_kejadian'  => '2026-11-20',
-                'tanggal_ba'        => '2026-11-20',
+                'tanggal_kejadian'  => '2027-03-20',
+                'tanggal_ba'        => '2027-03-20',
                 'tingkat_kerusakan' => 'ringan',
                 'jumlah_rusak'      => 1,
                 'satuan'            => 'unit',
@@ -76,15 +81,15 @@ class LaboranLaporanTest extends LaboranTestCase
             ],
         ]);
 
-        $oktober = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026]));
+        $februari = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'bulan', 'bulan' => 2, 'tahun' => 2027]));
 
-        $this->assertSame(1, $oktober->viewData('totalKerusakan'));
-        $this->assertSame(1, $oktober->viewData('totalRusakBerat'));
+        $this->assertSame(1, $februari->viewData('totalKerusakan'));
+        $this->assertSame(1, $februari->viewData('totalRusakBerat'));
 
-        $tw4 = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026]));
+        $triwulan1 = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.laporan-lengkap.index', ['periode' => 'triwulan', 'triwulan' => 1, 'tahun' => 2027]));
 
-        $this->assertSame(2, $tw4->viewData('totalKerusakan'));
+        $this->assertSame(2, $triwulan1->viewData('totalKerusakan'));
     }
 }

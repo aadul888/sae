@@ -113,7 +113,7 @@
                             style="display: none;" disabled>
                     </div>
 
-                    {{-- Pemberlakuan Jadwal: 2 Tab (Mingguan / Semester) --}}
+                    {{-- Pemberlakuan Jadwal: 2 Tab (Mingguan / Semester) — eksklusif --}}
                     <div style="margin-bottom: var(--space-7);">
                         <div class="periode-nav-wrapper" style="margin-bottom: var(--space-5);">
                             <div class="periode-nav-desktop">
@@ -126,6 +126,30 @@
                             </div>
                         </div>
                         <input type="hidden" name="pemberlakuan" id="inputPemberlakuan" value="mingguan">
+
+                        <div id="wrapOpsiSemester" style="display: none; margin-bottom: var(--space-5);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+                                <div>
+                                    <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                        Semester Berlaku <span style="color: var(--danger, #ef4444);">*</span>
+                                    </label>
+                                    <select name="pemberlakuan_semester" id="selectPemberlakuanSemester" class="form-control">
+                                        <option value="1">Semester 1 (Ganjil: Juli – Desember)</option>
+                                        <option value="2">Semester 2 (Genap: Januari – Juni)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                        Tahun Ajaran <span style="color: var(--danger, #ef4444);">*</span>
+                                    </label>
+                                    <select name="pemberlakuan_ta" id="selectPemberlakuanTa" class="form-control">
+                                        @foreach (\App\Http\Controllers\LaboranJadwalController::tahunAjaranOptions() as $ta)
+                                            <option value="{{ $ta }}" {{ $ta === (\App\Http\Controllers\LaboranJadwalController::tahunAjaranAktif()) ? 'selected' : '' }}>{{ $ta }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
                         <div id="hintPemberlakuan"
                             style="font-size: var(--text-xs); color: var(--text-muted); padding: 8px 12px; background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md, 8px);">

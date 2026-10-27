@@ -90,8 +90,13 @@
             </div>
         </div>
 
-        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) — laboran memilih & mengaktifkan salah satu --}}
+        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) — eksklusif: hanya satu mode berlaku --}}
         @if ($canRead)
+            @php
+                $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'mingguan';
+                $isActive = ($pengaturanJadwal->status ?? 'draft') === 'aktif';
+                $isActiveMode = $modeDiberlakukan === $activeMode;
+            @endphp
             <div class="periode-nav-wrapper" style="margin-bottom: var(--space-8);">
                 <div class="periode-nav-desktop">
                     @foreach ($modePemberlakuanLabels as $mKey => $mLabel)
@@ -109,16 +114,16 @@
                 </div>
             </div>
 
-            @php
-                $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'mingguan';
-                $isActive = ($pengaturanJadwal->status ?? 'draft') === 'aktif';
-                $isActiveMode = $modeDiberlakukan === $activeMode;
-            @endphp
             <div class="card" style="padding: var(--space-7) var(--space-9); margin-bottom: var(--space-9); display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); flex-wrap: wrap;">
                 <div>
                     <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base); margin-bottom: 2px;">
                         <i class="fas fa-sliders text-primary me-1"></i>
                         Pemberlakuan Penentuan Jadwal: <strong style="color: var(--primary);">{{ $modePemberlakuanLabels[$activeMode] ?? $activeMode }}</strong>
+                        @if ($modeDiberlakukan !== null && !$isActiveMode)
+                            <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-left: 6px;" title="Mode lain sedang diberlakukan">
+                                <i class="fas fa-circle-info me-1"></i> Diberlakukan: {{ $modePemberlakuanLabels[$modeDiberlakukan] ?? $modeDiberlakukan }}
+                            </span>
+                        @endif
                     </div>
                     <div style="font-size: var(--text-sm); color: var(--text-muted);">
                         @if ($activeMode === 'mingguan')
@@ -142,7 +147,7 @@
                         data-mode="{{ $activeMode }}"
                         data-status="{{ $isActiveMode ? 'draft' : 'aktif' }}"
                         data-url="{{ route('dashboard.laboran.jadwal.toggle-pemberlakuan') }}"
-                        title="{{ $isActiveMode ? 'Matikan pemberlakuan mode ini (kembali ke draft)' : 'Aktifkan mode ini sebagai acuan penentuan jadwal praktik' }}">
+                        title="{{ $isActiveMode ? 'Matikan pemberlakuan mode ini (kembali ke draft)' : ($modeDiberlakukan !== null ? 'Alihkan pemberlakuan ke mode ' . ($modePemberlakuanLabels[$activeMode] ?? $activeMode) . ' (mematikan mode lain)' : 'Aktifkan mode ini sebagai acuan penentuan jadwal praktik') }}">
                         @if ($isActiveMode)
                             <i class="fas fa-pause me-1"></i> Matikan Pemberlakuan
                         @else

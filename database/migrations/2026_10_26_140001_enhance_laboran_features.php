@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -34,6 +35,17 @@ return new class extends Migration
                 $table->string('sumber_dana', 40)->nullable()->change();
                 $table->string('pemohon_nama', 255)->nullable()->change();
             });
+
+            // Fallback bila schema change gagal dijalankan (mis. doctrine/dbal
+            // belum terpasang): ubah nullability langsung via SQL.
+            $sd = DB::selectOne(
+                'SELECT IS_NULLABLE FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+                ['laboran_usulan_pengadaan', 'sumber_dana']
+            );
+            if ($sd && strtoupper((string) $sd->IS_NULLABLE) !== 'YES') {
+                DB::statement("ALTER TABLE `laboran_usulan_pengadaan` MODIFY `sumber_dana` VARCHAR(40) NULL DEFAULT NULL");
+            }
         }
 
         if (Schema::hasTable('laboran_peminjaman_item')) {

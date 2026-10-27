@@ -408,9 +408,14 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.classList.toggle('active', btn.dataset.pemberlakuanTab === mode);
         });
 
-        // Pemetaan hari hanya relevan untuk mingguan
+        // Pemetaan hari hanya relevan untuk mingguan; opsi semester hanya untuk mode semester
         if (wrapHariMingguan) {
             wrapHariMingguan.style.display = (mode === 'mingguan') ? 'block' : 'none';
+        }
+
+        const wrapOpsiSemester = document.getElementById('wrapOpsiSemester');
+        if (wrapOpsiSemester) {
+            wrapOpsiSemester.style.display = (mode === 'semester') ? 'block' : 'none';
         }
 
         if (labelTanggalAwal) {
@@ -579,6 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // agar tidak menduplikasi rangkaian yang sudah ada.
         applyPemberlakuan('mingguan');
         if (wrapHariMingguan) wrapHariMingguan.style.display = 'none';
+        const wrapOpsiSemesterEdit = document.getElementById('wrapOpsiSemester');
+        if (wrapOpsiSemesterEdit) wrapOpsiSemesterEdit.style.display = 'none';
         if (pemberlakuanHint) {
             pemberlakuanHint.innerHTML = '<i class="fas fa-pen-to-square text-primary me-1"></i> Mode ubah: hanya sesi ini yang diperbarui.';
         }
@@ -683,6 +690,15 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (selectMapel && (!selectMapel.value || selectMapel.value === '')) {
                 notifyError('Data Belum Lengkap', 'Pilih mata pelajaran, atau aktifkan "Isi manual".');
                 return;
+            }
+
+            // Pemberlakuan mingguan wajib memilih minimal satu hari praktik
+            if (!isEditMode && (inputPemberlakuan && inputPemberlakuan.value === 'mingguan')) {
+                const adaHari = Array.prototype.some.call(chkHariList, function (c) { return c.checked; });
+                if (!adaHari) {
+                    notifyError('Data Belum Lengkap', 'Pilih minimal satu hari praktik untuk jadwal mingguan.');
+                    return;
+                }
             }
 
             const submitBtn = formJadwal.querySelector('button[type="submit"]');

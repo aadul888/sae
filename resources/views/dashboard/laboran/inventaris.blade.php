@@ -148,6 +148,13 @@
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
+                            @if ($canDelete)
+                                <button type="button" id="btnBulkDeleteLab" class="btn btn-danger" disabled
+                                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); opacity: 0.5; cursor: not-allowed;"
+                                    title="Hapus item terpilih">
+                                    <i class="fas fa-trash-can"></i> Hapus (<span id="countBulkLab">0</span>)
+                                </button>
+                            @endif
                         </div>
 
                         <div class="live-search-wrap" style="height: 38px;">
@@ -168,6 +175,11 @@
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                            @if ($canDelete)
+                                <th style="width: 34px; text-align: center; padding: 12px 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted);">
+                                    <input type="checkbox" id="chkAllLab" title="Pilih semua" style="cursor: pointer; accent-color: var(--primary);">
+                                </th>
+                            @endif
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
@@ -197,6 +209,11 @@
                                 $isLow = $item->stok_tersedia <= 2;
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                @if ($canDelete)
+                                    <td data-label="Pilih" style="padding: 14px 8px; text-align: center;">
+                                        <input type="checkbox" class="chk-item-lab" value="{{ $item->id }}" style="cursor: pointer; accent-color: var(--primary);">
+                                    </td>
+                                @endif
                                 <td data-label="No"
                                     style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ $list->firstItem() + $idx }}
@@ -340,7 +357,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                <td colspan="{{ $canDelete ? 8 : 7 }}" style="padding: 30px; text-align: center; color: var(--text-muted);">
                                     <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <div>Belum ada data alat/bahan lab yang cocok.</div>
                                 </td>
