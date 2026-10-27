@@ -53,6 +53,13 @@ abstract class LaboranTestCase extends TestCase
     {
         parent::setUp();
 
+        try {
+            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+                'mode_pemberlakuan' => 'semester',
+                'status'            => 'aktif',
+            ]);
+        } catch (\Throwable $e) {}
+
         $this->preexistingIds = [];
         foreach (self::LAB_TABLES as $table) {
             try {

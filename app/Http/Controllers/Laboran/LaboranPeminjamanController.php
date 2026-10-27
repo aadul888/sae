@@ -97,32 +97,14 @@ class LaboranPeminjamanController extends LaboranBaseController
             ->paginate($perPage)
             ->withQueryString();
 
-        // Opsi peminjam otomatis — Peserta Didik dibatasi pada jurusan laboran
-        $siswaList = DB::table('peserta_didik as pd')
-            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as rombel_nama')
-            ->orderBy('pd.nama')
-            ->limit(500);
-
-        if (!$context['unrestricted'] && !empty($context['jurusan_ids'])) {
-            $siswaList->whereIn('rb.jurusan_id', $context['jurusan_ids']);
-        }
-        $siswaList = $siswaList->get();
-
-        $guruList = DB::table('gtk')
-            ->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')
-            ->orderBy('nama')
-            ->get();
-
         return view('dashboard.laboran.peminjaman', array_merge(
             compact('list', 'search', 'statusFilter', 'tipeFilter', 'overdueOnly', 'perPage',
-                'statTotal', 'statDiajukan', 'statDipinjam', 'statTerlambat',
-                'siswaList', 'guruList'),
+                'statTotal', 'statDiajukan', 'statDipinjam', 'statTerlambat'),
             $this->abilities(),
             [
                 'context'        => $context,
                 'scopeBadge'     => LaboranScope::badge($context),
-                'itemOptions'    => $this->itemOptions($context, 'alat'),
+                'itemOptions'    => $this->itemOptions($context, 'alat', true),
                 'lokasiOptions'  => $this->lokasiOptions(),
                 'statusList'     => self::STATUS,
                 'tipeList'       => self::PEMINJAM_TIPE,

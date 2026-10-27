@@ -77,16 +77,10 @@
                             </a>
                         </div>
                     </div>
-
-                    <button type="button" class="btn btn-outline" id="btnBukaModalPilihMode"
-                        style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
-                        title="Ubah Mode Pemberlakuan Jadwal">
-                        <i class="fas fa-sliders text-primary"></i> Mode: {{ ucfirst($activeMode ?? 'Mingguan') }}
-                    </button>
                 @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        data-active-mode="{{ $activeMode ?? 'mingguan' }}"
+                        data-active-mode="{{ $activeMode ?? 'semester' }}"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
                         title="Jadwalkan Praktik Baru">
                         <i class="fas fa-plus"></i>
@@ -136,21 +130,27 @@
             </div>
         </div>
 
-        {{-- 2b. Tab Pemberlakuan Jadwal (Mingguan / Semester) â€” eksklusif: hanya satu mode berlaku --}}
+        {{-- 2b. Tab Pemberlakuan Jadwal (Semester / Mingguan) — Default Semester, Ketat 1 Mode --}}
         @if ($canRead)
             @php
-                $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'mingguan';
-                $isActive = ($pengaturanJadwal->status ?? 'draft') === 'aktif';
-                $isActiveMode = $modeDiberlakukan === $activeMode;
+                $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'semester';
+                $modeDiberlakukan = $activeMode;
             @endphp
             <div class="periode-nav-wrapper" style="margin-bottom: var(--space-8);">
                 <div class="periode-nav-desktop">
                     @foreach ($modePemberlakuanLabels as $mKey => $mLabel)
-                        <a href="{{ route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => $mKey]) }}"
-                            class="periode-nav-tab {{ ($pengaturanJadwal->mode_pemberlakuan ?? 'mingguan') === $mKey ? 'active' : '' }}">
+                        @php
+                            $isThisActive = ($activeMode === $mKey);
+                        @endphp
+                        <a href="{{ route('dashboard.laboran.jadwal.index', array_merge(request()->query(), ['mode_pemberlakuan' => $mKey])) }}"
+                            class="periode-nav-tab btn-tab-pemberlakuan {{ $isThisActive ? 'active' : '' }}"
+                            data-mode="{{ $mKey }}"
+                            data-label="{{ $mLabel }}"
+                            data-is-active="{{ $isThisActive ? '1' : '0' }}"
+                            title="Klik untuk memberlakukan Jadwal {{ $mLabel }}">
                             <i class="fas {{ $mKey === 'mingguan' ? 'fa-calendar-week' : 'fa-calendar-range' }}"></i>
                             {{ $mLabel }}
-                            @if ($modeDiberlakukan === $mKey)
+                            @if ($isThisActive)
                                 <span class="badge badge-success" style="font-size: var(--text-2xs); margin-left: 6px;">
                                     <i class="fas fa-check-circle me-1"></i> Diberlakukan
                                 </span>
@@ -158,49 +158,6 @@
                         </a>
                     @endforeach
                 </div>
-            </div>
-
-            <div class="card" style="padding: var(--space-7) var(--space-9); margin-bottom: var(--space-9); display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); flex-wrap: wrap;">
-                <div>
-                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base); margin-bottom: 2px;">
-                        <i class="fas fa-sliders text-primary me-1"></i>
-                        Pemberlakuan Penentuan Jadwal: <strong style="color: var(--primary);">{{ $modePemberlakuanLabels[$activeMode] ?? $activeMode }}</strong>
-                        @if ($modeDiberlakukan !== null && !$isActiveMode)
-                            <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-left: 6px;" title="Mode lain sedang diberlakukan">
-                                <i class="fas fa-circle-info me-1"></i> Diberlakukan: {{ $modePemberlakuanLabels[$modeDiberlakukan] ?? $modeDiberlakukan }}
-                            </span>
-                        @endif
-                    </div>
-                    <div style="font-size: var(--text-sm); color: var(--text-muted);">
-                        @if ($activeMode === 'mingguan')
-                            Jadwal praktik ditentukan per minggu: pilih hari praktik (bisa lebih dari satu) yang berulang setiap minggu, dengan acuan tanggal awal berlaku.
-                        @else
-                            Jadwal praktik ditentukan per semester (Ganjil Juliâ€“Desember / Genap Januariâ€“Juni) sesuai tahun ajaran berjalan, dengan pemetaan hari praktik.
-                        @endif
-                        @if ($isActive)
-                            <span class="badge badge-success" style="margin-left: 6px;">
-                                <i class="fas fa-circle-check me-1"></i> Aktif
-                            </span>
-                        @else
-                            <span class="badge badge-warning" style="margin-left: 6px;">
-                                <i class="fas fa-pause me-1"></i> Draft
-                            </span>
-                        @endif
-                    </div>
-                </div>
-                @if ($canUpdate)
-                    <button type="button" class="btn {{ $isActiveMode ? 'btn-outline' : 'btn-primary' }} btn-toggle-pemberlakuan-lab"
-                        data-mode="{{ $activeMode }}"
-                        data-status="{{ $isActiveMode ? 'draft' : 'aktif' }}"
-                        data-url="{{ route('dashboard.laboran.jadwal.toggle-pemberlakuan') }}"
-                        title="{{ $isActiveMode ? 'Matikan pemberlakuan mode ini (kembali ke draft)' : ($modeDiberlakukan !== null ? 'Alihkan pemberlakuan ke mode ' . ($modePemberlakuanLabels[$activeMode] ?? $activeMode) . ' (mematikan mode lain)' : 'Aktifkan mode ini sebagai acuan penentuan jadwal praktik') }}">
-                        @if ($isActiveMode)
-                            <i class="fas fa-pause me-1"></i> Matikan Pemberlakuan
-                        @else
-                            <i class="fas fa-play me-1"></i> Aktifkan Pemberlakuan
-                        @endif
-                    </button>
-                @endif
             </div>
         @endif
 
@@ -376,6 +333,13 @@
                                                     </div>
                                                 </div>
                                             @endforeach
+                                        </td>
+                                    @elseif (!empty($gridOccupied[$hari][$row]))
+                                        {{-- Slot ini adalah lanjutan sesi dari jam pelajaran sebelumnya --}}
+                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background: rgba(99,102,241,0.02); text-align: center; vertical-align: middle;">
+                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--primary); font-weight: 600; opacity: 0.75;">
+                                                <i class="fas fa-arrow-up me-1"></i> Lanjutan sesi
+                                            </div>
                                         </td>
                                     @else
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle; text-align: center; height: 64px; box-sizing: border-box;">
@@ -648,7 +612,6 @@
 
         @include('dashboard.laboran.partials.jadwal-modal-mingguan')
         @include('dashboard.laboran.partials.jadwal-modal-semester')
-        @include('dashboard.laboran.partials.jadwal-modal-pilih-mode')
         @include('dashboard.laboran.partials.jadwal-modal-status')
     </div>
 

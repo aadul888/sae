@@ -204,9 +204,9 @@ class LaboranJadwalService
             return $end->lt($start) ? [$end->copy(), $start] : [$start, $end];
         }
 
-        // Mingguan dengan rentang minggu eksplisit (Minggu ke-N s/d ke-M):
+        // Mingguan dan Semester dengan rentang minggu eksplisit (Minggu ke-N s/d ke-M):
         // mulai tanggal awal (minggu N) hingga akhir minggu M.
-        if ($pemberlakuan === 'mingguan' && $minggu && $minggu > 0) {
+        if (in_array($pemberlakuan, ['mingguan', 'semester'], true) && $minggu && $minggu > 0) {
             $start = $base->copy();
             $end = $base->copy()->addWeeks($minggu)->subDay();
 
@@ -317,6 +317,20 @@ class LaboranJadwalService
                 $q->where('jam_mulai', '<', $data['jam_selesai'])
                   ->where('jam_selesai', '>', $data['jam_mulai']);
             });
+
+        // Pemberlakuan ketat: bentrok hanya diperiksa dalam cakupan mode yang sama
+        $pemberlakuan = $data['pemberlakuan'] ?? null;
+        if ($pemberlakuan) {
+            if ($pemberlakuan === 'mingguan') {
+                $base->where(function ($w) {
+                    $w->where('pemberlakuan', 'mingguan')
+                      ->orWhere('pemberlakuan', 'sekali')
+                      ->orWhereNull('pemberlakuan');
+                });
+            } elseif ($pemberlakuan === 'semester') {
+                $base->where('pemberlakuan', 'semester');
+            }
+        }
 
         if ($ignoreId) {
             $base->where('id', '<>', $ignoreId);
@@ -880,8 +894,8 @@ class LaboranJadwalService
     // =========================================================================
 
     public const MODE_PEMBERLAKUAN = [
-        'mingguan' => 'Mingguan',
         'semester' => 'Semester',
+        'mingguan' => 'Mingguan',
     ];
 
     /**
@@ -893,8 +907,8 @@ class LaboranJadwalService
         if (!$row) {
             DB::table('laboran_jadwal_pengaturan')->insert([
                 'id'                => 1,
-                'mode_pemberlakuan' => 'mingguan',
-                'status'            => 'draft',
+                'mode_pemberlakuan' => 'semester',
+                'status'            => 'aktif',
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ]);
@@ -905,15 +919,15 @@ class LaboranJadwalService
     }
 
     /**
-     * Mode pemberlakuan yang sedang diberlakukan ('mingguan' | 'semester' | null).
+     * Mode pemberlakuan yang sedang diberlakukan ('semester' | 'mingguan' | null).
      */
     public static function getModeDiberlakukan(): ?string
     {
         $row = self::getPengaturanJadwal();
 
-        return ($row->status === 'aktif' && in_array($row->mode_pemberlakuan, ['mingguan', 'semester'], true))
+        return ($row->status === 'aktif' && in_array($row->mode_pemberlakuan, ['semester', 'mingguan'], true))
             ? $row->mode_pemberlakuan
-            : null;
+            : 'semester';
     }
 
     protected function resolvePetugasLaboran(): array

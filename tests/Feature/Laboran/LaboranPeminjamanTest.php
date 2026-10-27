@@ -118,24 +118,18 @@ class LaboranPeminjamanTest extends LaboranTestCase
     }
 
     /**
-     * Daftar siswa peminjam hanya memuat peserta didik dari jurusan laboran.
+     * Form peminjam memakai live search (nama/NISN/NIP) melalui endpoint orang
+     * bersama, dan lokasi pengambilan berupa input dengan datalist.
      */
-    public function test_daftar_siswa_peminjam_dibatasi_jurusan(): void
+    public function test_form_peminjam_memakai_live_search(): void
     {
-        $session = $this->laboranSession(self::JUR_ATPH);
+        $html = $this->withSession($this->laboranSession(self::JUR_ATPH))
+            ->get(route('dashboard.laboran.peminjaman-alat.index'))
+            ->assertStatus(200)
+            ->getContent();
 
-        $res = $this->withSession($session)->get(route('dashboard.laboran.peminjaman-alat.index'));
-        $res->assertStatus(200);
-
-        $siswaList = $res->viewData('siswaList');
-        $jurusanIds = DB::table('rombongan_belajar')
-            ->whereIn('rombongan_belajar_id', $siswaList->pluck('rombongan_belajar_id')->filter()->all())
-            ->pluck('jurusan_id')
-            ->unique();
-
-        $this->assertTrue(
-            $jurusanIds->every(fn ($j) => $j === self::JUR_ATPH),
-            'Daftar siswa peminjam harus hanya dari jurusan laboran.'
-        );
+        $this->assertStringContainsString('data-people-search="' . route('dashboard.people.search') . '"', $html);
+        $this->assertStringContainsString('data-people-kind="siswa"', $html);
+        $this->assertStringContainsString('id="daftarLokasiPeminjaman"', $html);
     }
 }

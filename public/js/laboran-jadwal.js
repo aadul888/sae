@@ -15,9 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. Referensi Elemen Banner & Navigasi
     // -------------------------------------------------------------------------
     const btnOpenModalJadwal = document.getElementById('btnOpenModalJadwal');
-    const btnBukaModalPilihMode = document.getElementById('btnBukaModalPilihMode');
-    const btnCloseLockModal = document.getElementById('btnCloseLockModal');
-    const modalLockPilihModeJadwal = document.getElementById('modalLockPilihModeJadwal');
 
     const btnDropdownCetakJadwal = document.getElementById('btnDropdownCetakJadwal');
     const dropdownMenuCetakJadwal = document.getElementById('dropdownMenuCetakJadwal');
@@ -52,6 +49,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectJamKeSelesaiSemester = document.getElementById('selectJamKeSelesaiSemester');
     const selectPemberlakuanSemesterS = document.getElementById('selectPemberlakuanSemesterS');
     const selectPemberlakuanTaS = document.getElementById('selectPemberlakuanTaS');
+    const inputTanggalSemester = document.getElementById('inputTanggalSemester');
+    const selectPemberlakuanMingguS = document.getElementById('selectPemberlakuanMingguS');
+    const selectPemberlakuanMingguAkhirS = document.getElementById('selectPemberlakuanMingguAkhirS');
 
     // -------------------------------------------------------------------------
     // 3. Util: Alert & CSRF
@@ -85,21 +85,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!btnDropdownCetakJadwal.contains(e.target)) {
                 dropdownMenuCetakJadwal.style.display = 'none';
             }
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // 5. Modal Penguncian Pilihan Mode Jadwal
-    // -------------------------------------------------------------------------
-    if (btnBukaModalPilihMode && modalLockPilihModeJadwal) {
-        btnBukaModalPilihMode.addEventListener('click', function () {
-            modalLockPilihModeJadwal.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseLockModal && modalLockPilihModeJadwal) {
-        btnCloseLockModal.addEventListener('click', function () {
-            modalLockPilihModeJadwal.style.display = 'none';
         });
     }
 
@@ -304,6 +289,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (inputTanggalSemester) {
+        inputTanggalSemester.addEventListener('change', function () {
+            if (!this.value) return;
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const d = new Date(this.value + 'T00:00:00');
+            const hariNama = days[d.getDay()] || 'Senin';
+            const targetHari = inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']) ? hariNama : 'Senin';
+            if (selectHariSemester) {
+                selectHariSemester.value = targetHari;
+            }
+            loadSlotsForHari(targetHari, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
+        });
+    }
+
     function inArray(needle, haystack) {
         return haystack.indexOf(needle) !== -1;
     }
@@ -330,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 8. Buka / Tutup Modal Tambah & Ubah Jadwal
     // -------------------------------------------------------------------------
     function getActiveMode() {
-        return (btnOpenModalJadwal && btnOpenModalJadwal.dataset.activeMode) || 'mingguan';
+        return (btnOpenModalJadwal && btnOpenModalJadwal.dataset.activeMode) || 'semester';
     }
 
     function openModalCreate(mode) {
@@ -343,6 +342,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (jadwalMethodSemester) jadwalMethodSemester.value = 'POST';
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Jadwalkan Praktik (Semester)';
             setGuruMapelOptions(selectGuruMapelSemester, hintSemester, []);
+            if (inputTanggalSemester) {
+                const now = new Date();
+                const tzOffset = now.getTimezoneOffset() * 60000;
+                inputTanggalSemester.value = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const d = new Date(inputTanggalSemester.value + 'T00:00:00');
+                const hariNama = days[d.getDay()] || 'Senin';
+                if (selectHariSemester && inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'])) {
+                    selectHariSemester.value = hariNama;
+                }
+            }
+            if (selectPemberlakuanMingguS) selectPemberlakuanMingguS.value = '1';
+            if (selectPemberlakuanMingguAkhirS) selectPemberlakuanMingguAkhirS.value = '18';
             loadSlotsForHari(selectHariSemester ? selectHariSemester.value : 'Senin', selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
         } else {
@@ -405,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Ubah Jadwal Praktik (Semester)';
             if (selectLokasiSemester) selectLokasiSemester.value = d.lokasi || '';
             if (selectRombelSemester) selectRombelSemester.value = d.rombelId || '';
+            if (inputTanggalSemester) inputTanggalSemester.value = d.tanggal || '';
             loadGuruMapel(d.rombelId || '', selectGuruMapelSemester, hintSemester, d.pembelajaranId || null);
             loadSlotsForHari('Senin', selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
@@ -426,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // -------------------------------------------------------------------------
     // 9. Submit Form Jadwal (Mingguan & Semester)
     // -------------------------------------------------------------------------
-    function handleFormSubmit(form, selectLokasi, selectRombel, selectGuruMapel, selectJamMulai, selectJamSelesai, modalEl) {
+    function handleFormSubmit(form, selectLokasi, selectRombel, selectGuruMapel, selectJamMulai, selectJamSelesai, inputTanggal, selectMingguMulai, selectMingguAkhir, modalEl) {
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
@@ -444,6 +457,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (selectGuruMapel && !selectGuruMapel.value) {
                 notifyError('Data Belum Lengkap', 'Pilih guru pengampu & mata pelajaran.');
+                return;
+            }
+
+            if (inputTanggal && !inputTanggal.value) {
+                notifyError('Data Belum Lengkap', 'Pilih tanggal awal pelaksanaan praktik.');
+                return;
+            }
+
+            if (selectMingguMulai && selectMingguAkhir && Number(selectMingguAkhir.value) < Number(selectMingguMulai.value)) {
+                notifyError('Data Belum Lengkap', 'Sampai minggu ke- tidak boleh lebih kecil dari minggu ke- awal.');
                 return;
             }
 
@@ -502,6 +525,9 @@ document.addEventListener('DOMContentLoaded', function () {
         selectGuruMapelMingguan,
         selectJamKeMulaiMingguan,
         selectJamKeSelesaiMingguan,
+        inputTanggalMingguan,
+        selectPemberlakuanMingguM,
+        selectPemberlakuanMingguAkhirM,
         modalJadwalMingguan
     );
 
@@ -512,6 +538,9 @@ document.addEventListener('DOMContentLoaded', function () {
         selectGuruMapelSemester,
         selectJamKeMulaiSemester,
         selectJamKeSelesaiSemester,
+        inputTanggalSemester,
+        selectPemberlakuanMingguS,
+        selectPemberlakuanMingguAkhirS,
         modalJadwalSemester
     );
 
@@ -653,7 +682,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -------------------------------------------------------------------------
-    // 12. Pemberlakuan Jadwal (Aktifkan Mode Mingguan / Semester)
+    // 12. Konfirmasi Pindah Tab Pemberlakuan (Mingguan <-> Semester)
+    // -------------------------------------------------------------------------
+    document.addEventListener('click', function (e) {
+        const tabLink = e.target.closest('.btn-tab-pemberlakuan');
+        if (!tabLink) return;
+
+        const isActive = tabLink.dataset.isActive === '1';
+        if (isActive) {
+            return;
+        }
+
+        e.preventDefault();
+        const targetUrl = tabLink.href;
+        const targetLabel = tabLink.dataset.label || 'Jadwal';
+
+        const promptTitle = 'Memberlakukan Jadwal ' + targetLabel + '?';
+        const promptHtml = 'Apakah Anda yakin ingin memberlakukan <strong>Jadwal ' + targetLabel + '</strong>?<br><small style="color: var(--text-muted);">Sistem akan secara ketat menerapkan Jadwal ' + targetLabel + ' sebagai acuan tunggal.</small>';
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: promptTitle,
+                html: promptHtml,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Berlakukan',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    window.location.href = targetUrl;
+                }
+            });
+        } else {
+            if (confirm('Apakah Anda yakin ingin memberlakukan Jadwal ' + targetLabel + '?')) {
+                window.location.href = targetUrl;
+            }
+        }
+    });
+
+    // -------------------------------------------------------------------------
+    // 13. Pemberlakuan Jadwal (Aktifkan Mode Mingguan / Semester)
     // -------------------------------------------------------------------------
     document.addEventListener('click', function (e) {
         const btnToggle = e.target.closest('.btn-toggle-pemberlakuan-lab');

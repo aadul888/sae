@@ -48,6 +48,32 @@ class LaboranJadwalController extends Controller
         $statusFilter  = trim($request->query('status', ''));
         $tanggalFilter = trim($request->query('tanggal', ''));
 
+        // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester).
+        // Pemberlakuan ketat: klik tab = otomatis berlaku, hanya 1 mode yang diberlakukan.
+        $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
+        $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
+        if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)) {
+            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+                'mode_pemberlakuan'        => $modePilih,
+                'status'                   => 'aktif',
+                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
+                'updated_at'               => now(),
+            ]);
+            $pengaturanJadwal = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        } elseif (($pengaturanJadwal->status ?? '') !== 'aktif') {
+            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+                'mode_pemberlakuan'        => $pengaturanJadwal->mode_pemberlakuan ?: 'semester',
+                'status'                   => 'aktif',
+                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
+                'updated_at'               => now(),
+            ]);
+            $pengaturanJadwal = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        }
+
+        $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'semester';
+        $modeDiberlakukan = $activeMode;
+        $modePemberlakuanLabels = LaboranJadwalService::MODE_PEMBERLAKUAN;
+
         $query = DB::table('laboran_jadwal_penggunaan as ljp')
             ->leftJoin('gtk', 'ljp.ptk_id', '=', 'gtk.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
@@ -59,6 +85,19 @@ class LaboranJadwalController extends Controller
             );
 
         LaboranScope::apply($query, 'ljp.jurusan_id', $context);
+
+        // Filter ketat sesuai mode pemberlakuan aktif (hanya 1 acuan berlaku, default: semester)
+        if ($activeMode === 'semester') {
+            $query->where(function ($w) {
+                $w->where('ljp.pemberlakuan', 'semester')
+                  ->orWhereNull('ljp.pemberlakuan');
+            });
+        } else {
+            $query->where(function ($w) {
+                $w->where('ljp.pemberlakuan', 'mingguan')
+                  ->orWhere('ljp.pemberlakuan', 'sekali');
+            });
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -87,8 +126,19 @@ class LaboranJadwalController extends Controller
             $query->where('ljp.tanggal', $tanggalFilter);
         }
 
-        // Statistik ringkas (dalam cakupan jurusan)
+        // Statistik ringkas (dalam cakupan jurusan & mode pemberlakuan aktif)
         $statBase = DB::table('laboran_jadwal_penggunaan');
+        if ($activeMode === 'semester') {
+            $statBase->where(function ($w) {
+                $w->where('pemberlakuan', 'semester')
+                  ->orWhereNull('pemberlakuan');
+            });
+        } else {
+            $statBase->where(function ($w) {
+                $w->where('pemberlakuan', 'mingguan')
+                  ->orWhere('pemberlakuan', 'sekali');
+            });
+        }
         LaboranScope::apply($statBase, 'jurusan_id', $context);
 
         $statTotal       = (clone $statBase)->count();
@@ -183,12 +233,25 @@ class LaboranJadwalController extends Controller
         // Lokasi praktik tampil di dalam kartu sesi bersama mapel/guru/kelas.
         $gridLokasi = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-        // Sesi seluruh hari (status <> batal) — hari lain tetap aktif diinput.
+        // Sesi seluruh hari (status <> batal) — disaring ketat sesuai mode pemberlakuan aktif
         $allQuery = DB::table('laboran_jadwal_penggunaan as ljp')
             ->leftJoin('gtk as g', 'ljp.ptk_id', '=', 'g.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ljp.status', '<>', 'batal')
-            ->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
+            ->where('ljp.status', '<>', 'batal');
+
+        if ($activeMode === 'semester') {
+            $allQuery->where(function ($w) {
+                $w->where('ljp.pemberlakuan', 'semester')
+                  ->orWhereNull('ljp.pemberlakuan');
+            });
+        } else {
+            $allQuery->where(function ($w) {
+                $w->where('ljp.pemberlakuan', 'mingguan')
+                  ->orWhere('ljp.pemberlakuan', 'sekali');
+            });
+        }
+
+        $allQuery->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
         LaboranScope::apply($allQuery, 'ljp.jurusan_id', $context);
         $allSchedules = $allQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
 
@@ -223,11 +286,17 @@ class LaboranJadwalController extends Controller
             }
             $slotSelesai = $slotSelesai ?? $slotMulai;
 
-            // Beberapa guru dapat memakai lokasi berbeda pada jam sama — simpan sebagai daftar.
+            // Simpan kartu di slotMulai dengan informasi durasi/slotAkhir
             $gridMatrix[$hari][$slotMulai][] = [
-                'item'     => $item,
+                'item'      => $item,
                 'slotAkhir' => $slotSelesai,
+                'isStart'   => true,
             ];
+
+            // Tandai slot berikutnya yang tercakup agar tidak menumpuk sebagai slot kosong
+            for ($k = $slotMulai + 1; $k <= $slotSelesai; $k++) {
+                $gridOccupied[$hari][$k] = true;
+            }
         }
 
         // Hitung sesi per hari untuk badge header (MySQL DAYNAME -> Indonesia)
@@ -272,28 +341,7 @@ class LaboranJadwalController extends Controller
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
 
-        // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester).
-        // Klik tab = memilih mode aktif (disimpan langsung ke pengaturan).
-        $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
-        $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
-        if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)) {
-            $aktifkan = $request->boolean('aktifkan');
-            $update = [
-                'mode_pemberlakuan' => $modePilih,
-                'updated_at'        => now(),
-            ];
-            // Pindah tab hanya mengganti mode tampilan. Status 'aktif' (penguncian)
-            // hanya berubah lewat modal penguncian atau tombol Aktifkan Pemberlakuan.
-            if ($aktifkan) {
-                $update['status'] = 'aktif';
-                $update['diberlakukan_oleh_ptk_id'] = $this->currentPtkId();
-            }
-            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update($update);
-            $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
-        }
-        $modeDiberlakukan = LaboranJadwalService::getModeDiberlakukan();
-        $modePemberlakuanLabels = LaboranJadwalService::MODE_PEMBERLAKUAN;
-        $perluPilihMode = empty($pengaturanJadwal->mode_pemberlakuan) || $pengaturanJadwal->status !== 'aktif' || $request->has('pilih_mode');
+        $perluPilihMode = false;
 
         return view('dashboard.laboran.jadwal', compact(
             'list', 'search', 'labFilter', 'jenisFilter', 'statusFilter', 'tanggalFilter',
@@ -522,7 +570,7 @@ class LaboranJadwalController extends Controller
         }
         $tanggalAkhir = $request->filled('tanggal_akhir') ? (string) $request->input('tanggal_akhir') : null;
         $minggu = null;
-        if ($pemberlakuan === 'mingguan') {
+        if (in_array($pemberlakuan, ['mingguan', 'semester'], true)) {
             $mingguMulai   = $request->filled('pemberlakuan_minggu') ? max(1, (int) $request->input('pemberlakuan_minggu')) : null;
             $mingguAkhir   = $request->filled('pemberlakuan_minggu_akhir') ? max(1, (int) $request->input('pemberlakuan_minggu_akhir')) : null;
             if ($mingguMulai !== null) {
@@ -891,10 +939,16 @@ class LaboranJadwalController extends Controller
         $jamKeSelesai = (int) ($validated['jam_ke_selesai'] ?? 0);
 
         if ($jamKeMulai > 0) {
-            $hariBase = Carbon::parse($validated['tanggal'])->translatedFormat('l');
-            $slots = \App\Models\JadwalPengaturan::getSlots(
-                in_array($hariBase, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true) ? $hariBase : null
-            );
+            $hariBase = null;
+            if (!empty($validated['tanggal'])) {
+                $dayMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+                    'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
+                $hariBase = $dayMap[date('l', strtotime($validated['tanggal']))] ?? null;
+            }
+            if (!$hariBase || !in_array($hariBase, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true)) {
+                $hariBase = $request->input('hari_semester') ?: 'Senin';
+            }
+            $slots = \App\Models\JadwalPengaturan::getSlots($hariBase);
             if ($jamKeSelesai < $jamKeMulai) {
                 $jamKeSelesai = $jamKeMulai;
             }

@@ -10,7 +10,7 @@
                 <form id="formPeminjaman" method="POST" action="{{ route('dashboard.laboran.peminjaman-alat.store') }}">
                     @csrf
 
-                    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); align-items: start; margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                                 Tipe Peminjam <span style="color: var(--danger, #ef4444);">*</span>
@@ -26,60 +26,39 @@
                                 Nama Peminjam <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
 
-                            {{-- Pilihan Otomatis: Siswa --}}
-                            <div id="wrapPeminjamSiswa">
-                                <select id="selectPeminjamSiswa" class="form-control">
-                                    <option value="">-- Pilih Peserta Didik (Otomatis) --</option>
-                                    @foreach (($siswaList ?? []) as $s)
-                                        <option value="{{ $s->peserta_didik_id }}" data-nama="{{ $s->nama }}" data-kelas="{{ $s->rombel_nama }}">
-                                            {{ $s->nama }}{{ !empty($s->rombel_nama) ? ' • ' . $s->rombel_nama : '' }}{{ !empty($s->nisn) ? ' (' . $s->nisn . ')' : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Pilihan Otomatis: Guru / Tendik --}}
-                            <div id="wrapPeminjamGtk" style="display: none;">
-                                <select id="selectPeminjamGtk" class="form-control">
-                                    <option value="">-- Pilih Guru / Tenaga Kependidikan --</option>
-                                    @foreach (($guruList ?? []) as $g)
-                                        <option value="{{ $g->ptk_id }}" data-nama="{{ $g->nama }}" data-kelas="{{ $g->nip ? 'NIP. ' . $g->nip : ($g->jenis_ptk_id_str ?: 'GTK') }}">
-                                            {{ $g->nama }}{{ !empty($g->nip) ? ' — ' . $g->nip : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Input Manual untuk Umum --}}
-                            <input type="text" name="peminjam_nama" id="pjNama" class="form-control" required placeholder="Nama lengkap peminjam" style="margin-top: 4px;">
+                            {{-- Live search: ketik nama / NISN / NIP / NIPD, atau ketik manual untuk peminjam umum --}}
+                            <input type="search" name="peminjam_nama" id="pjNama" class="form-control" required
+                                placeholder="Cari siswa/GTK atau ketik nama..." autocomplete="off"
+                                data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
+                                data-people-target="#pjId" data-people-type-target="#pjTipe"
+                                data-people-unit-target="#pjKelas" data-people-clear-unit-on-input="true">
                             <input type="hidden" name="peminjam_id" id="pjId">
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); align-items: start; margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Kelas / Unit Kerja</label>
                             <input type="text" name="peminjam_kelas" id="pjKelas" class="form-control" placeholder="Contoh: XI TKJ 1 / Guru Kejuruan">
                         </div>
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Lokasi Pengambilan</label>
-                            <select name="ruang_lab_nama" id="pjLokasi" class="form-control">
-                                <option value="">-- Pilih --</option>
-                                @foreach ($lokasiOptions as $lok)
-                                    <option value="{{ $lok }}">{{ $lok }}</option>
-                                @endforeach
-                            </select>
+                            <div class="people-autocomplete">
+                                <input type="text" name="ruang_lab_nama" id="pjLokasi" class="form-control"
+                                    autocomplete="off" placeholder="Ketuk atau ketik lokasi pengambilan...">
+                            </div>
+                            <script type="application/json" id="daftarLokasiPeminjaman">@json($lokasiOptions)</script>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: var(--space-6);">
+                    <div class="form-group" style="margin-bottom: var(--space-7);">
                         <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                             Keperluan <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" name="keperluan" id="pjKeperluan" class="form-control" required placeholder="Contoh: Praktik konfigurasi jaringan">
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); align-items: start; margin-bottom: var(--space-7);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                                 Tanggal Pinjam <span style="color: var(--danger, #ef4444);">*</span>
@@ -95,7 +74,7 @@
                     </div>
 
                     {{-- Pilih Alat Terpadu (Laboratorium & Sarpras) --}}
-                    <div class="form-group" style="margin-bottom: var(--space-6);">
+                    <div class="form-group" style="margin-bottom: var(--space-7);">
                         <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                             Pilih Alat yang Dipinjam <span style="color: var(--danger, #ef4444);">*</span>
                         </label>

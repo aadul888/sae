@@ -129,8 +129,12 @@ abstract class LaboranBaseController extends Controller
 
     /**
      * Daftar item alat/bahan dalam cakupan (untuk dropdown pilihan).
+     *
+     * @param  bool  $hanyaPenanggungJawab  Batasi ke ruang yang penanggung jawabnya
+     *         adalah pengguna aktif. Bila pengguna tidak menjadi penanggung jawab
+     *         ruang manapun, filter dilewati (tetap memakai cakupan jurusan).
      */
-    protected function itemOptions(array $context, ?string $jenis = null)
+    protected function itemOptions(array $context, ?string $jenis = null, bool $hanyaPenanggungJawab = false)
     {
         $q = DB::table('laboran_bahan_alat')
             ->select('id', 'kode_item', 'nama_item', 'jenis', 'satuan', 'ruang_lab_nama', 'stok_tersedia', 'kondisi', 'jurusan_id')
@@ -140,6 +144,18 @@ abstract class LaboranBaseController extends Controller
 
         if ($jenis) {
             $q->where('jenis', $jenis);
+        }
+
+        if ($hanyaPenanggungJawab && !empty($context['ptk_id'])) {
+            $ruangPj = DB::table('sarpras_ruang')
+                ->where('penanggung_jawab_ptk_id', $context['ptk_id'])
+                ->whereNotNull('nama_ruang')
+                ->pluck('nama_ruang')
+                ->all();
+
+            if (!empty($ruangPj)) {
+                $q->whereIn('ruang_lab_nama', $ruangPj);
+            }
         }
 
         return $q->get();

@@ -102,7 +102,7 @@
                             Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select name="pemberlakuan_minggu" id="selectPemberlakuanMingguM" class="form-control">
-                            @for ($m = 1; $m <= 12; $m++)
+                            @for ($m = 1; $m <= 24; $m++)
                                 <option value="{{ $m }}">Minggu ke-{{ $m }}</option>
                             @endfor
                         </select>
@@ -118,7 +118,7 @@
                             Sampai Minggu Ke-
                         </label>
                         <select name="pemberlakuan_minggu_akhir" id="selectPemberlakuanMingguAkhirM" class="form-control">
-                            @for ($m = 1; $m <= 12; $m++)
+                            @for ($m = 1; $m <= 24; $m++)
                                 <option value="{{ $m }}">Minggu ke-{{ $m }}</option>
                             @endfor
                         </select>

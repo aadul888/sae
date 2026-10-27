@@ -298,5 +298,95 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ])->assertStatus(200);
     }
 
+    public function test_pemberlakuan_ketat_hanya_menampilkan_jadwal_mode_aktif(): void
+    {
+        $session = $this->adminSession();
+        $rombel = $this->kelasReguler();
+        $guru = DB::table('gtk')->value('ptk_id');
+
+        // 1. Buat 1 jadwal mingguan
+        DB::table('laboran_jadwal_penggunaan')->insert([
+            'ruang_lab_nama'   => 'Lab Komputer 1',
+            'jenis_lokasi'     => 'lab',
+            'rombel_id'        => $rombel->rombongan_belajar_id,
+            'ptk_id'           => $guru,
+            'mata_pelajaran'   => 'Mapel Khusus Mingguan',
+            'tanggal'          => '2026-11-02',
+            'pemberlakuan'     => 'mingguan',
+            'jam_mulai'        => '08:00',
+            'jam_selesai'      => '09:30',
+            'status'           => 'dijadwalkan',
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        // 2. Buat 1 jadwal semester
+        DB::table('laboran_jadwal_penggunaan')->insert([
+            'ruang_lab_nama'   => 'Bengkel Mesin 1',
+            'jenis_lokasi'     => 'bengkel',
+            'rombel_id'        => $rombel->rombongan_belajar_id,
+            'ptk_id'           => $guru,
+            'mata_pelajaran'   => 'Mapel Khusus Semester',
+            'tanggal'          => '2026-11-02',
+            'pemberlakuan'     => 'semester',
+            'jam_mulai'        => '10:00',
+            'jam_selesai'      => '11:30',
+            'status'           => 'dijadwalkan',
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        // Pada mode Mingguan: hanya mapel mingguan yang muncul, tidak ada semester
+        $resMingguan = $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'mingguan', 'view_mode' => 'table']));
+        $resMingguan->assertStatus(200);
+        $resMingguan->assertSee('Mapel Khusus Mingguan');
+        $resMingguan->assertDontSee('Mapel Khusus Semester');
+
+        // Pada mode Semester: hanya mapel semester yang muncul, tidak ada mingguan
+        $resSemester = $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'semester', 'view_mode' => 'table']));
+        $resSemester->assertStatus(200);
+        $resSemester->assertSee('Mapel Khusus Semester');
+        $resSemester->assertDontSee('Mapel Khusus Mingguan');
+    }
+
+    public function test_modal_input_jadwal_semester_dengan_minggu_dan_tanggal_awal(): void
+    {
+        $session = $this->adminSession();
+        $rombel = $this->kelasReguler();
+        $guru = DB::table('gtk')->value('ptk_id');
+
+        $payload = [
+            'ruang_lab_nama'            => 'Lab Kimia Terpadu',
+            'jenis_lokasi'              => 'lab',
+            'rombel_id'                 => $rombel->rombongan_belajar_id,
+            'ptk_id'                    => $guru,
+            'mata_pelajaran'            => 'Praktikum Kimia Semester',
+            'pemberlakuan'              => 'semester',
+            'hari_semester'             => 'Senin',
+            'jam_ke_mulai'              => 1,
+            'jam_ke_selesai'            => 2,
+            'pemberlakuan_semester'     => '1',
+            'pemberlakuan_ta'           => '2026/2027',
+            'pemberlakuan_minggu'       => '1',
+            'tanggal'                   => '2026-11-02', // Tanggal awal (Senin)
+            'pemberlakuan_minggu_akhir' => '4',          // 4 minggu
+        ];
+
+        $res = $this->withSession($session)
+            ->postJson(route('dashboard.laboran.jadwal.store'), $payload);
+
+        $res->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        // Harus terbuat 4 sesi berkala untuk minggu 1 s.d. 4
+        $count = DB::table('laboran_jadwal_penggunaan')
+            ->where('mata_pelajaran', 'Praktikum Kimia Semester')
+            ->where('pemberlakuan', 'semester')
+            ->count();
+
+        $this->assertSame(4, $count);
+    }
 }
 

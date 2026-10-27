@@ -28,74 +28,41 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalPeminjaman');
     const form = document.getElementById('formPeminjaman');
     const btnOpen = document.getElementById('btnOpenPeminjaman');
-    const pjTipe = document.getElementById('pjTipe');
-    const wrapPeminjamSiswa = document.getElementById('wrapPeminjamSiswa');
-    const wrapPeminjamGtk = document.getElementById('wrapPeminjamGtk');
-    const selectPeminjamSiswa = document.getElementById('selectPeminjamSiswa');
-    const selectPeminjamGtk = document.getElementById('selectPeminjamGtk');
-    const pjNama = document.getElementById('pjNama');
-    const pjId = document.getElementById('pjId');
-    const pjKelas = document.getElementById('pjKelas');
 
-    function syncPeminjamTipeUI() {
-        const tipe = pjTipe ? pjTipe.value : 'siswa';
-        if (wrapPeminjamSiswa) wrapPeminjamSiswa.style.display = tipe === 'siswa' ? 'block' : 'none';
-        if (wrapPeminjamGtk) wrapPeminjamGtk.style.display = (tipe === 'guru' || tipe === 'tendik') ? 'block' : 'none';
-        if (pjNama) {
-            pjNama.style.display = tipe === 'umum' ? 'block' : 'none';
-            pjNama.required = tipe === 'umum';
+    // Input peminjam (pjNama) memakai komponen live-search global
+    // (window.SAEPeopleAutocomplete via data-people-search pada markup).
+    // Saat hasil dipilih, Tipe/Kelas/ID terisi otomatis lewat
+    // data-people-type-target / data-people-unit-target / data-people-target.
+
+    // Hasil pencarian nama dibatasi sesuai "Tipe Peminjam" yang dipilih.
+    const pjTipe = document.getElementById('pjTipe');
+    const pjNama = document.getElementById('pjNama');
+    const KIND_BY_TIPE = { siswa: 'siswa', guru: 'gtk', tendik: 'gtk', umum: 'all' };
+
+    function syncPeminjamKind() {
+        if (!pjTipe || !pjNama) return;
+        const tipe = pjTipe.value;
+        pjNama.dataset.peopleKind = KIND_BY_TIPE[tipe] || 'all';
+        if (tipe === 'guru' || tipe === 'tendik') {
+            pjNama.dataset.peopleGtkType = tipe;
+        } else {
+            delete pjNama.dataset.peopleGtkType;
         }
     }
 
     if (pjTipe) {
-        pjTipe.addEventListener('change', function () {
-            syncPeminjamTipeUI();
-            if (pjId) pjId.value = '';
-            if (pjNama) pjNama.value = '';
-            if (pjKelas) pjKelas.value = '';
-            if (selectPeminjamSiswa) selectPeminjamSiswa.value = '';
-            if (selectPeminjamGtk) selectPeminjamGtk.value = '';
-        });
-    }
-
-    if (selectPeminjamSiswa) {
-        selectPeminjamSiswa.addEventListener('change', function () {
-            const opt = this.options[this.selectedIndex];
-            if (!opt || !this.value) {
-                if (pjId) pjId.value = '';
-                if (pjNama) pjNama.value = '';
-                if (pjKelas) pjKelas.value = '';
-                return;
-            }
-            if (pjId) pjId.value = this.value;
-            if (pjNama) pjNama.value = opt.dataset.nama || '';
-            if (pjKelas) pjKelas.value = opt.dataset.kelas || '';
-        });
-    }
-
-    if (selectPeminjamGtk) {
-        selectPeminjamGtk.addEventListener('change', function () {
-            const opt = this.options[this.selectedIndex];
-            if (!opt || !this.value) {
-                if (pjId) pjId.value = '';
-                if (pjNama) pjNama.value = '';
-                if (pjKelas) pjKelas.value = '';
-                return;
-            }
-            if (pjId) pjId.value = this.value;
-            if (pjNama) pjNama.value = opt.dataset.nama || '';
-            if (pjKelas) pjKelas.value = opt.dataset.kelas || '';
-        });
+        pjTipe.addEventListener('change', syncPeminjamKind);
+        syncPeminjamKind();
     }
 
     if (btnOpen) {
         btnOpen.addEventListener('click', function () {
             if (form) form.reset();
+            syncPeminjamKind();
             const tgl = document.getElementById('pjTanggal');
             if (tgl) tgl.value = today();
             const kembali = document.getElementById('pjKembali');
             if (kembali) kembali.value = daysFromNow(3);
-            syncPeminjamTipeUI();
             L.openModal(modal);
         });
     }
@@ -123,6 +90,89 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // =====================================================================
+    // 1b. Combobox Lokasi Pengambilan (dropdown seperti nama peminjam)
+    // =====================================================================
+    (function initLokasiCombobox() {
+        const input = document.getElementById('pjLokasi');
+        const dataEl = document.getElementById('daftarLokasiPeminjaman');
+        const wrap = input ? input.parentElement : null;
+        if (!input || !dataEl || !wrap) return;
+
+        let daftar = [];
+        try {
+            daftar = JSON.parse(dataEl.textContent || '[]') || [];
+        } catch (e) {
+            daftar = [];
+        }
+        if (!daftar.length) return;
+
+        const results = document.createElement('div');
+        results.className = 'people-autocomplete-results';
+        results.setAttribute('role', 'listbox');
+        wrap.appendChild(results);
+
+        function hideResults() {
+            results.classList.remove('is-open');
+            results.replaceChildren();
+        }
+
+        function pilih(nilai) {
+            input.value = nilai;
+            hideResults();
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function render(items) {
+            results.replaceChildren();
+            if (!items.length) {
+                const empty = document.createElement('div');
+                empty.className = 'people-autocomplete-empty';
+                empty.textContent = 'Lokasi tidak ditemukan — tetap bisa diketik manual.';
+                results.appendChild(empty);
+                results.classList.add('is-open');
+                return;
+            }
+            items.forEach(function (nilai) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.setAttribute('role', 'option');
+                option.className = 'people-autocomplete-option';
+                const name = document.createElement('span');
+                name.className = 'people-autocomplete-name';
+                name.textContent = nilai;
+                option.appendChild(name);
+                option.addEventListener('click', function () { pilih(nilai); });
+                results.appendChild(option);
+            });
+            results.classList.add('is-open');
+        }
+
+        function filter(q) {
+            const term = (q || '').trim().toLowerCase();
+            const items = term === '' ? daftar : daftar.filter(function (v) {
+                return String(v).toLowerCase().includes(term);
+            });
+            render(items);
+        }
+
+        input.addEventListener('focus', function () { filter(input.value); });
+        input.addEventListener('input', function () { filter(input.value); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { hideResults(); return; }
+            if (e.key === 'ArrowDown') {
+                const first = results.querySelector('button[role="option"]');
+                if (first) { e.preventDefault(); first.focus(); }
+            }
+        });
+        results.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { hideResults(); input.focus(); }
+        });
+        document.addEventListener('click', function (e) {
+            if (!wrap.contains(e.target)) hideResults();
+        });
+    })();
 
     // =====================================================================
     // 2. Modal pengembalian

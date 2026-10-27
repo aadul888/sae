@@ -110,7 +110,7 @@
             </div>
 
             {{-- 6. Periode Semester & Tahun Ajaran --}}
-            <div style="margin-bottom: var(--space-8); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
+            <div style="margin-bottom: var(--space-7); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5);">
                     <div>
                         <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
@@ -131,6 +131,41 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+            </div>
+
+            {{-- 7. Penentuan Minggu Ke-, Tanggal Awal & Sampai Minggu Ke- --}}
+            <div style="margin-bottom: var(--space-8); padding: var(--space-5); background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-md);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); align-items: end;">
+                    <div>
+                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                            Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="pemberlakuan_minggu" id="selectPemberlakuanMingguS" class="form-control">
+                            @for ($m = 1; $m <= 24; $m++)
+                                <option value="{{ $m }}">Minggu ke-{{ $m }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                            Tanggal Awal <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <input type="date" name="tanggal" id="inputTanggalSemester" class="form-control" required>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                            Sampai Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select name="pemberlakuan_minggu_akhir" id="selectPemberlakuanMingguAkhirS" class="form-control">
+                            @for ($m = 1; $m <= 24; $m++)
+                                <option value="{{ $m }}" {{ $m === 18 ? 'selected' : '' }}>Minggu ke-{{ $m }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-3);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Penjadwalan berulang per minggu dari tanggal awal (Minggu ke-N) s.d. minggu akhir (Minggu ke-M).
                 </div>
             </div>
 
