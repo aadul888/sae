@@ -128,7 +128,8 @@ class LaboranJadwalService
         ?string $semester = null,
         ?string $tahunAjaran = null,
         array $hari = [],
-        ?string $tanggalAkhir = null
+        ?string $tanggalAkhir = null,
+        ?int $minggu = null
     ): array {
         $base = Carbon::parse($baseTanggal);
 
@@ -141,7 +142,7 @@ class LaboranJadwalService
 
         // Rentang tanggal
         [$start, $end] = $this->resolveDateWindow(
-            $pemberlakuan, $base, $bulan, $tahun, $semester, $tahunAjaran, $tanggalAkhir
+            $pemberlakuan, $base, $bulan, $tahun, $semester, $tahunAjaran, $tanggalAkhir, $minggu
         );
 
         $dates = [];
@@ -192,7 +193,8 @@ class LaboranJadwalService
         ?int $tahun,
         ?string $semester,
         ?string $tahunAjaran,
-        ?string $tanggalAkhir
+        ?string $tanggalAkhir,
+        ?int $minggu = null
     ): array {
         // Rentang eksplisit menang atas perhitungan otomatis.
         if (!empty($tanggalAkhir)) {
@@ -200,6 +202,15 @@ class LaboranJadwalService
             $start = $base->copy();
 
             return $end->lt($start) ? [$end->copy(), $start] : [$start, $end];
+        }
+
+        // Mingguan dengan rentang minggu eksplisit (Minggu ke-N s/d ke-M):
+        // mulai tanggal awal (minggu N) hingga akhir minggu M.
+        if ($pemberlakuan === 'mingguan' && $minggu && $minggu > 0) {
+            $start = $base->copy();
+            $end = $base->copy()->addWeeks($minggu)->subDay();
+
+            return [$start, $end];
         }
 
         if ($pemberlakuan === 'bulanan') {

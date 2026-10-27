@@ -21,6 +21,85 @@
             <input type="hidden" name="mata_pelajaran_id" id="inputMapelId">
             <input type="hidden" name="jenis_lokasi" id="inputJenisLokasi" value="lab">
 
+            {{-- 0. Cakupan Jadwal: Mingguan (pilih minggu ke-/rentang) atau Semester --}}
+            <div style="margin-bottom: var(--space-7);">
+                <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                    <i class="fas fa-calendar-range text-primary me-1"></i> Cakupan Jadwal <span style="color: var(--danger, #ef4444);">*</span>
+                </label>
+                <div class="periode-nav-wrapper" style="margin-bottom: var(--space-5);">
+                    <div class="periode-nav-desktop">
+                        <button type="button" class="periode-nav-tab active" data-cakupan-tab="mingguan">
+                            <i class="fas fa-calendar-week"></i> Mingguan
+                        </button>
+                        <button type="button" class="periode-nav-tab" data-cakupan-tab="semester">
+                            <i class="fas fa-calendar-day"></i> Semester
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="pemberlakuan" id="inputPemberlakuan" value="mingguan">
+
+                <div id="wrapOpsiMingguan">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); align-items: end;">
+                        <div>
+                            <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                                Minggu Ke- <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="pemberlakuan_minggu" id="selectPemberlakuanMinggu" class="form-control">
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}">Minggu ke-{{ $m }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                                Tanggal Awal <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <input type="date" name="tanggal" id="inputTanggal" class="form-control" required>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                                Sampai Minggu Ke-
+                            </label>
+                            <select name="pemberlakuan_minggu_akhir" id="selectPemberlakuanMingguAkhir" class="form-control">
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}" {{ $m === 1 ? 'selected' : '' }}>Minggu ke-{{ $m }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <div id="cakupanHint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                        <i class="fas fa-info-circle me-1"></i> Jadwal dibuat pada rentang minggu terpilih — tiap minggu dapat berisi jadwal berbeda.
+                    </div>
+                </div>
+
+                <div id="wrapOpsiSemester" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5);">
+                        <div>
+                            <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                                Semester Berlaku <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="pemberlakuan_semester" id="selectPemberlakuanSemester" class="form-control">
+                                <option value="1">Semester 1 (Ganjil: Juli – Desember)</option>
+                                <option value="2">Semester 2 (Genap: Januari – Juni)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--text-color);">
+                                Tahun Ajaran <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <select name="pemberlakuan_ta" id="selectPemberlakuanTa" class="form-control">
+                                @foreach (\App\Http\Controllers\LaboranJadwalController::tahunAjaranOptions() as $ta)
+                                    <option value="{{ $ta }}" {{ $ta === (\App\Http\Controllers\LaboranJadwalController::tahunAjaranAktif()) ? 'selected' : '' }}>{{ $ta }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div id="cakupanHintSemester" style="display: none; font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                        <i class="fas fa-info-circle me-1"></i> Jadwal dibuat untuk satu semester penuh sesuai tahun ajaran.
+                    </div>
+                </div>
+            </div>
+
             {{-- 1. Lokasi / Tempat Praktik --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">

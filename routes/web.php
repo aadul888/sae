@@ -692,6 +692,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::delete('/inventaris/{id}', [\App\Http\Controllers\LaboranInventarisController::class, 'destroy'])->name('inventaris.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
         Route::post('/inventaris/bulk-delete', [\App\Http\Controllers\LaboranInventarisController::class, 'destroyBulk'])->name('inventaris.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
 
+        // Bahan Habis Pakai (BHP) — modul terpisah, jenis=bahan_habis_pakai
+        Route::get('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'index'])->name('bhp.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        Route::get('/bhp/template', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'templateExcel'])->name('bhp.template')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        Route::post('/bhp/import', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'importExcel'])->name('bhp.import')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
+        Route::post('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'store'])->name('bhp.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
+        Route::put('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'update'])->name('bhp.update')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
+        Route::delete('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroy'])->name('bhp.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
+        Route::post('/bhp/bulk-delete', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroyBulk'])->name('bhp.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
+
         // Jadwal & Penggunaan Lab / Bengkel / Lahan / Lapangan Praktik
         Route::get('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::post('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'store'])->name('jadwal.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
@@ -712,6 +721,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // Daftar gabungan guru + mapel + kelas (dari pembelajaran semua rombel)
         Route::get('/jadwal/guru-mapel', [\App\Http\Controllers\LaboranJadwalController::class, 'guruMapelList'])->name('jadwal.guru-mapel')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+
+        // Slot jam pelajaran (JP) untuk alokasi waktu modal jadwal
+        Route::get('/jadwal/slots', [\App\Http\Controllers\LaboranJadwalController::class, 'slotList'])->name('jadwal.slots')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
 
         // =====================================================================
         // MODUL LABORATORIUM PER JURUSAN (Kebutuhan, Perawatan, Ceklist,

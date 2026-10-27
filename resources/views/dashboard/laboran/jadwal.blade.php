@@ -173,29 +173,9 @@
 
         {{-- 3a. Matriks Grid (pola Jadwal KBM) --}}
         @if (($viewMode ?? 'grid') === 'grid')
-            <!-- Tab Pemilihan Hari -->
+            <!-- Bar Informasi Jam Pelajaran -->
             <div class="card" id="jadwalTabBarContainer" style="padding: 12px 16px; margin-bottom: 16px;">
-                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
-                    <div class="jadwal-days-strip" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
-                            <i class="fas fa-calendar-day me-1"></i> Hari:
-                        </span>
-                        @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
-                            <a href="{{ route('dashboard.laboran.jadwal.index', array_merge(request()->query(), ['hari_grid' => $h, 'view_mode' => 'grid'])) }}"
-                                class="btn {{ $selectedHari === $h ? 'btn-primary' : 'btn-outline' }} btn-day-tab"
-                                style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; {{ $selectedHari === $h ? 'color: #ffffff !important;' : '' }}">
-                                <span style="{{ $selectedHari === $h ? 'color: #ffffff !important; font-weight: 700;' : '' }}">{{ $h }}</span>
-                                <span class="badge"
-                                    style="{{ $selectedHari === $h ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted);' }} font-size: var(--text-xs, 0.75rem); padding: 2px 6px; border-radius: var(--radius-lg, 12px);"
-                                    title="{{ $countPerHari[$h] ?? 0 }} jadwal">
-                                    {{ $countPerHari[$h] ?? 0 }}
-                                </span>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         @if (count($timeSlots) > 0)
                             <span class="badge badge-primary" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
@@ -211,10 +191,10 @@
                             <span style="font-weight: 600; color: var(--text-muted);">Libur / Tanpa Jam Pelajaran</span>
                         @endif
                     </div>
-                        <div style="display: flex; gap: 14px;">
-                            <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>
-                            <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span> Kosong (Bisa Diisi)</span>
-                        </div>
+                    <div style="display: flex; gap: 14px;">
+                        <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>
+                        <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span> Kosong (Bisa Diisi)</span>
+                    </div>
                 </div>
             </div>
 

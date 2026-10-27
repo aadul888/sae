@@ -1,4 +1,4 @@
-@php
+﻿@php
     $user = session('user');
     $userName = is_array($user)
         ? $user['name'] ?? ($user['nama'] ?? 'Pengguna')
@@ -1093,13 +1093,13 @@
                 </div>
                 <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
-                    title="Tupoksi #6 — Pendataan Kebutuhan">
+                    title="Tupoksi #6 â€” Pendataan Kebutuhan">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
                     <span class="nav-label">Analisis &amp; Kebutuhan</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.pengadaan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.pengadaan*') ? 'active' : '' }}"
-                    title="Tupoksi #6 — Daftar Usulan Pengadaan">
+                    title="Tupoksi #6 â€” Daftar Usulan Pengadaan">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-invoice-dollar"></i></span>
                     <span class="nav-label">Usulan Pengadaan</span>
                 </a>
@@ -1111,14 +1111,14 @@
                 </div>
                 <a href="{{ route('dashboard.laboran.jadwal.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}"
-                    title="Tupoksi #1 — Jadwal Penggunaan Lab/Bengkel">
+                    title="Tupoksi #1 â€” Jadwal Penggunaan Lab/Bengkel">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                     <span class="nav-label">Jadwal &amp; Pemakaian Lokasi</span>
                 </a>
 
                 <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.peminjaman-alat*') ? 'active' : '' }}"
-                    title="Tupoksi #7 — Kartu Peminjaman Alat">
+                    title="Tupoksi #7 â€” Kartu Peminjaman Alat">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
                     <span class="nav-label">Peminjaman Alat</span>
                 </a>
@@ -1130,25 +1130,31 @@
                 </div>
                 <a href="{{ route('dashboard.laboran.inventaris.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.inventaris*') ? 'active' : '' }}"
-                    title="Tupoksi #4 — Buku Induk Inventaris">
+                    title="Tupoksi #4 - Buku Induk Inventaris Alat">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-microscope"></i></span>
+                    <span class="nav-label">Inventaris Alat</span>
+                </a>
+                <a href="{{ route('dashboard.laboran.bhp.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}"
+                    title="Tupoksi #4 - Buku Bahan Habis Pakai">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-vials"></i></span>
-                    <span class="nav-label">Inventaris Alat &amp; Bahan</span>
+                    <span class="nav-label">Bahan Habis Pakai</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.perawatan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.perawatan*') ? 'active' : '' }}"
-                    title="Tupoksi #3 — Kartu Perawatan &amp; K3">
+                    title="Tupoksi #3 â€” Kartu Perawatan &amp; K3">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
                     <span class="nav-label">Perawatan &amp; K3</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.pemeriksaan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.pemeriksaan*') ? 'active' : '' }}"
-                    title="Tupoksi #5 — Checklist Sebelum/Sesudah Pakai">
+                    title="Tupoksi #5 â€” Checklist Sebelum/Sesudah Pakai">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-list-check"></i></span>
                     <span class="nav-label">Pemeriksaan Ceklist</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.kebersihan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebersihan*') ? 'active' : '' }}"
-                    title="Tupoksi #9 — Dokumentasi Kebersihan">
+                    title="Tupoksi #9 â€” Dokumentasi Kebersihan">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-broom"></i></span>
                     <span class="nav-label">Kebersihan Jurusan</span>
                 </a>
@@ -1160,25 +1166,25 @@
                 </div>
                 <a href="{{ route('dashboard.laboran.kerusakan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kerusakan*') ? 'active' : '' }}"
-                    title="Tupoksi #7 — Ordner BA Kerusakan">
+                    title="Tupoksi #7 â€” Ordner BA Kerusakan">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-triangle-exclamation"></i></span>
                     <span class="nav-label">Berita Acara Kerusakan</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.jurnal.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jurnal*') ? 'active' : '' }}"
-                    title="Tupoksi #8 — Jurnal Kegiatan">
+                    title="Tupoksi #8 â€” Jurnal Kegiatan">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book"></i></span>
                     <span class="nav-label">Jurnal Kegiatan</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.laporan-lengkap.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.laporan-lengkap*') ? 'active' : '' }}"
-                    title="Tupoksi #8 — Laporan Rekapitulasi">
+                    title="Tupoksi #8 â€” Laporan Rekapitulasi">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
                     <span class="nav-label">Laporan Lengkap</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.arsip.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.arsip*') ? 'active' : '' }}"
-                    title="Tupoksi #7 — Arsip Dokumen (Ordner)">
+                    title="Tupoksi #7 â€” Arsip Dokumen (Ordner)">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-box-archive"></i></span>
                     <span class="nav-label">Arsip Dokumen</span>
                 </a>
@@ -2013,6 +2019,11 @@
                         <a href="{{ route('dashboard.laboran.inventaris.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.inventaris*') ? 'active' : '' }}">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-vials"></i></span>
+                        <a href="{{ route('dashboard.laboran.bhp.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-vials"></i></span>
+                            <span class="nav-label">Bahan Habis Pakai</span>
+                        </a>
                             <span class="nav-label">Alat &amp; Bahan Lab</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.jadwal.index') }}"
@@ -2056,25 +2067,25 @@
                         </a>
                         <a href="{{ route('dashboard.laboran.laporan-lengkap.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.laporan-lengkap*') ? 'active' : '' }}"
-                            title="Tupoksi #8 — Laporan Rekapitulasi">
+                            title="Tupoksi #8 â€” Laporan Rekapitulasi">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-lines"></i></span>
                             <span class="nav-label">Laporan Lengkap</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.jurnal.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jurnal*') ? 'active' : '' }}"
-                            title="Tupoksi #8 — Jurnal Kegiatan">
+                            title="Tupoksi #8 â€” Jurnal Kegiatan">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book"></i></span>
                             <span class="nav-label">Jurnal Kegiatan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.kebersihan.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebersihan*') ? 'active' : '' }}"
-                            title="Tupoksi #9 — Kebersihan Lingkungan Produktif">
+                            title="Tupoksi #9 â€” Kebersihan Lingkungan Produktif">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>
                             <span class="nav-label">Kebersihan Jurusan</span>
                         </a>
                         <a href="{{ route('dashboard.laboran.arsip.index') }}"
                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.arsip*') ? 'active' : '' }}"
-                            title="Tupoksi #7 — Arsip Dokumen (Ordner)">
+                            title="Tupoksi #7 â€” Arsip Dokumen (Ordner)">
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-box-archive"></i></span>
                             <span class="nav-label">Arsip Dokumen</span>
                         </a>

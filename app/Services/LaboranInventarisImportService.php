@@ -97,7 +97,7 @@ class LaboranInventarisImportService
      *
      * @throws \RuntimeException bila berkas tidak valid / kosong
      */
-    public function import(UploadedFile $file, array $context, ?string $inputJurusanId = null): array
+    public function import(UploadedFile $file, array $context, ?string $inputJurusanId = null, ?string $paksaJenis = null): array
     {
         $ext = strtolower($file->getClientOriginalExtension());
         if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
@@ -119,7 +119,7 @@ class LaboranInventarisImportService
         $updated = 0;
 
         foreach ($rows as $row) {
-            $data = $this->normalisasiBaris($row);
+            $data = $this->normalisasiBaris($row, $paksaJenis);
             if ($data === null) {
                 continue;
             }
@@ -142,7 +142,7 @@ class LaboranInventarisImportService
      * Ubah satu baris mentah menjadi payload siap simpan.
      * Kembalikan null bila baris tidak memiliki nama item (baris kosong).
      */
-    protected function normalisasiBaris(array $row): ?array
+    protected function normalisasiBaris(array $row, ?string $paksaJenis = null): ?array
     {
         $n = $this->normalisasiKunci($row);
 
@@ -155,6 +155,11 @@ class LaboranInventarisImportService
         $jenis = in_array($rawJenis, ['bahan', 'bahan_habis_pakai', 'habis_pakai', 'bhp'], true)
             ? 'bahan_habis_pakai'
             : 'alat';
+
+        // Modul BHP memaksa semua baris masuk sebagai bahan habis pakai.
+        if ($paksaJenis !== null) {
+            $jenis = $paksaJenis;
+        }
 
         $kode = strtoupper(trim((string) ($n['kode_item'] ?? ($n['kode'] ?? ''))));
         if ($kode === '') {

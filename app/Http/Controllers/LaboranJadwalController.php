@@ -285,20 +285,35 @@ class LaboranJadwalController extends Controller
     }
 
     /**
-     * AJAX: daftar gabungan guru pengampu + mata pelajaran + kelas dari data
-     * pembelajaran (seluruh rombel). Dipakai dropdown simpel modal jadwal.
+     * AJAX: slot jam pelajaran (JP) dari Pengaturan KBM — dipakai dropdown
+     * alokasi waktu modal jadwal (Jam ke-1 s/d Jam ke-N).
      */
-    public function guruMapelList()
+    public function slotList()
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $context = LaboranScope::resolve();
+        return response()->json([
+            'status' => 'success',
+            'slots'  => \App\Models\JadwalPengaturan::getSlots(),
+        ]);
+    }
+
+    /**
+     * AJAX: daftar gabungan guru pengampu + mata pelajaran + kelas dari data
+     * pembelajaran (seluruh rombel). Dipakai dropdown simpel modal jadwal.
+     */
+    public function guruMapelList(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $rombelId = trim((string) $request->query('rombel_id', ''));
 
         $rows = DB::table('pembelajaran as p')
             ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'p.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
             ->whereNotNull('p.nama_mata_pelajaran')
             ->where('p.nama_mata_pelajaran', '<>', '')
+            ->when($rombelId !== '', fn ($q) => $q->where('p.rombongan_belajar_id', $rombelId))
             ->select(
                 'p.pembelajaran_id',
                 'p.mata_pelajaran_id',
@@ -336,7 +351,9 @@ class LaboranJadwalController extends Controller
                 'rombel_nama'       => $r->rombel_nama ?: '-',
                 'ptk_id'            => $r->ptk_id,
                 'nama_guru'         => $guruNama ?: 'Belum Ditugaskan',
-                'label'             => ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')',
+                'label'             => $rombelId !== ''
+                    ? $mapel . ' — ' . ($guruNama ?: 'Belum Ditugaskan')
+                    : ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')',
             ];
         }
 
@@ -435,9 +452,20 @@ class LaboranJadwalController extends Controller
         $tahunAjaran  = $request->filled('pemberlakuan_ta') ? (string) $request->input('pemberlakuan_ta') : null;
         $hari         = (array) $request->input('hari', []);
         $tanggalAkhir = $request->filled('tanggal_akhir') ? (string) $request->input('tanggal_akhir') : null;
+        $minggu = null;
+        if ($pemberlakuan === 'mingguan') {
+            $mingguMulai   = $request->filled('pemberlakuan_minggu') ? max(1, (int) $request->input('pemberlakuan_minggu')) : null;
+            $mingguAkhir   = $request->filled('pemberlakuan_minggu_akhir') ? max(1, (int) $request->input('pemberlakuan_minggu_akhir')) : null;
+            if ($mingguMulai !== null) {
+                // Minggu ke-N s/d ke-M => durasi (M - N + 1) minggu sejak tanggal awal.
+                $minggu = $mingguAkhir !== null
+                    ? max(1, min(52, $mingguAkhir - $mingguMulai + 1))
+                    : 1;
+            }
+        }
 
         $targetDates = $this->service->generateDates(
-            $pemberlakuan, $baseTanggal, $bulan, $tahun, $semester, $tahunAjaran, $hari, $tanggalAkhir
+            $pemberlakuan, $baseTanggal, $bulan, $tahun, $semester, $tahunAjaran, $hari, $tanggalAkhir, $minggu
         );
 
         if ($conflict = $this->service->findConflictForDates($data, $targetDates)) {
@@ -778,6 +806,51 @@ class LaboranJadwalController extends Controller
             $jenis = $this->service->detectJenisLokasi($validated['ruang_lab_nama'], null);
         }
 
+        // Alokasi waktu via jam pelajaran (Jam ke-N): konversi ke jam mulai/selesai
+        // berdasarkan slot Pengaturan KBM hari tanggal terpilih.
+        $jamMulai   = trim((string) ($validated['jam_mulai'] ?? ''));
+        $jamSelesai = trim((string) ($validated['jam_selesai'] ?? ''));
+        $jamKeMulai   = (int) ($validated['jam_ke_mulai'] ?? 0);
+        $jamKeSelesai = (int) ($validated['jam_ke_selesai'] ?? 0);
+
+        if ($jamKeMulai > 0) {
+            $hariBase = Carbon::parse($validated['tanggal'])->translatedFormat('l');
+            $slots = \App\Models\JadwalPengaturan::getSlots(
+                in_array($hariBase, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true) ? $hariBase : null
+            );
+            if ($jamKeSelesai < $jamKeMulai) {
+                $jamKeSelesai = $jamKeMulai;
+            }
+
+            $slotMulai   = $slots[$jamKeMulai] ?? null;
+            $slotSelesai = $slots[$jamKeSelesai] ?? null;
+
+            if ($slotMulai) {
+                $jamMulai = $slotMulai['jam_mulai'];
+            }
+            if ($slotSelesai) {
+                $jamSelesai = $slotSelesai['jam_selesai'];
+            }
+
+            // Fallback durasi 45 menit bila slot tidak tersedia
+            if ($jamMulai === '' || $jamSelesai === '') {
+                $base = $jamMulai !== '' ? Carbon::createFromFormat('H:i', $jamMulai) : Carbon::createFromTime(7, 15);
+                if ($jamMulai === '') {
+                    $jamMulai = $base->format('H:i');
+                }
+                $jamSelesai = $base->copy()->addMinutes(45 * max(1, $jamKeSelesai - $jamKeMulai + 1))->format('H:i');
+            }
+        }
+
+        if ($jamMulai === '') {
+            $jamMulai = '08:00';
+        }
+        if ($jamSelesai === '') {
+            $jamSelesai = Carbon::parse($jamMulai)->addMinutes(45)->format('H:i');
+        } elseif (strlen($jamSelesai) === 5 && $jamSelesai <= $jamMulai) {
+            $jamSelesai = Carbon::parse($jamMulai)->addMinutes(45)->format('H:i');
+        }
+
         $allTeacherIds = $this->service->extractAllPtkIds([
             'ptk_id'  => $ptkId,
             'ptk_ids' => $validated['ptk_ids'] ?? [],
@@ -802,8 +875,8 @@ class LaboranJadwalController extends Controller
             'topik_praktik'        => $topik !== '' ? $topik : null,
             'tanggal'              => $validated['tanggal'],
             'pemberlakuan'         => $validated['pemberlakuan'] ?? 'mingguan',
-            'jam_mulai'            => $validated['jam_mulai'],
-            'jam_selesai'          => $validated['jam_selesai'],
+            'jam_mulai'            => $jamMulai,
+            'jam_selesai'          => $jamSelesai,
             'alat_bahan_digunakan' => $validated['alat_bahan_digunakan'] ?? null,
             'status'               => $validated['status'] ?? 'dijadwalkan',
             'laporan_kerusakan'    => $validated['laporan_kerusakan'] ?? null,
