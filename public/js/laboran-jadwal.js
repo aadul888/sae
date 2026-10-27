@@ -210,6 +210,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Helper sinkronisasi dataset mapel dan guru ke input hidden form
+    function syncGuruMapelHiddenInputs(form, selectEl) {
+        if (!form || !selectEl) return;
+        const selected = selectEl.options[selectEl.selectedIndex];
+        let inMapel = form.querySelector('input[name="mata_pelajaran"]');
+        let inMapelId = form.querySelector('input[name="mata_pelajaran_id"]');
+        let inPtkId = form.querySelector('input[name="ptk_id"]');
+
+        if (!inMapel) {
+            inMapel = document.createElement('input');
+            inMapel.type = 'hidden';
+            inMapel.name = 'mata_pelajaran';
+            form.appendChild(inMapel);
+        }
+        if (!inMapelId) {
+            inMapelId = document.createElement('input');
+            inMapelId.type = 'hidden';
+            inMapelId.name = 'mata_pelajaran_id';
+            form.appendChild(inMapelId);
+        }
+        if (!inPtkId) {
+            inPtkId = document.createElement('input');
+            inPtkId.type = 'hidden';
+            inPtkId.name = 'ptk_id';
+            form.appendChild(inPtkId);
+        }
+
+        if (selected && selected.value) {
+            inMapel.value = selected.dataset.mapel || '';
+            inMapelId.value = selected.dataset.mapelId || '';
+            inPtkId.value = selected.dataset.ptkId || '';
+        } else {
+            inMapel.value = '';
+            inMapelId.value = '';
+            inPtkId.value = '';
+        }
+    }
+
     function loadGuruMapel(rombelId, selectEl, hintEl, preselectPembelajaranId) {
         if (!selectEl) return;
 
@@ -243,15 +281,48 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    if (selectHariSemester) {
+        selectHariSemester.addEventListener('change', function () {
+            loadSlotsForHari(this.value, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
+        });
+    }
+
     if (selectRombelMingguan) {
         selectRombelMingguan.addEventListener('change', function () {
             loadGuruMapel(this.value, selectGuruMapelMingguan, hintMingguan, null);
         });
     }
 
+    if (inputTanggalMingguan) {
+        inputTanggalMingguan.addEventListener('change', function () {
+            if (!this.value) return;
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const d = new Date(this.value + 'T00:00:00');
+            const hariNama = days[d.getDay()] || 'Senin';
+            const targetHari = inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']) ? hariNama : 'Senin';
+            loadSlotsForHari(targetHari, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
+        });
+    }
+
+    function inArray(needle, haystack) {
+        return haystack.indexOf(needle) !== -1;
+    }
+
+    if (selectGuruMapelMingguan) {
+        selectGuruMapelMingguan.addEventListener('change', function () {
+            syncGuruMapelHiddenInputs(formJadwalMingguan, this);
+        });
+    }
+
     if (selectRombelSemester) {
         selectRombelSemester.addEventListener('change', function () {
             loadGuruMapel(this.value, selectGuruMapelSemester, hintSemester, null);
+        });
+    }
+
+    if (selectGuruMapelSemester) {
+        selectGuruMapelSemester.addEventListener('change', function () {
+            syncGuruMapelHiddenInputs(formJadwalSemester, this);
         });
     }
 
@@ -380,6 +451,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 notifyError('Data Belum Lengkap', 'Jam pelajaran selesai tidak boleh lebih kecil dari jam mulai.');
                 return;
             }
+
+            // Pastikan data guru & mapel tersinkronisasi ke hidden input form
+            syncGuruMapelHiddenInputs(form, selectGuruMapel);
 
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalHtml = submitBtn ? submitBtn.innerHTML : '';

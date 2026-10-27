@@ -356,6 +356,7 @@
                                                                         data-mapel="{{ $item->mata_pelajaran }}"
                                                                         data-ptk-id="{{ $item->ptk_id }}"
                                                                         data-tanggal="{{ $item->tanggal }}"
+                                                                        data-pemberlakuan="{{ $item->pemberlakuan ?? 'mingguan' }}"
                                                                         data-jam-mulai="{{ substr((string) $item->jam_mulai, 0, 5) }}"
                                                                         data-jam-selesai="{{ substr((string) $item->jam_selesai, 0, 5) }}"
                                                                         data-status="{{ $item->status }}"

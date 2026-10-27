@@ -246,6 +246,7 @@
                 <form id="formPengadaan" method="POST" action="{{ route('dashboard.laboran.pengadaan.store') }}">
                     @csrf
                     <input type="hidden" name="_method" id="pengadaanMethod" value="POST">
+                    <input type="hidden" name="jurusan_id" value="{{ $context['jurusan_id'] ?? '' }}">
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>

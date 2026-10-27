@@ -399,4 +399,92 @@ class LaboranBhpController extends Controller
             'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }
+
+    /**
+     * Cetak Laporan Bahan Habis Pakai (BHP).
+     */
+    public function cetak(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $context = LaboranScope::resolve($user);
+
+        $search        = trim($request->query('q', ''));
+        $labFilter     = trim($request->query('lab', ''));
+        $kondisiFilter = trim($request->query('kondisi', ''));
+        $expFilter     = trim($request->query('exp', ''));
+        $sumberFilter  = trim($request->query('sumber_dana', ''));
+
+        $query = DB::table('laboran_bahan_alat as lba')
+            ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+            ->where('lba.jenis', 'bahan_habis_pakai')
+            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan');
+
+        LaboranScope::apply($query, 'lba.jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('lba.kode_item', 'like', "%{$search}%")
+                  ->orWhere('lba.nama_item', 'like', "%{$search}%")
+                  ->orWhere('lba.spesifikasi', 'like', "%{$search}%")
+                  ->orWhere('lba.lokasi_lemari_rak', 'like', "%{$search}%");
+            });
+        }
+        if ($labFilter !== '') $query->where('lba.ruang_lab_nama', $labFilter);
+        if ($kondisiFilter !== '') $query->where('lba.kondisi', $kondisiFilter);
+        if ($sumberFilter !== '') $query->where('lba.sumber_dana', $sumberFilter);
+        if ($expFilter === 'segera') {
+            $query->whereNotNull('lba.tgl_kedaluwarsa')
+                  ->whereBetween('lba.tgl_kedaluwarsa', [now()->toDateString(), now()->addDays(90)->toDateString()]);
+        } elseif ($expFilter === 'kadaluarsa') {
+            $query->where(function ($q) {
+                $q->where('lba.kondisi', 'kedaluwarsa')
+                  ->orWhere(function ($q2) {
+                      $q2->whereNotNull('lba.tgl_kedaluwarsa')
+                         ->where('lba.tgl_kedaluwarsa', '<', now()->toDateString());
+                  });
+            });
+        }
+
+        $items = $query->orderBy('lba.ruang_lab_nama', 'asc')
+            ->orderBy('lba.nama_item', 'asc')
+            ->get();
+
+        $sekolah = \App\Models\Sekolah::first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
+
+        $kepalaSekolah = DB::table('gtk')
+            ->where(function ($q) {
+                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
+            })->first();
+
+        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('gtk as g', 'ptt.ptk_id', '=', 'g.ptk_id')
+            ->where('ptt.jabatan_ptk_id_str', 'like', '%Laboratorium%')
+            ->select('g.nama', 'g.nip')
+            ->first();
+
+        $petugas = [
+            'nama' => $context['nama'] ?? ($user['nama'] ?? 'Laboran'),
+            'nip'  => $context['nip'] ?? ($user['nip'] ?? '-'),
+        ];
+
+        return view('dashboard.laboran.bhp-cetak', [
+            'items'          => $items,
+            'search'         => $search,
+            'labFilter'      => $labFilter,
+            'kondisiFilter'  => $kondisiFilter,
+            'expFilter'      => $expFilter,
+            'sumberFilter'   => $sumberFilter,
+            'sekolah'        => $sekolah,
+            'sekolahMeta'    => $sekolahMeta,
+            'kepalaSekolah'  => $kepalaSekolah,
+            'kepalaLab'      => $kepalaLab,
+            'petugas'        => $petugas,
+            'context'        => $context,
+            'scopeBadge'     => LaboranScope::badge($context),
+        ]);
+    }
 }

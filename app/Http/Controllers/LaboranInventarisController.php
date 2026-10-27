@@ -507,4 +507,80 @@ class LaboranInventarisController extends Controller
             'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }
+
+    /**
+     * Cetak Laporan Inventaris Alat Praktik (berdasarkan Filter Sumber Dana / Ruang).
+     */
+    public function cetak(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $context = LaboranScope::resolve($user);
+
+        $search        = trim($request->query('q', ''));
+        $labFilter     = trim($request->query('lab', ''));
+        $jenisFilter   = trim($request->query('jenis', 'alat'));
+        $kondisiFilter = trim($request->query('kondisi', ''));
+        $sumberFilter  = trim($request->query('sumber_dana', ''));
+
+        $query = DB::table('laboran_bahan_alat as lba')
+            ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan');
+
+        LaboranScope::apply($query, 'lba.jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('lba.kode_item', 'like', "%{$search}%")
+                  ->orWhere('lba.nama_item', 'like', "%{$search}%")
+                  ->orWhere('lba.spesifikasi', 'like', "%{$search}%")
+                  ->orWhere('lba.lokasi_lemari_rak', 'like', "%{$search}%");
+            });
+        }
+        if ($labFilter !== '') $query->where('lba.ruang_lab_nama', $labFilter);
+        if ($jenisFilter !== '') $query->where('lba.jenis', $jenisFilter);
+        if ($kondisiFilter !== '') $query->where('lba.kondisi', $kondisiFilter);
+        if ($sumberFilter !== '') $query->where('lba.sumber_dana', $sumberFilter);
+
+        $items = $query->orderBy('lba.ruang_lab_nama', 'asc')
+            ->orderBy('lba.nama_item', 'asc')
+            ->get();
+
+        $sekolah = \App\Models\Sekolah::first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
+
+        $kepalaSekolah = DB::table('gtk')
+            ->where(function ($q) {
+                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
+            })->first();
+
+        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('gtk as g', 'ptt.ptk_id', '=', 'g.ptk_id')
+            ->where('ptt.jabatan_ptk_id_str', 'like', '%Laboratorium%')
+            ->select('g.nama', 'g.nip')
+            ->first();
+
+        $petugas = [
+            'nama' => $context['nama'] ?? ($user['nama'] ?? 'Laboran'),
+            'nip'  => $context['nip'] ?? ($user['nip'] ?? '-'),
+        ];
+
+        return view('dashboard.laboran.inventaris-cetak', [
+            'items'          => $items,
+            'search'         => $search,
+            'labFilter'      => $labFilter,
+            'jenisFilter'    => $jenisFilter,
+            'kondisiFilter'  => $kondisiFilter,
+            'sumberFilter'   => $sumberFilter,
+            'sekolah'        => $sekolah,
+            'sekolahMeta'    => $sekolahMeta,
+            'kepalaSekolah'  => $kepalaSekolah,
+            'kepalaLab'      => $kepalaLab,
+            'petugas'        => $petugas,
+            'context'        => $context,
+            'scopeBadge'     => LaboranScope::badge($context),
+        ]);
+    }
 }

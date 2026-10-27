@@ -685,6 +685,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::prefix('laboran')->name('laboran.')->group(function () {
         // Alat & Bahan Lab
         Route::get('/inventaris', [\App\Http\Controllers\LaboranInventarisController::class, 'index'])->name('inventaris.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        Route::get('/inventaris/cetak', [\App\Http\Controllers\LaboranInventarisController::class, 'cetak'])->name('inventaris.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::get('/inventaris/template', [\App\Http\Controllers\LaboranInventarisController::class, 'templateExcel'])->name('inventaris.template')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::post('/inventaris/import', [\App\Http\Controllers\LaboranInventarisController::class, 'importExcel'])->name('inventaris.import')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
         Route::post('/inventaris', [\App\Http\Controllers\LaboranInventarisController::class, 'store'])->name('inventaris.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
@@ -694,6 +695,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // Bahan Habis Pakai (BHP) — modul terpisah, jenis=bahan_habis_pakai
         Route::get('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'index'])->name('bhp.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+        Route::get('/bhp/cetak', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'cetak'])->name('bhp.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::get('/bhp/template', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'templateExcel'])->name('bhp.template')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
         Route::post('/bhp/import', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'importExcel'])->name('bhp.import')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
         Route::post('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'store'])->name('bhp.store')->middleware('permission:menu_laboran|menu_laboran_inventaris,create');
