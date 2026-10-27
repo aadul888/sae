@@ -211,14 +211,14 @@
                             <span style="font-weight: 600; color: var(--text-muted);">Libur / Tanpa Jam Pelajaran</span>
                         @endif
                     </div>
-                    <div style="display: flex; gap: 14px;">
-                        <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>
-                        <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span> Kosong (Bisa Diisi)</span>
-                    </div>
+                        <div style="display: flex; gap: 14px;">
+                            <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>
+                            <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: var(--bg-hover); border: 1px dashed var(--border-color); margin-right: 4px;"></span> Kosong (Bisa Diisi)</span>
+                        </div>
                 </div>
             </div>
 
-            <!-- Timetable Matriks: baris = Jam Pelajaran, kolom = Lokasi Praktik -->
+            <!-- Timetable Matriks: baris = Jam Pelajaran, kolom = Hari -->
             <div class="card table-responsive-stack" id="gridMatrixContainer"
                 style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
                 <table class="table" style="width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px;">
@@ -229,22 +229,19 @@
                                     <i class="fas fa-clock text-primary"></i> Jam Pelajaran
                                 </div>
                             </th>
-                            @forelse ($gridLokasi as $lok)
-                                <th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; min-width: 180px; max-width: 220px; background: var(--bg-card);">
-                                    <div style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 2px;">{{ $lok }}</div>
-                                    @php
-                                        $lokJenis = \App\Http\Controllers\LaboranJadwalController::detectJenisLokasi($lok);
-                                        $lokLabel = $jenisLokasiLabels[$lokJenis] ?? 'Lokasi Lainnya';
-                                    @endphp
-                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 6px; font-weight: 700;">
-                                        {{ $lokLabel }}
+                            @foreach ($gridLokasi as $hari)
+                                @php
+                                    $isHariAktif = $selectedHari === $hari;
+                                @endphp
+                                <th style="padding: 12px 10px; border-bottom: 2px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; min-width: 200px; max-width: 260px; background: {{ $isHariAktif ? 'rgba(99,102,241,0.10)' : 'var(--bg-card)' }};">
+                                    <div style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: {{ $isHariAktif ? 'var(--primary)' : 'var(--text-color)' }}; margin-bottom: 2px;">
+                                        {{ $hari }}
+                                    </div>
+                                    <span class="badge" style="{{ $isHariAktif ? 'background: rgba(99,102,241,0.18); color: var(--primary);' : 'background: rgba(99,102,241,0.12); color: var(--primary);' }} font-size: var(--text-xs, 0.75rem); padding: 2px 6px; font-weight: 700;">
+                                        {{ $countPerHari[$hari] ?? 0 }} sesi
                                     </span>
                                 </th>
-                            @empty
-                                <th style="padding: 14px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
-                                    Belum ada lokasi praktik.
-                                </th>
-                            @endforelse
+                            @endforeach
                         </tr>
                     </thead>
                     <tbody>
@@ -260,11 +257,11 @@
                                     </div>
                                 </td>
 
-                                @foreach ($gridLokasi as $lok)
+                                @foreach ($gridLokasi as $hari)
                                     @php
-                                        $item = $gridMatrix[$lok][$slotKey] ?? null;
-                                        $isOccupied = isset($gridOccupied[$lok][$slotKey]);
                                         $isIstirahat = !empty($slot['is_break']);
+                                        $isHariAktif = $selectedHari === $hari;
+                                        $sesiList = ($isHariAktif && isset($gridMatrix[$hari][$slotKey])) ? $gridMatrix[$hari][$slotKey] : [];
                                     @endphp
 
                                     @if ($isIstirahat)
@@ -273,82 +270,90 @@
                                                 <i class="fas fa-mug-hot me-1"></i> Istirahat
                                             </span>
                                         </td>
-                                    @elseif ($item)
-                                        @php
-                                            $durasi = 1;
-                                            for ($k = $slotKey + 1; $k <= count($timeSlots); $k++) {
-                                                if (($gridOccupied[$lok][$k] ?? null) === $item->id) { $durasi++; } else { break; }
-                                            }
-                                            $jenisKeyG = $item->jenis_lokasi ?: 'lainnya';
-                                            $borderCol = match ($jenisKeyG) {
-                                                'lab' => 'var(--primary)',
-                                                'bengkel' => 'var(--warning, #f59e0b)',
-                                                'lahan' => 'var(--success, #10b981)',
-                                                'lapangan' => 'var(--purple, #8b5cf6)',
-                                                default => 'var(--text-muted)',
-                                            };
-                                        @endphp
-                                        <td rowspan="{{ $durasi }}" style="height: {{ $durasi * 64 }}px; padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
-                                            <div class="jadwal-grid-card" style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 4px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: calc(100% - 2px); min-height: {{ max(54, $durasi * 64 - 10) }}px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
-                                                <div>
-                                                    <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: {{ $durasi > 1 ? '3' : '1' }}; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->mata_pelajaran }}">
-                                                        {{ $item->mata_pelajaran }}
-                                                    </div>
-                                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                                                        <i class="fas fa-chalkboard-user text-primary" style="flex-shrink: 0;"></i>
-                                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="{{ $item->guru_nama ?: '-' }}">{{ $item->guru_nama ?: '-' }}</span>
-                                                    </div>
-                                                    @if (!empty($item->rombel_nama))
-                                                        <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">
-                                                            <i class="fas fa-users me-1"></i>{{ $item->rombel_nama }}
+                                    @elseif (count($sesiList) > 0)
+                                        <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box;">
+                                            @foreach ($sesiList as $sesi)
+                                                @php
+                                                    $item = $sesi['item'];
+                                                    $durasi = max(1, (int) $sesi['slotAkhir'] - (int) $slotKey + 1);
+                                                    $jenisKeyG = $item->jenis_lokasi ?: 'lainnya';
+                                                    $borderCol = match ($jenisKeyG) {
+                                                        'lab' => 'var(--primary)',
+                                                        'bengkel' => 'var(--warning, #f59e0b)',
+                                                        'lahan' => 'var(--success, #10b981)',
+                                                        'lapangan' => 'var(--purple, #8b5cf6)',
+                                                        default => 'var(--text-muted)',
+                                                    };
+                                                    $jenisIconG = match ($jenisKeyG) {
+                                                        'lab' => 'fa-flask',
+                                                        'bengkel' => 'fa-screwdriver-wrench',
+                                                        'lahan' => 'fa-seedling',
+                                                        'lapangan' => 'fa-futbol',
+                                                        default => 'fa-location-dot',
+                                                    };
+                                                @endphp
+                                                <div class="jadwal-grid-card" style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 4px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 4px; box-sizing: border-box; display: flex; flex-direction: column;">
+                                                    <div>
+                                                        <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->mata_pelajaran }}">
+                                                            {{ $item->mata_pelajaran }}
                                                         </div>
-                                                    @endif
-                                                </div>
-                                                <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 4px;">
-                                                    <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">{{ $durasi }} JP</span>
-                                                    @if ($canUpdate || $canDelete)
-                                                        <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
-                                                            @if ($canUpdate)
-                                                                <button type="button" class="btn-icon btn-edit-jadwal"
-                                                                    data-id="{{ $item->id }}"
-                                                                    data-lokasi="{{ $item->ruang_lab_nama }}"
-                                                                    data-jenis="{{ $jenisKeyG }}"
-                                                                    data-rombel-id="{{ $item->rombel_id }}"
-                                                                    data-rombel-nama="{{ $item->rombel_nama }}"
-                                                                    data-pembelajaran-id="{{ $item->pembelajaran_id }}"
-                                                                    data-mapel="{{ $item->mata_pelajaran }}"
-                                                                    data-ptk-id="{{ $item->ptk_id }}"
-                                                                    data-ptk-ids="{{ $item->ptk_ids }}"
-                                                                    data-pendamping="{{ $item->guru_pendamping }}"
-                                                                    data-guru="{{ $item->guru_nama }}"
-                                                                    data-topik="{{ $item->topik_praktik }}"
-                                                                    data-tanggal="{{ $item->tanggal }}"
-                                                                    data-jam-mulai="{{ substr((string) $item->jam_mulai, 0, 5) }}"
-                                                                    data-jam-selesai="{{ substr((string) $item->jam_selesai, 0, 5) }}"
-                                                                    data-alat="{{ $item->alat_bahan_digunakan }}"
-                                                                    data-status="{{ $item->status }}"
-                                                                    title="Edit Jadwal" style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0;">
-                                                                    <i class="fas fa-pencil text-primary"></i>
-                                                                </button>
-                                                            @endif
-                                                            @if ($canDelete)
-                                                                <button type="button" class="btn-icon btn-delete-jadwal"
-                                                                    data-id="{{ $item->id }}" data-mapel="{{ $item->mata_pelajaran }}"
-                                                                    title="Hapus Jadwal" style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0; color: var(--danger, #ef4444);">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            @endif
+                                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                            <i class="fas fa-chalkboard-user text-primary" style="flex-shrink: 0;"></i>
+                                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="{{ $item->guru_nama ?: '-' }}">{{ $item->guru_nama ?: '-' }}</span>
                                                         </div>
-                                                    @endif
+                                                        @if (!empty($item->rombel_nama))
+                                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-bottom: 2px;">
+                                                                <i class="fas fa-users me-1"></i>{{ $item->rombel_nama }}
+                                                            </div>
+                                                        @endif
+                                                        <div style="font-size: var(--text-2xs, 0.6875rem); color: {{ $borderCol }}; font-weight: 700; display: flex; align-items: center; gap: 4px;" title="Lokasi: {{ $item->ruang_lab_nama }}">
+                                                            <i class="fas {{ $jenisIconG }} me-1"></i>
+                                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">{{ $item->ruang_lab_nama }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                                                        <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">{{ $durasi }} JP</span>
+                                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 600;">{{ substr((string) $item->jam_mulai, 0, 5) }}–{{ substr((string) $item->jam_selesai, 0, 5) }}</span>
+                                                        @if ($canUpdate || $canDelete)
+                                                            <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
+                                                                @if ($canUpdate)
+                                                                    <button type="button" class="btn-icon btn-edit-jadwal"
+                                                                        data-id="{{ $item->id }}"
+                                                                        data-lokasi="{{ $item->ruang_lab_nama }}"
+                                                                        data-jenis="{{ $jenisKeyG }}"
+                                                                        data-rombel-id="{{ $item->rombel_id }}"
+                                                                        data-rombel-nama="{{ $item->rombel_nama }}"
+                                                                        data-pembelajaran-id="{{ $item->pembelajaran_id }}"
+                                                                        data-mapel="{{ $item->mata_pelajaran }}"
+                                                                        data-ptk-id="{{ $item->ptk_id }}"
+                                                                        data-ptk-ids="{{ $item->ptk_ids }}"
+                                                                        data-guru="{{ $item->guru_nama }}"
+                                                                        data-tanggal="{{ $item->tanggal }}"
+                                                                        data-jam-mulai="{{ substr((string) $item->jam_mulai, 0, 5) }}"
+                                                                        data-jam-selesai="{{ substr((string) $item->jam_selesai, 0, 5) }}"
+                                                                        data-status="{{ $item->status }}"
+                                                                        title="Edit Jadwal" style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0;">
+                                                                        <i class="fas fa-pencil text-primary"></i>
+                                                                    </button>
+                                                                @endif
+                                                                @if ($canDelete)
+                                                                    <button type="button" class="btn-icon btn-delete-jadwal"
+                                                                        data-id="{{ $item->id }}" data-mapel="{{ $item->mata_pelajaran }}"
+                                                                        title="Hapus Jadwal" style="width: 22px; height: 22px; font-size: var(--text-2xs, 0.6875rem); padding: 0; color: var(--danger, #ef4444);">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            @endforeach
                                         </td>
-                                    @elseif (!$isOccupied)
+                                    @else
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle; text-align: center; height: 64px; box-sizing: border-box;">
-                                            @if ($canCreate)
+                                            @if ($canCreate && $isHariAktif)
                                                 <button type="button" class="btn-quick-slot"
-                                                    title="Klik untuk mengisi jadwal di {{ $lok }} Jam Ke-{{ $slot['ke'] }}"
-                                                    data-lokasi="{{ $lok }}" data-jenis="{{ \App\Http\Controllers\LaboranJadwalController::detectJenisLokasi($lok) }}"
+                                                    title="Klik untuk mengisi jadwal {{ $selectedHari }} Jam Ke-{{ $slot['ke'] }}"
                                                     data-hari="{{ $selectedHari }}" data-jam-ke="{{ $slot['ke'] }}"
                                                     data-jam-mulai="{{ $slot['mulai'] }}" data-jam-selesai="{{ $slot['selesai'] }}"
                                                     style="width: 100%; height: 100%; min-height: 54px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm, 6px); background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: all 0.2s ease;">
@@ -364,10 +369,10 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ max(2, count($gridLokasi) + 1) }}" style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
+                                <td colspan="7" style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
                                     <i class="fas fa-calendar-xmark mb-3" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
-                                    <div style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">Tidak Ada Praktik pada {{ $selectedHari }}</div>
-                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Slot jam pelajaran {{ $selectedHari }} diatur 0 JP. Atur jam pelajaran pada Pengaturan Jadwal KBM.</div>
+                                    <div style="font-weight: 700; font-size: var(--text-md, 1rem); color: var(--text-color); margin-bottom: 4px;">Tidak Ada Jam Pelajaran</div>
+                                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Slot jam pelajaran diatur 0 JP. Atur jam pelajaran pada Pengaturan Jadwal KBM.</div>
                                 </td>
                             </tr>
                         @endforelse

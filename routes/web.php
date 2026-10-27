@@ -710,6 +710,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Pemberlakuan jadwal (aktifkan mode mingguan / semester)
         Route::post('/jadwal/pemberlakuan', [\App\Http\Controllers\LaboranJadwalController::class, 'togglePemberlakuan'])->name('jadwal.toggle-pemberlakuan')->middleware('permission:menu_laboran|menu_laboran_inventaris,update');
 
+        // Daftar gabungan guru + mapel + kelas (dari pembelajaran semua rombel)
+        Route::get('/jadwal/guru-mapel', [\App\Http\Controllers\LaboranJadwalController::class, 'guruMapelList'])->name('jadwal.guru-mapel')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+
         // =====================================================================
         // MODUL LABORATORIUM PER JURUSAN (Kebutuhan, Perawatan, Ceklist,
         // Pengadaan, Berita Acara Kerusakan, Peminjaman, Laporan Lengkap)

@@ -172,10 +172,11 @@ class LaboranJadwalController extends Controller
         // Slot jam pelajaran dari pengaturan KBM (Jam ke-1..N dengan jam mulai/selesai)
         $timeSlots = \App\Models\JadwalPengaturan::getSlots($selectedHari);
 
-        // Seluruh lokasi praktik (kolom matriks): master Sarpras + lokasi tercatat
-        $gridLokasi = collect($daftarLab)->sort()->values();
+        // Matriks: baris = Jam Pelajaran, KOLOM = HARI (Senin–Sabtu).
+        // Lokasi praktik tampil di dalam kartu sesi bersama mapel/guru/kelas.
+        $gridLokasi = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-        // Sesi jadwal hari terpilih (status <> batal, semua tanggal berkala ditata sama)
+        // Sesi pada hari terpilih (semua lokasi), status <> batal.
         $dayQuery = DB::table('laboran_jadwal_penggunaan as ljp')
             ->leftJoin('gtk as g', 'ljp.ptk_id', '=', 'g.ptk_id')
             ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
@@ -183,15 +184,15 @@ class LaboranJadwalController extends Controller
             ->select('ljp.*', 'g.nama as guru_nama', 'rb.nama as rombel_nama');
         LaboranScope::apply($dayQuery, 'ljp.jurusan_id', $context);
 
-        // Hari grid cocok dengan nama hari tanggal yang direkam — sesi mingguan
-        // berulang pada hari yang sama, sehingga cukup filter nama hari tanggalnya.
-        $dayQuery->whereRaw("DAYNAME(ljp.tanggal) = ?", [$selectedHari]);
+        // MySQL DAYNAME() mengembalikan nama Inggris; petakan ke nama Indonesia.
+        $hariDb = ['Senin' => 'Monday', 'Selasa' => 'Tuesday', 'Rabu' => 'Wednesday',
+            'Kamis' => 'Thursday', 'Jumat' => 'Friday', 'Sabtu' => 'Saturday'][$selectedHari] ?? 'Monday';
+        $dayQuery->whereRaw('DAYNAME(ljp.tanggal) = ?', [$hariDb]);
         $daySchedules = $dayQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
 
+        // Matriks [hari][slotJP] — satu kolom per hari memuat seluruh sesi hari itu.
         $gridMatrix = [];
-        $gridOccupied = [];
         foreach ($daySchedules as $item) {
-            $lokasi = (string) $item->ruang_lab_nama;
             $mulai = substr((string) $item->jam_mulai, 0, 5);
             $selesai = substr((string) $item->jam_selesai, 0, 5);
 
@@ -210,18 +211,26 @@ class LaboranJadwalController extends Controller
             }
             $slotSelesai = $slotSelesai ?? $slotMulai;
 
-            $gridMatrix[$lokasi][$slotMulai] = $item;
-            for ($k = $slotMulai + 1; $k <= $slotSelesai; $k++) {
-                $gridOccupied[$lokasi][$k] = $item->id;
-            }
+            // Beberapa guru dapat memakai lokasi berbeda pada jam sama — simpan sebagai daftar.
+            $gridMatrix[$selectedHari][$slotMulai][] = [
+                'item'     => $item,
+                'slotAkhir' => $slotSelesai,
+            ];
         }
 
-        // Hitung sesi per hari untuk badge tab hari
+        // Hitung sesi per hari untuk badge tab hari (MySQL DAYNAME -> Indonesia)
+        $hariDbMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
         $countPerHari = DB::table('laboran_jadwal_penggunaan')
             ->selectRaw('DAYNAME(tanggal) as hari, COUNT(*) as total')
             ->where('status', '<>', 'batal');
         LaboranScope::apply($countPerHari, 'jurusan_id', $context);
-        $countPerHari = $countPerHari->groupBy(DB::raw('DAYNAME(tanggal)'))->pluck('total', 'hari')->toArray();
+        $countPerHari = $countPerHari->groupBy(DB::raw('DAYNAME(tanggal)'))
+            ->get()
+            ->mapWithKeys(fn ($r) => [$hariDbMap[$r->hari] ?? $r->hari => (int) $r->total])
+            ->toArray();
+
+        $gridOccupied = [];
 
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
@@ -273,6 +282,65 @@ class LaboranJadwalController extends Controller
             'status'       => 'success',
             'pembelajaran' => $this->resolvePembelajaranKelas($rombelId),
         ]);
+    }
+
+    /**
+     * AJAX: daftar gabungan guru pengampu + mata pelajaran + kelas dari data
+     * pembelajaran (seluruh rombel). Dipakai dropdown simpel modal jadwal.
+     */
+    public function guruMapelList()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $context = LaboranScope::resolve();
+
+        $rows = DB::table('pembelajaran as p')
+            ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
+            ->leftJoin('rombongan_belajar as rb', 'p.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->whereNotNull('p.nama_mata_pelajaran')
+            ->where('p.nama_mata_pelajaran', '<>', '')
+            ->select(
+                'p.pembelajaran_id',
+                'p.mata_pelajaran_id',
+                'p.nama_mata_pelajaran',
+                'p.mata_pelajaran_id_str',
+                'p.rombongan_belajar_id',
+                'rb.nama as rombel_nama',
+                'p.ptk_id',
+                'g.nama as nama_guru'
+            )
+            ->orderBy('g.nama', 'asc')
+            ->orderBy('p.nama_mata_pelajaran', 'asc')
+            ->get();
+
+        $list = [];
+        $seen = [];
+        foreach ($rows as $r) {
+            $mapel = trim((string) ($r->nama_mata_pelajaran ?: $r->mata_pelajaran_id_str));
+            if ($mapel === '') {
+                continue;
+            }
+
+            $guruNama = trim((string) $r->nama_guru);
+            $key = ($guruNama ?: '-') . '|' . $mapel . '|' . ($r->rombongan_belajar_id ?? '-');
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+
+            $list[] = [
+                'pembelajaran_id'   => $r->pembelajaran_id,
+                'mata_pelajaran_id' => (string) ($r->mata_pelajaran_id ?? ''),
+                'mata_pelajaran'    => $mapel,
+                'rombel_id'         => $r->rombongan_belajar_id,
+                'rombel_nama'       => $r->rombel_nama ?: '-',
+                'ptk_id'            => $r->ptk_id,
+                'nama_guru'         => $guruNama ?: 'Belum Ditugaskan',
+                'label'             => ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')',
+            ];
+        }
+
+        return response()->json(['status' => 'success', 'guru_mapel' => $list]);
     }
 
     /**
@@ -615,7 +683,7 @@ class LaboranJadwalController extends Controller
         $validated = $request->validate([
             'ruang_lab_nama'       => 'required|string|max:100',
             'jenis_lokasi'         => 'nullable|in:' . implode(',', array_keys(self::JENIS_LOKASI)),
-            'rombel_id'            => 'required|string|max:100',
+            'rombel_id'            => 'nullable|string|max:100',
             'pembelajaran_id'      => 'nullable|string|max:50',
             'mata_pelajaran_id'    => 'nullable|string|max:50',
             'mata_pelajaran'       => 'nullable|string|max:255',
@@ -629,26 +697,32 @@ class LaboranJadwalController extends Controller
             'hari'                 => 'nullable|array',
             'hari.*'               => 'nullable|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
             'tanggal_akhir'        => 'nullable|date|after_or_equal:tanggal',
-            'jam_mulai'            => 'required',
-            'jam_selesai'          => 'required|after:jam_mulai',
+            'jam_mulai'            => 'nullable',
+            'jam_selesai'          => 'nullable',
+            'jam_ke_mulai'         => 'nullable|integer|min:1|max:20',
+            'jam_ke_selesai'       => 'nullable|integer|min:1|max:20',
             'alat_bahan_digunakan' => 'nullable|string|max:1000',
             'status'               => 'nullable|in:' . implode(',', array_keys(self::STATUS_LIST)),
             'laporan_kerusakan'    => 'nullable|string|max:1000',
         ], [
             'ruang_lab_nama.required' => 'Lokasi praktik wajib dipilih.',
-            'rombel_id.required'      => 'Kelas / rombel wajib dipilih agar mata pelajaran terisi otomatis.',
-            'jam_selesai.after'       => 'Jam selesai harus lebih besar dari jam mulai.',
         ]);
 
-        $rombelId       = trim((string) $validated['rombel_id']);
+        $rombelId       = trim((string) ($validated['rombel_id'] ?? ''));
         $pembelajaranId = trim((string) ($validated['pembelajaran_id'] ?? ''));
         $mapelNama      = trim((string) ($validated['mata_pelajaran'] ?? ''));
         $mapelId        = trim((string) ($validated['mata_pelajaran_id'] ?? ''));
         $ptkId          = trim((string) ($validated['ptk_id'] ?? ''));
 
+        // Modal simpel: hanya pembelajaran_id yang dikirim — mapel, guru,
+        // dan kelas diambil dari baris pembelajaran.
         $pembelajaran = null;
         if ($pembelajaranId !== '') {
-            $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $pembelajaranId)->first();
+            $pembelajaran = DB::table('pembelajaran as p')
+                ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
+                ->where('p.pembelajaran_id', $pembelajaranId)
+                ->select('p.*', 'g.nama as nama_guru')
+                ->first();
         }
 
         if (!$pembelajaran && $rombelId !== '') {
@@ -672,6 +746,9 @@ class LaboranJadwalController extends Controller
                 : trim((string) ($pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str));
             $mapelId        = $mapelId !== '' ? $mapelId : (string) ($pembelajaran->mata_pelajaran_id ?? '');
             $ptkId          = $ptkId !== '' ? $ptkId : (string) ($pembelajaran->ptk_id ?? '');
+            if ($rombelId === '') {
+                $rombelId = (string) ($pembelajaran->rombongan_belajar_id ?? '');
+            }
         }
 
         if ($mapelNama === '' && $rombelId !== '') {
@@ -687,22 +764,13 @@ class LaboranJadwalController extends Controller
             }
         }
 
-        // Guru pengampu wajib ada: kolom ptk_id di tabel jadwal bersifat NOT NULL.
-        // Bila pembelajaran tidak ditemukan (mapel input bebas), ambil satu guru
-        // dari kelas yang sama atau guru siapa pun sebagai penanggung jawab sesi.
-        if ($ptkId === '' && $rombelId !== '') {
-            $ptkId = (string) (DB::table('pembelajaran as p')
-                ->join('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
-                ->where('p.rombongan_belajar_id', $rombelId)
-                ->orderBy('p.nama_mata_pelajaran')
-                ->value('p.ptk_id') ?? '');
-        }
-        if ($ptkId === '') {
-            $ptkId = (string) (DB::table('gtk')->orderBy('nama')->value('ptk_id') ?? '');
-        }
-
-        if ($mapelNama === '') {
-            $mapelNama = 'Praktik Kejuruan';
+        // Modal simpel: guru & mapel wajib berasal dari data pembelajaran.
+        // Tanpa pembelajaran yang dikenali, penyimpanan ditolak (bukan menebak guru).
+        if ($ptkId === '' || $mapelNama === '') {
+            abort(response()->json([
+                'status'  => 'error',
+                'message' => 'Guru pengampu & mata pelajaran wajib dipilih dari daftar pembelajaran.',
+            ], 422));
         }
 
         $jenis = $validated['jenis_lokasi'] ?? null;

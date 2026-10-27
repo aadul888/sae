@@ -319,75 +319,112 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // =========================================================================
     // Hapus Massal via Ceklist (Bulk Delete)
+    //
+    // Seluruh handler memakai EVENT DELEGATION di document karena tabel ini
+    // dirender ulang oleh engine live-table (search/filter/paginasi/realtime).
+    // Listener langsung pada elemen akan hilang saat DOM ditukar; delegasi tetap
+    // hidup. State ceklist disimpan agar terpulihkan setelah refresh tabel.
     // =========================================================================
-    const chkAllLab = document.getElementById('chkAllLab');
-    const btnBulkDelete = document.getElementById('btnBulkDeleteLab');
-    const countBulk = document.getElementById('countBulkLab');
+    const selectedLabIds = new Set();
 
     function syncBulkState() {
         const checked = document.querySelectorAll('.chk-item-lab:checked').length;
+        const countBulk = document.getElementById('countBulkLab');
+        const btnBulk = document.getElementById('btnBulkDeleteLab');
         if (countBulk) countBulk.textContent = checked;
-        if (btnBulkDelete) {
-            btnBulkDelete.disabled = checked === 0;
-            btnBulkDelete.style.opacity = checked === 0 ? '0.5' : '1';
-            btnBulkDelete.style.cursor = checked === 0 ? 'not-allowed' : 'pointer';
+        if (btnBulk) {
+            btnBulk.disabled = checked === 0;
+            btnBulk.style.opacity = checked === 0 ? '0.5' : '1';
+            btnBulk.style.cursor = checked === 0 ? 'not-allowed' : 'pointer';
         }
     }
 
-    if (chkAllLab) {
-        chkAllLab.addEventListener('change', function () {
-            document.querySelectorAll('.chk-item-lab').forEach(function (c) { c.checked = chkAllLab.checked; });
-            syncBulkState();
-        });
-    }
-
     document.addEventListener('change', function (e) {
-        if (e.target.classList && e.target.classList.contains('chk-item-lab')) {
+        const t = e.target;
+        if (!t || !t.classList) return;
+
+        if (t.id === 'chkAllLab') {
+            document.querySelectorAll('.chk-item-lab').forEach(function (c) {
+                c.checked = t.checked;
+                if (t.checked) selectedLabIds.add(c.value); else selectedLabIds.delete(c.value);
+            });
+            syncBulkState();
+            return;
+        }
+
+        if (t.classList.contains('chk-item-lab')) {
+            if (t.checked) selectedLabIds.add(t.value); else selectedLabIds.delete(t.value);
+            const all = document.getElementById('chkAllLab');
+            const boxes = document.querySelectorAll('.chk-item-lab');
+            if (all) all.checked = boxes.length > 0 && Array.prototype.every.call(boxes, function (c) { return c.checked; });
             syncBulkState();
         }
     });
 
-    if (btnBulkDelete) {
-        btnBulkDelete.addEventListener('click', function () {
-            const ids = Array.from(document.querySelectorAll('.chk-item-lab:checked')).map(function (c) { return c.value; });
-            if (ids.length === 0) return;
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('#btnBulkDeleteLab');
+        if (!btn || btn.disabled) return;
 
-            const doBulk = function () {
-                fetch('/dashboard/laboran/inventaris/bulk-delete', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': getCsrfToken(),
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ ids: ids })
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (res) {
-                    if (res.status === 'success') {
-                        Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
-                    } else {
-                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
-                    }
-                })
-                .catch(function () {
-                    Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
-                });
-            };
+        const ids = Array.from(document.querySelectorAll('.chk-item-lab:checked')).map(function (c) { return c.value; });
+        if (ids.length === 0) return;
 
-            Swal.fire({
-                title: 'Hapus ' + ids.length + ' Item Lab?',
-                text: 'Item yang sedang dipinjam akan dilewati otomatis.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then(function (res) {
-                if (res.isConfirmed) doBulk();
+        const doBulk = function () {
+            fetch('/dashboard/laboran/inventaris/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ids: ids })
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.status === 'success') {
+                    selectedLabIds.clear();
+                    Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
+                } else {
+                    Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                }
+            })
+            .catch(function () {
+                Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
             });
+        };
+
+        Swal.fire({
+            title: 'Hapus ' + ids.length + ' Item Lab?',
+            text: 'Item yang sedang dipinjam akan dilewati otomatis.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then(function (res) {
+            if (res.isConfirmed) doBulk();
         });
+    });
+
+    // Pulihkan ceklist setelah tabel dirender ulang (live search / filter /
+    // paginasi / realtime SSE menukar innerHTML #tableDataContainer).
+    // Juga amankan saat realtime menukar tabel tanpa dispatch event:
+    // MutationObserver menangkap perubahan tbody dan memulihkan state.
+    const restoreChecks = function () {
+        document.querySelectorAll('.chk-item-lab').forEach(function (c) {
+            c.checked = selectedLabIds.has(c.value);
+        });
+        const all = document.getElementById('chkAllLab');
+        const boxes = document.querySelectorAll('.chk-item-lab');
+        if (all) all.checked = boxes.length > 0 && Array.prototype.every.call(boxes, function (c) { return c.checked; });
+        syncBulkState();
+    };
+
+    window.addEventListener('sae:tableRefreshed', restoreChecks);
+
+    const tableBody = document.querySelector('.chk-item-lab') ? document.querySelector('.chk-item-lab').closest('tbody') : null;
+    if (tableBody && typeof MutationObserver !== 'undefined') {
+        new MutationObserver(restoreChecks).observe(tableBody.closest('table') || tableBody, { childList: true, subtree: true });
     }
 
     if (formImport) {

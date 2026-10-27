@@ -30,24 +30,30 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
         $rombel = $this->kelasReguler();
         $this->assertNotNull($rombel, 'Rombel reguler tidak tersedia.');
 
+        // Modal simpel: guru & mapel diambil dari data pembelajaran kelas.
+        $pemb = DB::table('pembelajaran')->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
+            ->whereNotNull('nama_mata_pelajaran')->orderBy('nama_mata_pelajaran')->first();
+        $this->assertNotNull($pemb, 'Data pembelajaran kelas tidak tersedia.');
+
         // 2026-11-02 = Senin. Pilih Senin + Rabu, rentang 2 minggu.
         $this->withSession($this->adminSession())
             ->postJson(route('dashboard.laboran.jadwal.store'), [
-                'ruang_lab_nama' => 'Lahan Praktik ATPH',
-                'jenis_lokasi'   => 'lahan',
-                'rombel_id'      => $rombel->rombongan_belajar_id,
-                'mata_pelajaran' => 'UJI-MINGGUAN-MULTI',
-                'pemberlakuan'   => 'mingguan',
-                'hari'           => ['Senin', 'Rabu'],
-                'tanggal'        => '2026-11-02',
-                'tanggal_akhir'  => '2026-11-15',
-                'jam_mulai'      => '07:00',
-                'jam_selesai'    => '08:30',
+                'ruang_lab_nama'  => 'Lahan Praktik ATPH',
+                'jenis_lokasi'    => 'lahan',
+                'pembelajaran_id' => $pemb->pembelajaran_id,
+                'rombel_id'       => $rombel->rombongan_belajar_id,
+                'pemberlakuan'    => 'mingguan',
+                'hari'            => ['Senin', 'Rabu'],
+                'tanggal'         => '2026-11-02',
+                'tanggal_akhir'   => '2026-11-15',
+                'jam_mulai'       => '07:00',
+                'jam_selesai'     => '08:30',
             ])
             ->assertStatus(200);
 
         $rows = DB::table('laboran_jadwal_penggunaan')
-            ->where('mata_pelajaran', 'UJI-MINGGUAN-MULTI')
+            ->where('pembelajaran_id', $pemb->pembelajaran_id)
+            ->where('ruang_lab_nama', 'Lahan Praktik ATPH')
             ->orderBy('tanggal')
             ->pluck('tanggal')
             ->all();
@@ -64,25 +70,30 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     {
         $rombel = $this->kelasReguler();
 
+        $pemb = DB::table('pembelajaran')->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
+            ->whereNotNull('nama_mata_pelajaran')->orderBy('nama_mata_pelajaran')->first();
+        $this->assertNotNull($pemb, 'Data pembelajaran kelas tidak tersedia.');
+
         $this->withSession($this->adminSession())
             ->postJson(route('dashboard.laboran.jadwal.store'), [
-                'ruang_lab_nama' => 'Lahan Praktik ATPH',
-                'jenis_lokasi'   => 'lahan',
-                'rombel_id'      => $rombel->rombongan_belajar_id,
-                'mata_pelajaran' => 'UJI-BULANAN-PENUH',
-                'pemberlakuan'   => 'bulanan',
-                'hari'           => ['Senin'],
-                'tanggal'        => '2026-11-02',
+                'ruang_lab_nama'  => 'Lahan Praktik ATPH',
+                'jenis_lokasi'    => 'lahan',
+                'pembelajaran_id' => $pemb->pembelajaran_id,
+                'rombel_id'       => $rombel->rombongan_belajar_id,
+                'pemberlakuan'    => 'bulanan',
+                'hari'            => ['Senin'],
+                'tanggal'         => '2026-11-02',
                 'pemberlakuan_bulan' => 11,
                 'pemberlakuan_tahun' => 2026,
-                'jam_mulai'      => '07:00',
-                'jam_selesai'    => '08:30',
+                'jam_mulai'       => '07:00',
+                'jam_selesai'     => '08:30',
             ])
             ->assertStatus(200);
 
         // November 2026 punya 5 hari Senin: 2, 9, 16, 23, 30
         $this->assertSame(5, DB::table('laboran_jadwal_penggunaan')
-            ->where('mata_pelajaran', 'UJI-BULANAN-PENUH')
+            ->where('pembelajaran_id', $pemb->pembelajaran_id)
+            ->where('ruang_lab_nama', 'Lahan Praktik ATPH')
             ->count());
     }
 

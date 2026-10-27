@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * N. Matriks Grid jadwal laboran (pola Jadwal KBM): view_mode grid/table,
- * tab hari, matriks lokasi x jam pelajaran.
+ * kolom = hari, kartu sesi memuat lokasi, endpoint guru-mapel modal simpel.
  */
 class LaboranJadwalGridTest extends LaboranTestCase
 {
@@ -22,13 +22,37 @@ class LaboranJadwalGridTest extends LaboranTestCase
         $res->assertSee('Jam Pelajaran', false);
     }
 
-    public function test_tab_hari_grid_mengubah_hari_terpilih(): void
+    public function test_kolom_matriks_adalah_hari_bukan_lokasi(): void
     {
         $res = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Rabu']));
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid']));
 
         $res->assertStatus(200);
-        $res->assertSee('KBM Rabu', false);
+        // Header kolom = hari
+        $res->assertSee('Sabtu', false);
+        // Kartu berisi info lokasi via teks bantu
+        $res->assertSee('sesi', false);
+    }
+
+    public function test_endpoint_guru_mapel_mengembalikan_daftar_gabungan(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->getJson(route('dashboard.laboran.jadwal.guru-mapel'));
+
+        $res->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $list = $res->json('guru_mapel');
+        $this->assertIsArray($list);
+        $this->assertNotEmpty($list, 'Data pembelajaran harus tersedia pada DB uji.');
+
+        $first = $list[0];
+        $this->assertArrayHasKey('pembelajaran_id', $first);
+        $this->assertArrayHasKey('mata_pelajaran', $first);
+        $this->assertArrayHasKey('rombel_nama', $first);
+        $this->assertArrayHasKey('nama_guru', $first);
+        $this->assertArrayHasKey('label', $first);
+        $this->assertStringContainsString('—', $first['label']);
     }
 
     public function test_sesi_terjadwal_muncul_pada_matriks_hari_sesuai(): void
@@ -58,6 +82,7 @@ class LaboranJadwalGridTest extends LaboranTestCase
 
         $res->assertStatus(200);
         $res->assertSee('UJI-GRID-MATRIKS', false);
+        $res->assertSee('Lahan Praktik ATPH', false);
         $res->assertSee('Isi Jadwal', false);
     }
 

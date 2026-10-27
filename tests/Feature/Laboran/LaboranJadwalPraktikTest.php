@@ -13,24 +13,28 @@ class LaboranJadwalPraktikTest extends LaboranTestCase
     {
         $session = $this->adminSession();
         $rombel = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->value('rombongan_belajar_id');
+        $pemb = DB::table('pembelajaran')->where('rombongan_belajar_id', $rombel)
+            ->whereNotNull('nama_mata_pelajaran')->orderBy('nama_mata_pelajaran')->first();
+        $this->assertNotNull($pemb, 'Data pembelajaran kelas tidak tersedia.');
 
         // 1. Pemberlakuan Bulanan (Rutin mingguan dalam 1 bulan)
         $this->withSession($session)->postJson(route('dashboard.laboran.jadwal.store'), [
             'ruang_lab_nama'     => 'Lahan Praktik ATPH',
             'jenis_lokasi'       => 'lahan',
+            'pembelajaran_id'    => $pemb->pembelajaran_id,
             'rombel_id'          => $rombel,
-            'mata_pelajaran'     => 'UJI-PEMBERLAKUAN-BULANAN',
-            'tanggal'            => '2026-11-02', // Senin
             'pemberlakuan'       => 'bulanan',
             'pemberlakuan_bulan' => 11,
             'pemberlakuan_tahun' => 2026,
+            'tanggal'            => '2026-11-02', // Senin
             'jam_mulai'          => '07:30',
             'jam_selesai'        => '09:00',
         ])->assertStatus(200);
 
         // November 2026 memiliki 5 hari Senin: 2, 9, 16, 23, 30
         $count = DB::table('laboran_jadwal_penggunaan')
-            ->where('mata_pelajaran', 'UJI-PEMBERLAKUAN-BULANAN')
+            ->where('pembelajaran_id', $pemb->pembelajaran_id)
+            ->where('ruang_lab_nama', 'Lahan Praktik ATPH')
             ->count();
         $this->assertGreaterThanOrEqual(4, $count, 'Penjadwalan bulanan harus meng-generate seluruh minggu dalam bulan.');
     }
