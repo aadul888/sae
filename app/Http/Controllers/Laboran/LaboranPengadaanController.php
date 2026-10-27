@@ -53,6 +53,7 @@ class LaboranPengadaanController extends LaboranBaseController
         $statusFilter = trim((string) $request->query('status', ''));
         $urgensiFilter = trim((string) $request->query('urgensi', ''));
         $jenisFilter  = trim((string) $request->query('jenis', ''));
+        $sumberFilter = trim((string) $request->query('sumber_dana', ''));
 
         $query = DB::table('laboran_usulan_pengadaan as u')
             ->leftJoin('jurusan_meta as jm', 'u.jurusan_id', '=', 'jm.jurusan_id')
@@ -71,6 +72,9 @@ class LaboranPengadaanController extends LaboranBaseController
         if ($urgensiFilter !== '') $query->where('u.urgensi', $urgensiFilter);
         if ($jenisFilter !== '' && array_key_exists($jenisFilter, self::JENIS_PENGADAAN)) {
             $query->where('u.jenis', $jenisFilter);
+        }
+        if ($sumberFilter !== '') {
+            $query->where('u.sumber_dana', $sumberFilter);
         }
 
         $statBase = DB::table('laboran_usulan_pengadaan');
@@ -109,7 +113,7 @@ class LaboranPengadaanController extends LaboranBaseController
         $kebutuhanTersedia = $kebutuhanTersedia->orderBy('k.nama_item')->limit(200)->get();
 
         return view('dashboard.laboran.pengadaan', array_merge(
-            compact('list', 'search', 'statusFilter', 'urgensiFilter', 'jenisFilter', 'perPage',
+            compact('list', 'search', 'statusFilter', 'urgensiFilter', 'jenisFilter', 'sumberFilter', 'perPage',
                 'statTotal', 'statDiajukan', 'statDisetujui', 'statBiaya', 'kebutuhanTersedia'),
             $this->abilities(),
             [

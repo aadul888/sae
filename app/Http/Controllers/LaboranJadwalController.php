@@ -860,12 +860,14 @@ class LaboranJadwalController extends Controller
                 ->whereNotNull('p.ptk_id')
                 ->value('p.ptk_id') ?? '');
         }
-        if ($ptkId === '') {
-            $ptkId = (string) (DB::table('gtk')->whereNotNull('ptk_id')->value('ptk_id') ?? '');
-        }
 
-        if ($mapelNama === '') {
-            $mapelNama = 'Praktik Kejuruan';
+        // Modal simpel: guru & mapel wajib berasal dari data pembelajaran.
+        // Tanpa pembelajaran yang dikenali, penyimpanan ditolak (bukan menebak guru).
+        if ($ptkId === '' || $mapelNama === '') {
+            abort(response()->json([
+                'status'  => 'error',
+                'message' => 'Guru pengampu & mata pelajaran wajib dipilih dari daftar pembelajaran.',
+            ], 422));
         }
 
         $tanggal = !empty($validated['tanggal']) ? $validated['tanggal'] : now()->toDateString();

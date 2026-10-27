@@ -104,7 +104,14 @@
                                 @endforeach
                             </select>
 
-                            @if ($search || $statusFilter || $urgensiFilter || !empty($jenisFilter))
+                            <select name="sumber_dana" id="filterSumberDana" class="toolbar-filter-select" style="height: 38px;" title="Filter Sumber Anggaran Pembelian">
+                                <option value="">Semua Sumber Anggaran</option>
+                                @foreach ($sumberDanaList as $k => $v)
+                                    <option value="{{ $k }}" {{ ($sumberFilter ?? '') === $k ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
+                            </select>
+
+                            @if ($search || $statusFilter || $urgensiFilter || !empty($jenisFilter) || !empty($sumberFilter))
                                 <a href="{{ route('dashboard.laboran.pengadaan.index') }}" class="btn btn-outline"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
@@ -147,10 +154,15 @@
                                     @endif
                                 </td>
                                 <td data-label="Jenis &amp; Justifikasi" style="padding: var(--space-6) var(--space-7);">
-                                    <div style="display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2);">
+                                    <div style="display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); flex-wrap: wrap;">
                                         <span class="badge badge-primary" style="font-size: var(--text-2xs);">
                                             <i class="fas fa-boxes-stacked me-1"></i> {{ $jenisList[$u->jenis ?? 'semua'] ?? 'Semua' }}
                                         </span>
+                                        @if ($u->sumber_dana)
+                                            <span class="badge badge-outline" style="font-size: var(--text-2xs);">
+                                                <i class="fas fa-wallet me-1"></i> {{ $sumberDanaList[$u->sumber_dana] ?? $u->sumber_dana }}
+                                            </span>
+                                        @endif
                                     </div>
                                     @if ($u->justifikasi)
                                         <div style="font-size: var(--text-xs); color: var(--text-muted);">{{ \Illuminate\Support\Str::limit($u->justifikasi, 75) }}</div>
@@ -198,6 +210,7 @@
                                                 data-id="{{ $u->id }}" data-ta="{{ $u->tahun_ajaran }}"
                                                 data-semester="{{ $u->semester }}" data-tanggal="{{ $u->tanggal_usulan }}"
                                                 data-jenis="{{ $u->jenis ?? 'semua' }}"
+                                                data-dana="{{ $u->sumber_dana }}"
                                                 data-urgensi="{{ $u->urgensi }}" data-status="{{ $u->status }}"
                                                 data-justifikasi="{{ $u->justifikasi }}"
                                                 data-catatan="{{ $u->catatan_verifikasi }}"
@@ -269,7 +282,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                                 Jenis Pengadaan <span style="color: var(--danger, #ef4444);">*</span>
@@ -288,6 +301,15 @@
                             <select name="urgensi" id="pgUrgensi" class="form-control" required>
                                 @foreach ($urgensiList as $k => $v)
                                     <option value="{{ $k }}" {{ $k === 'sedang' ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Sumber Anggaran</label>
+                            <select name="sumber_dana" id="pgDana" class="form-control">
+                                <option value="">-- Pilih Sumber Anggaran --</option>
+                                @foreach ($sumberDanaList as $k => $v)
+                                    <option value="{{ $k }}">{{ $v }}</option>
                                 @endforeach
                             </select>
                         </div>
