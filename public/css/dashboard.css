@@ -3277,6 +3277,17 @@ input[type="month"] {
         gap: 10px;
     }
 
+    /* Grid form inline (style="grid-template-columns: 1fr 1fr") dalam modal & kartu form
+       laboran/per modul lain menjadi satu kolom di layar kecil agar tetap terbaca. */
+    .modal-backdrop .card div[style*="grid-template-columns: 1fr"],
+    .modal-backdrop .card div[style*="grid-template-columns: 2fr"],
+    .modal-backdrop .card div[style*="grid-template-columns: 1.4fr"],
+    .modal-backdrop .card div[style*="grid-template-columns: 1fr 1fr"],
+    .modal-backdrop .card div[style*="grid-template-columns: 1fr 1fr 1fr"],
+    .modal-backdrop .card div[style*="grid-template-columns: 1fr 1fr 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
     /* Update sistem: banner & log */
     .update-banner,
     #updateBanner {

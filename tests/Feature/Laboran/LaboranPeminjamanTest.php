@@ -78,29 +78,16 @@ class LaboranPeminjamanTest extends LaboranTestCase
     }
 
     /**
-     * Peminjaman terpadu: satu transaksi dapat memuat alat laboratorium
-     * sekaligus aset sarpras, dengan peminjam terisi otomatis dari data siswa.
+     * Peminjaman alat lab dengan peminjam siswa terisi otomatis dari data siswa
+     * (daftar siswa dibatasi sesuai jurusan laboran).
      */
-    public function test_peminjaman_alat_dengan_siswa_otomatis_dan_sarpras(): void
+    public function test_peminjaman_alat_dengan_siswa_otomatis(): void
     {
         $session = $this->adminSession();
         $siswa = DB::table('peserta_didik')->first();
 
         // 1 item lab
         [$alatId] = $this->seedItems();
-
-        // 1 aset sarpras
-        $asetId = DB::table('sarpras_aset')->insertGetId([
-            'kode_aset'           => 'AST-UJI-' . uniqid(),
-            'nama_barang'         => 'Laptop Inventaris Uji',
-            'kategori'            => 'Elektronik',
-            'jumlah'              => 1,
-            'satuan'              => 'unit',
-            'kondisi'             => 'baik',
-            'status_ketersediaan' => 'tersedia',
-            'created_at'          => now(),
-            'updated_at'          => now(),
-        ]);
 
         $this->withSession($session)->postJson(route('dashboard.laboran.peminjaman-alat.store'), [
             'peminjam_tipe'           => 'siswa',
@@ -111,28 +98,44 @@ class LaboranPeminjamanTest extends LaboranTestCase
             'tanggal_kembali_rencana' => now()->addDays(2)->toDateString(),
             'item_ids'                => [$alatId],
             'item_jumlah'             => [$alatId => 1],
-            'aset_ids'                => [$asetId],
-            'aset_jumlah'             => [$asetId => 1],
         ])->assertStatus(200);
 
         $pinjam = DB::table('laboran_peminjaman')->latest('id')->first();
         $this->assertNotNull($pinjam);
-        $this->assertSame(2, (int) $pinjam->jumlah_item);
+        $this->assertSame(1, (int) $pinjam->jumlah_item);
 
-        // Serah terima -> aset sarpras berstatus dipinjam
+        // Serah terima -> stok berkurang
         $this->withSession($session)->putJson(route('dashboard.laboran.peminjaman-alat.status', $pinjam->id), [
             'status' => 'dipinjam',
         ])->assertStatus(200);
 
-        $this->assertSame('dipinjam', DB::table('sarpras_aset')->where('id', $asetId)->value('status_ketersediaan'));
-
-        // Pengembalian -> aset kembali tersedia
+        // Pengembalian
         $this->withSession($session)->postJson(route('dashboard.laboran.peminjaman-alat.kembalikan', $pinjam->id), [
             'kondisi_kembali' => 'baik',
         ])->assertStatus(200);
 
-        $this->assertSame('tersedia', DB::table('sarpras_aset')->where('id', $asetId)->value('status_ketersediaan'));
+        $this->assertSame('dikembalikan', DB::table('laboran_peminjaman')->where('id', $pinjam->id)->value('status'));
+    }
 
-        DB::table('sarpras_aset')->where('id', $asetId)->delete();
+    /**
+     * Daftar siswa peminjam hanya memuat peserta didik dari jurusan laboran.
+     */
+    public function test_daftar_siswa_peminjam_dibatasi_jurusan(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        $res = $this->withSession($session)->get(route('dashboard.laboran.peminjaman-alat.index'));
+        $res->assertStatus(200);
+
+        $siswaList = $res->viewData('siswaList');
+        $jurusanIds = DB::table('rombongan_belajar')
+            ->whereIn('rombongan_belajar_id', $siswaList->pluck('rombongan_belajar_id')->filter()->all())
+            ->pluck('jurusan_id')
+            ->unique();
+
+        $this->assertTrue(
+            $jurusanIds->every(fn ($j) => $j === self::JUR_ATPH),
+            'Daftar siswa peminjam harus hanya dari jurusan laboran.'
+        );
     }
 }

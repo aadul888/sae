@@ -203,6 +203,35 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
         $res->assertSee('Semester', false);
     }
 
+    public function test_tab_pemberlakuan_mengubah_mode_aktif(): void
+    {
+        $session = $this->adminSession();
+
+        // Klik tab Semester -> mode aktif berubah
+        $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'semester']))
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $this->assertSame('semester', $row->mode_pemberlakuan);
+
+        // Klik tab Mingguan -> kembali
+        $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'mingguan']))
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $this->assertSame('mingguan', $row->mode_pemberlakuan);
+
+        // Nilai tidak valid diabaikan
+        $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'bulanan']))
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $this->assertSame('mingguan', $row->mode_pemberlakuan);
+    }
+
     public function test_pemberlakuan_jadwal_dapat_diaktifkan_per_mode(): void
     {
         $session = $this->adminSession();

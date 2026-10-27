@@ -100,7 +100,7 @@
                             Pilih Alat yang Dipinjam <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <div style="max-height: 260px; overflow-y: auto; padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                            {{-- Seksi Alat Lab --}}
+                            {{-- Seksi Alat Lab (hanya inventaris jurusan laboran) --}}
                             <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--primary); text-transform: uppercase; margin-bottom: var(--space-3);">
                                 <i class="fas fa-flask me-1"></i> Alat Praktik Laboratorium / Bengkel
                             </div>
@@ -123,28 +123,6 @@
                                     Belum ada alat dalam inventaris laboratorium.
                                 </p>
                             @endforelse
-
-                            {{-- Seksi Aset Sarpras --}}
-                            @if (!empty($sarprasAsetOptions) && $sarprasAsetOptions->isNotEmpty())
-                                <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--purple, #8b5cf6); text-transform: uppercase; margin: var(--space-6) 0 var(--space-3) 0;">
-                                    <i class="fas fa-boxes-stacked me-1"></i> Peralatan &amp; Aset Sarpras Sekolah
-                                </div>
-                                @foreach ($sarprasAsetOptions as $ao)
-                                    <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color);">
-                                        <input type="checkbox" name="aset_ids[]" value="{{ $ao->id }}" class="pj-item" style="cursor: pointer;">
-                                        <div style="flex: 1; min-width: 0;">
-                                            <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $ao->nama_item }}</div>
-                                            <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                                {{ $ao->kode_aset }} &bull; Tersedia: {{ (float) $ao->stok_tersedia }} {{ $ao->satuan }}
-                                                @if ($ao->nama_ruang) &bull; {{ $ao->nama_ruang }} @endif
-                                            </div>
-                                        </div>
-                                        <input type="number" step="0.01" min="0.01" max="{{ (float) $ao->stok_tersedia }}"
-                                            name="aset_jumlah[{{ $ao->id }}]" value="1" class="form-control"
-                                            style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam">
-                                    </div>
-                                @endforeach
-                            @endif
                         </div>
                     </div>
 

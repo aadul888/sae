@@ -165,8 +165,18 @@ class LaboranJadwalController extends Controller
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
 
-        // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester)
+        // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester).
+        // Klik tab = memilih mode aktif (disimpan langsung ke pengaturan).
         $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
+        $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
+        if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)
+            && $modePilih !== $pengaturanJadwal->mode_pemberlakuan) {
+            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+                'mode_pemberlakuan' => $modePilih,
+                'updated_at'        => now(),
+            ]);
+            $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
+        }
         $modeDiberlakukan = LaboranJadwalService::getModeDiberlakukan();
         $modePemberlakuanLabels = LaboranJadwalService::MODE_PEMBERLAKUAN;
 

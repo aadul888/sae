@@ -97,30 +97,27 @@ class LaboranPeminjamanController extends LaboranBaseController
             ->paginate($perPage)
             ->withQueryString();
 
-        // Opsi peminjam otomatis (Peserta Didik & Guru/Tendik)
+        // Opsi peminjam otomatis — Peserta Didik dibatasi pada jurusan laboran
         $siswaList = DB::table('peserta_didik as pd')
             ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
             ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as rombel_nama')
             ->orderBy('pd.nama')
-            ->limit(500)
-            ->get();
+            ->limit(500);
+
+        if (!$context['unrestricted'] && !empty($context['jurusan_ids'])) {
+            $siswaList->whereIn('rb.jurusan_id', $context['jurusan_ids']);
+        }
+        $siswaList = $siswaList->get();
 
         $guruList = DB::table('gtk')
             ->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')
             ->orderBy('nama')
             ->get();
 
-        $sarprasAsetOptions = DB::table('sarpras_aset as sa')
-            ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
-            ->where('sa.status_ketersediaan', 'tersedia')
-            ->select('sa.id', 'sa.kode_aset', 'sa.nama_barang as nama_item', 'sa.kategori', 'sa.jumlah as stok_tersedia', 'sa.satuan', 'sr.nama_ruang')
-            ->orderBy('sa.nama_barang')
-            ->get();
-
         return view('dashboard.laboran.peminjaman', array_merge(
             compact('list', 'search', 'statusFilter', 'tipeFilter', 'overdueOnly', 'perPage',
                 'statTotal', 'statDiajukan', 'statDipinjam', 'statTerlambat',
-                'siswaList', 'guruList', 'sarprasAsetOptions'),
+                'siswaList', 'guruList'),
             $this->abilities(),
             [
                 'context'        => $context,
@@ -188,10 +185,6 @@ class LaboranPeminjamanController extends LaboranBaseController
             'item_ids.*'              => 'integer',
             'item_jumlah'             => 'nullable|array',
             'item_jumlah.*'           => 'numeric|min:0.01',
-            'aset_ids'                => 'nullable|array',
-            'aset_ids.*'              => 'integer',
-            'aset_jumlah'             => 'nullable|array',
-            'aset_jumlah.*'           => 'numeric|min:0.01',
         ], [
             'tanggal_kembali_rencana.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
         ]);
@@ -223,42 +216,28 @@ class LaboranPeminjamanController extends LaboranBaseController
         }
 
         $labItemIds = $data['item_ids'] ?? [];
-        $asetIds = $data['aset_ids'] ?? [];
 
-        if (empty($labItemIds) && empty($asetIds)) {
-            return $this->respond($request, false, 'Pilih minimal satu alat (dari laboratorium atau sarpras) yang akan dipinjam.', 422);
+        if (empty($labItemIds)) {
+            return $this->respond($request, false, 'Pilih minimal satu alat laboratorium yang akan dipinjam.', 422);
         }
 
-        // Validasi item inventaris lab
+        // Validasi item inventaris lab (hanya alat milik jurusan laboran)
         $labItems = collect();
-        if (!empty($labItemIds)) {
-            $labItems = DB::table('laboran_bahan_alat')->whereIn('id', $labItemIds)->get();
-            $jumlahMap = $data['item_jumlah'] ?? [];
-            foreach ($labItems as $item) {
-                if (!LaboranScope::allows($item->jurusan_id ?? null, $context)) {
-                    return $this->respond($request, false, 'Alat "' . $item->nama_item . '" berada di luar cakupan jurusan Anda.', 422);
-                }
+        $labItems = DB::table('laboran_bahan_alat')->whereIn('id', $labItemIds)->get();
+        $jumlahMap = $data['item_jumlah'] ?? [];
+        foreach ($labItems as $item) {
+            if (!LaboranScope::allows($item->jurusan_id ?? null, $context)) {
+                return $this->respond($request, false, 'Alat "' . $item->nama_item . '" berada di luar cakupan jurusan Anda.', 422);
+            }
 
-                $minta = (float) ($jumlahMap[$item->id] ?? 1);
-                if ($minta > (float) $item->stok_tersedia) {
-                    return $this->respond($request, false,
-                        'Stok "' . $item->nama_item . '" tidak cukup. Tersedia: ' . $item->stok_tersedia . ' ' . $item->satuan . '.', 422);
-                }
+            $minta = (float) ($jumlahMap[$item->id] ?? 1);
+            if ($minta > (float) $item->stok_tersedia) {
+                return $this->respond($request, false,
+                    'Stok "' . $item->nama_item . '" tidak cukup. Tersedia: ' . $item->stok_tersedia . ' ' . $item->satuan . '.', 422);
             }
         }
 
-        // Validasi aset sarpras
-        $sarprasAset = collect();
-        if (!empty($asetIds)) {
-            $sarprasAset = DB::table('sarpras_aset')->whereIn('id', $asetIds)->get();
-            foreach ($sarprasAset as $a) {
-                if ($a->status_ketersediaan !== 'tersedia') {
-                    return $this->respond($request, false, 'Aset "' . $a->nama_barang . '" sedang tidak tersedia untuk dipinjam.', 422);
-                }
-            }
-        }
-
-        $totalItem = $labItems->count() + $sarprasAset->count();
+        $totalItem = $labItems->count();
 
         $id = DB::table('laboran_peminjaman')->insertGetId([
             'jurusan_id'              => LaboranScope::jurusanForWrite($data['jurusan_id'] ?? null, $context),
@@ -293,25 +272,6 @@ class LaboranPeminjamanController extends LaboranBaseController
                 'jumlah'         => $minta,
                 'satuan'         => $item->satuan,
                 'kondisi_pinjam' => $item->kondisi,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
-        }
-
-        $asetJumlahMap = $data['aset_jumlah'] ?? [];
-        foreach ($sarprasAset as $a) {
-            $minta = (float) ($asetJumlahMap[$a->id] ?? 1);
-
-            DB::table('laboran_peminjaman_item')->insert([
-                'peminjaman_id'  => $id,
-                'item_id'        => null,
-                'sumber'         => 'sarpras_aset',
-                'aset_id'        => $a->id,
-                'nama_item'      => $a->nama_barang,
-                'kode_item'      => $a->kode_aset,
-                'jumlah'         => $minta,
-                'satuan'         => $a->satuan ?: 'unit',
-                'kondisi_pinjam' => $a->kondisi ?: 'baik',
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ]);
