@@ -277,12 +277,18 @@ class LaboranJadwalController extends Controller
         $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
         $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
         if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)) {
-            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
+            $aktifkan = $request->boolean('aktifkan');
+            $update = [
                 'mode_pemberlakuan' => $modePilih,
-                'status'            => 'aktif',
-                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
                 'updated_at'        => now(),
-            ]);
+            ];
+            // Pindah tab hanya mengganti mode tampilan. Status 'aktif' (penguncian)
+            // hanya berubah lewat modal penguncian atau tombol Aktifkan Pemberlakuan.
+            if ($aktifkan) {
+                $update['status'] = 'aktif';
+                $update['diberlakukan_oleh_ptk_id'] = $this->currentPtkId();
+            }
+            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update($update);
             $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
         }
         $modeDiberlakukan = LaboranJadwalService::getModeDiberlakukan();

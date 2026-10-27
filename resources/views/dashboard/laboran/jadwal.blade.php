@@ -47,7 +47,7 @@
                         <button type="button" class="btn btn-outline" id="btnDropdownCetakJadwal"
                             style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
                             title="Pilihan Cetak Jadwal Praktik">
-                            <i class="fas fa-print"></i> Cetak <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                            <i class="fas fa-print"></i> Cetak <i class="fas fa-chevron-down" style="font-size: var(--text-2xs, 0.7rem);"></i>
                         </button>
                         <div id="dropdownMenuCetakJadwal"
                             style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.25); min-width: 220px; z-index: 1000; overflow: hidden;">

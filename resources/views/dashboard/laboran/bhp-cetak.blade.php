@@ -162,7 +162,7 @@
                         <td>{{ $it->ruang_lab_nama }}</td>
                         <td>{{ $it->lokasi_lemari_rak ?: '-' }}</td>
                         <td class="right" style="font-weight: 700;">{{ (float) $it->stok_total }}</td>
-                        <td class="right" style="font-weight: 700; color: {{ (float) $it->stok_tersedia <= 2 ? '#ef4444' : '#10b981' }};">
+                        <td class="right" style="font-weight: 700; color: {{ (float) $it->stok_tersedia <= 2 ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)' }};">
                             {{ (float) $it->stok_tersedia }}
                         </td>
                         <td class="center">{{ $it->satuan }}</td>
