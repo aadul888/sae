@@ -154,6 +154,19 @@ class LaboranJadwalService
             $curr->addDay();
         }
 
+        // Mode 1 sesi (mis. semester/template): bila hari terpilih tidak jatuh pada tanggal
+        // acuan, geser ke kemunculan terdekat hari tersebut agar sesi tidak salah hari.
+        if (empty($dates) && $start->equalTo($end)) {
+            $curr = $start->copy();
+            for ($i = 0; $i < 7; $i++) {
+                if (in_array($curr->dayOfWeek, $targetDays, true)) {
+                    $dates[] = $curr->toDateString();
+                    break;
+                }
+                $curr->addDay();
+            }
+        }
+
         return !empty($dates) ? $dates : [$base->toDateString()];
     }
 
@@ -206,7 +219,7 @@ class LaboranJadwalService
 
         // Mingguan dan Semester dengan rentang minggu eksplisit (Minggu ke-N s/d ke-M):
         // mulai tanggal awal (minggu N) hingga akhir minggu M.
-        if (in_array($pemberlakuan, ['mingguan', 'semester'], true) && $minggu && $minggu > 0) {
+        if (in_array($pemberlakuan, ['mingguan', 'semester'], true) && $minggu && $minggu > 1) {
             $start = $base->copy();
             $end = $base->copy()->addWeeks($minggu)->subDay();
 
@@ -223,21 +236,13 @@ class LaboranJadwalService
             ];
         }
 
-        if ($pemberlakuan === 'semester') {
-            $parts = explode('/', $tahunAjaran ?: ($base->month >= 7
-                ? $base->year . '/' . ($base->year + 1)
-                : ($base->year - 1) . '/' . $base->year));
-            $y1 = (int) ($parts[0] ?? $base->year);
-            $y2 = (int) ($parts[1] ?? ($y1 + 1));
-            $sem = $semester ?: ($base->month >= 7 ? '1' : '2');
-
-            return $sem === '1'
-                ? [Carbon::createFromDate($y1, 7, 1), Carbon::createFromDate($y1, 12, 31)]
-                : [Carbon::createFromDate($y2, 1, 1), Carbon::createFromDate($y2, 6, 30)];
+        if ($pemberlakuan === 'mingguan') {
+            // `mingguan` tanpa tanggal akhir: sebulan penuh sejak tanggal awal.
+            return [$base->copy(), $base->copy()->addMonthNoOverflow()->subDay()];
         }
 
-        // `mingguan` tanpa tanggal akhir: sebulan penuh sejak tanggal awal.
-        return [$base->copy(), $base->copy()->addMonthNoOverflow()->subDay()];
+        // Sesuai jam dan tanggal yang dipilih (1 sesi jadwal)
+        return [$base->copy(), $base->copy()];
     }
 
     /**

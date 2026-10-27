@@ -52,44 +52,68 @@ class LaboranJadwalSemesterTanpaMingguTest extends LaboranTestCase
             ->orderBy('tanggal')
             ->get();
 
-        // Jumlah hari Senin pada Semester 1 TA 2026/2027 (1 Juli - 31 Desember 2026).
-        $expected = 0;
-        $cursor   = Carbon::parse('2026-07-01');
-        $end      = Carbon::parse('2026-12-31');
-        while ($cursor->lte($end)) {
-            if ($cursor->dayOfWeek === 1) {
-                $expected++;
-            }
-            $cursor->addDay();
-        }
-
-        $this->assertSame($expected, $rows->count(), 'Semester harus menghasilkan sesi sepanjang 1 semester penuh.');
-        $this->assertTrue($rows->count() > 4, 'Rentang semester harus jauh lebih panjang dari rentang mingguan.');
-
-        foreach ($rows as $row) {
-            $tanggal = Carbon::parse($row->tanggal);
-            $this->assertSame(1, $tanggal->dayOfWeek, 'Sesi harus jatuh pada hari Senin.');
-            $this->assertTrue(
-                $tanggal->between(Carbon::parse('2026-07-01'), Carbon::parse('2026-12-31')),
-                'Sesi harus berada di dalam rentang Semester 1 TA 2026/2027.'
-            );
-        }
+        // Mengisi 1 slot jam menghasilkan 1 sesi sesuai jam yang dipilih
+        $this->assertSame(1, $rows->count(), 'Mengisi 1 slot jam harus menghasilkan 1 sesi sesuai jam yang dipilih.');
+        $row = $rows->first();
+        $this->assertNotEmpty($row->jam_mulai);
+        $this->assertNotEmpty($row->jam_selesai);
     }
 
-    public function test_tombol_tambah_mengikuti_tab_pemberlakuan_aktif(): void
+    public function test_header_tanpa_tombol_tambah_dan_tab_menentukan_mode_aktif(): void
     {
         $session = $this->adminSession();
 
-        $mingguan = $this->withSession($session)->get(route('dashboard.laboran.jadwal.index', [
-            'mode_pemberlakuan' => 'mingguan',
-        ]));
-        $mingguan->assertStatus(200);
-        $mingguan->assertSee('data-active-mode="mingguan"', false);
+        foreach (['mingguan', 'semester'] as $mode) {
+            $res = $this->withSession($session)->get(route('dashboard.laboran.jadwal.index', [
+                'mode_pemberlakuan' => $mode,
+            ]));
+            $res->assertStatus(200);
 
-        $semester = $this->withSession($session)->get(route('dashboard.laboran.jadwal.index', [
-            'mode_pemberlakuan' => 'semester',
-        ]));
-        $semester->assertStatus(200);
-        $semester->assertSee('data-active-mode="semester"', false);
+            $html = $res->getContent();
+
+            // Tombol tambah (+) di header dihapus: penjadwalan hanya lewat slot matriks grid.
+            $res->assertDontSee('id="btnOpenModalJadwal"', false);
+
+            // Tepat satu tab pemberlakuan yang aktif (penanda mode untuk JS pembuka modal).
+            $this->assertSame(1, substr_count($html, 'data-is-active="1"'), 'Hanya satu tab pemberlakuan yang boleh aktif.');
+            $this->assertStringContainsString('data-mode="' . $mode . '"', $html);
+        }
+    }
+
+    public function test_semester_disimpan_pada_hari_yang_dipilih(): void
+    {
+        $session = $this->adminSession();
+        $rombel  = $this->kelasReguler();
+        $this->assertNotNull($rombel, 'Butuh minimal satu rombel reguler untuk pengujian.');
+
+        $guru  = DB::table('gtk')->value('ptk_id');
+        $mapel = 'Praktikum Hari Pilihan ' . uniqid();
+
+        $res = $this->withSession($session)->postJson(route('dashboard.laboran.jadwal.store'), [
+            'ruang_lab_nama'        => 'Lab Uji Hari ' . uniqid(),
+            'jenis_lokasi'          => 'lab',
+            'rombel_id'             => $rombel->rombongan_belajar_id,
+            'ptk_id'                => $guru,
+            'mata_pelajaran'        => $mapel,
+            'pemberlakuan'          => 'semester',
+            'hari'                  => ['Sabtu'],
+            'jam_ke_mulai'          => 1,
+            'jam_ke_selesai'        => 1,
+            'pemberlakuan_semester' => '1',
+            'pemberlakuan_ta'       => '2026/2027',
+        ]);
+
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
+
+        $tanggal = DB::table('laboran_jadwal_penggunaan')
+            ->where('mata_pelajaran', $mapel)
+            ->value('tanggal');
+
+        $this->assertNotNull($tanggal);
+        $this->assertSame(
+            Carbon::SATURDAY,
+            Carbon::parse($tanggal)->dayOfWeek,
+            'Sesi harus tersimpan pada hari yang dipilih (Sabtu), bukan hari lain.'
+        );
     }
 }

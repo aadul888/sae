@@ -184,12 +184,15 @@ class LaboranJadwalController extends Controller
 
         $allGtk = DB::table('gtk')->orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nip']);
 
-        $allRombel = DB::table('rombongan_belajar')
+        // Kelas (rombel) dibatasi sesuai cakupan jurusan pengguna.
+        $allRombelQuery = DB::table('rombongan_belajar')
             ->where(function ($q) {
                 $q->where('jenis_rombel', 1)
                   ->orWhere('jenis_rombel', '1')
                   ->orWhere('jenis_rombel_str', 'Kelas');
-            })
+            });
+        LaboranScope::apply($allRombelQuery, 'jurusan_id', $context);
+        $allRombel = $allRombelQuery
             ->orderBy('nama', 'asc')
             ->get(['rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id_str', 'jurusan_id_str']);
 
@@ -242,6 +245,9 @@ class LaboranJadwalController extends Controller
 
         // Matriks [hari][slotJP] — setiap hari memuat sesinya sendiri (multi sesi per jam didukung).
         $gridMatrix = [];
+        $gridOccupied = [];
+        $seenSlotSessions = [];
+
         foreach ($allSchedules as $item) {
             $hari = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
             if (!in_array($hari, $gridLokasi, true)) {
@@ -267,6 +273,13 @@ class LaboranJadwalController extends Controller
             }
             $slotSelesai = $slotSelesai ?? $slotMulai;
 
+            // Kunci sesi unik pada matriks mingguan (agar tidak duplikat berkali-kali)
+            $sessionKey = $hari . '|' . $slotMulai . '|' . $slotSelesai . '|' . ($item->ruang_lab_nama ?? '') . '|' . ($item->rombel_id ?? '') . '|' . ($item->ptk_id ?? '') . '|' . ($item->mata_pelajaran ?? '');
+            if (isset($seenSlotSessions[$sessionKey])) {
+                continue;
+            }
+            $seenSlotSessions[$sessionKey] = true;
+
             // Simpan kartu di slotMulai dengan informasi durasi/slotAkhir
             $gridMatrix[$hari][$slotMulai][] = [
                 'item'      => $item,
@@ -280,13 +293,14 @@ class LaboranJadwalController extends Controller
             }
         }
 
-        // Hitung sesi per hari untuk badge header (MySQL DAYNAME -> Indonesia)
+        // Hitung sesi per hari untuk badge header (jumlah sesi unik terjadwal pada hari tersebut)
         $countPerHari = [];
-        foreach ($allSchedules as $item) {
-            $hari = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
-            if (in_array($hari, $gridLokasi, true)) {
-                $countPerHari[$hari] = ($countPerHari[$hari] ?? 0) + 1;
+        foreach ($gridMatrix as $h => $slotsMap) {
+            $totalCount = 0;
+            foreach ($slotsMap as $ke => $items) {
+                $totalCount += count($items);
             }
+            $countPerHari[$h] = $totalCount;
         }
 
         // Maks JP antar hari untuk tinggi baris matriks
@@ -317,8 +331,6 @@ class LaboranJadwalController extends Controller
             'slotCounts' => $dailySlotCounts,
         ];
 
-        $gridOccupied = [];
-
         $jenisLokasiLabels = self::JENIS_LOKASI;
         $statusLabels      = self::STATUS_LIST;
 
@@ -330,7 +342,7 @@ class LaboranJadwalController extends Controller
             'allGtk', 'allRombel', 'statTotal', 'statHariIni', 'statBerlangsung', 'statSelesai',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'perPage',
             'jenisLokasiLabels', 'statusLabels',
-            'pengaturanJadwal', 'modeDiberlakukan', 'modePemberlakuanLabels',
+            'pengaturanJadwal', 'activeMode', 'modeDiberlakukan', 'modePemberlakuanLabels',
             'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
             'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
             'perluPilihMode'
@@ -447,7 +459,7 @@ class LaboranJadwalController extends Controller
                 'ptk_id'            => $r->ptk_id,
                 'nama_guru'         => $guruNama ?: 'Belum Ditugaskan',
                 'label'             => $rombelId !== ''
-                    ? $mapel . ' — ' . ($guruNama ?: 'Belum Ditugaskan')
+                    ? ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel
                     : ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')',
             ];
         }
@@ -928,14 +940,27 @@ class LaboranJadwalController extends Controller
         $jamKeSelesai = (int) ($validated['jam_ke_selesai'] ?? 0);
 
         if ($jamKeMulai > 0) {
+            $hariValid = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             $hariBase = null;
-            if (!empty($validated['tanggal'])) {
+
+            // Prioritaskan hari dari slot yang dipilih (kiriman `hari[]`/`hari_semester`),
+            // agar konversi Jam Ke-N -> jam tetap mengikuti hari slot, bukan tanggal acuan.
+            $hariSubmit = (array) $request->input('hari', []);
+            $hariSubmitName = trim((string) ($hariSubmit[0] ?? ''));
+            if ($hariSubmitName === '' && $request->filled('hari_semester')) {
+                $hariSubmitName = (string) $request->input('hari_semester');
+            }
+            if (in_array($hariSubmitName, $hariValid, true)) {
+                $hariBase = $hariSubmitName;
+            }
+
+            if (!$hariBase && !empty($validated['tanggal'])) {
                 $dayMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
                     'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
                 $hariBase = $dayMap[date('l', strtotime($validated['tanggal']))] ?? null;
             }
-            if (!$hariBase || !in_array($hariBase, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true)) {
-                $hariBase = $request->input('hari_semester') ?: 'Senin';
+            if (!$hariBase || !in_array($hariBase, $hariValid, true)) {
+                $hariBase = 'Senin';
             }
             $slots = \App\Models\JadwalPengaturan::getSlots($hariBase);
             if ($jamKeSelesai < $jamKeMulai) {

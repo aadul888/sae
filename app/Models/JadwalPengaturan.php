@@ -440,19 +440,30 @@ class JadwalPengaturan extends Model
 
         for ($ke = 1; $ke <= $totalSlots; $ke++) {
             $isBreak = isset($istirahatMap[$ke]);
+            $isUpacara = ($hari === $upacaraHari && $isUpacaraAktif && $ke === $upacaraJamKe);
+            $isPembiasaan = ($hari === $pembiasaanHari && $isPembiasaanAktif && $ke === $pembiasaanJamKe);
             $slotDurasi = $durasi;
 
-            if ($hari === $upacaraHari && $isUpacaraAktif && $ke === $upacaraJamKe) {
+            if ($isUpacara) {
                 $slotDurasi = $upacaraDurasi;
-            } elseif ($hari === $pembiasaanHari && $isPembiasaanAktif && $ke === $pembiasaanJamKe) {
+            } elseif ($isPembiasaan) {
                 $slotDurasi = $pembiasaanDurasi;
-            } elseif ($isBreak && ($hari !== 'Jumat' || $ke !== $istirahatMap[$ke])) {
+            } elseif ($isBreak) {
                 $slotDurasi = $istirahatMap[$ke]['durasi'];
             }
 
             $startStr = $current->format('H:i');
             $end = $current->copy()->addMinutes($slotDurasi);
             $endStr = $end->format('H:i');
+
+            $label = "Jam Ke-{$ke}";
+            if ($isBreak) {
+                $label .= ' (Istirahat)';
+            } elseif ($isUpacara) {
+                $label .= ' (Upacara)';
+            } elseif ($isPembiasaan) {
+                $label .= ' (Pembiasaan)';
+            }
 
             $slots[$ke] = [
                 'ke'             => $ke,
@@ -461,8 +472,11 @@ class JadwalPengaturan extends Model
                 'jam_mulai'      => strlen($startStr) === 5 ? $startStr . ':00' : $startStr,
                 'selesai'        => $endStr,
                 'jam_selesai'    => strlen($endStr) === 5 ? $endStr . ':00' : $endStr,
-                'label'          => $isBreak ? "Jam Ke-{$ke} (Istirahat)" : "Jam Ke-{$ke}",
+                'label'          => $label,
                 'is_break'       => $isBreak,
+                'is_upacara'     => $isUpacara,
+                'is_pembiasaan'  => $isPembiasaan,
+                'schedulable'    => !$isBreak && !$isUpacara && !$isPembiasaan,
                 'break_duration' => $isBreak ? $istirahatMap[$ke]['durasi'] : 0,
                 'break_name'     => $isBreak ? $istirahatMap[$ke]['nama'] : '',
             ];

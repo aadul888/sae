@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectJamKeMulaiMingguan = document.getElementById('selectJamKeMulaiMingguan');
     const selectJamKeSelesaiMingguan = document.getElementById('selectJamKeSelesaiMingguan');
     const inputTanggalMingguan = document.getElementById('inputTanggalMingguan');
+    const inputHariMingguan = document.getElementById('inputHariMingguan');
     const selectPemberlakuanMingguM = document.getElementById('selectPemberlakuanMingguM');
     const selectPemberlakuanMingguAkhirM = document.getElementById('selectPemberlakuanMingguAkhirM');
 
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectRombelSemester = document.getElementById('selectRombelSemester');
     const selectGuruMapelSemester = document.getElementById('selectGuruMapelSemester');
     const hintSemester = document.getElementById('guruMapelHintSemester');
-    const selectHariSemester = document.getElementById('selectHariSemester');
+    const inputHariSemester = document.getElementById('inputHariSemester');
     const selectJamKeMulaiSemester = document.getElementById('selectJamKeMulaiSemester');
     const selectJamKeSelesaiSemester = document.getElementById('selectJamKeSelesaiSemester');
     const selectPemberlakuanSemesterS = document.getElementById('selectPemberlakuanSemesterS');
@@ -107,7 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
         selectMulai.innerHTML = '';
         selectSelesai.innerHTML = '';
 
-        const keys = Object.keys(slots || {});
+        const keys = Object.keys(slots || {}).filter(function (ke) {
+            const s = slots[ke];
+            // Lewati slot rutinitas (Upacara, Pembiasaan, Istirahat) — bukan jam praktik.
+            return !s || !(s.is_break || s.is_upacara || s.is_pembiasaan || s.schedulable === false);
+        });
         if (keys.length === 0) {
             for (let k = 1; k <= 10; k++) {
                 selectMulai.appendChild(new Option('Jam ke-' + k, k));
@@ -120,8 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         keys.forEach(function (ke) {
             const s = slots[ke];
-            let label = 'Jam ke-' + s.ke + ' (' + s.mulai + ' - ' + s.selesai + ')';
-            if (s.is_break) label += ' [Istirahat]';
+            const label = 'Jam ke-' + s.ke + ' (' + s.mulai + ' - ' + s.selesai + ')';
             selectMulai.appendChild(new Option(label, s.ke));
             selectSelesai.appendChild(new Option(label, s.ke));
         });
@@ -181,8 +185,8 @@ document.addEventListener('DOMContentLoaded', function () {
             opt.dataset.mapel = item.mata_pelajaran || '';
             opt.dataset.ptkId = item.ptk_id || '';
             opt.dataset.guru = item.nama_guru || '';
-            let label = item.mata_pelajaran;
-            if (item.nama_guru) label += ' — ' + item.nama_guru;
+            let label = item.nama_guru || 'Belum Ditugaskan';
+            if (item.mata_pelajaran) label += ' \u2014 ' + item.mata_pelajaran;
             opt.textContent = label;
             selectEl.appendChild(opt);
         });
@@ -264,12 +268,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    if (selectHariSemester) {
-        selectHariSemester.addEventListener('change', function () {
-            loadSlotsForHari(this.value, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
-        });
-    }
-
     if (selectRombelMingguan) {
         selectRombelMingguan.addEventListener('change', function () {
             loadGuruMapel(this.value, selectGuruMapelMingguan, hintMingguan, null);
@@ -279,10 +277,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (inputTanggalMingguan) {
         inputTanggalMingguan.addEventListener('change', function () {
             if (!this.value) return;
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const d = new Date(this.value + 'T00:00:00');
-            const hariNama = days[d.getDay()] || 'Senin';
-            const targetHari = inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']) ? hariNama : 'Senin';
+            const targetHari = hariDariTanggal(this.value) || 'Senin';
+            if (inputHariMingguan) inputHariMingguan.value = targetHari;
             loadSlotsForHari(targetHari, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
         });
     }
@@ -290,15 +286,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (inputTanggalSemester) {
         inputTanggalSemester.addEventListener('change', function () {
             if (!this.value) return;
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const d = new Date(this.value + 'T00:00:00');
-            const hariNama = days[d.getDay()] || 'Senin';
-            const targetHari = inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']) ? hariNama : 'Senin';
-            if (selectHariSemester) {
-                selectHariSemester.value = targetHari;
-            }
+            const targetHari = hariDariTanggal(this.value) || 'Senin';
+            if (inputHariSemester) inputHariSemester.value = targetHari;
             loadSlotsForHari(targetHari, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
         });
+    }
+
+    // -------------------------------------------------------------------------
+    // 7b. Util Hari & Tanggal (penjadwalan berbasis slot matriks)
+    // -------------------------------------------------------------------------
+    const HARI_URUT = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    function fmtDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + dd;
+    }
+
+    function hariDariTanggal(dateStr) {
+        if (!dateStr) return null;
+        const d = new Date(dateStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return null;
+        const nama = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][d.getDay()];
+        return inArray(nama, HARI_URUT) ? nama : null;
+    }
+
+    function tanggalUntukHari(hari) {
+        const today = new Date();
+        const target = HARI_URUT.indexOf(hari) + 1; // Senin=1 .. Sabtu=6
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        if (target < 1) return fmtDate(d);
+        const diff = (target - d.getDay() + 7) % 7;
+        d.setDate(d.getDate() + diff);
+        return fmtDate(d);
     }
 
     function inArray(needle, haystack) {
@@ -327,7 +348,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // 8. Buka / Tutup Modal Tambah & Ubah Jadwal
     // -------------------------------------------------------------------------
     function getActiveMode() {
-        return (btnOpenModalJadwal && btnOpenModalJadwal.dataset.activeMode) || 'semester';
+        const activeTab = document.querySelector('.btn-tab-pemberlakuan[data-is-active="1"]');
+        if (activeTab && activeTab.dataset.mode) return activeTab.dataset.mode;
+        if (btnOpenModalJadwal && btnOpenModalJadwal.dataset.activeMode) return btnOpenModalJadwal.dataset.activeMode;
+        return 'semester';
     }
 
     function openModalCreate(mode) {
@@ -341,17 +365,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Jadwalkan Praktik (Semester)';
             setGuruMapelOptions(selectGuruMapelSemester, hintSemester, []);
             if (inputTanggalSemester) {
-                const now = new Date();
-                const tzOffset = now.getTimezoneOffset() * 60000;
-                inputTanggalSemester.value = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                const d = new Date(inputTanggalSemester.value + 'T00:00:00');
-                const hariNama = days[d.getDay()] || 'Senin';
-                if (selectHariSemester && inArray(hariNama, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'])) {
-                    selectHariSemester.value = hariNama;
-                }
+                inputTanggalSemester.value = fmtDate(new Date());
             }
-            loadSlotsForHari(selectHariSemester ? selectHariSemester.value : 'Senin', selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
+            const hariAwal = (inputHariSemester && inArray(inputHariSemester.value, HARI_URUT))
+                ? inputHariSemester.value : 'Senin';
+            if (inputHariSemester) inputHariSemester.value = hariAwal;
+            loadSlotsForHari(hariAwal, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
         } else {
             if (!modalJadwalMingguan || !formJadwalMingguan) return;
@@ -361,21 +380,16 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalMingguanTitle) modalJadwalMingguanTitle.textContent = 'Jadwalkan Praktik (Mingguan)';
             setGuruMapelOptions(selectGuruMapelMingguan, hintMingguan, []);
             if (inputTanggalMingguan) {
-                const now = new Date();
-                const tzOffset = now.getTimezoneOffset() * 60000;
-                inputTanggalMingguan.value = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
+                inputTanggalMingguan.value = fmtDate(new Date());
             }
             if (selectPemberlakuanMingguM) selectPemberlakuanMingguM.value = '1';
             if (selectPemberlakuanMingguAkhirM) selectPemberlakuanMingguAkhirM.value = '1';
-            loadSlotsForHari('Senin', selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
+            const hariAwal = (inputHariMingguan && inArray(inputHariMingguan.value, HARI_URUT))
+                ? inputHariMingguan.value : 'Senin';
+            if (inputHariMingguan) inputHariMingguan.value = hariAwal;
+            loadSlotsForHari(hariAwal, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
             modalJadwalMingguan.style.display = 'flex';
         }
-    }
-
-    if (btnOpenModalJadwal) {
-        btnOpenModalJadwal.addEventListener('click', function () {
-            openModalCreate();
-        });
     }
 
     // Quick Slot pada Matriks Grid
@@ -390,9 +404,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const jamKe = btnSlot.dataset.jamKe || '1';
 
         if (mode === 'semester') {
-            if (selectHariSemester) selectHariSemester.value = slotHari;
+            if (inputHariSemester) inputHariSemester.value = slotHari;
             loadSlotsForHari(slotHari, selectJamKeMulaiSemester, selectJamKeSelesaiSemester, jamKe, jamKe);
         } else {
+            if (inputHariMingguan) inputHariMingguan.value = slotHari;
+            if (inputTanggalMingguan) inputTanggalMingguan.value = tanggalUntukHari(slotHari);
             loadSlotsForHari(slotHari, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan, jamKe, jamKe);
         }
     });
@@ -414,8 +430,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectLokasiSemester) selectLokasiSemester.value = d.lokasi || '';
             if (selectRombelSemester) selectRombelSemester.value = d.rombelId || '';
             if (inputTanggalSemester) inputTanggalSemester.value = d.tanggal || '';
+            const hariEditS = hariDariTanggal(d.tanggal) || 'Senin';
+            if (inputHariSemester) inputHariSemester.value = hariEditS;
             loadGuruMapel(d.rombelId || '', selectGuruMapelSemester, hintSemester, d.pembelajaranId || null);
-            loadSlotsForHari('Senin', selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
+            loadSlotsForHari(hariEditS, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
         } else {
             if (!modalJadwalMingguan || !formJadwalMingguan) return;
@@ -426,8 +444,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectLokasiMingguan) selectLokasiMingguan.value = d.lokasi || '';
             if (selectRombelMingguan) selectRombelMingguan.value = d.rombelId || '';
             if (inputTanggalMingguan) inputTanggalMingguan.value = d.tanggal || '';
+            const hariEditM = hariDariTanggal(d.tanggal) || 'Senin';
+            if (inputHariMingguan) inputHariMingguan.value = hariEditM;
             loadGuruMapel(d.rombelId || '', selectGuruMapelMingguan, hintMingguan, d.pembelajaranId || null);
-            loadSlotsForHari('Senin', selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
+            loadSlotsForHari(hariEditM, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
             modalJadwalMingguan.style.display = 'flex';
         }
     });

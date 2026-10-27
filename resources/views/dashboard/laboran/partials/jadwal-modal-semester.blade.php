@@ -106,19 +106,16 @@
                 </div>
             </div>
 
-            {{-- 5. Hari Praktik --}}
+            {{-- 5. Hari Praktik (otomatis dari slot matriks) --}}
             <div style="margin-bottom: var(--space-7);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                    <i class="fas fa-calendar-day text-primary me-1"></i> Hari Praktik <span style="color: var(--danger, #ef4444);">*</span>
+                    <i class="fas fa-calendar-day text-primary me-1"></i> Hari Praktik
                 </label>
-                <select name="hari_semester" id="selectHariSemester" class="form-control" required>
-                    <option value="Senin">Senin</option>
-                    <option value="Selasa">Selasa</option>
-                    <option value="Rabu">Rabu</option>
-                    <option value="Kamis">Kamis</option>
-                    <option value="Jumat">Jumat</option>
-                    <option value="Sabtu">Sabtu</option>
-                </select>
+                <input type="text" name="hari[]" id="inputHariSemester" class="form-control" value="Senin" readonly
+                    style="background: var(--bg-hover); cursor: not-allowed;" tabindex="-1">
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Otomatis mengikuti slot hari yang dipilih pada matriks.
+                </div>
             </div>
 
             {{-- 6. Alokasi Waktu: Jam Ke-1 s/d Jam Ke-N --}}

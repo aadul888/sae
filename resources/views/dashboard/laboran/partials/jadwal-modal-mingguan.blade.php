@@ -94,7 +94,19 @@
                 </div>
             </div>
 
-            {{-- 5. Penentuan Minggu Ke- & Tanggal --}}
+            {{-- 5. Hari Praktik (otomatis dari slot matriks / tanggal) --}}
+            <div style="margin-bottom: var(--space-7);">
+                <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                    <i class="fas fa-calendar-day text-primary me-1"></i> Hari Praktik
+                </label>
+                <input type="text" name="hari[]" id="inputHariMingguan" class="form-control" value="Senin" readonly
+                    style="background: var(--bg-hover); cursor: not-allowed;" tabindex="-1">
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Otomatis mengikuti slot hari yang dipilih pada matriks.
+                </div>
+            </div>
+
+            {{-- 6. Penentuan Minggu Ke- & Tanggal --}}
             <div style="margin-bottom: var(--space-8); padding: var(--space-5); background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-md);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); align-items: end;">
                     <div>

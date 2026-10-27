@@ -1,6 +1,6 @@
 ﻿@extends('layouts.dashboard')
 
-@section('title', 'Jadwal Praktik & Penggunaan Lokasi â€” Laboratorium SAE')
+@section('title', 'Jadwal Praktik & Penggunaan Lokasi - Laboratorium SAE')
 @section('dash_title', 'Jadwal Praktik')
 
 @section('content')
@@ -77,14 +77,6 @@
                             </a>
                         </div>
                     </div>
-                @endif
-                @if ($canCreate)
-                    <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        data-active-mode="{{ $pengaturanJadwal->mode_pemberlakuan ?? 'semester' }}"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Jadwalkan Praktik Baru">
-                        <i class="fas fa-plus"></i>
-                    </button>
                 @endif
             </div>
         </div>
@@ -245,7 +237,7 @@
                                     @if (!$slot)
                                         {{-- JP hari ini sudah habis sebelum baris maksimum --}}
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background: rgba(127,127,127,0.06); text-align: center; vertical-align: middle;">
-                                            <span style="color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">â€”</span>
+                                            <span style="color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">-</span>
                                         </td>
                                     @elseif ($rutinLabel)
                                         <td style="padding: 4px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle;">
@@ -299,7 +291,7 @@
                                                     </div>
                                                     <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                                         <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">{{ $durasi }} JP</span>
-                                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 600;">{{ substr((string) $item->jam_mulai, 0, 5) }}â€“{{ substr((string) $item->jam_selesai, 0, 5) }}</span>
+                                                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 600;">{{ substr((string) $item->jam_mulai, 0, 5) }}-{{ substr((string) $item->jam_selesai, 0, 5) }}</span>
                                                         @if ($canUpdate || $canDelete)
                                                             <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
                                                                 @if ($canUpdate)
