@@ -68,8 +68,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (form) {
+        // Jumlah alat selalu bilangan bulat: normalisasi saat diubah / blur.
+        function bulatkanJumlah(input) {
+            const min = parseInt(input.getAttribute('min'), 10) || 1;
+            const max = parseInt(input.getAttribute('max'), 10) || 0;
+            let v = parseInt(String(input.value).replace(/[^\d-]/g, ''), 10);
+            if (!Number.isFinite(v)) v = min;
+            if (v < min) v = min;
+            if (max > 0 && v > max) v = max;
+            input.value = String(v);
+        }
+
+        form.querySelectorAll('input[type="number"][name^="item_jumlah"], input[type="number"][name^="aset_jumlah"]')
+            .forEach(function (input) {
+                input.addEventListener('change', function () { bulatkanJumlah(input); });
+                input.addEventListener('blur', function () { bulatkanJumlah(input); });
+            });
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // Normalisasi seluruh input jumlah sebelum dikirim.
+            form.querySelectorAll('input[type="number"][name^="item_jumlah"], input[type="number"][name^="aset_jumlah"]')
+                .forEach(function (input) {
+                    if (!input.disabled) bulatkanJumlah(input);
+                });
 
             // Validasi minimal satu alat dipilih
             const checked = form.querySelectorAll('.pj-item:checked');
@@ -328,4 +351,73 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+
+    // =====================================================================
+    // 4. Modal Import Excel
+    // =====================================================================
+    const modalImport = document.getElementById('modalImportPeminjaman');
+    const btnOpenImport = document.getElementById('btnOpenImportPeminjaman');
+    const btnCloseImport = document.getElementById('btnCloseModalImportPeminjaman');
+    const btnCancelImport = document.getElementById('btnCancelImportPeminjaman');
+    const formImport = document.getElementById('formImportPeminjaman');
+
+    function openImportModal() {
+        if (!modalImport) return;
+        if (formImport) formImport.reset();
+        L.openModal(modalImport);
+    }
+
+    function closeImportModal() {
+        L.closeModal(modalImport);
+    }
+
+    if (btnOpenImport) btnOpenImport.addEventListener('click', openImportModal);
+    if (btnCloseImport) btnCloseImport.addEventListener('click', closeImportModal);
+    if (btnCancelImport) btnCancelImport.addEventListener('click', closeImportModal);
+    if (modalImport) {
+        modalImport.addEventListener('click', function (e) {
+            if (e.target === modalImport) closeImportModal();
+        });
+    }
+
+    if (formImport) {
+        formImport.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('fileImportPeminjaman');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                L.notifyError('Berkas Belum Dipilih', 'Pilih berkas Excel/CSV terlebih dahulu.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('btnSubmitImportPeminjaman');
+            L.setBusy(submitBtn, true, 'Mengimpor...');
+
+            fetch(formImport.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': L.csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: new FormData(formImport)
+            })
+                .then(async function (res) {
+                    const data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) throw new Error(L.extractError(data, 'Gagal memproses berkas import.'));
+                    return data;
+                })
+                .then(function (data) {
+                    closeImportModal();
+                    L.notifySuccess(data.message || 'Import peminjaman berhasil diproses.');
+                })
+                .catch(function (err) {
+                    L.notifyError('Gagal Import', err.message || 'Terjadi kesalahan saat mengunggah berkas.');
+                })
+                .finally(function () {
+                    L.setBusy(submitBtn, false);
+                });
+        });
+    }
 });

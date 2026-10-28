@@ -4,6 +4,7 @@
 @section('dash_title', 'Kebersihan Jurusan')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- Banner (Tupoksi #9) --}}
         <div class="dash-banner"
@@ -21,19 +22,18 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.kebersihan.cetak', ['dari' => $dari, 'sampai' => $sampai]) }}" target="_blank" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Cetak Dokumentasi">
+                    title="Cetak Dokumentasi" aria-label="Cetak Dokumentasi">
                     <i class="fas fa-print"></i>
                 </a>
                 @if ($canCreate)
+                    <button type="button" class="btn btn-outline" id="btnOpenImportKebersihan"
+                        title="Import Kegiatan via Excel" aria-label="Import Kegiatan via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
+                    </button>
                     <button type="button" class="btn btn-primary" id="btnOpenKebersihan"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Catat Kegiatan Kebersihan">
+                        title="Catat Kegiatan Kebersihan" aria-label="Catat Kegiatan Kebersihan">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -108,7 +108,7 @@
                                 style="height: 38px; font-size: var(--text-sm); padding: 0 var(--space-5); border-radius: var(--radius-md);" title="Sampai Tanggal">
 
                             @if ($search || $jenisFilter || $kondisiFilter)
-                                <a href="{{ route('dashboard.laboran.kebersihan.index') }}" class="btn btn-outline"
+                <a href="{{ route('dashboard.laboran.kebersihan.index') }}" class="btn btn-outline"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
@@ -345,6 +345,8 @@
                 </form>
             </div>
         </div>
+
+        @include('dashboard.laboran.partials.kebersihan-modal-import')
 
         @push('scripts')
             <script src="{{ asset('js/laboran-common.js') }}?v={{ file_exists(public_path('js/laboran-common.js')) ? filemtime(public_path('js/laboran-common.js')) : time() }}"></script>

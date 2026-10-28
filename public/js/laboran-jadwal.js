@@ -79,10 +79,12 @@ document.addEventListener('DOMContentLoaded', function () {
             e.stopPropagation();
             const isVisible = dropdownMenuCetakJadwal.style.display === 'block';
             dropdownMenuCetakJadwal.style.display = isVisible ? 'none' : 'block';
+            btnDropdownCetakJadwal.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
         });
         document.addEventListener('click', function (e) {
             if (!btnDropdownCetakJadwal.contains(e.target)) {
                 dropdownMenuCetakJadwal.style.display = 'none';
+                btnDropdownCetakJadwal.setAttribute('aria-expanded', 'false');
             }
         });
     }

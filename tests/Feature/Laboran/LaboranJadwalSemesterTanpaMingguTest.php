@@ -37,8 +37,8 @@ class LaboranJadwalSemesterTanpaMingguTest extends LaboranTestCase
             'mata_pelajaran'        => $mapel,
             'pemberlakuan'          => 'semester',
             'hari_semester'         => 'Senin',
-            'jam_ke_mulai'          => 1,
-            'jam_ke_selesai'        => 2,
+            'jam_ke_mulai'          => 2,
+            'jam_ke_selesai'        => 3,
             'pemberlakuan_semester' => '1',
             'pemberlakuan_ta'       => '2026/2027',
             // Sengaja TIDAK mengirim pemberlakuan_minggu / pemberlakuan_minggu_akhir / tanggal.

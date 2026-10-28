@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\JadwalPengaturan;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Support\LaboranScope;
@@ -27,12 +28,17 @@ class LaboranJadwalService
     ];
 
     /**
-     * Jenis lokasi yang mengizinkan BEBERAPA sesi bersamaan pada jam yang sama.
+     * Jenis lokasi yang mengizinkan BEBERAPA sesi bersamaan pada jam yang sama,
+     * bahkan untuk rombel yang berbeda.
      *
      * Lahan/kebun dan lapangan merupakan area terbuka yang dapat menampung
      * beberapa rombel sekaligus (mis. 3 kelas praktik olah tanah di petak
-     * berbeda). Laboratorium dan bengkel tetap eksklusif karena keterbatasan
-     * daya tampung dan alat.
+     * berbeda). Laboratorium dan bengkel tetap eksklusif ANTAR-ROMBEL karena
+     * keterbatasan daya tampung dan alat.
+     *
+     * Pengecualian eksklusivitas: TEAM TEACHING — dua guru berbeda pada rombel,
+     * lokasi, dan jam yang sama dianggap satu kegiatan praktik bersama. Lihat
+     * `bisaTeamTeaching()`.
      *
      * Bentrok GURU tetap diperiksa untuk semua jenis lokasi.
      */
@@ -294,6 +300,142 @@ class LaboranJadwalService
     }
 
     /**
+     * Nama hari Indonesia dari tanggal (Y-m-d), atau null bila bukan hari sekolah.
+     */
+    public function hariDariTanggal(?string $tanggal): ?string
+    {
+        if (empty($tanggal)) {
+            return null;
+        }
+        $ts = strtotime($tanggal);
+        if ($ts === false) {
+            return null;
+        }
+        $map = [
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu',
+        ];
+
+        return $map[date('l', $ts)] ?? null;
+    }
+
+    /**
+     * Tolak rentang jam yang menimpa slot rutinitas Pengaturan KBM
+     * (Upacara, Pembiasaan, Istirahat).
+     *
+     * @return string|null Pesan kesalahan, atau null bila aman.
+     */
+    public function findRoutineOverlap(array $data, string $hari): ?string
+    {
+        $mulai = substr((string) ($data['jam_mulai'] ?? ''), 0, 5);
+        $selesai = substr((string) ($data['jam_selesai'] ?? ''), 0, 5);
+        if ($mulai === '' || $selesai === '') {
+            return null;
+        }
+
+        foreach (JadwalPengaturan::getSlots($hari) as $slot) {
+            if (!empty($slot['schedulable'])) {
+                continue;
+            }
+            if ($mulai < $slot['selesai'] && $selesai > $slot['mulai']) {
+                return 'Jam yang dipilih menimpa ' . trim((string) ($slot['label'] ?? 'kegiatan rutin'))
+                    . ' (' . $slot['mulai'] . ' - ' . $slot['selesai']
+                    . ') yang sudah diatur pada Jadwal KBM. Pilih jam praktik lain.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Pastikan total JP praktik untuk satu pembelajaran pada tanggal tertentu
+     * tidak melebihi jumlah JP mapel tersebut di Jadwal KBM pada hari yang sama.
+     *
+     * @return string|null Pesan kesalahan, atau null bila aman.
+     */
+    public function findKuotaOverflow(array $data, string $hari, ?int $ignoreId = null, ?string $tanggal = null): ?string
+    {
+        $pembelajaranId = trim((string) ($data['pembelajaran_id'] ?? ''));
+        $rombelId       = trim((string) ($data['rombel_id'] ?? ''));
+        if ($pembelajaranId === '' || $rombelId === '') {
+            return null;
+        }
+
+        $tanggal = $tanggal ?? (string) ($data['tanggal'] ?? '');
+
+        $kuotaJp = (int) DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('pembelajaran_id', $pembelajaranId)
+            ->where('hari', $hari)
+            ->where('is_active', true)
+            ->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)'));
+
+        if ($kuotaJp <= 0) {
+            // Wajib hari KBM: mapel harus punya jadwal KBM pada hari tersebut,
+            // jika tidak, praktik tidak sah dijadwalkan di hari tanpa jadwal mapel.
+            return 'Mapel ini tidak memiliki jadwal KBM pada hari ' . $hari
+                . ', sehingga praktik tidak dapat dijadwalkan pada hari tersebut.';
+        }
+
+        $diminta = $this->durasiJp($data['jam_mulai'] ?? null, $data['jam_selesai'] ?? null, $hari);
+        if ($diminta <= 0) {
+            return null;
+        }
+
+        // JP praktik yang sudah ada pada tanggal yang sama.
+        $query = DB::table('laboran_jadwal_penggunaan')
+            ->where('rombel_id', $rombelId)
+            ->where('pembelajaran_id', $pembelajaranId)
+            ->where('tanggal', $tanggal)
+            ->where('status', '<>', 'batal');
+        if ($ignoreId) {
+            $query->where('id', '<>', $ignoreId);
+        }
+
+        $terpakai = 0;
+        foreach ($query->get(['id', 'jam_mulai', 'jam_selesai']) as $row) {
+            $terpakai += $this->durasiJp($row->jam_mulai, $row->jam_selesai, $hari);
+        }
+
+        if ($terpakai + $diminta <= $kuotaJp) {
+            return null;
+        }
+
+        return 'Alokasi JP melebihi jadwal KBM: mapel ini hanya ' . $kuotaJp . ' JP pada hari ' . $hari
+            . ', sudah terpakai ' . $terpakai . ' JP, permintaan ' . $diminta . ' JP.';
+    }
+
+    /**
+     * Hitung jumlah JP yang dicakup rentang jam tertentu pada satu hari.
+     *
+     * Hanya slot yang dapat dijadwalkan (schedulable) yang dihitung, karena
+     * JP pada Jadwal KBM tidak pernah memuat jam rutinitas (Upacara,
+     * Pembiasaan, Istirahat). Bila rentang seluruhnya berada di dalam slot
+     * rutinitas, hitungan jatuh ke jumlah slot yang beririsan agar tidak nol.
+     */
+    protected function durasiJp($jamMulai, $jamSelesai, string $hari): int
+    {
+        $mulai = substr((string) $jamMulai, 0, 5);
+        $selesai = substr((string) $jamSelesai, 0, 5);
+        if ($mulai === '' || $selesai === '' || $selesai <= $mulai) {
+            return 0;
+        }
+
+        $jp = 0;
+        $beririsan = 0;
+        foreach (JadwalPengaturan::getSlots($hari) as $slot) {
+            if ($mulai < $slot['selesai'] && $selesai > $slot['mulai']) {
+                $beririsan++;
+                if (!empty($slot['schedulable'])) {
+                    $jp++;
+                }
+            }
+        }
+
+        return $jp > 0 ? $jp : $beririsan;
+    }
+
+    /**
      * Deteksi bentrok jadwal pada tanggal-tanggal tertentu (lokasi atau guru manapun).
      */
     public function findConflictForDates(array $data, array $targetDates, ?int $ignoreId = null): ?string
@@ -346,21 +488,32 @@ class LaboranJadwalService
         $jenisLokasi = $data['jenis_lokasi'] ?? null;
         $bolehBersamaan = in_array($jenisLokasi, self::JENIS_LOKASI_BERSAMAAN, true);
 
+        $bentrokLokasi = null;
         if (!$bolehBersamaan) {
-            $bentrokLokasi = (clone $base)
-                ->where('ruang_lab_nama', $data['ruang_lab_nama'])
-                ->first();
+            $lokasiQuery = (clone $base)->where('ruang_lab_nama', $data['ruang_lab_nama']);
 
-            if ($bentrokLokasi) {
-                $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
-                return 'Lokasi "' . $data['ruang_lab_nama'] . '" sudah dipakai pada ' . $tglStr . ' '
-                    . substr((string) $bentrokLokasi->jam_mulai, 0, 5) . ' - '
-                    . substr((string) $bentrokLokasi->jam_selesai, 0, 5)
-                    . ' (' . $bentrokLokasi->mata_pelajaran . '). Pilih jam atau lokasi lain.';
+            // Team teaching: dua GURU BERBEDA pada rombel, lokasi, dan jam yang sama
+            // adalah satu kegiatan praktik bersama — bukan bentrok kapasitas.
+            // Bila gurunya sama, sesi tersebut adalah duplikat sehingga tetap ditolak.
+            if ($this->bisaTeamTeaching($data)) {
+                $rombelId = trim((string) $data['rombel_id']);
+                $ptkId    = trim((string) $data['ptk_id']);
+
+                // Abaikan baris yang merupakan pasangan team teaching sah, yaitu
+                // rombel SAMA dengan guru BERBEDA. Baris dengan guru yang sama
+                // tetap dihitung (duplikat) dan baris rombel lain tetap dihitung.
+                $lokasiQuery->where(function ($w) use ($rombelId, $ptkId) {
+                    $w->where('rombel_id', '<>', $rombelId)
+                      ->orWhere('ptk_id', $ptkId);
+                });
             }
+
+            $bentrokLokasi = $lokasiQuery->first();
         }
 
         // 2. Bentrok Guru (memeriksa Guru Utama dan SEMUA Guru Pendamping)
+        $bentrokGuru = null;
+        $guruBentrokId = null;
         if (!empty($allTeacherIds)) {
             foreach ($allTeacherIds as $tid) {
                 $bentrokGuru = (clone $base)
@@ -371,18 +524,73 @@ class LaboranJadwalService
                     ->first();
 
                 if ($bentrokGuru) {
-                    $namaGuru = DB::table('gtk')->where('ptk_id', $tid)->value('nama') ?: 'Guru';
-                    $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
-
-                    return "Guru {$namaGuru} sudah memiliki jadwal praktik lain pada {$tglStr} "
-                        . substr((string) $bentrokGuru->jam_mulai, 0, 5) . ' - '
-                        . substr((string) $bentrokGuru->jam_selesai, 0, 5)
-                        . " ({$bentrokGuru->ruang_lab_nama}).";
+                    $guruBentrokId = $tid;
+                    break;
                 }
             }
         }
 
+        // 3. Tentukan pesan yang paling menjelaskan penyebab penolakan.
+        //    Bila guru bentrok di RUANG LAIN, kendalanya adalah gurunya (bukan kapasitas
+        //    ruang yang diminta), sehingga pesan guru lebih tepat diprioritaskan.
+        if ($bentrokLokasi && $bentrokGuru) {
+            $ruangSama = trim((string) $bentrokGuru->ruang_lab_nama) === trim((string) $data['ruang_lab_nama']);
+
+            return $ruangSama
+                ? $this->pesanBentrokLokasi($data, $bentrokLokasi, $tanggal)
+                : $this->pesanBentrokGuru($guruBentrokId, $bentrokGuru, $tanggal);
+        }
+
+        if ($bentrokLokasi) {
+            return $this->pesanBentrokLokasi($data, $bentrokLokasi, $tanggal);
+        }
+
+        if ($bentrokGuru) {
+            return $this->pesanBentrokGuru($guruBentrokId, $bentrokGuru, $tanggal);
+        }
+
         return null;
+    }
+
+    /**
+     * Apakah data sesi memenuhi syarat pemeriksaan team teaching?
+     *
+     * Hanya bila rombel & guru utama diketahui; tanpa keduanya tidak ada dasar
+     * untuk menyimpulkan bahwa dua sesi adalah kegiatan praktik yang sama.
+     */
+    protected function bisaTeamTeaching(array $data): bool
+    {
+        return trim((string) ($data['rombel_id'] ?? '')) !== ''
+            && trim((string) ($data['ptk_id'] ?? '')) !== '';
+    }
+
+    /**
+     * Pesan penolakan karena lokasi praktik eksklusif sudah terpakai.
+     */
+    protected function pesanBentrokLokasi(array $data, object $bentrok, string $tanggal): string
+    {
+        $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
+
+        return 'Lokasi "' . $data['ruang_lab_nama'] . '" sudah dipakai pada ' . $tglStr . ' '
+            . substr((string) $bentrok->jam_mulai, 0, 5) . ' - '
+            . substr((string) $bentrok->jam_selesai, 0, 5)
+            . ' (' . $bentrok->mata_pelajaran . '). Pilih jam atau lokasi lain.';
+    }
+
+    /**
+     * Pesan penolakan karena guru sudah mengajar praktik lain pada jam tersebut.
+     */
+    protected function pesanBentrokGuru(?string $ptkId, object $bentrok, string $tanggal): string
+    {
+        $namaGuru = $ptkId
+            ? (DB::table('gtk')->where('ptk_id', $ptkId)->value('nama') ?: 'Guru')
+            : 'Guru';
+        $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
+
+        return "Guru {$namaGuru} sudah memiliki jadwal praktik lain pada {$tglStr} "
+            . substr((string) $bentrok->jam_mulai, 0, 5) . ' - '
+            . substr((string) $bentrok->jam_selesai, 0, 5)
+            . " ({$bentrok->ruang_lab_nama}).";
     }
 
     /**
@@ -511,387 +719,31 @@ class LaboranJadwalService
 
     /**
      * Susun seluruh data laporan penggunaan lokasi.
+     *
+     * Delegasi ke `LaboranJadwalLaporanService` — dipisah agar berkas ini tetap
+     * di bawah batas 1.000 baris. API publik (nama & bentuk kembalian) tetap.
      */
     public function buildLaporanData(Request $request): array
     {
-        $context = LaboranScope::resolve();
-
-        $periodeTipe = (string) $request->query('periode', 'bulan');
-        if (!in_array($periodeTipe, ['bulan', 'triwulan', 'semester', 'tahun'], true)) {
-            $periodeTipe = 'bulan';
-        }
-
-        $bulan    = (int) $request->query('bulan', date('n'));
-        $tahun    = (int) $request->query('tahun', date('Y'));
-        $triwulan = (int) $request->query('triwulan', (int) ceil(date('n') / 3));
-        $semester = (string) $request->query('semester', date('n') >= 7 ? '1' : '2');
-
-        $curYear     = (int) date('Y');
-        $defaultTA   = date('n') >= 7 ? "{$curYear}/" . ($curYear + 1) : ($curYear - 1) . "/{$curYear}";
-        $tahunAjaran = (string) $request->query('tahun_ajaran', $defaultTA);
-
-        $range = $this->resolveDateRange($periodeTipe, $bulan, $tahun, $triwulan, $semester, $tahunAjaran);
-
-        $jenisFilter  = (string) $request->query('jenis', '');
-        $lokasiFilter = (string) $request->query('lab', '');
-        $guruFilter   = (string) $request->query('ptk_id', '');
-
-        $query = DB::table('laboran_jadwal_penggunaan as ljp')
-            ->leftJoin('gtk', 'ljp.ptk_id', '=', 'gtk.ptk_id')
-            ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->whereBetween('ljp.tanggal', [$range['start'], $range['end']])
-            ->select(
-                'ljp.*',
-                'gtk.nama as guru_nama',
-                'gtk.nip as guru_nip',
-                'rb.nama as rombel_nama'
-            );
-
-        LaboranScope::apply($query, 'ljp.jurusan_id', $context);
-
-        if ($jenisFilter !== '' && array_key_exists($jenisFilter, self::JENIS_LOKASI)) {
-            $query->where('ljp.jenis_lokasi', $jenisFilter);
-        }
-
-        if ($lokasiFilter !== '') {
-            $query->where('ljp.ruang_lab_nama', $lokasiFilter);
-        }
-
-        if ($guruFilter !== '') {
-            $query->where(function ($q) use ($guruFilter) {
-                $q->where('ljp.ptk_id', $guruFilter)
-                  ->orWhere('ljp.ptk_ids', 'like', '%"' . $guruFilter . '"%');
-            });
-        }
-
-        $items = $query->orderBy('ljp.tanggal', 'asc')
-            ->orderBy('ljp.jam_mulai', 'asc')
-            ->get();
-
-        $totalSesi        = $items->count();
-        $totalSelesai     = $items->where('status', 'selesai')->count();
-        $totalBatal       = $items->where('status', 'batal')->count();
-        $totalBerlangsung = $items->where('status', 'berlangsung')->count();
-        $totalDijadwalkan = $items->where('status', 'dijadwalkan')->count();
-
-        $totalMenit = 0;
-        foreach ($items as $it) {
-            $totalMenit += $this->durasiMenit($it->jam_mulai, $it->jam_selesai);
-        }
-        $totalJam   = intdiv($totalMenit, 60);
-        $sisaMenit  = $totalMenit % 60;
-        $hariAktif  = $items->pluck('tanggal')->unique()->count();
-        $lokasiUnik = $items->pluck('ruang_lab_nama')->unique()->count();
-        $guruUnik   = $items->pluck('ptk_id')->filter()->unique()->count();
-        $rombelUnik = $items->pluck('rombel_id')->filter()->unique()->count();
-
-        $persentaseSelesai = $totalSesi > 0 ? round(($totalSelesai / $totalSesi) * 100, 1) : 0.0;
-
-        $rekapJenis = [];
-        foreach (self::JENIS_LOKASI as $key => $label) {
-            $subset = $items->where('jenis_lokasi', $key);
-            if ($subset->isEmpty()) {
-                continue;
-            }
-            $menit = 0;
-            foreach ($subset as $s) {
-                $menit += $this->durasiMenit($s->jam_mulai, $s->jam_selesai);
-            }
-            $rekapJenis[] = [
-                'key'     => $key,
-                'label'   => $label,
-                'sesi'    => $subset->count(),
-                'selesai' => $subset->where('status', 'selesai')->count(),
-                'jam'     => intdiv($menit, 60),
-                'menit'   => $menit % 60,
-                'lokasi'  => $subset->pluck('ruang_lab_nama')->unique()->count(),
-            ];
-        }
-
-        $rekapLokasi = $items->groupBy('ruang_lab_nama')->map(function ($group, $nama) {
-            $menit = 0;
-            foreach ($group as $g) {
-                $menit += $this->durasiMenit($g->jam_mulai, $g->jam_selesai);
-            }
-            $jenis = $group->first()->jenis_lokasi ?: 'lainnya';
-
-            return (object) [
-                'nama'    => $nama,
-                'jenis'   => $jenis,
-                'label'   => self::JENIS_LOKASI[$jenis] ?? 'Lokasi Lainnya',
-                'sesi'    => $group->count(),
-                'selesai' => $group->where('status', 'selesai')->count(),
-                'jam'     => intdiv($menit, 60),
-                'menit'   => $menit % 60,
-            ];
-        })->sortByDesc('sesi')->values();
-
-        $rekapGuru = $items->groupBy(fn($i) => $i->ptk_id ?: '-')->map(function ($group, $ptkId) {
-            $menit = 0;
-            foreach ($group as $g) {
-                $menit += $this->durasiMenit($g->jam_mulai, $g->jam_selesai);
-            }
-            $first = $group->first();
-
-            return (object) [
-                'ptk_id'  => $ptkId,
-                'nama'    => $first->guru_nama ?: 'Tanpa Guru',
-                'nip'     => $first->guru_nip,
-                'sesi'    => $group->count(),
-                'selesai' => $group->where('status', 'selesai')->count(),
-                'jam'     => intdiv($menit, 60),
-                'menit'   => $menit % 60,
-                'mapel'   => $group->pluck('mata_pelajaran')->unique()->count(),
-            ];
-        })->sortByDesc('sesi')->values();
-
-        $rekapMapel = $items->groupBy('mata_pelajaran')->map(function ($group, $mapel) {
-            $menit = 0;
-            foreach ($group as $g) {
-                $menit += $this->durasiMenit($g->jam_mulai, $g->jam_selesai);
-            }
-
-            return (object) [
-                'nama'    => $mapel ?: '-',
-                'sesi'    => $group->count(),
-                'selesai' => $group->where('status', 'selesai')->count(),
-                'jam'     => intdiv($menit, 60),
-                'menit'   => $menit % 60,
-                'kelas'   => $group->pluck('rombel_id')->filter()->unique()->count(),
-            ];
-        })->sortByDesc('sesi')->values();
-
-        $rekapBulanan = [];
-        if ($periodeTipe !== 'bulan') {
-            foreach ($items->groupBy(fn($i) => Carbon::parse($i->tanggal)->format('Y-m')) as $ym => $group) {
-                $menit = 0;
-                foreach ($group as $g) {
-                    $menit += $this->durasiMenit($g->jam_mulai, $g->jam_selesai);
-                }
-                $rekapBulanan[] = [
-                    'label'   => Carbon::createFromFormat('Y-m', $ym)->translatedFormat('F Y'),
-                    'sesi'    => $group->count(),
-                    'selesai' => $group->where('status', 'selesai')->count(),
-                    'batal'   => $group->where('status', 'batal')->count(),
-                    'jam'     => intdiv($menit, 60),
-                    'menit'   => $menit % 60,
-                    'hari'    => $group->pluck('tanggal')->unique()->count(),
-                ];
-            }
-        }
-
-        $daftarLokasi = DB::table('laboran_jadwal_penggunaan')
-            ->select('ruang_lab_nama', 'jenis_lokasi')
-            ->distinct()
-            ->orderBy('ruang_lab_nama')
-            ->get();
-
-        $daftarGuru = DB::table('gtk')
-            ->whereIn('ptk_id', DB::table('laboran_jadwal_penggunaan')->select('ptk_id')->distinct())
-            ->orderBy('nama')
-            ->get(['ptk_id', 'nama', 'nip']);
-
-        $sekolah     = Sekolah::first();
-        $sekolahMeta = SekolahMeta::first();
-
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
-
-        $petugas = $this->resolvePetugasLaboran();
-
-        $orientasi = strtolower((string) $request->query('orientasi', 'landscape'));
-        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'landscape';
-        }
-
-        return [
-            'periodeTipe'       => $periodeTipe,
-            'bulan'             => $bulan,
-            'tahun'             => $tahun,
-            'triwulan'          => $triwulan,
-            'semester'          => $semester,
-            'tahunAjaran'       => $tahunAjaran,
-            'range'             => $range,
-            'items'             => $items,
-            'jenisFilter'       => $jenisFilter,
-            'lokasiFilter'      => $lokasiFilter,
-            'guruFilter'        => $guruFilter,
-            'totalSesi'         => $totalSesi,
-            'totalSelesai'      => $totalSelesai,
-            'totalBatal'        => $totalBatal,
-            'totalBerlangsung'  => $totalBerlangsung,
-            'totalDijadwalkan'  => $totalDijadwalkan,
-            'totalJam'          => $totalJam,
-            'sisaMenit'         => $sisaMenit,
-            'hariAktif'         => $hariAktif,
-            'lokasiUnik'        => $lokasiUnik,
-            'guruUnik'          => $guruUnik,
-            'rombelUnik'        => $rombelUnik,
-            'persentaseSelesai' => $persentaseSelesai,
-            'rekapJenis'        => $rekapJenis,
-            'rekapLokasi'       => $rekapLokasi,
-            'rekapGuru'         => $rekapGuru,
-            'rekapMapel'        => $rekapMapel,
-            'rekapBulanan'      => $rekapBulanan,
-            'daftarLokasi'      => $daftarLokasi,
-            'daftarGuru'        => $daftarGuru,
-            'jenisLokasiLabels' => self::JENIS_LOKASI,
-            'statusLabels'      => self::STATUS_LIST,
-            'sekolah'           => $sekolah,
-            'sekolahMeta'       => $sekolahMeta,
-            'kepalaSekolah'     => $kepalaSekolah,
-            'kepalaLab'         => $kepalaLab,
-            'petugas'           => $petugas,
-            'orientasi'         => $orientasi,
-        ];
+        return $this->laporan()->buildLaporanData($request);
     }
 
     /**
-     * Susun jadwal praktik PER GURU untuk satu minggu atau satu bulan.
+     * Susun jadwal praktik PER GURU untuk satu minggu, satu bulan, atau semester.
      *
-     * Hasil dikelompokkan per hari (Senin..Sabtu) agar siap dicetak sebagai
-     * tabel jadwal mingguan, atau per tanggal untuk tampilan bulanan.
-     *
-     * @param string $mode 'mingguan' | 'bulanan'
-     * @return array{
-     *   mode:string, label:string, start:string, end:string,
-     *   guru:?object, items:\Illuminate\Support\Collection,
-     *   perHari:array<string,\Illuminate\Support\Collection>,
-     *   perTanggal:array<string,\Illuminate\Support\Collection>,
-     *   totalSesi:int, totalMenit:int, hariAktif:int, lokasiUnik:int,
-     *   daftarGuru:\Illuminate\Support\Collection, sekolah:?object, petugas:array
-     * }
+     * @param string $mode 'mingguan' | 'bulanan' | 'semester'
      */
     public function buildJadwalPerGuru(Request $request): array
     {
-        $context = LaboranScope::resolve();
+        return $this->laporan()->buildJadwalPerGuru($request);
+    }
 
-        $mode  = strtolower((string) $request->query('mode', 'mingguan'));
-        if (!in_array($mode, ['mingguan', 'bulanan', 'semester'], true)) {
-            $mode = 'mingguan';
-        }
-
-        $ptkId = trim((string) $request->query('ptk_id', ''));
-        $bulan = max(1, min(12, (int) $request->query('bulan', date('n'))));
-        $tahun = (int) $request->query('tahun', date('Y'));
-        $semester = (string) $request->query('semester', date('n') >= 7 ? '1' : '2');
-
-        // Rentang: minggu berjalan (Senin–Sabtu), satu bulan penuh, atau satu semester.
-        if ($mode === 'bulanan') {
-            $start = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
-            $end   = $start->copy()->endOfMonth();
-            $label = 'Bulan ' . $start->translatedFormat('F Y');
-        } elseif ($mode === 'semester') {
-            $curYear = $tahun ?: (int) date('Y');
-            $tahunAjaran = $request->query('tahun_ajaran', $semester === '1'
-                ? "{$curYear}/" . ($curYear + 1)
-                : ($curYear - 1) . "/{$curYear}");
-            $range = $this->resolveDateRange('semester', $bulan, $curYear, 1, $semester, $tahunAjaran);
-            $start = Carbon::parse($range['start']);
-            $end   = Carbon::parse($range['end']);
-            $label = $range['label'];
-        } else {
-            $acuan = $request->filled('tanggal')
-                ? Carbon::parse((string) $request->query('tanggal'))
-                : Carbon::now();
-
-            // Senin sebagai awal minggu; Sabtu sebagai akhir (sekolah 6 hari).
-            $start = $acuan->copy()->startOfWeek(Carbon::MONDAY);
-            $end   = $start->copy()->addDays(5);
-            $label = 'Minggu ' . $start->translatedFormat('d M Y') . ' s.d. ' . $end->translatedFormat('d M Y');
-        }
-
-        $query = DB::table('laboran_jadwal_penggunaan as ljp')
-            ->leftJoin('gtk', 'ljp.ptk_id', '=', 'gtk.ptk_id')
-            ->leftJoin('rombongan_belajar as rb', 'ljp.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->whereBetween('ljp.tanggal', [$start->toDateString(), $end->toDateString()])
-            ->where('ljp.status', '<>', 'batal')
-            ->select('ljp.*', 'gtk.nama as guru_nama', 'gtk.nip as guru_nip', 'rb.nama as rombel_nama')
-            ->orderBy('ljp.tanggal')
-            ->orderBy('ljp.jam_mulai');
-
-        LaboranScope::apply($query, 'ljp.jurusan_id', $context);
-
-        if ($ptkId !== '') {
-            $query->where(function ($q) use ($ptkId) {
-                $q->where('ljp.ptk_id', $ptkId)
-                  ->orWhere('ljp.ptk_ids', 'like', '%"' . $ptkId . '"%');
-            });
-        }
-
-        $items = $query->get();
-
-        // Kelompokkan per nama hari (untuk mode mingguan)
-        $perHari = [];
-        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $hari) {
-            $perHari[$hari] = $items->filter(
-                fn($i) => Carbon::parse($i->tanggal)->translatedFormat('l') === $hari
-            )->values();
-        }
-
-        // Kelompokkan per tanggal (untuk mode bulanan & semester)
-        $perTanggal = $items->groupBy('tanggal')->sortKeys()->toArray();
-        // Semester juga dikelompokkan per bulan agar cetak terstruktur
-        $perBulan = [];
-        if ($mode === 'semester') {
-            $perBulan = $items
-                ->groupBy(fn($i) => Carbon::parse($i->tanggal)->format('Y-m'))
-                ->sortKeys()
-                ->map(fn($g, $ym) => [
-                    'label' => Carbon::createFromFormat('Y-m', $ym)->translatedFormat('F Y'),
-                    'rows'  => $g->sortBy('jam_mulai')->values(),
-                ])
-                ->toArray();
-        }
-
-        $totalMenit = 0;
-        foreach ($items as $it) {
-            $totalMenit += $this->durasiMenit($it->jam_mulai, $it->jam_selesai);
-        }
-
-        $guru = $ptkId !== '' ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : null;
-
-        $daftarGuru = DB::table('gtk')
-            ->whereIn('ptk_id', DB::table('laboran_jadwal_penggunaan')->select('ptk_id')->distinct())
-            ->orderBy('nama')
-            ->get(['ptk_id', 'nama', 'nip']);
-
-        return [
-            'mode'        => $mode,
-            'label'       => $label,
-            'start'       => $start->toDateString(),
-            'end'         => $end->toDateString(),
-            'bulan'       => $bulan,
-            'tahun'       => $tahun,
-            'guru'        => $guru,
-            'ptkId'       => $ptkId,
-            'items'       => $items,
-            'perHari'     => $perHari,
-            'perTanggal'  => $perTanggal,
-            'perBulan'    => $perBulan,
-            'semester'    => $semester,
-            'totalSesi'   => $items->count(),
-            'totalMenit'  => $totalMenit,
-            'hariAktif'   => $items->pluck('tanggal')->unique()->count(),
-            'lokasiUnik'  => $items->pluck('ruang_lab_nama')->unique()->count(),
-            'daftarGuru'  => $daftarGuru,
-            'sekolah'     => Sekolah::first(),
-            'petugas'     => $this->resolvePetugasLaboran(),
-            'statusLabels' => self::STATUS_LIST,
-            'jenisLabels'  => self::JENIS_LOKASI,
-        ];
+    /**
+     * Service laporan (dibuat malas agar tidak ada siklus konstruktor).
+     */
+    protected function laporan(): LaboranJadwalLaporanService
+    {
+        return new LaboranJadwalLaporanService($this);
     }
 
     // =========================================================================
@@ -935,33 +787,4 @@ class LaboranJadwalService
             : null;
     }
 
-    protected function resolvePetugasLaboran(): array
-    {
-        $user = session('user');
-        $nama = is_array($user) ? ($user['nama'] ?? $user['name'] ?? null) : ($user->nama ?? $user->name ?? null);
-        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-
-        $nip = null;
-        if ($ptkId) {
-            $nip = DB::table('gtk')->where('ptk_id', $ptkId)->value('nip');
-        }
-
-        if (!$nama) {
-            $row = DB::table('ptk_tugas_tambahan as ptt')
-                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-                ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-                ->where('rtt.kode', 'LABORAN')
-                ->where('ptt.is_active', true)
-                ->select('gtk.nama', 'gtk.nip')
-                ->first();
-            if ($row) {
-                return ['nama' => $row->nama, 'nip' => $row->nip];
-            }
-        }
-
-        return [
-            'nama' => $nama ?: 'Petugas Laboratorium',
-            'nip'  => $nip ?: null,
-        ];
-    }
 }

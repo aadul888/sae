@@ -41,7 +41,8 @@ class LaboranJadwalSemuaHariTest extends LaboranTestCase
         $res->assertStatus(200);
         $res->assertSee('UJI-SELASA', false);
         $res->assertSee('UJI-RABU', false);
-        $res->assertSee('Jumat: ', false);
+        // Matriks menampilkan kolom semua hari (Senin..Sabtu).
+        $res->assertSee('Sabtu', false);
     }
 
     public function test_rutinitas_upacara_pembiasaan_istirahat_tampil_di_matriks(): void
@@ -79,29 +80,27 @@ class LaboranJadwalSemuaHariTest extends LaboranTestCase
 
     public function test_jam_ke_minggu_menghasilkan_jam_mulai_dari_slot_hari(): void
     {
-        // Jumat 2026-11-06 (JP lebih sedikit) — jam ke-1 harus dari slot Jumat
+        // Jumat 2026-11-06 (JP lebih sedikit) — JP2 harus dari slot Jumat
+        // (JP1 Jumat = Pembiasaan, tidak boleh tertimpa).
         $rombel = DB::table('rombongan_belajar')->where(function ($q) {
             $q->where('jenis_rombel', 1)->orWhere('jenis_rombel', '1');
         })->first();
-        $pemb = DB::table('pembelajaran')->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
-            ->whereNotNull('nama_mata_pelajaran')->orderBy('nama_mata_pelajaran')->first();
 
         $slotsJumat = \App\Models\JadwalPengaturan::getSlots('Jumat');
         $this->assertNotEmpty($slotsJumat, 'Slot Jumat harus tersedia.');
-        $slot1 = $slotsJumat[1];
+        $slot1 = $slotsJumat[2];
 
         $this->withSession($this->adminSession())
             ->postJson(route('dashboard.laboran.jadwal.store'), [
                 'ruang_lab_nama'  => 'Lahan Praktik ATPH',
                 'jenis_lokasi'    => 'lahan',
-                'pembelajaran_id' => $pemb->pembelajaran_id,
                 'rombel_id'       => $rombel->rombongan_belajar_id,
                 'pemberlakuan'    => 'mingguan',
                 'pemberlakuan_minggu' => 1,
                 'hari'            => ['Jumat'],
                 'tanggal'         => '2026-11-06',
-                'jam_ke_mulai'    => 1,
-                'jam_ke_selesai'  => 1,
+                'jam_ke_mulai'    => 2,
+                'jam_ke_selesai'  => 2,
             ])
             ->assertStatus(200);
 

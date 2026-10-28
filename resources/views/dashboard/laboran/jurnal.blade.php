@@ -4,6 +4,7 @@
 @section('dash_title', 'Jurnal Kegiatan')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- Banner (Tupoksi #8) --}}
         <div class="dash-banner"
@@ -21,19 +22,14 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.jurnal.cetak', ['dari' => $dari, 'sampai' => $sampai]) }}" target="_blank" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Cetak Jurnal Kegiatan">
+                    title="Cetak Jurnal Kegiatan" aria-label="Cetak Jurnal Kegiatan">
                     <i class="fas fa-print"></i>
                 </a>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenJurnal"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Catat Kegiatan Baru">
+                        title="Catat Kegiatan Baru" aria-label="Catat Kegiatan Baru">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -133,7 +129,7 @@
                                 style="height: 38px; font-size: var(--text-sm); padding: 0 var(--space-5); border-radius: var(--radius-md);" title="Sampai Tanggal">
 
                             @if ($search || $kategoriFilter)
-                                <a href="{{ route('dashboard.laboran.jurnal.index') }}" class="btn btn-outline"
+                <a href="{{ route('dashboard.laboran.jurnal.index') }}" class="btn btn-outline"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif

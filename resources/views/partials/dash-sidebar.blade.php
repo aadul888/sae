@@ -64,15 +64,19 @@
     }
 
     // Izin tingkat peran dasar (Master/Manajemen data hanya tampil di grup utama jika diizinkan di level role)
-    $canRole = function (string $key) use ($role, $can) {
+    $canRoleCache = [];
+    $canRole = function (string $key) use ($role, $can, &$canRoleCache) {
+        if (array_key_exists($key, $canRoleCache)) {
+            return $canRoleCache[$key];
+        }
         if ($role === 'admin') {
-            return !\App\Models\RolePermission::isForbiddenForRole('admin', $key);
+            return $canRoleCache[$key] = !\App\Models\RolePermission::isForbiddenForRole('admin', $key);
         }
         if (!\Illuminate\Support\Facades\Schema::hasTable('role_permissions')) {
-            return false;
+            return $canRoleCache[$key] = false;
         }
         $row = \App\Models\RolePermission::where('role', $role)->where('permission_key', $key)->first();
-        return $row ? (bool) ($row->is_allowed && $row->can_read) : false;
+        return $canRoleCache[$key] = ($row ? (bool) ($row->is_allowed && $row->can_read) : false);
     };
 
     // Master Data Submenus (Hanya jika diizinkan di tingkat role dasar atau admin)

@@ -52,9 +52,17 @@ class JadwalPengaturan extends Model
     protected static function booted()
     {
         static::saved(function ($model) {
+            static::$settingsCache = null;
             static::syncToPresensiPengaturan();
         });
+
+        static::deleted(function ($model) {
+            static::$settingsCache = null;
+        });
     }
+
+    /** Cache instance pengaturan per proses (request). */
+    protected static ?self $settingsCache = null;
 
     /**
      * Cek apakah Jadwal KBM saat ini resmi diberlakukan ke Guru & Siswa.
@@ -119,6 +127,10 @@ class JadwalPengaturan extends Model
      */
     public static function getSettings(): self
     {
+        if (self::$settingsCache instanceof self) {
+            return self::$settingsCache;
+        }
+
         $setting = self::find(1);
         if (!$setting) {
             $setting = self::create([
@@ -189,7 +201,15 @@ class JadwalPengaturan extends Model
             $setting->save();
         }
 
-        return $setting;
+        return self::$settingsCache = $setting;
+    }
+
+    /**
+     * Kosongkan cache pengaturan per proses (dipakai saat pengujian / setelah update).
+     */
+    public static function flushSettingsCache(): void
+    {
+        self::$settingsCache = null;
     }
 
     /**

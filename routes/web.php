@@ -498,6 +498,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/master-data/jadwal-kbm/cetak-induk', [\App\Http\Controllers\JadwalKbmController::class, 'cetakInduk'])->name('jadwal-kbm.cetak-induk')->middleware('permission:menu_jadwal_kbm,read');
     Route::get('/master-data/jadwal-kbm/cetak-guru', [\App\Http\Controllers\JadwalKbmController::class, 'cetakGuru'])->name('jadwal-kbm.cetak-guru')->middleware('permission:menu_jadwal_kbm,read');
     Route::get('/master-data/jadwal-kbm/cetak-rombel', [\App\Http\Controllers\JadwalKbmController::class, 'cetakRombel'])->name('jadwal-kbm.cetak-rombel')->middleware('permission:menu_jadwal_kbm,read');
+    Route::get('/master-data/jadwal-kbm/cetak-bulanan', [\App\Http\Controllers\JadwalKbmController::class, 'cetakBulanan'])->name('jadwal-kbm.cetak-bulanan')->middleware('permission:menu_jadwal_kbm,read');
+
+    // Lapis 2: Pemberlakuan Jadwal per Pekan (mingguan) + cetak bulanan
+    Route::post('/master-data/jadwal-kbm/pekan/generate', [\App\Http\Controllers\JadwalKbmController::class, 'generatePekan'])->name('jadwal-kbm.pekan.generate')->middleware('permission:menu_jadwal_kbm,update');
+    Route::put('/master-data/jadwal-kbm/pekan/{id}', [\App\Http\Controllers\JadwalKbmController::class, 'updatePekan'])->name('jadwal-kbm.pekan.update')->middleware('permission:menu_jadwal_kbm,update');
+    Route::post('/master-data/jadwal-kbm/pekan/{id}/toggle', [\App\Http\Controllers\JadwalKbmController::class, 'togglePekan'])->name('jadwal-kbm.pekan.toggle')->middleware('permission:menu_jadwal_kbm,update');
     Route::post('/master-data/jadwal-kbm', [\App\Http\Controllers\JadwalKbmController::class, 'store'])->name('jadwal-kbm.store')->middleware('permission:menu_jadwal_kbm,create');
     Route::put('/master-data/jadwal-kbm/{id}', [\App\Http\Controllers\JadwalKbmController::class, 'update'])->name('jadwal-kbm.update')->middleware('permission:menu_jadwal_kbm,update');
     Route::delete('/master-data/jadwal-kbm/{id}', [\App\Http\Controllers\JadwalKbmController::class, 'destroy'])->name('jadwal-kbm.destroy')->middleware('permission:menu_jadwal_kbm,delete');
@@ -797,6 +803,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // 7. Peminjaman Alat Khusus Jurusan / Laboran
         Route::prefix('peminjaman-alat')->name('peminjaman-alat.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::get('/template', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'templateExcel'])->name('template')->middleware('permission:menu_laboran|menu_laboran_peminjaman,read');
+            Route::post('/import', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'importExcel'])->name('import')->middleware('permission:menu_laboran|menu_laboran_peminjaman,create');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
             Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
             Route::put('/{id}/status', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'updateStatus'])->name('status')->middleware('permission:menu_laboran,update');
@@ -837,6 +845,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Indikator 9 — Kebersihan Lingkungan Produktif
         Route::prefix('kebersihan')->name('kebersihan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
+            Route::get('/template', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'templateExcel'])->name('template')->middleware('permission:menu_laboran|menu_laboran_kebersihan,read');
+            Route::post('/import', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'importExcel'])->name('import')->middleware('permission:menu_laboran|menu_laboran_kebersihan,create');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranKebersihanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');

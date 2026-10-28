@@ -4,6 +4,7 @@
 @section('dash_title', 'Analisis Kebutuhan')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -21,19 +22,15 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnJalankanAnalisis"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
-                        title="Jalankan Analisis Otomatis dari Kondisi Stok &amp; Kerusakan">
-                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Jalankan Analisis
+                        title="Jalankan Analisis Otomatis dari Kondisi Stok &amp; Kerusakan"
+                        aria-label="Jalankan Analisis Otomatis">
+                        <i class="fas fa-wand-magic-sparkles text-primary"></i>
                     </button>
                     <button type="button" class="btn btn-primary" id="btnOpenKebutuhan"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tambah Data Kebutuhan Manual">
+                        title="Tambah Data Kebutuhan Manual" aria-label="Tambah Data Kebutuhan Manual">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -108,7 +105,7 @@
                                     <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
                                     <div style="color: var(--danger, #ef4444); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? ((float)$it->stok_tersedia . ' ' . $it->satuan) }}</div>
                                 </div>
-                                @if ($canCreate)
+                @if ($canCreate)
                                     <button type="button" class="btn btn-outline btn-quick-kebutuhan"
                                         style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
                                         data-nama="{{ $it->nama_item }}"
@@ -147,7 +144,7 @@
                                     <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
                                     <div style="color: var(--warning, #f59e0b); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? ((float)$it->stok_tersedia . '/' . (float)$it->stok_total . ' ' . $it->satuan) }}</div>
                                 </div>
-                                @if ($canCreate)
+                @if ($canCreate)
                                     <button type="button" class="btn btn-outline btn-quick-kebutuhan"
                                         style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
                                         data-nama="{{ $it->nama_item }}"
@@ -186,7 +183,7 @@
                                     <div style="font-weight: var(--font-semibold); color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $it->nama_item }}</div>
                                     <div style="color: var(--purple, #8b5cf6); font-size: var(--text-2xs);">{{ $it->ringkasan_masalah ?? 'Kedaluwarsa' }}</div>
                                 </div>
-                                @if ($canCreate)
+                @if ($canCreate)
                                     <button type="button" class="btn btn-outline btn-quick-kebutuhan"
                                         style="font-size: var(--text-2xs); padding: 3px 8px; height: 26px; border-radius: var(--radius-sm); white-space: nowrap;"
                                         data-nama="{{ $it->nama_item }}"

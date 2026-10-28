@@ -84,22 +84,65 @@
                                 <i class="fas fa-flask me-1"></i> Alat Praktik Laboratorium / Bengkel
                             </div>
                             @forelse ($itemOptions as $io)
-                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color);">
-                                    <input type="checkbox" name="item_ids[]" value="{{ $io->id }}" class="pj-item" style="cursor: pointer;">
+                                @php $ioStok = (int) $io->stok_tersedia; @endphp
+                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); {{ $ioStok <= 0 ? 'opacity: .55;' : '' }}">
+                                    <input type="checkbox" name="item_ids[]" value="{{ $io->id }}" class="pj-item"
+                                        style="cursor: pointer;" {{ $ioStok <= 0 ? 'disabled' : '' }}>
                                     <div style="flex: 1; min-width: 0;">
                                         <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $io->nama_item }}</div>
                                         <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                            {{ $io->kode_item }} &bull; Stok: {{ (float) $io->stok_tersedia }} {{ $io->satuan }}
+                                            {{ $io->kode_item }} &bull; Stok: {{ $ioStok }} {{ $io->satuan }}
                                             @if ($io->ruang_lab_nama) &bull; {{ $io->ruang_lab_nama }} @endif
+                                            @if ($ioStok <= 0)
+                                                &bull; <span style="color: var(--danger, #ef4444); font-weight: var(--font-semibold);">Stok habis</span>
+                                            @endif
                                         </div>
                                     </div>
-                                    <input type="number" step="0.01" min="0.01" max="{{ (float) $io->stok_tersedia }}"
+                                    <input type="number" step="1" min="1" max="{{ max(1, $ioStok) }}"
                                         name="item_jumlah[{{ $io->id }}]" value="1" class="form-control"
-                                        style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam">
+                                        style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam"
+                                        {{ $ioStok <= 0 ? 'disabled' : '' }}>
                                 </div>
                             @empty
                                 <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-4) 0;">
                                     Belum ada alat dalam inventaris laboratorium.
+                                </p>
+                            @endforelse
+
+                            {{-- Seksi Aset Sarpras (seluruh aset dalam cakupan jurusan) --}}
+                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--info, #0ea5e9); text-transform: uppercase; margin: var(--space-6) 0 var(--space-3);">
+                                <i class="fas fa-boxes-stacked me-1"></i> Aset Sarpras
+                            </div>
+                            @forelse ($asetOptions as $ao)
+                                @php
+                                    $aoTersedia = (int) floor((float) ($ao->unit_tersedia ?? 0));
+                                    $aoDipinjam = (int) floor((float) ($ao->unit_dipinjam ?? 0));
+                                    $aoTidakBisa = in_array($ao->status_ketersediaan ?? 'tersedia', ['dipinjam', 'hilang'], true) || $aoTersedia <= 0;
+                                @endphp
+                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); {{ $aoTidakBisa ? 'opacity: .55;' : '' }}">
+                                    <input type="checkbox" name="aset_ids[]" value="{{ $ao->id }}" class="pj-item"
+                                        style="cursor: pointer;" {{ $aoTidakBisa ? 'disabled' : '' }}>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $ao->nama_barang }}</div>
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                            {{ $ao->kode_aset ?: '—' }}
+                                            @if ($ao->merk_tipe) &bull; {{ $ao->merk_tipe }} @endif
+                                            &bull; Tersedia: {{ $aoTersedia }} {{ $ao->satuan ?: 'unit' }}
+                                            @if ($aoDipinjam > 0) &bull; Sedang dipinjam: {{ $aoDipinjam }} @endif
+                                            @if ($ao->ruang_nama) &bull; {{ $ao->ruang_nama }} @endif
+                                            @if ($aoTidakBisa)
+                                                &bull; <span style="color: var(--danger, #ef4444); font-weight: var(--font-semibold);">{{ in_array($ao->status_ketersediaan ?? '', ['dipinjam', 'hilang'], true) ? ucfirst($ao->status_ketersediaan) : 'Stok habis' }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <input type="number" step="1" min="1" max="{{ max(1, $aoTersedia) }}"
+                                        name="aset_jumlah[{{ $ao->id }}]" value="1" class="form-control"
+                                        style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam"
+                                        {{ $aoTidakBisa ? 'disabled' : '' }}>
+                                </div>
+                            @empty
+                                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">
+                                    Belum ada aset Sarpras dalam cakupan jurusan Anda.
                                 </p>
                             @endforelse
                         </div>

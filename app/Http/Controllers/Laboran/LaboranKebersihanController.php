@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Laboran;
 
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
+use App\Services\LaboranKebersihanImportService;
 use App\Support\LaboranScope;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -254,6 +255,53 @@ class LaboranKebersihanController extends LaboranBaseController
         ) + [
             'jenisList'   => self::JENIS,
             'kondisiList' => self::KONDISI,
+        ]);
+    }
+
+    /**
+     * Unduh format berkas Excel untuk import kegiatan kebersihan.
+     */
+    public function templateExcel(?LaboranKebersihanImportService $service = null)
+    {
+        $service = $service ?? app(LaboranKebersihanImportService::class);
+        $path = $service->generateTemplateFile();
+
+        return response()
+            ->download($path, 'Format_Import_Kegiatan_Kebersihan.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])
+            ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import kegiatan kebersihan via Excel (.xlsx, .xls, .csv).
+     */
+    public function importExcel(Request $request, LaboranKebersihanImportService $service)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
+        $request->validate([
+            'file' => 'required|file|max:10240',
+        ]);
+
+        try {
+            $hasil = $service->import(
+                $request->file('file'),
+                $context,
+                $request->input('jurusan_id')
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Import selesai: {$hasil['imported']} kegiatan baru ditambahkan, {$hasil['updated']} diperbarui.",
+            'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }
 

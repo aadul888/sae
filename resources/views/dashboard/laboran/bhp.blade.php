@@ -4,6 +4,7 @@
 @section('dash_title', 'Bahan Habis Pakai')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Header Banner & Action Button --}}
         <div class="dash-banner"
@@ -22,28 +23,21 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <span class="badge"
-                    style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: 6px 12px; border-radius: var(--radius-md, 8px); font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 @if ($canRead)
                     <a href="{{ route('dashboard.laboran.bhp.cetak', request()->query()) }}" target="_blank"
                         class="btn btn-outline"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Cetak Laporan Bahan Habis Pakai">
+                        title="Cetak Laporan Bahan Habis Pakai" aria-label="Cetak Laporan Bahan Habis Pakai">
                         <i class="fas fa-print"></i>
                     </a>
                 @endif
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnOpenImportBhp"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
-                        title="Import Bahan via Excel">
-                        <i class="fas fa-file-excel text-success"></i> Import Excel
+                        title="Import Bahan via Excel" aria-label="Import Excel">
+                        <i class="fas fa-file-excel text-success"></i>
                     </button>
                     <button type="button" class="btn btn-primary" id="btnOpenModalBhp"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Tambah Bahan Habis Pakai">
+                        title="Tambah Bahan Habis Pakai" aria-label="Tambah Bahan Habis Pakai">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -195,7 +189,7 @@
                                 $isSoon = $item->tgl_kedaluwarsa && !$isExpired && $item->tgl_kedaluwarsa <= now()->addDays(90)->toDateString();
                             @endphp
                             <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                @if ($canDelete)
+                @if ($canDelete)
                                     <td data-label="Pilih" style="padding: 14px 8px; text-align: center;">
                                         <input type="checkbox" class="chk-item-bhp" value="{{ $item->id }}" style="cursor: pointer; accent-color: var(--primary);">
                                     </td>

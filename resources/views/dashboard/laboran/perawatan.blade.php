@@ -4,6 +4,7 @@
 @section('dash_title', 'Perawatan & K3')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -21,14 +22,10 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenPerawatan"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tambah Catatan Perawatan">
+                        title="Tambah Catatan Perawatan" aria-label="Tambah Catatan Perawatan">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -111,7 +108,7 @@
                                     </select>
                                     <span>entri</span>
                                 </div>
-                                @if ($canCreate)
+                @if ($canCreate)
                                     <button type="button" class="btn btn-outline" id="btnOpenKartu"
                                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                         title="Buat Kartu Perawatan Baru">

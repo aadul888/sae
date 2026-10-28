@@ -4,6 +4,7 @@
 @section('dash_title', 'Ceklist Pemeriksaan')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -24,16 +25,14 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.pemeriksaan.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Kembali ke Daftar Pemeriksaan">
+                    title="Kembali ke Daftar Pemeriksaan" aria-label="Kembali ke Daftar Pemeriksaan">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 @if ($canUpdate)
                     <button type="button" class="btn btn-primary" id="btnTambahItem"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tambah Item Ceklist">
+                        title="Tambah Item Ceklist" aria-label="Tambah Item Ceklist">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -123,7 +122,7 @@
                                 <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">Jumlah</th>
                                 <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center; width: 150px;">Hasil</th>
                                 <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Keterangan</th>
-                                @if ($canUpdate)
+                @if ($canUpdate)
                                     <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: right; width: 70px;">Aksi</th>
                                 @endif
                             </tr>

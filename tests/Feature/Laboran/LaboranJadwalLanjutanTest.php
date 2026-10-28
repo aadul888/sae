@@ -40,19 +40,17 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ->postJson(route('dashboard.laboran.jadwal.store'), [
                 'ruang_lab_nama'  => 'Lahan Praktik ATPH',
                 'jenis_lokasi'    => 'lahan',
-                'pembelajaran_id' => $pemb->pembelajaran_id,
                 'rombel_id'       => $rombel->rombongan_belajar_id,
                 'pemberlakuan'    => 'mingguan',
                 'hari'            => ['Senin', 'Rabu'],
                 'tanggal'         => '2026-11-02',
                 'tanggal_akhir'   => '2026-11-15',
-                'jam_mulai'       => '07:00',
-                'jam_selesai'     => '08:30',
+                'jam_mulai'       => '07:15',
+                'jam_selesai'     => '08:45',
             ])
             ->assertStatus(200);
 
         $rows = DB::table('laboran_jadwal_penggunaan')
-            ->where('pembelajaran_id', $pemb->pembelajaran_id)
             ->where('ruang_lab_nama', 'Lahan Praktik ATPH')
             ->orderBy('tanggal')
             ->pluck('tanggal')
@@ -78,21 +76,20 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ->postJson(route('dashboard.laboran.jadwal.store'), [
                 'ruang_lab_nama'  => 'Lahan Praktik ATPH',
                 'jenis_lokasi'    => 'lahan',
-                'pembelajaran_id' => $pemb->pembelajaran_id,
                 'rombel_id'       => $rombel->rombongan_belajar_id,
                 'pemberlakuan'    => 'bulanan',
                 'hari'            => ['Senin'],
                 'tanggal'         => '2026-11-02',
                 'pemberlakuan_bulan' => 11,
                 'pemberlakuan_tahun' => 2026,
-                'jam_mulai'       => '07:00',
-                'jam_selesai'     => '08:30',
+                // 07:15 menghindari Upacara Senin (s/d 07:15).
+                'jam_mulai'       => '07:15',
+                'jam_selesai'     => '08:45',
             ])
             ->assertStatus(200);
 
         // November 2026 punya 5 hari Senin: 2, 9, 16, 23, 30
         $this->assertSame(5, DB::table('laboran_jadwal_penggunaan')
-            ->where('pembelajaran_id', $pemb->pembelajaran_id)
             ->where('ruang_lab_nama', 'Lahan Praktik ATPH')
             ->count());
     }
@@ -142,8 +139,9 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             'rombel_id'      => $rombel->rombongan_belajar_id,
             'mata_pelajaran' => 'Praktik Olah Tanah',
             'tanggal'        => $tanggal,
-            'jam_mulai'      => '07:00',
-            'jam_selesai'    => '09:00',
+            // 07:15 menghindari rutinitas pagi (Upacara Senin / Pembiasaan Jumat).
+            'jam_mulai'      => '07:15',
+            'jam_selesai'    => '09:15',
         ];
 
         $this->withSession($this->adminSession())
@@ -365,8 +363,8 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             'mata_pelajaran'            => 'Praktikum Kimia Semester',
             'pemberlakuan'              => 'semester',
             'hari_semester'             => 'Senin',
-            'jam_ke_mulai'              => 1,
-            'jam_ke_selesai'            => 2,
+            'jam_ke_mulai'              => 2,
+            'jam_ke_selesai'            => 3,
             'pemberlakuan_semester'     => '1',
             'pemberlakuan_ta'           => '2026/2027',
             'pemberlakuan_minggu'       => '1',

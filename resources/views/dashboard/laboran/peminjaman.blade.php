@@ -4,6 +4,7 @@
 @section('dash_title', 'Peminjaman Alat')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -21,21 +22,21 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 @if ($canUpdate && $statTerlambat > 0)
                     <button type="button" class="btn btn-outline" id="btnTandaiTerlambat"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tandai Semua Peminjaman Terlambat ({{ $statTerlambat }})">
+                        title="Tandai Semua Peminjaman Terlambat ({{ $statTerlambat }})"
+                        aria-label="Tandai Semua Peminjaman Terlambat">
                         <i class="fas fa-clock-rotate-left" style="color: var(--danger, #ef4444);"></i>
                     </button>
                 @endif
                 @if ($canCreate)
+                    <button type="button" class="btn btn-outline" id="btnOpenImportPeminjaman"
+                        title="Import Peminjaman via Excel" aria-label="Import Peminjaman via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
+                    </button>
                     <button type="button" class="btn btn-primary" id="btnOpenPeminjaman"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Ajukan Peminjaman Baru">
+                        title="Ajukan Peminjaman Baru" aria-label="Ajukan Peminjaman Baru">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -256,6 +257,8 @@
         @include('dashboard.laboran.partials.peminjaman-modal-ajukan')
 
         @include('dashboard.laboran.partials.peminjaman-modal-kembali')
+
+        @include('dashboard.laboran.partials.peminjaman-modal-import')
     </div>
 
         @push('scripts')

@@ -59,12 +59,7 @@ class JadwalPrintService
             }
         }
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
+        $kepalaSekolah = $this->resolveKepalaSekolah();
 
         $wakaKurikulum = $this->resolveWakaKurikulum();
 
@@ -87,12 +82,7 @@ class JadwalPrintService
     public function getCetakGuruData(Request $request): array
     {
         $sekolah = DB::table('sekolah')->first();
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
+        $kepalaSekolah = $this->resolveKepalaSekolah();
         $pengaturan = JadwalPengaturan::getSettings();
         $slots = JadwalPengaturan::getSlots();
         $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
@@ -304,12 +294,7 @@ class JadwalPrintService
     public function getCetakRombelData(Request $request): array
     {
         $sekolah = DB::table('sekolah')->first();
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
+        $kepalaSekolah = $this->resolveKepalaSekolah();
         $pengaturan = JadwalPengaturan::getSettings();
         $slots = JadwalPengaturan::getSlots();
         $rombelId = $request->get('rombel_id');
@@ -388,6 +373,23 @@ class JadwalPrintService
             'rombelId',
             'allRombelOptions'
         );
+    }
+
+    /**
+     * Resolusi Data Kepala Sekolah (dipakai bersama oleh seluruh dokumen cetak).
+     */
+    public function resolveKepalaSekolah(): ?object
+    {
+        if (!Table::exists('gtk')) {
+            return null;
+        }
+
+        return DB::table('gtk')
+            ->where(function ($w) {
+                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
+            })
+            ->first();
     }
 
     /**

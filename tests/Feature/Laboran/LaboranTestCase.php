@@ -44,6 +44,10 @@ abstract class LaboranTestCase extends TestCase
         'laboran_jurnal',
         'laboran_kebersihan',
         'laboran_arsip',
+        // Tabel Sarpras yang disentuh modul peminjaman alat (aset dipinjam
+        // lewat `laboran_peminjaman_item.sumber='aset'`). Dibersihkan dengan
+        // pola snapshot id agar data nyata tidak terhapus.
+        'sarpras_aset',
     ];
 
     /** @var array<string, array<int, int>> id yang sudah ada SEBELUM test (milik data nyata) */

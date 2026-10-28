@@ -4,6 +4,7 @@
 @section('dash_title', 'Detail Peminjaman')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -23,33 +24,29 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.peminjaman-alat.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Kembali ke Daftar Peminjaman">
+                    title="Kembali ke Daftar Peminjaman" aria-label="Kembali ke Daftar Peminjaman">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 @if ($canUpdate && $peminjaman->status === 'diajukan')
                     <button type="button" class="btn btn-primary btn-setujui-pinjam"
                         data-id="{{ $peminjaman->id }}" data-nama="{{ $peminjaman->peminjam_nama }}"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Setujui Peminjaman">
+                        title="Setujui Peminjaman" aria-label="Setujui Peminjaman">
                         <i class="fas fa-check"></i>
                     </button>
                 @endif
                 @if ($canUpdate && $peminjaman->status === 'disetujui')
                     <button type="button" class="btn btn-primary btn-serah-terima"
                         data-id="{{ $peminjaman->id }}" data-nama="{{ $peminjaman->peminjam_nama }}"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Serah Terima Alat">
+                        title="Serah Terima Alat" aria-label="Serah Terima Alat">
                         <i class="fas fa-hand-holding"></i>
                     </button>
                 @endif
                 @if ($canUpdate && in_array($peminjaman->status, ['dipinjam', 'terlambat'], true))
                     <button type="button" class="btn btn-primary btn-kembalikan-pinjam"
                         data-id="{{ $peminjaman->id }}" data-nama="{{ $peminjaman->peminjam_nama }}"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Proses Pengembalian">
+                        title="Proses Pengembalian" aria-label="Proses Pengembalian">
                         <i class="fas fa-rotate-left"></i>
                     </button>
                 @endif
@@ -146,10 +143,15 @@
                                 <td data-label="No" style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); color: var(--text-muted);">{{ $idx + 1 }}</td>
                                 <td data-label="Alat" style="padding: var(--space-6) var(--space-7);">
                                     <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">{{ $it->nama_item }}</div>
-                                    <div style="font-size: var(--text-xs); color: var(--text-muted);">{{ $it->kode_item ?: '—' }}</div>
+                                    <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                        {{ $it->kode_item ?: '—' }}
+                                        @if (($it->sumber ?? 'inventaris') === 'aset')
+                                            &bull; <span class="badge badge-outline" style="font-size: var(--text-2xs);">Aset Sarpras</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td data-label="Jumlah" style="padding: var(--space-6) var(--space-7); text-align: center; font-size: var(--text-base);">
-                                    {{ (float) $it->jumlah }} <span style="font-size: var(--text-2xs); color: var(--text-muted);">{{ $it->satuan }}</span>
+                                    {{ rtrim(rtrim(number_format((float) $it->jumlah, 2, '.', ''), '0'), '.') }} <span style="font-size: var(--text-2xs); color: var(--text-muted);">{{ $it->satuan }}</span>
                                 </td>
                                 <td data-label="Kondisi Pinjam" style="padding: var(--space-6) var(--space-7); text-align: center;">
                                     <span class="badge badge-outline" style="font-size: var(--text-2xs);">{{ $kondisiList[$it->kondisi_pinjam] ?? $it->kondisi_pinjam }}</span>

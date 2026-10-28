@@ -4,6 +4,7 @@
 @section('dash_title', 'Detail Usulan Pengadaan')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -23,16 +24,14 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.pengadaan.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Kembali ke Daftar Usulan">
+                    title="Kembali ke Daftar Usulan" aria-label="Kembali ke Daftar Usulan">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 @if ($canUpdate)
                     <button type="button" class="btn btn-primary" id="btnTambahItemUsulan"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md);"
-                        title="Tambah Item Usulan">
+                        title="Tambah Item Usulan" aria-label="Tambah Item Usulan">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -163,7 +162,7 @@
                                 <td data-label="Prioritas" style="padding: var(--space-6) var(--space-7); text-align: center;">
                                     <span class="badge badge-outline" style="font-size: var(--text-2xs);">{{ $urgensiList[$it->prioritas] ?? $it->prioritas }}</span>
                                 </td>
-                                @if ($canUpdate)
+                @if ($canUpdate)
                                     <td data-label="Aksi" style="padding: var(--space-6) var(--space-7); text-align: right;">
                                         <div class="table-actions" style="justify-content: flex-end; gap: var(--space-3);">
                                             <button type="button" class="btn-icon btn-edit-item-usulan"

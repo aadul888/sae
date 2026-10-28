@@ -4,6 +4,7 @@
 @section('dash_title', 'Laporan Praktik')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Header Banner & Actions --}}
         <div class="dash-banner"
@@ -22,15 +23,13 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.laboran.jadwal.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none;"
-                    title="Kembali ke Jadwal Praktik">
+                    title="Kembali ke Jadwal Praktik" aria-label="Kembali ke Jadwal Praktik">
                     <i class="fas fa-calendar-days"></i>
                 </a>
                 <a href="{{ route('dashboard.laboran.laporan.cetak', request()->all()) }}" target="_blank" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: var(--text-md); text-decoration: none; box-shadow: 0 4px 12px rgba(59,130,246,0.35);"
-                    title="Cetak Laporan Periode Ini">
+                    title="Cetak Laporan Periode Ini" aria-label="Cetak Laporan Periode Ini">
                     <i class="fas fa-print"></i>
                 </a>
             </div>

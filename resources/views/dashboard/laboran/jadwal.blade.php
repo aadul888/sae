@@ -1,9 +1,10 @@
-﻿@extends('layouts.dashboard')
+@extends('layouts.dashboard')
 
 @section('title', 'Jadwal Praktik & Penggunaan Lokasi - Laboratorium SAE')
 @section('dash_title', 'Jadwal Praktik')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
     <div class="dash-content-inner">
         {{-- 1. Header Banner & Action Buttons --}}
         <div class="dash-banner"
@@ -22,35 +23,33 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;">
-                <span class="badge"
-                    style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: var(--font-bold); display: inline-flex; align-items: center; gap: var(--space-2);">
-                    <i class="fas {{ $scopeBadge['icon'] ?? 'fa-graduation-cap' }}"></i> {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}
-                </span>
+            <div class="dash-banner-actions dash-banner-access">
                 @if ($canRead)
                     <div class="jadwal-view-switcher"
-                        style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
+                        style="display: inline-flex; gap: 4px; background: var(--bg-hover); padding: 3px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
                         <a href="{{ route('dashboard.laboran.jadwal.index', array_merge(request()->query(), ['view_mode' => 'grid'])) }}"
                             class="btn {{ ($viewMode ?? 'grid') === 'grid' ? 'btn-primary' : 'btn-outline' }}"
-                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
-                            <i class="fas fa-table-cells me-1"></i> Matriks Grid
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: var(--radius-sm, 6px); box-shadow: none; font-size: var(--text-md, 1rem);"
+                            title="Tampilan Matriks Grid" aria-label="Tampilan Matriks Grid">
+                            <i class="fas fa-table-cells"></i>
                         </a>
                         <a href="{{ route('dashboard.laboran.jadwal.index', array_merge(request()->query(), ['view_mode' => 'table'])) }}"
                             class="btn {{ ($viewMode ?? 'grid') === 'table' ? 'btn-primary' : 'btn-outline' }}"
-                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
-                            <i class="fas fa-list me-1"></i> Rekap Tabel
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: var(--radius-sm, 6px); box-shadow: none; font-size: var(--text-md, 1rem);"
+                            title="Tampilan Rekap Tabel" aria-label="Tampilan Rekap Tabel">
+                            <i class="fas fa-list"></i>
                         </a>
                     </div>
 
                     {{-- Dropdown Cetak Jadwal Multi-Mode --}}
                     <div style="position: relative; display: inline-block;">
-                        <button type="button" class="btn btn-outline" id="btnDropdownCetakJadwal"
-                            style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md); font-size: var(--text-sm);"
-                            title="Pilihan Cetak Jadwal Praktik">
-                            <i class="fas fa-print"></i> Cetak <i class="fas fa-chevron-down" style="font-size: var(--text-2xs, 0.7rem);"></i>
+                        <button type="button" class="btn btn-outline dash-banner-access__trigger" id="btnDropdownCetakJadwal"
+                            title="Pilihan Cetak Jadwal Praktik" aria-label="Pilihan Cetak Jadwal Praktik"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-print"></i>
                         </button>
                         <div id="dropdownMenuCetakJadwal"
-                            style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.25); min-width: 220px; z-index: 1000; overflow: hidden;">
+                            style="display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.25); min-width: 220px; z-index: 1000; overflow: hidden;">
                             <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode' => 'mingguan', 'auto' => 1]) }}" target="_blank"
                                 style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm); border-bottom: 1px solid var(--border-color);">
                                 <i class="fas fa-calendar-week text-primary" style="width: 16px;"></i>
@@ -122,7 +121,7 @@
             </div>
         </div>
 
-        {{-- 2b. Tab Pemberlakuan Jadwal (Semester / Mingguan) — Default Semester, Ketat 1 Mode --}}
+        {{-- 2b. Tab Pemberlakuan Jadwal (Semester / Mingguan) � Default Semester, Ketat 1 Mode --}}
         @if ($canRead)
             @php
                 $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'semester';
@@ -143,7 +142,7 @@
                             <i class="fas {{ $mKey === 'mingguan' ? 'fa-calendar-week' : 'fa-calendar-range' }}"></i>
                             {{ $mLabel }}
                             @if ($isThisActive)
-                                <span class="badge badge-success" style="font-size: var(--text-2xs); margin-left: 6px;">
+                                <span class="badge badge-diberlakukan" style="font-size: var(--text-2xs); margin-left: 6px;">
                                     <i class="fas fa-check-circle me-1"></i> Diberlakukan
                                 </span>
                             @endif
@@ -162,15 +161,6 @@
                         <span class="badge badge-primary" style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
                             <i class="fas fa-clock me-1"></i> Slot Jam Pelajaran per Hari (Pengaturan KBM)
                         </span>
-                        @foreach ($gridLokasi as $h)
-                            @php
-                                $jpH = $rutinitas['slotCounts'][$h] ?? 0;
-                            @endphp
-                            <span class="badge {{ $selectedHari === $h ? 'badge-primary' : 'badge-outline' }}"
-                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; {{ $selectedHari === $h ? 'border-color: var(--primary);' : '' }}">
-                                {{ $h }}: {{ $jpH }} JP
-                            </span>
-                        @endforeach
                     </div>
                     <div style="display: flex; gap: 14px;">
                         <span><span style="display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(99,102,241,0.2); border: 1px solid var(--primary); margin-right: 4px;"></span> Terjadwal</span>

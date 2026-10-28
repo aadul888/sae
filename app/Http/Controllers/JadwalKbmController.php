@@ -7,8 +7,10 @@ use App\Models\JadwalPengaturan;
 use App\Models\KalenderPendidikan;
 use App\Models\RolePermission;
 use App\Services\AutoSchedulerService;
+use App\Services\JadwalBulananService;
 use App\Services\JadwalMutasiService;
 use App\Services\JadwalPengaturanService;
+use App\Services\JadwalPekanService;
 use App\Services\JadwalPrintService;
 use App\Services\RealtimeService;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +24,9 @@ class JadwalKbmController extends Controller
     public function __construct(
         protected JadwalPrintService $printService,
         protected JadwalMutasiService $mutasiService,
-        protected JadwalPengaturanService $pengaturanService
+        protected JadwalPengaturanService $pengaturanService,
+        protected JadwalPekanService $pekanService,
+        protected JadwalBulananService $bulananService
     ) {}
 
     public function index(Request $request)
@@ -244,6 +248,11 @@ class JadwalKbmController extends Controller
         $isDiberlakukan  = $isOtomatisAktif;
         $statusJadwal    = $isOtomatisAktif ? 'aktif' : 'draft';
 
+        // Lapis 2: pemberlakuan per pekan (opsional, tidak mengubah kontrak di atas)
+        $pekanList = $this->pekanService->daftarPekan($tahunAjaranAktif, $semesterAktif);
+        $ringkasanPekan = $this->pekanService->ringkasan($tahunAjaranAktif, $semesterAktif);
+        $periodePekan = $this->pekanService->resolvePeriode($tahunAjaranAktif, $semesterAktif);
+
         return view('dashboard.jadwal-kbm', compact(
             'list',
             'summary',
@@ -279,7 +288,10 @@ class JadwalKbmController extends Controller
             'statusJadwal',
             'isOtomatisAktif',
             'isManualAktif',
-            'modePemberlakuan'
+            'modePemberlakuan',
+            'pekanList',
+            'ringkasanPekan',
+            'periodePekan'
         ));
     }
 
@@ -468,5 +480,170 @@ class JadwalKbmController extends Controller
         $res = $this->mutasiService->destroy($id);
 
         return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    // =========================================================================
+    // Lapis 2: Pemberlakuan Jadwal per Pekan
+    // =========================================================================
+
+    /**
+     * Sinkronkan pekan periode aktif dengan Kalender Pendidikan.
+     */
+    public function generatePekan(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::can($user ?: $role, 'menu_jadwal_kbm', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin mengelola pekan jadwal.'], 403);
+        }
+
+        $validated = $request->validate([
+            'tahun_ajaran' => 'nullable|string|max:10',
+            'semester'     => 'nullable|in:1,2',
+            'perbarui_draft' => 'nullable|boolean',
+        ]);
+
+        $periode = $this->pekanService->resolvePeriode(
+            $validated['tahun_ajaran'] ?? null,
+            $validated['semester'] ?? null
+        );
+
+        $result = $this->pekanService->generatePekan(
+            $periode['tahun_ajaran'],
+            $periode['semester'],
+            $request->boolean('perbarui_draft', true)
+        );
+
+        RealtimeService::trigger('jadwal.changed', [
+            'action' => 'pekan_generated',
+            'total'  => $result['total'] ?? 0,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Pekan disinkronkan: {$result['created']} dibuat, {$result['updated']} diperbarui.",
+            'data'    => $result,
+        ]);
+    }
+
+    /**
+     * Perbarui satu pekan (rentang tanggal, sumber, status, catatan).
+     */
+    public function updatePekan(Request $request, $id): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::can($user ?: $role, 'menu_jadwal_kbm', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin mengubah pekan jadwal.'], 403);
+        }
+
+        $validated = $request->validate([
+            'tanggal_mulai'   => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'sumber'          => 'nullable|in:otomatis,manual',
+            'status'          => 'required|in:draft,aktif,libur,ujian',
+            'is_efektif'      => 'nullable|boolean',
+            'catatan'         => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $pekan = $this->pekanService->updatePekan(
+                (int) $id,
+                $validated,
+                $this->identifierPengguna($user)
+            );
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        RealtimeService::trigger('jadwal.changed', [
+            'action'   => 'pekan_updated',
+            'pekan_id' => $pekan->id,
+            'status'   => $pekan->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Pekan ke-{$pekan->pekan_ke} diperbarui.",
+            'data'    => [
+                'id'      => $pekan->id,
+                'status'  => $pekan->status,
+                'rentang' => $pekan->rentang_label,
+            ],
+        ]);
+    }
+
+    /**
+     * Ubah status pemberlakuan pekan (aktif / draft / libur / ujian).
+     */
+    public function togglePekan(Request $request, $id): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::can($user ?: $role, 'menu_jadwal_kbm', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin memberlakukan pekan jadwal.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:draft,aktif,libur,ujian',
+        ]);
+
+        try {
+            $pekan = $this->pekanService->ubahStatus(
+                (int) $id,
+                $validated['status'],
+                $this->identifierPengguna($user)
+            );
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        RealtimeService::trigger('jadwal.changed', [
+            'action'   => 'pekan_status',
+            'pekan_id' => $pekan->id,
+            'status'   => $pekan->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Pekan ke-{$pekan->pekan_ke} kini berstatus {$pekan->status_label}.",
+            'data'    => [
+                'id'     => $pekan->id,
+                'status' => $pekan->status,
+                'label'  => $pekan->status_label,
+                'badge'  => $pekan->status_badge,
+            ],
+        ]);
+    }
+
+    /**
+     * Cetak jadwal bulanan (ekspansi pola x kalender x pekan).
+     */
+    public function cetakBulanan(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_jadwal_kbm', 'read')) {
+            abort(403, 'Akses ke cetak jadwal bulanan dinonaktifkan.');
+        }
+
+        return view('dashboard.jadwal-kbm-cetak-bulan', $this->bulananService->build($request));
+    }
+
+    /**
+     * Identitas pengguna untuk jejak pemberlakuan pekan.
+     */
+    private function identifierPengguna(mixed $user): ?string
+    {
+        if (!$user) {
+            return null;
+        }
+
+        $id = is_array($user)
+            ? ($user['pengguna_id'] ?? $user['id'] ?? null)
+            : ($user->pengguna_id ?? $user->id ?? null);
+
+        return $id !== null ? (string) $id : null;
     }
 }

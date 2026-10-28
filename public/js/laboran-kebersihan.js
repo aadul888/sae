@@ -114,4 +114,68 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // =====================================================================
+    // Modal Import Excel kegiatan kebersihan
+    // =====================================================================
+    const modalImport = document.getElementById('modalImportKebersihan');
+    const btnOpenImport = document.getElementById('btnOpenImportKebersihan');
+    const btnCloseImport = document.getElementById('btnCloseModalImportKebersihan');
+    const btnCancelImport = document.getElementById('btnCancelImportKebersihan');
+    const formImport = document.getElementById('formImportKebersihan');
+
+    if (btnOpenImport) {
+        btnOpenImport.addEventListener('click', function () {
+            if (formImport) formImport.reset();
+            L.openModal(modalImport);
+        });
+    }
+    if (btnCloseImport) btnCloseImport.addEventListener('click', function () { L.closeModal(modalImport); });
+    if (btnCancelImport) btnCancelImport.addEventListener('click', function () { L.closeModal(modalImport); });
+    if (modalImport) {
+        modalImport.addEventListener('click', function (e) {
+            if (e.target === modalImport) L.closeModal(modalImport);
+        });
+    }
+
+    if (formImport) {
+        formImport.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('fileImportKebersihan');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                L.notifyError('Berkas Belum Dipilih', 'Pilih berkas Excel/CSV terlebih dahulu.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('btnSubmitImportKebersihan');
+            L.setBusy(submitBtn, true, 'Mengimpor...');
+
+            fetch(formImport.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': L.csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: new FormData(formImport)
+            })
+                .then(async function (res) {
+                    const data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) throw new Error(L.extractError(data, 'Gagal memproses berkas import.'));
+                    return data;
+                })
+                .then(function (data) {
+                    L.closeModal(modalImport);
+                    L.notifySuccess(data.message || 'Import kegiatan kebersihan berhasil diproses.');
+                })
+                .catch(function (err) {
+                    L.notifyError('Gagal Import', err.message || 'Terjadi kesalahan saat mengunggah berkas.');
+                })
+                .finally(function () {
+                    L.setBusy(submitBtn, false);
+                });
+        });
+    }
 });

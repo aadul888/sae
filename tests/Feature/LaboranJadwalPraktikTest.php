@@ -184,7 +184,9 @@ class LaboranJadwalPraktikTest extends TestCase
     public function test_simpan_jadwal_menolak_bentrok_lokasi_lab(): void
     {
         $rombel = $this->kelasReguler();
-        $tanggal = now()->addDays(2)->toDateString();
+        // Tanggal tetap (Selasa) agar tidak bergantung tanggal berjalan:
+        // 07:00-08:30 Selasa bebas dari jam rutinitas KBM.
+        $tanggal = '2026-11-03'; // Selasa
 
         $payload = [
             'ruang_lab_nama' => 'Lab Komputer 1',
@@ -231,8 +233,9 @@ class LaboranJadwalPraktikTest extends TestCase
             'rombel_id'      => $rombel->rombongan_belajar_id,
             'mata_pelajaran' => 'Pendidikan Jasmani, Olahraga, dan Kesehatan',
             'tanggal'        => $tanggal,
-            'jam_mulai'      => '07:00',
-            'jam_selesai'    => '08:30',
+            // 07:15 menghindari Upacara (Senin, s/d 07:15) & Pembiasaan (Jumat, s/d 07:10).
+            'jam_mulai'      => '07:15',
+            'jam_selesai'    => '08:45',
         ];
 
         $this->withSession($this->adminSession())
@@ -263,7 +266,9 @@ class LaboranJadwalPraktikTest extends TestCase
     public function test_bentrok_guru_tetap_ditolak_di_lapangan(): void
     {
         $rombel = $this->kelasReguler();
-        $tanggal = now()->addDays(4)->toDateString();
+        // Tanggal tetap (Selasa) agar tidak bergantung tanggal berjalan dan
+        // tidak jatuh pada akhir pekan (Sabtu/Minggu tanpa slot KBM).
+        $tanggal = '2026-11-03';
         $ptkId = (string) DB::table('gtk')->value('ptk_id');
 
         $payload = [

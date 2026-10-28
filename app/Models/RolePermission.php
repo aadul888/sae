@@ -47,6 +47,8 @@ class RolePermission extends Model
     protected static ?bool $runtimeAdminExistsCache = null;
     protected static ?bool $runtimeHasTableRolePermissions = null;
     protected static ?bool $runtimeHasTableDuties = null;
+    protected static ?array $runtimeAvailablePermissionsCache = null;
+    protected static ?array $runtimeAllSystemModulesCache = null;
 
     /**
      * Bersihkan static runtime cache (berguna saat pengujian atau setelah mutasi hak akses)
@@ -58,6 +60,8 @@ class RolePermission extends Model
         self::$runtimeAdminExistsCache = null;
         self::$runtimeHasTableRolePermissions = null;
         self::$runtimeHasTableDuties = null;
+        self::$runtimeAvailablePermissionsCache = null;
+        self::$runtimeAllSystemModulesCache = null;
     }
 
     /**
@@ -201,6 +205,10 @@ class RolePermission extends Model
      */
     public static function getAvailablePermissions(): array
     {
+        if (self::$runtimeAvailablePermissionsCache !== null) {
+            return self::$runtimeAvailablePermissionsCache;
+        }
+
         $configs = self::getBasePermissions();
         $discovered = self::discoverSystemModules($configs);
 
@@ -213,7 +221,7 @@ class RolePermission extends Model
             ];
         }
 
-        return $configs;
+        return self::$runtimeAvailablePermissionsCache = $configs;
     }
 
     /**
@@ -221,6 +229,10 @@ class RolePermission extends Model
      */
     public static function getAllSystemModules(): array
     {
+        if (self::$runtimeAllSystemModulesCache !== null) {
+            return self::$runtimeAllSystemModulesCache;
+        }
+
         $all = self::getAvailablePermissions();
         $modules = [];
         foreach ($all as $group => $items) {
@@ -235,7 +247,8 @@ class RolePermission extends Model
                 }
             }
         }
-        return $modules;
+
+        return self::$runtimeAllSystemModulesCache = $modules;
     }
 
     /**
