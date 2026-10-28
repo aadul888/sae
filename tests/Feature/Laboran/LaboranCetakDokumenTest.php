@@ -285,6 +285,65 @@ class LaboranCetakDokumenTest extends LaboranTestCase
         $res->assertSee('Peta Ordner Arsip', false);
     }
 
+    /**
+     * Tab Riwayat Cetak memakai datatable baku: toolbar filter/pencarian,
+     * tabel responsif, dan paginasi — semuanya server-side.
+     */
+    public function test_riwayat_cetak_memakai_datatable_baku(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)->get(route('dashboard.laboran.kebutuhan.cetak'))->assertStatus(200);
+
+        $res = $this->withSession($session)
+            ->get(route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']));
+
+        $res->assertStatus(200);
+
+        // Struktur datatable baku.
+        $res->assertSee('id="tableDataContainer"', false);
+        $res->assertSee('datatable-toolbar', false);
+        $res->assertSee('table-responsive-stack', false);
+        $res->assertSee('id="perPageSelect"', false);
+        $res->assertSee('id="liveSearch"', false);
+        $res->assertSee('id="filterJenisCetak"', false);
+        $res->assertSee('id="filterModeCetak"', false);
+
+        // Filtering server-side benar-benar menyaring baris.
+        $this->withSession($session)->get(route('dashboard.laboran.peserta-didik.cetak'))->assertStatus(200);
+
+        $kebutuhan = $this->withSession($session)->get(
+            route('dashboard.laboran.arsip.index', ['tab' => 'riwayat', 'jenis' => 'kebutuhan'])
+        );
+        $kebutuhan->assertStatus(200);
+        $kebutuhan->assertSee('kebutuhan', false);
+
+        // Setiap baris menautkan tombol cetak ulang; hitung baris yang tampil
+        // agar terbukti filter jenis benar-benar menyaring di sisi server.
+        $jumlahKebutuhan = DB::table('laboran_log_cetak')
+            ->where('jenis_dokumen', 'kebutuhan')
+            ->count();
+        $this->assertSame(
+            min($jumlahKebutuhan, 15),
+            substr_count($kebutuhan->getContent(), '/riwayat/')
+        );
+
+        // Pencarian nomor cetak mengembalikan halaman tanpa error.
+        $log = DB::table('laboran_log_cetak')->latest('id')->first();
+        $cari = $this->withSession($session)->get(
+            route('dashboard.laboran.arsip.index', ['tab' => 'riwayat', 'q' => $log->nomor_cetak])
+        );
+        $cari->assertStatus(200);
+        $cari->assertSee($log->nomor_cetak, false);
+
+        // Filter yang tidak cocok → empty state tabel.
+        $kosong = $this->withSession($session)->get(
+            route('dashboard.laboran.arsip.index', ['tab' => 'riwayat', 'q' => 'TIDAK-ADA-' . uniqid()])
+        );
+        $kosong->assertStatus(200);
+        $kosong->assertSee('Belum ada riwayat cetak', false);
+    }
+
     public function test_kaprog_ditampilkan_sesuai_jurusan(): void
     {
         $service = app(LaboranDokumenService::class);

@@ -133,76 +133,135 @@
                 </div>
             </div>
         @elseif ($tab === 'riwayat')
-            {{-- Riwayat Cetak Dokumen (jejak bukti supervisi) --}}
-            <div class="card" style="padding: var(--space-9);">
-                <h3 style="font-size: var(--text-md); font-weight: var(--font-bold); margin: 0 0 var(--space-2) 0; color: var(--text-color); display: flex; align-items: center; gap: var(--space-3);">
-                    <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Cetak Dokumen
-                </h3>
-                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-7) 0;">
-                    Setiap dokumen yang dicetak dari modul Laboratorium otomatis tercatat di sini dan
-                    didaftarkan sebagai arsip digital &mdash; bukti fisik supervisi dapat ditelusuri kapan saja.
-                </p>
+            {{-- Riwayat Cetak Dokumen (jejak bukti supervisi) — datatable baku SAE --}}
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                <div style="padding: var(--space-7) var(--space-8) 0;">
+                    <h3 style="font-size: var(--text-md); font-weight: var(--font-bold); margin: 0 0 var(--space-2) 0; color: var(--text-color); display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Cetak Dokumen
+                    </h3>
+                    <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">
+                        Setiap dokumen yang dicetak dari modul Laboratorium otomatis tercatat di sini dan
+                        didaftarkan sebagai arsip digital &mdash; gunakan tombol cetak untuk mencetak ulang.
+                    </p>
+                </div>
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.laboran.arsip.index') }}" style="margin: 0;">
+                        <input type="hidden" name="tab" value="riwayat">
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
 
-                <div class="table-responsive">
-                    <table class="table-data">
+                                <select name="jenis" id="filterJenisCetak" class="toolbar-filter-select" style="height: 38px;" title="Filter Jenis Dokumen">
+                                    <option value="">Semua Jenis Dokumen</option>
+                                    @foreach ($jenisCetakOptions as $jenis)
+                                        <option value="{{ $jenis }}" {{ $jenisFilter === $jenis ? 'selected' : '' }}>
+                                            {{ $jenisCetakLabel[$jenis] ?? $jenis }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <select name="mode" id="filterModeCetak" class="toolbar-filter-select" style="height: 38px;" title="Filter Versi Cetak">
+                                    <option value="">Semua Versi</option>
+                                    @foreach (['ringkasan' => 'Ringkasan', 'lengkap' => 'Lengkap'] as $mk => $mv)
+                                        <option value="{{ $mk }}" {{ $modeFilter === $mk ? 'selected' : '' }}>{{ $mv }}</option>
+                                    @endforeach
+                                </select>
+
+                                @if ($search || $jenisFilter || $modeFilter)
+                                    <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']) }}" class="btn btn-outline"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
+                                        title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                @endif
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="q" id="liveSearch" value="{{ $search }}" placeholder="Cari nomor cetak, dokumen, atau petugas..." autocomplete="off">
+                                <button type="button" id="clearSearch" class="clear-search {{ $search ? 'visible' : '' }}" title="Hapus pencarian"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
-                            <tr>
-                                <th style="width: 40px;">No</th>
-                                <th style="width: 140px;">Nomor Cetak</th>
-                                <th>Dokumen</th>
-                                <th style="width: 90px;">Versi</th>
-                                <th style="width: 130px;">Periode</th>
-                                <th style="width: 70px;">Baris</th>
-                                <th style="width: 140px;">Petugas</th>
-                                <th style="width: 130px;">Waktu Cetak</th>
-                                <th style="width: 70px;">Aksi</th>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Nomor / Waktu Cetak</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Dokumen</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">Versi</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Periode</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: center;">Baris</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase;">Petugas</th>
+                                <th style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($riwayat as $i => $r)
-                                <tr>
-                                    <td class="center font-mono">{{ $i + 1 }}</td>
-                                    <td class="center font-mono">{{ $r->nomor_cetak ?: '—' }}</td>
-                                    <td>
-                                        <strong>{{ $r->judul_dokumen ?: $r->jenis_dokumen }}</strong>
-                                        <div style="font-size: var(--text-2xs); color: var(--text-muted);">
-                                            {{ $r->jenis_dokumen }} &bull; A4 {{ ucfirst((string) $r->orientasi) }}
-                                            @if ($r->kaprog_nama)
-                                                &bull; Kaprog: {{ $r->kaprog_nama }}
-                                            @endif
+                            @forelse ($riwayat as $r)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td data-label="Nomor Cetak" style="padding: var(--space-6) var(--space-7);">
+                                        <div style="font-family: var(--font-family-mono); font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--primary);">{{ $r->nomor_cetak ?: '—' }}</div>
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                            {{ $r->created_at ? \Carbon\Carbon::parse($r->created_at)->translatedFormat('d M Y H:i') : '—' }}
                                         </div>
                                     </td>
-                                    <td class="center">{{ ucfirst((string) $r->mode) }}</td>
-                                    <td>{{ $r->periode_label ?: '—' }}</td>
-                                    <td class="center">{{ (int) $r->jumlah_baris }}</td>
-                                    <td>{{ $r->petugas_nama ?: '—' }}</td>
-                                    <td class="center">
-                                        {{ $r->created_at ? \Carbon\Carbon::parse($r->created_at)->translatedFormat('d M Y H:i') : '—' }}
+                                    <td data-label="Dokumen" style="padding: var(--space-6) var(--space-7);">
+                                        <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">{{ $r->judul_dokumen ?: ($jenisCetakLabel[$r->jenis_dokumen] ?? $r->jenis_dokumen) }}</div>
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                            {{ $jenisCetakLabel[$r->jenis_dokumen] ?? $r->jenis_dokumen }} &bull; A4 {{ ucfirst((string) $r->orientasi) }}
+                                        </div>
+                                        @if ($r->kaprog_nama)
+                                            <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-top: var(--space-2);">Kaprog: {{ $r->kaprog_nama }}</span>
+                                        @endif
                                     </td>
-                                    <td class="center">
-                                        <a href="{{ route('dashboard.laboran.arsip.cetak-ulang', $r->id) }}"
-                                            class="btn-icon" target="_blank" rel="noopener"
-                                            title="Cetak Ulang Dokumen Ini" aria-label="Cetak Ulang Dokumen Ini">
-                                            <i class="fas fa-print"></i>
-                                        </a>
+                                    <td data-label="Versi" style="padding: var(--space-6) var(--space-7); text-align: center;">
+                                        <span class="badge {{ $r->mode === 'lengkap' ? 'badge-primary' : 'badge-outline' }}" style="font-size: var(--text-2xs);">{{ ucfirst((string) $r->mode) }}</span>
+                                    </td>
+                                    <td data-label="Periode" style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm);">{{ $r->periode_label ?: '—' }}</td>
+                                    <td data-label="Baris" style="padding: var(--space-6) var(--space-7); text-align: center; font-family: var(--font-family-mono); font-size: var(--text-sm);">{{ (int) $r->jumlah_baris }}</td>
+                                    <td data-label="Petugas" style="padding: var(--space-6) var(--space-7); font-size: var(--text-sm);">{{ $r->petugas_nama ?: '—' }}</td>
+                                    <td data-label="Aksi" style="padding: var(--space-6) var(--space-7); text-align: right;">
+                                        <div class="table-actions" style="justify-content: flex-end; gap: var(--space-3);">
+                                            <a href="{{ route('dashboard.laboran.arsip.cetak-ulang', $r->id) }}"
+                                                class="btn-icon" target="_blank" rel="noopener"
+                                                title="Cetak Ulang Dokumen Ini" aria-label="Cetak Ulang Dokumen Ini">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="center" style="padding: 16px; color: var(--text-muted);">
-                                        <em>Belum ada riwayat cetak pada cakupan jurusan ini.</em>
+                                    <td colspan="7" style="padding: var(--space-11); text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-clock-rotate-left mb-2" style="font-size: var(--text-3xl); opacity: 0.5;"></i>
+                                        <div>Belum ada riwayat cetak pada cakupan jurusan ini.</div>
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if ($riwayat->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $riwayat])
+                    </div>
+                @endif
             </div>
         @else
             {{-- Daftar Arsip --}}
             <div class="card datatable-card-wrapper" id="tableDataContainer">
                 <div class="datatable-toolbar">
                     <form method="GET" action="{{ route('dashboard.laboran.arsip.index') }}" style="margin: 0;">
+                        <input type="hidden" name="tab" value="arsip">
                         <div style="display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: space-between; align-items: center;">
                             <div style="display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center;">
                                 <div class="toolbar-entries">
@@ -230,7 +289,7 @@
                                 </select>
 
                                 @if ($search || $kategoriFilter || $statusFilter)
-                                    <a href="{{ route('dashboard.laboran.arsip.index') }}" class="btn btn-outline"
+                                    <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}" class="btn btn-outline"
                                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
                                         title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                                 @endif

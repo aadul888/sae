@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Laboran;
 
 use App\Support\LaboranScope;
+use App\Services\LaboranDokumenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,9 @@ class LaboranArsipController extends LaboranBaseController
         $search       = trim((string) $request->query('q', ''));
         $kategoriFilter = trim((string) $request->query('kategori', ''));
         $statusFilter = trim((string) $request->query('status', ''));
+        // Filter khusus tab Riwayat Cetak.
+        $jenisFilter  = trim((string) $request->query('jenis', ''));
+        $modeFilter   = trim((string) $request->query('mode', ''));
 
         $statBase = DB::table('laboran_arsip');
         LaboranScope::apply($statBase, 'jurusan_id', $context);
@@ -72,13 +76,42 @@ class LaboranArsipController extends LaboranBaseController
 
         if ($tab === 'riwayat') {
             // Riwayat cetak: jejak dokumen yang pernah dicetak dari modul ini.
-            $riwayat = $this->dokumenService()->riwayat($context, 100);
+            // Memakai datatable baku → paginasi, filter, dan pencarian server-side.
+            $riwayatQuery = DB::table('laboran_log_cetak');
+            LaboranScope::apply($riwayatQuery, 'jurusan_id', $context);
+
+            if ($search !== '') {
+                $riwayatQuery->where(function ($q) use ($search) {
+                    $q->where('nomor_cetak', 'like', "%{$search}%")
+                      ->orWhere('judul_dokumen', 'like', "%{$search}%")
+                      ->orWhere('jenis_dokumen', 'like', "%{$search}%")
+                      ->orWhere('periode_label', 'like', "%{$search}%")
+                      ->orWhere('petugas_nama', 'like', "%{$search}%")
+                      ->orWhere('kaprog_nama', 'like', "%{$search}%");
+                });
+            }
+            if ($jenisFilter !== '') $riwayatQuery->where('jenis_dokumen', $jenisFilter);
+            if ($modeFilter !== '')  $riwayatQuery->where('mode', $modeFilter);
+
+            $riwayat = $riwayatQuery->orderByDesc('id')
+                ->paginate($perPage)
+                ->withQueryString();
+
+            // Opsi filter jenis dokumen yang benar-benar ada pada cakupan ini.
+            $jenisCetakOptions = DB::table('laboran_log_cetak')
+                ->select('jenis_dokumen')
+                ->distinct();
+            LaboranScope::apply($jenisCetakOptions, 'jurusan_id', $context);
+            $jenisCetakOptions = $jenisCetakOptions->orderBy('jenis_dokumen')
+                ->pluck('jenis_dokumen')
+                ->all();
 
             $list = DB::table('laboran_arsip')->whereRaw('1=0')->paginate($perPage);
 
             return view('dashboard.laboran.arsip', array_merge(
                 compact('tab', 'list', 'search', 'kategoriFilter', 'statusFilter', 'perPage',
-                    'statTotal', 'statAktif', 'statInaktif', 'statKategori', 'riwayat'),
+                    'statTotal', 'statAktif', 'statInaktif', 'statKategori', 'riwayat',
+                    'jenisFilter', 'modeFilter', 'jenisCetakOptions'),
                 $this->abilities(),
                 [
                     'context'        => $context,
@@ -89,6 +122,10 @@ class LaboranArsipController extends LaboranBaseController
                     'jurusanOptions' => LaboranScope::jurusanOptions($context),
                     'sumberOptions'  => $this->sumberOptions($context),
                     'indeks'         => collect(),
+                    'jenisCetakLabel' => array_map(
+                        fn ($d) => $d['label'],
+                        LaboranDokumenService::DOKUMEN
+                    ),
                 ]
             ));
         }
