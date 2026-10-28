@@ -116,6 +116,121 @@ class LaboranPeminjamanController extends LaboranBaseController
         ));
     }
 
+    // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Kartu Peminjaman Alat.
+     *
+     * Mode `ringkasan` → rekap sirkulasi per status + daftar peminjaman aktif.
+     * Mode `lengkap`   → rekap + rincian seluruh peminjaman sesuai filter.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $search       = trim((string) $request->query('q', ''));
+        $statusFilter = trim((string) $request->query('status', ''));
+        $tipeFilter   = trim((string) $request->query('tipe', ''));
+        $overdueOnly  = $request->boolean('overdue');
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_peminjaman')->orderByRaw("CASE status
+                WHEN 'diajukan' THEN 1
+                WHEN 'terlambat' THEN 2
+                WHEN 'dipinjam' THEN 3
+                WHEN 'disetujui' THEN 4
+                ELSE 5 END ASC")
+            ->orderByDesc('tanggal_pinjam')
+            ->orderByDesc('id');
+
+        LaboranScope::apply($query, 'jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($qb) use ($search) {
+                $qb->where('nomor_pinjam', 'like', "%{$search}%")
+                   ->orWhere('peminjam_nama', 'like', "%{$search}%")
+                   ->orWhere('keperluan', 'like', "%{$search}%")
+                   ->orWhere('peminjam_kelas', 'like', "%{$search}%");
+            });
+        }
+        if ($statusFilter !== '') $query->where('status', $statusFilter);
+        if ($tipeFilter !== '')   $query->where('peminjam_tipe', $tipeFilter);
+
+        if ($overdueOnly) {
+            $query->whereIn('status', ['dipinjam', 'terlambat'])
+                  ->whereNotNull('tanggal_kembali_rencana')
+                  ->where('tanggal_kembali_rencana', '<', now()->toDateString());
+        }
+
+        $items = $query->get();
+
+        $rekapStatus = $items->groupBy('status')->map(function ($g, $s) {
+            return (object) [
+                'status' => $s,
+                'label'  => self::STATUS[$s] ?? ucfirst((string) $s),
+                'jumlah' => $g->count(),
+                'item'   => (int) $g->sum('jumlah_item'),
+            ];
+        })->sortByDesc('jumlah')->values();
+
+        $rincian = collect();
+        if ($mode === 'lengkap' && $items->isNotEmpty()) {
+            $rincian = DB::table('laboran_peminjaman_item as i')
+                ->join('laboran_peminjaman as p', 'i.peminjaman_id', '=', 'p.id')
+                ->whereIn('i.peminjaman_id', $items->pluck('id')->all())
+                ->orderBy('p.tanggal_pinjam')
+                ->orderBy('i.id')
+                ->get([
+                    'p.nomor_pinjam', 'p.tanggal_pinjam', 'p.peminjam_nama',
+                    'i.nama_item', 'i.kode_item', 'i.jumlah', 'i.satuan',
+                    'i.kondisi_pinjam', 'i.kondisi_kembali', 'i.keterangan',
+                ]);
+        }
+
+        $totalTerlambat = $items->whereIn('status', ['dipinjam', 'terlambat'])
+            ->filter(fn ($r) => $r->tanggal_kembali_rencana
+                && $r->tanggal_kembali_rencana < now()->toDateString())
+            ->count();
+
+        $filterLabel = [];
+        if ($statusFilter !== '') $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($tipeFilter !== '')   $filterLabel[] = 'Peminjam: ' . (self::PEMINJAM_TIPE[$tipeFilter] ?? $tipeFilter);
+        if ($overdueOnly)         $filterLabel[] = 'Hanya yang melewati tenggat';
+        if ($search !== '')       $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.peminjaman-cetak', array_merge(
+            [
+                'items'          => $items,
+                'rekapStatus'    => $rekapStatus,
+                'rincian'        => $rincian,
+                'totalTerlambat' => $totalTerlambat,
+                'filterLabel'    => $filterLabel,
+                'statusList'     => self::STATUS,
+                'tipeList'       => self::PEMINJAM_TIPE,
+                'kondisiList'    => self::KONDISI,
+                'backUrl'        => route('dashboard.laboran.peminjaman-alat.index'),
+            ],
+            $this->dokumenCetak('peminjaman', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'       => $search,
+                    'status'  => $statusFilter,
+                    'tipe'    => $tipeFilter,
+                    'overdue' => $overdueOnly ? '1' : '',
+                ],
+            ])
+        ));
+    }
+
     public function show(Request $request, $id)
     {
         [$res, $context] = $this->boot($request);

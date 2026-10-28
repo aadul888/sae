@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     <style>
         @page {
             size: A4 landscape;
@@ -267,29 +269,15 @@
         </table>
     @endif
 
-    <div class="sign">
-        <div class="box">
-            <div>Mengetahui,</div>
-            <div>Kepala Sekolah</div>
-            <div class="space"></div>
-            <div class="name">{{ $sekolah->kepala_sekolah ?? '...................................' }}</div>
-        </div>
-        <div class="box">
-            <div>&nbsp;</div>
-            <div>Petugas Laboratorium</div>
-            <div class="space"></div>
-            <div class="name">{{ $petugas['nama'] ?? '...................................' }}</div>
-            @if (!empty($petugas['nip']))
-                <div style="font-size: 9.5px;">NIP {{ $petugas['nip'] }}</div>
-            @endif
-        </div>
-        <div class="box">
-            <div>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
-            <div>Kepala Laboratorium</div>
-            <div class="space"></div>
-            <div class="name">...................................</div>
-        </div>
-    </div>
+    @php
+        $sigTitles = [
+            'Petugas Laboran,',
+            'Kepala Laboratorium / Bengkel,',
+            'Kepala Program Keahlian,',
+            'Mengetahui,<br>Kepala Satuan Pendidikan,',
+        ];
+    @endphp
+    @include('dashboard.laboran.partials.ttd-cetak')
 
     <script>
         // Cetak otomatis saat halaman dibuka lewat tombol Cetak

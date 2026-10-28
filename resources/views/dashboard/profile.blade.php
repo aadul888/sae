@@ -27,7 +27,13 @@
             </div>
             <div class="profile-banner-details">
                 <div class="profile-banner-header">
-                    <h1 class="profile-banner-title">{{ $user->name ?? 'Pengguna' }}</h1>
+                    <h1 class="profile-banner-title">
+                        @if ($role === 'guru' || $role === 'tendik')
+                            {{ $profileDetails['nama_lengkap'] ?? ($user->name ?? 'Pengguna') }}
+                        @else
+                            {{ $user->name ?? 'Pengguna' }}
+                        @endif
+                    </h1>
                     <div class="profile-banner-username" title="Identitas Akun / Username">
                         <i class="fas fa-at text-muted" style="font-size: var(--text-base, 0.875rem); opacity: 0.85;"></i>
                         <strong class="profile-username-val">{{ $user->username }}</strong>
@@ -120,6 +126,14 @@
                                         {{ $profileDetails['tanggal_lahir'] ?? '-' }}</span>
                                 </div>
                             @elseif ($role === 'guru' || $role === 'tendik')
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label"><i class="fas fa-signature"></i> Gelar Depan</span>
+                                    <span class="profile-info-val" id="profileGelarDepanVal">{{ $profileDetails['gelar_depan'] ?: '-' }}</span>
+                                </div>
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label"><i class="fas fa-signature"></i> Gelar Belakang</span>
+                                    <span class="profile-info-val" id="profileGelarBelakangVal">{{ $profileDetails['gelar_belakang'] ?: '-' }}</span>
+                                </div>
                                 <div class="profile-info-row">
                                     <span class="profile-info-label"><i class="fas fa-address-card"></i> NIP</span>
                                     <span class="profile-info-val">{{ $profileDetails['nip'] ?? '-' }}</span>
@@ -244,6 +258,78 @@
                         </form>
                     </div>
                 </div>
+
+                @if (($role === 'guru' || $role === 'tendik') && !empty($profileDetails['can_edit_gelar']))
+                    {{-- Card Update Gelar Mandiri Guru & Tendik --}}
+                    <div class="profile-card">
+                        <div class="profile-card-header">
+                            <h2 class="profile-card-title">
+                                <i class="fas fa-user-graduate text-success"></i>
+                                <span>Gelar Akademik</span>
+                            </h2>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                Tersimpan lokal
+                            </span>
+                        </div>
+                        <div class="profile-card-body">
+                            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+                                Anda dapat melengkapi <strong>gelar depan</strong> dan
+                                <strong>gelar belakang</strong> sendiri. Data ini tersimpan di aplikasi SAE dan
+                                <strong>tidak terhapus</strong> saat tarik data Dapodik.
+                            </p>
+
+                            <form action="{{ route('dashboard.profile.gelar') }}" method="POST" id="formUpdateGelar">
+                                @csrf
+                                @method('PUT')
+
+                                <div class="profile-form-group">
+                                    <label for="gelar_depan" class="profile-form-label">Gelar Depan</label>
+                                    <div class="profile-input-wrapper">
+                                        <i class="fas fa-signature input-icon"></i>
+                                        <input type="text" id="gelar_depan" name="gelar_depan"
+                                            class="form-control @error('gelar_depan') is-invalid @enderror"
+                                            style="padding-left: 42px !important;" maxlength="50"
+                                            placeholder="Contoh: Drs., Dr., H., S.Pd."
+                                            value="{{ old('gelar_depan', $profileDetails['gelar_depan'] ?? '') }}" autocomplete="off">
+                                    </div>
+                                    @error('gelar_depan')
+                                        <div style="color: var(--danger, #ef4444); font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
+                                            <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+
+                                <div class="profile-form-group">
+                                    <label for="gelar_belakang" class="profile-form-label">Gelar Belakang</label>
+                                    <div class="profile-input-wrapper">
+                                        <i class="fas fa-signature input-icon"></i>
+                                        <input type="text" id="gelar_belakang" name="gelar_belakang"
+                                            class="form-control @error('gelar_belakang') is-invalid @enderror"
+                                            style="padding-left: 42px !important;" maxlength="100"
+                                            placeholder="Contoh: S.Pd., M.Pd., S.Kom."
+                                            value="{{ old('gelar_belakang', $profileDetails['gelar_belakang'] ?? '') }}" autocomplete="off">
+                                    </div>
+                                    @error('gelar_belakang')
+                                        <div style="color: var(--danger, #ef4444); font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
+                                            <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 14px;">
+                                    Pratinjau: <strong id="gelarPreview"
+                                        data-nama-dasar="{{ $profileDetails['nama_dasar'] ?? $user->name }}">{{ $profileDetails['nama_lengkap'] ?? $user->name }}</strong>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding: 10px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-save"></i>
+                                    <span>Simpan Gelar</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Kolom Kanan: Keamanan Akun & Ubah Kata Sandi -->

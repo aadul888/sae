@@ -428,6 +428,121 @@ class LaboranPesertaDidikController extends LaboranBaseController
     }
 
     // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Data Peserta Didik Jurusan.
+     *
+     * Mode `ringkasan` → rekapitulasi jumlah peserta didik per kelas/rombel.
+     * Mode `lengkap`   → daftar seluruh peserta didik sesuai filter.
+     *
+     * Hasil render dicatat ke `laboran_log_cetak` + `laboran_arsip` oleh
+     * `LaboranDokumenService::dokumen()` sehingga bukti supervisi terekam.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $tab    = $this->resolveTab($request);
+        $q      = trim((string) $request->query('q', ''));
+        $rombel = trim((string) $request->query('rombel', ''));
+        $gender = strtoupper(trim((string) $request->query('gender', '')));
+        if (!in_array($gender, ['L', 'P'], true)) {
+            $gender = '';
+        }
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'portrait');
+
+        $aktif = $tab === 'aktif';
+        $base  = $aktif ? $this->aktifBase($context) : $this->tidakAktifBase($context);
+
+        $items = collect();
+        if ($base) {
+            $alias        = $aktif ? 'pd' : 'pta';
+            $rombelColumn = $aktif ? 'nama_rombel' : 'nama_rombel_terakhir';
+
+            $query = (clone $base)->select(
+                "{$alias}.nama",
+                "{$alias}.nisn",
+                "{$alias}.nipd",
+                "{$alias}.jenis_kelamin",
+                "{$alias}.tempat_lahir",
+                "{$alias}.tanggal_lahir",
+                "{$alias}.agama_id_str",
+                "{$alias}.{$rombelColumn} as nama_rombel_terakhir",
+                "{$alias}.nomor_telepon_seluler",
+                "{$alias}.alamat_jalan",
+                'rb.jurusan_id_str'
+            );
+
+            if (!$aktif) {
+                $query->addSelect([
+                    'pta.status_keluar',
+                    'pta.tahun_lulus',
+                    'pta.tanggal_keluar',
+                ]);
+            }
+
+            $this->applyCommonFilters($query, $alias, $q, $rombel, $gender, $rombelColumn);
+
+            $items = $query->orderByRaw("LOWER(TRIM({$alias}.nama)) asc")
+                ->orderBy("{$alias}.nisn")
+                ->get();
+        }
+
+        $labelTab = $aktif ? 'Peserta Didik Aktif' : 'Peserta Didik Tidak Aktif';
+
+        // Rekap per rombel untuk mode ringkasan.
+        $rekap = $items->groupBy(fn ($r) => $r->nama_rombel_terakhir ?: '—')
+            ->map(fn ($g, $kelas) => (object) [
+                'kelas'     => $kelas,
+                'total'     => $g->count(),
+                'laki'      => $g->where('jenis_kelamin', 'L')->count(),
+                'perempuan' => $g->where('jenis_kelamin', 'P')->count(),
+            ])
+            ->sortKeys()
+            ->values();
+
+        $filterLabel = [];
+        if ($rombel !== '') {
+            $filterLabel[] = 'Kelas: ' . $rombel;
+        }
+        if ($gender !== '') {
+            $filterLabel[] = 'Jenis Kelamin: ' . ($gender === 'L' ? 'Laki-Laki' : 'Perempuan');
+        }
+        if ($q !== '') {
+            $filterLabel[] = 'Pencarian: "' . $q . '"';
+        }
+
+        return view('dashboard.laboran.peserta-didik-cetak', array_merge(
+            [
+                'tabLabel'    => $labelTab,
+                'items'       => $items,
+                'rekap'       => $rekap,
+                'filterLabel' => $filterLabel,
+                'backUrl'     => route('dashboard.laboran.peserta-didik.index', $request->only(['tab'])),
+            ],
+            $this->dokumenCetak('peserta-didik', $context, [
+                'judul'        => 'Data ' . $labelTab . ' Jurusan',
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'tab'    => $tab,
+                    'q'      => $q,
+                    'rombel' => $rombel,
+                    'gender' => $gender,
+                ],
+            ])
+        ));
+    }
+
+    // =========================================================================
     // QUERY BUILDER
     // =========================================================================
 

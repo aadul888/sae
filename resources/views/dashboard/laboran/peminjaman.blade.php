@@ -23,6 +23,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
+                <a href="{{ route('dashboard.laboran.peminjaman-alat.cetak', request()->query()) }}" class="btn btn-outline"
+                    title="Cetak Kartu Peminjaman Alat (A4)" aria-label="Cetak Kartu Peminjaman Alat">
+                    <i class="fas fa-print"></i>
+                </a>
                 @if ($canUpdate && $statTerlambat > 0)
                     <button type="button" class="btn btn-outline" id="btnTandaiTerlambat"
                         title="Tandai Semua Peminjaman Terlambat ({{ $statTerlambat }})"

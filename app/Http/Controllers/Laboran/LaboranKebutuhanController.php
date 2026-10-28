@@ -128,6 +128,98 @@ class LaboranKebutuhanController extends LaboranBaseController
         ));
     }
 
+    // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Analisis & Kebutuhan Alat/Bahan.
+     *
+     * Mode `ringkasan` → rekap kebutuhan per prioritas + daftar item kritis/tinggi.
+     * Mode `lengkap`   → seluruh baris kebutuhan sesuai filter.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $search          = trim((string) $request->query('q', ''));
+        $jenisFilter     = trim((string) $request->query('jenis', ''));
+        $prioritasFilter = trim((string) $request->query('prioritas', ''));
+        $statusFilter    = trim((string) $request->query('status', ''));
+        $labFilter       = trim((string) $request->query('lab', ''));
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_kebutuhan')->orderByRaw("CASE prioritas
+                WHEN 'kritis' THEN 1
+                WHEN 'tinggi' THEN 2
+                WHEN 'sedang' THEN 3
+                ELSE 4 END ASC")
+            ->orderByDesc('tanggal_input')
+            ->orderByDesc('id');
+
+        LaboranScope::apply($query, 'jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($qb) use ($search) {
+                $qb->where('nama_item', 'like', "%{$search}%")
+                   ->orWhere('spesifikasi', 'like', "%{$search}%")
+                   ->orWhere('analisis_kebutuhan', 'like', "%{$search}%")
+                   ->orWhere('referensi_mapel', 'like', "%{$search}%");
+            });
+        }
+        if ($jenisFilter !== '')     $query->where('jenis', $jenisFilter);
+        if ($prioritasFilter !== '') $query->where('prioritas', $prioritasFilter);
+        if ($statusFilter !== '')    $query->where('status', $statusFilter);
+        if ($labFilter !== '')       $query->where('ruang_lab_nama', $labFilter);
+
+        $items = $query->get();
+
+        $rekapPrioritas = $items->groupBy('prioritas')->map(function ($g, $p) {
+            return (object) [
+                'prioritas' => $p,
+                'label'     => self::PRIORITAS[$p] ?? ucfirst((string) $p),
+                'jumlah'    => $g->count(),
+                'selisih'   => (float) $g->sum('selisih'),
+            ];
+        })->sortBy(fn ($r) => array_search($r->prioritas, array_keys(self::PRIORITAS), true))->values();
+
+        $filterLabel = [];
+        if ($jenisFilter !== '')     $filterLabel[] = 'Jenis: ' . (self::JENIS[$jenisFilter] ?? $jenisFilter);
+        if ($prioritasFilter !== '') $filterLabel[] = 'Prioritas: ' . (self::PRIORITAS[$prioritasFilter] ?? $prioritasFilter);
+        if ($statusFilter !== '')    $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($labFilter !== '')       $filterLabel[] = 'Lokasi: ' . $labFilter;
+        if ($search !== '')          $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.kebutuhan-cetak', array_merge(
+            [
+                'items'         => $items,
+                'rekapPrioritas' => $rekapPrioritas,
+                'filterLabel'   => $filterLabel,
+                'prioritasList' => self::PRIORITAS,
+                'statusList'    => self::STATUS,
+                'jenisList'     => self::JENIS,
+                'backUrl'       => route('dashboard.laboran.kebutuhan.index'),
+            ],
+            $this->dokumenCetak('kebutuhan', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'         => $search,
+                    'jenis'     => $jenisFilter,
+                    'prioritas' => $prioritasFilter,
+                    'status'    => $statusFilter,
+                    'lab'       => $labFilter,
+                ],
+            ])
+        ));
+    }
+
     /**
      * Evaluasi kesehatan unit individual sebuah item inventaris.
      *

@@ -246,33 +246,39 @@ class LaboranKerusakanController extends LaboranBaseController
         $sekolah     = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
+        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
+        $pejabat       = $this->dokumenService()->pejabat($context, $ba->jurusan_id);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $petugas       = $pejabat['petugas'];
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
+        $orientasi = $this->orientasiCetak($request, 'portrait');
+        $mode      = $this->modeCetak($request, 'lengkap');
 
-        $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
-        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'portrait';
-        }
-
-        return view('dashboard.laboran.kerusakan-cetak', compact(
-            'ba', 'jurusan', 'sekolah', 'sekolahMeta', 'kepalaSekolah', 'kepalaLab', 'orientasi'
-        ) + [
-            'tingkatList' => self::TINGKAT,
-            'statusList'  => self::STATUS,
-            'pelakuList'  => self::PELAKU_TIPE,
-        ]);
+        return view('dashboard.laboran.kerusakan-cetak', array_merge(
+            compact(
+                'ba', 'jurusan', 'sekolah', 'sekolahMeta',
+                'kepalaSekolah', 'kepalaLab', 'petugas', 'orientasi', 'mode'
+            ),
+            [
+                'tingkatList' => self::TINGKAT,
+                'statusList'  => self::STATUS,
+                'pelakuList'  => self::PELAKU_TIPE,
+            ],
+            $this->dokumenCetak('kerusakan', $context, [
+                'mode'           => $mode,
+                'orientasi'      => $orientasi,
+                'judul'          => 'Berita Acara Kerusakan Alat — ' . $ba->nomor_ba,
+                'nomor_dokumen'  => $ba->nomor_ba,
+                'periode_label'  => Carbon::parse($ba->tanggal_ba ?: $ba->tanggal_kejadian)->translatedFormat('d F Y'),
+                'periode_dari'   => $ba->tanggal_ba ?: $ba->tanggal_kejadian,
+                'sumber_tabel'   => 'laboran_berita_acara_kerusakan',
+                'sumber_id'      => $ba->id,
+                'jumlah_baris'   => 1,
+                'jurusan_id'     => $ba->jurusan_id,
+                'filter'         => ['nomor_ba' => $ba->nomor_ba],
+            ])
+        ));
     }
 
     protected function validated(Request $request): array

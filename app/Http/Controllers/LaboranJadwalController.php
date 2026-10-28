@@ -1052,7 +1052,8 @@ class LaboranJadwalController extends Controller
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $data = $this->service->buildLaporanData($request);
+        // `true` = catat ke riwayat cetak & arsip digital (halaman cetak saja).
+        $data = $this->service->buildLaporanData($request, true);
 
         return view('dashboard.laboran.cetak-laporan', $data);
     }

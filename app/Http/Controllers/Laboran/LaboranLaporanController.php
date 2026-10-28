@@ -45,14 +45,26 @@ class LaboranLaporanController extends LaboranBaseController
 
         $data = $this->buildData($request, $context);
 
-        $orientasi = strtolower((string) $request->query('orientasi', 'landscape'));
-        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'landscape';
-        }
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+        $mode      = $this->modeCetak($request, 'lengkap');
 
         return view('dashboard.laboran.laporan-lengkap-cetak', array_merge($data, [
             'orientasi' => $orientasi,
-        ]));
+            'mode'      => $mode,
+        ], $this->dokumenCetak('laporan-lengkap', $context, [
+            'mode'           => $mode,
+            'orientasi'      => $orientasi,
+            'periode_label'  => $data['range']['label'] ?? null,
+            'periode_dari'   => $data['range']['start'] ?? null,
+            'periode_sampai' => $data['range']['end'] ?? null,
+            'jumlah_baris'   => (int) ($data['totalSesi'] ?? 0),
+            'filter'         => [
+                'periode' => $data['periodeTipe'] ?? null,
+                'bulan'   => $data['bulan'] ?? null,
+                'tahun'   => $data['tahun'] ?? null,
+                'lab'     => $data['lokasiFilter'] ?? null,
+            ],
+        ])));
     }
 
     /**
@@ -269,25 +281,12 @@ class LaboranLaporanController extends LaboranBaseController
         $sekolah     = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
-
-        $petugas = [
-            'nama' => $context['nama'] ?: 'Petugas Laboran',
-            'nip'  => DB::table('gtk')->where('ptk_id', $context['ptk_id'])->value('nip') ?: '—',
-        ];
+        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
+        $pejabat       = $this->dokumenService()->pejabat($context);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $kaprog        = $pejabat['kaprog'];
+        $petugas       = $pejabat['petugas'];
 
         $daftarLokasi = DB::table('laboran_jadwal_penggunaan')
             ->select('ruang_lab_nama')
@@ -306,7 +305,7 @@ class LaboranLaporanController extends LaboranBaseController
             'kebutuhan', 'totalKebutuhan', 'totalKebutuhanKritis',
             'pengadaan', 'totalPengadaan', 'totalPengadaanDisetujui', 'totalNilaiPengadaan',
             'inventaris', 'rekapKondisi', 'rekapBulanan',
-            'sekolah', 'sekolahMeta', 'kepalaSekolah', 'kepalaLab', 'petugas'
+            'sekolah', 'sekolahMeta', 'kepalaSekolah', 'kepalaLab', 'kaprog', 'petugas'
         );
     }
 

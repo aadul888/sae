@@ -249,30 +249,16 @@ class LaboranJurnalController extends LaboranBaseController
         $sekolah     = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
+        // Pejabat penanda tangan (Kepala Sekolah, Kepala Lab, KAPROG jurusan)
+        // diresolusi terpusat agar tidak ada duplikasi query antar modul.
+        $pejabat = $this->dokumenService()->pejabat($context, $jurusan->jurusan_id ?? null);
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $petugas       = $pejabat['petugas'];
 
-        $petugas = [
-            'nama' => $context['nama'] ?: 'Petugas Laboran',
-            'nip'  => DB::table('gtk')->where('ptk_id', $context['ptk_id'])->value('nip') ?: '—',
-        ];
-
-        $orientasi = strtolower((string) $request->query('orientasi', 'landscape'));
-        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'landscape';
-        }
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+        $mode      = $this->modeCetak($request, 'ringkasan');
 
         $range = [
             'start' => $dari,
@@ -282,14 +268,29 @@ class LaboranJurnalController extends LaboranBaseController
 
         $totalMenit = (int) $items->sum('durasi_menit');
 
-        return view('dashboard.laboran.jurnal-cetak', compact(
-            'items', 'rekapKategori', 'jurusan', 'sekolah', 'sekolahMeta',
-            'kepalaSekolah', 'kepalaLab', 'petugas', 'orientasi', 'range', 'totalMenit'
-        ) + [
-            'kategoriList' => self::KATEGORI,
-            'shiftList'    => self::SHIFT,
-            'statusList'   => self::STATUS,
-        ]);
+        return view('dashboard.laboran.jurnal-cetak', array_merge(
+            compact(
+                'items', 'rekapKategori', 'jurusan', 'sekolah', 'sekolahMeta',
+                'kepalaSekolah', 'kepalaLab', 'petugas', 'orientasi', 'range', 'totalMenit'
+            ),
+            [
+                'kategoriList' => self::KATEGORI,
+                'shiftList'    => self::SHIFT,
+                'statusList'   => self::STATUS,
+            ],
+            $this->dokumenCetak('jurnal', $context, [
+                'mode'          => $mode,
+                'orientasi'     => $orientasi,
+                'periode_label' => $range['label'],
+                'periode_dari'  => $dari,
+                'periode_sampai' => $sampai,
+                'jumlah_baris'  => $items->count(),
+                'filter'        => [
+                    'dari'   => $dari,
+                    'sampai' => $sampai,
+                ],
+            ])
+        ));
     }
 
     protected function validated(Request $request): array

@@ -173,6 +173,107 @@ class LaboranPerawatanController extends LaboranBaseController
     }
 
     // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Kartu Perawatan &amp; Penataan K3.
+     *
+     * Mode `ringkasan` → rekap per jenis perawatan + kartu yang jatuh tempo.
+     * Mode `lengkap`   → rincian seluruh riwayat perawatan sesuai filter.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $search       = trim((string) $request->query('q', ''));
+        $jenisFilter  = trim((string) $request->query('jenis', ''));
+        $statusFilter = trim((string) $request->query('status', ''));
+        $k3Filter     = trim((string) $request->query('k3', ''));
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_perawatan')->orderByRaw("CASE status
+                WHEN 'proses' THEN 1
+                WHEN 'dijadwalkan' THEN 2
+                WHEN 'ditunda' THEN 3
+                ELSE 4 END ASC")
+            ->orderByDesc('tanggal_perawatan')
+            ->orderByDesc('id');
+
+        LaboranScope::apply($query, 'jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($qb) use ($search) {
+                $qb->where('nama_alat', 'like', "%{$search}%")
+                   ->orWhere('kode_perawatan', 'like', "%{$search}%")
+                   ->orWhere('uraian_pekerjaan', 'like', "%{$search}%")
+                   ->orWhere('pelaksana_nama', 'like', "%{$search}%");
+            });
+        }
+        if ($jenisFilter !== '')  $query->where('jenis_perawatan', $jenisFilter);
+        if ($statusFilter !== '') $query->where('status', $statusFilter);
+        if ($k3Filter !== '')     $query->where('kategori_k3', $k3Filter);
+
+        $items = $query->get();
+
+        $rekapJenis = $items->groupBy('jenis_perawatan')->map(function ($g, $j) {
+            return (object) [
+                'jenis'   => $j,
+                'label'   => self::JENIS_PERAWATAN[$j] ?? ucfirst((string) $j),
+                'total'   => $g->count(),
+                'selesai' => $g->where('status', 'selesai')->count(),
+                'biaya'   => (float) $g->sum('biaya'),
+            ];
+        })->sortByDesc('total')->values();
+
+        // Kartu perawatan yang perlu ditindaklanjuti (jatuh tempo / aktif).
+        $kartuBase = DB::table('laboran_kartu_perawatan');
+        LaboranScope::apply($kartuBase, 'jurusan_id', $context);
+        $kartuJatuhTempo = (clone $kartuBase)->where('status', 'aktif')
+            ->whereNotNull('jadwal_berikutnya')
+            ->where('jadwal_berikutnya', '<=', now()->addDays(30)->toDateString())
+            ->orderBy('jadwal_berikutnya')
+            ->limit(25)
+            ->get();
+
+        $filterLabel = [];
+        if ($jenisFilter !== '')  $filterLabel[] = 'Jenis: ' . (self::JENIS_PERAWATAN[$jenisFilter] ?? $jenisFilter);
+        if ($statusFilter !== '') $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($k3Filter !== '')     $filterLabel[] = 'K3: ' . (self::KATEGORI_K3[$k3Filter] ?? $k3Filter);
+        if ($search !== '')       $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.perawatan-cetak', array_merge(
+            [
+                'items'           => $items,
+                'rekapJenis'      => $rekapJenis,
+                'kartuJatuhTempo' => $kartuJatuhTempo,
+                'filterLabel'     => $filterLabel,
+                'jenisList'       => self::JENIS_PERAWATAN,
+                'k3List'          => self::KATEGORI_K3,
+                'statusList'      => self::STATUS,
+                'kondisiList'     => self::KONDISI_AKHIR,
+                'backUrl'         => route('dashboard.laboran.perawatan.index'),
+            ],
+            $this->dokumenCetak('perawatan', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'       => $search,
+                    'jenis'   => $jenisFilter,
+                    'status'  => $statusFilter,
+                    'k3'      => $k3Filter,
+                ],
+            ])
+        ));
+    }
+
+    // =========================================================================
     // PERAWATAN
     // =========================================================================
 

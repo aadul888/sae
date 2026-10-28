@@ -23,6 +23,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
+                <a href="{{ route('dashboard.laboran.arsip.cetak', request()->query()) }}" class="btn btn-outline"
+                    title="Cetak Daftar Arsip Dokumen (A4)" aria-label="Cetak Daftar Arsip Dokumen">
+                    <i class="fas fa-print"></i>
+                </a>
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnArsipMassal"
                         title="Arsipkan Massal dari Modul Lain" aria-label="Arsipkan Massal dari Modul Lain">
@@ -79,6 +83,10 @@
                     class="periode-nav-tab {{ $tab === 'indeks' ? 'active' : '' }}">
                     <i class="fas fa-sitemap"></i> Peta Ordner ({{ $statKategori }})
                 </a>
+                <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']) }}"
+                    class="periode-nav-tab {{ $tab === 'riwayat' ? 'active' : '' }}">
+                    <i class="fas fa-clock-rotate-left"></i> Riwayat Cetak
+                </a>
             </div>
             <div class="periode-nav-mobile">
                 <div class="periode-mobile-select-box" style="margin-bottom: 0;">
@@ -86,6 +94,7 @@
                     <select class="periode-mobile-select" onchange="if(this.value) window.location.href=this.value;">
                         <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}" {{ $tab === 'arsip' ? 'selected' : '' }}>Daftar Arsip ({{ $statTotal }})</option>
                         <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'indeks']) }}" {{ $tab === 'indeks' ? 'selected' : '' }}>Peta Ordner ({{ $statKategori }})</option>
+                        <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']) }}" {{ $tab === 'riwayat' ? 'selected' : '' }}>Riwayat Cetak</option>
                     </select>
                 </div>
             </div>
@@ -121,6 +130,64 @@
                     @empty
                         <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">Belum ada arsip tersimpan.</p>
                     @endforelse
+                </div>
+            </div>
+        @elseif ($tab === 'riwayat')
+            {{-- Riwayat Cetak Dokumen (jejak bukti supervisi) --}}
+            <div class="card" style="padding: var(--space-9);">
+                <h3 style="font-size: var(--text-md); font-weight: var(--font-bold); margin: 0 0 var(--space-2) 0; color: var(--text-color); display: flex; align-items: center; gap: var(--space-3);">
+                    <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Cetak Dokumen
+                </h3>
+                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-7) 0;">
+                    Setiap dokumen yang dicetak dari modul Laboratorium otomatis tercatat di sini dan
+                    didaftarkan sebagai arsip digital &mdash; bukti fisik supervisi dapat ditelusuri kapan saja.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table-data">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">No</th>
+                                <th style="width: 140px;">Nomor Cetak</th>
+                                <th>Dokumen</th>
+                                <th style="width: 90px;">Versi</th>
+                                <th style="width: 130px;">Periode</th>
+                                <th style="width: 70px;">Baris</th>
+                                <th style="width: 140px;">Petugas</th>
+                                <th style="width: 130px;">Waktu Cetak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($riwayat as $i => $r)
+                                <tr>
+                                    <td class="center font-mono">{{ $i + 1 }}</td>
+                                    <td class="center font-mono">{{ $r->nomor_cetak ?: '—' }}</td>
+                                    <td>
+                                        <strong>{{ $r->judul_dokumen ?: $r->jenis_dokumen }}</strong>
+                                        <div style="font-size: var(--text-2xs); color: var(--text-muted);">
+                                            {{ $r->jenis_dokumen }} &bull; A4 {{ ucfirst((string) $r->orientasi) }}
+                                            @if ($r->kaprog_nama)
+                                                &bull; Kaprog: {{ $r->kaprog_nama }}
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="center">{{ ucfirst((string) $r->mode) }}</td>
+                                    <td>{{ $r->periode_label ?: '—' }}</td>
+                                    <td class="center">{{ (int) $r->jumlah_baris }}</td>
+                                    <td>{{ $r->petugas_nama ?: '—' }}</td>
+                                    <td class="center">
+                                        {{ $r->created_at ? \Carbon\Carbon::parse($r->created_at)->translatedFormat('d M Y H:i') : '—' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="center" style="padding: 16px; color: var(--text-muted);">
+                                        <em>Belum ada riwayat cetak pada cakupan jurusan ini.</em>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         @else

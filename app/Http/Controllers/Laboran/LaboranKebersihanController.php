@@ -218,30 +218,14 @@ class LaboranKebersihanController extends LaboranBaseController
         $sekolah     = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
+        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
+        $pejabat       = $this->dokumenService()->pejabat($context, $jurusan->jurusan_id ?? null);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $petugas       = $pejabat['petugas'];
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
-
-        $petugas = [
-            'nama' => $context['nama'] ?: 'Petugas Laboran',
-            'nip'  => DB::table('gtk')->where('ptk_id', $context['ptk_id'])->value('nip') ?: '—',
-        ];
-
-        $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
-        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'portrait';
-        }
+        $orientasi = $this->orientasiCetak($request, 'portrait');
+        $mode      = $this->modeCetak($request, 'ringkasan');
 
         $range = [
             'start' => $dari,
@@ -249,13 +233,25 @@ class LaboranKebersihanController extends LaboranBaseController
             'label' => Carbon::parse($dari)->translatedFormat('d F Y') . ' s.d. ' . Carbon::parse($sampai)->translatedFormat('d F Y'),
         ];
 
-        return view('dashboard.laboran.kebersihan-cetak', compact(
-            'items', 'jurusan', 'sekolah', 'sekolahMeta', 'kepalaSekolah',
-            'kepalaLab', 'petugas', 'orientasi', 'range'
-        ) + [
-            'jenisList'   => self::JENIS,
-            'kondisiList' => self::KONDISI,
-        ]);
+        return view('dashboard.laboran.kebersihan-cetak', array_merge(
+            compact(
+                'items', 'jurusan', 'sekolah', 'sekolahMeta', 'kepalaSekolah',
+                'kepalaLab', 'petugas', 'orientasi', 'range'
+            ),
+            [
+                'jenisList'   => self::JENIS,
+                'kondisiList' => self::KONDISI,
+            ],
+            $this->dokumenCetak('kebersihan', $context, [
+                'mode'           => $mode,
+                'orientasi'      => $orientasi,
+                'periode_label'  => $range['label'],
+                'periode_dari'   => $dari,
+                'periode_sampai' => $sampai,
+                'jumlah_baris'   => $items->count(),
+                'filter'         => ['dari' => $dari, 'sampai' => $sampai],
+            ])
+        ));
     }
 
     /**

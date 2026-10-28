@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     @if ($orientasi === 'landscape')
         <style>
             @page {
@@ -34,6 +36,21 @@
             class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
+
+        <div class="doc-toolbar-group">
+            <span class="doc-toolbar-label">Laporan:</span>
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'active' : '' }}"
+                title="Versi ringkas: rekap sesi, kerusakan, peminjaman, perawatan">
+                <i class="fas fa-list"></i> Ringkasan
+            </a>
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'active' : '' }}"
+                title="Versi lengkap: seluruh rekap + rincian alat rusak">
+                <i class="fas fa-table-list"></i> Lengkap
+            </a>
+            <span class="doc-toolbar-sep"></span>
+        </div>
 
         <div class="orientation-switch">
             <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
@@ -68,6 +85,7 @@
             <div class="doc-title-main">LAPORAN PENGGUNAAN &amp; KERUSAKAN ALAT PRAKTIK</div>
             <div class="doc-subtitle">
                 PERIODE: {{ strtoupper($range['label']) }} &bull; FORMAT: A4 {{ strtoupper($orientasi) }}
+                &bull; VERSI: {{ strtoupper($mode ?? 'ringkasan') }}
             </div>
         </div>
 
@@ -205,7 +223,7 @@
         </table>
 
         <!-- C. Alat Paling Sering Rusak -->
-        @if ($rekapAlatRusak->count() > 0)
+        @if (($mode ?? 'ringkasan') === 'lengkap' && $rekapAlatRusak->count() > 0)
             <div class="section-subhead">
                 <i class="fas fa-tools"></i> C. Alat Paling Sering Mengalami Kerusakan
             </div>
@@ -388,32 +406,18 @@
             </table>
         @endif
 
+        @if (($mode ?? 'ringkasan') === 'ringkasan')
+            <div class="doc-trace">
+                <i class="fas fa-circle-info"></i>
+                Mode <strong>Ringkasan</strong> memuat rekap agregat (sesi praktik, kerusakan,
+                peminjaman, perawatan, pemeriksaan, kebutuhan &amp; pengadaan).
+                Pilih <strong>Lengkap</strong> pada bar alat di atas untuk menampilkan
+                rincian alat yang paling sering mengalami kerusakan.
+            </div>
+        @endif
+
         <!-- Tanda Tangan -->
-        <div class="signature-container">
-            <div class="sig-box">
-                <div class="sig-title">
-                    Petugas Laboran,
-                </div>
-                <div class="sig-name">{{ $petugas['nama'] ?? '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $petugas['nip'] ?: '—' }}</div>
-            </div>
-
-            <div class="sig-box">
-                <div class="sig-title">
-                    Kepala Laboratorium / Bengkel,
-                </div>
-                <div class="sig-name">{{ $kepalaLab?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaLab?->nip ?: ($kepalaLab?->nuptk ?: '—') }}</div>
-            </div>
-
-            <div class="sig-box">
-                <div class="sig-title">
-                    Mengetahui,<br>Kepala Satuan Pendidikan,
-                </div>
-                <div class="sig-name">{{ $kepalaSekolah?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</div>
-            </div>
-        </div>
+        @include('dashboard.laboran.partials.ttd-cetak')
 
         <!-- Footer -->
         <div class="doc-footer">
@@ -422,6 +426,9 @@
                 <div>
                     <strong>Dokumen Laporan Resmi Sistem Aplikasi Edukasi (SAE)</strong><br>
                     Dicetak otomatis pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i:s') }} WIB.
+                    @if (!empty($logCetak?->nomor_cetak))
+                        <br>Nomor cetak: <strong>{{ $logCetak->nomor_cetak }}</strong>
+                    @endif
                 </div>
             </div>
             <div style="text-align: right;">

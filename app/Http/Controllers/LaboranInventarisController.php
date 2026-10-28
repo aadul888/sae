@@ -8,6 +8,7 @@ use App\Support\LaboranScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Http\Controllers\Concerns\DokumenCetakLaboran;
 
 /**
  * Inventaris Alat & Bahan Laboratorium (per JURUSAN).
@@ -19,6 +20,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 class LaboranInventarisController extends Controller
 {
     use ChecksAuthenticatedSession;
+    use DokumenCetakLaboran;
 
     public const JENIS = [
         'alat'              => 'Alat',
@@ -550,24 +552,19 @@ class LaboranInventarisController extends Controller
         $sekolah = \App\Models\Sekolah::first();
         $sekolahMeta = \App\Models\SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })->first();
+        // Pejabat penanda tangan terpusat. Sebelumnya query Kepala Lab memakai
+        // `ptk_tugas_tambahan.jabatan_ptk_id_str` yang TIDAK ADA di skema
+        // (Column not found: 1054), sehingga halaman cetak gagal total.
+        $pejabat       = $this->dokumenService()->pejabat($context);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $kaprog        = $pejabat['kaprog'];
+        $petugas       = $pejabat['petugas'];
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('gtk as g', 'ptt.ptk_id', '=', 'g.ptk_id')
-            ->where('ptt.jabatan_ptk_id_str', 'like', '%Laboratorium%')
-            ->select('g.nama', 'g.nip')
-            ->first();
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+        $mode      = $this->modeCetak($request, 'ringkasan');
 
-        $petugas = [
-            'nama' => $context['nama'] ?? ($user['nama'] ?? 'Laboran'),
-            'nip'  => $context['nip'] ?? ($user['nip'] ?? '-'),
-        ];
-
-        return view('dashboard.laboran.inventaris-cetak', [
+        return view('dashboard.laboran.inventaris-cetak', array_merge([
             'items'          => $items,
             'search'         => $search,
             'labFilter'      => $labFilter,
@@ -578,9 +575,23 @@ class LaboranInventarisController extends Controller
             'sekolahMeta'    => $sekolahMeta,
             'kepalaSekolah'  => $kepalaSekolah,
             'kepalaLab'      => $kepalaLab,
+            'kaprog'         => $kaprog,
             'petugas'        => $petugas,
+            'orientasi'      => $orientasi,
+            'mode'           => $mode,
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),
-        ]);
+        ], $this->dokumenCetak('inventaris', $context, [
+            'mode'         => $mode,
+            'orientasi'    => $orientasi,
+            'jumlah_baris' => $items->count(),
+            'filter'       => [
+                'q'         => $search,
+                'lab'       => $labFilter,
+                'jenis'     => $jenisFilter,
+                'kondisi'   => $kondisiFilter,
+                'sumber'    => $sumberFilter,
+            ],
+        ])));
     }
 }

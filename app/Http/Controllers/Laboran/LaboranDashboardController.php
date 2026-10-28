@@ -208,6 +208,7 @@ class LaboranDashboardController extends LaboranBaseController
         return view('dashboard.laboran.dashboard', array_merge(
             compact(
                 'jurusan',
+
                 'totalItem', 'totalAlat', 'totalBahan', 'kondisiBaik', 'kondisiRusak',
                 'kondisiKedaluwarsa', 'persenLaik', 'stokMenipis',
                 'jadwalHariIni', 'jadwalMinggu', 'jadwalBulan', 'jadwalTotal', 'jadwalTerdekat',
@@ -225,6 +226,242 @@ class LaboranDashboardController extends LaboranBaseController
                 'scopeContext'  => $context,
                 'scopeBadge'    => LaboranScope::badge($context),
             ]
+        ));
+    }
+
+    /**
+     * Rekapitulasi Supervisi Laboratorium (dokumen cetak A4).
+     *
+     * Mode `ringkasan` → kartu angka kunci + tabel rekap 9 indikator tupoksi.
+     * Mode `lengkap`   → ditambah daftar catatan yang perlu tindak lanjut
+     *                    (stok menipis, peminjaman terlambat, kartu jatuh
+     *                    tempo, kerusakan, kebutuhan kritis).
+     *
+     * Seluruh angka diambil ulang (bukan dari query string) agar dokumen
+     * selalu konsisten dengan kondisi basis data saat dicetak.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'portrait');
+
+        $angka = static function (string $table, array $context, ?callable $filter = null): int {
+            $query = DB::table($table);
+            LaboranScope::apply($query, 'jurusan_id', $context);
+            if ($filter) {
+                $filter($query);
+            }
+
+            return (int) $query->count();
+        };
+
+        // --- Inventaris -----------------------------------------------------
+        $invBase = DB::table('laboran_bahan_alat');
+        LaboranScope::apply($invBase, 'jurusan_id', $context);
+        $inventaris = $invBase->get();
+
+        $indikator = [
+            (object) [
+                'no'       => 1,
+                'tupoksi'  => 'Pendataan inventaris alat & bahan praktik',
+                'bukti'    => 'Buku induk inventaris + kartu stok',
+                'jumlah'   => $inventaris->count(),
+                'satuan'   => 'item',
+                'catatan'  => $inventaris->where('kondisi', 'baik')->count() . ' item laik pakai, '
+                    . $inventaris->whereIn('kondisi', ['rusak_ringan', 'rusak_berat'])->count() . ' item rusak',
+            ],
+            (object) [
+                'no'       => 2,
+                'tupoksi'  => 'Analisis kebutuhan alat & bahan praktik',
+                'bukti'    => 'Dokumen analisis & usulan kebutuhan',
+                'jumlah'   => $angka('laboran_kebutuhan', $context),
+                'satuan'   => 'usulan',
+                'catatan'  => $angka('laboran_kebutuhan', $context, fn ($q) => $q->where('prioritas', 'kritis')) . ' usulan prioritas kritis',
+            ],
+            (object) [
+                'no'       => 3,
+                'tupoksi'  => 'Daftar usulan pengadaan alat & bahan',
+                'bukti'    => 'Surat usulan pengadaan',
+                'jumlah'   => $angka('laboran_usulan_pengadaan', $context),
+                'satuan'   => 'usulan',
+                'catatan'  => $angka('laboran_usulan_pengadaan', $context, fn ($q) => $q->whereIn('status', ['disetujui', 'direalisasi'])) . ' usulan disetujui',
+            ],
+            (object) [
+                'no'       => 4,
+                'tupoksi'  => 'Pemeriksaan / daftar ceklist alat & bahan',
+                'bukti'    => 'Checklist pemeriksaan berkala',
+                'jumlah'   => $angka('laboran_pemeriksaan', $context),
+                'satuan'   => 'berkas',
+                'catatan'  => $angka('laboran_pemeriksaan', $context, fn ($q) => $q->whereBetween('tanggal_pemeriksaan', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])) . ' berkas bulan ini',
+            ],
+            (object) [
+                'no'       => 5,
+                'tupoksi'  => 'Perawatan & penataan alat (K3)',
+                'bukti'    => 'Kartu perawatan + catatan K3',
+                'jumlah'   => $angka('laboran_kartu_perawatan', $context),
+                'satuan'   => 'kartu',
+                'catatan'  => $angka('laboran_kartu_perawatan', $context, fn ($q) => $q->where('status', 'aktif')) . ' kartu aktif',
+            ],
+            (object) [
+                'no'       => 6,
+                'tupoksi'  => 'Berita acara kerusakan alat',
+                'bukti'    => 'BA kerusakan ditandatangani',
+                'jumlah'   => $angka('laboran_berita_acara_kerusakan', $context),
+                'satuan'   => 'berita acara',
+                'catatan'  => $angka('laboran_berita_acara_kerusakan', $context, fn ($q) => $q->whereIn('tingkat_kerusakan', ['berat', 'total'])) . ' kerusakan berat/total',
+            ],
+            (object) [
+                'no'       => 7,
+                'tupoksi'  => 'Arsip dokumen administrasi (ordner digital)',
+                'bukti'    => 'Ordner BA kerusakan, kartu peminjaman, dll.',
+                'jumlah'   => $angka('laboran_arsip', $context),
+                'satuan'   => 'dokumen',
+                'catatan'  => $angka('laboran_arsip', $context, fn ($q) => $q->where('status', 'aktif')) . ' arsip aktif',
+            ],
+            (object) [
+                'no'       => 8,
+                'tupoksi'  => 'Jurnal kegiatan harian laboran',
+                'bukti'    => 'Buku jurnal harian',
+                'jumlah'   => $angka('laboran_jurnal', $context),
+                'satuan'   => 'catatan',
+                'catatan'  => $angka('laboran_jurnal', $context, fn ($q) => $q->whereBetween('tanggal', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])) . ' catatan bulan ini',
+            ],
+            (object) [
+                'no'       => 9,
+                'tupoksi'  => 'Kebersihan lingkungan produktif',
+                'bukti'    => 'Dokumentasi kebersihan lab/bengkel',
+                'jumlah'   => $angka('laboran_kebersihan', $context),
+                'satuan'   => 'catatan',
+                'catatan'  => $angka('laboran_kebersihan', $context, fn ($q) => $q->whereBetween('tanggal_kegiatan', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])) . ' catatan bulan ini',
+            ],
+        ];
+
+        $jumlahBukti = array_sum(array_map(fn ($i) => $i->jumlah, $indikator));
+        $indikatorTerpenuhi = count(array_filter($indikator, fn ($i) => $i->jumlah > 0));
+        $kondisiBaik = $inventaris->count() > 0
+            ? round(($inventaris->where('kondisi', 'baik')->count() / $inventaris->count()) * 100, 1)
+            : 0;
+
+        $pinjamanAktif = $angka('laboran_peminjaman', $context, fn ($q) => $q->whereIn('status', ['dipinjam', 'terlambat']));
+        $pinjamTerlambat = $angka('laboran_peminjaman', $context, fn ($q) => $q
+            ->whereIn('status', ['dipinjam', 'terlambat'])
+            ->whereNotNull('tanggal_kembali_rencana')
+            ->where('tanggal_kembali_rencana', '<', now()->toDateString()));
+
+        $kartuJatuhTempo = $angka('laboran_kartu_perawatan', $context, fn ($q) => $q
+            ->where('status', 'aktif')
+            ->whereNotNull('jadwal_berikutnya')
+            ->where('jadwal_berikutnya', '<=', now()->addDays(30)->toDateString()));
+
+        $kebutuhanKritis = $angka('laboran_kebutuhan', $context, fn ($q) => $q->where('prioritas', 'kritis'));
+
+        $stokMenipis = $inventaris->filter(function ($it) {
+            $tersedia = (float) $it->stok_tersedia;
+            $total    = (float) $it->stok_total;
+
+            return $tersedia <= 0 || ($total > 0 && ($tersedia / max($total, 1)) <= 0.25);
+        })->values();
+
+        $tindakLanjut = collect();
+        if ($mode === 'lengkap') {
+            $ambil = function (string $table, array $kolom, callable $saring, callable $petakan) use ($context) {
+                $query = DB::table($table);
+                LaboranScope::apply($query, 'jurusan_id', $context);
+                $saring($query);
+
+                return $query->limit(50)->get($kolom)->map($petakan);
+            };
+
+            $tindakLanjut = $inventaris->map(function ($it) {
+                $tersedia = (float) $it->stok_tersedia;
+                $total    = (float) $it->stok_total;
+                if ($tersedia > 0 && ($total <= 0 || ($tersedia / max($total, 1)) > 0.25)) {
+                    return null;
+                }
+
+                return (object) [
+                    'kategori' => 'Stok menipis',
+                    'uraian'   => $it->nama_item ?: '—',
+                    'ruang'    => $it->ruang_lab_nama ?: '—',
+                    'detail'   => rtrim(rtrim(number_format($tersedia, 2, ',', '.'), '0'), ',')
+                        . ' dari ' . rtrim(rtrim(number_format($total, 2, ',', '.'), '0'), ','),
+                ];
+            })->filter()->merge(
+                $ambil(
+                    'laboran_peminjaman',
+                    ['nomor_pinjam', 'peminjam_nama', 'peminjam_kelas', 'tanggal_kembali_rencana'],
+                    fn ($q) => $q->whereIn('status', ['dipinjam', 'terlambat'])
+                        ->whereNotNull('tanggal_kembali_rencana')
+                        ->where('tanggal_kembali_rencana', '<', now()->toDateString())
+                        ->orderBy('tanggal_kembali_rencana'),
+                    fn ($p) => (object) [
+                        'kategori' => 'Peminjaman terlambat',
+                        'uraian'   => $p->nomor_pinjam . ' — ' . ($p->peminjam_nama ?: '—'),
+                        'ruang'    => $p->peminjam_kelas ?: '—',
+                        'detail'   => 'Tenggat ' . ($p->tanggal_kembali_rencana
+                            ? Carbon::parse($p->tanggal_kembali_rencana)->format('d/m/Y')
+                            : '—'),
+                    ]
+                )
+            )->merge(
+                $ambil(
+                    'laboran_kartu_perawatan',
+                    ['kode_kartu', 'nama_alat', 'ruang_lab_nama', 'jadwal_berikutnya'],
+                    fn ($q) => $q->where('status', 'aktif')
+                        ->whereNotNull('jadwal_berikutnya')
+                        ->where('jadwal_berikutnya', '<=', now()->addDays(30)->toDateString())
+                        ->orderBy('jadwal_berikutnya'),
+                    fn ($k) => (object) [
+                        'kategori' => 'Perawatan jatuh tempo',
+                        'uraian'   => ($k->kode_kartu ?: '—') . ' — ' . ($k->nama_alat ?: '—'),
+                        'ruang'    => $k->ruang_lab_nama ?: '—',
+                        'detail'   => 'Jadwal ' . ($k->jadwal_berikutnya
+                            ? Carbon::parse($k->jadwal_berikutnya)->format('d/m/Y')
+                            : '—'),
+                    ]
+                )
+            )->merge(
+                $ambil(
+                    'laboran_kebutuhan',
+                    ['nama_item', 'ruang_lab_nama', 'jumlah_kebutuhan', 'jumlah_tersedia', 'satuan'],
+                    fn ($q) => $q->where('prioritas', 'kritis')->orderByDesc('selisih'),
+                    fn ($k) => (object) [
+                        'kategori' => 'Kebutuhan kritis',
+                        'uraian'   => $k->nama_item ?: '—',
+                        'ruang'    => $k->ruang_lab_nama ?: '—',
+                        'detail'   => 'Butuh ' . rtrim(rtrim(number_format((float) $k->jumlah_kebutuhan, 2, ',', '.'), '0'), ',')
+                            . ' ' . ($k->satuan ?: 'unit') . ', tersedia '
+                            . rtrim(rtrim(number_format((float) $k->jumlah_tersedia, 2, ',', '.'), '0'), ','),
+                    ]
+                )
+            )->values();
+        }
+
+        return view('dashboard.laboran.dashboard-cetak', array_merge(
+            [
+                'indikator'       => $indikator,
+                'indikatorTerpenuhi' => $indikatorTerpenuhi,
+                'jumlahBukti'     => $jumlahBukti,
+                'kondisiBaik'     => $kondisiBaik,
+                'pinjamanAktif'   => $pinjamanAktif,
+                'pinjamTerlambat' => $pinjamTerlambat,
+                'kartuJatuhTempo' => $kartuJatuhTempo,
+                'kebutuhanKritis' => $kebutuhanKritis,
+                'stokMenipis'     => $stokMenipis,
+                'tindakLanjut'    => $tindakLanjut,
+                'backUrl'         => route('dashboard.laboran.dashboard'),
+            ],
+            $this->dokumenCetak('dashboard', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $indikator === [] ? 0 : count($indikator),
+                'periode_label' => now()->translatedFormat('F Y'),
+            ])
         ));
     }
 }

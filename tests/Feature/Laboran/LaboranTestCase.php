@@ -44,6 +44,9 @@ abstract class LaboranTestCase extends TestCase
         'laboran_jurnal',
         'laboran_kebersihan',
         'laboran_arsip',
+        // Riwayat dokumen cetak (dokumen A4 ringkasan/lengkap) — juga menjadi
+        // sumber tautan `laboran_arsip.sumber_id` saat arsip otomatis dibuat.
+        'laboran_log_cetak',
         // Tabel Sarpras yang disentuh modul peminjaman alat (aset dipinjam
         // lewat `laboran_peminjaman_item.sumber='aset'`). Dibersihkan dengan
         // pola snapshot id agar data nyata tidak terhapus.
@@ -59,9 +62,23 @@ abstract class LaboranTestCase extends TestCase
     /** @var array<string, int> batas id per tabel saat setUp (cadangan bila tabel kosong) */
     protected array $preexistingMaxIds = [];
 
+    /**
+     * Berkas sementara yang sudah ada sebelum test berjalan.
+     *
+     * Template & ekspor .xlsx memakai `deleteFileAfterSend(true)`, yang HANYA
+     * berjalan ketika respons benar-benar dikirim (`send()`). Pada pengujian
+     * respons tidak dikirim, sehingga berkas menumpuk di `storage/app`.
+     * Snapshot ini dipakai untuk menghapus HANYA berkas yang lahir selama test.
+     *
+     * @var array<string, true>
+     */
+    protected array $tempArtifactsBefore = [];
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->tempArtifactsBefore = $this->snapshotTempArtifacts();
 
         // Pengaturan pemberlakuan kini PER LABORAN. Snapshot seluruh baris supaya
         // perubahan apa pun selama test (mode, status, baris baru) bisa dipulihkan
@@ -99,6 +116,9 @@ abstract class LaboranTestCase extends TestCase
 
     protected function tearDown(): void
     {
+        // Hapus berkas .xlsx sementara yang dibuat selama test (template/ekspor).
+        $this->purgeNewTempArtifacts();
+
         // Pulihkan pengaturan pemberlakuan: kembalikan nilai asli tiap baris dan
         // hapus baris baru yang dibuat selama test.
         try {
@@ -261,6 +281,10 @@ abstract class LaboranTestCase extends TestCase
     /**
      * Salin berkas template hasil controller ke path sementara agar dapat
      * dibaca kembali oleh SimpleXlsxReader tanpa mengganggu respons download.
+     *
+     * CATATAN: berkas hasil `templateExcel()` TIDAK dihapus di sini. Respons
+     * tidak dikirim pada pengujian sehingga `deleteFileAfterSend()` tidak aktif;
+     * penghapusan ditangani sekali di `tearDown()` lewat snapshot artefak.
      */
     protected function templateFilePath(object $controller): string
     {
@@ -268,8 +292,68 @@ abstract class LaboranTestCase extends TestCase
         $path = $resp->getFile()->getPathname();
         $copy = storage_path('app/test_tpl_' . uniqid() . '.xlsx');
         copy($path, $copy);
-        @unlink($path);
 
         return $copy;
+    }
+
+    /**
+     * Data pola nama berkas sementara yang dibuat modul lab (template & ekspor).
+     *
+     * @return array<int, string>
+     */
+    private function tempArtifactPatterns(): array
+    {
+        return [
+            'temp_template_*.xlsx',
+            'test_tpl_*.xlsx',
+            'temp/*.xlsx',
+        ];
+    }
+
+    /**
+     * Peta path (normalisasi) berkas sementara yang ada saat ini.
+     *
+     * @return array<string, true>
+     */
+    private function snapshotTempArtifacts(): array
+    {
+        $map = [];
+
+        foreach ($this->tempArtifactPatterns() as $pattern) {
+            foreach (glob(storage_path('app/' . $pattern)) ?: [] as $file) {
+                $map[str_replace('\\', '/', $file)] = true;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * Hapus berkas sementara yang BARU muncul selama test.
+     *
+     * Hanya berkas di luar snapshot `setUp()` yang dihapus, sehingga artefak
+     * dari proses lain tidak ikut terhapus.
+     */
+    private function purgeNewTempArtifacts(): void
+    {
+        try {
+            $before = $this->tempArtifactsBefore ?: [];
+
+            foreach (glob(storage_path('app/temp/*.xlsx')) ?: [] as $file) {
+                $key = str_replace('\\', '/', $file);
+                if (!isset($before[$key])) {
+                    @unlink($file);
+                }
+            }
+
+            // Hapus berkas test_tpl_* & temp_template_* yang baru (selalu buatan test).
+            foreach (['test_tpl_*.xlsx', 'temp_template_*.xlsx'] as $pattern) {
+                foreach (glob(storage_path('app/' . $pattern)) ?: [] as $file) {
+                    @unlink($file);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Jangan gagalkan test karena masalah berkas sementara.
+        }
     }
 }

@@ -104,6 +104,13 @@ class GuruAktifController extends Controller
                 'alamat_jalan'
             );
 
+        if (Table::exists('gtk_meta')) {
+            $baseQuery->addSelect([
+                DB::raw("(SELECT gelar_depan FROM gtk_meta WHERE gtk_meta.ptk_id = gtk.ptk_id LIMIT 1) as gelar_depan"),
+                DB::raw("(SELECT gelar_belakang FROM gtk_meta WHERE gtk_meta.ptk_id = gtk.ptk_id LIMIT 1) as gelar_belakang"),
+            ]);
+        }
+
         $baseFilterGuru($baseQuery);
 
         if ($q !== '') {
@@ -196,6 +203,12 @@ class GuruAktifController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
         }
 
+        if (Table::exists('gtk_meta')) {
+            $meta = DB::table('gtk_meta')->where('ptk_id', $gtk->ptk_id)->first();
+            $gtk->gelar_depan = $meta->gelar_depan ?? null;
+            $gtk->gelar_belakang = $meta->gelar_belakang ?? null;
+        }
+
         $pembelajaran = collect();
         if (Table::exists('pembelajaran')) {
             $pembelajaran = DB::table('pembelajaran')
@@ -219,6 +232,53 @@ class GuruAktifController extends Controller
             'data' => $gtk,
             'pembelajaran' => $pembelajaran,
             'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
+        ]);
+    }
+
+    /**
+     * Simpan gelar depan/belakang GTK ke tabel lokal gtk_meta.
+     *
+     * Tabel terpisah dari `gtk` supaya nilai tidak hilang saat tarik Dapodik.
+     */
+    public function updateGelar(Request $request, string|int $id)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_guru_aktif', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak berwenang mengubah gelar GTK.'], 403);
+        }
+
+        if (!Table::exists('gtk_meta')) {
+            return response()->json(['status' => 'error', 'message' => 'Tabel gtk_meta belum tersedia, jalankan migrasi.'], 500);
+        }
+
+        $data = $request->validate([
+            'gelar_depan'    => ['nullable', 'string', 'max:50'],
+            'gelar_belakang' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $ptkId = DB::table('gtk')
+            ->where('ptk_id', $id)
+            ->orWhere('nuptk', $id)
+            ->orWhere('nip', $id)
+            ->orWhere('nik', $id)
+            ->value('ptk_id');
+
+        if (!$ptkId) {
+            return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
+        }
+
+        $gelar = app(\App\Services\GtkMetaService::class)->simpan(
+            $ptkId,
+            $data['gelar_depan'] ?? null,
+            $data['gelar_belakang'] ?? null
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Gelar berhasil disimpan.',
+            'data' => $gelar,
         ]);
     }
 }

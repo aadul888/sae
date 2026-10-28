@@ -62,6 +62,24 @@ class LaboranHakAksesTest extends LaboranTestCase
         }
     }
 
+    public function test_permission_key_data_peserta_didik_terdaftar(): void
+    {
+        $key = 'menu_laboran_peserta_didik';
+
+        $this->assertContains($key, $this->dictionaryKeys(), "Permission key {$key} belum terdaftar.");
+        $this->assertContains(
+            $key,
+            DutyPermissionDefaults::forDuty('LABORAN'),
+            "Default LABORAN belum memuat {$key}."
+        );
+
+        // Terdaftar sebagai modul spesifik penugasan (duty-gated), bukan menu global.
+        $this->assertTrue(
+            \App\Models\RolePermission::isDutySpecificPermission($key),
+            "Permission key {$key} harus dianggap modul tugas tambahan."
+        );
+    }
+
     /**
      * @return array<int, string>
      */

@@ -119,6 +119,19 @@ class ProfileController extends Controller
                 'status_kepegawaian' => $gtk->status_kepegawaian_id_str ?? null,
                 'foto_url' => $user->foto_url ?? session('user.foto_url'),
             ];
+
+            // Gelar mandiri (tabel lokal gtk_meta, aman dari tarik Dapodik)
+            $gelarService = app(\App\Services\GtkMetaService::class);
+            $gelar = $gelarService->gelar($user->ptk_id);
+            $profileDetails['gelar_depan'] = $gelar['gelar_depan'];
+            $profileDetails['gelar_belakang'] = $gelar['gelar_belakang'];
+            $profileDetails['can_edit_gelar'] = !empty($user->ptk_id) && $gelarService->available();
+            $profileDetails['nama_lengkap'] = \App\Services\GtkMetaService::namaLengkap(
+                $gtk->nama ?? $user->nama,
+                $gelar['gelar_depan'],
+                $gelar['gelar_belakang']
+            );
+            $profileDetails['nama_dasar'] = $gtk->nama ?? $user->nama;
         } else {
             // Admin
             $profileDetails = [
@@ -131,6 +144,57 @@ class ProfileController extends Controller
         }
 
         return view('dashboard.profile', compact('user', 'profileDetails', 'role', 'sekolah'));
+    }
+
+    /**
+     * Simpan gelar depan/belakang secara mandiri (Guru & Tendik).
+     *
+     * Nilai disimpan di tabel gtk_meta sehingga tidak hilang saat tarik Dapodik.
+     */
+    public function updateGelar(Request $request)
+    {
+        $sessionUser = session('user');
+        if (!$sessionUser) {
+            return redirect()->route('login');
+        }
+
+        $userId = is_array($sessionUser)
+            ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null))
+            : ($sessionUser->pengguna_id ?? null);
+
+        $user = User::where('pengguna_id', $userId)->first();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        if ($user->role !== 'guru' && $user->role !== 'tendik') {
+            return back()->with('error', 'Fitur ubah gelar mandiri ini khusus untuk Guru dan Tenaga Kependidikan.');
+        }
+
+        if (empty($user->ptk_id)) {
+            return back()->with('error', 'Akun Anda belum terhubung ke data GTK Dapodik, gelar tidak dapat disimpan.');
+        }
+
+        $gelarService = app(\App\Services\GtkMetaService::class);
+        if (!$gelarService->available()) {
+            return back()->with('error', 'Tabel penyimpanan gelar belum tersedia, hubungi Administrator.');
+        }
+
+        $validated = $request->validate([
+            'gelar_depan' => ['nullable', 'string', 'max:50'],
+            'gelar_belakang' => ['nullable', 'string', 'max:100'],
+        ], [
+            'gelar_depan.max' => 'Gelar depan maksimal 50 karakter.',
+            'gelar_belakang.max' => 'Gelar belakang maksimal 100 karakter.',
+        ]);
+
+        $gelarService->simpan(
+            $user->ptk_id,
+            $validated['gelar_depan'] ?? null,
+            $validated['gelar_belakang'] ?? null
+        );
+
+        return back()->with('success', 'Gelar berhasil diperbarui.');
     }
 
     /**

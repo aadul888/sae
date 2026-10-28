@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     @if ($orientasi === 'landscape')
         <style>
             @page {
@@ -35,6 +37,21 @@
             class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
+
+        <div class="doc-toolbar-group">
+            <span class="doc-toolbar-label">Laporan:</span>
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'active' : '' }}"
+                title="Versi ringkas: rekap sesi per lokasi">
+                <i class="fas fa-list"></i> Ringkasan
+            </a>
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'active' : '' }}"
+                title="Versi lengkap: rekap + rincian tiap sesi praktik">
+                <i class="fas fa-table-list"></i> Lengkap
+            </a>
+            <span class="doc-toolbar-sep"></span>
+        </div>
 
         <div class="orientation-switch">
             <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
@@ -70,6 +87,7 @@
             <div class="doc-title-main">LAPORAN PENGGUNAAN LOKASI PRAKTIK</div>
             <div class="doc-subtitle">
                 PERIODE: {{ strtoupper($range['label']) }} &bull; FORMAT: A4 {{ strtoupper($orientasi) }}
+                &bull; VERSI: {{ strtoupper($mode ?? 'ringkasan') }}
             </div>
         </div>
 
@@ -312,6 +330,7 @@
         @endif
 
         <!-- 10. Rincian Seluruh Sesi Praktik -->
+        @if (($mode ?? 'ringkasan') === 'lengkap')
         <div class="section-subhead">
             <i class="fas fa-list-check"></i> F. Rincian Seluruh Sesi Praktik
         </div>
@@ -363,33 +382,18 @@
                 @endforelse
             </tbody>
         </table>
-
-        <!-- 11. Tanda Tangan Tiga Pihak -->
-        <div class="signature-container">
-            <div class="sig-box">
-                <div class="sig-title">
-                    Petugas Laboran,
-                </div>
-                <div class="sig-name">{{ $petugas['nama'] ?? '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $petugas['nip'] ?: '—' }}</div>
+        @else
+            <div class="doc-trace">
+                <i class="fas fa-circle-info"></i>
+                Mode <strong>Ringkasan</strong> memuat rekapitulasi penggunaan lokasi praktik
+                (per lokasi, kelas, guru, dan mata pelajaran).
+                Pilih <strong>Lengkap</strong> pada bar alat di atas untuk menampilkan rincian
+                {{ $items->count() }} sesi praktik beserta topik dan statusnya.
             </div>
+        @endif
 
-            <div class="sig-box">
-                <div class="sig-title">
-                    Kepala Laboratorium / Bengkel,
-                </div>
-                <div class="sig-name">{{ $kepalaLab?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaLab?->nip ?: ($kepalaLab?->nuptk ?: '—') }}</div>
-            </div>
-
-            <div class="sig-box">
-                <div class="sig-title">
-                    Mengetahui,<br>Kepala Satuan Pendidikan,
-                </div>
-                <div class="sig-name">{{ $kepalaSekolah?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</div>
-            </div>
-        </div>
+        <!-- 11. Tanda Tangan Empat Pihak -->
+        @include('dashboard.laboran.partials.ttd-cetak')
 
         <!-- 12. Footer Verifikasi Dokumen -->
         <div class="doc-footer">
@@ -399,6 +403,9 @@
                     <strong>Dokumen Laporan Resmi Sistem Aplikasi Edukasi (SAE)</strong><br>
                     Dicetak otomatis pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i:s') }} WIB.
                     Periode laporan: {{ $range['label'] }}.
+                    @if (!empty($logCetak?->nomor_cetak))
+                        <br>Nomor cetak: <strong>{{ $logCetak->nomor_cetak }}</strong>
+                    @endif
                 </div>
             </div>
             <div style="text-align: right;">

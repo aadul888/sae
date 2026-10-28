@@ -1,0 +1,185 @@
+/* ==========================================================================
+   SAE — Dokumen Cetak Modul Laboratorium (A4)
+   --------------------------------------------------------------------------
+   Pelengkap `cetak.css` untuk dokumen Laboran:
+     • Bar dokumen (mode ringkasan/lengkap + orientasi + cetak)
+     • Blok tanda tangan 3–5 pihak (termasuk Kepala Program Keahlian)
+     • Kartu ringkasan supervisi
+     • Riwayat cetak / jejak dokumen
+
+   Aturan: ukuran font WAJIB memakai token `--text-*` dan radius memakai
+   token `--radius-*` (dijaga DesignConsistencyTest).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Bar alat dokumen (di samping tombol cetak)
+   -------------------------------------------------------------------------- */
+.doc-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.doc-toolbar-label {
+    font-size: var(--text-2xs, 0.6875rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.doc-toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: #cbd5e1;
+    margin: 0 2px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Blok tanda tangan (mendukung 3–5 pihak)
+   -------------------------------------------------------------------------- */
+.signature-container {
+    flex-wrap: wrap;
+    gap: 8px 4px;
+}
+
+.signature-container .sig-box {
+    flex: 1 1 0;
+    min-width: 150px;
+    padding: 0 6px;
+}
+
+.signature-container .sig-title {
+    min-height: 30px;
+    font-size: var(--text-xs, 0.75rem);
+    line-height: 1.35;
+    color: #334155;
+}
+
+.signature-container .sig-name {
+    margin-top: 54px;
+    padding-top: 3px;
+    border-top: 1px dotted #94a3b8;
+    word-break: break-word;
+}
+
+.signature-container .sig-nip {
+    font-size: var(--text-2xs, 0.6875rem);
+    line-height: 1.4;
+}
+
+.sig-jurusan {
+    display: inline-block;
+    margin-top: 2px;
+    font-style: italic;
+    color: #64748b;
+}
+
+/* Penanda tangan yang belum ditetapkan → garis titik manual */
+.sig-belum-ditetapkan .sig-nip {
+    color: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+   3. Kartu ringkasan supervisi (dokumen dashboard)
+   -------------------------------------------------------------------------- */
+.doc-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 10px 0 14px 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.doc-summary-card {
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm, 4px);
+    background: #f8fafc;
+    padding: 7px 10px;
+}
+
+.doc-summary-card .lbl {
+    display: block;
+    font-size: var(--text-2xs, 0.6875rem);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.doc-summary-card .val {
+    display: block;
+    margin-top: 1px;
+    font-size: var(--text-lg, 1.125rem);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.doc-summary-card .sub {
+    display: block;
+    margin-top: 1px;
+    font-size: var(--text-2xs, 0.6875rem);
+    color: #64748b;
+}
+
+/* --------------------------------------------------------------------------
+   4. Jejak dokumen (riwayat cetak) pada kaki dokumen
+   -------------------------------------------------------------------------- */
+.doc-trace {
+    margin-top: 10px;
+    padding: 6px 10px;
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--radius-sm, 4px);
+    font-size: var(--text-2xs, 0.6875rem);
+    line-height: 1.5;
+    color: #475569;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.doc-trace strong {
+    color: #0f172a;
+}
+
+/* --------------------------------------------------------------------------
+   5. Tabel rapat untuk mode RINGKASAN (kolom lebih sedikit, teks lebih lega)
+   -------------------------------------------------------------------------- */
+.table-data.is-ringkasan th,
+.table-data.is-ringkasan td {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.table-data tfoot td {
+    background: #f1f5f9;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   6. Aturan cetak
+   -------------------------------------------------------------------------- */
+@media print {
+    .doc-summary-grid,
+    .doc-trace,
+    .signature-container {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .signature-container .sig-box {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    .doc-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .signature-container .sig-box {
+        flex: 1 1 45%;
+    }
+}

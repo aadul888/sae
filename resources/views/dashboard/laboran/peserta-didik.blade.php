@@ -5,6 +5,136 @@
 
 @section('content')
     @include('dashboard.laboran.partials.header-actions')
+
+    @push('styles')
+        <style>
+            /* ---- Toolbar Data Peserta Didik: sejajar & rapi ---- */
+            .pd-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: var(--space-6);
+            }
+
+            .pd-toolbar__filters {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: var(--space-4);
+                min-width: 0;
+            }
+
+            /* Semua kontrol setinggi 38px agar sejajar sempurna */
+            .pd-toolbar__control,
+            .pd-toolbar__search {
+                height: 38px;
+                flex: 0 0 auto;
+            }
+
+            .pd-toolbar__control {
+                width: auto;
+                min-width: 140px;
+                max-width: 220px;
+            }
+
+            .pd-toolbar__btn {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                padding: 0;
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-md, 8px);
+            }
+
+            .pd-toolbar__btn--success {
+                border-color: var(--success, #10b981);
+                color: var(--success, #10b981);
+            }
+
+            .pd-toolbar__actions {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4);
+                flex: 0 0 auto;
+            }
+
+            .pd-toolbar__search {
+                flex: 0 1 280px;
+                min-width: 200px;
+            }
+
+            .pd-toolbar__search input {
+                width: 100%;
+                height: 38px;
+            }
+
+            /* Footer modal: tombol sejajar kanan, konsisten */
+            .pd-modal-footer {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: var(--space-5);
+            }
+
+            .pd-modal-footer .btn {
+                height: 38px;
+                padding: 0 var(--space-8);
+                font-size: var(--text-sm, 0.8125rem);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: var(--space-3);
+            }
+
+            /* ---- Mobile: kontrol tumpuk rapi & tombol tetap sejajar ---- */
+            @media (max-width: 768px) {
+                .pd-toolbar {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: var(--space-5);
+                }
+
+                .pd-toolbar__filters {
+                    width: 100%;
+                    gap: var(--space-3);
+                }
+
+                /* Dua kolom di mobile; global dashboard.css sudah mengatur
+                   select.toolbar-filter-select jadi 1fr 1fr — jangan ditimpa. */
+                .pd-toolbar__filters .pd-toolbar__control {
+                    width: auto;
+                    max-width: 100%;
+                }
+
+                /* Baris tombol aksi rata kanan di mobile */
+                .pd-toolbar__actions {
+                    margin-left: auto;
+                }
+
+                .pd-toolbar__search {
+                    flex: 1 1 100%;
+                    width: 100%;
+                    min-width: 0;
+                }
+
+                .pd-modal-footer {
+                    flex-direction: row;
+                    justify-content: stretch;
+                }
+
+                .pd-modal-footer .btn {
+                    flex: 1 1 0;
+                    padding: 0 var(--space-5);
+                }
+            }
+        </style>
+    @endpush
+
     <div class="dash-content-inner">
         {{-- 1. Banner Header --}}
         <div class="dash-banner"
@@ -26,11 +156,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
-                <span class="badge badge-{{ $scopeBadge['tone'] }}"
-                    style="font-size: var(--text-2xs); padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;"
-                    title="Cakupan data yang dapat Anda akses">
-                    <i class="fas {{ $scopeBadge['icon'] }}"></i> {{ $scopeBadge['label'] }}
-                </span>
+                <a href="{{ route('dashboard.laboran.peserta-didik.cetak', request()->query()) }}" class="btn btn-outline"
+                    title="Cetak Data Peserta Didik Jurusan (A4)" aria-label="Cetak Data Peserta Didik Jurusan">
+                    <i class="fas fa-print"></i>
+                </a>
                 <button type="button" class="btn btn-outline" id="btnOpenExportPd"
                     title="Ekspor Data Peserta Didik ke Excel (.xlsx)"
                     aria-label="Ekspor Data Peserta Didik ke Excel"
@@ -146,9 +275,8 @@
         {{-- 4. Datatable Terpadu --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">
             <div class="datatable-toolbar">
-                <div
-                    style="display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: space-between; align-items: center;">
-                    <div style="display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center;">
+                <div class="pd-toolbar">
+                    <div class="pd-toolbar__filters">
                         <div class="toolbar-entries">
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
@@ -160,7 +288,7 @@
                             <span>entri</span>
                         </div>
 
-                        <select name="rombel" id="filterRombel" class="toolbar-filter-select" style="height: 38px;"
+                        <select name="rombel" id="filterRombel" class="toolbar-filter-select pd-toolbar__control"
                             title="Filter kelas / rombel">
                             <option value="">Semua Kelas</option>
                             @foreach ($filterRombel as $r)
@@ -169,30 +297,31 @@
                             @endforeach
                         </select>
 
-                        <select name="gender" id="filterGender" class="toolbar-filter-select"
-                            style="height: 38px; min-width: 130px;" title="Filter jenis kelamin">
+                        <select name="gender" id="filterGender" class="toolbar-filter-select pd-toolbar__control"
+                            title="Filter jenis kelamin">
                             <option value="">Semua Gender</option>
                             <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                             <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
                         </select>
 
-                        @if ($q || $rombel || $gender)
-                            <a href="{{ route('dashboard.laboran.peserta-didik.index', ['tab' => $tab]) }}"
-                                class="btn btn-outline btn-reset-filter"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);"
-                                title="Reset filter" data-live-reset>
-                                <i class="fas fa-undo"></i>
-                            </a>
-                        @endif
+                        <div class="pd-toolbar__actions">
+                            @if ($q || $rombel || $gender)
+                                <a href="{{ route('dashboard.laboran.peserta-didik.index', ['tab' => $tab]) }}"
+                                    class="btn btn-outline pd-toolbar__btn" title="Reset filter"
+                                    aria-label="Reset filter" data-live-reset>
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            @endif
 
-                        <button type="button" class="btn btn-outline" id="btnOpenExportPdToolbar"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); border-color: var(--success, #10b981); color: var(--success, #10b981);"
-                            title="Ekspor Data ke Excel (.xlsx)">
-                            <i class="fas fa-file-excel"></i>
-                        </button>
+                            <button type="button" class="btn btn-outline pd-toolbar__btn pd-toolbar__btn--success"
+                                id="btnOpenExportPdToolbar" title="Ekspor Data ke Excel (.xlsx)"
+                                aria-label="Ekspor Data ke Excel">
+                                <i class="fas fa-file-excel"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="live-search-wrap" style="height: 38px;">
+                    <div class="live-search-wrap pd-toolbar__search">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="liveSearch" name="q"
                             placeholder="Cari nama / NISN / NIPD / NIK..." value="{{ $q }}" autocomplete="off">
@@ -339,10 +468,11 @@
                                 </td>
                                 <td data-label="Aksi"
                                     style="padding: var(--space-6) var(--space-7); text-align: right;">
-                                    <div class="table-actions" style="justify-content: flex-end;">
+                                    <div class="table-actions" style="justify-content: flex-end; gap: var(--space-4);">
                                         <button type="button" class="btn-icon btn-detail-pd"
                                             data-id="{{ $rowId }}" data-tab="{{ $tab }}"
-                                            data-nama="{{ $rowNama }}" title="Lihat Detail Biodata Peserta Didik">
+                                            data-nama="{{ $rowNama }}" title="Lihat Detail Biodata Peserta Didik"
+                                            aria-label="Lihat Detail Biodata Peserta Didik">
                                             <i class="fas fa-id-card"></i>
                                         </button>
                                     </div>
@@ -539,10 +669,8 @@
                 </div>
             </div>
 
-            <div
-                style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                <button type="button" class="btn btn-outline" id="btnCloseBiodataPdFooter"
-                    style="padding: 8px 18px; font-size: var(--text-sm);">Tutup</button>
+            <div class="pd-modal-footer" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline" id="btnCloseBiodataPdFooter">Tutup</button>
             </div>
         </div>
     </div>
@@ -623,12 +751,9 @@
                     <input type="hidden" name="q" value="{{ $q }}">
                 @endif
 
-                <div
-                    style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                    <button type="button" class="btn btn-outline btn-close-export-pd"
-                        style="padding: 8px 18px; font-size: var(--text-sm);">Batal</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 22px; font-size: var(--text-base); display: inline-flex; align-items: center; gap: 6px;">
+                <div class="pd-modal-footer" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline btn-close-export-pd">Batal</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-download"></i> Unduh Excel
                     </button>
                 </div>

@@ -23,6 +23,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
+                <a href="{{ route('dashboard.laboran.perawatan.cetak', request()->query()) }}" class="btn btn-outline"
+                    title="Cetak Kartu Perawatan &amp; Penataan K3 (A4)" aria-label="Cetak Kartu Perawatan dan Penataan K3">
+                    <i class="fas fa-print"></i>
+                </a>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenPerawatan"
                         title="Tambah Catatan Perawatan" aria-label="Tambah Catatan Perawatan">

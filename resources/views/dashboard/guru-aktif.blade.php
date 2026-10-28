@@ -172,7 +172,8 @@
                 </thead>
                 <tbody>
                     @forelse ($list as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                        <tr data-ptk-id="{{ $item->ptk_id }}"
+                            style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Nama">
                                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -181,7 +182,9 @@
                                         <i class="fas fa-chalkboard-user"></i>
                                     </div>
                                     <div>
-                                        <div style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</div>
+                                        <div class="gtk-nama-lengkap" style="font-weight: 700; color: var(--text-color);">
+                                            {{ trim(($item->gelar_depan ?? '') . ' ' . $item->nama . ($item->gelar_belakang ? ', ' . $item->gelar_belakang : '')) }}
+                                        </div>
                                         @if (!empty($item->nik))
                                             <div
                                                 style="font-size: var(--text-xs, 0.75rem); font-family: monospace; color: var(--text-muted); margin-top: 1px;">
@@ -308,6 +311,27 @@
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 8px 0; color: var(--text-muted); width: 140px;">Nama Lengkap</td>
                         <td id="gtkJkNama" style="font-weight: 700;">-</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 8px 0; color: var(--text-muted); vertical-align: top;">Gelar</td>
+                        <td style="padding: 6px 0;">
+                            <div class="gtk-gelar-form" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                <input type="text" id="gtkGelarDepan" maxlength="50" placeholder="Gelar depan"
+                                    autocomplete="off"
+                                    style="flex: 1 1 100px; min-width: 90px; padding: 6px 9px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--surface-2, transparent); color: var(--text-color); font-size: var(--text-sm, 0.8125rem);">
+                                <input type="text" id="gtkGelarBelakang" maxlength="100" placeholder="Gelar belakang"
+                                    autocomplete="off"
+                                    style="flex: 2 1 150px; min-width: 120px; padding: 6px 9px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--surface-2, transparent); color: var(--text-color); font-size: var(--text-sm, 0.8125rem);">
+                                <button type="button" class="btn btn-primary" id="gtkGelarSave"
+                                    onclick="saveGelarGuru()"
+                                    style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); white-space: nowrap;">
+                                    <i class="fas fa-floppy-disk me-1"></i> Simpan
+                                </button>
+                            </div>
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
+                                Tersimpan lokal, tidak terhapus saat tarik Dapodik.
+                            </div>
+                        </td>
                     </tr>
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 8px 0; color: var(--text-muted);">NUPTK / NIP</td>

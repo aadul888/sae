@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Laboran;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Http\Controllers\Concerns\DokumenCetakLaboran;
 use App\Models\RolePermission;
 use App\Services\LaboranInventarisImportService;
 use App\Support\LaboranScope;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 class LaboranBhpController extends Controller
 {
     use ChecksAuthenticatedSession;
+    use DokumenCetakLaboran;
 
     public const KONDISI = [
         'baik'         => 'Baik',
@@ -454,24 +456,19 @@ class LaboranBhpController extends Controller
         $sekolah = \App\Models\Sekolah::first();
         $sekolahMeta = \App\Models\SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })->first();
+        // Pejabat penanda tangan terpusat. Query Kepala Lab lama memakai
+        // `ptk_tugas_tambahan.jabatan_ptk_id_str` (kolom tidak ada) sehingga
+        // halaman cetak BHP gagal dengan SQLSTATE 42S22.
+        $pejabat       = $this->dokumenService()->pejabat($context);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $kaprog        = $pejabat['kaprog'];
+        $petugas       = $pejabat['petugas'];
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('gtk as g', 'ptt.ptk_id', '=', 'g.ptk_id')
-            ->where('ptt.jabatan_ptk_id_str', 'like', '%Laboratorium%')
-            ->select('g.nama', 'g.nip')
-            ->first();
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+        $mode      = $this->modeCetak($request, 'ringkasan');
 
-        $petugas = [
-            'nama' => $context['nama'] ?? ($user['nama'] ?? 'Laboran'),
-            'nip'  => $context['nip'] ?? ($user['nip'] ?? '-'),
-        ];
-
-        return view('dashboard.laboran.bhp-cetak', [
+        return view('dashboard.laboran.bhp-cetak', array_merge([
             'items'          => $items,
             'search'         => $search,
             'labFilter'      => $labFilter,
@@ -482,9 +479,23 @@ class LaboranBhpController extends Controller
             'sekolahMeta'    => $sekolahMeta,
             'kepalaSekolah'  => $kepalaSekolah,
             'kepalaLab'      => $kepalaLab,
+            'kaprog'         => $kaprog,
             'petugas'        => $petugas,
+            'orientasi'      => $orientasi,
+            'mode'           => $mode,
             'context'        => $context,
             'scopeBadge'     => LaboranScope::badge($context),
-        ]);
+        ], $this->dokumenCetak('bhp', $context, [
+            'mode'         => $mode,
+            'orientasi'    => $orientasi,
+            'jumlah_baris' => $items->count(),
+            'filter'       => [
+                'q'         => $search,
+                'lab'       => $labFilter,
+                'kondisi'   => $kondisiFilter,
+                'exp'       => $expFilter,
+                'sumber'    => $sumberFilter,
+            ],
+        ])));
     }
 }

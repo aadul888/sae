@@ -49,7 +49,7 @@ class LaboranArsipController extends LaboranBaseController
         if ($res) return $res;
 
         $tab          = (string) $request->query('tab', 'arsip');
-        if (!in_array($tab, ['arsip', 'indeks'], true)) {
+        if (!in_array($tab, ['arsip', 'indeks', 'riwayat'], true)) {
             $tab = 'arsip';
         }
 
@@ -67,6 +67,29 @@ class LaboranArsipController extends LaboranBaseController
 
         $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
+
+        if ($tab === 'riwayat') {
+            // Riwayat cetak: jejak dokumen yang pernah dicetak dari modul ini.
+            $riwayat = $this->dokumenService()->riwayat($context, 100);
+
+            $list = DB::table('laboran_arsip')->whereRaw('1=0')->paginate($perPage);
+
+            return view('dashboard.laboran.arsip', array_merge(
+                compact('tab', 'list', 'search', 'kategoriFilter', 'statusFilter', 'perPage',
+                    'statTotal', 'statAktif', 'statInaktif', 'statKategori', 'riwayat'),
+                $this->abilities(),
+                [
+                    'context'        => $context,
+                    'scopeBadge'     => LaboranScope::badge($context),
+                    'kategoriList'   => self::KATEGORI,
+                    'statusList'     => self::STATUS,
+                    'aksesList'      => self::AKSES,
+                    'jurusanOptions' => LaboranScope::jurusanOptions($context),
+                    'sumberOptions'  => $this->sumberOptions($context),
+                    'indeks'         => collect(),
+                ]
+            ));
+        }
 
         if ($tab === 'indeks') {
             // Indeks: rekap jumlah arsip per kategori (peta ordner)
@@ -90,6 +113,7 @@ class LaboranArsipController extends LaboranBaseController
                     'aksesList'      => self::AKSES,
                     'jurusanOptions' => LaboranScope::jurusanOptions($context),
                     'sumberOptions'  => $this->sumberOptions($context),
+                    'riwayat'        => collect(),
                 ]
             ));
         }
@@ -128,7 +152,89 @@ class LaboranArsipController extends LaboranBaseController
                 'jurusanOptions' => LaboranScope::jurusanOptions($context),
                 'sumberOptions'  => $this->sumberOptions($context),
                 'indeks'         => collect(),
+                'riwayat'        => collect(),
             ]
+        ));
+    }
+
+    /**
+     * Dokumen cetak A4 Daftar Arsip Dokumen.
+     *
+     * Mode `ringkasan` → peta ordner (rekap jumlah arsip per kategori).
+     * Mode `lengkap`   → peta ordner + daftar rinci arsip + riwayat cetak
+     *                    terakhir sehingga jejak penggunaan dokumen terlihat.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
+        $search         = trim((string) $request->query('q', ''));
+        $kategoriFilter = trim((string) $request->query('kategori', ''));
+        $statusFilter   = trim((string) $request->query('status', ''));
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_arsip as a')
+            ->leftJoin('jurusan_meta as jm', 'a.jurusan_id', '=', 'jm.jurusan_id')
+            ->select('a.*', 'jm.nama_jurusan');
+
+        LaboranScope::apply($query, 'a.jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('a.nama_dokumen', 'like', "%{$search}%")
+                  ->orWhere('a.kode_arsip', 'like', "%{$search}%")
+                  ->orWhere('a.nomor_dokumen', 'like', "%{$search}%")
+                  ->orWhere('a.deskripsi', 'like', "%{$search}%")
+                  ->orWhere('a.lokasi_fisik', 'like', "%{$search}%");
+            });
+        }
+        if ($kategoriFilter !== '') $query->where('a.kategori', $kategoriFilter);
+        if ($statusFilter !== '')   $query->where('a.status', $statusFilter);
+
+        $items = $query->orderByDesc('a.tanggal_dokumen')->orderByDesc('a.id')->limit(500)->get();
+
+        // Peta ordner: rekap jumlah arsip per kategori.
+        $kategoriLabel = self::KATEGORI;
+        $peta = $items->groupBy('kategori')->map(function ($g, $kategori) use ($kategoriLabel) {
+            return (object) [
+                'kategori' => $kategoriLabel[$kategori] ?? ucfirst((string) $kategori),
+                'jumlah'   => $g->count(),
+                'aktif'    => $g->where('status', 'aktif')->count(),
+                'terakhir' => $g->max('tanggal_dokumen'),
+            ];
+        })->sortByDesc('jumlah')->values();
+
+        $riwayat = $mode === 'lengkap' ? $this->dokumenService()->riwayat($context, 40) : collect();
+
+        $filterLabel = [];
+        if ($kategoriFilter !== '') $filterLabel[] = 'Kategori: ' . (self::KATEGORI[$kategoriFilter] ?? $kategoriFilter);
+        if ($statusFilter !== '')   $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($search !== '')         $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.arsip-cetak', array_merge(
+            [
+                'items'         => $items,
+                'peta'          => $peta,
+                'riwayat'       => $riwayat,
+                'filterLabel'   => $filterLabel,
+                'kategoriLabel' => self::KATEGORI,
+                'statusLabel'   => self::STATUS,
+                'aksesLabel'    => self::AKSES,
+                'backUrl'       => route('dashboard.laboran.arsip.index', $request->only(['tab', 'q', 'kategori', 'status'])),
+            ],
+            $this->dokumenCetak('arsip', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'        => $search,
+                    'kategori' => $kategoriFilter,
+                    'status'   => $statusFilter,
+                ],
+            ])
         ));
     }
 

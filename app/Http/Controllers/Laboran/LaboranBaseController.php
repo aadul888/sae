@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Laboran;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Http\Controllers\Concerns\DokumenCetakLaboran;
 use App\Models\RolePermission;
 use App\Support\LaboranScope;
 use Illuminate\Http\Request;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\DB;
  *  - Konteks cakupan jurusan (LaboranScope).
  *  - Helper respons AJAX/redirect yang seragam.
  *  - Penomoran dokumen otomatis.
+ *  - Data & pencatatan DOKUMEN CETAK A4 (DokumenCetakLaboran).
  */
 abstract class LaboranBaseController extends Controller
 {
     use ChecksAuthenticatedSession;
+    use DokumenCetakLaboran;
 
     /** Key permission utama modul laboran. */
     protected string $permissionKey = 'menu_laboran';

@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     <style>
         @page {
             size: A4 landscape;
@@ -104,6 +106,19 @@
         <button onclick="window.close()" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Tutup
         </button>
+        <div class="doc-toolbar-group">
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'active' : '' }}"
+                title="Versi ringkas: rekap bahan per ruang/lokasi">
+                <i class="fas fa-list"></i> Ringkasan
+            </a>
+            <a href="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
+                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'active' : '' }}"
+                title="Versi lengkap: rincian seluruh jenis bahan">
+                <i class="fas fa-table-list"></i> Lengkap
+            </a>
+            <span class="doc-toolbar-sep"></span>
+        </div>
         <button onclick="window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Laporan (Print / PDF)
         </button>
@@ -129,10 +144,12 @@
             <div style="text-align: right;">
                 Ruang / Lab: {{ !empty($labFilter) ? $labFilter : 'Semua Ruang' }}<br>
                 Status Kedaluwarsa: {{ !empty($expFilter) ? ($expFilter === 'segera' ? 'Mendekati Exp (<= 90 hari)' : 'Sudah Kedaluwarsa') : 'Semua Status' }}<br>
-                Total: <strong>{{ count($items) }}</strong> jenis bahan
+                Total: <strong>{{ count($items) }}</strong> jenis bahan &bull;
+                VERSI: <strong>{{ strtoupper($mode ?? 'ringkasan') }}</strong>
             </div>
         </div>
 
+        @if (($mode ?? 'ringkasan') === 'lengkap')
         <table class="tbl-bhp">
             <thead>
                 <tr>
@@ -182,31 +199,70 @@
                 @endforelse
             </tbody>
         </table>
+        @else
+            @php
+                $rekapBhp = collect($items)->groupBy(fn ($it) => $it->ruang_lab_nama ?: '—')
+                    ->map(function ($g, $ruang) {
+                        return (object) [
+                            'ruang'    => $ruang,
+                            'jenis'    => $g->count(),
+                            'stok'     => $g->sum(fn ($x) => (float) $x->stok_total),
+                            'tersedia' => $g->sum(fn ($x) => (float) $x->stok_tersedia),
+                            'menipis'  => $g->filter(fn ($x) => (float) $x->stok_tersedia <= 2)->count(),
+                        ];
+                    })->sortByDesc('jenis')->values();
+            @endphp
+
+            <table class="tbl-bhp is-ringkasan">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">No</th>
+                        <th>Ruang / Lokasi Penyimpanan</th>
+                        <th style="width: 12%;">Jenis Bahan</th>
+                        <th style="width: 12%;">Stok Total</th>
+                        <th style="width: 12%;">Stok Tersedia</th>
+                        <th style="width: 13%;">Perlu Pengadaan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($rekapBhp as $i => $rb)
+                        <tr>
+                            <td class="center">{{ $i + 1 }}</td>
+                            <td><strong>{{ $rb->ruang }}</strong></td>
+                            <td class="center font-bold">{{ $rb->jenis }}</td>
+                            <td class="right font-bold">{{ (float) $rb->stok }}</td>
+                            <td class="right font-bold">{{ (float) $rb->tersedia }}</td>
+                            <td class="center">{{ $rb->menipis }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="center" style="padding: 24px; color: #64748b;">
+                                Tidak ada data bahan habis pakai yang sesuai filter.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="right">Jumlah</td>
+                        <td class="center">{{ count($items) }}</td>
+                        <td class="right">{{ (float) collect($items)->sum(fn ($x) => (float) $x->stok_total) }}</td>
+                        <td class="right">{{ (float) collect($items)->sum(fn ($x) => (float) $x->stok_tersedia) }}</td>
+                        <td class="center">{{ collect($items)->filter(fn ($x) => (float) $x->stok_tersedia <= 2)->count() }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="doc-trace">
+                <i class="fas fa-circle-info"></i>
+                Mode <strong>Ringkasan</strong> menampilkan rekapitulasi BHP per ruang penyimpanan.
+                Pilih <strong>Lengkap</strong> pada bar alat di atas untuk rincian
+                {{ count($items) }} jenis bahan beserta tanggal kedaluwarsa.
+            </div>
+        @endif
 
         {{-- Tanda Tangan --}}
-        <div class="sign">
-            <div class="box">
-                Mengetahui,<br>
-                Kepala Sekolah
-                <div class="space"></div>
-                <div class="name">{{ $kepalaSekolah->nama ?? '........................................' }}</div>
-                <div>NIP. {{ $kepalaSekolah->nip ?? '-' }}</div>
-            </div>
-            <div class="box">
-                Menyetujui,<br>
-                Kepala Laboratorium / Bengkel
-                <div class="space"></div>
-                <div class="name">{{ $kepalaLab->nama ?? '........................................' }}</div>
-                <div>NIP. {{ $kepalaLab->nip ?? '-' }}</div>
-            </div>
-            <div class="box">
-                {{ $sekolahMeta->kabupaten ?? 'Tempat' }}, {{ now()->translatedFormat('d F Y') }}<br>
-                Laboran / Petugas
-                <div class="space"></div>
-                <div class="name">{{ $petugas['nama'] }}</div>
-                <div>NIP. {{ $petugas['nip'] }}</div>
-            </div>
-        </div>
+        @include('dashboard.laboran.partials.ttd-cetak')
     </div>
 </body>
 

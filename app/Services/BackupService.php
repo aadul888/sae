@@ -296,7 +296,17 @@ class BackupService
             ]);
 
             $no = 1;
-            DB::table('gtk')->orderBy('nama')->chunk(200, function ($rows) use ($fp, &$no) {
+            $hasGtkMeta = Table::exists('gtk_meta');
+            $gtkQuery = DB::table('gtk');
+
+            if ($hasGtkMeta) {
+                $gtkQuery->addSelect([
+                    DB::raw("(SELECT gelar_depan FROM gtk_meta WHERE gtk_meta.ptk_id = gtk.ptk_id LIMIT 1) as gelar_depan"),
+                    DB::raw("(SELECT gelar_belakang FROM gtk_meta WHERE gtk_meta.ptk_id = gtk.ptk_id LIMIT 1) as gelar_belakang"),
+                ]);
+            }
+
+            $gtkQuery->orderBy('nama')->chunk(200, function ($rows) use ($fp, &$no) {
                 foreach ($rows as $r) {
                     fputcsv($fp, [
                         $no++,

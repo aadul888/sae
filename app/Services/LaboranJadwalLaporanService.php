@@ -24,15 +24,23 @@ class LaboranJadwalLaporanService
     /** Service inti penjadwalan — dipakai untuk `resolveDateRange()`. */
     protected LaboranJadwalService $jadwal;
 
-    public function __construct(LaboranJadwalService $jadwal)
+    /** Service dokumen cetak (pejabat & pencatatan cetak). */
+    protected LaboranDokumenService $dokumen;
+
+    public function __construct(LaboranJadwalService $jadwal, ?LaboranDokumenService $dokumen = null)
     {
-        $this->jadwal = $jadwal;
+        $this->jadwal  = $jadwal;
+        $this->dokumen = $dokumen ?: app(LaboranDokumenService::class);
     }
 
     /**
      * Susun seluruh data laporan penggunaan lokasi.
+     *
+     * @param  bool  $catat  Catat dokumen ke riwayat cetak & arsip digital.
+     *                       Hanya aktif saat halaman CETAK dirender, bukan
+     *                       saat halaman pratinjau (`laporan.index`).
      */
-    public function buildLaporanData(Request $request): array
+    public function buildLaporanData(Request $request, bool $catat = false): array
     {
         $context = LaboranScope::resolve();
 
@@ -214,26 +222,22 @@ class LaboranJadwalLaporanService
         $sekolah     = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
 
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($q) {
-                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
-            })
-            ->first();
+        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
+        $pejabat       = $this->dokumen->pejabat($context);
+        $kepalaSekolah = $pejabat['kepalaSekolah'];
+        $kepalaLab     = $pejabat['kepalaLab'];
+        $kaprog        = $pejabat['kaprog'];
 
-        $kepalaLab = DB::table('ptk_tugas_tambahan as ptt')
-            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-            ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-            ->where('rtt.kode', 'KEPALA_LAB')
-            ->where('ptt.is_active', true)
-            ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-            ->first();
-
-        $petugas = $this->resolvePetugasLaboran();
+        $petugas = $pejabat['petugas'];
 
         $orientasi = strtolower((string) $request->query('orientasi', 'landscape'));
         if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
             $orientasi = 'landscape';
+        }
+
+        $mode = strtolower((string) $request->query('mode', 'lengkap'));
+        if (!in_array($mode, LaboranDokumenService::MODE, true)) {
+            $mode = 'lengkap';
         }
 
         return [
@@ -273,8 +277,24 @@ class LaboranJadwalLaporanService
             'sekolahMeta'       => $sekolahMeta,
             'kepalaSekolah'     => $kepalaSekolah,
             'kepalaLab'         => $kepalaLab,
+            'kaprog'            => $kaprog,
             'petugas'           => $petugas,
             'orientasi'         => $orientasi,
+            'mode'              => $mode,
+            'logCetak'          => $catat ? $this->dokumen->catatCetak('laporan-penggunaan', $context, [
+                'mode'           => $mode,
+                'orientasi'      => $orientasi,
+                'periode_label'  => $range['label'] ?? null,
+                'periode_dari'   => $range['start'] ?? null,
+                'periode_sampai' => $range['end'] ?? null,
+                'jumlah_baris'   => $totalSesi,
+                'filter'         => [
+                    'periode' => $periodeTipe,
+                    'jenis'   => $jenisFilter,
+                    'lab'     => $lokasiFilter,
+                    'ptk_id'  => $guruFilter,
+                ],
+            ]) : null,
         ];
     }
 
@@ -388,6 +408,15 @@ class LaboranJadwalLaporanService
             ->orderBy('nama')
             ->get(['ptk_id', 'nama', 'nip']);
 
+        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
+        $pejabat = $this->dokumen->pejabat($context);
+        $petugas = $pejabat['petugas'];
+
+        $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
+        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
+            $orientasi = 'portrait';
+        }
+
         return [
             'mode'        => $mode,
             'label'       => $label,
@@ -408,9 +437,27 @@ class LaboranJadwalLaporanService
             'lokasiUnik'  => $items->pluck('ruang_lab_nama')->unique()->count(),
             'daftarGuru'  => $daftarGuru,
             'sekolah'     => Sekolah::first(),
-            'petugas'     => $this->resolvePetugasLaboran(),
+            'sekolahMeta' => SekolahMeta::first(),
+            'kepalaSekolah' => $pejabat['kepalaSekolah'],
+            'kepalaLab'     => $pejabat['kepalaLab'],
+            'kaprog'        => $pejabat['kaprog'],
+            'orientasi'   => $orientasi,
+            'petugas'     => $petugas,
             'statusLabels' => LaboranJadwalService::STATUS_LIST,
             'jenisLabels'  => LaboranJadwalService::JENIS_LOKASI,
+            'logCetak'     => $this->dokumen->catatCetak('jadwal-per-guru', $context, [
+                'mode'           => 'lengkap',
+                'orientasi'      => $orientasi,
+                'judul'          => 'Jadwal Praktik per Guru — ' . $label,
+                'periode_label'  => $label,
+                'periode_dari'   => $start->toDateString(),
+                'periode_sampai' => $end->toDateString(),
+                'jumlah_baris'   => $items->count(),
+                'filter'         => [
+                    'mode'   => $mode,
+                    'ptk_id' => $ptkId,
+                ],
+            ]),
         ];
     }
 

@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     @if ($orientasi === 'landscape')
         <style>
             @page {
@@ -202,31 +204,19 @@
         @endif
 
         <!-- Tanda Tangan -->
-        <div class="signature-container">
-            <div class="sig-box">
-                <div class="sig-title">
-                    Yang Melaporkan,<br>Petugas Laboran
-                </div>
-                <div class="sig-name">{{ $ba->pelapor_nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: —</div>
-            </div>
-
-            <div class="sig-box">
-                <div class="sig-title">
-                    Mengetahui,<br>Kepala Laboratorium / Bengkel
-                </div>
-                <div class="sig-name">{{ $kepalaLab?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaLab?->nip ?: ($kepalaLab?->nuptk ?: '—') }}</div>
-            </div>
-
-            <div class="sig-box">
-                <div class="sig-title">
-                    Menyetujui,<br>Kepala Satuan Pendidikan
-                </div>
-                <div class="sig-name">{{ $kepalaSekolah?->nama ?: '...................................' }}</div>
-                <div class="sig-nip">NIP: {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</div>
-            </div>
-        </div>
+        @php
+            $sigTitles = [
+                'Yang Melaporkan,<br>Petugas Laboran,',
+                'Mengetahui,<br>Kepala Laboratorium / Bengkel,',
+                'Mengetahui,<br>Kepala Program Keahlian,',
+                'Menyetujui,<br>Kepala Satuan Pendidikan,',
+            ];
+            // Pelapor pada berita acara adalah pihak yang menandatangani kolom pertama.
+            if (!empty($ba->pelapor_nama)) {
+                $petugas = array_merge($petugas ?? [], ['nama' => $ba->pelapor_nama]);
+            }
+        @endphp
+        @include('dashboard.laboran.partials.ttd-cetak')
 
         <!-- Footer -->
         <div class="doc-footer">
@@ -235,6 +225,9 @@
                 <div>
                     <strong>Dokumen Berita Acara Resmi Sistem Aplikasi Edukasi (SAE)</strong><br>
                     Dicetak otomatis pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i:s') }} WIB.
+                    @if (!empty($logCetak?->nomor_cetak))
+                        <br>Nomor cetak: <strong>{{ $logCetak->nomor_cetak }}</strong>
+                    @endif
                 </div>
             </div>
             <div style="text-align: right;">

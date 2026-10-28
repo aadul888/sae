@@ -128,6 +128,120 @@ class LaboranPengadaanController extends LaboranBaseController
         ));
     }
 
+    // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Daftar Usulan Pengadaan Alat &amp; Bahan.
+     *
+     * Mode `ringkasan` → rekap usulan per status/urgensi + daftar usulan.
+     * Mode `lengkap`   → rekap + rincian seluruh item pada tiap usulan.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $search        = trim((string) $request->query('q', ''));
+        $statusFilter  = trim((string) $request->query('status', ''));
+        $urgensiFilter = trim((string) $request->query('urgensi', ''));
+        $jenisFilter   = trim((string) $request->query('jenis', ''));
+        $sumberFilter  = trim((string) $request->query('sumber_dana', ''));
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_usulan_pengadaan')->orderByRaw("CASE status
+                WHEN 'diajukan' THEN 1
+                WHEN 'diverifikasi' THEN 2
+                WHEN 'disetujui' THEN 3
+                WHEN 'direalisasi' THEN 4
+                WHEN 'ditolak' THEN 5
+                ELSE 6 END ASC")
+            ->orderByDesc('tanggal_usulan')
+            ->orderByDesc('id');
+
+        LaboranScope::apply($query, 'jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($qb) use ($search) {
+                $qb->where('nomor_usulan', 'like', "%{$search}%")
+                   ->orWhere('pemohon_nama', 'like', "%{$search}%")
+                   ->orWhere('justifikasi', 'like', "%{$search}%");
+            });
+        }
+        if ($statusFilter !== '')  $query->where('status', $statusFilter);
+        if ($urgensiFilter !== '') $query->where('urgensi', $urgensiFilter);
+        if ($jenisFilter !== '' && array_key_exists($jenisFilter, self::JENIS_PENGADAAN)) {
+            $query->where('jenis', $jenisFilter);
+        }
+        if ($sumberFilter !== '') {
+            $query->where('sumber_dana', $sumberFilter);
+        }
+
+        $items = $query->get();
+
+        $rekapStatus = $items->groupBy('status')->map(function ($g, $s) {
+            return (object) [
+                'status' => $s,
+                'label'  => self::STATUS[$s] ?? ucfirst((string) $s),
+                'jumlah' => $g->count(),
+                'biaya'  => (float) $g->sum('total_estimasi_biaya'),
+            ];
+        })->sortByDesc('jumlah')->values();
+
+        $rincian = collect();
+        if ($mode === 'lengkap' && $items->isNotEmpty()) {
+            $rincian = DB::table('laboran_usulan_pengadaan_item as i')
+                ->join('laboran_usulan_pengadaan as u', 'i.usulan_id', '=', 'u.id')
+                ->whereIn('i.usulan_id', $items->pluck('id')->all())
+                ->orderBy('u.tanggal_usulan')
+                ->orderBy('i.urutan')
+                ->orderBy('i.id')
+                ->get([
+                    'u.nomor_usulan', 'u.tanggal_usulan', 'u.sumber_dana',
+                    'i.nama_item', 'i.jenis', 'i.spesifikasi', 'i.jumlah', 'i.satuan',
+                    'i.harga_satuan', 'i.subtotal', 'i.prioritas',
+                ]);
+        }
+
+        $filterLabel = [];
+        if ($statusFilter !== '')  $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($urgensiFilter !== '') $filterLabel[] = 'Urgensi: ' . (self::URGENSI[$urgensiFilter] ?? $urgensiFilter);
+        if ($jenisFilter !== '')   $filterLabel[] = 'Jenis: ' . (self::JENIS_PENGADAAN[$jenisFilter] ?? $jenisFilter);
+        if ($sumberFilter !== '')  $filterLabel[] = 'Sumber Dana: ' . $sumberFilter;
+        if ($search !== '')        $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.pengadaan-cetak', array_merge(
+            [
+                'items'          => $items,
+                'rekapStatus'    => $rekapStatus,
+                'rincian'        => $rincian,
+                'filterLabel'    => $filterLabel,
+                'statusList'     => self::STATUS,
+                'urgensiList'    => self::URGENSI,
+                'jenisList'      => self::JENIS_PENGADAAN,
+                'sumberDanaList' => self::SUMBER_DANA,
+                'backUrl'        => route('dashboard.laboran.pengadaan.index'),
+            ],
+            $this->dokumenCetak('pengadaan', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'           => $search,
+                    'status'      => $statusFilter,
+                    'urgensi'     => $urgensiFilter,
+                    'jenis'       => $jenisFilter,
+                    'sumber_dana' => $sumberFilter,
+                ],
+            ])
+        ));
+    }
+
     public function show(Request $request, $id)
     {
         [$res, $context] = $this->boot($request);

@@ -23,6 +23,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
+                <a href="{{ route('dashboard.laboran.kebutuhan.cetak', request()->query()) }}" class="btn btn-outline"
+                    title="Cetak Dokumen Analisis &amp; Kebutuhan (A4)" aria-label="Cetak Dokumen Analisis dan Kebutuhan">
+                    <i class="fas fa-print"></i>
+                </a>
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnJalankanAnalisis"
                         title="Jalankan Analisis Otomatis dari Kondisi Stok &amp; Kerusakan"

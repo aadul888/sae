@@ -92,6 +92,105 @@ class LaboranPemeriksaanController extends LaboranBaseController
         ));
     }
 
+    // =========================================================================
+    // CETAK DOKUMEN A4 (Ringkasan / Lengkap)
+    // =========================================================================
+
+    /**
+     * Dokumen cetak A4 Checklist Pemeriksaan Alat &amp; Bahan.
+     *
+     * Mode `ringkasan` → rekap hasil pemeriksaan per jenis + temuan tidak sesuai.
+     * Mode `lengkap`   → rincian seluruh item yang diperiksa pada setiap ceklist.
+     */
+    public function cetak(Request $request)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) {
+            return $res;
+        }
+
+        $search       = trim((string) $request->query('q', ''));
+        $jenisFilter  = trim((string) $request->query('jenis', ''));
+        $statusFilter = trim((string) $request->query('status', ''));
+
+        $mode      = $this->modeCetak($request, 'ringkasan');
+        $orientasi = $this->orientasiCetak($request, 'landscape');
+
+        $query = DB::table('laboran_pemeriksaan')
+            ->orderByDesc('tanggal_pemeriksaan')
+            ->orderByDesc('id');
+
+        LaboranScope::apply($query, 'jurusan_id', $context);
+
+        if ($search !== '') {
+            $query->where(function ($qb) use ($search) {
+                $qb->where('nomor_pemeriksaan', 'like', "%{$search}%")
+                   ->orWhere('ruang_lab_nama', 'like', "%{$search}%")
+                   ->orWhere('petugas_nama', 'like', "%{$search}%")
+                   ->orWhere('kesimpulan', 'like', "%{$search}%");
+            });
+        }
+        if ($jenisFilter !== '')  $query->where('jenis', $jenisFilter);
+        if ($statusFilter !== '') $query->where('status', $statusFilter);
+
+        $items = $query->get();
+
+        $rekapJenis = $items->groupBy('jenis')->map(function ($g, $j) {
+            return (object) [
+                'jenis'   => $j,
+                'label'   => self::JENIS[$j] ?? ucfirst((string) $j),
+                'total'   => $g->count(),
+                'sesuai'  => (int) $g->sum('total_sesuai'),
+                'tidak'   => (int) $g->sum('total_tidak_sesuai'),
+                'hilang'  => (int) $g->sum('total_tidak_ada'),
+            ];
+        })->sortByDesc('total')->values();
+
+        // Rincian item untuk mode lengkap.
+        $rincian = collect();
+        if ($mode === 'lengkap' && $items->isNotEmpty()) {
+            $rincian = DB::table('laboran_pemeriksaan_item as i')
+                ->join('laboran_pemeriksaan as p', 'i.pemeriksaan_id', '=', 'p.id')
+                ->whereIn('i.pemeriksaan_id', $items->pluck('id')->all())
+                ->orderBy('p.tanggal_pemeriksaan')
+                ->orderBy('i.urutan')
+                ->orderBy('i.id')
+                ->get([
+                    'p.nomor_pemeriksaan', 'p.tanggal_pemeriksaan', 'p.ruang_lab_nama',
+                    'i.nama_item', 'i.kode_item', 'i.satuan', 'i.kondisi_standar',
+                    'i.hasil', 'i.jumlah_diperiksa', 'i.keterangan',
+                ]);
+        }
+
+        $filterLabel = [];
+        if ($jenisFilter !== '')  $filterLabel[] = 'Jenis: ' . (self::JENIS[$jenisFilter] ?? $jenisFilter);
+        if ($statusFilter !== '') $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
+        if ($search !== '')       $filterLabel[] = 'Pencarian: "' . $search . '"';
+
+        return view('dashboard.laboran.pemeriksaan-cetak', array_merge(
+            [
+                'items'       => $items,
+                'rekapJenis'  => $rekapJenis,
+                'rincian'     => $rincian,
+                'filterLabel' => $filterLabel,
+                'jenisList'   => self::JENIS,
+                'hasilList'   => self::HASIL,
+                'statusList'  => self::STATUS,
+                'backUrl'     => route('dashboard.laboran.pemeriksaan.index'),
+            ],
+            $this->dokumenCetak('pemeriksaan', $context, [
+                'mode'         => $mode,
+                'orientasi'    => $orientasi,
+                'jumlah_baris' => $items->count(),
+                'filter'       => [
+                    'q'      => $search,
+                    'jenis'  => $jenisFilter,
+                    'status' => $statusFilter,
+                ],
+            ])
+        ));
+    }
+
     /**
      * Halaman detail / pengisian ceklist.
      */

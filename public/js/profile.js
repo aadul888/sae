@@ -123,7 +123,29 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmPwInput.addEventListener('input', evaluatePassword);
     }
 
-    // 3. Photo Upload & Preview
+    // 3. Live preview gelar depan/belakang (Guru & Tendik)
+    const gelarDepanInput = document.getElementById('gelar_depan');
+    const gelarBelakangInput = document.getElementById('gelar_belakang');
+    const gelarPreview = document.getElementById('gelarPreview');
+
+    if (gelarDepanInput && gelarBelakangInput && gelarPreview) {
+        const namaDasar = gelarPreview.getAttribute('data-nama-dasar') || '';
+
+        const renderGelarPreview = () => {
+            const depan = gelarDepanInput.value.trim();
+            const belakang = gelarBelakangInput.value.trim();
+            const nama = namaDasar || gelarPreview.textContent || '';
+
+            gelarPreview.textContent =
+                [depan, nama].filter(Boolean).join(' ') +
+                    (belakang ? ', ' + belakang : '') || '-';
+        };
+
+        gelarDepanInput.addEventListener('input', renderGelarPreview);
+        gelarBelakangInput.addEventListener('input', renderGelarPreview);
+    }
+
+    // 4. Photo Upload & Preview
     let selectedFotoFile = null;
     const modalEl = document.getElementById('fotoUploadModal');
     const currentFotoUrl = modalEl?.getAttribute('data-current-foto') || '';

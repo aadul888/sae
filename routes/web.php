@@ -194,6 +194,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/profil', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
     Route::put('/profil/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::put('/profil/kontak', [\App\Http\Controllers\ProfileController::class, 'updateContact'])->name('profile.contact');
+    Route::put('/profil/gelar', [\App\Http\Controllers\ProfileController::class, 'updateGelar'])->name('profile.gelar');
     Route::post('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'uploadFoto'])->name('profile.foto.upload');
     Route::delete('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'deleteFoto'])->name('profile.foto.delete');
 
@@ -545,6 +546,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/manajemen-data/peserta-didik-tidak-aktif/{id}', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'show'])->name('peserta-didik-tidak-aktif.show')->middleware('permission:menu_peserta_didik_tidak_aktif,read');
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif,read');
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif,read');
+    Route::post('/manajemen-data/guru-aktif/{id}/gelar', [\App\Http\Controllers\GuruAktifController::class, 'updateGelar'])->name('guru-aktif.update-gelar')->middleware('permission:menu_guru_aktif,update');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif,read');
     Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif,read');
 
@@ -742,6 +744,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Dashboard Laboratorium (informatif, per jurusan)
         Route::get('/dashboard', [\App\Http\Controllers\Laboran\LaboranDashboardController::class, 'index'])
             ->name('dashboard')->middleware('permission:menu_laboran,read');
+        Route::get('/dashboard/cetak', [\App\Http\Controllers\Laboran\LaboranDashboardController::class, 'cetak'])
+            ->name('dashboard.cetak')->middleware('permission:menu_laboran,read');
 
         // 0. Data Peserta Didik (baca-saja, dibatasi jurusan Laboran)
         Route::prefix('peserta-didik')->name('peserta-didik.')->group(function () {
@@ -749,6 +753,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
                 ->name('index')->middleware('permission:menu_laboran,read');
             Route::get('/export', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'exportExcel'])
                 ->name('export')->middleware('permission:menu_laboran,read');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'cetak'])
+                ->name('cetak')->middleware('permission:menu_laboran,read');
             Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'show'])
                 ->name('show')->middleware('permission:menu_laboran,read');
         });
@@ -759,6 +765,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
             // Analisis otomatis dari kondisi stok & kerusakan
             Route::post('/jalankan-analisis', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'jalankanAnalisis'])->name('jalankan-analisis')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
         });
@@ -767,6 +774,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::prefix('perawatan')->name('perawatan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPerawatanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
 
@@ -781,6 +789,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPemeriksaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
@@ -793,6 +802,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::prefix('pengadaan')->name('pengadaan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPengadaanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
@@ -816,6 +826,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/template', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'templateExcel'])->name('template')->middleware('permission:menu_laboran|menu_laboran_peminjaman,read');
             Route::post('/import', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'importExcel'])->name('import')->middleware('permission:menu_laboran|menu_laboran_peminjaman,create');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
             Route::put('/{id}/status', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'updateStatus'])->name('status')->middleware('permission:menu_laboran,update');
             Route::post('/{id}/kembalikan', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->name('kembalikan')->middleware('permission:menu_laboran,update');
@@ -839,6 +850,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
             Route::post('/arsipkan-massal', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'arsipkanMassal'])->name('arsipkan-massal')->middleware('permission:menu_laboran,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
         });

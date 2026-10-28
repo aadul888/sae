@@ -29,6 +29,11 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
+                <a href="{{ route('dashboard.laboran.dashboard.cetak') }}" class="btn btn-outline"
+                    title="Cetak Rekapitulasi Supervisi Laboratorium (A4)"
+                    aria-label="Cetak Rekapitulasi Supervisi Laboratorium">
+                    <i class="fas fa-print"></i>
+                </a>
                 <a href="{{ route('dashboard.laboran.laporan-lengkap.index') }}" class="btn btn-primary"
                     title="Laporan Lengkap Penggunaan &amp; Kerusakan Alat"
                     aria-label="Laporan Lengkap Penggunaan dan Kerusakan Alat">
