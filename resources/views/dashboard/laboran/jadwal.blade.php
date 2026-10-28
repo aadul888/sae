@@ -5,21 +5,77 @@
 
 @push('styles')
     <style>
-        /* Satu sel grid dapat memuat beberapa sesi (team teaching / lahan & lapangan).
-           Kartu dibagi rata tinggi sel agar tidak melimpah keluar batas sel.
-           Catatan: `height: 100%` TIDAK dipakai karena persentase tidak resolve di
-           dalam <td>; tinggi sel dipaksa lewat `min-height` (lihat style inline per
-           sel, dihitung dari jumlah baris jam yang dicakup rowspan). */
+        /* Kartu sesi: LEBAR TETAP (mengikuti lebar kolom kelas) dan tinggi
+           MENGISI PENUH SEL sesuai jumlah JP: sesi 1 JP setinggi satu baris jam,
+           sesi 3 JP setinggi tiga baris jam (rowspan). Teks panjang membungkus
+           ke bawah sehingga tidak terpotong. Lebar kolom dikunci agar kartu
+           tidak melebar atau menyempit saat isinya berbeda-beda. */
+        .jadwal-grid-kelas {
+            --jadwal-col-w: 150px;
+            --jadwal-card-gap: 3px;
+            /* Tinggi minimum satu baris jam (min-height isi 52px + padding sel). */
+            --jadwal-row-h: 58px;
+        }
+
+        .jadwal-grid-kelas thead th:not(:first-child),
+        .jadwal-grid-kelas tbody td:not(:first-child) {
+            width: var(--jadwal-col-w);
+            min-width: var(--jadwal-col-w);
+            max-width: var(--jadwal-col-w);
+        }
+
         .jadwal-sesi-stack {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            min-height: 52px;
+            justify-content: flex-start;
+            gap: var(--jadwal-card-gap);
+            min-width: 0;
+            /* Sel matrix height:auto, jadi padding-bottom dihitung dari tinggi
+               sel hasil rowspan dan mendorong isi (kartu + tombol) melar penuh. */
+            height: 100%;
+            box-sizing: border-box;
         }
 
+        /* Kartu mengisi penuh tinggi sel: satu kartu tunggal melar mengikuti
+           rowspan sesinya, beberapa kartu saling berbagi ruang secara merata.
+           Isi kartu (mapel + guru + lokasi) berada di TENGAH kartu secara
+           vertikal, sehingga seimbang di sel 1 JP maupun sel rowspan. */
         .jadwal-sesi-stack>.jadwal-grid-card {
-            flex: 1 1 0;
+            flex: 1 1 auto;
+            width: 100%;
+            justify-content: center !important;
+        }
+
+        /* Tombol aksi dalam sel (Isi / rutinitas / kosong) juga mengisi sel. */
+        .td-sesi>button,
+        .td-sesi>div {
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        /* TEKS PANJANG: dibungkus (wrap) agar tetap terbaca utuh. Nama mapel
+           dibatasi maksimum 2 baris dengan elipsis supaya kartu tidak melar
+           berlebihan; guru & lokasi dipotong 1 baris. Teks utuh selalu tersedia
+           lewat tooltip (title). */
+        .jadwal-grid-card-mapel {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+            font-size: var(--text-xs, 0.75rem);
+            color: var(--text-color);
+            line-height: 1.2;
+            min-width: 0;
+        }
+
+        .jadwal-grid-card-1line {
+            display: block;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 @endpush
@@ -222,7 +278,7 @@
                 <div class="card table-responsive-stack" id="gridMatrixContainer"
                     style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
                     <table class="table jadwal-grid-kelas"
-                        style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                        style="width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0;">
                         <thead>
                             <tr>
                                 <th style="position: sticky; left: 0; z-index: 20; background: var(--bg-card); width: 120px; min-width: 120px; padding: 10px 12px; border-bottom: 2px solid var(--border-color); border-right: 2px solid var(--border-color); font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); text-transform: uppercase; text-align: left;">
@@ -281,19 +337,16 @@
 
                                             @if (!empty($gridOccupied[$rid][$jam]))
                                                 {{-- Baris ini sudah tercakup kartu multi-JP (rowspan) di atasnya. --}}
-                                            @elseif (isset($gridClusters[$rid][$jam]))
-                                                @php $cluster = $gridClusters[$rid][$jam]; @endphp
-                                                <td rowspan="{{ $cluster['span'] }}" class="td-sesi"
-                                                    style="padding: 2px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: stretch; background: rgba(99,102,241,0.03); box-sizing: border-box;">
-                                                    @php
-                                                        // Tinggi sel dipaksa dari jumlah baris jam yang dicakup (52px + padding
-                                                        // per baris), dan dinaikkan bila sel memuat lebih dari satu sesi
-                                                        // (team teaching / lahan boleh bersamaan) agar tidak ada kartu terpotong.
-                                                        $jumlahSesi = count($cluster['sesi']);
-                                                        $tinggiMin = max((52 + 6) * $cluster['span'] - 6, $jumlahSesi * 58 + ($jumlahSesi - 1) * 3);
-                                                    @endphp
-                                                    <div class="jadwal-sesi-stack" data-jumlah-sesi="{{ $jumlahSesi }}"
-                                                        style="min-height: {{ $tinggiMin }}px;">
+                                                @elseif (isset($gridClusters[$rid][$jam]))
+                                                    @php $cluster = $gridClusters[$rid][$jam]; @endphp
+                                                    <td rowspan="{{ $cluster['span'] }}" class="td-sesi"
+                                                        style="padding: 2px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.03); box-sizing: border-box; min-height: calc(var(--jadwal-row-h) * {{ $cluster['span'] }});">
+                                                        @php $jumlahSesi = count($cluster['sesi']); @endphp
+                                                        {{-- Tinggi sel tabel bersifat auto, sehingga `height: 100%` pada
+                                                             anak <td> tidak resolve. Tinggi stack dihitung eksplisit dari
+                                                             jumlah JP (rowspan) agar kartu benar-benar mengisi penuh sel. --}}
+                                                        <div class="jadwal-sesi-stack" data-jumlah-sesi="{{ $jumlahSesi }}"
+                                                            style="min-height: calc(var(--jadwal-row-h) * {{ $cluster['span'] }} - {{ 4 + ($jumlahSesi - 1) * 3 }}px);">
                                                         @foreach ($cluster['sesi'] as $sesi)
                                                             @include('dashboard.laboran.partials.kartu-sesi-sel', [
                                                                 'item' => $sesi['item'],
@@ -308,30 +361,30 @@
                                                     </div>
                                                 </td>
                                             @elseif (!$slot)
-                                                <td style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
-                                                    <div style="height: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">-</div>
+                                                <td class="td-sesi" style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                                    <div style="min-height: 52px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">-</div>
                                                 </td>
                                             @elseif ($rutinLabel)
-                                                <td style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
-                                                    <div style="height: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2px; border-radius: var(--radius-sm, 6px); background: {{ $rutinLabel === 'Istirahat' ? 'rgba(245,158,11,0.06)' : 'rgba(239,68,68,0.06)' }}; border: 1px dashed {{ $rutinLabel === 'Istirahat' ? 'rgba(245,158,11,0.35)' : 'rgba(239,68,68,0.35)' }}; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); font-weight: 700;">
+                                                <td class="td-sesi" style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                                    <div style="min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2px; border-radius: var(--radius-sm, 6px); background: {{ $rutinLabel === 'Istirahat' ? 'rgba(245,158,11,0.06)' : 'rgba(239,68,68,0.06)' }}; border: 1px dashed {{ $rutinLabel === 'Istirahat' ? 'rgba(245,158,11,0.35)' : 'rgba(239,68,68,0.35)' }}; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem); font-weight: 700;">
                                                         {{ $rutinLabel }}
                                                     </div>
                                                 </td>
                                             @elseif ($canCreate)
-                                                <td style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                                <td class="td-sesi" style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
                                                     <button type="button" class="btn-quick-slot"
                                                         title="Isi jadwal {{ $kelas->nama }} pada {{ $selectedHari }} Jam ke-{{ $jam }}"
                                                         data-hari="{{ $selectedHari }}" data-jam-ke="{{ $jam }}"
                                                         data-rombel-id="{{ $rid }}" data-rombel-nama="{{ $kelas->nama }}"
                                                         data-jam-mulai="{{ $slot['mulai'] }}" data-jam-selesai="{{ $slot['selesai'] }}"
-                                                        style="width: 100%; height: 100%; min-height: 52px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm, 6px); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; color: var(--text-muted); transition: all 0.2s ease;">
+                                                        style="width: 100%; min-height: 52px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm, 6px); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; color: var(--text-muted); transition: all 0.2s ease;">
                                                         <i class="fas fa-plus" style="font-size: var(--text-2xs, 0.6875rem);"></i>
                                                         <span style="font-size: var(--text-2xs, 0.6875rem); font-weight: 600;">Isi</span>
                                                     </button>
                                                 </td>
                                             @else
-                                                <td style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
-                                                    <div style="height: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">-</div>
+                                                <td class="td-sesi" style="padding: 3px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+                                                    <div style="min-height: 52px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--text-2xs, 0.6875rem);">-</div>
                                                 </td>
                                             @endif
                                         @endforeach

@@ -53,15 +53,28 @@ abstract class LaboranTestCase extends TestCase
     /** @var array<string, array<int, int>> id yang sudah ada SEBELUM test (milik data nyata) */
     protected array $preexistingIds = [];
 
+    /** @var array<int, array<string, mixed>> snapshot SELURUH baris laboran_jadwal_pengaturan */
+    protected array $pengaturanSnapshot = [];
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Pengaturan pemberlakuan kini PER LABORAN. Snapshot seluruh baris supaya
+        // perubahan apa pun selama test (mode, status, baris baru) bisa dipulihkan
+        // persis — DB ini operasional, bukan DB uji.
         try {
-            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
-                'mode_pemberlakuan' => 'semester',
-                'status'            => 'aktif',
-            ]);
+            $this->pengaturanSnapshot = DB::table('laboran_jadwal_pengaturan')
+                ->get()->map(fn ($r) => (array) $r)->all();
+
+            // Berlakukan mode semester agar data uji (pemberlakuan=semester) tampil.
+            if (!empty($this->pengaturanSnapshot)) {
+                $idPertama = $this->pengaturanSnapshot[0]['id'];
+                DB::table('laboran_jadwal_pengaturan')->where('id', $idPertama)->update([
+                    'mode_pemberlakuan' => 'semester',
+                    'status'            => 'aktif',
+                ]);
+            }
         } catch (\Throwable $e) {}
 
         $this->preexistingIds = [];
@@ -79,6 +92,24 @@ abstract class LaboranTestCase extends TestCase
 
     protected function tearDown(): void
     {
+        // Pulihkan pengaturan pemberlakuan: kembalikan nilai asli tiap baris dan
+        // hapus baris baru yang dibuat selama test.
+        try {
+            $idAsli = array_column($this->pengaturanSnapshot, 'id');
+
+            foreach ($this->pengaturanSnapshot as $row) {
+                DB::table('laboran_jadwal_pengaturan')->where('id', $row['id'])->update([
+                    'mode_pemberlakuan'        => $row['mode_pemberlakuan'],
+                    'status'                   => $row['status'],
+                    'diberlakukan_oleh_ptk_id' => $row['diberlakukan_oleh_ptk_id'],
+                ]);
+            }
+
+            if (!empty($idAsli)) {
+                DB::table('laboran_jadwal_pengaturan')->whereNotIn('id', $idAsli)->delete();
+            }
+        } catch (\Throwable $e) {}
+
         // Hapus HANYA baris yang tidak ada pada snapshot setUp().
         foreach (self::LAB_TABLES as $table) {
             try {

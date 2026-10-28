@@ -186,7 +186,7 @@ class LaboranJadwalGridTest extends LaboranTestCase
         $res->assertStatus(200);
         $res->assertSee('UJI-STACK-A', false);
         $res->assertSee('UJI-STACK-B', false);
-        // Kedua kartu berada dalam satu penampung yang membagi tinggi sel rata.
+        // Kedua kartu berada dalam satu penampung bertumpuk.
         $res->assertSee('jadwal-sesi-stack', false);
         $res->assertSee('data-jumlah-sesi="2"', false);
 
@@ -194,5 +194,29 @@ class LaboranJadwalGridTest extends LaboranTestCase
         $html = $res->getContent();
         $this->assertStringContainsString('title="Jam ke-3-4 · 08:00-09:30"', $html);
         $this->assertStringContainsString('Lahan Praktik ATPH Blok B', $html);
+    }
+
+    /**
+     * Lebar kolom/kartu dikunci agar kartu tidak melebar-menyempit antar sel.
+     * Tinggi kartu TIDAK dikunci — menyesuaikan panjang teks.
+     */
+    public function test_lebar_kartu_dikunci_dan_tinggi_tidak_dikunci(): void
+    {
+        $this->seedSesi('UJI-LEBAR-TETAP', self::JUR_ATPH, 'Lahan Praktik ATPH');
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Senin']));
+
+        $res->assertStatus(200);
+
+        $html = $res->getContent();
+        // Lebar kolom kelas dikunci lewat variabel CSS.
+        $this->assertStringContainsString('--jadwal-col-w', $html);
+        // Kartu tidak lagi dipaksa tinggi tetap (height: var(--jadwal-card-h)).
+        $this->assertStringNotContainsString('--jadwal-card-h', $html);
+
+        // Teks panjang tidak dipotong dengan clamp 1 baris; mapel boleh 2 baris.
+        $this->assertStringContainsString('jadwal-grid-card-mapel', $html);
+        $this->assertStringContainsString('jadwal-grid-card-1line', $html);
     }
 }

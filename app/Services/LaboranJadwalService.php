@@ -55,6 +55,67 @@ class LaboranJadwalService
     ];
 
     /**
+     * Sumber Jadwal KBM yang sedang DIBERLAKUKAN ('otomatis' | 'manual').
+     *
+     * Jadwal KBM dapat dibuat otomatis oleh penjadwal maupun diinput manual.
+     * Yang menjadi acuan hanya salah satu sumber yang sedang diberlakukan
+     * (lihat `JadwalPengaturan::getModeAktif()`); bila belum ada yang
+     * diberlakukan, default-nya 'otomatis' — sama seperti modul KBM lain.
+     */
+    public function sumberKbmAktif(): string
+    {
+        $sumber = JadwalPengaturan::getModeAktif();
+
+        return in_array($sumber, ['otomatis', 'manual'], true) ? $sumber : 'otomatis';
+    }
+
+    /**
+     * Daftar mata pelajaran yang TERJADWAL di Jadwal KBM untuk satu rombel
+     * pada satu hari, dikembalikan sebagai himpunan kunci pembanding
+     * (`id:{pembelajaran_id}` atau `nama:{nama mapel}` bila id tak tersedia).
+     *
+     * Dipakai untuk membatasi pilihan guru & mapel di modal penjadwalan
+     * laboran supaya hanya mapel yang memang ada di KBM yang bisa dipilih.
+     * Hanya sumber KBM yang sedang diberlakukan yang dihitung, dan slot
+     * rutinitas (ROUTINE_*) selalu dikecualikan.
+     *
+     * @return array<string, bool> himpunan kunci mapel (untuk isset())
+     */
+    public function mapelTerjadwalKbm(string $rombelId, string $hari): array
+    {
+        $rombelId = trim($rombelId);
+        $hari = trim($hari);
+        if ($rombelId === '' || $hari === '') {
+            return [];
+        }
+
+        $rows = DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('hari', $hari)
+            ->where('sumber', $this->sumberKbmAktif())
+            ->where('is_active', true)
+            ->where('pembelajaran_id', 'not like', 'ROUTINE_%')
+            ->select('pembelajaran_id', 'nama_mata_pelajaran')
+            ->get();
+
+        $keys = [];
+        foreach ($rows as $r) {
+            $pid = trim((string) ($r->pembelajaran_id ?? ''));
+            if ($pid !== '') {
+                $keys['id:' . $pid] = true;
+                continue;
+            }
+
+            $nama = strtolower(trim((string) ($r->nama_mata_pelajaran ?? '')));
+            if ($nama !== '') {
+                $keys['nama:' . preg_replace('/\s+/', ' ', $nama)] = true;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
      * Ambil slot jadwal KBM aktif untuk satu rombel.
      */
     public function resolveKbmSlots(string $rombelId): array
@@ -66,6 +127,7 @@ class LaboranJadwalService
         $kbmRows = DB::table('jadwal_kbm as jk')
             ->leftJoin('gtk', 'jk.ptk_id', '=', 'gtk.ptk_id')
             ->where('jk.rombongan_belajar_id', $rombelId)
+            ->where('jk.sumber', $this->sumberKbmAktif())
             ->where('jk.is_active', true)
             ->where('jk.pembelajaran_id', '<>', 'ROUTINE_ISTIRAHAT')
             ->select(
@@ -367,6 +429,7 @@ class LaboranJadwalService
             ->where('rombongan_belajar_id', $rombelId)
             ->where('pembelajaran_id', $pembelajaranId)
             ->where('hari', $hari)
+            ->where('sumber', $this->sumberKbmAktif())
             ->where('is_active', true)
             ->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)'));
 
@@ -756,35 +819,90 @@ class LaboranJadwalService
     ];
 
     /**
-     * Ambil baris pengaturan pemberlakuan jadwal laboran (singleton).
+     * Ambil baris pengaturan pemberlakuan jadwal MILIK SATU LABORAN.
+     *
+     * Setiap laboran punya barisnya sendiri (kolom `ptk_id`) supaya pilihan
+     * Semester/Mingguan tidak saling menimpa. Bila laboran belum pernah
+     * memilih, nilainya diambil dari baris bawaan (ptk_id NULL) sebagai
+     * fallback; baris itu dibuat otomatis bila belum ada.
      */
-    public static function getPengaturanJadwal(): object
+    public static function getPengaturanJadwal(?string $ptkId = null): object
     {
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        if (!$row) {
-            DB::table('laboran_jadwal_pengaturan')->insert([
-                'id'                => 1,
-                'mode_pemberlakuan' => 'semester',
-                'status'            => 'aktif',
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
-            $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+        $ptkId = trim((string) ($ptkId ?? ''));
+
+        if ($ptkId !== '') {
+            // Satu laboran hanya menyimpan satu mode aktif: ambil baris miliknya,
+            // prioritaskan yang berstatus aktif.
+            $row = DB::table('laboran_jadwal_pengaturan')
+                ->where('ptk_id', $ptkId)
+                ->orderByRaw("CASE WHEN status = 'aktif' THEN 0 ELSE 1 END")
+                ->orderByDesc('updated_at')
+                ->first();
+
+            if ($row) {
+                return $row;
+            }
         }
 
-        return $row;
+        // Fallback: baris bawaan/global (ptk_id NULL).
+        $row = DB::table('laboran_jadwal_pengaturan')->whereNull('ptk_id')->first();
+        if ($row) {
+            return $row;
+        }
+
+        DB::table('laboran_jadwal_pengaturan')->insert([
+            'ptk_id'            => null,
+            'mode_pemberlakuan' => 'semester',
+            'status'            => 'aktif',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        return DB::table('laboran_jadwal_pengaturan')->whereNull('ptk_id')->first();
     }
 
     /**
-     * Mode pemberlakuan yang sedang diberlakukan ('semester' | 'mingguan' | null).
+     * Mode pemberlakuan yang sedang diberlakukan laboran ('semester' | 'mingguan' | null).
      */
-    public static function getModeDiberlakukan(): ?string
+    public static function getModeDiberlakukan(?string $ptkId = null): ?string
     {
-        $row = self::getPengaturanJadwal();
+        $row = self::getPengaturanJadwal($ptkId);
 
         return ($row->status === 'aktif' && in_array($row->mode_pemberlakuan, ['semester', 'mingguan'], true))
             ? $row->mode_pemberlakuan
             : null;
+    }
+
+    /**
+     * Simpan pilihan mode pemberlakuan untuk satu laboran saja.
+     *
+     * Hanya satu baris per laboran: baris lama diperbarui bila ada, sehingga
+     * mode yang dipilih menggantikan pilihan sebelumnya (pemberlakuan eksklusif)
+     * tanpa menyentuh pengaturan laboran lain.
+     */
+    public static function simpanPengaturanLaboran(?string $ptkId, string $mode, string $status): void
+    {
+        $ptkId = trim((string) ($ptkId ?? ''));
+
+        $payload = [
+            'mode_pemberlakuan'        => $mode,
+            'status'                   => $status,
+            'diberlakukan_oleh_ptk_id' => $status === 'aktif' ? ($ptkId !== '' ? $ptkId : null) : null,
+            'updated_at'               => now(),
+        ];
+
+        $query = DB::table('laboran_jadwal_pengaturan')->where('ptk_id', $ptkId === '' ? null : $ptkId)
+            ->when($ptkId === '', fn ($q) => $q->whereNull('ptk_id'));
+
+        if ($query->clone()->exists()) {
+            $query->update($payload);
+            return;
+        }
+
+        DB::table('laboran_jadwal_pengaturan')->insert($payload + [
+            'ptk_id'     => $ptkId !== '' ? $ptkId : null,
+            'created_at' => now(),
+        ]);
     }
 
 }

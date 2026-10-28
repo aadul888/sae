@@ -73,4 +73,72 @@ class LaboranJadwalKelasGuruTest extends LaboranTestCase
             );
         }
     }
+
+    /**
+     * Bila `hari` diberikan, pilihan guru & mapel dibatasi pada mata pelajaran
+     * yang benar-benar terjadwal di Jadwal KBM kelas + hari tersebut.
+     */
+    public function test_guru_mapel_dibatasi_pada_jadwal_kbm_kelas_dan_hari(): void
+    {
+        $rombelId = DB::table('pembelajaran')
+            ->whereNotNull('nama_mata_pelajaran')
+            ->where('nama_mata_pelajaran', '<>', '')
+            ->value('rombongan_belajar_id');
+
+        if (!$rombelId) {
+            $this->markTestSkipped('Tidak ada data pembelajaran untuk pengujian.');
+        }
+
+        $kbm = DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('is_active', true)
+            ->where('pembelajaran_id', 'not like', 'ROUTINE_%')
+            ->whereNotNull('pembelajaran_id')
+            ->select('pembelajaran_id', 'hari')
+            ->first();
+
+        if (!$kbm) {
+            $this->markTestSkipped('Kelas uji tidak punya jadwal KBM aktif.');
+        }
+
+        $session = $this->laboranSession(self::JUR_ATPH);
+
+        // Tanpa `hari`: seluruh mapel pembelajaran kelas (perilaku lama).
+        $semua = $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.guru-mapel', ['rombel_id' => $rombelId]))
+            ->json('guru_mapel');
+
+        // Dengan `hari`: hanya mapel yang terjadwal di KBM hari itu.
+        $terfilter = $this->withSession($session)
+            ->get(route('dashboard.laboran.jadwal.guru-mapel', [
+                'rombel_id' => $rombelId,
+                'hari'      => $kbm->hari,
+            ]))
+            ->json('guru_mapel');
+
+        $this->assertNotEmpty($semua, 'Daftar tanpa filter hari tidak boleh kosong.');
+        $this->assertNotEmpty($terfilter, 'Daftar dengan filter hari tidak boleh kosong.');
+        $this->assertLessThanOrEqual(
+            count($semua),
+            count($terfilter),
+            'Filter hari tidak boleh menambah pilihan.'
+        );
+
+        $pembelajaranKbm = DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('hari', $kbm->hari)
+            ->where('is_active', true)
+            ->where('pembelajaran_id', 'not like', 'ROUTINE_%')
+            ->pluck('pembelajaran_id')
+            ->map(fn ($v) => (string) $v)
+            ->all();
+
+        foreach ($terfilter as $item) {
+            $this->assertContains(
+                (string) $item['pembelajaran_id'],
+                $pembelajaranKbm,
+                'Hanya mapel yang terjadwal di KBM kelas + hari ini yang boleh muncul.'
+            );
+        }
+    }
 }

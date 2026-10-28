@@ -178,4 +178,54 @@ class LaboranJadwalSemuaHariTest extends LaboranTestCase
         $this->assertSame(substr($slot1['jam_mulai'], 0, 5), substr((string) $row->jam_mulai, 0, 5), 'Jam mulai harus dari slot Jumat.');
         $this->assertSame(substr($slot1['jam_selesai'], 0, 5), substr((string) $row->jam_selesai, 0, 5));
     }
+
+    /**
+     * Satu pengisian boleh mencakup rentang beberapa JP sekaligus
+     * (mis. Jam ke-2 s/d Jam ke-4), bukan dipaksa 1 JP.
+     */
+    public function test_rentang_jam_ke_beberapa_jp_tersimpan_utuh(): void
+    {
+        $rombel = DB::table('rombongan_belajar')->where(function ($q) {
+            $q->where('jenis_rombel', 1)->orWhere('jenis_rombel', '1');
+        })->first();
+
+        $slotsJumat = \App\Models\JadwalPengaturan::getSlots('Jumat');
+        $this->assertNotEmpty($slotsJumat, 'Slot Jumat harus tersedia.');
+
+        $mulai = $jamKeMulai = 2;
+        $selesai = $jamKeSelesai = 4;
+        $this->assertArrayHasKey($mulai, $slotsJumat);
+        $this->assertArrayHasKey($selesai, $slotsJumat);
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), [
+                'ruang_lab_nama'  => 'Lahan Praktik ATPH',
+                'jenis_lokasi'    => 'lahan',
+                'rombel_id'       => $rombel->rombongan_belajar_id,
+                'pemberlakuan'    => 'mingguan',
+                'pemberlakuan_minggu' => 1,
+                'hari'            => ['Jumat'],
+                'tanggal'         => '2026-11-06',
+                'jam_ke_mulai'    => $jamKeMulai,
+                'jam_ke_selesai'  => $jamKeSelesai,
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_penggunaan')
+            ->where('tanggal', '2026-11-06')
+            ->orderByDesc('id')
+            ->first();
+
+        $this->assertNotNull($row);
+        $this->assertSame(
+            substr($slotsJumat[$mulai]['jam_mulai'], 0, 5),
+            substr((string) $row->jam_mulai, 0, 5),
+            'Jam mulai harus dari slot JP awal.'
+        );
+        $this->assertSame(
+            substr($slotsJumat[$selesai]['jam_selesai'], 0, 5),
+            substr((string) $row->jam_selesai, 0, 5),
+            'Jam selesai harus dari slot JP akhir — rentang tidak boleh dipepetkan ke 1 JP.'
+        );
+    }
 }

@@ -131,6 +131,8 @@ trait NormalisasiPayloadJadwalLaboran
         // berdasarkan slot Pengaturan KBM hari tanggal terpilih.
         $jamMulai   = trim((string) ($validated['jam_mulai'] ?? ''));
         $jamSelesai = trim((string) ($validated['jam_selesai'] ?? ''));
+        // Satu pengisian boleh mencakup BEBERAPA JP sekaligus (mis. Jam ke-1 s/d
+        // Jam ke-4), sesuai rentang yang dipilih laboran pada modal.
         $jamKeMulai   = (int) ($validated['jam_ke_mulai'] ?? 0);
         $jamKeSelesai = (int) ($validated['jam_ke_selesai'] ?? 0);
 

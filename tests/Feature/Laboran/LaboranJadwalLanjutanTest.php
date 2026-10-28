@@ -215,35 +215,34 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     public function test_tab_pemberlakuan_mengubah_mode_aktif(): void
     {
         $session = $this->adminSession();
+        $ptkId = $session['user']['ptk_id'] ?? null;
 
-        // Klik tab Semester -> mode aktif berubah
+        // Klik tab Semester -> mode aktif laboran ini berubah
         $this->withSession($session)
             ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'semester']))
             ->assertStatus(200);
 
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        $this->assertSame('semester', $row->mode_pemberlakuan);
+        $this->assertSame('semester', $this->modeMilik($ptkId));
 
         // Klik tab Mingguan -> kembali
         $this->withSession($session)
             ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'mingguan']))
             ->assertStatus(200);
 
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        $this->assertSame('mingguan', $row->mode_pemberlakuan);
+        $this->assertSame('mingguan', $this->modeMilik($ptkId));
 
         // Nilai tidak valid diabaikan
         $this->withSession($session)
             ->get(route('dashboard.laboran.jadwal.index', ['mode_pemberlakuan' => 'bulanan']))
             ->assertStatus(200);
 
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        $this->assertSame('mingguan', $row->mode_pemberlakuan);
+        $this->assertSame('mingguan', $this->modeMilik($ptkId));
     }
 
     public function test_pemberlakuan_jadwal_dapat_diaktifkan_per_mode(): void
     {
         $session = $this->adminSession();
+        $ptkId = $session['user']['ptk_id'] ?? null;
 
         // Aktifkan mode semester
         $this->withSession($session)
@@ -254,10 +253,9 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ->assertStatus(200)
             ->assertJson(['status' => 'success']);
 
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        $this->assertSame('semester', $row->mode_pemberlakuan);
-        $this->assertSame('aktif', $row->status);
-        $this->assertSame('semester', \App\Services\LaboranJadwalService::getModeDiberlakukan());
+        $this->assertSame('semester', $this->modeMilik($ptkId));
+        $this->assertSame('aktif', $this->statusMilik($ptkId));
+        $this->assertSame('semester', \App\Services\LaboranJadwalService::getModeDiberlakukan($ptkId));
 
         // Kembali ke draft
         $this->withSession($session)
@@ -267,12 +265,13 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ])
             ->assertStatus(200);
 
-        $this->assertNull(\App\Services\LaboranJadwalService::getModeDiberlakukan());
+        $this->assertNull(\App\Services\LaboranJadwalService::getModeDiberlakukan($ptkId));
     }
 
     public function test_pemberlakuan_mode_eksklusif_mingguan_mengganti_semester(): void
     {
         $session = $this->adminSession();
+        $ptkId = $session['user']['ptk_id'] ?? null;
 
         $this->withSession($session)
             ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
@@ -285,15 +284,28 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
                 'mode' => 'mingguan', 'status' => 'aktif',
             ])->assertStatus(200);
 
-        $row = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
-        $this->assertSame('mingguan', $row->mode_pemberlakuan);
-        $this->assertSame('mingguan', \App\Services\LaboranJadwalService::getModeDiberlakukan());
+        $this->assertSame('mingguan', $this->modeMilik($ptkId));
+        $this->assertSame('mingguan', \App\Services\LaboranJadwalService::getModeDiberlakukan($ptkId));
 
         // Matikan
         $this->withSession($session)
             ->postJson(route('dashboard.laboran.jadwal.toggle-pemberlakuan'), [
                 'mode' => 'mingguan', 'status' => 'draft',
             ])->assertStatus(200);
+    }
+
+    /**
+     * Mode pemberlakuan milik satu laboran (baris ptk_id), fallback baris global.
+     */
+    private function modeMilik(?string $ptkId): ?string
+    {
+        return \App\Services\LaboranJadwalService::getPengaturanJadwal($ptkId)->mode_pemberlakuan;
+    }
+
+    /** Status pemberlakuan milik satu laboran. */
+    private function statusMilik(?string $ptkId): ?string
+    {
+        return \App\Services\LaboranJadwalService::getPengaturanJadwal($ptkId)->status;
     }
 
     public function test_pemberlakuan_ketat_hanya_menampilkan_jadwal_mode_aktif(): void

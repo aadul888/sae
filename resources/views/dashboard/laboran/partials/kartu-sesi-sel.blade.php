@@ -6,10 +6,12 @@
     laboran: NAMA MAPEL, NAMA GURU, dan TEMPAT/LOKASI PRAKTIK. Jam & pukul tetap
     tersedia sebagai tooltip (`title`) agar tidak memakan ruang.
 
-    Kartu mengisi penuh tinggi sel (`flex: 1 1 0` di dalam `.jadwal-sesi-stack`)
-    supaya sel tidak terlihat kosong, dan tetap dibagi rata bila satu sel memuat
-    lebih dari satu sesi (team teaching / lahan & lapangan). Bila sesi lebih dari
-    satu, nama mapel dipangkas satu baris agar tidak ada kartu yang terpotong.
+    UKURAN KARTU: lebar tetap (kolom kelas) dan tinggi MENGISI PENUH sel sesuai
+    jumlah JP yang di-rowspan. Isi kartu (mapel, guru, lokasi) dipusatkan secara
+    vertikal di tengah kartu agar seimbang pada sesi 1 JP maupun 4 JP.
+
+    TEKS PANJANG: nama mapel maksimum 2 baris (elipsis), guru & lokasi 1 baris
+    (elipsis). Teks utuh selalu tersedia lewat atribut `title` (tooltip).
 
     Parameter:
     - $item        : baris laboran_jadwal_penggunaan (plus guru_nama, rombel_nama)
@@ -17,7 +19,6 @@
     - $jamMulai    : pukul mulai (HH:MM)
     - $jamSelesai  : pukul selesai (HH:MM)
     - $jumlahSesi  : jumlah sesi pada sel yang sama (kelas + jam) — dipakai uji/QA
-    - $mapelClamp  : maksimum baris nama mapel (1 bila sel memuat banyak sesi)
     - $canUpdate   : izin ubah
     - $canDelete   : izin hapus
 --}}
@@ -41,18 +42,13 @@
     $jamMulai = $jamMulai ?? substr((string) $item->jam_mulai, 0, 5);
     $jamSelesai = $jamSelesai ?? substr((string) $item->jam_selesai, 0, 5);
     $tooltip = trim($jamKe . ' · ' . $jamMulai . '-' . $jamSelesai, ' ·');
-
-    // Satu kartu per sesi; bila sel memuat beberapa sesi, mapel dibatasi satu baris
-    // supaya ruang tetap cukup untuk guru + lokasi (tidak terpotong).
-    $mapelClamp = (int) ($mapelClamp ?? ((int) ($jumlahSesi ?? 1) > 1 ? 1 : 2));
 @endphp
 <div class="jadwal-grid-card" title="{{ $tooltip }}"
-    style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 3px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 4px 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 3px; overflow: hidden;">
+    style="background: var(--bg-card); border: 1px solid rgba(99,102,241,0.35); border-left: 3px solid {{ $borderCol }}; border-radius: var(--radius-md, 8px); padding: 4px 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden;">
 
-    {{-- Nama mata pelajaran (+ aksi ubah/hapus) --}}
+    {{-- Nama mata pelajaran (maks. 2 baris) + aksi ubah/hapus --}}
     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; min-width: 0;">
-        <span style="font-weight: 700; font-size: var(--text-xs, 0.75rem); color: var(--text-color); line-height: 1.2; display: -webkit-box; -webkit-line-clamp: {{ $mapelClamp }}; -webkit-box-orient: vertical; overflow: hidden;"
-            title="{{ $item->mata_pelajaran }}">{{ $item->mata_pelajaran }}</span>
+        <span class="jadwal-grid-card-mapel" title="{{ $item->mata_pelajaran }}">{{ $item->mata_pelajaran }}</span>
         @if ($canUpdate || $canDelete)
             <div class="jadwal-grid-aksi" style="display: flex; align-items: center; gap: 1px; flex-shrink: 0;">
                 @if ($canUpdate)
@@ -80,17 +76,17 @@
         @endif
     </div>
 
-    {{-- Nama guru --}}
+    {{-- Nama guru (1 baris, elipsis) --}}
     <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); display: flex; align-items: center; gap: 4px; min-width: 0;"
         title="{{ $item->guru_nama ?: '-' }}">
         <i class="fas fa-chalkboard-user" style="flex-shrink: 0;"></i>
-        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->guru_nama ?: '-' }}</span>
+        <span class="jadwal-grid-card-1line">{{ $item->guru_nama ?: '-' }}</span>
     </div>
 
-    {{-- Tempat / lokasi praktik --}}
+    {{-- Tempat / lokasi praktik (1 baris, elipsis) --}}
     <div style="font-size: var(--text-2xs, 0.6875rem); color: {{ $borderCol }}; font-weight: 700; display: flex; align-items: center; gap: 4px; min-width: 0;"
         title="{{ $item->ruang_lab_nama ?: '-' }}">
         <i class="fas {{ $jenisIconG }}" style="flex-shrink: 0;"></i>
-        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->ruang_lab_nama ?: '-' }}</span>
+        <span class="jadwal-grid-card-1line">{{ $item->ruang_lab_nama ?: '-' }}</span>
     </div>
 </div>

@@ -72,8 +72,13 @@ class LaboranJadwalValidasiTest extends LaboranTestCase
      */
     private function mapelDenganKuota(object $rombel, string $hari): ?array
     {
+        // Hanya sumber KBM yang sedang diberlakukan yang menjadi acuan kuota
+        // (jadwal KBM bisa berasal dari penjadwal otomatis maupun input manual).
+        $sumberAktif = (new \App\Services\LaboranJadwalService())->sumberKbmAktif();
+
         $rows = DB::table('jadwal_kbm')
             ->where('rombongan_belajar_id', $rombel->rombongan_belajar_id)
+            ->where('sumber', $sumberAktif)
             ->where('is_active', true)
             ->where('hari', $hari)
             ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])

@@ -91,6 +91,9 @@
                         </option>
                     @endforeach
                 </select>
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Saat diisi dari matriks, kelas terkunci otomatis sesuai sel yang diklik.
+                </div>
             </div>
 
             {{-- 4. Guru Pengampu & Mata Pelajaran --}}
@@ -118,11 +121,13 @@
                 </div>
             </div>
 
-            {{-- 6. Alokasi Waktu: Jam Ke-1 s/d Jam Ke-N --}}
+            {{-- 6. Jam Pelajaran (JP): rentang Jam ke-N s/d Jam ke-M --}}
             <div style="margin-bottom: var(--space-8);">
                 <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                    <i class="fas fa-clock text-primary me-1"></i> Alokasi Waktu Jam Pelajaran (JP) <span style="color: var(--danger, #ef4444);">*</span>
+                    <i class="fas fa-clock text-primary me-1"></i> Jam Pelajaran (JP) <span style="color: var(--danger, #ef4444);">*</span>
                 </label>
+                {{-- Satu pengisian boleh mencakup beberapa JP sekaligus,
+                     mis. Jam ke-1 s/d Jam ke-4. --}}
                 <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-4); align-items: center;">
                     <div>
                         <select name="jam_ke_mulai" id="selectJamKeMulaiSemester" class="form-control" required>
@@ -135,6 +140,9 @@
                             <option value="">-- Jam Selesai --</option>
                         </select>
                     </div>
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Pilih rentang jam praktik, mis. Jam ke-1 s/d Jam ke-4 untuk 4 JP sekaligus.
                 </div>
             </div>
 

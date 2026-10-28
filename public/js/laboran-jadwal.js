@@ -104,24 +104,30 @@ document.addEventListener('DOMContentLoaded', function () {
     // -------------------------------------------------------------------------
     let slotPerHariCache = null;
 
+    /**
+     * Isi pilihan Jam Pelajaran. Rentang boleh mencakup beberapa JP
+     * (mis. Jam ke-1 s/d Jam ke-4), jadi kedua dropdown memuat daftar slot yang
+     * sama dan pilihan selesai tidak lagi dipaksa mengikuti pilihan mulai.
+     */
     function fillJamKeSlots(selectMulai, selectSelesai, slots, preselectMulai, preselectSelesai) {
-        if (!selectMulai || !selectSelesai) return;
+        if (!selectMulai) return;
 
         selectMulai.innerHTML = '';
-        selectSelesai.innerHTML = '';
+        if (selectSelesai) selectSelesai.innerHTML = '';
 
         const keys = Object.keys(slots || {}).filter(function (ke) {
             const s = slots[ke];
             // Lewati slot rutinitas (Upacara, Pembiasaan, Istirahat) — bukan jam praktik.
             return !s || !(s.is_break || s.is_upacara || s.is_pembiasaan || s.schedulable === false);
         });
+
         if (keys.length === 0) {
             for (let k = 1; k <= 10; k++) {
                 selectMulai.appendChild(new Option('Jam ke-' + k, k));
-                selectSelesai.appendChild(new Option('Jam ke-' + k, k));
+                if (selectSelesai) selectSelesai.appendChild(new Option('Jam ke-' + k, k));
             }
             selectMulai.value = preselectMulai || '1';
-            selectSelesai.value = preselectSelesai || '1';
+            if (selectSelesai) selectSelesai.value = preselectSelesai || selectMulai.value;
             return;
         }
 
@@ -129,11 +135,36 @@ document.addEventListener('DOMContentLoaded', function () {
             const s = slots[ke];
             const label = 'Jam ke-' + s.ke + ' (' + s.mulai + ' - ' + s.selesai + ')';
             selectMulai.appendChild(new Option(label, s.ke));
-            selectSelesai.appendChild(new Option(label, s.ke));
+            if (selectSelesai) selectSelesai.appendChild(new Option(label, s.ke));
         });
 
         if (preselectMulai) selectMulai.value = String(preselectMulai);
-        if (preselectSelesai) selectSelesai.value = String(preselectSelesai);
+        if (selectSelesai) {
+            if (preselectSelesai) selectSelesai.value = String(preselectSelesai);
+            else if (preselectMulai) selectSelesai.value = String(preselectMulai);
+        }
+    }
+
+    /**
+     * Jaga agar "Jam Selesai" tidak pernah lebih kecil dari "Jam Mulai".
+     * Rentang beberapa JP tetap diperbolehkan (mis. 1 s/d 4).
+     */
+    function jagaRentangJam(selectMulai, selectSelesai) {
+        if (!selectMulai || !selectSelesai) return;
+
+        const sinkron = function () {
+            const mulai = Number(selectMulai.value || 0);
+            const selesai = Number(selectSelesai.value || 0);
+            if (mulai > 0 && selesai < mulai) selectSelesai.value = String(mulai);
+        };
+
+        selectMulai.addEventListener('change', function () {
+            // Jam selesai belum dipilih: ikut jam mulai agar tidak kosong.
+            if (!selectSelesai.value) selectSelesai.value = selectMulai.value || '';
+            sinkron();
+        });
+        selectSelesai.addEventListener('change', sinkron);
+        sinkron();
     }
 
     function loadSlotsForHari(hari, selectMulai, selectSelesai, preselectMulai, preselectSelesai) {
@@ -237,7 +268,66 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function loadGuruMapel(rombelId, selectEl, hintEl, preselectPembelajaranId) {
+    /**
+     * Kunci / buka pilihan kelas pada modal.
+     * Saat laboran mengisi dari sel matriks, kelas sudah ditentukan oleh sel
+     * yang diklik sehingga dropdown kelas dibuat read-only (tidak bisa diganti)
+     * agar jadwal tidak tersimpan ke kelas lain.
+     *
+     * Catatan: elemen `disabled` TIDAK ikut terkirim saat submit, jadi nilainya
+     * disalin ke hidden input `rombel_id` pendamping.
+     */
+    function setKelasTerpilih(selectEl, rombelId, rombelNama) {
+        if (!selectEl) return;
+
+        const form = selectEl.form;
+        let hidden = form ? form.querySelector('input[type="hidden"][data-kelas-locked]') : null;
+
+        if (rombelId) {
+            // Pastikan opsi tersedia sebelum mengunci (mis. kelas di luar cakupan list).
+            if (![...selectEl.options].some(function (o) { return o.value === rombelId; })) {
+                selectEl.appendChild(new Option(rombelNama || rombelId, rombelId));
+            }
+            selectEl.value = rombelId;
+            selectEl.dataset.locked = '1';
+            selectEl.disabled = true;
+            selectEl.style.background = 'var(--bg-hover)';
+            selectEl.style.cursor = 'not-allowed';
+
+            if (form) {
+                if (!hidden) {
+                    hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'rombel_id';
+                    hidden.setAttribute('data-kelas-locked', '1');
+                    form.appendChild(hidden);
+                }
+                hidden.value = rombelId;
+            }
+        } else {
+            selectEl.disabled = false;
+            delete selectEl.dataset.locked;
+            selectEl.style.background = '';
+            selectEl.style.cursor = '';
+            if (hidden) hidden.remove();
+        }
+    }
+
+    /**
+     * Buka kunci kelas (dipakai saat modal dibuka tanpa konteks sel matriks).
+     */
+    function bukaKunciKelas(selectEl) {
+        if (!selectEl) return;
+        selectEl.disabled = false;
+        delete selectEl.dataset.locked;
+        selectEl.style.background = '';
+        selectEl.style.cursor = '';
+        const form = selectEl.form;
+        const hidden = form ? form.querySelector('input[type="hidden"][data-kelas-locked]') : null;
+        if (hidden) hidden.remove();
+    }
+
+    function loadGuruMapel(rombelId, selectEl, hintEl, preselectPembelajaranId, hari) {
         if (!selectEl) return;
 
         if (!rombelId) {
@@ -247,7 +337,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch(GURU_MAPEL_URL + '?rombel_id=' + encodeURIComponent(rombelId), {
+        let url = GURU_MAPEL_URL + '?rombel_id=' + encodeURIComponent(rombelId);
+        if (hari) url += '&hari=' + encodeURIComponent(hari);
+
+        fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             credentials: 'same-origin'
         })
@@ -272,7 +365,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (selectRombelMingguan) {
         selectRombelMingguan.addEventListener('change', function () {
-            loadGuruMapel(this.value, selectGuruMapelMingguan, hintMingguan, null);
+            const hari = inputHariMingguan ? inputHariMingguan.value : '';
+            loadGuruMapel(this.value, selectGuruMapelMingguan, hintMingguan, null, hari);
         });
     }
 
@@ -336,7 +430,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (selectRombelSemester) {
         selectRombelSemester.addEventListener('change', function () {
-            loadGuruMapel(this.value, selectGuruMapelSemester, hintSemester, null);
+            const hari = inputHariSemester ? inputHariSemester.value : '';
+            loadGuruMapel(this.value, selectGuruMapelSemester, hintSemester, null, hari);
         });
     }
 
@@ -365,6 +460,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formJadwalSemester.action = BASE_URL;
             if (jadwalMethodSemester) jadwalMethodSemester.value = 'POST';
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Jadwalkan Praktik (Semester)';
+            bukaKunciKelas(selectRombelSemester);
             setGuruMapelOptions(selectGuruMapelSemester, hintSemester, []);
             if (inputTanggalSemester) {
                 inputTanggalSemester.value = fmtDate(new Date());
@@ -380,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formJadwalMingguan.action = BASE_URL;
             if (jadwalMethodMingguan) jadwalMethodMingguan.value = 'POST';
             if (modalJadwalMingguanTitle) modalJadwalMingguanTitle.textContent = 'Jadwalkan Praktik (Mingguan)';
+            bukaKunciKelas(selectRombelMingguan);
             setGuruMapelOptions(selectGuruMapelMingguan, hintMingguan, []);
             if (inputTanggalMingguan) {
                 inputTanggalMingguan.value = fmtDate(new Date());
@@ -409,18 +506,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (mode === 'semester') {
             if (inputHariSemester) inputHariSemester.value = slotHari;
-            // Kelas langsung terisi dari baris grid, lalu mapel/guru dimuat otomatis.
-            if (selectRombelSemester && rombelId) {
-                selectRombelSemester.value = rombelId;
-                loadGuruMapel(rombelId, selectGuruMapelSemester, hintSemester, null);
+            // Kelas dikunci dari baris grid, lalu mapel/guru dimuat otomatis
+            // terbatas pada mapel yang terjadwal di Jadwal KBM kelas + hari ini.
+            setKelasTerpilih(selectRombelSemester, rombelId, rombelNama);
+            if (rombelId) {
+                loadGuruMapel(rombelId, selectGuruMapelSemester, hintSemester, null, slotHari);
             }
             loadSlotsForHari(slotHari, selectJamKeMulaiSemester, selectJamKeSelesaiSemester, jamKe, jamKe);
         } else {
             if (inputHariMingguan) inputHariMingguan.value = slotHari;
             if (inputTanggalMingguan) inputTanggalMingguan.value = tanggalUntukHari(slotHari);
-            if (selectRombelMingguan && rombelId) {
-                selectRombelMingguan.value = rombelId;
-                loadGuruMapel(rombelId, selectGuruMapelMingguan, hintMingguan, null);
+            setKelasTerpilih(selectRombelMingguan, rombelId, rombelNama);
+            if (rombelId) {
+                loadGuruMapel(rombelId, selectGuruMapelMingguan, hintMingguan, null, slotHari);
             }
             loadSlotsForHari(slotHari, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan, jamKe, jamKe);
         }
@@ -446,11 +544,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (jadwalMethodSemester) jadwalMethodSemester.value = 'PUT';
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Ubah Jadwal Praktik (Semester)';
             if (selectLokasiSemester) selectLokasiSemester.value = d.lokasi || '';
+            bukaKunciKelas(selectRombelSemester);
             if (selectRombelSemester) selectRombelSemester.value = d.rombelId || '';
             if (inputTanggalSemester) inputTanggalSemester.value = d.tanggal || '';
             const hariEditS = hariDariTanggal(d.tanggal) || 'Senin';
             if (inputHariSemester) inputHariSemester.value = hariEditS;
-            loadGuruMapel(d.rombelId || '', selectGuruMapelSemester, hintSemester, d.pembelajaranId || null);
+            loadGuruMapel(d.rombelId || '', selectGuruMapelSemester, hintSemester, d.pembelajaranId || null, hariEditS);
             loadSlotsForHari(hariEditS, selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
             modalJadwalSemester.style.display = 'flex';
         } else {
@@ -460,11 +559,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (jadwalMethodMingguan) jadwalMethodMingguan.value = 'PUT';
             if (modalJadwalMingguanTitle) modalJadwalMingguanTitle.textContent = 'Ubah Jadwal Praktik (Mingguan)';
             if (selectLokasiMingguan) selectLokasiMingguan.value = d.lokasi || '';
+            bukaKunciKelas(selectRombelMingguan);
             if (selectRombelMingguan) selectRombelMingguan.value = d.rombelId || '';
             if (inputTanggalMingguan) inputTanggalMingguan.value = d.tanggal || '';
             const hariEditM = hariDariTanggal(d.tanggal) || 'Senin';
             if (inputHariMingguan) inputHariMingguan.value = hariEditM;
-            loadGuruMapel(d.rombelId || '', selectGuruMapelMingguan, hintMingguan, d.pembelajaranId || null);
+            loadGuruMapel(d.rombelId || '', selectGuruMapelMingguan, hintMingguan, d.pembelajaranId || null, hariEditM);
             loadSlotsForHari(hariEditM, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
             modalJadwalMingguan.style.display = 'flex';
         }
@@ -551,6 +651,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     }
+
+    // Rentang jam: jam selesai tidak boleh lebih kecil dari jam mulai.
+    jagaRentangJam(selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan);
+    jagaRentangJam(selectJamKeMulaiSemester, selectJamKeSelesaiSemester);
 
     handleFormSubmit(
         formJadwalMingguan,

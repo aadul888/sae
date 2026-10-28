@@ -52,24 +52,20 @@ class LaboranJadwalController extends Controller
 
         // Pengaturan pemberlakuan jadwal (2 tab: Mingguan / Semester).
         // Pemberlakuan ketat: klik tab = otomatis berlaku, hanya 1 mode yang diberlakukan.
-        $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal();
+        // Disimpan PER LABORAN (ptk_id) agar tidak saling menimpa antar laboran.
+        $laboranPtkId = $this->currentPtkId();
+        $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal($laboranPtkId);
         $modePilih = trim((string) $request->query('mode_pemberlakuan', ''));
         if ($modePilih !== '' && array_key_exists($modePilih, LaboranJadwalService::MODE_PEMBERLAKUAN)) {
-            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
-                'mode_pemberlakuan'        => $modePilih,
-                'status'                   => 'aktif',
-                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
-                'updated_at'               => now(),
-            ]);
-            $pengaturanJadwal = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+            LaboranJadwalService::simpanPengaturanLaboran($laboranPtkId, $modePilih, 'aktif');
+            $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal($laboranPtkId);
         } elseif (($pengaturanJadwal->status ?? '') !== 'aktif') {
-            DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
-                'mode_pemberlakuan'        => $pengaturanJadwal->mode_pemberlakuan ?: 'semester',
-                'status'                   => 'aktif',
-                'diberlakukan_oleh_ptk_id' => $this->currentPtkId(),
-                'updated_at'               => now(),
-            ]);
-            $pengaturanJadwal = DB::table('laboran_jadwal_pengaturan')->where('id', 1)->first();
+            LaboranJadwalService::simpanPengaturanLaboran(
+                $laboranPtkId,
+                $pengaturanJadwal->mode_pemberlakuan ?: 'semester',
+                'aktif'
+            );
+            $pengaturanJadwal = LaboranJadwalService::getPengaturanJadwal($laboranPtkId);
         }
 
         $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'semester';
@@ -484,12 +480,23 @@ class LaboranJadwalController extends Controller
     /**
      * AJAX: daftar gabungan guru pengampu + mata pelajaran + kelas dari data
      * pembelajaran (seluruh rombel). Dipakai dropdown simpel modal jadwal.
+     *
+     * Bila `hari` (dan opsional `rombel_id`) diberikan, daftar DIBATASI pada
+     * mata pelajaran yang benar-benar terjadwal di Jadwal KBM umum untuk kelas
+     * dan hari tersebut — laboran hanya memilih mapel yang memang ada.
      */
     public function guruMapelList(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
         $rombelId = trim((string) $request->query('rombel_id', ''));
+        $hari = trim((string) $request->query('hari', ''));
+
+        // Penjadwalan KBM: mapel yang dijadwalkan pada kelas + hari ini.
+        $kbmMapelKeys = [];
+        if ($rombelId !== '' && $hari !== '') {
+            $kbmMapelKeys = $this->service->mapelTerjadwalKbm($rombelId, $hari);
+        }
 
         $rows = DB::table('pembelajaran as p')
             ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
@@ -519,6 +526,11 @@ class LaboranJadwalController extends Controller
                 continue;
             }
 
+            // Filter KBM: hanya mapel yang terjadwal di kelas + hari ini.
+            if ($kbmMapelKeys && !isset($kbmMapelKeys[$this->mapelKeyKbm($r)])) {
+                continue;
+            }
+
             $guruNama = trim((string) $r->nama_guru);
             $key = ($guruNama ?: '-') . '|' . $mapel . '|' . ($r->rombongan_belajar_id ?? '-');
             if (isset($seen[$key])) {
@@ -541,6 +553,25 @@ class LaboranJadwalController extends Controller
         }
 
         return response()->json(['status' => 'success', 'guru_mapel' => $list]);
+    }
+
+    /**
+     * Kunci pembanding antara baris `pembelajaran` dan `jadwal_kbm`.
+     *
+     * `jadwal_kbm` menyimpan mapel sebagai NAMA (`nama_mata_pelajaran`),
+     * sedangkan `pembelajaran` menyimpan id + nama. Dipakai `pembelajaran_id`
+     * bila ada, jika tidak jatuh ke nama mapel yang dinormalkan.
+     */
+    protected function mapelKeyKbm(object $row): string
+    {
+        $pid = trim((string) ($row->pembelajaran_id ?? ''));
+        if ($pid !== '' && !str_starts_with($pid, 'ROUTINE_')) {
+            return 'id:' . $pid;
+        }
+
+        $nama = strtolower(trim((string) ($row->nama_mata_pelajaran ?? '')));
+
+        return 'nama:' . preg_replace('/\s+/', ' ', $nama);
     }
 
     /**
@@ -860,12 +891,8 @@ class LaboranJadwalController extends Controller
 
         $ptkId = $this->currentPtkId();
 
-        DB::table('laboran_jadwal_pengaturan')->where('id', 1)->update([
-            'mode_pemberlakuan'       => $data['mode'],
-            'status'                  => $data['status'],
-            'diberlakukan_oleh_ptk_id' => $data['status'] === 'aktif' ? $ptkId : null,
-            'updated_at'              => now(),
-        ]);
+        // Simpan hanya untuk laboran yang sedang login (per-ptk_id).
+        LaboranJadwalService::simpanPengaturanLaboran($ptkId, $data['mode'], $data['status']);
 
         $label = LaboranJadwalService::MODE_PEMBERLAKUAN[$data['mode']];
         $msg = $data['status'] === 'aktif'
