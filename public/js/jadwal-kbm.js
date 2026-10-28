@@ -358,23 +358,46 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then((data) => {
                 const items = data.pembelajaran || [];
-                selectPembelajaran.innerHTML =
-                    '<option value="">-- Pilih Mata Pelajaran &amp; Guru --</option>';
 
-                if (items.length === 0) {
-                    selectPembelajaran.innerHTML =
-                        '<option value="">Tidak ada data pembelajaran di rombel ini</option>';
+                // Sembunyikan mapel yang kuota JP-nya sudah penuh, KECUALI mapel
+                // yang sedang diedit (agar nilai lama tetap bisa dilihat/dipertahankan).
+                const tersedia = items.filter(
+                    (item) =>
+                        !item.sudah_penuh ||
+                        (selectedPembelajaranId &&
+                            item.pembelajaran_id === selectedPembelajaranId)
+                );
+
+                const jumlahPenuh = items.length - tersedia.length;
+
+                if (tersedia.length === 0) {
+                    selectPembelajaran.innerHTML = items.length
+                        ? '<option value="">Semua mata pelajaran sudah terjadwal penuh</option>'
+                        : '<option value="">Tidak ada data pembelajaran di rombel ini</option>';
                     selectPembelajaran.disabled = true;
                     return;
                 }
 
-                items.forEach((item) => {
+                let header =
+                    '<option value="">-- Pilih Mata Pelajaran &amp; Guru --</option>';
+                if (jumlahPenuh > 0) {
+                    header += `<option value="" disabled>${jumlahPenuh} mapel disembunyikan (sudah penuh)</option>`;
+                }
+                selectPembelajaran.innerHTML = header;
+
+                tersedia.forEach((item) => {
                     const opt = document.createElement("option");
                     opt.value = item.pembelajaran_id;
                     opt.dataset.ptk = item.ptk_id || "";
                     opt.dataset.mapel = item.nama_mata_pelajaran || "";
                     opt.dataset.guru = item.nama_guru || "Tanpa Guru";
-                    opt.textContent = `${item.nama_mata_pelajaran} (${item.nama_guru || "Belum Ditugaskan"} - ${item.jam_mengajar_per_minggu || 0} JP)`;
+
+                    const sisa =
+                        item.sisa_jp === null || item.sisa_jp === undefined
+                            ? null
+                            : Number(item.sisa_jp);
+                    const sisaText = sisa === null ? "" : ` - sisa ${sisa} JP`;
+                    opt.textContent = `${item.nama_mata_pelajaran} (${item.nama_guru || "Belum Ditugaskan"} - ${item.jam_mengajar_per_minggu || 0} JP${sisaText})`;
 
                     if (
                         selectedPembelajaranId &&

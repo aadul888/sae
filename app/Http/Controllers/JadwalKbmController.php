@@ -47,6 +47,7 @@ class JadwalKbmController extends Controller
         $viewMode   = $request->get('view_mode', 'grid');
         $selectedHari = $request->get('hari') ?: 'Senin';
         $tingkat    = trim($request->get('tingkat', ''));
+        $jurusan    = trim((string) $request->get('jurusan', ''));
         $hari       = trim($request->get('hari', ''));
         $rombelId   = trim($request->get('rombel_id', ''));
         $guruId     = trim($request->get('ptk_id', ''));
@@ -142,20 +143,80 @@ class JadwalKbmController extends Controller
 
         $rombelList = $rombelQuery->get();
 
-        // Rombel Khusus Tampilan Grid (Hanya Kelas Reguler, bisa difilter per tingkat)
-        $gridRombelsQuery = DB::table('rombongan_belajar')
+        // Rombel Khusus Tampilan Grid (Hanya Kelas Reguler, bisa difilter per tingkat & jurusan)
+        $gridRombelsQuery = DB::table('rombongan_belajar as rb')
+            ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id')
             ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                    ->orWhere('jenis_rombel_str', 'Kelas')
-                    ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
+                $w->where('rb.jenis_rombel', 1)
+                    ->orWhere('rb.jenis_rombel_str', 'Kelas')
+                    ->orWhere('rb.jenis_rombel_str', 'LIKE', '%reguler%');
             })
-            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
-            ->orderBy('tingkat_pendidikan_id', 'asc')
-            ->orderBy('nama', 'asc');
+            ->select(
+                'rb.rombongan_belajar_id',
+                'rb.nama',
+                'rb.tingkat_pendidikan_id',
+                'rb.jurusan_id',
+                'rb.jurusan_id_str',
+                'jm.singkatan as jurusan_singkatan'
+            )
+            ->orderBy('rb.jurusan_id_str', 'asc')
+            ->orderBy('rb.tingkat_pendidikan_id', 'asc')
+            ->orderBy('rb.nama', 'asc');
         if ($tingkat !== '') {
-            $gridRombelsQuery->where('tingkat_pendidikan_id', $tingkat);
+            $gridRombelsQuery->where('rb.tingkat_pendidikan_id', $tingkat);
+        }
+        if ($jurusan !== '') {
+            $gridRombelsQuery->where('rb.jurusan_id', $jurusan);
         }
         $gridRombels = $gridRombelsQuery->get();
+
+        // Label grup kolom per jurusan: singkatan bila ada, jika tidak nama jurusan Dapodik.
+        $labelJurusan = function ($r): string {
+            $singkatan = trim((string) ($r->jurusan_singkatan ?? ''));
+            if ($singkatan !== '') {
+                return $singkatan;
+            }
+            $nama = trim((string) ($r->jurusan_id_str ?? ''));
+
+            return $nama !== '' ? $nama : 'Tanpa Jurusan';
+        };
+
+        // Kelompokkan kolom rombel per jurusan agar kelas sejurusan berdampingan.
+        $gridGroups = [];
+        foreach ($gridRombels as $r) {
+            $key = (string) ($r->jurusan_id ?? '');
+            if (!isset($gridGroups[$key])) {
+                $gridGroups[$key] = [
+                    'label'  => $labelJurusan($r),
+                    'nama'   => trim((string) ($r->jurusan_id_str ?? '')) ?: 'Tanpa Jurusan',
+                    'rombel' => [],
+                ];
+            }
+            $gridGroups[$key]['rombel'][] = $r;
+        }
+
+        // Daftar jurusan untuk filter (selalu dari seluruh rombel, bukan hasil filter,
+        // agar pilihan tidak hilang setelah memilih salah satu jurusan).
+        $jurusanFilterQuery = DB::table('rombongan_belajar as rb')
+            ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id')
+            ->where(function ($w) {
+                $w->where('rb.jenis_rombel', 1)
+                    ->orWhere('rb.jenis_rombel_str', 'Kelas')
+                    ->orWhere('rb.jenis_rombel_str', 'LIKE', '%reguler%');
+            })
+            ->whereNotNull('rb.jurusan_id')
+            ->select(
+                'rb.jurusan_id',
+                'rb.jurusan_id_str',
+                'jm.singkatan',
+                DB::raw('COUNT(*) as total_rombel')
+            )
+            ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str', 'jm.singkatan')
+            ->orderBy('rb.jurusan_id_str', 'asc');
+        if ($tingkat !== '') {
+            $jurusanFilterQuery->where('rb.tingkat_pendidikan_id', $tingkat);
+        }
+        $jurusanList = $jurusanFilterQuery->get();
 
         $guruList = DB::table('gtk')
             ->select('ptk_id', 'nama', 'nip')
@@ -189,6 +250,9 @@ class JadwalKbmController extends Controller
 
         $daySchedules = $daySchedulesQuery->get();
 
+        // Matriks grid: satu sel dapat memuat LEBIH DARI SATU jadwal (mis. team teaching
+        // atau dua guru pada jam sama). Jika hanya disimpan satu item per sel, jadwal
+        // berikutnya akan saling menimpa dan hilang dari tampilan.
         $gridMatrix = [];
         $gridOccupied = [];
         foreach ($daySchedules as $item) {
@@ -196,9 +260,9 @@ class JadwalKbmController extends Controller
             $startK = (int) $item->jam_ke_mulai;
             $endK = (int) $item->jam_ke_selesai;
 
-            $gridMatrix[$rId][$startK] = $item;
+            $gridMatrix[$rId][$startK][] = $item;
             for ($k = $startK + 1; $k <= $endK; $k++) {
-                $gridOccupied[$rId][$k] = $item->id;
+                $gridOccupied[$rId][$k] = true;
             }
         }
 
@@ -258,6 +322,8 @@ class JadwalKbmController extends Controller
             'summary',
             'rombelList',
             'gridRombels',
+            'gridGroups',
+            'jurusanList',
             'guruList',
             'pengaturan',
             'dailySlotCounts',
@@ -265,6 +331,7 @@ class JadwalKbmController extends Controller
             'hari',
             'selectedHari',
             'tingkat',
+            'jurusan',
             'viewMode',
             'timeSlots',
             'gridMatrix',

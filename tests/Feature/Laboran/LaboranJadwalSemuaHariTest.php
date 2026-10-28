@@ -36,24 +36,89 @@ class LaboranJadwalSemuaHariTest extends LaboranTestCase
         }
 
         $res = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid']));
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Selasa']));
 
         $res->assertStatus(200);
         $res->assertSee('UJI-SELASA', false);
-        $res->assertSee('UJI-RABU', false);
-        // Matriks menampilkan kolom semua hari (Senin..Sabtu).
+        // Matriks menampilkan pemilih seluruh hari (Senin..Sabtu).
         $res->assertSee('Sabtu', false);
     }
 
-    public function test_rutinitas_upacara_pembiasaan_istirahat_tampil_di_matriks(): void
+    /**
+     * Matriks berbaris JAM KE-1..13 dan berkolom KELAS. Sesi praktik harus muncul
+     * pada kolom kelasnya, dan sesi multi-JP digabung menjadi satu kartu (rowspan).
+     */
+    public function test_matriks_baris_jam_kolom_kelas_dan_sesi_multi_jp_digabung(): void
+    {
+        $kelas = DB::table('rombongan_belajar')
+            ->where(function ($q) {
+                $q->where('jenis_rombel', 1)->orWhere('jenis_rombel', '1');
+            })
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('pembelajaran')
+                    ->whereColumn('pembelajaran.rombongan_belajar_id', 'rombongan_belajar.rombongan_belajar_id');
+            })
+            ->first();
+        $this->assertNotNull($kelas, 'Butuh minimal satu rombel reguler.');
+
+        DB::table('laboran_jadwal_penggunaan')->insert([
+            'jurusan_id'     => $kelas->jurusan_id ?: self::JUR_ATPH,
+            'ruang_lab_nama' => 'Lahan Praktik ATPH',
+            'jenis_lokasi'   => 'lahan',
+            'ptk_id'         => (string) DB::table('gtk')->value('ptk_id'),
+            'rombel_id'      => $kelas->rombongan_belajar_id,
+            'mata_pelajaran' => 'UJI-BARIS-JAM',
+            'tanggal'        => '2026-11-02', // Senin
+            'jam_mulai'      => '08:00',
+            'jam_selesai'    => '09:30', // Jam ke-3..4
+            'status'         => 'dijadwalkan',
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Senin']));
+
+        $res->assertStatus(200);
+
+        // Baris = Jam ke-1..13 beserta pukul.
+        $res->assertSee('Jam ke-1', false);
+        $res->assertSee('Jam ke-13', false);
+        $res->assertSee('06:30-07:15', false);
+
+        // Kolom = kelas (nama kelas jadi header kolom).
+        $res->assertSee($kelas->nama, false);
+
+        // Sesi 2 JP tampil sebagai satu kartu yang membentang dua baris jam.
+        $res->assertSee('UJI-BARIS-JAM', false);
+        $res->assertSee('Jam ke-3-4', false);
+        $res->assertSee('rowspan="2"', false);
+    }
+
+    public function test_matriks_tidak_lagi_menampilkan_filter_jurusan(): void
     {
         $res = $this->withSession($this->adminSession())
             ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid']));
 
         $res->assertStatus(200);
-        $res->assertSee('Upacara', false);
-        $res->assertSee('Pembiasaan', false);
-        $res->assertSee('Istirahat', false);
+        // Semua kelas dalam cakupan digabung: tidak ada tombol filter jurusan lagi.
+        $res->assertDontSee('Jurusan:', false);
+    }
+
+    public function test_rutinitas_tampil_pada_hari_yang_dipilih(): void
+    {
+        // Senin: Upacara pada jam ke-1; hari lain (mis. Jumat) memuat Pembiasaan.
+        $senin = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Senin']));
+        $senin->assertStatus(200);
+        $senin->assertSee('Upacara', false);
+        $senin->assertSee('Istirahat', false);
+
+        $jumat = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.index', ['view_mode' => 'grid', 'hari_grid' => 'Jumat']));
+        $jumat->assertStatus(200);
+        $jumat->assertSee('Pembiasaan', false);
     }
 
     public function test_slot_endpoint_mengembalikan_slot_per_hari(): void

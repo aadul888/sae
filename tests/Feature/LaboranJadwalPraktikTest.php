@@ -48,9 +48,32 @@ class LaboranJadwalPraktikTest extends TestCase
         return $rombel;
     }
 
+    /**
+     * ID baris yang sudah ada SEBELUM test berjalan.
+     *
+     * Pengujian memakai database operasional, jadi cleanup tidak boleh
+     * mengosongkan tabel: cukup hapus baris yang benar-benar dibuat test ini.
+     *
+     * @var array<int, int>
+     */
+    private array $jadwalIdsSebelum = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->jadwalIdsSebelum = DB::table('laboran_jadwal_penggunaan')->pluck('id')->all();
+    }
+
     protected function tearDown(): void
     {
-        DB::table('laboran_jadwal_penggunaan')->delete();
+        // Hanya hapus baris yang dibuat selama test (jangan sentuh data nyata).
+        $q = DB::table('laboran_jadwal_penggunaan');
+        if (!empty($this->jadwalIdsSebelum)) {
+            $q->whereNotIn('id', $this->jadwalIdsSebelum);
+        }
+        $q->delete();
+
         parent::tearDown();
     }
 
@@ -415,6 +438,21 @@ class LaboranJadwalPraktikTest extends TestCase
         $rombel = $this->kelasReguler();
         $ptkId  = (string) DB::table('gtk')->value('ptk_id');
 
+        $urlBulan = route('dashboard.laboran.laporan.index', ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026]);
+        $urlTw    = route('dashboard.laboran.laporan.index', ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026]);
+
+        // Baseline: pengujian berjalan pada database operasional, jadi patokan
+        // adalah SELISIH sebelum/sesudah insert (bukan angka mutlak).
+        $baseBulan = $this->withSession($this->adminSession())->get($urlBulan);
+        $baseSesi  = $baseBulan->viewData('totalSesi');
+        $baseSelesai = $baseBulan->viewData('totalSelesai');
+        $baseLokasi  = $baseBulan->viewData('lokasiUnik');
+        $baseTw    = $this->withSession($this->adminSession())->get($urlTw)->viewData('totalSesi');
+        $kebunAda  = DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', 'Kebun Sekolah')
+            ->whereBetween('tanggal', ['2026-10-01', '2026-10-31'])
+            ->exists();
+
         // Sesi di dalam periode (Oktober 2026)
         DB::table('laboran_jadwal_penggunaan')->insert([
             [
@@ -447,18 +485,16 @@ class LaboranJadwalPraktikTest extends TestCase
             ],
         ]);
 
-        $res = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.laporan.index', ['periode' => 'bulan', 'bulan' => 10, 'tahun' => 2026]));
+        $res = $this->withSession($this->adminSession())->get($urlBulan);
 
         $res->assertStatus(200);
-        $this->assertSame(1, $res->viewData('totalSesi'), 'Hanya sesi Oktober yang dihitung pada periode bulanan.');
-        $this->assertSame(1, $res->viewData('totalSelesai'));
-        $this->assertSame(1, $res->viewData('lokasiUnik'));
+        $this->assertSame($baseSesi + 1, $res->viewData('totalSesi'), 'Hanya sesi Oktober yang dihitung pada periode bulanan.');
+        $this->assertSame($baseSelesai + 1, $res->viewData('totalSelesai'));
+        $this->assertSame($baseLokasi + ($kebunAda ? 0 : 1), $res->viewData('lokasiUnik'));
 
         // Triwulan IV (Okt-Des) memuat keduanya
-        $tw = $this->withSession($this->adminSession())
-            ->get(route('dashboard.laboran.laporan.index', ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026]));
+        $tw = $this->withSession($this->adminSession())->get($urlTw);
 
-        $this->assertSame(2, $tw->viewData('totalSesi'));
+        $this->assertSame($baseTw + 2, $tw->viewData('totalSesi'));
     }
 }

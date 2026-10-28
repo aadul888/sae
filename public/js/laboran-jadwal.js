@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Quick Slot pada Matriks Grid
+    // Quick Slot pada Matriks Grid (baris = kelas, kolom = jam ke-1..13)
     document.addEventListener('click', function (e) {
         const btnSlot = e.target.closest('.btn-quick-slot');
         if (!btnSlot) return;
@@ -404,14 +404,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const slotHari = btnSlot.dataset.hari || 'Senin';
         const jamKe = btnSlot.dataset.jamKe || '1';
+        const rombelId = btnSlot.dataset.rombelId || '';
+        const rombelNama = btnSlot.dataset.rombelNama || '';
 
         if (mode === 'semester') {
             if (inputHariSemester) inputHariSemester.value = slotHari;
+            // Kelas langsung terisi dari baris grid, lalu mapel/guru dimuat otomatis.
+            if (selectRombelSemester && rombelId) {
+                selectRombelSemester.value = rombelId;
+                loadGuruMapel(rombelId, selectGuruMapelSemester, hintSemester, null);
+            }
             loadSlotsForHari(slotHari, selectJamKeMulaiSemester, selectJamKeSelesaiSemester, jamKe, jamKe);
         } else {
             if (inputHariMingguan) inputHariMingguan.value = slotHari;
             if (inputTanggalMingguan) inputTanggalMingguan.value = tanggalUntukHari(slotHari);
+            if (selectRombelMingguan && rombelId) {
+                selectRombelMingguan.value = rombelId;
+                loadGuruMapel(rombelId, selectGuruMapelMingguan, hintMingguan, null);
+            }
             loadSlotsForHari(slotHari, selectJamKeMulaiMingguan, selectJamKeSelesaiMingguan, jamKe, jamKe);
+        }
+
+        if (rombelNama) {
+            const hint = mode === 'semester' ? hintSemester : hintMingguan;
+            if (hint) hint.textContent = 'Kelas: ' + rombelNama;
         }
     });
 

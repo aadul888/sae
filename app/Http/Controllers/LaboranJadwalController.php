@@ -196,7 +196,7 @@ class LaboranJadwalController extends Controller
         LaboranScope::apply($allRombelQuery, 'jurusan_id', $context);
         $allRombel = $allRombelQuery
             ->orderBy('nama', 'asc')
-            ->get(['rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id_str', 'jurusan_id_str']);
+            ->get(['rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id_str', 'jurusan_id', 'jurusan_id_str']);
 
         $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
@@ -206,25 +206,30 @@ class LaboranJadwalController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // ==================== Matriks Grid (pola Jadwal KBM) ====================
+        // ==================== Matriks Grid: baris = KELAS, kolom = JAM KE-1..13 ====================
         $viewMode    = $request->get('view_mode', 'grid');
         $selectedHari = $request->get('hari_grid') ?: 'Senin';
         if (!in_array($selectedHari, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], true)) {
             $selectedHari = 'Senin';
         }
 
-        // Slot jam pelajaran per hari dari Pengaturan KBM (Jam ke-1..N per hari,
-        // termasuk Upacara, Pembiasaan, dan Istirahat) — setiap hari aktif.
-        $dailySlotCounts = \App\Models\JadwalPengaturan::getDailySlotCounts();
+        // Slot jam pelajaran dari Pengaturan KBM (pukul mulai/selesai per Jam Ke-N),
+        // dipakai untuk memetakan jam praktik ke label "Jam ke-N" pada kartu.
         $slotsPerHari = [];
         foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h) {
             $slotsPerHari[$h] = \App\Models\JadwalPengaturan::getSlots($h);
         }
-        $timeSlots = $slotsPerHari[$selectedHari];
 
-        // Matriks: baris = Jam Pelajaran (maks JP antar hari), KOLOM = HARI.
-        // Lokasi praktik tampil di dalam kartu sesi bersama mapel/guru/kelas.
+        // Kolom matriks = hari; baris = kelas.
         $gridLokasi = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+        // MySQL DAYNAME() mengembalikan nama Inggris; petakan ke nama Indonesia.
+        $dayNameMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
+
+        // Baris matriks = kelas (rombel) dalam cakupan jurusan pengguna, digabung
+        // lintas jurusan (tanpa filter jurusan) agar seluruh kelas laboran terlihat.
+        $gridKelas = $allRombel->values();
 
         // Sesi seluruh hari (status <> batal) — disaring ketat sesuai mode pemberlakuan aktif
         $allQuery = DB::table('laboran_jadwal_penggunaan as ljp')
@@ -241,20 +246,23 @@ class LaboranJadwalController extends Controller
         LaboranScope::apply($allQuery, 'ljp.jurusan_id', $context);
         $allSchedules = $allQuery->orderBy('ljp.tanggal')->orderBy('ljp.jam_mulai')->get();
 
-        // MySQL DAYNAME() mengembalikan nama Inggris; petakan ke nama Indonesia.
-        $dayNameMap = ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
-            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'];
-
-        // Matriks [hari][slotJP] — setiap hari memuat sesinya sendiri (multi sesi per jam didukung).
+        // Matriks [kelas][slotJP][] — kolom = kelas, baris = jam ke-1..13.
+        // Satu sel boleh memuat beberapa sesi (team teaching / lahan & lapangan).
         $gridMatrix = [];
-        $gridOccupied = [];
         $seenSlotSessions = [];
 
         foreach ($allSchedules as $item) {
             $hari = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
-            if (!in_array($hari, $gridLokasi, true)) {
+            if (!in_array($hari, $gridLokasi, true) || $hari !== $selectedHari) {
                 continue;
             }
+
+            // Kelas di luar cakupan (mis. bukan rombel reguler) tidak punya kolom.
+            $rombelId = (string) ($item->rombel_id ?? '');
+            if ($rombelId === '' || !$gridKelas->contains('rombongan_belajar_id', $rombelId)) {
+                continue;
+            }
+
             $slots = $slotsPerHari[$hari];
 
             $mulai = substr((string) $item->jam_mulai, 0, 5);
@@ -275,36 +283,40 @@ class LaboranJadwalController extends Controller
             }
             $slotSelesai = $slotSelesai ?? $slotMulai;
 
-            // Kunci sesi unik pada matriks mingguan (agar tidak duplikat berkali-kali)
-            $sessionKey = $hari . '|' . $slotMulai . '|' . $slotSelesai . '|' . ($item->ruang_lab_nama ?? '') . '|' . ($item->rombel_id ?? '') . '|' . ($item->ptk_id ?? '') . '|' . ($item->mata_pelajaran ?? '');
+            // Kunci sesi unik (agar tidak duplikat berkali-kali pada matriks pekan)
+            $sessionKey = $hari . '|' . $rombelId . '|' . $slotMulai . '|' . $slotSelesai . '|'
+                . ($item->ruang_lab_nama ?? '') . '|' . ($item->ptk_id ?? '') . '|' . ($item->mata_pelajaran ?? '');
             if (isset($seenSlotSessions[$sessionKey])) {
                 continue;
             }
             $seenSlotSessions[$sessionKey] = true;
 
-            // Simpan kartu di slotMulai dengan informasi durasi/slotAkhir
-            $gridMatrix[$hari][$slotMulai][] = [
-                'item'      => $item,
-                'slotAkhir' => $slotSelesai,
-                'isStart'   => true,
+            $gridMatrix[$rombelId][$slotMulai][] = [
+                'item'       => $item,
+                'slotMulai'  => $slotMulai,
+                'slotAkhir'  => $slotSelesai,
+                'jamKe'      => $slotMulai === $slotSelesai ? 'Jam ke-' . $slotMulai : 'Jam ke-' . $slotMulai . '-' . $slotSelesai,
+                'jamMulai'   => $slots[$slotMulai]['mulai'] ?? $mulai,
+                'jamSelesai' => $slots[$slotSelesai]['selesai'] ?? $selesai,
             ];
-
-            // Tandai slot berikutnya yang tercakup agar tidak menumpuk sebagai slot kosong
-            for ($k = $slotMulai + 1; $k <= $slotSelesai; $k++) {
-                $gridOccupied[$hari][$k] = true;
-            }
         }
 
-        // Klaster baris kontigu per hari → satu <td rowspan> per klaster (pola Jadwal KBM).
-        // Aman untuk multi-sesi per jam: seluruh sesi dalam klaster tampil di satu sel.
+        // Jumlah baris jam: 13 sesuai permintaan (Jam ke-1..13).
+        $maxSlots = 13;
+
+        // Klaster baris kontigu per KELAS -> satu <td rowspan> per klaster, sehingga
+        // pengisian jam ke-1 s/d 3 tampil sebagai SATU kartu yang membentang.
         $gridClusters = [];
-        foreach ($gridLokasi as $hari) {
+        $gridOccupied = [];
+        foreach ($gridKelas as $rb) {
+            $rid = (string) $rb->rombongan_belajar_id;
             $rowContent = [];
-            foreach ($gridMatrix[$hari] ?? [] as $r => $items) {
+            foreach ($gridMatrix[$rid] ?? [] as $r => $items) {
                 $rowContent[(int) $r] = true;
                 foreach ($items as $it) {
                     for ($k = (int) $r + 1; $k <= (int) $it['slotAkhir']; $k++) {
                         $rowContent[$k] = true;
+                        $gridOccupied[$rid][$k] = true;
                     }
                 }
             }
@@ -328,7 +340,7 @@ class LaboranJadwalController extends Controller
 
             foreach ($clusters as $c) {
                 $sesi = [];
-                foreach ($gridMatrix[$hari] ?? [] as $r => $items) {
+                foreach ($gridMatrix[$rid] ?? [] as $r => $items) {
                     if ($r >= $c['start'] && $r <= $c['end']) {
                         foreach ($items as $it) {
                             $it['rowStart'] = (int) $r;
@@ -336,30 +348,48 @@ class LaboranJadwalController extends Controller
                         }
                     }
                 }
-                $gridClusters[$hari][$c['start']] = [
+                $gridClusters[$rid][$c['start']] = [
                     'span' => $c['end'] - $c['start'] + 1,
                     'sesi' => $sesi,
                 ];
             }
         }
 
-        // Hitung sesi per hari untuk badge header (jumlah sesi unik terjadwal pada hari tersebut)
+        // Jumlah sesi per hari (badge pada pemilih hari).
         $countPerHari = [];
-        foreach ($gridMatrix as $h => $slotsMap) {
-            $totalCount = 0;
-            foreach ($slotsMap as $ke => $items) {
-                $totalCount += count($items);
+        foreach ($gridLokasi as $hari) {
+            $total = 0;
+            foreach ($allSchedules as $item) {
+                $h = $dayNameMap[date('l', strtotime((string) $item->tanggal))] ?? '';
+                if ($h === $hari) {
+                    $total++;
+                }
             }
-            $countPerHari[$h] = $totalCount;
+            $countPerHari[$hari] = $total;
         }
 
-        // Maks JP antar hari untuk tinggi baris matriks
-        $maxSlots = 0;
-        foreach ($slotsPerHari as $h => $slots) {
-            $maxSlots = max($maxSlots, count($slots));
+        // Kelompokkan baris kelas per jurusan (label dari jurusan_meta bila ada).
+        $jurusanMeta = [];
+        try {
+            $jurusanMeta = DB::table('jurusan_meta')->pluck('singkatan', 'jurusan_id')->all();
+        } catch (\Throwable $e) {
+            // Skema tanpa jurusan_meta — pakai label kelas apa adanya.
+        }
+        $gridGroups = [];
+        foreach ($gridKelas as $rb) {
+            $key = (string) ($rb->jurusan_id ?? '') ?: '__tanpa__';
+            if (!isset($gridGroups[$key])) {
+                $gridGroups[$key] = [
+                    'label' => $jurusanMeta[$key] ?? ($rb->jurusan_id_str ?: 'Tanpa Jurusan'),
+                    'nama'  => $rb->jurusan_id_str ?: '',
+                    'kelas' => [],
+                ];
+            }
+            $gridGroups[$key]['kelas'][] = $rb;
         }
 
-        // Rutinitas harian (Upacara / Pembiasaan / Istirahat) dari Pengaturan KBM
+        // Rutinitas harian (Upacara / Pembiasaan) dari Pengaturan KBM: slot ini tidak
+        // boleh dipakai praktik, jadi ditandai pada matriks (Istirahat ditandai dari slot).
         $pengaturanKbm = \App\Models\JadwalPengaturan::getSettings();
         $upacaraConfig = $pengaturanKbm->upacara ?? [];
         $pembiasaanConfig = $pengaturanKbm->pembiasaan ?? [];
@@ -368,17 +398,14 @@ class LaboranJadwalController extends Controller
                 'aktif'  => !empty($upacaraConfig['aktif']),
                 'hari'   => $upacaraConfig['hari'] ?? 'Senin',
                 'jam_ke' => (int) ($upacaraConfig['jam_ke'] ?? 1),
-                'durasi' => (int) ($upacaraConfig['durasi_menit'] ?? 45),
-                'nama'   => $upacaraConfig['nama'] ?? 'Upacara Bendera',
+                'nama'   => $upacaraConfig['nama'] ?? 'Upacara',
             ],
             'pembiasaan' => [
                 'aktif'  => !empty($pembiasaanConfig['aktif']),
                 'hari'   => $pembiasaanConfig['hari'] ?? 'Jumat',
                 'jam_ke' => (int) ($pembiasaanConfig['jam_ke'] ?? 1),
-                'durasi' => (int) ($pembiasaanConfig['durasi_menit'] ?? 40),
                 'nama'   => $pembiasaanConfig['nama'] ?? 'Pembiasaan',
             ],
-            'slotCounts' => $dailySlotCounts,
         ];
 
         $jenisLokasiLabels = self::JENIS_LOKASI;
@@ -393,13 +420,12 @@ class LaboranJadwalController extends Controller
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'perPage',
             'jenisLokasiLabels', 'statusLabels',
             'pengaturanJadwal', 'activeMode', 'modeDiberlakukan', 'modePemberlakuanLabels',
-            'viewMode', 'selectedHari', 'timeSlots', 'gridLokasi', 'gridMatrix',
-            'gridOccupied', 'gridClusters', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
+            'viewMode', 'selectedHari', 'gridLokasi', 'gridKelas', 'gridMatrix', 'gridGroups',
+            'gridClusters', 'gridOccupied', 'countPerHari', 'slotsPerHari', 'maxSlots', 'rutinitas',
             'perluPilihMode'
         ) + [
-            'context'        => $context,
-            'scopeBadge'     => LaboranScope::badge($context),
-            'jurusanOptions' => LaboranScope::jurusanOptions($context),
+            'context'         => $context,
+            'scopeBadge'      => LaboranScope::badge($context),
         ]);
     }
 

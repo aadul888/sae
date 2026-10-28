@@ -231,6 +231,9 @@ class JadwalPengaturanService
 
     /**
      * Ambil daftar pembelajaran untuk rombel target (termasuk kelas pilihan).
+     *
+     * Setiap item menyertakan `terjadwal_jp` dan `sisa_jp` agar pemanggil
+     * (modal Isi Jadwal) dapat menyembunyikan mapel yang kuotanya sudah penuh.
      */
     public function getPembelajaranByRombel(Request $request): array
     {
@@ -282,16 +285,54 @@ class JadwalPengaturanService
             )
             ->orderBy('r.jenis_rombel', 'asc')
             ->orderBy('p.nama_mata_pelajaran', 'asc')
-            ->get()
-            ->map(function ($item) use ($rombelId) {
-                $isPilihan = ($item->rombongan_belajar_id !== $rombelId);
-                if ($isPilihan) {
-                    $item->nama_mata_pelajaran .= ' [Pilihan]';
-                }
-                return $item;
-            });
+            ->get();
+
+        $terjadwalJp = $this->petaJpTerjadwal($items->pluck('pembelajaran_id')->all());
+
+        $items = $items->map(function ($item) use ($rombelId, $terjadwalJp) {
+            if ($item->rombongan_belajar_id !== $rombelId) {
+                $item->nama_mata_pelajaran .= ' [Pilihan]';
+            }
+
+            $kuota = (int) $item->jam_mengajar_per_minggu;
+            $sudah = (int) ($terjadwalJp[$item->pembelajaran_id] ?? 0);
+
+            // Kuota 0 berarti JJM belum diisi di Dapodik — jangan dianggap penuh.
+            $item->terjadwal_jp = $sudah;
+            $item->sisa_jp      = $kuota > 0 ? max(0, $kuota - $sudah) : null;
+            $item->sudah_penuh  = $kuota > 0 && $sudah >= $kuota;
+
+            return $item;
+        });
 
         return ['pembelajaran' => $items];
+    }
+
+    /**
+     * Peta `pembelajaran_id` => total JP yang sudah terjadwal pada jadwal KBM aktif.
+     *
+     * Satu query untuk seluruh pembelajaran agar tidak terjadi N+1. Baris rutinitas
+     * (UPACARA/PEMBIASAAN/ISTIRAHAT) tidak dihitung karena `pembelajaran_id`-nya
+     * berawalan `ROUTINE_` dan kuotanya bukan milik mapel mana pun.
+     *
+     * @param  array<int,string> $pembelajaranIds
+     * @return array<string,int>
+     */
+    public function petaJpTerjadwal(array $pembelajaranIds): array
+    {
+        $pembelajaranIds = array_values(array_filter($pembelajaranIds, fn($id) => $id !== null && $id !== ''));
+        if (empty($pembelajaranIds)) {
+            return [];
+        }
+
+        return DB::table('jadwal_kbm')
+            ->whereIn('pembelajaran_id', $pembelajaranIds)
+            ->where('is_active', true)
+            ->selectRaw('pembelajaran_id, SUM(GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)) as jp')
+            ->groupBy('pembelajaran_id')
+            ->pluck('jp', 'pembelajaran_id')
+            ->map(fn($jp) => (int) $jp)
+            ->all();
     }
 
     /**

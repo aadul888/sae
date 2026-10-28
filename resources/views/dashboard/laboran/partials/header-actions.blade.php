@@ -78,19 +78,21 @@
             align-self: center;
         }
 
-        /* ---- 5. Mobile: tetap sejajar & rapi, bukan kolom penuh ---- */
+        /* ---- 5. Mobile: sejajar, rapi, dan DIPUSATKAN (bukan kolom penuh) ---- */
         @media (max-width: 768px) {
             .dash-banner-actions.dash-banner-access,
             .dash-banner-access {
                 width: 100% !important;
                 flex-direction: row !important;
-                justify-content: flex-start !important;
+                justify-content: center !important;
                 gap: var(--space-3) !important;
             }
 
+            /* Grid 4 kolom: track-nya di tengah wadah */
             .dash-banner-access.dash-banner-access--grid4 {
+                width: 100% !important;
                 grid-template-columns: repeat(4, var(--control-height-md, 38px)) !important;
-                justify-content: flex-start !important;
+                justify-content: center !important;
                 gap: var(--space-3) !important;
             }
 
