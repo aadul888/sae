@@ -84,8 +84,7 @@
             @endif
             <div class="doc-title-main">LAPORAN PENGGUNAAN &amp; KERUSAKAN ALAT PRAKTIK</div>
             <div class="doc-subtitle">
-                PERIODE: {{ strtoupper($range['label']) }} &bull; FORMAT: A4 {{ strtoupper($orientasi) }}
-                &bull; VERSI: {{ strtoupper($mode ?? 'ringkasan') }}
+                PERIODE: {{ strtoupper($range['label']) }}
             </div>
         </div>
 
@@ -432,8 +431,7 @@
                 </div>
             </div>
             <div style="text-align: right;">
-                Halaman 1 / 1<br>
-                Format: Kertas A4 {{ ucfirst($orientasi) }}
+                Halaman 1 / 1
             </div>
         </div>
     </div>

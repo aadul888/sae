@@ -13,8 +13,6 @@
 
 @section('doc_subtitle')
     {{ strtoupper($jurusan->nama_jurusan ?? ($scopeBadge['label'] ?? 'SEMUA JURUSAN')) }}
-    &bull; FORMAT: A4 {{ strtoupper($orientasi) }}
-    &bull; VERSI: {{ strtoupper($mode) }}
     &bull; JUMLAH: {{ $items->count() }} USULAN KEBUTUHAN
 @endsection
 

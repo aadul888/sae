@@ -144,8 +144,7 @@
             <div style="text-align: right;">
                 Ruang / Lab: {{ !empty($labFilter) ? $labFilter : 'Semua Ruang' }}<br>
                 Status Kedaluwarsa: {{ !empty($expFilter) ? ($expFilter === 'segera' ? 'Mendekati Exp (<= 90 hari)' : 'Sudah Kedaluwarsa') : 'Semua Status' }}<br>
-                Total: <strong>{{ count($items) }}</strong> jenis bahan &bull;
-                VERSI: <strong>{{ strtoupper($mode ?? 'ringkasan') }}</strong>
+                Total: <strong>{{ count($items) }}</strong> jenis bahan
             </div>
         </div>
 

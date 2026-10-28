@@ -73,7 +73,7 @@
                 <div class="school-name">{{ $sekolah->nama ?? 'SATUAN PENDIDIKAN' }}</div>
             @endif
             <div class="doc-title-main">JURNAL KEGIATAN HARIAN LABORAN</div>
-            <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }} &bull; A4 {{ strtoupper($orientasi) }} &bull; VERSI: {{ strtoupper($mode ?? 'ringkasan') }}</div>
+            <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }}</div>
         </div>
 
         <div class="info-box">
@@ -204,8 +204,7 @@
                 </div>
             </div>
             <div style="text-align: right;">
-                Halaman 1 / 1<br>
-                Format: Kertas A4 {{ ucfirst($orientasi) }}
+                Halaman 1 / 1
             </div>
         </div>
     </div>

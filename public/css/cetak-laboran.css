@@ -37,7 +37,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Blok tanda tangan (mendukung 3–5 pihak)
+   2. Blok tanda tangan (3 pihak: Laboran, Kaprog, Kepala Sekolah)
    -------------------------------------------------------------------------- */
 .signature-container {
     flex-wrap: wrap;

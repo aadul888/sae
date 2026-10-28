@@ -207,7 +207,6 @@
         @php
             $sigTitles = [
                 'Yang Melaporkan,<br>Petugas Laboran,',
-                'Mengetahui,<br>Kepala Laboratorium / Bengkel,',
                 'Mengetahui,<br>Kepala Program Keahlian,',
                 'Menyetujui,<br>Kepala Satuan Pendidikan,',
             ];
@@ -231,8 +230,7 @@
                 </div>
             </div>
             <div style="text-align: right;">
-                Halaman 1 / 1<br>
-                Format: Kertas A4 {{ ucfirst($orientasi) }}
+                Halaman 1 / 1
             </div>
         </div>
     </div>

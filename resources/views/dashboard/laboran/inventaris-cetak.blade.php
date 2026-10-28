@@ -144,8 +144,7 @@
             <div style="text-align: right;">
                 Ruang / Lab: {{ !empty($labFilter) ? $labFilter : 'Semua Ruang' }}<br>
                 Kondisi: {{ !empty($kondisiFilter) ? ucfirst(str_replace('_', ' ', $kondisiFilter)) : 'Semua Kondisi' }}<br>
-                Total: <strong>{{ count($items) }}</strong> item alat praktik &bull;
-                VERSI: <strong>{{ strtoupper($mode ?? 'ringkasan') }}</strong>
+                Total: <strong>{{ count($items) }}</strong> item alat praktik
             </div>
         </div>
 

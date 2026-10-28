@@ -15,8 +15,6 @@
 @section('doc_subtitle')
     {{ strtoupper($jurusan->nama_jurusan ?? ($scopeBadge['label'] ?? 'SEMUA JURUSAN')) }}
     &bull; PERIODE: {{ strtoupper($periode ?? now()->translatedFormat('F Y')) }}
-    &bull; FORMAT: A4 {{ strtoupper($orientasi) }}
-    &bull; VERSI: {{ strtoupper($mode) }}
 @endsection
 
 @section('content')
@@ -36,10 +34,6 @@
             </div>
         </div>
         <div>
-            <div class="info-item">
-                <span class="info-label">Kepala Laboratorium:</span>
-                <span class="info-val">{{ $kepalaLab->nama ?? '......................................' }}</span>
-            </div>
             <div class="info-item">
                 <span class="info-label">Kepala Program Keahlian:</span>
                 <span class="info-val">{{ $kaprog->nama ?? '......................................' }}</span>

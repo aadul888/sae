@@ -113,10 +113,8 @@
                     @yield('doc_subtitle')
                 @else
                     @if (!empty($range['label']))
-                        PERIODE: {{ strtoupper($range['label']) }} &bull;
+                        PERIODE: {{ strtoupper($range['label']) }}
                     @endif
-                    FORMAT: A4 {{ strtoupper($orientasi ?? 'portrait') }} &bull;
-                    VERSI: {{ strtoupper($mode ?? 'ringkasan') }}
                 @endif
             </div>
         </div>
@@ -142,8 +140,7 @@
                 </div>
             </div>
             <div style="text-align: right;">
-                Halaman 1 / 1<br>
-                Format: Kertas A4 {{ ucfirst($orientasi ?? 'portrait') }}
+                Halaman 1 / 1
             </div>
         </div>
     </div>

@@ -3,18 +3,15 @@
 
     Urutan pihak (kiri → kanan):
       1. Petugas Laboran (pelaksana)
-      2. Kepala Laboratorium / Bengkel (KEPALA_LAB)
-      3. Kepala Program Keahlian (KAPROG) — NAMA DITAMPILKAN sesuai jurusan
-      4. Kepala Satuan Pendidikan (mengetahui)
+      2. Kepala Program Keahlian (KAPROG) — NAMA DITAMPILKAN sesuai jurusan
+      3. Kepala Satuan Pendidikan (mengetahui)
 
     Variabel opsional:
-      • $petugas, $kepalaLab, $kaprog, $kepalaSekolah
-      • $sigTitles — override judul tiap kolom (array 4 elemen)
-      • $sigTanggal — tampilkan baris tempat/tanggal pada kolom terakhir
+      • $petugas, $kaprog, $kepalaSekolah
+      • $sigTitles — override judul tiap kolom (array 3 elemen)
 --}}
 @php
     $petugas       = $petugas ?? null;
-    $kepalaLab     = $kepalaLab ?? null;
     $kaprog        = $kaprog ?? null;
     $kepalaSekolah = $kepalaSekolah ?? null;
 
@@ -23,7 +20,6 @@
 
     $sigTitles = $sigTitles ?? [
         'Petugas Laboran,',
-        'Kepala Laboratorium / Bengkel,',
         'Kepala Program Keahlian,',
         'Mengetahui,<br>Kepala Satuan Pendidikan,',
     ];
@@ -42,19 +38,8 @@
         <div class="sig-nip">NIP: {{ $petugasNip ?: '—' }}</div>
     </div>
 
-    <div class="sig-box{{ $belumDitetapkan($kepalaLab) }}">
-        <div class="sig-title">{!! $sigTitles[1] !!}</div>
-        <div class="sig-name">{{ $kepalaLab?->nama ?: '...................................' }}</div>
-        <div class="sig-nip">
-            NIP: {{ $kepalaLab?->nip ?: ($kepalaLab?->nuptk ?: '—') }}
-            @if (empty($kepalaLab?->nama))
-                <br><span class="sig-jurusan">belum ditetapkan</span>
-            @endif
-        </div>
-    </div>
-
     <div class="sig-box{{ $belumDitetapkan($kaprog) }}">
-        <div class="sig-title">{!! $sigTitles[2] !!}</div>
+        <div class="sig-title">{!! $sigTitles[1] !!}</div>
         <div class="sig-name">{{ $kaprog?->nama ?: '...................................' }}</div>
         <div class="sig-nip">
             NIP: {{ $kaprog?->nip ?: ($kaprog?->nuptk ?: '—') }}
@@ -67,7 +52,7 @@
     </div>
 
     <div class="sig-box{{ $belumDitetapkan($kepalaSekolah) }}">
-        <div class="sig-title">{!! $sigTitles[3] !!}</div>
+        <div class="sig-title">{!! $sigTitles[2] !!}</div>
         <div class="sig-name">{{ $kepalaSekolah?->nama ?: '...................................' }}</div>
         <div class="sig-nip">
             NIP: {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}

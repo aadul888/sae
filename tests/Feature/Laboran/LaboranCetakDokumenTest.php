@@ -66,6 +66,31 @@ class LaboranCetakDokumenTest extends LaboranTestCase
                 $body,
                 "Dokumen {$jenis} tidak memuat kolom tanda tangan Kepala Program Keahlian."
             );
+
+            // Tanda tangan hanya 3 pihak: Laboran, Kaprog, Kepala Sekolah.
+            // Kolom Kepala Laboratorium dihapus dari seluruh dokumen.
+            $this->assertStringNotContainsString(
+                'Kepala Laboratorium',
+                $body,
+                "Dokumen {$jenis} masih memuat kolom tanda tangan Kepala Laboratorium."
+            );
+
+            // Label format/versi pada toolbar & footer juga dihapus.
+            $this->assertStringNotContainsString('FORMAT: A4', $body, "Dokumen {$jenis} masih memuat label FORMAT.");
+            $this->assertStringNotContainsString('Format: Kertas A4', $body, "Dokumen {$jenis} masih memuat label format footer.");
+            $this->assertStringNotContainsString('VERSI:', $body, "Dokumen {$jenis} masih memuat label VERSI.");
+
+            // Urutan tanda tangan: Laboran → Kaprog → Kepala Sekolah.
+            $posLaboran = strpos($body, 'Petugas Laboran');
+            $posKaprog  = strpos($body, 'Kepala Program Keahlian');
+            $posKepsek  = strpos($body, 'Kepala Satuan Pendidikan');
+
+            $this->assertNotFalse($posLaboran, "Dokumen {$jenis} tidak memuat blok tanda tangan Laboran.");
+            $this->assertNotFalse($posKepsek, "Dokumen {$jenis} tidak memuat blok tanda tangan Kepala Sekolah.");
+            $this->assertTrue(
+                $posLaboran < $posKaprog && $posKaprog < $posKepsek,
+                "Urutan tanda tangan dokumen {$jenis} harus Laboran → Kaprog → Kepala Sekolah."
+            );
         }
     }
 
@@ -77,8 +102,20 @@ class LaboranCetakDokumenTest extends LaboranTestCase
             $res = $this->withSession($session)
                 ->get(route('dashboard.laboran.peserta-didik.cetak', ['mode' => $mode]));
             $res->assertStatus(200);
-            $res->assertSee('VERSI: ' . strtoupper($mode), false);
+
+            // Label "FORMAT: A4 ... • VERSI: ..." sengaja dihilangkan dari
+            // dokumen. Mode tetap harus terlihat dari isi dokumen, bukan label.
+            $res->assertDontSee('FORMAT: A4', false);
+            $res->assertDontSee('VERSI:', false);
         }
+
+        $ringkas = $this->withSession($session)
+            ->get(route('dashboard.laboran.peserta-didik.cetak', ['mode' => 'ringkasan']));
+        $ringkas->assertSee('Rekapitulasi Peserta Didik per Kelas', false);
+
+        $lengkap = $this->withSession($session)
+            ->get(route('dashboard.laboran.peserta-didik.cetak', ['mode' => 'lengkap']));
+        $lengkap->assertSee('Daftar Rinci Peserta Didik', false);
     }
 
     public function test_orientasi_landscape_dihormati(): void

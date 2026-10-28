@@ -272,7 +272,6 @@
     @php
         $sigTitles = [
             'Petugas Laboran,',
-            'Kepala Laboratorium / Bengkel,',
             'Kepala Program Keahlian,',
             'Mengetahui,<br>Kepala Satuan Pendidikan,',
         ];
