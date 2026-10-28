@@ -58,21 +58,32 @@ class LaboranJadwalPraktikTest extends TestCase
      */
     private array $jadwalIdsSebelum = [];
 
+    /** @var int batas id saat setUp (cadangan bila tabel kosong) */
+    private int $jadwalMaxIdSebelum = 0;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->jadwalIdsSebelum = DB::table('laboran_jadwal_penggunaan')->pluck('id')->all();
+        $this->jadwalMaxIdSebelum = (int) DB::table('laboran_jadwal_penggunaan')->max('id');
     }
 
     protected function tearDown(): void
     {
         // Hanya hapus baris yang dibuat selama test (jangan sentuh data nyata).
-        $q = DB::table('laboran_jadwal_penggunaan');
-        if (!empty($this->jadwalIdsSebelum)) {
-            $q->whereNotIn('id', $this->jadwalIdsSebelum);
+        // PENTING: hapus berdasarkan daftar id eksplisit. Bila daftar baris baru
+        // kosong, TIDAK ada perintah DELETE yang dijalankan — sehingga tidak
+        // mungkin mengosongkan tabel (insiden data nyata terhapus).
+        $idBaru = DB::table('laboran_jadwal_penggunaan')
+            ->when(!empty($this->jadwalIdsSebelum), fn ($q) => $q->whereNotIn('id', $this->jadwalIdsSebelum))
+            ->when(empty($this->jadwalIdsSebelum), fn ($q) => $q->where('id', '>', $this->jadwalMaxIdSebelum))
+            ->pluck('id')
+            ->all();
+
+        if (!empty($idBaru)) {
+            DB::table('laboran_jadwal_penggunaan')->whereIn('id', $idBaru)->delete();
         }
-        $q->delete();
 
         parent::tearDown();
     }
@@ -201,14 +212,13 @@ class LaboranJadwalPraktikTest extends TestCase
     }
 
     /**
-     * Laboratorium bersifat eksklusif: satu lokasi tidak boleh dipakai
-     * dua sesi dengan jam beririsan.
+     * Lokasi praktik BOLEH dipakai beberapa sesi pada jam yang sama,
+     * termasuk oleh guru lain pada rombel berbeda (permintaan pemilik modul).
+     * Yang tetap eksklusif adalah GURU.
      */
-    public function test_simpan_jadwal_menolak_bentrok_lokasi_lab(): void
+    public function test_lokasi_lab_boleh_dipakai_guru_lain_pada_jam_sama(): void
     {
         $rombel = $this->kelasReguler();
-        // Tanggal tetap (Selasa) agar tidak bergantung tanggal berjalan:
-        // 07:00-08:30 Selasa bebas dari jam rutinitas KBM.
         $tanggal = '2026-11-03'; // Selasa
 
         $payload = [
@@ -225,17 +235,18 @@ class LaboranJadwalPraktikTest extends TestCase
             ->postJson(route('dashboard.laboran.jadwal.store'), $payload)
             ->assertStatus(200);
 
-        $res = $this->withSession($this->adminSession())->postJson(route('dashboard.laboran.jadwal.store'), array_merge($payload, [
-            'jam_mulai'   => '08:00',
-            'jam_selesai' => '09:00',
-        ]));
+        // Guru BERBEDA pada lokasi & jam yang sama harus DITERIMA.
+        $gtkLain = DB::table('gtk')->skip(1)->value('ptk_id');
 
-        $res->assertStatus(422);
-        $res->assertJsonPath('status', 'error');
-        $this->assertStringContainsString('sudah dipakai', $res->json('message'));
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($payload, [
+                'jam_mulai'   => '08:00',
+                'jam_selesai' => '09:00',
+                'ptk_id'      => $gtkLain,
+            ]))
+            ->assertStatus(200);
 
-        // Hanya 1 sesi tersimpan untuk lokasi & tanggal tersebut
-        $this->assertSame(1, DB::table('laboran_jadwal_penggunaan')
+        $this->assertSame(2, DB::table('laboran_jadwal_penggunaan')
             ->where('ruang_lab_nama', 'Lab Komputer 1')
             ->where('tanggal', $tanggal)
             ->count());

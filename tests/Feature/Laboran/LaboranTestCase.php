@@ -56,6 +56,9 @@ abstract class LaboranTestCase extends TestCase
     /** @var array<int, array<string, mixed>> snapshot SELURUH baris laboran_jadwal_pengaturan */
     protected array $pengaturanSnapshot = [];
 
+    /** @var array<string, int> batas id per tabel saat setUp (cadangan bila tabel kosong) */
+    protected array $preexistingMaxIds = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,14 +81,18 @@ abstract class LaboranTestCase extends TestCase
         } catch (\Throwable $e) {}
 
         $this->preexistingIds = [];
+        $this->preexistingMaxIds = [];
         foreach (self::LAB_TABLES as $table) {
             try {
                 if (!Table::exists($table)) {
                     continue;
                 }
                 $this->preexistingIds[$table] = DB::table($table)->pluck('id')->all();
+                // Cadangan bila tabel kosong: hapus hanya baris di atas batas ini.
+                $this->preexistingMaxIds[$table] = (int) DB::table($table)->max('id');
             } catch (\Throwable $e) {
                 $this->preexistingIds[$table] = [];
+                $this->preexistingMaxIds[$table] = 0;
             }
         }
     }
@@ -106,22 +113,40 @@ abstract class LaboranTestCase extends TestCase
             }
 
             if (!empty($idAsli)) {
-                DB::table('laboran_jadwal_pengaturan')->whereNotIn('id', $idAsli)->delete();
+                // Ambil id baru lebih dulu, lalu hapus berdasarkan daftar eksplisit.
+                $idBaru = DB::table('laboran_jadwal_pengaturan')
+                    ->whereNotIn('id', $idAsli)
+                    ->pluck('id')
+                    ->all();
+                if (!empty($idBaru)) {
+                    DB::table('laboran_jadwal_pengaturan')->whereIn('id', $idBaru)->delete();
+                }
             }
         } catch (\Throwable $e) {}
 
-        // Hapus HANYA baris yang tidak ada pada snapshot setUp().
+        // Hapus HANYA baris yang dibuat selama test.
+        //
+        // PENTING: JANGAN memakai `whereNotIn('id', ...)` lalu `delete()`.
+        // Bila daftar snapshot kosong, Laravel menghasilkan query TANPA klausa
+        // sehingga `delete()` mengosongkan SELURUH tabel (insiden data nyata
+        // terhapus). Karena itu penghapusan kini berbasis daftar id eksplisit:
+        // baris baru = id yang ada sekarang tetapi tidak ada di snapshot.
+        // Bila daftar itu kosong, tidak ada perintah DELETE yang dijalankan.
         foreach (self::LAB_TABLES as $table) {
             try {
                 if (!Table::exists($table)) {
                     continue;
                 }
                 $preexisting = $this->preexistingIds[$table] ?? [];
-                $query = DB::table($table);
-                if (!empty($preexisting)) {
-                    $query->whereNotIn('id', $preexisting);
+                $idsBaru = DB::table($table)
+                    ->when(!empty($preexisting), fn ($q) => $q->whereNotIn('id', $preexisting))
+                    ->when(empty($preexisting), fn ($q) => $q->where('id', '>', $this->preexistingMaxIds[$table] ?? 0))
+                    ->pluck('id')
+                    ->all();
+
+                if (!empty($idsBaru)) {
+                    DB::table($table)->whereIn('id', $idsBaru)->delete();
                 }
-                $query->delete();
             } catch (\Throwable $e) {
                 // Tabel/kolom mungkin tidak ada pada skema lama — abaikan.
             }
@@ -133,6 +158,7 @@ abstract class LaboranTestCase extends TestCase
         }
 
         $this->preexistingIds = [];
+        $this->preexistingMaxIds = [];
 
         LaboranScope::flush();
         parent::tearDown();

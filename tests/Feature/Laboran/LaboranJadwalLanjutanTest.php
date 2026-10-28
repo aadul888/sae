@@ -159,7 +159,7 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ->count());
     }
 
-    public function test_lab_tetap_eksklusif_satu_sesi_per_jam(): void
+    public function test_lab_boleh_dipakai_dua_guru_berbeda_pada_jam_sama(): void
     {
         $rombel = $this->kelasReguler();
         $tanggal = now()->addDays(21)->toDateString();
@@ -174,16 +174,22 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             'jam_selesai'    => '09:00',
         ];
 
-        $this->withSession($this->adminSession())
-            ->postJson(route('dashboard.laboran.jadwal.store'), $base)
-            ->assertStatus(200);
+        $guruA = DB::table('gtk')->value('ptk_id');
+        $guruB = DB::table('gtk')->skip(1)->value('ptk_id');
 
         $this->withSession($this->adminSession())
-            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($base, [
-                'jam_mulai'   => '08:00',
-                'jam_selesai' => '10:00',
-            ]))
-            ->assertStatus(422);
+            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($base, ['ptk_id' => $guruA]))
+            ->assertStatus(200);
+
+        // Guru berbeda, ruang & jam sama -> DITERIMA (lokasi bukan lagi eksklusif).
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($base, ['ptk_id' => $guruB]))
+            ->assertStatus(200);
+
+        $this->assertSame(2, DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', 'Lab Komputer 1')
+            ->where('tanggal', $tanggal)
+            ->count());
     }
 
     // =========================================================================

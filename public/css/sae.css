@@ -445,6 +445,16 @@ select:-webkit-autofill {
     color: var(--danger);
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
+.badge-info {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--accent, #06b6d4);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+.badge-outline {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px dashed var(--border-color);
+}
 
 /* Global Responsive Segmented Tabs & Toolbars */
 .dash-tabs-nav,

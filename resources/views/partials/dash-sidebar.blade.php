@@ -1095,6 +1095,12 @@
                     style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                     Administrasi &amp; Perencanaan
                 </div>
+                <a href="{{ route('dashboard.laboran.peserta-didik.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.peserta-didik*') ? 'active' : '' }}"
+                    title="Data peserta didik pada jurusan Anda">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
+                    <span class="nav-label">Data Peserta Didik</span>
+                </a>
                 <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
                     title="Tupoksi #6 â€” Pendataan Kebutuhan">

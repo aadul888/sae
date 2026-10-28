@@ -76,6 +76,9 @@
                         @endif
                     @endforeach
                 </select>
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                    <i class="fas fa-circle-info text-primary me-1"></i> Tempat praktik boleh dipakai guru lain pada jam yang sama. Yang tidak boleh bentrok hanya guru pengampu.
+                </div>
             </div>
 
             {{-- 3. Kelas / Rombel --}}

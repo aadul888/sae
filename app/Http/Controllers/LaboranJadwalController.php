@@ -491,11 +491,17 @@ class LaboranJadwalController extends Controller
 
         $rombelId = trim((string) $request->query('rombel_id', ''));
         $hari = trim((string) $request->query('hari', ''));
+        $tanggal = trim((string) $request->query('tanggal', ''));
+        $ignoreId = (int) $request->query('ignore_id', 0);
 
         // Penjadwalan KBM: mapel yang dijadwalkan pada kelas + hari ini.
         $kbmMapelKeys = [];
+        $kbmJamMap = [];
         if ($rombelId !== '' && $hari !== '') {
             $kbmMapelKeys = $this->service->mapelTerjadwalKbm($rombelId, $hari);
+            // Jam ke-N tiap mapel pada KBM hari itu — dipakai modal agar pilihan
+            // "Jam ke-N s/d Jam ke-M" mengikuti jam mapel yang dipilih.
+            $kbmJamMap = $this->service->jamKeMapelKbm($rombelId, $hari);
         }
 
         $rows = DB::table('pembelajaran as p')
@@ -518,6 +524,18 @@ class LaboranJadwalController extends Controller
             ->orderBy('p.nama_mata_pelajaran', 'asc')
             ->get();
 
+        // Ketersediaan JP semua mapel sekaligus (hindari N+1 query per mapel).
+        $kuotaPerMapel = [];
+        if ($hari !== '') {
+            $kuotaPerMapel = $this->service->ringkasanKuotaPerMapelKbm(
+                $rombelId,
+                $hari,
+                $rows->pluck('pembelajaran_id')->all(),
+                $tanggal !== '' ? $tanggal : null,
+                $ignoreId ?: null
+            );
+        }
+
         $list = [];
         $seen = [];
         foreach ($rows as $r) {
@@ -527,7 +545,7 @@ class LaboranJadwalController extends Controller
             }
 
             // Filter KBM: hanya mapel yang terjadwal di kelas + hari ini.
-            if ($kbmMapelKeys && !isset($kbmMapelKeys[$this->mapelKeyKbm($r)])) {
+            if ($kbmMapelKeys && !$this->mapelCocokKbm($r, $kbmMapelKeys)) {
                 continue;
             }
 
@@ -538,6 +556,32 @@ class LaboranJadwalController extends Controller
             }
             $seen[$key] = true;
 
+            // Jam KBM mapel ini (bila ada) agar modal bisa membatasi pilihan jam.
+            $jamKbm = ['jam_ke' => [], 'blok' => []];
+            foreach ($this->service->kunciPencarianMapelKbm($r->pembelajaran_id, $mapel) as $kunciMapel) {
+                if (!empty($kbmJamMap[$kunciMapel])) {
+                    $jamKbm = $kbmJamMap[$kunciMapel];
+                    break;
+                }
+            }
+
+            // Ketersediaan JP: kuota dari KBM, sudah terpakai praktik, dan jam sisa.
+            $kuota = $kuotaPerMapel[(string) $r->pembelajaran_id]
+                ?? ['kuota' => 0, 'terpakai' => 0, 'sisa' => 0, 'jam_tersedia' => []];
+            // Bila jam KBM tidak terdeteksi dari pembelajaran_id, pakai peta per nama.
+            if (!$kuota['jam_tersedia'] && $jamKbm['jam_ke']) {
+                $kuota['jam_tersedia'] = $jamKbm['jam_ke'];
+                if ($kuota['kuota'] <= 0) {
+                    $kuota['kuota'] = count($jamKbm['jam_ke']);
+                    $kuota['sisa'] = $kuota['kuota'];
+                }
+            }
+
+            $label = $rombelId !== ''
+                ? ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel
+                : ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')';
+            $label .= $this->labelKetersediaanJam($kuota);
+
             $list[] = [
                 'pembelajaran_id'   => $r->pembelajaran_id,
                 'mata_pelajaran_id' => (string) ($r->mata_pelajaran_id ?? ''),
@@ -546,9 +590,14 @@ class LaboranJadwalController extends Controller
                 'rombel_nama'       => $r->rombel_nama ?: '-',
                 'ptk_id'            => $r->ptk_id,
                 'nama_guru'         => $guruNama ?: 'Belum Ditugaskan',
-                'label'             => $rombelId !== ''
-                    ? ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel
-                    : ($guruNama ?: 'Belum Ditugaskan') . ' — ' . $mapel . ' (' . ($r->rombel_nama ?: '-') . ')',
+                'jam_ke'            => $jamKbm['jam_ke'] ?: $kuota['jam_tersedia'],
+                'jam_ke_blok'       => $jamKbm['blok'],
+                'jam_tersedia'      => $kuota['jam_tersedia'],
+                'kuota_jp'          => $kuota['kuota'],
+                'jp_terpakai'       => $kuota['terpakai'],
+                'jp_sisa'           => $kuota['sisa'],
+                'label'             => $label,
+                'tooltip'           => $this->tooltipKetersediaanJam($kuota, $jamKbm['blok']),
             ];
         }
 
@@ -556,22 +605,102 @@ class LaboranJadwalController extends Controller
     }
 
     /**
-     * Kunci pembanding antara baris `pembelajaran` dan `jadwal_kbm`.
+     * Apakah baris `pembelajaran` ada di himpunan mapel KBM (id atau nama).
      *
-     * `jadwal_kbm` menyimpan mapel sebagai NAMA (`nama_mata_pelajaran`),
-     * sedangkan `pembelajaran` menyimpan id + nama. Dipakai `pembelajaran_id`
-     * bila ada, jika tidak jatuh ke nama mapel yang dinormalkan.
+     * @param array<string, bool> $kbmMapelKeys
      */
-    protected function mapelKeyKbm(object $row): string
+    protected function mapelCocokKbm(object $row, array $kbmMapelKeys): bool
     {
-        $pid = trim((string) ($row->pembelajaran_id ?? ''));
-        if ($pid !== '' && !str_starts_with($pid, 'ROUTINE_')) {
-            return 'id:' . $pid;
+        foreach ($this->service->kunciPencarianMapelKbm(
+            (string) ($row->pembelajaran_id ?? ''),
+            (string) ($row->nama_mata_pelajaran ?? '')
+        ) as $kunci) {
+            if (isset($kbmMapelKeys[$kunci])) {
+                return true;
+            }
         }
 
-        $nama = strtolower(trim((string) ($row->nama_mata_pelajaran ?? '')));
+        return false;
+    }
 
-        return 'nama:' . preg_replace('/\s+/', ' ', $nama);
+    /**
+     * Label jumlah JP pada dropdown guru & mapel: "(teralokasi JP / total JP)".
+     *
+     * Contoh: "(0 JP / 24 JP)" — 0 JP sudah dialokasikan praktik dari 24 JP
+     * milik mapel tersebut di Jadwal KBM. Detail jam tersedia ditampilkan
+     * terpisah sebagai tooltip agar daftar tetap ringkas.
+     *
+     * @param array{kuota:int,terpakai:int,sisa:int,jam_tersedia:array<int,int>} $kuota
+     */
+    protected function labelKetersediaanJam(array $kuota): string
+    {
+        if (empty($kuota['kuota'])) {
+            return '';
+        }
+
+        return ' (' . (int) $kuota['terpakai'] . ' JP / ' . (int) $kuota['kuota'] . ' JP)';
+    }
+
+    /**
+     * Tooltip dropdown guru & mapel: jam KBM dan jam yang masih tersedia.
+     *
+     * Contoh: "Jam KBM: ke-2–ke-4 • Jam tersedia: ke-2–ke-4".
+     *
+     * @param array{kuota:int,terpakai:int,sisa:int,jam_tersedia:array<int,int>} $kuota
+     * @param array<int,array{mulai:int,selesai:int}> $blok
+     */
+    protected function tooltipKetersediaanJam(array $kuota, array $blok = []): string
+    {
+        $bagian = [];
+
+        if ($blok) {
+            $bagian[] = 'Jam KBM: ' . implode(', ', array_map(
+                fn ($b) => 'ke-' . $b['mulai'] . ' s/d ke-' . $b['selesai'],
+                $blok
+            ));
+        }
+
+        $jam = array_values(array_filter(array_map('intval', $kuota['jam_tersedia'] ?? [])));
+        $bagian[] = $jam
+            ? 'Jam tersedia: ' . $this->ringkasJamKe($jam)
+            : 'Jam tersedia: tidak ada jam tersisa';
+
+        if (!empty($kuota['kuota'])) {
+            $bagian[] = 'Terpakai ' . (int) $kuota['terpakai'] . ' dari ' . (int) $kuota['kuota'] . ' JP';
+        }
+
+        return implode(' • ', $bagian);
+    }
+
+    /**
+     * Ringkas daftar jam berurutan: [2,3,4,9] => "ke-2–ke-4, ke-9".
+     *
+     * @param array<int,int> $jam
+     */
+    protected function ringkasJamKe(array $jam): string
+    {
+        sort($jam);
+        $rentang = [];
+        $awal = null;
+        $sebelum = null;
+
+        foreach ($jam as $k) {
+            if ($awal === null) {
+                $awal = $sebelum = $k;
+                continue;
+            }
+            if ($k === $sebelum + 1) {
+                $sebelum = $k;
+                continue;
+            }
+            $rentang[] = $awal === $sebelum ? 'ke-' . $awal : 'ke-' . $awal . '–ke-' . $sebelum;
+            $awal = $sebelum = $k;
+        }
+        if ($awal !== null) {
+            $rentang[] = $awal === $sebelum ? 'ke-' . $awal : 'ke-' . $awal . '–ke-' . $sebelum;
+        }
+
+        return implode(', ', $rentang);
     }
 
     /**
@@ -856,8 +985,12 @@ class LaboranJadwalController extends Controller
             return $this->jsonOrRedirect($request, false, 'Jadwal tidak ditemukan atau di luar cakupan jurusan Anda.', 404);
         }
 
-        if ($request->boolean('hapus_seri') && !empty($row->jadwal_seri_id)) {
-            DB::table('laboran_jadwal_penggunaan')->where('jadwal_seri_id', $row->jadwal_seri_id)->delete();
+        // Hapus seluruh rangkaian seri. WAJIB memastikan `jadwal_seri_id` tidak
+        // kosong: `where('jadwal_seri_id', null)` menjadi `is null` dan akan
+        // menghapus SEMUA sesi non-seri (hampir seluruh data praktik).
+        $seriId = trim((string) ($row->jadwal_seri_id ?? ''));
+        if ($request->boolean('hapus_seri') && $seriId !== '') {
+            DB::table('laboran_jadwal_penggunaan')->where('jadwal_seri_id', $seriId)->delete();
             return $this->jsonOrRedirect($request, true, 'Seluruh rangkaian jadwal dalam seri berhasil dihapus.');
         }
 

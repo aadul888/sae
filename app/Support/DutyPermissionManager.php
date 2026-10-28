@@ -166,7 +166,7 @@ final class DutyPermissionManager
             }
         }
 
-        $laboranAll = ['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_inventaris'];
+        $laboranAll = ['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_laboran_peserta_didik', 'menu_inventaris'];
         foreach (['LABORAN', 'KEPALA_LAB', 'KEPALA_TAS'] as $kode) {
             $ref = RefTugasTambahan::where('kode', $kode)->first();
             if ($ref) {

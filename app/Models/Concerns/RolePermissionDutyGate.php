@@ -119,7 +119,7 @@ trait RolePermissionDutyGate
                     $allowedKeys[$k] = true;
                 }
             } elseif ($kode === 'KEPALA_LAB') {
-                foreach (['menu_laboran', 'menu_sarpras', 'menu_inventaris'] as $k) {
+                foreach (['menu_laboran', 'menu_laboran_peserta_didik', 'menu_sarpras', 'menu_inventaris'] as $k) {
                     $allowedKeys[$k] = true;
                 }
             } elseif (in_array($kode, ['KEPALA_PERPUSTAKAAN', 'PUSTAKAWAN'], true)) {
@@ -127,7 +127,7 @@ trait RolePermissionDutyGate
                     $allowedKeys[$k] = true;
                 }
             } elseif ($kode === 'LABORAN') {
-                foreach (['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_inventaris'] as $k) {
+                foreach (['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_laboran_peserta_didik', 'menu_inventaris'] as $k) {
                     $allowedKeys[$k] = true;
                 }
             } elseif (in_array($kode, ['TEKNISI_IT', 'TEKNISI_GEDUNG', 'TEKNISI_LAPANGAN'], true)) {

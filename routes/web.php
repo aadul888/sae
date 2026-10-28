@@ -743,6 +743,16 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Laboran\LaboranDashboardController::class, 'index'])
             ->name('dashboard')->middleware('permission:menu_laboran,read');
 
+        // 0. Data Peserta Didik (baca-saja, dibatasi jurusan Laboran)
+        Route::prefix('peserta-didik')->name('peserta-didik.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'index'])
+                ->name('index')->middleware('permission:menu_laboran,read');
+            Route::get('/export', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'exportExcel'])
+                ->name('export')->middleware('permission:menu_laboran,read');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPesertaDidikController::class, 'show'])
+                ->name('show')->middleware('permission:menu_laboran,read');
+        });
+
         // 1. Analisis & Input Kebutuhan Alat/Bahan
         Route::prefix('kebutuhan')->name('kebutuhan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');

@@ -182,6 +182,7 @@ final class DutyPermissionDefaults
                 'menu_laboran_aset',
                 'menu_laboran_peminjaman',
                 'menu_laboran_kebutuhan',
+                'menu_laboran_peserta_didik',
                 'menu_laboran_perawatan',
                 'menu_laboran_pemeriksaan',
                 'menu_laboran_pengadaan',

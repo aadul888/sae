@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\DB;
  * Aturan yang diuji:
  *  - TEAM TEACHING: rombel sama + lokasi sama + jam sama + guru berbeda
  *    adalah satu kegiatan praktik bersama -> DITERIMA.
- *  - Lokasi eksklusif (lab/bengkel) tetap menolak rombel BERBEDA pada jam sama
- *    (kapasitas/alat), meski gurunya berbeda.
+ *  - Lokasi/tempat praktik (lab, bengkel, lahan, lapangan) BOLEH dipakai
+ *    beberapa sesi pada jam yang sama, termasuk oleh guru lain pada rombel
+ *    berbeda -> DITERIMA (permintaan pemilik modul).
  *  - Duplikat (guru sama + rombel sama + ruang sama + jam sama) DITOLAK.
  *  - Bentrok GURU (guru sama pada dua lokasi berbeda) tetap DITOLAK, dan
  *    pesannya menyebut GURU karena itu penyebab yang sebenarnya.
@@ -98,7 +99,7 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
         );
     }
 
-    public function test_lokasi_eksklusif_tetap_menolak_rombel_berbeda_pada_jam_sama(): void
+    public function test_ruang_sama_dengan_rombel_berbeda_dan_guru_berbeda_diterima(): void
     {
         $rombelA = $this->kelasReguler(0);
         $rombelB = $this->kelasReguler(1);
@@ -108,11 +109,15 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
         $this->simpan($this->payloadSemester($ruang, $rombelA->rombongan_belajar_id, $g1, 'Informatika'))
             ->assertStatus(200);
 
-        $res = $this->simpan($this->payloadSemester($ruang, $rombelB->rombongan_belajar_id, $g2, 'Informatika'));
+        // Lokasi/tempat praktik boleh dipakai guru lain, termasuk pada rombel
+        // berbeda (permintaan pemilik modul). Guru tetap harus berbeda.
+        $this->simpan($this->payloadSemester($ruang, $rombelB->rombongan_belajar_id, $g2, 'Informatika'))
+            ->assertStatus(200);
 
-        $res->assertStatus(422);
-        $res->assertJsonPath('status', 'error');
-        $this->assertStringContainsString('sudah dipakai', $res->json('message'));
+        $this->assertSame(2, DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', $ruang)
+            ->whereNull('jadwal_seri_id')
+            ->count());
     }
 
     public function test_duplikat_guru_dan_rombel_sama_pada_ruang_sama_ditolak(): void
@@ -127,7 +132,9 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
         $res = $this->simpan($this->payloadSemester($ruang, $rombel->rombongan_belajar_id, $g1, 'Informatika'));
 
         $res->assertStatus(422);
-        $this->assertStringContainsString('sudah dipakai', $res->json('message'));
+        // Duplikat dideteksi sebagai bentrok GURU: guru yang sama tidak boleh
+        // mengajar dua sesi beririsan, walau lokasinya sama.
+        $this->assertStringContainsString('sudah memiliki jadwal praktik lain', $res->json('message'));
         $this->assertSame(1, DB::table('laboran_jadwal_penggunaan')
             ->where('ruang_lab_nama', $ruang)
             ->whereNull('jadwal_seri_id')

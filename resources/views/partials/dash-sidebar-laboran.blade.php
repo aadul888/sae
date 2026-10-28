@@ -20,6 +20,15 @@
                             style="padding: 6px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
                             Administrasi &amp; Perencanaan
                         </div>
+                        @if ($can('menu_laboran_peserta_didik') || $can('menu_laboran'))
+                            <a href="{{ route('dashboard.laboran.peserta-didik.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.peserta-didik*') ? 'active' : '' }}"
+                                title="Data peserta didik pada jurusan Anda (baca-saja)">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-user-graduate"></i></span>
+                                <span class="nav-label">Data Peserta Didik</span>
+                            </a>
+                        @endif
                         @if ($can('menu_laboran_kebutuhan') || $can('menu_laboran'))
                             <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                                 class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"

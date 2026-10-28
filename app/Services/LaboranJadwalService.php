@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\JadwalPengaturan;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
+use App\Services\Concerns\LaboranJadwalKbmKuota;
 use App\Support\LaboranScope;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 
 class LaboranJadwalService
 {
+    use LaboranJadwalKbmKuota;
+
     public const JENIS_LOKASI = [
         'lab'      => 'Laboratorium',
         'bengkel'  => 'Bengkel Praktik',
@@ -28,21 +31,18 @@ class LaboranJadwalService
     ];
 
     /**
-     * Jenis lokasi yang mengizinkan BEBERAPA sesi bersamaan pada jam yang sama,
-     * bahkan untuk rombel yang berbeda.
+     * Catatan aturan bentrok (berlaku untuk SEMUA jenis lokasi: lab, bengkel,
+     * lahan, lapangan):
      *
-     * Lahan/kebun dan lapangan merupakan area terbuka yang dapat menampung
-     * beberapa rombel sekaligus (mis. 3 kelas praktik olah tanah di petak
-     * berbeda). Laboratorium dan bengkel tetap eksklusif ANTAR-ROMBEL karena
-     * keterbatasan daya tampung dan alat.
+     *  - LOKASI / tempat praktik BOLEH dipakai beberapa sesi pada jam yang sama,
+     *    termasuk oleh guru lain dan rombel lain (permintaan pemilik modul:
+     *    "tempat praktik bisa juga digunakan oleh guru lain"). Tidak ada lagi
+     *    eksklusivitas kapasitas ruang.
+     *  - GURU tetap eksklusif: satu guru tidak boleh mengajar dua sesi praktik
+     *    yang jamnya beririsan, termasuk bila lokasinya sama (duplikat sesi).
      *
-     * Pengecualian eksklusivitas: TEAM TEACHING — dua guru berbeda pada rombel,
-     * lokasi, dan jam yang sama dianggap satu kegiatan praktik bersama. Lihat
-     * `bisaTeamTeaching()`.
-     *
-     * Bentrok GURU tetap diperiksa untuk semua jenis lokasi.
+     * Lihat `findConflictSingleDate()`.
      */
-    public const JENIS_LOKASI_BERSAMAAN = ['lahan', 'lapangan'];
 
     public const HARI_MAP = [
         0 => 'Minggu',
@@ -54,66 +54,6 @@ class LaboranJadwalService
         6 => 'Sabtu',
     ];
 
-    /**
-     * Sumber Jadwal KBM yang sedang DIBERLAKUKAN ('otomatis' | 'manual').
-     *
-     * Jadwal KBM dapat dibuat otomatis oleh penjadwal maupun diinput manual.
-     * Yang menjadi acuan hanya salah satu sumber yang sedang diberlakukan
-     * (lihat `JadwalPengaturan::getModeAktif()`); bila belum ada yang
-     * diberlakukan, default-nya 'otomatis' — sama seperti modul KBM lain.
-     */
-    public function sumberKbmAktif(): string
-    {
-        $sumber = JadwalPengaturan::getModeAktif();
-
-        return in_array($sumber, ['otomatis', 'manual'], true) ? $sumber : 'otomatis';
-    }
-
-    /**
-     * Daftar mata pelajaran yang TERJADWAL di Jadwal KBM untuk satu rombel
-     * pada satu hari, dikembalikan sebagai himpunan kunci pembanding
-     * (`id:{pembelajaran_id}` atau `nama:{nama mapel}` bila id tak tersedia).
-     *
-     * Dipakai untuk membatasi pilihan guru & mapel di modal penjadwalan
-     * laboran supaya hanya mapel yang memang ada di KBM yang bisa dipilih.
-     * Hanya sumber KBM yang sedang diberlakukan yang dihitung, dan slot
-     * rutinitas (ROUTINE_*) selalu dikecualikan.
-     *
-     * @return array<string, bool> himpunan kunci mapel (untuk isset())
-     */
-    public function mapelTerjadwalKbm(string $rombelId, string $hari): array
-    {
-        $rombelId = trim($rombelId);
-        $hari = trim($hari);
-        if ($rombelId === '' || $hari === '') {
-            return [];
-        }
-
-        $rows = DB::table('jadwal_kbm')
-            ->where('rombongan_belajar_id', $rombelId)
-            ->where('hari', $hari)
-            ->where('sumber', $this->sumberKbmAktif())
-            ->where('is_active', true)
-            ->where('pembelajaran_id', 'not like', 'ROUTINE_%')
-            ->select('pembelajaran_id', 'nama_mata_pelajaran')
-            ->get();
-
-        $keys = [];
-        foreach ($rows as $r) {
-            $pid = trim((string) ($r->pembelajaran_id ?? ''));
-            if ($pid !== '') {
-                $keys['id:' . $pid] = true;
-                continue;
-            }
-
-            $nama = strtolower(trim((string) ($r->nama_mata_pelajaran ?? '')));
-            if ($nama !== '') {
-                $keys['nama:' . preg_replace('/\s+/', ' ', $nama)] = true;
-            }
-        }
-
-        return $keys;
-    }
 
     /**
      * Ambil slot jadwal KBM aktif untuk satu rombel.
@@ -409,97 +349,12 @@ class LaboranJadwalService
         return null;
     }
 
+
     /**
-     * Pastikan total JP praktik untuk satu pembelajaran pada tanggal tertentu
-     * tidak melebihi jumlah JP mapel tersebut di Jadwal KBM pada hari yang sama.
+     * Deteksi bentrok jadwal pada tanggal-tanggal tertentu.
      *
-     * @return string|null Pesan kesalahan, atau null bila aman.
-     */
-    public function findKuotaOverflow(array $data, string $hari, ?int $ignoreId = null, ?string $tanggal = null): ?string
-    {
-        $pembelajaranId = trim((string) ($data['pembelajaran_id'] ?? ''));
-        $rombelId       = trim((string) ($data['rombel_id'] ?? ''));
-        if ($pembelajaranId === '' || $rombelId === '') {
-            return null;
-        }
-
-        $tanggal = $tanggal ?? (string) ($data['tanggal'] ?? '');
-
-        $kuotaJp = (int) DB::table('jadwal_kbm')
-            ->where('rombongan_belajar_id', $rombelId)
-            ->where('pembelajaran_id', $pembelajaranId)
-            ->where('hari', $hari)
-            ->where('sumber', $this->sumberKbmAktif())
-            ->where('is_active', true)
-            ->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)'));
-
-        if ($kuotaJp <= 0) {
-            // Wajib hari KBM: mapel harus punya jadwal KBM pada hari tersebut,
-            // jika tidak, praktik tidak sah dijadwalkan di hari tanpa jadwal mapel.
-            return 'Mapel ini tidak memiliki jadwal KBM pada hari ' . $hari
-                . ', sehingga praktik tidak dapat dijadwalkan pada hari tersebut.';
-        }
-
-        $diminta = $this->durasiJp($data['jam_mulai'] ?? null, $data['jam_selesai'] ?? null, $hari);
-        if ($diminta <= 0) {
-            return null;
-        }
-
-        // JP praktik yang sudah ada pada tanggal yang sama.
-        $query = DB::table('laboran_jadwal_penggunaan')
-            ->where('rombel_id', $rombelId)
-            ->where('pembelajaran_id', $pembelajaranId)
-            ->where('tanggal', $tanggal)
-            ->where('status', '<>', 'batal');
-        if ($ignoreId) {
-            $query->where('id', '<>', $ignoreId);
-        }
-
-        $terpakai = 0;
-        foreach ($query->get(['id', 'jam_mulai', 'jam_selesai']) as $row) {
-            $terpakai += $this->durasiJp($row->jam_mulai, $row->jam_selesai, $hari);
-        }
-
-        if ($terpakai + $diminta <= $kuotaJp) {
-            return null;
-        }
-
-        return 'Alokasi JP melebihi jadwal KBM: mapel ini hanya ' . $kuotaJp . ' JP pada hari ' . $hari
-            . ', sudah terpakai ' . $terpakai . ' JP, permintaan ' . $diminta . ' JP.';
-    }
-
-    /**
-     * Hitung jumlah JP yang dicakup rentang jam tertentu pada satu hari.
-     *
-     * Hanya slot yang dapat dijadwalkan (schedulable) yang dihitung, karena
-     * JP pada Jadwal KBM tidak pernah memuat jam rutinitas (Upacara,
-     * Pembiasaan, Istirahat). Bila rentang seluruhnya berada di dalam slot
-     * rutinitas, hitungan jatuh ke jumlah slot yang beririsan agar tidak nol.
-     */
-    protected function durasiJp($jamMulai, $jamSelesai, string $hari): int
-    {
-        $mulai = substr((string) $jamMulai, 0, 5);
-        $selesai = substr((string) $jamSelesai, 0, 5);
-        if ($mulai === '' || $selesai === '' || $selesai <= $mulai) {
-            return 0;
-        }
-
-        $jp = 0;
-        $beririsan = 0;
-        foreach (JadwalPengaturan::getSlots($hari) as $slot) {
-            if ($mulai < $slot['selesai'] && $selesai > $slot['mulai']) {
-                $beririsan++;
-                if (!empty($slot['schedulable'])) {
-                    $jp++;
-                }
-            }
-        }
-
-        return $jp > 0 ? $jp : $beririsan;
-    }
-
-    /**
-     * Deteksi bentrok jadwal pada tanggal-tanggal tertentu (lokasi atau guru manapun).
+     * Hanya bentrok GURU yang diperiksa; lokasi praktik boleh dipakai bersama
+     * (termasuk oleh guru lain pada rombel lain).
      */
     public function findConflictForDates(array $data, array $targetDates, ?int $ignoreId = null): ?string
     {
@@ -546,33 +401,11 @@ class LaboranJadwalService
             $base->where('id', '<>', $ignoreId);
         }
 
-        // 1. Bentrok Lokasi — hanya untuk lokasi eksklusif (lab/bengkel).
-        //    Lahan & lapangan boleh dipakai beberapa sesi bersamaan.
-        $jenisLokasi = $data['jenis_lokasi'] ?? null;
-        $bolehBersamaan = in_array($jenisLokasi, self::JENIS_LOKASI_BERSAMAAN, true);
-
-        $bentrokLokasi = null;
-        if (!$bolehBersamaan) {
-            $lokasiQuery = (clone $base)->where('ruang_lab_nama', $data['ruang_lab_nama']);
-
-            // Team teaching: dua GURU BERBEDA pada rombel, lokasi, dan jam yang sama
-            // adalah satu kegiatan praktik bersama — bukan bentrok kapasitas.
-            // Bila gurunya sama, sesi tersebut adalah duplikat sehingga tetap ditolak.
-            if ($this->bisaTeamTeaching($data)) {
-                $rombelId = trim((string) $data['rombel_id']);
-                $ptkId    = trim((string) $data['ptk_id']);
-
-                // Abaikan baris yang merupakan pasangan team teaching sah, yaitu
-                // rombel SAMA dengan guru BERBEDA. Baris dengan guru yang sama
-                // tetap dihitung (duplikat) dan baris rombel lain tetap dihitung.
-                $lokasiQuery->where(function ($w) use ($rombelId, $ptkId) {
-                    $w->where('rombel_id', '<>', $rombelId)
-                      ->orWhere('ptk_id', $ptkId);
-                });
-            }
-
-            $bentrokLokasi = $lokasiQuery->first();
-        }
+        // 1. Bentrok LOKASI tidak lagi diperiksa.
+        //    Tempat praktik (lab/bengkel/lahan/lapangan) boleh dipakai beberapa
+        //    sesi pada jam yang sama, termasuk oleh guru dan rombel lain —
+        //    permintaan pemilik modul agar lokasi dapat dipakai guru lain.
+        //    Yang tetap eksklusif adalah GURU (lihat langkah 2).
 
         // 2. Bentrok Guru (memeriksa Guru Utama dan SEMUA Guru Pendamping)
         $bentrokGuru = null;
@@ -593,51 +426,12 @@ class LaboranJadwalService
             }
         }
 
-        // 3. Tentukan pesan yang paling menjelaskan penyebab penolakan.
-        //    Bila guru bentrok di RUANG LAIN, kendalanya adalah gurunya (bukan kapasitas
-        //    ruang yang diminta), sehingga pesan guru lebih tepat diprioritaskan.
-        if ($bentrokLokasi && $bentrokGuru) {
-            $ruangSama = trim((string) $bentrokGuru->ruang_lab_nama) === trim((string) $data['ruang_lab_nama']);
-
-            return $ruangSama
-                ? $this->pesanBentrokLokasi($data, $bentrokLokasi, $tanggal)
-                : $this->pesanBentrokGuru($guruBentrokId, $bentrokGuru, $tanggal);
-        }
-
-        if ($bentrokLokasi) {
-            return $this->pesanBentrokLokasi($data, $bentrokLokasi, $tanggal);
-        }
-
+        // 3. Satu-satunya penyebab penolakan yang tersisa: guru bentrok.
         if ($bentrokGuru) {
             return $this->pesanBentrokGuru($guruBentrokId, $bentrokGuru, $tanggal);
         }
 
         return null;
-    }
-
-    /**
-     * Apakah data sesi memenuhi syarat pemeriksaan team teaching?
-     *
-     * Hanya bila rombel & guru utama diketahui; tanpa keduanya tidak ada dasar
-     * untuk menyimpulkan bahwa dua sesi adalah kegiatan praktik yang sama.
-     */
-    protected function bisaTeamTeaching(array $data): bool
-    {
-        return trim((string) ($data['rombel_id'] ?? '')) !== ''
-            && trim((string) ($data['ptk_id'] ?? '')) !== '';
-    }
-
-    /**
-     * Pesan penolakan karena lokasi praktik eksklusif sudah terpakai.
-     */
-    protected function pesanBentrokLokasi(array $data, object $bentrok, string $tanggal): string
-    {
-        $tglStr = Carbon::parse($tanggal)->translatedFormat('d/m/Y');
-
-        return 'Lokasi "' . $data['ruang_lab_nama'] . '" sudah dipakai pada ' . $tglStr . ' '
-            . substr((string) $bentrok->jam_mulai, 0, 5) . ' - '
-            . substr((string) $bentrok->jam_selesai, 0, 5)
-            . ' (' . $bentrok->mata_pelajaran . '). Pilih jam atau lokasi lain.';
     }
 
     /**
