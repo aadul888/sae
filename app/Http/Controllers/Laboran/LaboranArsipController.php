@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Laboran;
 use App\Support\LaboranScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Modul ARSIP DOKUMEN ADMINISTRASI BENGKEL/LAB (Ordner Digital).
@@ -48,9 +49,10 @@ class LaboranArsipController extends LaboranBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        $tab          = (string) $request->query('tab', 'arsip');
-        if (!in_array($tab, ['arsip', 'indeks', 'riwayat'], true)) {
-            $tab = 'arsip';
+        // Peta Ordner ditampilkan lebih dulu (tab default) sebelum daftar arsip.
+        $tab          = (string) $request->query('tab', 'indeks');
+        if (!in_array($tab, ['indeks', 'arsip', 'riwayat'], true)) {
+            $tab = 'indeks';
         }
 
         $search       = trim((string) $request->query('q', ''));
@@ -214,6 +216,11 @@ class LaboranArsipController extends LaboranBaseController
         if ($statusFilter !== '')   $filterLabel[] = 'Status: ' . (self::STATUS[$statusFilter] ?? $statusFilter);
         if ($search !== '')         $filterLabel[] = 'Pencarian: "' . $search . '"';
 
+        // Cetak ulang dari Riwayat Cetak: `catat=0` mencegah log/arsip ganda
+        // (idempoten 10 detik tetap berlaku, tetapi cetak ulang biasanya
+        // dilakukan jauh setelahnya sehingga perlu ditekan eksplisit).
+        $catat = $request->query('catat', '1') !== '0';
+
         return view('dashboard.laboran.arsip-cetak', array_merge(
             [
                 'items'         => $items,
@@ -229,6 +236,7 @@ class LaboranArsipController extends LaboranBaseController
                 'mode'         => $mode,
                 'orientasi'    => $orientasi,
                 'jumlah_baris' => $items->count(),
+                'catat'        => $catat,
                 'filter'       => [
                     'q'        => $search,
                     'kategori' => $kategoriFilter,
@@ -236,6 +244,90 @@ class LaboranArsipController extends LaboranBaseController
                 ],
             ])
         ));
+    }
+
+    /**
+     * Cetak ulang dokumen dari Riwayat Cetak berdasarkan baris log.
+     *
+     * Mengarahkan ke endpoint cetak ASLI dokumen tersebut (jenis dokumen apa
+     * pun dari modul Laboran) dengan membawa kembali parameternya: mode,
+     * orientasi, dan filter. `catat=0` ditekan agar cetak ulang TIDAK membuat
+     * log/arsip baru — jejak lama tetap utuh sebagai bukti asli.
+     */
+    public function cetakUlang(Request $request, $id)
+    {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
+        $log = $this->findScoped('laboran_log_cetak', $id, $context);
+        if (!$log) {
+            return $this->respond($request, false, 'Riwayat cetak tidak ditemukan atau di luar cakupan jurusan Anda.', 404);
+        }
+
+        $target = $this->targetCetakUlang($log->jenis_dokumen);
+        if (!$target) {
+            return $this->respond($request, false, 'Dokumen ini tidak memiliki halaman cetak ulang.', 404);
+        }
+
+        $filter = [];
+        if (!empty($log->filter)) {
+            $decoded = json_decode((string) $log->filter, true);
+            if (is_array($decoded)) {
+                $filter = $decoded;
+            }
+        }
+
+        $query = array_merge(
+            ['id' => $log->sumber_id],
+            $request->query(),
+            [
+                'mode'      => $log->mode,
+                'orientasi' => $log->orientasi,
+                'catat'     => '0',
+            ],
+            array_filter($filter, fn ($v) => $v !== null && $v !== ''),
+            ['cetak_ulang_log' => $log->id]
+        );
+
+        return redirect()->route($target, array_filter($query, fn ($v) => $v !== null && $v !== ''));
+    }
+
+    /**
+     * Nama route halaman cetak untuk sebuah jenis dokumen Laboran.
+     *
+     * Jenis dokumen pada riwayat disimpan memakai prefiks namespace
+     * (mis. `laboran.kerusakan`) karena `catatCetak()` dipanggil dari
+     * namespace controller yang berbeda.
+     */
+    protected function targetCetakUlang(?string $jenis): ?string
+    {
+        $jenis = str_starts_with((string) $jenis, 'laboran.')
+            ? substr((string) $jenis, strlen('laboran.'))
+            : (string) $jenis;
+
+        $map = [
+            'dashboard'         => 'dashboard.laboran.dashboard.cetak',
+            'peserta-didik'     => 'dashboard.laboran.peserta-didik.cetak',
+            'inventaris'        => 'dashboard.laboran.inventaris.cetak',
+            'bhp'               => 'dashboard.laboran.bhp.cetak',
+            'jadwal-per-guru'   => 'dashboard.laboran.jadwal.cetak',
+            'jadwal'            => 'dashboard.laboran.jadwal.cetak',
+            'laporan-penggunaan' => 'dashboard.laboran.laporan.cetak',
+            'kebutuhan'         => 'dashboard.laboran.kebutuhan.cetak',
+            'perawatan'         => 'dashboard.laboran.perawatan.cetak',
+            'pemeriksaan'       => 'dashboard.laboran.pemeriksaan.cetak',
+            'pengadaan'         => 'dashboard.laboran.pengadaan.cetak',
+            'kerusakan'         => 'dashboard.laboran.kerusakan.cetak',
+            'peminjaman'        => 'dashboard.laboran.peminjaman-alat.cetak',
+            'arsip'             => 'dashboard.laboran.arsip.cetak',
+            'jurnal'            => 'dashboard.laboran.jurnal.cetak',
+            'kebersihan'        => 'dashboard.laboran.kebersihan.cetak',
+            'laporan-lengkap'   => 'dashboard.laboran.laporan-lengkap.cetak',
+        ];
+
+        $route = $map[$jenis] ?? null;
+
+        return $route && Route::has($route) ? $route : null;
     }
 
     /**

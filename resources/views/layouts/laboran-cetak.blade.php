@@ -9,8 +9,8 @@
 
       • `@page { size: A4 portrait|landscape; margin: ... }` sesuai $orientasi
       • Bar alat: Kembali · mode Ringkasan/Lengkap · orientasi · Cetak/PDF
-      • Kop surat + judul + subjudul (periode & format)
-      • Blok tanda tangan (partials.ttd-cetak) + footer verifikasi
+      • Kop surat + judul + subjudul (periode)
+      • Blok tanda tangan 3 pihak: Laboran, Kaprog, Kepala Sekolah + footer verifikasi
 
     Variabel yang diharapkan dari controller (lihat LaboranDokumenService::dokumen):
       $judulDokumen, $mode, $orientasi, $range (opsional), $sekolah, $sekolahMeta

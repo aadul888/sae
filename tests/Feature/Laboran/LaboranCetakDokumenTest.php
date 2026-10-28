@@ -230,6 +230,61 @@ class LaboranCetakDokumenTest extends LaboranTestCase
         }
     }
 
+    public function test_cetak_ulang_dari_riwayat_mengarah_ke_dokumen_asli(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->get(route('dashboard.laboran.kebutuhan.cetak', ['mode' => 'lengkap']))
+            ->assertStatus(200);
+
+        $log = DB::table('laboran_log_cetak')->latest('id')->first();
+        $this->assertNotNull($log);
+        $this->assertSame('kebutuhan', $log->jenis_dokumen);
+
+        // Cetak ulang mengarah ke halaman cetak dokumen aslinya.
+        $redir = $this->withSession($session)
+            ->get(route('dashboard.laboran.arsip.cetak-ulang', $log->id));
+
+        $redir->assertRedirect();
+        $target = $redir->headers->get('Location');
+        $this->assertStringContainsString('/dashboard/laboran/kebutuhan/cetak', $target);
+        $this->assertStringContainsString('catat=0', $target);
+
+        // Membuka halaman cetak ulang TIDAK menambah log baru.
+        $before = DB::table('laboran_log_cetak')->count();
+        $this->withSession($session)->get($target)->assertStatus(200);
+        $this->assertSame($before, DB::table('laboran_log_cetak')->count(),
+            'Cetak ulang tidak boleh menggandakan riwayat cetak.');
+    }
+
+    public function test_tombol_cetak_ulang_tampil_di_tab_riwayat(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->get(route('dashboard.laboran.peserta-didik.cetak'))
+            ->assertStatus(200);
+
+        $log = DB::table('laboran_log_cetak')->latest('id')->first();
+        $this->assertNotNull($log);
+
+        $res = $this->withSession($session)
+            ->get(route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']));
+
+        $res->assertStatus(200);
+        $res->assertSee(route('dashboard.laboran.arsip.cetak-ulang', $log->id), false);
+    }
+
+    public function test_tab_default_arsip_adalah_peta_ordner(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.arsip.index'));
+
+        $res->assertStatus(200);
+        $res->assertSee('Peta Ordner Arsip', false);
+    }
+
     public function test_kaprog_ditampilkan_sesuai_jurusan(): void
     {
         $service = app(LaboranDokumenService::class);

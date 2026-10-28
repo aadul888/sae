@@ -132,11 +132,48 @@
                                     @endif
                                 </td>
                                 <td data-label="Alat" style="padding: var(--space-6) var(--space-7);">
-                                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">{{ $ba->nama_alat }}</div>
-                                    <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                        {{ (float) $ba->jumlah_rusak }} {{ $ba->satuan }}
-                                        @if ($ba->ruang_lab_nama) &bull; {{ $ba->ruang_lab_nama }} @endif
+                                    @php
+                                        $rincian = collect($ba->alat ?? []);
+                                        if ($rincian->isEmpty()) {
+                                            $rincian = collect([(object) [
+                                                'nama_alat'   => $ba->nama_alat,
+                                                'jumlah_rusak' => $ba->jumlah_rusak,
+                                                'satuan'      => $ba->satuan,
+                                                'kode_alat'   => $ba->kode_alat,
+                                                'ruang_lab_nama' => $ba->ruang_lab_nama,
+                                                'tingkat_kerusakan' => $ba->tingkat_kerusakan,
+                                                'keterangan'  => null,
+                                            ]]);
+                                        }
+                                        $alatPertama = $rincian->first();
+                                        $alatJson = json_encode($rincian->map(fn ($ra) => [
+                                            'item_id'           => $ra->item_id ?? null,
+                                            'nama_alat'         => $ra->nama_alat,
+                                            'kode_alat'         => $ra->kode_alat ?? null,
+                                            'ruang_lab_nama'    => $ra->ruang_lab_nama ?? null,
+                                            'jumlah_rusak'      => (float) $ra->jumlah_rusak,
+                                            'satuan'            => $ra->satuan,
+                                            'tingkat_kerusakan' => $ra->tingkat_kerusakan ?? $ba->tingkat_kerusakan,
+                                            'keterangan'        => $ra->keterangan ?? null,
+                                        ])->values());
+                                    @endphp
+                                    <div style="font-weight: var(--font-bold); color: var(--text-color); font-size: var(--text-base);">
+                                        {{ $alatPertama->nama_alat }}
+                                        @if ($rincian->count() > 1)
+                                            <span class="badge badge-outline" style="font-size: var(--text-2xs); margin-left: var(--space-2);">+{{ $rincian->count() - 1 }} alat lain</span>
+                                        @endif
                                     </div>
+                                    <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                        {{ (float) $alatPertama->jumlah_rusak }} {{ $alatPertama->satuan }}
+                                        @if ($alatPertama->ruang_lab_nama ?? null) &bull; {{ $alatPertama->ruang_lab_nama }} @endif
+                                    </div>
+                                    @if ($rincian->count() > 1)
+                                        <ul style="margin: var(--space-2) 0 0 var(--space-6); padding: 0; font-size: var(--text-xs); color: var(--text-muted);">
+                                            @foreach ($rincian->skip(1) as $ra)
+                                                <li>{{ $ra->nama_alat }} — {{ (float) $ra->jumlah_rusak }} {{ $ra->satuan }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
                                     @if ($ba->kronologi)
                                         <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">{{ \Illuminate\Support\Str::limit($ba->kronologi, 80) }}</div>
                                     @endif
@@ -182,11 +219,10 @@
                                         </a>
                                         @if ($canUpdate)
                                             <button type="button" class="btn-icon btn-edit-kerusakan"
-                                                data-id="{{ $ba->id }}" data-item="{{ $ba->item_id }}"
-                                                data-nama="{{ $ba->nama_alat }}" data-kode="{{ $ba->kode_alat }}"
+                                                data-id="{{ $ba->id }}"
+                                                data-alat="{{ $alatJson }}"
                                                 data-lokasi="{{ $ba->ruang_lab_nama }}"
                                                 data-kejadian="{{ $ba->tanggal_kejadian }}" data-ba="{{ $ba->tanggal_ba }}"
-                                                data-jumlah="{{ (float) $ba->jumlah_rusak }}" data-satuan="{{ $ba->satuan }}"
                                                 data-tingkat="{{ $ba->tingkat_kerusakan }}"
                                                 data-kronologi="{{ $ba->kronologi }}" data-penyebab="{{ $ba->penyebab }}"
                                                 data-pelaku-tipe="{{ $ba->pelaku_tipe }}" data-pelaku-nama="{{ $ba->pelaku_nama }}"
@@ -244,32 +280,13 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Pilih Alat dari Inventaris</label>
-                            <select name="item_id" id="krItem" class="form-control">
-                                <option value="">-- Atau isi nama alat manual --</option>
-                                @foreach ($itemOptions as $io)
-                                    <option value="{{ $io->id }}">{{ $io->nama_item }} ({{ $io->kode_item }})</option>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Lokasi / Ruang Praktik</label>
+                            <select name="ruang_lab_nama" id="krLokasi" class="form-control">
+                                <option value="">-- Pilih --</option>
+                                @foreach ($lokasiOptions as $lok)
+                                    <option value="{{ $lok }}">{{ $lok }}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Nama Alat <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <input type="text" name="nama_alat" id="krNama" class="form-control" placeholder="Nama alat yang rusak">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
-                                Tanggal Kejadian <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <input type="date" name="tanggal_kejadian" id="krKejadian" class="form-control" required>
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Tanggal BA</label>
-                            <input type="date" name="tanggal_ba" id="krBa" class="form-control">
                         </div>
                         <div>
                             <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
@@ -283,23 +300,50 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                    {{-- Daftar alat yang dilaporkan (bisa lebih dari satu) --}}
+                    <div class="form-group" style="margin-bottom: var(--space-6);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-3); flex-wrap: wrap;">
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin: 0; color: var(--text-color);">
+                                Daftar Alat yang Dilaporkan <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <button type="button" class="btn btn-outline" id="krTambahAlat"
+                                style="height: 34px; padding: 0 var(--space-5); font-size: var(--text-sm);">
+                                <i class="fas fa-plus me-1"></i> Tambah Alat
+                            </button>
+                        </div>
+
+                        <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                            <table class="table" style="width: 100%; margin: 0; min-width: 680px;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                                        <th style="padding: var(--space-4) var(--space-5); font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); text-align: left; min-width: 200px;">Alat Inventaris</th>
+                                        <th style="padding: var(--space-4) var(--space-5); font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); text-align: left; min-width: 160px;">Nama Alat</th>
+                                        <th style="padding: var(--space-4) var(--space-5); font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); text-align: left; width: 90px;">Jumlah</th>
+                                        <th style="padding: var(--space-4) var(--space-5); font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); text-align: left; width: 100px;">Satuan</th>
+                                        <th style="padding: var(--space-4) var(--space-5); font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); text-align: left; width: 150px;">Tingkat</th>
+                                        <th style="padding: var(--space-4) var(--space-5); width: 44px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="krAlatBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="krAlatEmpty"
+                            style="padding: var(--space-6); text-align: center; font-size: var(--text-sm); color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-top: var(--space-4);">
+                            Belum ada alat. Klik <strong>Tambah Alat</strong> untuk memilih alat dari inventaris.
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                         <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Jumlah Rusak</label>
-                            <input type="number" step="0.01" min="0.01" name="jumlah_rusak" id="krJumlah" class="form-control" value="1">
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
+                                Tanggal Kejadian <span style="color: var(--danger, #ef4444);">*</span>
+                            </label>
+                            <input type="date" name="tanggal_kejadian" id="krKejadian" class="form-control" required>
                         </div>
                         <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Satuan</label>
-                            <input type="text" name="satuan" id="krSatuan" class="form-control" value="unit">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Lokasi</label>
-                            <select name="ruang_lab_nama" id="krLokasi" class="form-control">
-                                <option value="">-- Pilih --</option>
-                                @foreach ($lokasiOptions as $lok)
-                                    <option value="{{ $lok }}">{{ $lok }}</option>
-                                @endforeach
-                            </select>
+                            <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">Tanggal BA</label>
+                            <input type="date" name="tanggal_ba" id="krBa" class="form-control">
                         </div>
                     </div>
 
@@ -365,6 +409,42 @@
                         <button type="button" class="btn btn-secondary" data-close="modalKerusakan">Batal</button>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Berita Acara</button>
                     </div>
+
+                    {{-- Cetakan baris alat (diisi oleh laboran-kerusakan.js) --}}
+                    <template id="krAlatTemplate">
+                        <tr class="kr-alat-row" style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: var(--space-4) var(--space-5);">
+                                <select name="alat[__IDX__][item_id]" class="form-control kr-alat-item">
+                                    <option value="">-- Pilih dari inventaris --</option>
+                                    @foreach ($itemOptions as $io)
+                                        <option value="{{ $io->id }}" data-nama="{{ $io->nama_item }}"
+                                            data-kode="{{ $io->kode_item }}" data-satuan="{{ $io->satuan }}"
+                                            data-ruang="{{ $io->ruang_lab_nama }}">{{ $io->nama_item }} ({{ $io->kode_item }})</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td style="padding: var(--space-4) var(--space-5);">
+                                <input type="text" name="alat[__IDX__][nama_alat]" class="form-control kr-alat-nama" placeholder="Nama alat">
+                            </td>
+                            <td style="padding: var(--space-4) var(--space-5);">
+                                <input type="number" step="0.01" min="0.01" name="alat[__IDX__][jumlah_rusak]" class="form-control kr-alat-jumlah" value="1">
+                            </td>
+                            <td style="padding: var(--space-4) var(--space-5);">
+                                <input type="text" name="alat[__IDX__][satuan]" class="form-control kr-alat-satuan" value="unit">
+                            </td>
+                            <td style="padding: var(--space-4) var(--space-5);">
+                                <select name="alat[__IDX__][tingkat_kerusakan]" class="form-control kr-alat-tingkat">
+                                    @foreach ($tingkatList as $k => $v)
+                                        <option value="{{ $k }}">{{ $v }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td style="padding: var(--space-4) var(--space-5); text-align: center;">
+                                <button type="button" class="btn-icon kr-alat-hapus" title="Hapus alat"
+                                    style="color: var(--danger, #ef4444);"><i class="fas fa-trash-can"></i></button>
+                            </td>
+                        </tr>
+                    </template>
                 </form>
             </div>
         </div>

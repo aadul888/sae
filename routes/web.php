@@ -851,6 +851,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
             Route::post('/arsipkan-massal', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'arsipkanMassal'])->name('arsipkan-massal')->middleware('permission:menu_laboran,create');
             Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
+            Route::get('/riwayat/{id}/cetak', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'cetakUlang'])->name('cetak-ulang')->middleware('permission:menu_laboran,read');
             Route::put('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'update'])->name('update')->middleware('permission:menu_laboran,update');
             Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranArsipController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
         });

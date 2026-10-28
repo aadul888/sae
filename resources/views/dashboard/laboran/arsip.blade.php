@@ -75,13 +75,13 @@
         {{-- Tab: Arsip / Peta Ordner --}}
         <div class="periode-nav-wrapper" style="margin-bottom: var(--space-7);">
             <div class="periode-nav-desktop">
-                <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}"
-                    class="periode-nav-tab {{ $tab === 'arsip' ? 'active' : '' }}">
-                    <i class="fas fa-folder"></i> Daftar Arsip ({{ $statTotal }})
-                </a>
                 <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'indeks']) }}"
                     class="periode-nav-tab {{ $tab === 'indeks' ? 'active' : '' }}">
                     <i class="fas fa-sitemap"></i> Peta Ordner ({{ $statKategori }})
+                </a>
+                <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}"
+                    class="periode-nav-tab {{ $tab === 'arsip' ? 'active' : '' }}">
+                    <i class="fas fa-folder"></i> Daftar Arsip ({{ $statTotal }})
                 </a>
                 <a href="{{ route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']) }}"
                     class="periode-nav-tab {{ $tab === 'riwayat' ? 'active' : '' }}">
@@ -92,8 +92,8 @@
                 <div class="periode-mobile-select-box" style="margin-bottom: 0;">
                     <label><i class="fas fa-sliders text-primary me-1"></i> Pilih Tampilan:</label>
                     <select class="periode-mobile-select" onchange="if(this.value) window.location.href=this.value;">
-                        <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}" {{ $tab === 'arsip' ? 'selected' : '' }}>Daftar Arsip ({{ $statTotal }})</option>
                         <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'indeks']) }}" {{ $tab === 'indeks' ? 'selected' : '' }}>Peta Ordner ({{ $statKategori }})</option>
+                        <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'arsip']) }}" {{ $tab === 'arsip' ? 'selected' : '' }}>Daftar Arsip ({{ $statTotal }})</option>
                         <option value="{{ route('dashboard.laboran.arsip.index', ['tab' => 'riwayat']) }}" {{ $tab === 'riwayat' ? 'selected' : '' }}>Riwayat Cetak</option>
                     </select>
                 </div>
@@ -155,6 +155,7 @@
                                 <th style="width: 70px;">Baris</th>
                                 <th style="width: 140px;">Petugas</th>
                                 <th style="width: 130px;">Waktu Cetak</th>
+                                <th style="width: 70px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -178,10 +179,17 @@
                                     <td class="center">
                                         {{ $r->created_at ? \Carbon\Carbon::parse($r->created_at)->translatedFormat('d M Y H:i') : '—' }}
                                     </td>
+                                    <td class="center">
+                                        <a href="{{ route('dashboard.laboran.arsip.cetak-ulang', $r->id) }}"
+                                            class="btn-icon" target="_blank" rel="noopener"
+                                            title="Cetak Ulang Dokumen Ini" aria-label="Cetak Ulang Dokumen Ini">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="center" style="padding: 16px; color: var(--text-muted);">
+                                    <td colspan="9" class="center" style="padding: 16px; color: var(--text-muted);">
                                         <em>Belum ada riwayat cetak pada cakupan jurusan ini.</em>
                                     </td>
                                 </tr>

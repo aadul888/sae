@@ -30,6 +30,10 @@
 </head>
 
 <body>
+    @php
+        $alat = $alat ?? collect();
+        $totalAlat = $alat->count();
+    @endphp
 
     {{-- Floating Bar --}}
     <div class="no-print-bar">
@@ -53,7 +57,10 @@
         </button>
     </div>
 
-    <div class="cetak-page">
+    {{-- =====================================================================
+         HALAMAN 1 — BERITA ACARA
+         ===================================================================== --}}
+    <div class="cetak-page page-break">
         <!-- Watermark -->
         <div class="watermark-sae">
             <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
@@ -76,23 +83,21 @@
             Pada hari ini, <strong>{{ \Carbon\Carbon::parse($ba->tanggal_ba ?: $ba->tanggal_kejadian)->translatedFormat('l') }}</strong>,
             tanggal <strong>{{ \Carbon\Carbon::parse($ba->tanggal_ba ?: $ba->tanggal_kejadian)->translatedFormat('d F Y') }}</strong>,
             bertempat di <strong>{{ $ba->ruang_lab_nama ?: ($sekolah->nama ?? 'lingkungan sekolah') }}</strong>,
-            telah terjadi kerusakan alat praktik dengan rincian sebagai berikut:
+            telah terjadi kerusakan alat praktik sebanyak
+            <strong>{{ $totalAlat }} jenis alat</strong> sebagaimana rincian pada
+            <strong>Lampiran</strong> (halaman 2) yang merupakan bagian tidak terpisahkan dari berita acara ini.
         </div>
 
         <!-- Info Box Rincian -->
         <div class="info-box">
             <div>
                 <div class="info-item">
-                    <span class="info-label">Nama Alat:</span>
-                    <span class="info-val">{{ $ba->nama_alat }}</span>
+                    <span class="info-label">Jumlah Alat Dilaporkan:</span>
+                    <span class="info-val">{{ $totalAlat }} jenis</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Kode Alat:</span>
-                    <span class="info-val">{{ $ba->kode_alat ?: '—' }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Jumlah Rusak:</span>
-                    <span class="info-val">{{ (float) $ba->jumlah_rusak }} {{ $ba->satuan }}</span>
+                    <span class="info-label">Total Kerusakan:</span>
+                    <span class="info-val">{{ $alat->sum(fn ($a) => (float) $a->jumlah_rusak) }} unit</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Lokasi:</span>
@@ -230,7 +235,91 @@
                 </div>
             </div>
             <div style="text-align: right;">
-                Halaman 1 / 1
+                Halaman 1 / 2
+            </div>
+        </div>
+    </div>
+
+    {{-- =====================================================================
+         HALAMAN 2 — LAMPIRAN DAFTAR ALAT
+         ===================================================================== --}}
+    <div class="cetak-page">
+        <div class="watermark-sae">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
+        </div>
+
+        @include('partials.kop-surat')
+
+        <div class="doc-header">
+            @if (empty($sekolahMeta?->kop_url))
+                <div class="school-name">{{ $sekolah->nama ?? 'SATUAN PENDIDIKAN' }}</div>
+            @endif
+            <div class="doc-title-main">LAMPIRAN BERITA ACARA KERUSAKAN ALAT</div>
+            <div class="doc-subtitle">Nomor: {{ $ba->nomor_ba }}</div>
+        </div>
+
+        <div style="font-size: var(--text-sm); line-height: 1.6; color: #1f2937; margin-bottom: 12px; position: relative; z-index: 1;">
+            Daftar alat yang dilaporkan rusak pada Berita Acara Kerusakan Alat
+            tanggal <strong>{{ \Carbon\Carbon::parse($ba->tanggal_ba ?: $ba->tanggal_kejadian)->translatedFormat('d F Y') }}</strong>:
+        </div>
+
+        <table class="table-data">
+            <thead>
+                <tr>
+                    <th style="width: 34px;">No</th>
+                    <th>Nama Alat</th>
+                    <th style="width: 90px;">Kode</th>
+                    <th style="width: 70px;">Jumlah</th>
+                    <th style="width: 70px;">Satuan</th>
+                    <th style="width: 110px;">Tingkat</th>
+                    <th style="width: 120px;">Lokasi</th>
+                    <th style="width: 130px;">Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($alat as $idx => $a)
+                    <tr>
+                        <td class="center">{{ $idx + 1 }}</td>
+                        <td>{{ $a->nama_alat }}</td>
+                        <td class="center">{{ $a->kode_alat ?: '—' }}</td>
+                        <td class="center">{{ (float) $a->jumlah_rusak }}</td>
+                        <td class="center">{{ $a->satuan }}</td>
+                        <td class="center">{{ $tingkatList[$a->tingkat_kerusakan ?? ''] ?? ($a->tingkat_kerusakan ?: '—') }}</td>
+                        <td>{{ $a->ruang_lab_nama ?: '—' }}</td>
+                        <td>{{ $a->keterangan ?: '—' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="center">Tidak ada rincian alat.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right; font-weight: 700;">Jumlah</td>
+                    <td class="center" style="font-weight: 700;">{{ $alat->sum(fn ($a) => (float) $a->jumlah_rusak) }}</td>
+                    <td colspan="4"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div style="font-size: var(--text-xs); color: #6b7280; margin-bottom: 18px; position: relative; z-index: 1;">
+            Lampiran ini merupakan bagian tidak terpisahkan dari Berita Acara Kerusakan Alat Nomor
+            {{ $ba->nomor_ba }} dan hanya sah apabila disertakan bersama dokumen tersebut.
+        </div>
+
+        @include('dashboard.laboran.partials.ttd-cetak')
+
+        <div class="doc-footer">
+            <div class="qr-badge">
+                <img src="{{ asset('img/logo-icon.png') }}" alt="Logo Verifikasi SAE">
+                <div>
+                    <strong>Lampiran Dokumen Berita Acara Sistem Aplikasi Edukasi (SAE)</strong><br>
+                    Dicetak otomatis pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i:s') }} WIB.
+                </div>
+            </div>
+            <div style="text-align: right;">
+                Halaman 2 / 2
             </div>
         </div>
     </div>

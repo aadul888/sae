@@ -38,6 +38,7 @@ abstract class LaboranTestCase extends TestCase
         'laboran_usulan_pengadaan',
         'laboran_usulan_pengadaan_item',
         'laboran_berita_acara_kerusakan',
+        'laboran_berita_acara_kerusakan_item',
         'laboran_peminjaman',
         'laboran_peminjaman_item',
         'laboran_jadwal_penggunaan',
