@@ -46,6 +46,9 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $frekuensi = $request->input('frekuensi');
         $perPage = (int) $request->input('per_page', 15);
 
+        // Ruang tanggung jawab pengguna login otomatis masuk jadwal pemeliharaan.
+        $this->syncPemeliharaan($context);
+
         $query = TeknisiPemeliharaan::latest('tgl_jadwal')->latest('id');
         // Tabel pemeliharaan hanya punya penanda `user_id` (tanpa kolom ptk).
         $this->scopeOwned($query->getQuery(), $context, null, null);
@@ -132,6 +135,59 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
 
         return redirect()->route('dashboard.teknisi.pemeliharaan')
             ->with('success', "Jadwal pemeliharaan {$kodePm} berhasil didaftarkan.");
+    }
+
+    /**
+     * Turunkan jadwal pemeliharaan preventif dari ruang MILIK PJ yang login.
+     *
+     * Sumber: `teknisi_area_master` (cermin `sarpras_ruang`). Satu ruang = satu
+     * jadwal pemeliharaan awal (bangunan & fisik, bulanan). Idempoten lewat
+     * `lokasi_aset` + `user_id`; jadwal yang sudah ada tidak ditimpa.
+     */
+    private function syncPemeliharaan(array $context): void
+    {
+        $ptkId = $context['ptk_id'] ?? null;
+        $userId = $context['user_id'] ?? null;
+        if (!$ptkId || !$userId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_pemeliharaan')) {
+            return;
+        }
+
+        $sumber = \Illuminate\Support\Facades\DB::table('teknisi_area_master')
+            ->where('petugas_ptk_id', $ptkId)
+            ->orderBy('nama_area')
+            ->get(['nama_area', 'gedung']);
+
+        if ($sumber->isEmpty()) {
+            return;
+        }
+
+        $ada = \Illuminate\Support\Facades\DB::table('teknisi_pemeliharaan')
+            ->where('user_id', $userId)
+            ->whereIn('lokasi_aset', $sumber->pluck('nama_area')->all())
+            ->pluck('lokasi_aset')
+            ->flip();
+
+        $prefix = 'PM-' . date('Ym') . '-';
+        $urut = (int) substr((string) TeknisiPemeliharaan::where('kode_pemeliharaan', 'like', "{$prefix}%")
+            ->orderByDesc('id')->value('kode_pemeliharaan'), -4);
+
+        foreach ($sumber as $r) {
+            if (isset($ada[$r->nama_area])) {
+                continue;
+            }
+
+            TeknisiPemeliharaan::create([
+                'kode_pemeliharaan' => $prefix . str_pad((string) ++$urut, 4, '0', STR_PAD_LEFT),
+                'nama_kegiatan'     => 'Pemeliharaan ' . $r->nama_area,
+                'kategori'          => 'bangunan',
+                'lokasi_aset'       => $r->nama_area,
+                'frekuensi'         => 'bulanan',
+                'tgl_jadwal'        => now()->addWeek()->startOfWeek()->toDateString(),
+                'penanggung_jawab'  => $context['nama'] ?? null,
+                'user_id'           => $userId,
+                'status'            => 'terjadwal',
+            ]);
+        }
     }
 
     /** Unduh template Excel jadwal pemeliharaan preventif. */

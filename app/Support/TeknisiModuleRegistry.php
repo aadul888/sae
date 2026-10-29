@@ -20,6 +20,7 @@ final class TeknisiModuleRegistry
         'fasilitas_umum' => 'Fasilitas Umum (WC, Jamban, Kantin)',
         'teras_halaman'  => 'Teras & Halaman',
         'lapangan'       => 'Lapangan, Gor, Aula',
+        'laboratorium'   => 'Laboratorium & Bengkel',
         'lainnya'        => 'Lainnya',
     ];
 
@@ -79,6 +80,9 @@ final class TeknisiModuleRegistry
                     'keterangan'   => ['label' => 'Keterangan', 'type' => 'text', 'wide' => true],
                 ],
                 'list' => ['nama_area', 'kategori', 'frekuensi', 'petugas_nama', 'status'],
+                // Area Master adalah cermin master Sarpras: barisnya diturunkan
+                // dari `sarpras_ruang` sesuai PJ yang login (lihat syncAreaMaster).
+                'autoSync' => true,
             ],
 
             'inspeksi-utilitas' => self::logSpec('inspeksi-utilitas', 'Inspeksi Utilitas & Instalasi', 'fas fa-bolt', 'var(--warning, #f59e0b)', 'Pemeriksaan panel listrik, genset, pompa, tandon, dan meteran air/listrik.', [

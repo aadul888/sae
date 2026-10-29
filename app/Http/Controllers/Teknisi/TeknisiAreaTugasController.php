@@ -50,6 +50,10 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         $perPage     = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage     = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
 
+        // Ruang yang menjadi tanggung jawab pengguna login otomatis masuk
+        // daftar jadwal area tugas (sumber: area master hasil sinkron Sarpras).
+        $this->syncAreaTugas($context);
+
         $query = DB::table('teknisi_area_tugas as a')->select('a.*');
         $this->scopeOwned($query, $context, 'a');
 
@@ -169,9 +173,88 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         return $this->respond($request, true, 'Jadwal area tugas berhasil dihapus.');
     }
 
-    protected function validated(Request $request): array
+    /**
+     * Turunkan jadwal area tugas dari area master MILIK PJ yang login.
+     *
+     * Sumbernya `teknisi_area_master` (hasil sinkron `sarpras_ruang`), sehingga
+     * satu ruang tanggung jawab = satu baris jadwal. Idempoten lewat nama area
+     * + pemilik akun; jadwal yang sudah ada dilewati agar suntingan petugas
+     * tidak tertimpa.
+     */
+    private function syncAreaTugas(array $context): void
     {
-        return $request->validate([
+        $ptkId = $context['ptk_id'] ?? null;
+        if (!$ptkId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_area_tugas')) {
+            return;
+        }
+
+        $sumber = DB::table('teknisi_area_master')
+            ->where('petugas_ptk_id', $ptkId)
+            ->orderBy('nama_area')
+            ->get(['nama_area', 'zona', 'gedung', 'frekuensi', 'kategori', 'status']);
+
+        if ($sumber->isEmpty()) {
+            return;
+        }
+
+        // Idempoten lewat nama area + pemilik (tabel jadwal tidak punya ruang_id).
+        $ada = DB::table('teknisi_area_tugas')
+            ->whereIn('area', $sumber->pluck('nama_area')->all())
+            ->where('petugas_ptk_id', $ptkId)
+            ->pluck('area')
+            ->flip();
+
+        $baru = [];
+        $urut = $this->nomorTerakhir('teknisi_area_tugas', 'nomor_jadwal', 'AT');
+        foreach ($sumber as $a) {
+            if (isset($ada[$a->nama_area])) {
+                continue;
+            }
+            $urut++;
+            $baru[] = [
+                'nomor_jadwal'   => sprintf('AT/%s/%04d', now()->format('Ym'), $urut),
+                'user_id'        => $context['user_id'] ?? null,
+                'area'           => $a->nama_area,
+                'zona'           => $a->zona ?: $a->gedung,
+                'periode_jadwal' => $a->frekuensi ?: 'harian',
+                'petugas_ptk_id' => $ptkId,
+                'petugas_nama'   => $context['nama'] ?? null,
+                'shift'          => 'pagi',
+                'jenis_tugas'    => 'tukang_kebersihan',
+                'uraian'         => 'Kebersihan ' . $a->nama_area
+                    . ($a->gedung ? ' (' . $a->gedung . ')' : ''),
+                'status'         => $a->status === 'aktif' ? 'aktif' : 'draf',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ];
+        }
+
+        if (!empty($baru)) {
+            DB::table('teknisi_area_tugas')->insert($baru);
+        }
+    }
+
+    /**
+     * Nomor urut terakhir dokumen `PREFIX/YYYYMM/NNNN` bulan ini.
+     */
+    private function nomorTerakhir(string $table, string $column, string $prefix): int
+    {
+        $last = DB::table($table)
+            ->where($column, 'like', "{$prefix}/" . now()->format('Ym') . '/%')
+            ->orderByDesc('id')
+            ->value($column);
+
+        if (!$last) {
+            return 0;
+        }
+
+        $parts = explode('/', (string) $last);
+
+        return (int) end($parts);
+    }
+
+    protected function validated(Request $request): array
+    {        return $request->validate([
             'area'            => 'required|string|max:150',
             'zona'            => 'nullable|string|max:80',
             'periode_jadwal'  => 'nullable|in:harian,mingguan,bulanan,insidental',
