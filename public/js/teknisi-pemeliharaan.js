@@ -126,19 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const formDel = btnDelete.closest('form');
             const nama = btnDelete.getAttribute('data-nama') || 'jadwal ini';
 
-            Swal.fire({
-                title: 'Hapus Jadwal PM?',
-                text: `Apakah Anda yakin ingin menghapus jadwal pemeliharaan "${nama}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    formDel.submit();
-                }
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus jadwal pemeliharaan "${nama}"?`, 'Hapus Jadwal PM?', 'danger', 'Ya, Hapus!').then((ok) => {
+                if (ok) formDel.submit();
             });
         }
     });

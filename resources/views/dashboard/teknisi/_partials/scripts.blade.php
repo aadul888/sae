@@ -4,7 +4,7 @@
     • Modal open/close via `[data-modal-open]` & `[data-modal-close]`.
     • Tombol edit mengisi form: `data-teknisi-form` + `data-field-<name>`.
     • Aksi hapus: form `[data-confirm="delete"]` pakai dialog konfirmasi global
-      bila tersedia (window.SAE_Confirm), jika tidak pakai confirm() bawaan.
+      `window.SAE.confirm()`.
     • Mode edit: set `data-edit-route` (route update + ID) → isi action & _method PUT.
 --}}
 @once
@@ -91,19 +91,15 @@
                 document.addEventListener('submit', function(e) {
                     var form = e.target;
                     if (form.getAttribute('data-confirm') === 'delete') {
+                        e.preventDefault();
                         var msg = form.getAttribute('data-confirm-message') ||
                             'Yakin ingin menghapus data ini? Tindakan tidak dapat dibatalkan.';
-                        if (typeof window.SAE_Confirm === 'function') {
-                            e.preventDefault();
-                            window.SAE_Confirm(msg).then(function(ok) {
-                                if (ok) {
-                                    form.removeAttribute('data-confirm');
-                                    form.submit();
-                                }
-                            });
-                        } else if (!window.confirm(msg)) {
-                            e.preventDefault();
-                        }
+                        window.SAE.confirm(msg, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then(function(ok) {
+                            if (ok) {
+                                form.removeAttribute('data-confirm');
+                                form.submit();
+                            }
+                        });
                     }
                 });
 
@@ -124,10 +120,16 @@
                         })
                         .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
                         .then(function(res) {
-                            alert((res.data && res.data.message) || 'Import selesai.');
-                            if (res.ok) location.reload();
+                            var pesan = (res.data && res.data.message) || 'Import selesai.';
+                            if (res.ok) {
+                                window.SAE.alert(pesan, 'Import Berhasil', 'success').then(function() { location.reload(); });
+                            } else {
+                                window.SAE.alert(pesan, 'Import Gagal', 'error');
+                            }
                         })
-                        .catch(function() { alert('Gagal memproses import. Periksa berkas lalu coba lagi.'); })
+                        .catch(function() {
+                            window.SAE.alert('Gagal memproses import. Periksa berkas lalu coba lagi.', 'Kesalahan Sistem', 'error');
+                        })
                         .finally(function() {
                             if (btn) { btn.disabled = false; btn.innerHTML = orig; }
                         });

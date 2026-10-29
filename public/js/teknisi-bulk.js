@@ -55,11 +55,7 @@
     function submit(btn) {
         var ids = selectedIds();
         if (!ids.length) {
-            if (window.Swal) {
-                window.Swal.fire({ icon: "info", title: "Belum ada data dipilih", text: "Centang minimal satu data dulu." });
-            } else {
-                window.alert("Centang minimal satu data dulu.");
-            }
+            window.SAE.alert("Centang minimal satu data dulu.", "Belum ada data dipilih", "warning");
             return;
         }
 
@@ -82,39 +78,16 @@
                 .then(function (res) {
                     var ok = res.status === "success";
                     var msg = res.message || "Selesai.";
-                    if (window.Swal) {
-                        window.Swal.fire({
-                            icon: ok ? "success" : "error",
-                            title: ok ? "Berhasil" : "Gagal",
-                            text: msg,
-                        }).then(function () { window.location.reload(); });
-                    } else {
-                        window.alert(msg);
-                        window.location.reload();
-                    }
+                    window.SAE.alert(msg, ok ? "Berhasil" : "Gagal", ok ? "success" : "error")
+                        .then(function () { window.location.reload(); });
                 })
                 .catch(function () {
-                    if (window.Swal) {
-                        window.Swal.fire({ icon: "error", title: "Gagal", text: "Terjadi kesalahan jaringan." });
-                    } else {
-                        window.alert("Terjadi kesalahan jaringan.");
-                    }
+                    window.SAE.alert("Terjadi kesalahan jaringan.", "Gagal", "error");
                 });
         };
 
-        var text = "Hapus " + ids.length + " data terpilih?";
-        if (window.Swal) {
-            window.Swal.fire({
-                icon: "warning",
-                title: "Konfirmasi",
-                text: text,
-                showCancelButton: true,
-                confirmButtonText: "Ya, hapus",
-                cancelButtonText: "Batal",
-            }).then(function (r) { if (r.isConfirmed) go(); });
-        } else if (window.confirm(text)) {
-            go();
-        }
+        window.SAE.confirm("Hapus " + ids.length + " data terpilih?", "Konfirmasi", "danger", "Ya, hapus")
+            .then(function (ok) { if (ok) go(); });
     }
 
     document.addEventListener("change", function (e) {

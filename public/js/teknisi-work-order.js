@@ -135,19 +135,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const formDel = btnDelete.closest('form');
             const nomor = btnDelete.getAttribute('data-nomor') || 'WO ini';
 
-            Swal.fire({
-                title: 'Hapus Work Order?',
-                text: `Apakah Anda yakin ingin menghapus tiket Work Order "${nomor}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    formDel.submit();
-                }
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus tiket Work Order "${nomor}"?`, 'Hapus Work Order?', 'danger', 'Ya, Hapus!').then((ok) => {
+                if (ok) formDel.submit();
             });
         }
     });
