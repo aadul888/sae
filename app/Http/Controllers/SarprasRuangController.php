@@ -30,14 +30,16 @@ class SarprasRuangController extends Controller
 
         $query = DB::table('sarpras_ruang as sr')
             ->leftJoin('gtk', 'sr.penanggung_jawab_ptk_id', '=', 'gtk.ptk_id')
-            ->select('sr.*', 'gtk.nama as pj_nama', 'gtk.nip as pj_nip');
+            ->leftJoin('pengguna as pg', 'sr.penanggung_jawab_ptk_id', '=', 'pg.pengguna_id')
+            ->select('sr.*', DB::raw('COALESCE(gtk.nama, pg.nama) as pj_nama'), 'gtk.nip as pj_nip');
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('sr.kode_ruang', 'like', "%{$search}%")
                   ->orWhere('sr.nama_ruang', 'like', "%{$search}%")
                   ->orWhere('sr.gedung', 'like', "%{$search}%")
-                  ->orWhere('gtk.nama', 'like', "%{$search}%");
+                  ->orWhere('gtk.nama', 'like', "%{$search}%")
+                  ->orWhere('pg.nama', 'like', "%{$search}%");
             });
         }
 

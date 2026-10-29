@@ -331,7 +331,7 @@
                             Jawab (GTK)</label>
                         <input type="search" id="ruangPj" class="form-control"
                             placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
-                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
+                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="personel"
                             data-people-target="#ruangPjId">
                         <input type="hidden" id="ruangPjId" name="penanggung_jawab_ptk_id">
                     </div>
