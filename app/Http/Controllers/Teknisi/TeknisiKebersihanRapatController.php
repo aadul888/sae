@@ -54,6 +54,7 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
         }
 
         $query = DB::table('teknisi_kebersihan_rapat as k')->select('k.*');
+        $this->scopeOwned($query, $context, 'k');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('k.lokasi', 'like', "%{$search}%")
@@ -67,6 +68,7 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
         if ($sampai !== '') $query->where('k.tanggal_kegiatan', '<=', $sampai);
 
         $statBase = DB::table('teknisi_kebersihan_rapat');
+        $this->scopeOwned($statBase, $context);
         if ($dari !== '')   $statBase->where('tanggal_kegiatan', '>=', $dari);
         if ($sampai !== '') $statBase->where('tanggal_kegiatan', '<=', $sampai);
         $statTotal    = (clone $statBase)->count();
@@ -118,6 +120,7 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
                 ? json_encode(array_values($data['dokumentasi_paths'])) : null,
             'petugas_ptk_id'     => $context['ptk_id'],
             'petugas_nama'       => $context['nama'],
+            'user_id'            => $context['user_id'],
             'status'             => $data['status'] ?? 'selesai',
             'created_at'         => now(),
             'updated_at'         => now(),
@@ -133,6 +136,9 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_kebersihan_rapat', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik sendiri.', 403);
+        }
 
         $data = $this->validated($request);
 
@@ -162,6 +168,12 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
     {
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
+
+        $row = $this->findRow('teknisi_kebersihan_rapat', $id);
+        if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus data milik sendiri.', 403);
+        }
 
         DB::table('teknisi_kebersihan_rapat')->where('id', $id)->delete();
 

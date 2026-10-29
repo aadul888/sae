@@ -119,6 +119,9 @@
 <body>
 
     @php
+        // URL cetak: modul generik mengoper closure sendiri; laporan TUPOKSI
+        // memakai rute bawaannya.
+        $cetakUrl = $cetakUrl ?? fn (array $p = []) => route('dashboard.teknisi.laporan.cetak', array_merge(['modul' => $modul], $p));
         $detail = array_filter([
             'bulan'        => request()->query('bulan'),
             'tahun'        => request()->query('tahun'),
@@ -160,26 +163,26 @@
         </button>
 
         @foreach (['ringkasan' => 'Ringkasan', 'lengkap' => 'Lengkap'] as $mk => $ml)
-            <a href="{{ route('dashboard.teknisi.laporan.cetak', $params(['mode' => $mk])) }}"
+            <a href="{{ $cetakUrl($params(['mode' => $mk])) }}"
                 class="btn-action {{ $mode === $mk ? 'btn-print' : 'btn-back' }}">{{ $ml }}</a>
         @endforeach
 
         @foreach (['portrait' => 'Tegak', 'landscape' => 'Mendatar'] as $ok => $ol)
-            <a href="{{ route('dashboard.teknisi.laporan.cetak', $params(['orientasi' => $ok])) }}"
+            <a href="{{ $cetakUrl($params(['orientasi' => $ok])) }}"
                 class="btn-action {{ $orientasi === $ok ? 'btn-print' : 'btn-back' }}" title="Orientasi {{ $ol }}">
                 <i class="fas fa-{{ $ok === 'portrait' ? '-file' : '-table-columns' }}"></i>
             </a>
         @endforeach
 
         @if ($mode === 'lengkap' && $totalHalaman > 1)
-            <a href="{{ route('dashboard.teknisi.laporan.cetak', $params(['hal' => max(1, $halamanAktif - 1)])) }}"
+            <a href="{{ $cetakUrl($params(['hal' => max(1, $halamanAktif - 1)])) }}"
                 class="btn-action btn-back {{ $halamanAktif <= 1 ? 'disabled' : '' }}" style="{{ $halamanAktif <= 1 ? 'opacity:.45;pointer-events:none;' : '' }}">
                 <i class="fas fa-chevron-left"></i>
             </a>
             <span class="btn-action btn-back" style="pointer-events:none;">
                 Hal {{ $halamanAktif }} / {{ $totalHalaman }}
             </span>
-            <a href="{{ route('dashboard.teknisi.laporan.cetak', $params(['hal' => min($totalHalaman, $halamanAktif + 1)])) }}"
+            <a href="{{ $cetakUrl($params(['hal' => min($totalHalaman, $halamanAktif + 1)])) }}"
                 class="btn-action btn-back {{ $halamanAktif >= $totalHalaman ? 'disabled' : '' }}" style="{{ $halamanAktif >= $totalHalaman ? 'opacity:.45;pointer-events:none;' : '' }}">
                 <i class="fas fa-chevron-right"></i>
             </a>
@@ -192,7 +195,7 @@
 
     {{-- Pemilih periode (bukan bagian dokumen tercetak) --}}
     <div class="no-print-bar" style="top: 62px !important;">
-        <form method="GET" action="{{ route('dashboard.teknisi.laporan.cetak', ['modul' => $modul]) }}"
+        <form method="GET" action="{{ $cetakUrl() }}"
             style="display: inline-flex; align-items: center; gap: 8px; margin: 0; flex-wrap: wrap;">
             <input type="hidden" name="mode" value="{{ $mode }}">
             <input type="hidden" name="orientasi" value="{{ $orientasi }}">

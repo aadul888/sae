@@ -24,6 +24,9 @@ class TeknisiWorkOrder extends Model
         'tindakan_perbaikan',
         'estimasi_biaya_part',
         'status',
+        'aset_id',
+        'ruang_id',
+        'user_id',
     ];
 
     protected $casts = [

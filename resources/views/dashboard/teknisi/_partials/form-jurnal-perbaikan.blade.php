@@ -42,6 +42,26 @@
         </select>
     </div>
 </div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+    <div>
+        <label class="form-label" style="font-weight:600;">Aset Terkait (opsional)</label>
+        <select name="aset_id" class="form-control">
+            <option value="">-- Tidak terkait aset --</option>
+            @foreach ($sources['aset'] ?? [] as $opt)
+                <option value="{{ $opt['id'] }}">{{ $opt['label'] }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label class="form-label" style="font-weight:600;">Ruang (opsional)</label>
+        <select name="ruang_id" class="form-control">
+            <option value="">-- Tidak terkait ruang --</option>
+            @foreach ($sources['ruang'] ?? [] as $opt)
+                <option value="{{ $opt['id'] }}">{{ $opt['label'] }}</option>
+            @endforeach
+        </select>
+    </div>
+</div>
 <div style="margin-top:12px;">
     <label class="form-label" style="font-weight:600;">Uraian Kegiatan *</label>
     <textarea name="uraian_kegiatan" class="form-control" rows="2" required placeholder="Rincian pekerjaan perbaikan/pengecekan..."></textarea>

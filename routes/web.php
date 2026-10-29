@@ -1076,6 +1076,22 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         });
 
         // =====================================================================
+        // MODUL TEKNISI LAPANGAN (generik, per-akun petugas)
+        // =====================================================================
+        $modulLapangan = 'area-master|inspeksi-utilitas|apar-k3|pest-control|higiene-kantin|pemakaian-bahan'
+            . '|usulan-pengadaan|tindak-lanjut|aset-mutasi|peminjaman-ruang';
+
+        Route::prefix('modul/{modul}')->name('modul.')->where(['modul' => $modulLapangan])->group(function () {
+            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
+            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
+            Route::get('/template', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'template'])->name('template')->middleware('permission:menu_teknisi,read');
+            Route::post('/import', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'import'])->name('import')->middleware('permission:menu_teknisi,create');
+            Route::get('/cetak', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'cetak'])->name('cetak')->middleware('permission:menu_teknisi,read');
+            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
+        });
+
+        // =====================================================================
         // LAPORAN (CETAK PER HALAMAN) & IMPORT EXCEL — 6 modul TUPOKSI
         // =====================================================================
         $modulRegex = 'area-tugas|kebersihan-ruang|kebersihan-rapat|sarana-rapat|jurnal-perbaikan|supervisi';

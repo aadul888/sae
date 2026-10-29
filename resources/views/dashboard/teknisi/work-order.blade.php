@@ -419,11 +419,10 @@
                                     <i class="fas fa-box-open" style="color: var(--primary); margin-right: 4px;"></i>
                                     Hubungkan Aset Sarpras (Opsional)
                                 </label>
-                                <select id="selectAsetTeknisi" class="form-control">
+                                <select id="selectAsetTeknisi" name="aset_id" class="form-control">
                                     <option value="">-- Tidak Terkait Aset Spesifik --</option>
                                     @foreach ($daftarAset as $ast)
-                                        <option value="{{ $ast->nama_barang }} ({{ $ast->kode_aset }})"
-                                            data-ruang-id="{{ $ast->ruang_id }}">{{ $ast->nama_barang }}
+                                        <option value="{{ $ast->id }}" data-ruang-id="{{ $ast->ruang_id }}">{{ $ast->nama_barang }}
                                             [{{ $ast->kode_aset }}]</option>
                                     @endforeach
                                 </select>

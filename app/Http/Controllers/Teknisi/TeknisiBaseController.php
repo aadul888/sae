@@ -64,6 +64,112 @@ abstract class TeknisiBaseController extends Controller
     }
 
     /**
+     * Kode tugas tambahan aktif milik pengguna (KEPALA_TAS, TEKNISI_IT, ...).
+     *
+     * @return array<int, string>
+     */
+    protected function dutyCodes(array $context): array
+    {
+        $userId = $context['user_id'] ?? null;
+        $ptkId  = $context['ptk_id'] ?? null;
+
+        if (!$userId && !$ptkId) {
+            return [];
+        }
+        if (!\App\Support\Table::existsAll('ptk_tugas_tambahan', 'ref_tugas_tambahan')) {
+            return [];
+        }
+
+        return DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('ptt.is_active', true)
+            ->where('rtt.is_active', true)
+            ->where(function ($q) use ($userId, $ptkId) {
+                if ($userId) {
+                    $q->where('ptt.user_id', $userId);
+                }
+                if ($ptkId) {
+                    $q->orWhere('ptt.ptk_id', $ptkId);
+                }
+            })
+            ->pluck('rtt.kode')
+            ->all();
+    }
+
+    /**
+     * Apakah pengguna berhak melihat SELURUH data teknisi (bukan hanya miliknya)?
+     *
+     * Koordinator: admin, Kepala TAS, Waka Sarpras, dan staf administrasi sarpras.
+     * Teknisi lapangan/IT hanya melihat catatannya sendiri.
+     */
+    protected function isKoordinator(array $context): bool
+    {
+        if (($context['role'] ?? '') === 'admin') {
+            return true;
+        }
+
+        $koordinator = ['KEPALA_TAS', 'WAKA_SARPRAS', 'STAF_SARPRAS'];
+
+        return count(array_intersect($this->dutyCodes($context), $koordinator)) > 0;
+    }
+
+    /**
+     * Batasi query ke data milik pengguna kecuali ia koordinator.
+     *
+     * Kepemilikan: kolom `user_id` = akun pembuat, atau baris lama tanpa
+     * `user_id` yang `petugas_ptk_id`-nya milik pengguna.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  string|null  $alias  Awalan tabel (mis. 'a') bila query memakai alias.
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function scopeOwned($query, array $context, ?string $alias = null, ?string $ptkColumn = 'petugas_ptk_id')
+    {
+        if ($this->isKoordinator($context)) {
+            return $query;
+        }
+
+        $p = $alias ? $alias . '.' : '';
+        $userId = $context['user_id'] ?? null;
+        $ptkId  = $context['ptk_id'] ?? null;
+
+        if (!$userId && !$ptkId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function ($q) use ($p, $userId, $ptkId, $ptkColumn) {
+            if ($userId) {
+                $q->where($p . 'user_id', $userId);
+            }
+            if ($ptkId && $ptkColumn) {
+                $q->orWhere(function ($q2) use ($p, $ptkId, $ptkColumn) {
+                    $q2->whereNull($p . 'user_id')->where($p . $ptkColumn, $ptkId);
+                });
+            }
+        });
+    }
+
+    /**
+     * Apakah baris ini boleh diubah/dihapus pengguna?
+     */
+    protected function ownsRow(object $row, array $context, ?string $ptkColumn = 'petugas_ptk_id'): bool
+    {
+        if ($this->isKoordinator($context)) {
+            return true;
+        }
+
+        $userId = $context['user_id'] ?? null;
+        $ptkId  = $context['ptk_id'] ?? null;
+
+        if ($userId && (string) ($row->user_id ?? '') === (string) $userId) {
+            return true;
+        }
+
+        return $ptkId && empty($row->user_id) && $ptkColumn
+            && (string) ($row->{$ptkColumn} ?? '') === (string) $ptkId;
+    }
+
+    /**
      * Data hak akses CRUD untuk dikirim ke view.
      */
     protected function abilities(?string $key = null): array

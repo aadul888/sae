@@ -52,6 +52,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         }
 
         $query = DB::table('teknisi_jurnal_perbaikan as j')->select('j.*');
+        $this->scopeOwned($query, $context, 'j');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('j.lokasi_unit', 'like', "%{$search}%")
@@ -65,6 +66,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         if ($sampai !== '') $query->where('j.tanggal', '<=', $sampai);
 
         $statBase = DB::table('teknisi_jurnal_perbaikan');
+        $this->scopeOwned($statBase, $context);
         if ($dari !== '')   $statBase->where('tanggal', '>=', $dari);
         if ($sampai !== '') $statBase->where('tanggal', '<=', $sampai);
         $statTotal     = (clone $statBase)->count();
@@ -87,6 +89,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
                 'kategoriList'  => self::KATEGORI,
                 'statusList'    => self::STATUS,
                 'lokasiOptions' => $this->lokasiOptions(),
+                'sources'       => \App\Support\TeknisiModuleRegistry::sources(),
             ]
         ));
     }
@@ -102,6 +105,8 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
             'nomor_jurnal'      => $this->generateNomor('teknisi_jurnal_perbaikan', 'nomor_jurnal', 'JP'),
             'tanggal'           => $data['tanggal'],
             'lokasi_unit'       => trim($data['lokasi_unit']),
+            'aset_id'           => $data['aset_id'] ?? null,
+            'ruang_id'          => $data['ruang_id'] ?? null,
             'jenis_pekerjaan'   => $data['jenis_pekerjaan'],
             'kategori_sarana'   => $data['kategori_sarana'] ?? null,
             'uraian_kegiatan'   => trim($data['uraian_kegiatan']),
@@ -117,6 +122,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
                 ? json_encode(array_values($data['dokumentasi_paths'])) : null,
             'petugas_ptk_id'    => $context['ptk_id'],
             'petugas_nama'      => $context['nama'],
+            'user_id'           => $context['user_id'],
             'status'            => $data['status'] ?? 'selesai',
             'created_at'        => now(),
             'updated_at'        => now(),
@@ -132,12 +138,17 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_jurnal_perbaikan', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik sendiri.', 403);
+        }
 
         $data = $this->validated($request);
 
         DB::table('teknisi_jurnal_perbaikan')->where('id', $id)->update([
             'tanggal'           => $data['tanggal'],
             'lokasi_unit'       => trim($data['lokasi_unit']),
+            'aset_id'           => $data['aset_id'] ?? null,
+            'ruang_id'          => $data['ruang_id'] ?? null,
             'jenis_pekerjaan'   => $data['jenis_pekerjaan'],
             'kategori_sarana'   => $data['kategori_sarana'] ?? null,
             'uraian_kegiatan'   => trim($data['uraian_kegiatan']),
@@ -163,6 +174,12 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
+        $row = $this->findRow('teknisi_jurnal_perbaikan', $id);
+        if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus data milik sendiri.', 403);
+        }
+
         DB::table('teknisi_jurnal_perbaikan')->where('id', $id)->delete();
 
         return $this->respond($request, true, 'Jurnal perbaikan berhasil dihapus.');
@@ -173,6 +190,8 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         return $request->validate([
             'tanggal'           => 'required|date',
             'lokasi_unit'       => 'required|string|max:150',
+            'aset_id'           => 'nullable|integer',
+            'ruang_id'          => 'nullable|integer',
             'jenis_pekerjaan'   => 'required|in:perbaikan,penggantian,pengecekan,kebutuhan',
             'kategori_sarana'   => 'nullable|in:listrik,air_plumbing,bangunan,furnitur,jaringan_it,sanitasi,kendaraan,lainnya',
             'uraian_kegiatan'   => 'required|string|max:2000',

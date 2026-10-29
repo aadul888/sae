@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\TeknisiWorkOrder;
-use App\Models\Gtk;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
-class TeknisiWorkOrderController extends Controller
+class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
 {
     public function index(Request $request)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $q = $request->input('q');
         $kategori = $request->input('kategori');
         $status = $request->input('status');
@@ -18,6 +20,7 @@ class TeknisiWorkOrderController extends Controller
         $perPage = (int) $request->input('per_page', 15);
 
         $query = TeknisiWorkOrder::with('teknisi')->latest('tanggal')->latest('id');
+        $this->scopeOwned($query->getQuery(), $context);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -43,10 +46,10 @@ class TeknisiWorkOrderController extends Controller
         $workOrders = $query->paginate($perPage)->withQueryString();
 
         $stats = [
-            'total_antrean' => TeknisiWorkOrder::where('status', 'antrean')->count(),
-            'total_proses'  => TeknisiWorkOrder::where('status', 'proses')->count(),
-            'total_selesai' => TeknisiWorkOrder::where('status', 'selesai')->count(),
-            'total_darurat' => TeknisiWorkOrder::where('tingkat_urgensi', 'darurat')->whereIn('status', ['antrean', 'proses'])->count(),
+            'total_antrean' => $this->scopeOwned(TeknisiWorkOrder::where('status', 'antrean')->getQuery(), $context)->count(),
+            'total_proses'  => $this->scopeOwned(TeknisiWorkOrder::where('status', 'proses')->getQuery(), $context)->count(),
+            'total_selesai' => $this->scopeOwned(TeknisiWorkOrder::where('status', 'selesai')->getQuery(), $context)->count(),
+            'total_darurat' => $this->scopeOwned(TeknisiWorkOrder::where('tingkat_urgensi', 'darurat')->whereIn('status', ['antrean', 'proses'])->getQuery(), $context)->count(),
         ];
 
         $daftarRuang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
@@ -67,6 +70,9 @@ class TeknisiWorkOrderController extends Controller
 
     public function store(Request $request)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $request->validate([
             'tanggal'             => 'required|date',
             'lokasi_unit'         => 'required|string|max:100',
@@ -74,6 +80,8 @@ class TeknisiWorkOrderController extends Controller
             'deskripsi_kerusakan' => 'required|string',
             'tingkat_urgensi'     => 'required|in:rendah,normal,darurat',
             'pelapor_nama'        => 'nullable|string|max:100',
+            'aset_id'             => 'nullable|integer|exists:sarpras_aset,id',
+            'ruang_id'            => 'nullable|integer|exists:sarpras_ruang,id',
         ]);
 
         $prefix = 'WO-' . date('Ym') . '-';
@@ -91,6 +99,9 @@ class TeknisiWorkOrderController extends Controller
             'deskripsi_kerusakan' => $request->deskripsi_kerusakan,
             'tingkat_urgensi'     => $request->tingkat_urgensi,
             'pelapor_nama'        => $request->pelapor_nama,
+            'aset_id'             => $request->aset_id,
+            'ruang_id'            => $request->ruang_id,
+            'user_id'             => $context['user_id'],
             'status'              => 'antrean',
         ]);
 

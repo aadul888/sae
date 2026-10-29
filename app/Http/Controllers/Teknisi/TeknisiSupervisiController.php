@@ -76,6 +76,8 @@ class TeknisiSupervisiController extends TeknisiBaseController
         }
 
         $query = DB::table('teknisi_supervisi as s')->select('s.*');
+        // Teknisi melihat lembar supervisi atas dirinya; koordinator melihat semua.
+        $this->scopeOwned($query, $context, 's', 'teknisi_ptk_id');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('s.teknisi_nama', 'like', "%{$search}%")
@@ -88,6 +90,7 @@ class TeknisiSupervisiController extends TeknisiBaseController
         if ($sampai !== '') $query->where('s.tanggal_supervisi', '<=', $sampai);
 
         $statBase = DB::table('teknisi_supervisi');
+        $this->scopeOwned($statBase, $context, null, 'teknisi_ptk_id');
         if ($dari !== '')   $statBase->where('tanggal_supervisi', '>=', $dari);
         if ($sampai !== '') $statBase->where('tanggal_supervisi', '<=', $sampai);
         $statTotal   = (clone $statBase)->count();
@@ -154,6 +157,7 @@ class TeknisiSupervisiController extends TeknisiBaseController
                 'status'             => $data['status'] ?? 'draf',
                 'petugas_ptk_id'     => $context['ptk_id'],
                 'petugas_nama'       => $context['nama'],
+                'user_id'            => $context['user_id'],
                 'created_at'         => now(),
                 'updated_at'         => now(),
             ]);
@@ -183,6 +187,9 @@ class TeknisiSupervisiController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_supervisi', $id);
         if (!$row) return $this->respond($request, false, 'Data supervisi tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah supervisi yang Anda susun.', 403);
+        }
 
         $data = $this->validated($request);
         $items = $this->susunItem($data);

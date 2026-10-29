@@ -1119,6 +1119,7 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
                     <span class="nav-label">Supervisi Teknisi</span>
                 </a>
+                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-sublink', 'iconClass' => 'sub-icon'])
             </div>
         </div>
     @endif
@@ -2209,6 +2210,7 @@
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
                             <span class="nav-label">Supervisi Teknisi</span>
                         </a>
+                        @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon'])
                     </div>
                 </div>
 

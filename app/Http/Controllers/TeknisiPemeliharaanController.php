@@ -6,10 +6,13 @@ use App\Models\TeknisiPemeliharaan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
-class TeknisiPemeliharaanController extends Controller
+class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
 {
     public function index(Request $request)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $q = $request->input('q');
         $kategori = $request->input('kategori');
         $status = $request->input('status');
@@ -17,6 +20,7 @@ class TeknisiPemeliharaanController extends Controller
         $perPage = (int) $request->input('per_page', 15);
 
         $query = TeknisiPemeliharaan::latest('tgl_jadwal')->latest('id');
+        $this->scopeOwned($query->getQuery(), $context);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -42,10 +46,10 @@ class TeknisiPemeliharaanController extends Controller
         $pemeliharaan = $query->paginate($perPage)->withQueryString();
 
         $stats = [
-            'terjadwal' => TeknisiPemeliharaan::where('status', 'terjadwal')->count(),
-            'proses'    => TeknisiPemeliharaan::where('status', 'proses')->count(),
-            'selesai'   => TeknisiPemeliharaan::where('status', 'selesai')->count(),
-            'tertunda'  => TeknisiPemeliharaan::where('status', 'tertunda')->count(),
+            'terjadwal' => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'terjadwal')->getQuery(), $context)->count(),
+            'proses'    => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'proses')->getQuery(), $context)->count(),
+            'selesai'   => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'selesai')->getQuery(), $context)->count(),
+            'tertunda'  => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'tertunda')->getQuery(), $context)->count(),
         ];
 
         $daftarRuang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
@@ -65,6 +69,9 @@ class TeknisiPemeliharaanController extends Controller
 
     public function store(Request $request)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $request->validate([
             'nama_kegiatan'    => 'required|string|max:150',
             'kategori'         => 'required|string|max:50',
@@ -91,6 +98,7 @@ class TeknisiPemeliharaanController extends Controller
             'tgl_jadwal'       => $request->tgl_jadwal,
             'penanggung_jawab' => $request->penanggung_jawab,
             'biaya'            => $request->biaya ?? 0,
+            'user_id'          => $context['user_id'],
             'status'           => 'terjadwal',
         ]);
 
