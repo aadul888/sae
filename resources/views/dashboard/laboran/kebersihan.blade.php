@@ -102,10 +102,7 @@
                                 @endforeach
                             </select>
 
-                            <input type="date" name="dari" value="{{ $dari }}" class="form-control"
-                                style="height: 38px; font-size: var(--text-sm); padding: 0 var(--space-5); border-radius: var(--radius-md);" title="Dari Tanggal">
-                            <input type="date" name="sampai" value="{{ $sampai }}" class="form-control"
-                                style="height: 38px; font-size: var(--text-sm); padding: 0 var(--space-5); border-radius: var(--radius-md);" title="Sampai Tanggal">
+                            <x-sae.toolbar-date-range :from-value="$dari" :to-value="$sampai" />
 
                             @if ($search || $jenisFilter || $kondisiFilter)
                 <a href="{{ route('dashboard.laboran.kebersihan.index') }}" class="btn btn-outline"

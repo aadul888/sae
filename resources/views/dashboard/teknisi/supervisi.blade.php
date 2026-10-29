@@ -37,14 +37,7 @@
                     <option value="{{ $k }}" {{ $statusFilter === $k ? 'selected' : '' }}>{{ $v }}</option>
                 @endforeach
             </select>
-            <div class="toolbar-filter-date" title="Dari Tanggal">
-                <i class="fas fa-calendar-alt" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"></i>
-                <input type="date" name="dari" value="{{ $dari }}">
-            </div>
-            <div class="toolbar-filter-date" title="Sampai Tanggal">
-                <i class="fas fa-calendar-alt" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"></i>
-                <input type="date" name="sampai" value="{{ $sampai }}">
-            </div>
+            <x-sae.toolbar-date-range :from-value="$dari" :to-value="$sampai" />
         </x-slot:filter>
 
         <thead>

@@ -40,11 +40,11 @@
                 style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                 <div>
                     <label style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Dari Tanggal</label>
-                    <input type="date" name="dari" value="{{ $dari }}" class="form-control" style="height: 38px;">
+                    <input type="date" name="dari" value="{{ $dari }}" class="form-control" style="height: 38px; width: 160px; max-width: 100%;">
                 </div>
                 <div>
                     <label style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Sampai Tanggal</label>
-                    <input type="date" name="sampai" value="{{ $sampai }}" class="form-control" style="height: 38px;">
+                    <input type="date" name="sampai" value="{{ $sampai }}" class="form-control" style="height: 38px; width: 160px; max-width: 100%;">
                 </div>
                 <div>
                     <label style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Kategori Buku</label>

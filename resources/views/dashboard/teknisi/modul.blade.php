@@ -23,10 +23,7 @@
 
         <x-slot:filter>
             @if ($spec['dateCol'])
-                <input type="date" name="dari" value="{{ $dari }}" class="toolbar-filter-select" style="height:38px;"
-                    title="Dari tanggal">
-                <input type="date" name="sampai" value="{{ $sampai }}" class="toolbar-filter-select" style="height:38px;"
-                    title="Sampai tanggal">
+                <x-sae.toolbar-date-range :from-value="$dari" :to-value="$sampai" />
             @endif
         </x-slot:filter>
 

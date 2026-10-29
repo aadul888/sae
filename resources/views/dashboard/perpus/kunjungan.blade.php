@@ -97,11 +97,8 @@
                                 <span>entri</span>
                             </div>
 
-                            <div class="toolbar-filter-date" title="Filter Tanggal">
-                                <i class="fas fa-calendar-alt text-primary" style="font-size: var(--text-sm, 0.8125rem);"></i>
-                                <input type="date" name="tanggal" id="filterTanggal"
-                                    value="{{ $tanggal ?? '' }}" title="Filter Tanggal">
-                            </div>
+                            <x-sae.toolbar-date name="tanggal" id="filterTanggal" :value="$tanggal ?? ''"
+                                label="Filter tanggal" title="Filter Tanggal" />
 
                             <select name="tipe" id="filterTipe" class="toolbar-filter-select"
                                 style="height: 38px;">
