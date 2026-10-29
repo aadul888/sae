@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 
 
+use App\Support\RombelScope;
 use App\Support\Table;
 
 class MonitoringReporterService
@@ -41,7 +42,7 @@ class MonitoringReporterService
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%');
         })->count() : 0;
 
-        $totalRombel = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
+        $totalRombel = Table::exists('rombongan_belajar') ? RombelScope::count() : 0;
         $totalPembelajaran = Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
 
         // Akun Pengguna: Di SAE menggunakan tabel 'pengguna'

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Katalog Koleksi Ã¢â‚¬â€ Perpustakaan Digital')
+@section('title', 'Katalog Koleksi — Perpustakaan Digital')
 @section('meta_description', 'Telusuri katalog koleksi Perpustakaan Digital sekolah: cari berdasarkan judul, penulis, penerbit, ISBN, atau kategori.')
 
 @php

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\GtkGabunganService;
+use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Support\Table;
 
 class TendikAktifController extends Controller
 {
@@ -109,6 +110,22 @@ class TendikAktifController extends Controller
         }
 
         $allResults = $baseQuery->get();
+
+        // Gabungkan GTK Non-ASN (input lokal, di luar Dapodik) ke daftar Tendik.
+        $nonAsn = app(GtkGabunganService::class)->nonAsn();
+        $nonAsnTendik = $nonAsn->reject(fn ($r) => GtkGabunganService::jenisAdalahGuru($r->jenis_ptk));
+
+        if ($q !== '') {
+            $nonAsnTendik = $nonAsnTendik->filter(fn ($r) => GtkGabunganService::cocokPencarian($r, $q));
+        }
+        if ($status !== '') {
+            $nonAsnTendik = $nonAsnTendik->filter(fn ($r) => strcasecmp((string) $r->status_kepegawaian, $status) === 0);
+        }
+        if ($gender !== '') {
+            $nonAsnTendik = $nonAsnTendik->filter(fn ($r) => $r->jenis_kelamin === $gender);
+        }
+
+        $allResults = $allResults->concat($nonAsnTendik)->values();
         $total = $allResults->count();
 
         $summary = [
@@ -168,6 +185,11 @@ class TendikAktifController extends Controller
             ->orWhere('nip', $id)
             ->orWhere('nik', $id)
             ->first();
+
+        // Non-ASN diambil dari tabel lokal (ptk_id semu berawalan "nonasn:").
+        if (!$gtk) {
+            $gtk = app(GtkGabunganService::class)->dariPtkId((string) $id);
+        }
 
         if (!$gtk) {
             return response()->json(['status' => 'error', 'message' => 'Data Tendik tidak ditemukan'], 404);

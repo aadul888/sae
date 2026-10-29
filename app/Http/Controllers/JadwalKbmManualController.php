@@ -22,12 +22,7 @@ class JadwalKbmManualController extends Controller
         $isAdmin = ($role === 'admin');
 
         // Master Rombel Reguler
-        $rombelQuery = DB::table('rombongan_belajar')
-            ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                    ->orWhere('jenis_rombel_str', 'Kelas')
-                    ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $rombelQuery = \App\Support\RombelScope::query()
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'jurusan_id_str', 'ptk_id', 'ptk_id_str')
             ->orderBy('tingkat_pendidikan_id', 'asc')
             ->orderBy('nama', 'asc');

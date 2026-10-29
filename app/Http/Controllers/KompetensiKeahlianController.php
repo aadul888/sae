@@ -41,9 +41,12 @@ class KompetensiKeahlianController extends Controller
             ]);
         }
 
-        $baseQuery = DB::table('rombongan_belajar')
-            ->whereNotNull('rombongan_belajar.jurusan_id_str')
-            ->where('rombongan_belajar.jurusan_id_str', '<>', '')
+        $baseQuery = \App\Support\RombelScope::reguler(
+            DB::table('rombongan_belajar')
+                ->whereNotNull('rombongan_belajar.jurusan_id_str')
+                ->where('rombongan_belajar.jurusan_id_str', '<>', ''),
+            'rombongan_belajar.'
+        )
             ->select(
                 'rombongan_belajar.jurusan_id as kode',
                 'rombongan_belajar.jurusan_id_str as nama',
@@ -94,7 +97,7 @@ class KompetensiKeahlianController extends Controller
         $metaMap = collect();
 
         if (!empty($jurusanIds)) {
-            $details = DB::table('rombongan_belajar')
+            $details = \App\Support\RombelScope::query()
                 ->whereIn('jurusan_id', $jurusanIds)
                 ->select('jurusan_id', 'nama', 'kurikulum_id_str', 'tingkat_pendidikan_id_str')
                 ->distinct()
@@ -163,7 +166,7 @@ class KompetensiKeahlianController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
         }
 
-        $baseRombel = DB::table('rombongan_belajar')
+        $baseRombel = \App\Support\RombelScope::query()
             ->where('jurusan_id', $kode)
             ->select(
                 'rombongan_belajar_id',

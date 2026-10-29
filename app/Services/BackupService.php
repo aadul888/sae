@@ -336,7 +336,7 @@ class BackupService
             fputcsv($fp, ['No', 'Nama Rombel', 'Tingkat', 'Jurusan / Peminatan', 'Kurikulum', 'ID PTK Wali Kelas']);
 
             $no = 1;
-            $rombels = DB::table('rombongan_belajar')->orderBy('nama')->get();
+            $rombels = \App\Support\RombelScope::query()->orderBy('nama')->get();
             foreach ($rombels as $r) {
                 fputcsv($fp, [
                     $no++,
@@ -357,16 +357,21 @@ class BackupService
             fputcsv($fp, ['No', 'ID Rombel', 'ID Siswa', 'Jenis Pendaftaran']);
 
             $no = 1;
-            DB::table('anggota_rombel')->orderBy('rombongan_belajar_id')->chunk(300, function ($rows) use ($fp, &$no) {
-                foreach ($rows as $r) {
-                    fputcsv($fp, [
-                        $no++,
-                        $r->rombongan_belajar_id ?? '-',
-                        $r->peserta_didik_id ?? '-',
-                        $r->jenis_pendaftaran_id_str ?? '-'
-                    ]);
-                }
-            });
+            $rombelRegulerIds = \App\Support\RombelScope::query()->pluck('rombongan_belajar_id')->all();
+
+            DB::table('anggota_rombel')
+                ->whereIn('rombongan_belajar_id', $rombelRegulerIds)
+                ->orderBy('rombongan_belajar_id')
+                ->chunk(300, function ($rows) use ($fp, &$no) {
+                    foreach ($rows as $r) {
+                        fputcsv($fp, [
+                            $no++,
+                            $r->rombongan_belajar_id ?? '-',
+                            $r->peserta_didik_id ?? '-',
+                            $r->jenis_pendaftaran_id_str ?? '-'
+                        ]);
+                    }
+                });
             fclose($fp);
         }
 

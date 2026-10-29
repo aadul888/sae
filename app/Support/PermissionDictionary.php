@@ -67,6 +67,11 @@ final class PermissionDictionary
                     'icon' => 'fa-id-badge',
                     'roles' => ['admin'],
                 ],
+                'menu_gtk_non_asn' => [
+                    'label' => 'GTK Non-ASN',
+                    'icon' => 'fa-user-clock',
+                    'roles' => ['admin'],
+                ],
                 'menu_peserta_didik_tidak_aktif' => [
                     'label' => 'Peserta Didik Tidak Aktif',
                     'icon' => 'fa-user-xmark',

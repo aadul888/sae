@@ -219,7 +219,7 @@ class PerpustakaanMemberService
             return [false, 'Buku tidak ditemukan.'];
         }
         if ((int) $buku->eksemplar_tersedia > 0) {
-            return [false, 'Buku masih tersedia â€” silakan pinjam langsung di meja layanan.'];
+            return [false, 'Buku masih tersedia — silakan pinjam langsung di meja layanan.'];
         }
 
         $sudah = DB::table('perpus_reservasi')

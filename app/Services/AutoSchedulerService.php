@@ -122,12 +122,7 @@ class AutoSchedulerService
         }
 
         // 1. Tentukan Rombel yang Ditargetkan (Hanya Kelas Reguler)
-        $rombelQuery = DB::table('rombongan_belajar')
-            ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                  ->orWhere('jenis_rombel_str', 'Kelas')
-                  ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $rombelQuery = \App\Support\RombelScope::query()
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'semester_id', 'id_ruang');
 
         if (!empty($targetRombelIds)) {

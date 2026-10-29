@@ -125,9 +125,12 @@ class SuratKeteranganService
         $sekolah = Sekolah::first() ?: DB::table('sekolah')->first();
         $sekolahMeta = SekolahMeta::first();
 
-        $anggotaRombel = DB::table('anggota_rombel as ar')
-            ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->where('ar.peserta_didik_id', $siswa->peserta_didik_id)
+        $anggotaRombel = \App\Support\RombelScope::reguler(
+            DB::table('anggota_rombel as ar')
+                ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->where('ar.peserta_didik_id', $siswa->peserta_didik_id),
+            'rb.'
+        )
             ->select('rb.nama as rombel_nama', 'rb.tingkat_pendidikan_id_str', 'rb.jurusan_id_str')
             ->first();
 

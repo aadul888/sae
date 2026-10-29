@@ -32,7 +32,7 @@ class IdentitasSekolahController extends Controller
         $stats = [
             'total_pd' => Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
             'total_gtk' => Table::exists('gtk') ? DB::table('gtk')->count() : 0,
-            'total_rombel' => Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
+            'total_rombel' => \App\Support\RombelScope::count(),
             'total_pembelajaran' => Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
             'total_pengguna' => Table::exists('pengguna') ? DB::table('pengguna')->count() : 0,
         ];

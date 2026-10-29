@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\GtkGabunganService;
+use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Support\Table;
 
 class GuruAktifController extends Controller
 {
@@ -137,6 +138,25 @@ class GuruAktifController extends Controller
         }
 
         $allResults = $baseQuery->get();
+
+        // Gabungkan GTK Non-ASN (input lokal, di luar Dapodik) ke daftar Guru.
+        $nonAsn = app(GtkGabunganService::class)->nonAsn();
+        $nonAsnGuru = $nonAsn->filter(fn ($r) => GtkGabunganService::jenisAdalahGuru($r->jenis_ptk));
+
+        if ($q !== '') {
+            $nonAsnGuru = $nonAsnGuru->filter(fn ($r) => GtkGabunganService::cocokPencarian($r, $q));
+        }
+        if ($jenis !== '') {
+            $nonAsnGuru = $nonAsnGuru->filter(fn ($r) => strcasecmp((string) $r->jenis_ptk, $jenis) === 0);
+        }
+        if ($status !== '') {
+            $nonAsnGuru = $nonAsnGuru->filter(fn ($r) => strcasecmp((string) $r->status_kepegawaian, $status) === 0);
+        }
+        if ($gender !== '') {
+            $nonAsnGuru = $nonAsnGuru->filter(fn ($r) => $r->jenis_kelamin === $gender);
+        }
+
+        $allResults = $allResults->concat($nonAsnGuru)->values();
         $total = $allResults->count();
 
         $summary = [
@@ -199,18 +219,23 @@ class GuruAktifController extends Controller
             ->orWhere('nik', $id)
             ->first();
 
+        // Non-ASN dipakai dari tabel lokal (ptk_id semu berawalan "nonasn:").
+        if (!$gtk) {
+            $gtk = app(GtkGabunganService::class)->dariPtkId((string) $id);
+        }
+
         if (!$gtk) {
             return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
         }
 
-        if (Table::exists('gtk_meta')) {
+        if (Table::exists('gtk_meta') && !GtkGabunganService::isNonAsn((string) $gtk->ptk_id)) {
             $meta = DB::table('gtk_meta')->where('ptk_id', $gtk->ptk_id)->first();
-            $gtk->gelar_depan = $meta->gelar_depan ?? null;
-            $gtk->gelar_belakang = $meta->gelar_belakang ?? null;
+            $gtk->gelar_depan = $gtk->gelar_depan ?? ($meta->gelar_depan ?? null);
+            $gtk->gelar_belakang = $gtk->gelar_belakang ?? ($meta->gelar_belakang ?? null);
         }
 
         $pembelajaran = collect();
-        if (Table::exists('pembelajaran')) {
+        if (Table::exists('pembelajaran') && !GtkGabunganService::isNonAsn((string) $gtk->ptk_id)) {
             $pembelajaran = DB::table('pembelajaran')
                 ->leftJoin('rombongan_belajar', 'pembelajaran.rombongan_belajar_id', '=', 'rombongan_belajar.rombongan_belajar_id')
                 ->where('pembelajaran.ptk_id', $gtk->ptk_id)
@@ -237,8 +262,6 @@ class GuruAktifController extends Controller
 
     /**
      * Simpan gelar depan/belakang GTK ke tabel lokal gtk_meta.
-     *
-     * Tabel terpisah dari `gtk` supaya nilai tidak hilang saat tarik Dapodik.
      */
     public function updateGelar(Request $request, string|int $id)
     {

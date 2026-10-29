@@ -29,7 +29,7 @@ class DapodikController extends Controller
         $sekolah = DB::table('sekolah')->first();
         $totalGtk = DB::table('gtk')->count();
         $totalPesertaDidik = DB::table('peserta_didik')->count();
-        $totalRombel = DB::table('rombongan_belajar')->count();
+        $totalRombel = \App\Support\RombelScope::count();
 
         $apiKey = \App\Support\FeederApiKey::ensure();
         $setting = DB::table('settings')->where('id', 1)->first();

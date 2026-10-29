@@ -99,7 +99,7 @@ class PresensiKelasService
             }
         }
 
-        $rombelQuery = DB::table('rombongan_belajar');
+        $rombelQuery = \App\Support\RombelScope::query();
 
         if (!$canViewAllClasses && $ptkId) {
             $pembelajaranRombelIds = DB::table('pembelajaran')

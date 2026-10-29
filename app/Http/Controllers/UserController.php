@@ -266,14 +266,14 @@ class UserController extends Controller
             ->orderBy('nama')
             ->get();
 
-        $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
+        $rombelList = \App\Support\RombelScope::query()->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
         // Daftar jurusan untuk penetapan cakupan Laboran/Kaprog.
         // Dikelompokkan berpasangan antara Program Keahlian (Kelas X) & Konsentrasi Keahlian (Kelas XI-XII).
         $jurusanList = collect();
         $jurusanGroups = [];
         if (\App\Support\Table::exists('jurusan_meta')) {
             $rombelPerJurusan = \App\Support\Table::exists('rombongan_belajar')
-                ? DB::table('rombongan_belajar')
+                ? \App\Support\RombelScope::query()
                     ->whereNotNull('jurusan_id')
                     ->select('jurusan_id', DB::raw('COUNT(*) as jumlah'))
                     ->groupBy('jurusan_id')

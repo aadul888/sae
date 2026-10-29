@@ -184,7 +184,7 @@ class BukuIndukController extends Controller
         }
 
         // Master List untuk Filter Dropdown
-        $rombelList = DB::table('rombongan_belajar')
+        $rombelList = \App\Support\RombelScope::query()
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
             ->orderBy('tingkat_pendidikan_id')
             ->orderBy('nama')

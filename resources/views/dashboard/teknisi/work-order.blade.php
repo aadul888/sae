@@ -273,7 +273,7 @@
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
-                                        style="background-color: var(--text-main, #f1f5f9); color: var(--text-heading); font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
+                                        style="background: var(--bg-card-hover); color: var(--text-main); font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-weight: 600; border: 1px solid var(--border-color);">
                                         {{ $kategoriLabel }}
                                     </span>
                                     <div

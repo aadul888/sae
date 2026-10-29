@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Beranda Anggota ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Beranda Anggota — ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Dashboard anggota Perpustakaan Digital: kartu anggota QR, poin literasi, pinjaman aktif, reservasi, dan rekomendasi buku.')
 
 @php
@@ -108,9 +108,9 @@
                         </span>
                         <span style="color:var(--text-muted);">
                             @if ($level['next'])
-                                {{ number_format($level['sisa'], 0, ',', '.') }} poin lagi ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {{ $level['next_label'] }}
+                                {{ number_format($level['sisa'], 0, ',', '.') }} poin lagi → {{ $level['next_label'] }}
                             @else
-                                Level tertinggi tercapai ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°
+                                Level tertinggi tercapai 🎉
                             @endif
                         </span>
                     </div>
@@ -368,7 +368,7 @@
                     <i class="fas fa-book-open"
                         style="font-size:var(--text-4xl,2.2rem);opacity:.3;display:block;margin-bottom:12px;"></i>
                     <div style="color:var(--text-muted);font-size:var(--text-sm,.8125rem);">
-                        Belum ada rekomendasi ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pinjam buku pertama Anda untuk mulai.
+                        Belum ada rekomendasi — pinjam buku pertama Anda untuk mulai.
                     </div>
                 </div>
             @else

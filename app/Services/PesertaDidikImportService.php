@@ -100,7 +100,9 @@ class PesertaDidikImportService
 
         $rombelMap = collect();
         if (Table::exists('rombongan_belajar')) {
-            $rombelMap = DB::table('rombongan_belajar')->get()->keyBy(function ($r) {
+            // Hanya rombel reguler: nama kelas tidak boleh tertimpa rombel mapil
+            // yang namanya sama (mis. "XI TKJ 2" ada sebagai Kelas dan Matpel Pilihan).
+            $rombelMap = \App\Support\RombelScope::query()->get()->keyBy(function ($r) {
                 return strtolower(trim($r->nama));
             });
         }

@@ -144,13 +144,11 @@ class JadwalKbmController extends Controller
         $rombelList = $rombelQuery->get();
 
         // Rombel Khusus Tampilan Grid (Hanya Kelas Reguler, bisa difilter per tingkat & jurusan)
-        $gridRombelsQuery = DB::table('rombongan_belajar as rb')
-            ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id')
-            ->where(function ($w) {
-                $w->where('rb.jenis_rombel', 1)
-                    ->orWhere('rb.jenis_rombel_str', 'Kelas')
-                    ->orWhere('rb.jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $gridRombelsQuery = \App\Support\RombelScope::reguler(
+            DB::table('rombongan_belajar as rb')
+                ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id'),
+            'rb.'
+        )
             ->select(
                 'rb.rombongan_belajar_id',
                 'rb.nama',

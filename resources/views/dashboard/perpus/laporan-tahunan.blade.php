@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Laporan Tahun Ajaran â€” Perpustakaan')
+@section('title', 'Laporan Tahun Ajaran — Perpustakaan')
 
 @section('content')
     <div class="dash-content-inner">
@@ -12,7 +12,7 @@
                 <div>
                     <h2 style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);margin:0;">Laporan Per Tahun Ajaran</h2>
                     <div style="font-size:var(--text-sm,0.8125rem);color:var(--text-muted);margin-top:2px;">
-                        Rekap bulanan (Juliâ€“Juni) dengan grafik â€” siap cetak ukuran A3.
+                        Rekap bulanan (Juli–Juni) dengan grafik — siap cetak ukuran A3.
                     </div>
                 </div>
             </div>

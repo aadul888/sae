@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $buku->judul . ' Ã¢â‚¬â€ Katalog Perpustakaan Digital')
-@section('meta_description', 'Detail koleksi "' . \Illuminate\Support\Str::limit($buku->judul, 120) . '" oleh ' . ($buku->penulis ?: 'penulis tidak diketahui') . ' Ã¢â‚¬â€ ketersediaan, lokasi rak, ulasan, dan reservasi.')
+@section('title', $buku->judul . ' — Katalog Perpustakaan Digital')
+@section('meta_description', 'Detail koleksi "' . \Illuminate\Support\Str::limit($buku->judul, 120) . '" oleh ' . ($buku->penulis ?: 'penulis tidak diketahui') . ' — ketersediaan, lokasi rak, ulasan, dan reservasi.')
 
 @php
     $tersedia = (int) ($buku->eksemplar_tersedia ?? 0);
@@ -146,7 +146,7 @@
 
                 @if ($member && $sudahMeminjam)
                     <div class="alert alert-info" style="margin-top:1rem;font-size:var(--text-xs,.75rem);">
-                        <i class="fas fa-circle-check"></i> Anda pernah meminjam buku ini Ã¢â‚¬â€ silakan berikan ulasan di bawah.
+                        <i class="fas fa-circle-check"></i> Anda pernah meminjam buku ini — silakan berikan ulasan di bawah.
                     </div>
                 @endif
             </div>

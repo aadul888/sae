@@ -17,7 +17,9 @@
     --accent: #06b6d4;
     --text-main: #f1f5f9;
     --text-color: #f1f5f9;
+    --text-heading: #f1f5f9;
     --text-muted: #94a3b8;
+    --table-header-bg: rgba(28, 39, 64, 0.9);
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -51,7 +53,9 @@
     --accent: #0284c7;
     --text-main: #0f172a;
     --text-color: #0f172a;
+    --text-heading: #0f172a;
     --text-muted: #64748b;
+    --table-header-bg: #f8fafc;
     --success: #059669;
     --warning: #d97706;
     --danger: #dc2626;

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Profil Anggota â€” ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Profil Anggota — ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Kelola profil, kontak, password, dan kartu anggota digital Perpustakaan Sekolah.')
 
 @section('content')

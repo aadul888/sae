@@ -450,13 +450,10 @@ class JadwalBulananService
             ->distinct()
             ->pluck('rombongan_belajar_id');
 
-        $query = DB::table('rombongan_belajar as r')
-            ->leftJoin('gtk as w', 'r.ptk_id', '=', 'w.ptk_id')
-            ->where(function ($w) {
-                $w->where('r.jenis_rombel', 1)
-                    ->orWhere('r.jenis_rombel_str', 'Kelas')
-                    ->orWhere('r.jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $query = \App\Support\RombelScope::reguler(
+            DB::table('rombongan_belajar as r')->leftJoin('gtk as w', 'r.ptk_id', '=', 'w.ptk_id'),
+            'r.'
+        )
             ->select('r.rombongan_belajar_id', 'r.nama', 'r.tingkat_pendidikan_id', 'w.nama as nama_wali_kelas')
             ->orderBy('r.tingkat_pendidikan_id')
             ->orderBy('r.nama');

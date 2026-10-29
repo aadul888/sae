@@ -70,7 +70,7 @@ class MakeSaeModuleCommand extends Command
         // 3. Generate Modular JS
         $jsCreated = $this->generateModularJs($slug, $title, $force);
 
-        // 4. Daftarkan Rute di routes/web.php
+        // 4. Daftarkan Rute di routes/dashboard-core.php
         $routeAppended = $this->appendRoutes($controllerName, $slug, $permissionKey);
 
         // 5. Daftarkan Hak Akses ke Database
@@ -705,14 +705,19 @@ JS;
      */
     protected function appendRoutes(string $controllerName, string $slug, string $permissionKey): bool
     {
-        $routesPath = base_path('routes/web.php');
+        // Rute dashboard (beserta marker prefix) ada di dashboard-core.php setelah split routes/.
+        $routesPath = base_path('routes/dashboard-core.php');
         if (!File::exists($routesPath)) return false;
 
         $content = File::get($routesPath);
 
-        // Cek jika rute sudah terdaftar
-        if (str_contains($content, "Route::get('/{$slug}'") || str_contains($content, "{$controllerName}::class")) {
-            $this->warn("! Rute untuk {$slug} tampaknya sudah ada di routes/web.php. Lewati penambahan rute.");
+        // Cek jika rute sudah terdaftar (scan seluruh file routes/ agar split tetap terdeteksi)
+        $allRoutes = '';
+        foreach (File::glob(base_path('routes/*.php')) as $file) {
+            $allRoutes .= File::get($file);
+        }
+        if (str_contains($allRoutes, "Route::get('/{$slug}'") || str_contains($allRoutes, "{$controllerName}::class")) {
+            $this->warn("! Rute untuk {$slug} tampaknya sudah ada di routes/. Lewati penambahan rute.");
             return false;
         }
 
@@ -732,13 +737,13 @@ ROUTE;
             $replacement = $target . "\n" . $routeBlock;
             $updated = str_replace($target, $replacement, $content);
             File::put($routesPath, $updated);
-            $this->info("✓ Rute terproteksi RBAC ditambahkan ke routes/web.php");
+            $this->info("✓ Rute terproteksi RBAC ditambahkan ke routes/dashboard-core.php");
             return true;
         }
 
         // Fallback jika tidak menemukan marker spesifik
         File::append($routesPath, "\n" . $routeBlock);
-        $this->info("✓ Rute ditambahkan di akhir routes/web.php");
+        $this->info("✓ Rute ditambahkan di akhir routes/dashboard-core.php");
         return true;
     }
 

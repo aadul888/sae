@@ -6,7 +6,27 @@
 @section('content')
     @php
         $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
+        $pdTabs = [
+            [
+                'key' => 'aktif',
+                'label' => 'Aktif',
+                'icon' => 'fa-circle-check',
+                'href' => route('dashboard.peserta-didik-aktif.index'),
+                'active' => true,
+                'count' => $total ?? null,
+            ],
+        ];
+        if (\App\Models\RolePermission::canAccess(session('user'), 'menu_peserta_didik_tidak_aktif')) {
+            $pdTabs[] = [
+                'key' => 'tidak-aktif',
+                'label' => 'Tidak Aktif / Alumni',
+                'icon' => 'fa-circle-xmark',
+                'href' => route('dashboard.peserta-didik-tidak-aktif.index'),
+                'active' => false,
+            ];
+        }
     @endphp
+    @include('partials.manajemen-data-tabs', ['tabs' => $pdTabs])
     <div class="dash-banner">
         <div>
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">

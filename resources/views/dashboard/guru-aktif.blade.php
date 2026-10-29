@@ -6,7 +6,34 @@
 @section('content')
     @php
         $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
+        $gtkTabs = [
+            [
+                'key' => 'guru',
+                'label' => 'Guru',
+                'icon' => 'fa-chalkboard-user',
+                'href' => route('dashboard.guru-aktif.index', ['tab' => 'guru']),
+                'active' => true,
+                'count' => $summary['total'] ?? null,
+            ],
+            [
+                'key' => 'tendik',
+                'label' => 'Tendik',
+                'icon' => 'fa-id-badge',
+                'href' => route('dashboard.tendik-aktif.index', ['tab' => 'tendik']),
+                'active' => false,
+            ],
+        ];
+        if (\App\Models\RolePermission::canAccess(session('user'), 'menu_gtk_non_asn')) {
+            $gtkTabs[] = [
+                'key' => 'non-asn',
+                'label' => 'Non-ASN',
+                'icon' => 'fa-user-clock',
+                'href' => route('dashboard.gtk-non-asn.index'),
+                'active' => false,
+            ];
+        }
     @endphp
+    @include('partials.manajemen-data-tabs', ['tabs' => $gtkTabs])
     <div class="dash-banner">
         <div>
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -197,6 +224,12 @@
                                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                                 {{ $item->email }}
                                             </div>
+                                        @endif
+                                        @if (($item->sumber_data ?? null) === \App\Services\GtkGabunganService::SUMBER_NON_ASN)
+                                            <span
+                                                style="display: inline-block; margin-top: 3px; font-size: var(--text-xs, 0.75rem); font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill); background: rgba(245,158,11,0.14); color: var(--warning, #f59e0b);">
+                                                <i class="fas fa-user-clock"></i> Non-ASN
+                                            </span>
                                         @endif
                                     </div>
                                 </div>

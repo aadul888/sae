@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Notifikasi â€” ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Notifikasi — ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Pusat notifikasi anggota Perpustakaan Digital: pengingat jatuh tempo, status reservasi, dan informasi layanan.')
 
 @php

@@ -137,7 +137,7 @@
                 <p class="sig-name">
                     {{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
                 <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
-                    {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: 'â€”') }}</p>
+                    {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
             </div>
 
             <div class="sig-box">
@@ -148,7 +148,7 @@
                 <p class="sig-name">
                     {{ $wakaKurikulum?->nama ?? '......................................................' }}</p>
                 <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
-                    {{ $wakaKurikulum?->nip ?: ($wakaKurikulum?->nuptk ?: 'â€”') }}</p>
+                    {{ $wakaKurikulum?->nip ?: ($wakaKurikulum?->nuptk ?: '—') }}</p>
             </div>
         </div>
     </div>

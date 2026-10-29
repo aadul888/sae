@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Support\RombelScope;
 use App\Support\Table;
 /**
  * Service agregasi data metrik, visualisasi statistik, dan log aktivitas dashboard Admin.
@@ -33,7 +34,8 @@ class AdminDashboardStatsService
                 ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%');
         })->count() : 0;
 
-        $totalKelas = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
+        // Hanya rombel reguler (jenis_rombel = 1); mapil & ekskul tidak dihitung sebagai kelas.
+        $totalKelas = RombelScope::count();
         $totalPembelajaran = Table::exists('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
         $totalPengguna = Table::exists('pengguna') ? DB::table('pengguna')->count() : 0;
         $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
@@ -212,10 +214,14 @@ class AdminDashboardStatsService
             'tendik' => $totalTendik,
         ];
 
-        // Chart Polar Area: Siswa per Tingkat
+        // Chart Polar Area: Siswa per Tingkat (hanya rombel reguler, agar tidak
+        // terhitung ganda dari rombel mapil/ekskul yang menampung siswa sama).
         $tingkatStats = Table::exists('rombongan_belajar') && Table::exists('peserta_didik')
-            ? DB::table('rombongan_belajar as rb')
-                ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
+            ? \App\Support\RombelScope::reguler(
+                DB::table('rombongan_belajar as rb')
+                    ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id'),
+                'rb.'
+            )
                 ->select('rb.tingkat_pendidikan_id as tingkat', DB::raw('count(pd.peserta_didik_id) as total'))
                 ->groupBy('rb.tingkat_pendidikan_id')
                 ->orderBy('rb.tingkat_pendidikan_id')

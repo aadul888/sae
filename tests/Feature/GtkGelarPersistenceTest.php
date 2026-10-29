@@ -14,6 +14,16 @@ use Tests\TestCase;
  */
 class GtkGelarPersistenceTest extends TestCase
 {
+    private function routesSource(): string
+    {
+        // Rute dipecah ke beberapa file di routes/ (lihat routes/web.php).
+        $src = '';
+        foreach (glob(base_path('routes/*.php')) as $file) {
+            $src .= file_get_contents($file) . "\n";
+        }
+        return $src;
+    }
+
     private function migrationSource(): string
     {
         return file_get_contents(
@@ -71,7 +81,7 @@ class GtkGelarPersistenceTest extends TestCase
 
     public function test_route_for_gelar_update_is_registered(): void
     {
-        $src = file_get_contents(base_path('routes/web.php'));
+        $src = $this->routesSource();
 
         $this->assertStringContainsString('guru-aktif.update-gelar', $src);
         $this->assertStringContainsString(
@@ -115,7 +125,7 @@ class GtkGelarPersistenceTest extends TestCase
 
     public function test_rute_gelar_profil_terdaftar(): void
     {
-        $src = file_get_contents(base_path('routes/web.php'));
+        $src = $this->routesSource();
 
         $this->assertStringContainsString("put('/profil/gelar'", $src);
         $this->assertStringContainsString('profile.gelar', $src);

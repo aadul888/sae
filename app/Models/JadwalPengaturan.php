@@ -566,12 +566,7 @@ class JadwalPengaturan extends Model
     public static function syncRoutineActivities(?string $targetSumber = null): void
     {
         $setting = self::getSettings();
-        $regRombels = \Illuminate\Support\Facades\DB::table('rombongan_belajar')
-            ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                  ->orWhere('jenis_rombel_str', 'Kelas')
-                  ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $regRombels = \App\Support\RombelScope::query()
             ->select('rombongan_belajar_id', 'nama', 'semester_id')
             ->get();
 

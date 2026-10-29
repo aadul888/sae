@@ -26,12 +26,7 @@ class JadwalPrintService
             $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         }
 
-        $rombels = DB::table('rombongan_belajar')
-            ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                    ->orWhere('jenis_rombel_str', 'Kelas')
-                    ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $rombels = \App\Support\RombelScope::query()
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
             ->orderBy('tingkat_pendidikan_id', 'asc')
             ->orderBy('nama', 'asc')
@@ -299,13 +294,10 @@ class JadwalPrintService
         $slots = JadwalPengaturan::getSlots();
         $rombelId = $request->get('rombel_id');
 
-        $rombelQuery = DB::table('rombongan_belajar as r')
-            ->leftJoin('gtk as w', 'r.ptk_id', '=', 'w.ptk_id')
-            ->where(function ($w) {
-                $w->where('r.jenis_rombel', 1)
-                    ->orWhere('r.jenis_rombel_str', 'Kelas')
-                    ->orWhere('r.jenis_rombel_str', 'LIKE', '%reguler%');
-            })
+        $rombelQuery = \App\Support\RombelScope::reguler(
+            DB::table('rombongan_belajar as r')->leftJoin('gtk as w', 'r.ptk_id', '=', 'w.ptk_id'),
+            'r.'
+        )
             ->select('r.*', 'w.nama as nama_wali_kelas', 'w.nip as nip_wali_kelas')
             ->orderBy('r.tingkat_pendidikan_id', 'asc')
             ->orderBy('r.nama', 'asc');

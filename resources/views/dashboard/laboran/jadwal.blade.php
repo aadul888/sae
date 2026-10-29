@@ -198,7 +198,7 @@
             </div>
         </div>
 
-        {{-- 2b. Tab Pemberlakuan Jadwal (Semester / Mingguan) ï¿½ Default Semester, Ketat 1 Mode --}}
+        {{-- 2b. Tab Pemberlakuan Jadwal (Semester / Mingguan) � Default Semester, Ketat 1 Mode --}}
         @if ($canRead)
             @php
                 $activeMode = $pengaturanJadwal->mode_pemberlakuan ?? 'semester';
