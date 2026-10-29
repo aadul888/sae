@@ -213,75 +213,16 @@ return new class extends Migration
         }
 
         // ---------------------------------------------------------------------
-        // PENILAIAN SUPERVISI TEKNISI (lembar observasi skor 1-4)
+        // PENILAIAN SUPERVISI TEKNISI — modul dihapus. Tabel dibuang agar tidak
+        // menyisakan skema usang (menggantikan blok CREATE lama).
         // ---------------------------------------------------------------------
-        if (!Schema::hasTable('teknisi_supervisi')) {
-            Schema::create('teknisi_supervisi', function (Blueprint $table) {
-                $table->id();
-                $table->string('nomor_supervisi', 60)->unique();
-
-                $table->date('tanggal_supervisi')->index();
-                $table->string('periode_label', 60)->nullable();   // contoh: Semester Ganjil 2026/2027
-                $table->string('tahun_ajaran', 20)->nullable()->index();
-                $table->string('semester', 10)->nullable();
-
-                // Teknisi yang disupervisi
-                $table->string('teknisi_ptk_id', 50)->nullable()->index();
-                $table->string('teknisi_nama');
-
-                // Supervisor (Kepala Sekolah / Koordinator TAS)
-                $table->string('supervisor_ptk_id', 50)->nullable();
-                $table->string('supervisor_nama');
-                $table->string('supervisor_jabatan', 100)->nullable();
-
-                // Nilai akhir & kualifikasi hasil hitung
-                $table->decimal('nilai_rata', 5, 2)->nullable();
-                $table->decimal('nilai_akhir', 5, 2)->nullable();
-                $table->string('kualifikasi', 30)->nullable();     // Sangat Baik, Baik, Cukup, Perlu Pembinaan
-
-                $table->text('catatan_umum')->nullable();
-                $table->text('rekomendasi')->nullable();
-
-                $table->string('tanda_tangan_supervisor')->nullable();
-                $table->string('tanda_tangan_teknisi')->nullable();
-
-                // draf, final
-                $table->string('status', 30)->default('draf')->index();
-
-                $table->string('petugas_ptk_id', 50)->nullable();
-                $table->string('petugas_nama')->nullable();
-
-                $table->timestamps();
-
-                $table->index(['tanggal_supervisi', 'status'], 'idx_tek_supervisi_tgl_status');
-            });
-        }
-
-        if (!Schema::hasTable('teknisi_supervisi_item')) {
-            Schema::create('teknisi_supervisi_item', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('supervisi_id')->index();
-
-                $table->unsignedTinyInteger('no_indikator');       // 1..5 sesuai lembar observasi
-                $table->string('indikator_tupoksi');               // teks indikator
-                $table->text('bukti_fisik')->nullable();           // rincian bukti fisik yang diperiksa
-
-                $table->unsignedTinyInteger('skor')->nullable();   // 1..4
-                $table->text('catatan_supervisor')->nullable();    // catatan / rekomendasi supervisor
-
-                $table->unsignedSmallInteger('urutan')->default(0);
-
-                $table->timestamps();
-
-                $table->unique(['supervisi_id', 'no_indikator'], 'uk_tek_supervisi_item');
-            });
-        }
+        Schema::dropIfExists('teknisi_supervisi_item');
+        Schema::dropIfExists('teknisi_supervisi');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('teknisi_supervisi_item');
-        Schema::dropIfExists('teknisi_supervisi');
+        // Modul supervisi dihapus dan tidak dikembalikan oleh down().
         Schema::dropIfExists('teknisi_jurnal_perbaikan');
         Schema::dropIfExists('teknisi_sarana_rapat');
         Schema::dropIfExists('teknisi_kebersihan_rapat');

@@ -430,7 +430,7 @@ class TeknisiModulLapanganTest extends TestCase
     {
         $moduls = array_merge(self::MODULES, [
             'area-tugas', 'kebersihan-ruang', 'kebersihan-rapat',
-            'sarana-rapat', 'jurnal-perbaikan', 'supervisi',
+            'sarana-rapat', 'jurnal-perbaikan',
             'work-order', 'pemeliharaan',
         ]);
 

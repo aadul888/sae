@@ -48,13 +48,13 @@ final class TeknisiModuleRegistry
 
     /**
      * Pengelompokan modul lapangan pada sidebar, mengikuti alur pengisian:
-     * referensi → inspeksi harian → tindak lanjut.
+     * pemeriksaan rutin → tindak lanjut & usulan → mutasi/peminjaman.
      *
      * @var array<string, string>
      */
     public const GRUP = [
-        'master'    => 'Referensi & Master',
-        'inspeksi'  => 'Inspeksi & Pemeriksaan',
+        'master'    => 'Master & Referensi',
+        'inspeksi'  => 'Inspeksi & Pemeriksaan Rutin',
         'tindak'    => 'Tindak Lanjut & Usulan',
     ];
 
@@ -206,6 +206,7 @@ final class TeknisiModuleRegistry
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => 'tanggal',
                 'order'   => ['tanggal', 'desc'],
+                'ruangCol' => 'ke_ruang_id',
                 'nameMap' => ['aset_id' => 'aset_nama', 'dari_ruang_id' => 'dari_ruang', 'ke_ruang_id' => 'ke_ruang'],
                 'stats'   => [
                     ['label' => 'Total Mutasi', 'icon' => 'fas fa-arrow-right-arrow-left', 'color' => 'var(--primary, #3b82f6)'],
@@ -236,6 +237,7 @@ final class TeknisiModuleRegistry
                 'color'   => 'var(--success, #10b981)',
                 'dateCol' => 'tanggal',
                 'order'   => ['tanggal', 'desc'],
+                'ruangCol' => 'ruang_id',
                 'nameMap' => ['ruang_id' => 'ruang_nama'],
                 'stats'   => [
                     ['label' => 'Total Permohonan', 'icon' => 'fas fa-door-open', 'color' => 'var(--success, #10b981)'],

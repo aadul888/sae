@@ -433,8 +433,8 @@
                     <span class="nav-label">Jurnal Perbaikan Sarpras</span>
                 </a>
 
-                {{-- Kelompok: Inspeksi, Tindak Lanjut & Modul --}}
-                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon'])
+                {{-- Kelompok: Inspeksi & Modul Lapangan --}}
+                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon', 'grup' => ['inspeksi', 'tindak']])
             </div>
         </div>
 

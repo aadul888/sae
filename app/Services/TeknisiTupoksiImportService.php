@@ -22,7 +22,6 @@ class TeknisiTupoksiImportService
         'kebersihan-rapat',
         'sarana-rapat',
         'jurnal-perbaikan',
-        'supervisi',
     ];
 
     private const SPECS = [
@@ -166,39 +165,6 @@ class TeknisiTupoksiImportService
                 'dokumentasi_paths' => '', 'petugas_nama' => 'Budi Santoso', 'status' => 'selesai',
             ],
         ],
-        'supervisi' => [
-            'table'      => 'teknisi_supervisi',
-            'nomor'      => ['nomor_supervisi', 'SPV'],
-            'title'      => 'Format Import Lembar Supervisi Teknisi (Skor 1–4)',
-            'sheet'      => 'Supervisi',
-            'cetakTitle' => 'REKAP SUPERVISI TEKNISI & IT',
-            'columns'    => [
-                'tanggal_supervisi' => 'date', 'periode_label' => 'string', 'tahun_ajaran' => 'string',
-                'semester' => 'string', 'teknisi_ptk_id' => 'string', 'teknisi_nama' => 'string',
-                'supervisor_ptk_id' => 'string', 'supervisor_nama' => 'string', 'supervisor_jabatan' => 'string',
-                'catatan_umum' => 'text', 'rekomendasi' => 'text', 'status' => 'string',
-                'skor_1' => 'skor', 'skor_2' => 'skor', 'skor_3' => 'skor', 'skor_4' => 'skor', 'skor_5' => 'skor',
-                'catatan_1' => 'text', 'catatan_2' => 'text', 'catatan_3' => 'text', 'catatan_4' => 'text', 'catatan_5' => 'text',
-            ],
-            'required'   => ['teknisi_nama', 'supervisor_nama'],
-            'defaults'   => ['status' => 'draf'],
-            'items'      => true,
-            'cetak'      => [
-                ['Tanggal', 'tanggal_supervisi'], ['Teknisi', 'teknisi_nama'], ['Supervisor', 'supervisor_nama'],
-                ['Jabatan Supervisor', 'supervisor_jabatan'], ['Tahun Ajaran', 'tahun_ajaran'], ['Semester', 'semester'],
-                ['Nilai Akhir', 'nilai_akhir'], ['Kualifikasi', 'kualifikasi'],
-                ['Catatan Umum', 'catatan_umum'], ['Rekomendasi', 'rekomendasi'], ['Status', 'status'],
-            ],
-            'contoh'     => [
-                'tanggal_supervisi' => '2026-10-01', 'periode_label' => 'Semester Ganjil 2026/2027',
-                'tahun_ajaran' => '2026/2027', 'semester' => 'ganjil', 'teknisi_ptk_id' => '',
-                'teknisi_nama' => 'Budi Santoso', 'supervisor_ptk_id' => '', 'supervisor_nama' => 'Kepala Sekolah',
-                'supervisor_jabatan' => 'Kepala Sekolah', 'catatan_umum' => 'Sangat baik.', 'rekomendasi' => 'Pertahankan.',
-                'status' => 'final',
-                'skor_1' => '4', 'skor_2' => '3', 'skor_3' => '4', 'skor_4' => '3', 'skor_5' => '4',
-                'catatan_1' => 'Lengkap', 'catatan_2' => 'Baik', 'catatan_3' => 'Baik', 'catatan_4' => 'Cukup', 'catatan_5' => 'Baik',
-            ],
-        ],
     ];
 
     public function spec(string $modul): array
@@ -333,12 +299,6 @@ class TeknisiTupoksiImportService
                 continue;
             }
 
-            if (!empty($spec['items'])) {
-                $this->simpanSupervisi($payload, $n, $context);
-                $imported++;
-                continue;
-            }
-
             [$nomorCol, $prefix] = $spec['nomor'];
             $nomor = trim((string) ($payload[$nomorCol] ?? ''));
             unset($payload[$nomorCol]);
@@ -373,9 +333,6 @@ class TeknisiTupoksiImportService
         $adaIsi = false;
 
         foreach ($spec['columns'] as $col => $type) {
-            if ($type === 'skor' || preg_match('/^catatan_\d$/', $col)) {
-                continue; // item supervisi ditangani terpisah
-            }
             if (in_array($col, self::AUTO_OWNER_COLUMNS, true)) {
                 continue; // diisi otomatis dari akun pengunggah
             }
@@ -411,7 +368,6 @@ class TeknisiTupoksiImportService
             'nama_rapat' => 'Kegiatan Rapat', 'lokasi_unit' => 'Unit', 'uraian_kegiatan' => '-',
             'jenis_pekerjaan' => 'perbaikan', 'tanggal_kegiatan' => now()->toDateString(),
             'tanggal_rapat' => now()->toDateString(), 'tanggal' => now()->toDateString(),
-            'tanggal_supervisi' => now()->toDateString(), 'teknisi_nama' => '-', 'supervisor_nama' => '-',
         ];
         foreach ($spec['required'] as $col) {
             if (empty($payload[$col]) && isset($fallback[$col])) {
@@ -419,88 +375,12 @@ class TeknisiTupoksiImportService
             }
         }
 
-        // Jejak akun pengunggah/pembuat baris (untuk semua modul termasuk supervisi).
+        // Jejak akun pengunggah/pembuat baris.
         $payload['user_id'] = $context['user_id'] ?? null;
-
-        if (empty($spec['items'])) {
-            $payload['petugas_ptk_id'] = $context['ptk_id'] ?? null;
-            $payload['petugas_nama'] = $payload['petugas_nama'] ?? ($context['nama'] ?? null);
-        }
+        $payload['petugas_ptk_id'] = $context['ptk_id'] ?? null;
+        $payload['petugas_nama'] = $payload['petugas_nama'] ?? ($context['nama'] ?? null);
 
         return $payload;
-    }
-
-    /**
-     * Simpan lembar supervisi + 5 item indikator.
-     */
-    private function simpanSupervisi(array $payload, array $n, array $context): void
-    {
-        $indikator = [
-            1 => ['Administrasi & Jadwal Pembagian Area Tugas Kebersihan', "1. Jadwal Area Tugas Kebersihan dan Pengolahan Sampah, Dokumentasi Kegiatan.\n2. Menerima Laporan Siswa Tidak Disiplin dari Tim Keamanan."],
-            2 => ['Kebersihan Lingkungan & Ruang Kerja', 'Kebersihan seluruh ruang kerja, teras halaman, jamban, lapangan, gor, aula, dan sarpras.'],
-            3 => ['Kebersihan Lingkungan Ruang Rapat', 'Kebersihan Teras, Halaman, Ruang Rapat.'],
-            4 => ['Laporan Sarana Kegiatan Rapat', 'Dokumen Rekapitulasi dan Laporan Kelengkapan Sarana Rapat.'],
-            5 => ['Pengarsipan & Laporan Perbaikan Sarana Prasarana', 'Jurnal Kegiatan Perbaikan dan Kebutuhan Sarana Prasarana.'],
-        ];
-
-        $skor = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $s = $n['skor_' . $i] ?? null;
-            $s = $s !== null && $s !== '' ? (int) $s : null;
-            if ($s !== null && ($s < 1 || $s > 4)) {
-                $s = null;
-            }
-            $skor[$i] = $s;
-        }
-
-        $terisi = array_filter($skor, fn ($s) => $s !== null);
-        $rata = empty($terisi) ? null : round(array_sum($terisi) / count($terisi), 2);
-        $kualifikasi = match (true) {
-            $rata === null => null,
-            $rata >= 3.5 => 'Sangat Baik',
-            $rata >= 2.75 => 'Baik',
-            $rata >= 2.0 => 'Cukup',
-            default => 'Perlu Pembinaan',
-        };
-
-        [$nomorCol, $prefix] = ['nomor_supervisi', 'SPV'];
-        $nomor = trim((string) ($payload[$nomorCol] ?? ''));
-        unset($payload[$nomorCol]);
-
-        DB::transaction(function () use ($payload, $skor, $n, $rata, $kualifikasi, $nomorCol, $prefix, $nomor, $indikator, $context) {
-            $existing = $nomor !== '' ? DB::table('teknisi_supervisi')->where($nomorCol, $nomor)->first() : null;
-
-            $data = $payload + [
-                'nilai_rata'  => $rata,
-                'nilai_akhir' => $rata,
-                'kualifikasi' => $kualifikasi,
-                'updated_at'  => now(),
-            ];
-
-            if ($existing) {
-                DB::table('teknisi_supervisi')->where('id', $existing->id)->update($data);
-                DB::table('teknisi_supervisi_item')->where('supervisi_id', $existing->id)->delete();
-                $id = $existing->id;
-            } else {
-                $data[$nomorCol] = $nomor !== '' ? $nomor : $this->generateNomor('teknisi_supervisi', $nomorCol, $prefix);
-                $data['created_at'] = now();
-                $id = DB::table('teknisi_supervisi')->insertGetId($data);
-            }
-
-            foreach ($indikator as $no => $def) {
-                DB::table('teknisi_supervisi_item')->insert([
-                    'supervisi_id'       => $id,
-                    'no_indikator'       => $no,
-                    'indikator_tupoksi'  => $def[0],
-                    'bukti_fisik'        => $def[1],
-                    'skor'               => $skor[$no],
-                    'catatan_supervisor' => $n['catatan_' . $no] ?? null,
-                    'urutan'             => $no,
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
-                ]);
-            }
-        });
     }
 
     private function coerce(mixed $raw, string $type): mixed

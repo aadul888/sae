@@ -46,11 +46,9 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $frekuensi = $request->input('frekuensi');
         $perPage = (int) $request->input('per_page', 15);
 
-        // Data jadwal pemeliharaan hanya milik akun yang login (admin/koordinator
-        // melihat semua). Tidak lagi diturunkan dari PJ ruang Sarpras.
+        // Cakupan = ruang yang PJ-nya akun login (live dari Ruang & Gedung).
         $query = TeknisiPemeliharaan::latest('tgl_jadwal')->latest('id');
-        // Tabel pemeliharaan hanya punya penanda `user_id` (tanpa kolom ptk).
-        $this->scopeOwned($query->getQuery(), $context, null, null);
+        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -83,6 +81,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         ];
 
         $ruangQuery = \Illuminate\Support\Facades\DB::table('sarpras_ruang');
+        $this->scopeRuangPj($ruangQuery, $context, 'id');
         $daftarRuang = $ruangQuery->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
         $daftarAset = \Illuminate\Support\Facades\DB::table('sarpras_aset')->select('id', 'nama_barang', 'kode_aset', 'kategori')->orderBy('nama_barang', 'asc')->get();
 
@@ -121,16 +120,20 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $nextNum = $lastItem ? ((int) substr($lastItem->kode_pemeliharaan, -4)) + 1 : 1;
         $kodePm = $prefix . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
 
-        // Jadwal pemeliharaan milik akun yang login; PJ mengikuti akun tersebut.
+        // PJ mengikuti penanggung jawab ruang master (live dari Ruang &
+        // Gedung); lokasi non-ruang memakai akun login.
+        $ruangId = $this->ruangIdDariLokasi($request->lokasi_aset);
+        $pjNama  = $ruangId ? ($this->pjNamaPerRuang([$ruangId])[$ruangId] ?? null) : null;
+
         TeknisiPemeliharaan::create([
-            'ruang_id'          => $this->ruangIdDariLokasi($request->lokasi_aset),
+            'ruang_id'          => $ruangId,
             'kode_pemeliharaan' => $kodePm,
             'nama_kegiatan'    => $request->nama_kegiatan,
             'kategori'         => $request->kategori,
             'lokasi_aset'      => $request->lokasi_aset,
             'frekuensi'        => $request->frekuensi,
             'tgl_jadwal'       => $request->tgl_jadwal,
-            'penanggung_jawab' => $context['nama'] ?: $request->penanggung_jawab,
+            'penanggung_jawab' => $pjNama ?: ($context['nama'] ?: $request->penanggung_jawab),
             'biaya'            => $request->biaya ?? 0,
             'user_id'          => $context['user_id'],
             'status'           => 'terjadwal',
@@ -140,11 +143,11 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             ->with('success', "Jadwal pemeliharaan {$kodePm} berhasil didaftarkan.");
     }
 
-    /** Jumlah jadwal per status, mengikuti cakupan akun (login). */
+    /** Jumlah jadwal per status, mengikuti cakupan ruang PJ. */
     private function statPemeliharaan(array $context, string $status): int
     {
         $q = TeknisiPemeliharaan::where('status', $status)->getQuery();
-        $this->scopeOwned($q, $context, null, null);
+        $this->scopeRuangPj($q, $context, 'ruang_id', null, true);
 
         return $q->count();
     }
@@ -226,16 +229,19 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
 
             $lokasiImport = $lokasi !== '' ? $lokasi : 'Unit';
 
+            $ruangImport = $this->ruangIdDariLokasi($lokasiImport);
+            $pjImport    = $ruangImport ? ($this->pjNamaPerRuang([$ruangImport])[$ruangImport] ?? null) : null;
+
             TeknisiPemeliharaan::create([
-                'ruang_id'          => $this->ruangIdDariLokasi($lokasiImport),
+                'ruang_id'          => $ruangImport,
                 'kode_pemeliharaan' => $this->nomorPemeliharaan(),
                 'nama_kegiatan'     => $namaKegiatan !== '' ? $namaKegiatan : 'Kegiatan Pemeliharaan',
                 'kategori'          => $kategori,
                 'lokasi_aset'       => $lokasiImport,
                 'frekuensi'         => $frekuensi,
                 'tgl_jadwal'        => $this->parseTanggal($row['tgl_jadwal'] ?? null) ?: now()->toDateString(),
-                // PJ = akun yang mengunggah (data milik akun login).
-                'penanggung_jawab'  => $context['nama'] ?: (trim((string) ($row['penanggung_jawab'] ?? '')) ?: null),
+                // PJ = PJ ruang master; lokasi non-ruang memakai akun pengunggah.
+                'penanggung_jawab'  => $pjImport ?: ($context['nama'] ?: (trim((string) ($row['penanggung_jawab'] ?? '')) ?: null)),
                 'biaya'             => is_numeric($row['biaya'] ?? null) ? (float) $row['biaya'] : 0,
                 'catatan_hasil'     => trim((string) ($row['catatan_hasil'] ?? '')) ?: null,
                 'status'            => $status,
@@ -320,8 +326,8 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         ]);
 
         $pm = TeknisiPemeliharaan::findOrFail($id);
-        if (!$this->ownsRow($pm, $context, null)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah jadwal milik sendiri.', 403);
+        if (!$this->ownsRowRuang($pm, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah jadwal pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
         $pm->status = $request->status;
         $pm->catatan_hasil = $request->catatan_hasil;
@@ -345,8 +351,8 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         if ($res) return $res;
 
         $pm = TeknisiPemeliharaan::findOrFail($id);
-        if (!$this->ownsRow($pm, $context, null)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus jadwal milik sendiri.', 403);
+        if (!$this->ownsRowRuang($pm, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus jadwal pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
         $pm->delete();
 

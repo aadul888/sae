@@ -90,9 +90,9 @@
                 </a>
             @endif
 
-            {{-- ==== KELOMPOK: INSPEKSI, TINDAK LANJUT & MODUL ==== --}}
+            {{-- ==== KELOMPOK: INSPEKSI & MODUL LAPANGAN ==== --}}
             @if ($can('menu_teknisi'))
-                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon'])
+                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon', 'grup' => ['inspeksi', 'tindak']])
             @endif
         </div>
     </div>

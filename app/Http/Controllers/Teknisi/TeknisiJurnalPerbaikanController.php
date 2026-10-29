@@ -52,7 +52,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         }
 
         $query = DB::table('teknisi_jurnal_perbaikan as j')->select('j.*');
-        $this->scopeOwned($query, $context, 'j');
+        $this->scopeRuangPj($query, $context, 'ruang_id', 'j', true);
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('j.lokasi_unit', 'like', "%{$search}%")
@@ -66,7 +66,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         if ($sampai !== '') $query->where('j.tanggal', '<=', $sampai);
 
         $statBase = DB::table('teknisi_jurnal_perbaikan');
-        $this->scopeOwned($statBase, $context);
+        $this->scopeRuangPj($statBase, $context, 'ruang_id', null, true);
         if ($dari !== '')   $statBase->where('tanggal', '>=', $dari);
         if ($sampai !== '') $statBase->where('tanggal', '<=', $sampai);
         $statTotal     = (clone $statBase)->count();
@@ -88,7 +88,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
                 'jenisList'     => self::JENIS,
                 'kategoriList'  => self::KATEGORI,
                 'statusList'    => self::STATUS,
-                'lokasiOptions' => $this->lokasiOptions(),
+                'lokasiOptions' => $this->lokasiOptions($context),
                 'sources'       => \App\Support\TeknisiModuleRegistry::sources(),
             ]
         ));
@@ -100,13 +100,15 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         if ($res) return $res;
 
         $data = $this->validated($request);
+        $ruangId = $data['ruang_id'] ?? $this->ruangIdDariNama($data['lokasi_unit'] ?? null);
+        $pj = $this->pjUntukRuang($ruangId ? (int) $ruangId : null, $context);
 
         DB::table('teknisi_jurnal_perbaikan')->insert([
             'nomor_jurnal'      => $this->generateNomor('teknisi_jurnal_perbaikan', 'nomor_jurnal', 'JP'),
             'tanggal'           => $data['tanggal'],
             'lokasi_unit'       => trim($data['lokasi_unit']),
             'aset_id'           => $data['aset_id'] ?? null,
-            'ruang_id'          => $data['ruang_id'] ?? null,
+            'ruang_id'          => $ruangId,
             'jenis_pekerjaan'   => $data['jenis_pekerjaan'],
             'kategori_sarana'   => $data['kategori_sarana'] ?? null,
             'uraian_kegiatan'   => trim($data['uraian_kegiatan']),
@@ -120,8 +122,8 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
             'foto_sesudah'      => $data['foto_sesudah'] ?? null,
             'dokumentasi_paths' => !empty($data['dokumentasi_paths'])
                 ? json_encode(array_values($data['dokumentasi_paths'])) : null,
-            'petugas_ptk_id'    => $context['ptk_id'],
-            'petugas_nama'      => $context['nama'],
+            'petugas_ptk_id'    => $pj['ptk_id'],
+            'petugas_nama'      => $pj['nama'],
             'user_id'           => $context['user_id'],
             'status'            => $data['status'] ?? 'selesai',
             'created_at'        => now(),
@@ -138,17 +140,18 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_jurnal_perbaikan', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRow($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik sendiri.', 403);
+        if (!$this->ownsRowRuang($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
 
         $data = $this->validated($request);
+        $ruangId = $data['ruang_id'] ?? $this->ruangIdDariNama($data['lokasi_unit'] ?? null);
 
         DB::table('teknisi_jurnal_perbaikan')->where('id', $id)->update([
             'tanggal'           => $data['tanggal'],
             'lokasi_unit'       => trim($data['lokasi_unit']),
             'aset_id'           => $data['aset_id'] ?? null,
-            'ruang_id'          => $data['ruang_id'] ?? null,
+            'ruang_id'          => $ruangId,
             'jenis_pekerjaan'   => $data['jenis_pekerjaan'],
             'kategori_sarana'   => $data['kategori_sarana'] ?? null,
             'uraian_kegiatan'   => trim($data['uraian_kegiatan']),
@@ -176,8 +179,8 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_jurnal_perbaikan', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRow($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus data milik sendiri.', 403);
+        if (!$this->ownsRowRuang($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus data pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
 
         DB::table('teknisi_jurnal_perbaikan')->where('id', $id)->delete();

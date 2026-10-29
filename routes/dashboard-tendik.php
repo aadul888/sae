@@ -419,7 +419,7 @@ return function () {
         });
 
         // =====================================================================
-        // MODUL TEKNISI LAPANGAN (generik, per-akun petugas)
+        // MODUL TEKNISI LAPANGAN (generik, cakupan PJ ruang)
         // =====================================================================
         $modulLapangan = 'area-master|inspeksi-utilitas|apar-k3|pest-control|higiene-kantin|pemakaian-bahan'
             . '|usulan-pengadaan|aset-mutasi|peminjaman-ruang';

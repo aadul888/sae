@@ -54,7 +54,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
 
         $query = TeknisiWorkOrder::with('teknisi')->latest('tanggal')->latest('id');
-        $this->scopeOwned($query->getQuery(), $context, null, self::PTK_COLUMN);
+        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -79,7 +79,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
 
         $workOrders = $query->paginate($perPage)->withQueryString();
 
-        $stat = fn ($w) => $this->scopeOwned($w->getQuery(), $context, null, self::PTK_COLUMN)->count();
+        $stat = fn ($w) => $this->scopeRuangPj($w->getQuery(), $context, 'ruang_id', null, true)->count();
         $stats = [
             'total_antrean' => $stat(TeknisiWorkOrder::where('status', 'antrean')),
             'total_proses'  => $stat(TeknisiWorkOrder::where('status', 'proses')),
@@ -153,8 +153,8 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         ]);
 
         $order = TeknisiWorkOrder::findOrFail($id);
-        if (!$this->ownsRow($order, $context, self::PTK_COLUMN)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah Work Order milik sendiri.', 403);
+        if (!$this->ownsRowRuang($order, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah Work Order pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
 
         $order->status = $request->status;
@@ -178,8 +178,8 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         if ($res) return $res;
 
         $order = TeknisiWorkOrder::findOrFail($id);
-        if (!$this->ownsRow($order, $context, self::PTK_COLUMN)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus Work Order milik sendiri.', 403);
+        if (!$this->ownsRowRuang($order, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus Work Order pada ruang yang menjadi tanggung jawab Anda.', 403);
         }
 
         $order->delete();
@@ -324,7 +324,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         }
 
         $query = TeknisiWorkOrder::query();
-        $this->scopeOwned($query->getQuery(), $context, null, self::PTK_COLUMN);
+        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
         if ($dari !== '')   $query->where('tanggal', '>=', $dari);
         if ($sampai !== '') $query->where('tanggal', '<=', $sampai);
 

@@ -46,67 +46,42 @@
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
 
-<!-- 1. Akses Cepat Menu Teknisi IT (Responsive Grid Seimbang & Genap) -->
+<!-- 1. Akses Cepat Menu Teknisi IT — disusun per alur pengisian harian -->
+@php $grupAlurJudul = 'grid-column: 1 / -1; margin: 6px 0 2px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;'; @endphp
 <div class="kepegawaian-quick-grid">
-    <a href="{{ route('dashboard.teknisi.work-order') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Work Order & Pelaporan Masalah">
+    <div style="{{ $grupAlurJudul }}">Master &amp; Referensi</div>
+    <a href="{{ route('dashboard.sarpras.ruang.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Master Ruang & Gedung (ditentukan Administrasi Sarpras)">
         <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-wrench"></i>
+            <i class="fas fa-door-open"></i>
         </div>
-        <span class="kepegawaian-quick-label">Work Order</span>
+        <span class="kepegawaian-quick-label">Ruang &amp; Gedung</span>
     </a>
-
-    <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Jadwal Pemeliharaan Berkala">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-calendar-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Pemeliharaan</span>
-    </a>
-
     <a href="{{ route('dashboard.sarpras.aset.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Aset Perangkat IT">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Inventaris & Aset">
         <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-network-wired"></i>
+            <i class="fas fa-boxes-stacked"></i>
         </div>
-        <span class="kepegawaian-quick-label">Aset IT</span>
+        <span class="kepegawaian-quick-label">Inventaris &amp; Aset</span>
+    </a>
+    <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => 'area-master']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Master Area & Zona Kebersihan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-map-location-dot"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Master Area</span>
     </a>
 
-    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'teknisi']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-bullseye"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Target Capaian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'teknisi']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'teknisi']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--pink, #ec4899);" title="Laporan &amp; Rekapitulasi Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: var(--pink, #ec4899);">
-            <i class="fas fa-file-invoice"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
-    </a>
-</div>
-
-<!-- 1b. Akses Cepat Kelengkapan TUPOKSI Teknisi (5 Indikator) -->
-<div class="kepegawaian-quick-grid">
+    <div style="{{ $grupAlurJudul }}">Perencanaan Tugas</div>
     <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Jadwal Area Tugas Kebersihan (Indikator #1)">
         <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-clipboard-list"></i>
         </div>
-        <span class="kepegawaian-quick-label">Area Tugas</span>
+        <span class="kepegawaian-quick-label">Jadwal Area Tugas</span>
     </a>
 
+    <div style="{{ $grupAlurJudul }}">Pelaksanaan Harian</div>
     <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Kebersihan Lingkungan & Ruang Kerja (Indikator #2)">
         <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
@@ -114,7 +89,6 @@
         </div>
         <span class="kepegawaian-quick-label">Kebersihan Ruang</span>
     </a>
-
     <a href="{{ route('dashboard.teknisi.kebersihan-rapat.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Kebersihan Lingkungan Ruang Rapat (Indikator #3)">
         <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
@@ -122,7 +96,6 @@
         </div>
         <span class="kepegawaian-quick-label">Kebersihan Rapat</span>
     </a>
-
     <a href="{{ route('dashboard.teknisi.sarana-rapat.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Laporan Sarana Kegiatan Rapat (Indikator #4)">
         <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
@@ -131,12 +104,50 @@
         <span class="kepegawaian-quick-label">Sarana Rapat</span>
     </a>
 
+    <div style="{{ $grupAlurJudul }}">Perbaikan &amp; Pemeliharaan</div>
+    <a href="{{ route('dashboard.teknisi.work-order') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Work Order & Pelaporan Masalah">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-wrench"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Work Order</span>
+    </a>
+    <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Jadwal Pemeliharaan Berkala">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Pemeliharaan</span>
+    </a>
     <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Pengarsipan & Laporan Perbaikan Sarpras (Indikator #5)">
         <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-screwdriver-wrench"></i>
         </div>
         <span class="kepegawaian-quick-label">Jurnal Perbaikan</span>
+    </a>
+
+    <div style="{{ $grupAlurJudul }}">Inspeksi &amp; Tindak Lanjut</div>
+    <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => 'inspeksi-utilitas']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Inspeksi Utilitas & Instalasi">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Inspeksi Utilitas</span>
+    </a>
+    <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => 'apar-k3']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Inspeksi APAR & K3">
+        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+            <i class="fas fa-fire-extinguisher"></i>
+        </div>
+        <span class="kepegawaian-quick-label">APAR &amp; K3</span>
+    </a>
+    <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => 'usulan-pengadaan']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Usulan Pengadaan Sarana Prasarana">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-cart-plus"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Usulan Pengadaan</span>
     </a>
 </div>
 

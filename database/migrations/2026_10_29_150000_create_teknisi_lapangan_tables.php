@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\Schema;
  *  - Master area/zona kebersihan (menggantikan teks bebas).
  *  - Log harian generik: inspeksi utilitas, APAR/K3, pest control, higiene
  *    kantin, dan pemakaian bahan kebersihan.
- *  - Usulan pengadaan, tindak lanjut supervisi, mutasi lokasi aset,
- *    dan peminjaman ruang.
+ *  - Usulan pengadaan, mutasi lokasi aset, dan peminjaman ruang.
  *  - Relasi aset/ruang pada work order & jurnal perbaikan (riwayat per aset).
  */
 return new class extends Migration
@@ -27,7 +26,6 @@ return new class extends Migration
         'teknisi_kebersihan_rapat',
         'teknisi_sarana_rapat',
         'teknisi_jurnal_perbaikan',
-        'teknisi_supervisi',
         'teknisi_work_order',
         'teknisi_pemeliharaan',
     ];
@@ -156,29 +154,10 @@ return new class extends Migration
         }
 
         // -----------------------------------------------------------------
-        // 6. Tindak lanjut hasil supervisi
+        // 6. Tindak lanjut hasil supervisi — modul dihapus. Tabel dibuang
+        //    agar tidak menyisakan skema usang (menggantikan blok CREATE lama).
         // -----------------------------------------------------------------
-        if (!Schema::hasTable('teknisi_tindak_lanjut')) {
-            Schema::create('teknisi_tindak_lanjut', function (Blueprint $table) {
-                $table->id();
-                $table->string('nomor', 60)->unique();
-                $table->unsignedBigInteger('supervisi_id')->nullable()->index();
-                $table->string('supervisi_nomor', 60)->nullable()->index();
-                $table->date('tanggal')->index();
-                $table->string('teknisi_nama', 150)->nullable()->index();
-                $table->text('temuan');
-                $table->text('rencana_aksi');
-                $table->string('penanggung_jawab', 150)->nullable();
-                $table->date('target_selesai')->nullable()->index();
-                $table->date('tanggal_realisasi')->nullable();
-                $table->text('bukti_tindak_lanjut')->nullable();
-                $table->string('status', 30)->default('terbuka')->index(); // terbuka, proses, selesai
-                $table->string('petugas_ptk_id', 50)->nullable();
-                $table->string('petugas_nama')->nullable();
-                $table->string('user_id', 50)->nullable()->index();
-                $table->timestamps();
-            });
-        }
+        Schema::dropIfExists('teknisi_tindak_lanjut');
 
         // -----------------------------------------------------------------
         // 7. Mutasi lokasi aset (riwayat perpindahan barang antar ruang)
@@ -240,7 +219,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('sarpras_peminjaman_ruang');
         Schema::dropIfExists('teknisi_aset_mutasi');
-        Schema::dropIfExists('teknisi_tindak_lanjut');
         Schema::dropIfExists('teknisi_usulan_pengadaan');
         Schema::dropIfExists('teknisi_log_harian');
         Schema::dropIfExists('teknisi_area_master');

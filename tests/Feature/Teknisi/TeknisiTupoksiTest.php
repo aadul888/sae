@@ -21,8 +21,6 @@ class TeknisiTupoksiTest extends TestCase
         'teknisi_kebersihan_rapat',
         'teknisi_sarana_rapat',
         'teknisi_jurnal_perbaikan',
-        'teknisi_supervisi',
-        'teknisi_supervisi_item',
         'teknisi_import_log',
     ];
 

@@ -7,8 +7,8 @@
     Param:
       $linkClass — kelas tautan ('dash-nav-sublink' atau 'dash-nav-nested-link')
       $iconClass — kelas ikon ('sub-icon' atau 'nested-icon')
-      $grup      — (opsional) tampilkan hanya modul pada grup ini;
-                   dikosongkan = tampilkan semua grup.
+      $grup      — (opsional) tampilkan hanya modul pada grup ini; boleh satu
+                   string atau array grup. Dikosongkan = tampilkan semua grup.
       $judul     — (opsional) cetak judul grup; default true.
 --}}
 @php
@@ -17,11 +17,12 @@
     $judul = $judul ?? true;
     $modul = collect(\App\Support\TeknisiModuleRegistry::all());
     $grupAktif = $grup ?? null;
+    $grupAktif = $grupAktif === null ? null : (array) $grupAktif;
 @endphp
 @foreach (\App\Support\TeknisiModuleRegistry::GRUP as $grupKey => $grupLabel)
     @php $items = $modul->filter(fn ($spec) => ($spec['grup'] ?? 'inspeksi') === $grupKey); @endphp
     @continue($items->isEmpty())
-    @if ($grupAktif === null || $grupAktif === $grupKey)
+    @if ($grupAktif === null || in_array($grupKey, $grupAktif, true))
         @if ($judul)
             <div
                 style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">

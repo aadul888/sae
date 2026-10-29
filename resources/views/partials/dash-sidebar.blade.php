@@ -1083,8 +1083,10 @@
                     <span class="nav-label">Jurnal Perbaikan Sarpras</span>
                 </a>
 
-                {{-- Kelompok: Inspeksi, Tindak Lanjut & Modul --}}
-                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-sublink', 'iconClass' => 'sub-icon'])
+            {{-- ==== KELOMPOK: INSPEKSI & MODUL LAPANGAN ==== --}}
+            @if ($can('menu_teknisi'))
+                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-sublink', 'iconClass' => 'sub-icon', 'grup' => ['inspeksi', 'tindak']])
+            @endif
             </div>
         </div>
     @endif

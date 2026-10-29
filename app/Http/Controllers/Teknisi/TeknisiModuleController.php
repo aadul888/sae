@@ -18,9 +18,10 @@ use Illuminate\Support\Facades\DB;
  * {@see TeknisiModuleRegistry}: daftar, tambah/ubah/hapus, unduh template,
  * impor Excel, dan cetak laporan (satu catatan per halaman).
  *
- * Semua data dibatasi per akun pembuat (lihat TeknisiBaseController::scopeOwned):
- * teknisi lapangan hanya melihat & mengubah catatannya sendiri, sedangkan
- * koordinator (Kepala TAS / Waka Sarpras / admin) melihat seluruh data.
+ * Semua data dibatasi pada ruang yang penanggung jawabnya = akun login
+ * (lihat TeknisiBaseController::scopeOwned & scopeRuangPj): teknisi lapangan
+ * hanya melihat & mengubah catatan pada ruang yang menjadi tanggung jawabnya,
+ * sedangkan koordinator (Kepala TAS / Waka Sarpras / admin) melihat semuanya.
  */
 class TeknisiModuleController extends TeknisiBaseController
 {
@@ -43,16 +44,9 @@ class TeknisiModuleController extends TeknisiBaseController
         if (!empty($spec['autoSync'])) {
             $this->syncAreaMaster();
         }
-        // Modul `shared` (master bersama) tidak di-scope per akun: setiap teknisi
-        // melihat daftar yang sama, suntingan tetap dijaga `ownsRow()`.
-        if (empty($spec['shared'])) {
-            $this->scopeOwned($query, $context, 't', 'petugas_ptk_id');
-        }
-        // Modul yang menandai `scopePj` (mis. area-master) hanya menampilkan
-        // baris yang penanggung jawabnya = akun login.
-        if (!empty($spec['scopePj'])) {
-            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama', 't');
-        }
+        // Cakupan baris: per ruang PJ bila modul punya kolom ruang, selain itu
+        // per akun pembuat. Modul `shared` (master bersama) tanpa batas.
+        $this->scopeModul($query, $spec, $context, 't');
 
         if ($search !== '') {
             $query->where(function ($q) use ($spec) {
@@ -66,12 +60,7 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $statQuery = DB::table($spec['table']);
         $this->applyFixed($statQuery, $spec);
-        if (empty($spec['shared'])) {
-            $this->scopeOwned($statQuery, $context);
-        }
-        if (!empty($spec['scopePj'])) {
-            $this->scopePetugasPj($statQuery, $context, 'petugas_ptk_id', 'petugas_nama');
-        }
+        $this->scopeModul($statQuery, $spec, $context);
 
         $statCards = [];
         foreach ($spec['stats'] as $stat) {
@@ -317,10 +306,7 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $query = DB::table($spec['table']);
         $this->applyFixed($query, $spec);
-        $this->scopeOwned($query, $context);
-        if (!empty($spec['scopePj'])) {
-            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama');
-        }
+        $this->scopeModul($query, $spec, $context);
         if ($spec['dateCol'] && $dari !== '')   $query->where($spec['dateCol'], '>=', $dari);
         if ($spec['dateCol'] && $sampai !== '') $query->where($spec['dateCol'], '<=', $sampai);
 
@@ -400,12 +386,42 @@ class TeknisiModuleController extends TeknisiBaseController
     // ------------------------------------------------------------------
 
     /**
+     * Cakupan baris satu modul lapangan.
+     *
+     * - `shared` (master bersama, mis. area-master): tanpa batas.
+     * - Punya kolom ruang (`ruangCol`): dibatasi ruang yang PJ-nya akun login.
+     * - Tanpa kolom ruang (mis. log harian, usulan pengadaan): milik akun pembuat.
+     */
+    private function scopeModul($query, array $spec, array $context, ?string $alias = null): void
+    {
+        if (empty($spec['shared'])) {
+            if (!empty($spec['ruangCol'])) {
+                $this->scopeRuangPj($query, $context, $spec['ruangCol'], $alias, true);
+            } else {
+                $this->scopeOwned($query, $context, $alias);
+            }
+        }
+
+        // Modul yang menandai `scopePj` (mis. area-master) hanya menampilkan
+        // baris yang penanggung jawabnya = akun login.
+        if (!empty($spec['scopePj'])) {
+            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama', $alias);
+        }
+    }
+
+    /**
      * Modul `shared` (master bersama, mis. area-master) boleh diubah semua
-     * teknisi; modul lain tetap terikat pemilik baris.
+     * teknisi; modul dengan kolom ruang terikat ruang PJ; sisanya milik akun.
      */
     private function bolehUbah(array $spec, object $row, array $context): bool
     {
-        return !empty($spec['shared']) || $this->ownsRow($row, $context);
+        if (!empty($spec['shared'])) {
+            return true;
+        }
+
+        return !empty($spec['ruangCol'])
+            ? $this->ownsRowRuang($row, $context, $spec['ruangCol'])
+            : $this->ownsRow($row, $context);
     }
 
     private function applyFixed($query, array $spec, ?string $alias = null): void

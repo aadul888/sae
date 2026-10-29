@@ -178,13 +178,10 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
 
     /**
      * Kolom penanda pemilik baris per tabel TUPOKSI.
-     *
-     * `teknisi_supervisi` menyimpan teknisi yang dinilai pada `teknisi_ptk_id`
-     * (bukan `petugas_ptk_id`); tabel lain memakai penanda petugas bawaan.
      */
     private function ownerColumn(string $table): string
     {
-        return $table === 'teknisi_supervisi' ? 'teknisi_ptk_id' : 'petugas_ptk_id';
+        return 'petugas_ptk_id';
     }
 
     private function nomorColumn(object $row, array $types): string

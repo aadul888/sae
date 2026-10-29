@@ -23,7 +23,6 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
         'kebersihan-rapat' => ['teknisi_kebersihan_rapat', 'petugas_ptk_id'],
         'sarana-rapat'     => ['teknisi_sarana_rapat', 'petugas_ptk_id'],
         'jurnal-perbaikan' => ['teknisi_jurnal_perbaikan', 'petugas_ptk_id'],
-        'supervisi'        => ['teknisi_supervisi', 'teknisi_ptk_id'],
         'work-order'       => ['teknisi_work_order', 'teknisi_ptk_id'],
         'pemeliharaan'     => ['teknisi_pemeliharaan', null],
     ];
@@ -50,9 +49,6 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
         foreach ($rows as $row) {
             if (!$this->ownsRow($row, $context, $ptkColumn)) {
                 continue;
-            }
-            if ($table === 'teknisi_supervisi' && Table::exists('teknisi_supervisi_item')) {
-                DB::table('teknisi_supervisi_item')->where('supervisi_id', $row->id)->delete();
             }
             DB::table($table)->where('id', $row->id)->delete();
             $deleted++;
