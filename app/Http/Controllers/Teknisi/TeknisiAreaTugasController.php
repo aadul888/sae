@@ -75,8 +75,13 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         $list = $query->orderByDesc('a.tanggal_mulai')->orderByDesc('a.id')
             ->paginate($perPage)->withQueryString();
 
+        // Kolom Petugas = penanggung jawab ruang (live dari master Sarpras),
+        // agar pergantian PJ langsung terlihat. Area bebas tanpa ruang tetap
+        // memakai nama petugas tersimpan.
+        $pjRuang = $this->pjRuang($list->pluck('ruang_id')->all());
+
         return view('dashboard.teknisi.area-tugas', array_merge(
-            compact('list', 'search', 'jenisFilter', 'perPage',
+            compact('list', 'search', 'jenisFilter', 'perPage', 'pjRuang',
                 'statTotal', 'statAktif', 'statSampah', 'statLaporan'),
             $this->abilities(),
             [
@@ -96,6 +101,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         if ($res) return $res;
 
         $data = $this->validated($request);
+        $petugas = $this->petugasUntukArea($data['area'], $context['ptk_id'], $context['nama']);
 
         DB::table('teknisi_area_tugas')->insert([
             'ruang_id'       => $this->ruangIdDariNama($data['area']),
@@ -104,8 +110,8 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             'area'           => trim($data['area']),
             'zona'           => $data['zona'] ?? null,
             'periode_jadwal' => $data['periode_jadwal'] ?? 'harian',
-            'petugas_ptk_id' => $context['ptk_id'],
-            'petugas_nama'   => $context['nama'],
+            'petugas_ptk_id' => $petugas['ptk_id'],
+            'petugas_nama'   => $petugas['nama'],
             'shift'          => $data['shift'] ?? 'pagi',
             'tanggal_mulai'  => $data['tanggal_mulai'] ?? null,
             'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
@@ -134,14 +140,15 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         }
 
         $data = $this->validated($request);
+        $petugas = $this->petugasUntukArea($data['area'], $context['ptk_id'], $context['nama']);
 
         DB::table('teknisi_area_tugas')->where('id', $id)->update([
             'ruang_id'       => $this->ruangIdDariNama($data['area']),
             'area'           => trim($data['area']),
             'zona'           => $data['zona'] ?? null,
             'periode_jadwal' => $data['periode_jadwal'] ?? $row->periode_jadwal,
-            'petugas_ptk_id' => $context['ptk_id'],
-            'petugas_nama'   => $context['nama'],
+            'petugas_ptk_id' => $petugas['ptk_id'],
+            'petugas_nama'   => $petugas['nama'],
             'shift'          => $data['shift'] ?? $row->shift,
             'tanggal_mulai'  => $data['tanggal_mulai'] ?? null,
             'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
@@ -186,13 +193,59 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         return $id ? (int) $id : null;
     }
 
+    /**
+     * Petugas jadwal = penanggung jawab ruang master (bila area = ruang).
+     *
+     * Area bebas (bukan ruang Sarpras) memakai akun yang login sebagai
+     * petugas. Pemilik baris (`user_id`) tetap akun login — lihat store().
+     *
+     * @return array{ptk_id: ?string, nama: ?string}
+     */
+    private function petugasUntukArea(?string $nama, ?string $fallbackPtk, ?string $fallbackNama): array
+    {
+        $ruangId = $this->ruangIdDariNama($nama);
+        if (!$ruangId) {
+            return ['ptk_id' => $fallbackPtk, 'nama' => $fallbackNama];
+        }
+
+        $pj = $this->pjRuang([$ruangId]);
+
+        return [
+            'ptk_id' => DB::table('sarpras_ruang')->where('id', $ruangId)->value('penanggung_jawab_ptk_id') ?: $fallbackPtk,
+            'nama'   => $pj[$ruangId] ?? $fallbackNama,
+        ];
+    }
+
+    /**
+     * Peta `sarpras_ruang.id` => nama penanggung jawab (terbaru).
+     *
+     * @param  array<int, int|string|null>  $ruangIds
+     * @return array<int, string>
+     */
+    private function pjRuang(array $ruangIds): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ruangIds)));
+        if (empty($ids) || !\App\Support\Table::exists('sarpras_ruang')) {
+            return [];
+        }
+
+        return DB::table('sarpras_ruang as r')
+            ->leftJoin('gtk as g', 'r.penanggung_jawab_ptk_id', '=', 'g.ptk_id')
+            ->leftJoin('pengguna as p', 'r.penanggung_jawab_ptk_id', '=', 'p.pengguna_id')
+            ->whereIn('r.id', $ids)
+            ->get(['r.id', DB::raw('COALESCE(g.nama, p.nama) as pj_nama')])
+            ->filter(fn ($row) => filled($row->pj_nama))
+            ->mapWithKeys(fn ($row) => [(int) $row->id => (string) $row->pj_nama])
+            ->all();
+    }
+
     protected function validated(Request $request): array
     {        return $request->validate([
             'area'            => 'required|string|max:150',
             'zona'            => 'nullable|string|max:80',
             'periode_jadwal'  => 'nullable|in:harian,mingguan,bulanan,insidental',
             'petugas_ptk_id'  => 'nullable|string|max:50',
-            'petugas_nama'    => 'required|string|max:150',
+            'petugas_nama'    => 'nullable|string|max:150',
             'shift'           => 'nullable|in:pagi,siang,sore',
             'tanggal_mulai'   => 'nullable|date',
             'tanggal_selesai' => 'nullable|date',
@@ -204,7 +257,6 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             'status'          => 'nullable|in:draf,aktif,selesai',
         ], [
             'area.required'         => 'Area tugas wajib diisi.',
-            'petugas_nama.required' => 'Nama petugas wajib diisi.',
         ]);
     }
 }

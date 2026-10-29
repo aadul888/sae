@@ -174,6 +174,42 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->assertDontSee($tugasA->nomor_jadwal, false);
     }
 
+    /**
+     * Kolom Petugas jadwal = penanggung jawab ruang, bukan akun yang mengisi.
+     * Kepemilikan baris (user_id) tetap akun yang mengisi.
+     */
+    public function test_petugas_area_tugas_mengikuti_pj_ruang(): void
+    {
+        $siap = $this->siapkanRuangUji();
+        if (!$siap) {
+            return;
+        }
+        // Ruang uji disiapkan sebagai PJ akun A.
+        [$pjA, $akunB, , $namaRuang] = $siap;
+
+        // Akun B mengisi jadwal untuk ruang yang PJ-nya akun A.
+        $this->withSession($this->sesi($akunB))
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->post(route('dashboard.teknisi.area-tugas.store'), [
+                'area'           => $namaRuang,
+                'periode_jadwal' => 'harian',
+                'petugas_nama'   => $akunB->nama,
+                'shift'          => 'pagi',
+                'jenis_tugas'    => 'tukang_kebersihan',
+                'status'         => 'aktif',
+            ])
+            ->assertStatus(200);
+
+        $row = DB::table('teknisi_area_tugas')
+            ->where('area', $namaRuang)->where('user_id', $akunB->user_id)->first();
+        $this->assertNotNull($row, 'Jadwal harus tersimpan milik akun B (pengisi).');
+        $this->createdTugasIds[] = (int) $row->id;
+
+        $this->assertSame($pjA->nama, $row->petugas_nama, 'Petugas harus PJ ruang, bukan pengisi.');
+        $this->assertSame((string) $pjA->ptk_id, (string) $row->petugas_ptk_id);
+        $this->assertSame((string) $akunB->user_id, (string) $row->user_id, 'Pemilik baris tetap akun pengisi.');
+    }
+
     public function test_pemeliharaan_terpisah_per_akun(): void
     {
         $siap = $this->siapkanRuangUji();

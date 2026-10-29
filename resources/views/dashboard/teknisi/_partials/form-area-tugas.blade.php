@@ -45,9 +45,9 @@
 
 <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-top: 12px;">
     <div>
-        <label class="form-label" style="font-weight:600;">Nama Petugas *</label>
-        <input type="search" name="petugas_nama" class="form-control" required autocomplete="off"
-            placeholder="Cari GTK atau ketik nama..."
+        <label class="form-label" style="font-weight:600;">Petugas <span style="font-weight:400; color:var(--text-muted);">(otomatis mengikuti PJ ruang)</span></label>
+        <input type="search" name="petugas_nama" class="form-control" autocomplete="off"
+            placeholder="Otomatis — penanggung jawab ruang terpilih"
             data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
             data-people-target="#atPetugasPtkId">
         <input type="hidden" name="petugas_ptk_id" id="atPetugasPtkId">
