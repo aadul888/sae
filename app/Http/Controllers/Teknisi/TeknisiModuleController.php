@@ -48,6 +48,11 @@ class TeknisiModuleController extends TeknisiBaseController
         if (empty($spec['shared'])) {
             $this->scopeOwned($query, $context, 't', 'petugas_ptk_id');
         }
+        // Modul yang menandai `scopePj` (mis. area-master) hanya menampilkan
+        // baris yang penanggung jawabnya = akun login.
+        if (!empty($spec['scopePj'])) {
+            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama', 't');
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($spec) {
@@ -63,6 +68,9 @@ class TeknisiModuleController extends TeknisiBaseController
         $this->applyFixed($statQuery, $spec);
         if (empty($spec['shared'])) {
             $this->scopeOwned($statQuery, $context);
+        }
+        if (!empty($spec['scopePj'])) {
+            $this->scopePetugasPj($statQuery, $context, 'petugas_ptk_id', 'petugas_nama');
         }
 
         $statCards = [];
@@ -310,6 +318,9 @@ class TeknisiModuleController extends TeknisiBaseController
         $query = DB::table($spec['table']);
         $this->applyFixed($query, $spec);
         $this->scopeOwned($query, $context);
+        if (!empty($spec['scopePj'])) {
+            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama');
+        }
         if ($spec['dateCol'] && $dari !== '')   $query->where($spec['dateCol'], '>=', $dari);
         if ($spec['dateCol'] && $sampai !== '') $query->where($spec['dateCol'], '<=', $sampai);
 

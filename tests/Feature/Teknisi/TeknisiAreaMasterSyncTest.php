@@ -98,7 +98,7 @@ class TeknisiAreaMasterSyncTest extends TestCase
         ]];
     }
 
-    public function test_area_master_adalah_data_bersama_dan_mencerminkan_pj(): void
+    public function test_area_master_mencerminkan_pj_dan_hanya_ruang_pj_sendiri(): void
     {
         $siap = $this->siapkanRuangUji();
         if (!$siap) {
@@ -116,15 +116,21 @@ class TeknisiAreaMasterSyncTest extends TestCase
         $this->createdAreaIds[] = (int) $area->id;
 
         $this->assertSame($namaRuang, $area->nama_area);
-        $this->assertNull($area->user_id, 'Area master adalah data bersama, bukan milik akun.');
+        $this->assertNull($area->user_id, 'Area master adalah cermin, bukan milik satu akun.');
         $this->assertSame((string) $pjA->ptk_id, (string) $area->petugas_ptk_id);
         $this->assertSame($pjA->nama, $area->petugas_nama);
 
-        // Data bersama: akun lain pun melihat baris yang sama.
+        // Hanya PJ ruang yang melihat barisnya. Akun B (bukan PJ) tidak melihat
+        // nomor area unik tersebut (dicek lewat kode_area, bukan nama ruang yang
+        // mungkin muncul di datalist pencarian).
+        $this->withSession($this->sesi($pjA))
+            ->get(route('dashboard.teknisi.modul.index', ['modul' => 'area-master']))
+            ->assertStatus(200)
+            ->assertSee($area->kode_area, false);
         $this->withSession($this->sesi($pjB))
             ->get(route('dashboard.teknisi.modul.index', ['modul' => 'area-master']))
             ->assertStatus(200)
-            ->assertSee($namaRuang, false);
+            ->assertDontSee($area->kode_area, false);
 
         $jumlah = DB::table('teknisi_area_master')->where('ruang_id', $ruangId)->count();
         $this->assertSame(1, $jumlah, 'Sinkronisasi harus idempoten.');

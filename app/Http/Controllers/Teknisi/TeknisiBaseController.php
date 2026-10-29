@@ -207,6 +207,40 @@ abstract class TeknisiBaseController extends Controller
     }
 
     /**
+     * Batasi query ke baris yang penanggung jawabnya = akun login.
+     *
+     * Dipakai modul yang petugasnya mengikuti PJ ruang Sarpras (mis. Master
+     * Area & Zona). Bila akun punya `ptk_id`, baris dicocokkan lewat kolom PTK
+     * (dengan cadangan nama bila PTK kosong); akun tanpa PTK dicocokkan nama.
+     * Koordinator tidak dibatasi.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     */
+    protected function scopePetugasPj($query, array $context, string $ptkColumn, string $namaColumn, ?string $alias = null)
+    {
+        if ($this->isKoordinator($context)) {
+            return $query;
+        }
+
+        $p = $alias ? $alias . '.' : '';
+        $ptkId = $context['ptk_id'] ?? null;
+        $nama  = $context['nama'] ?? null;
+
+        if (!$ptkId && !$nama) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function ($q) use ($p, $ptkId, $nama, $ptkColumn, $namaColumn) {
+            if ($ptkId) {
+                $q->where($p . $ptkColumn, $ptkId)
+                  ->orWhere(fn ($q2) => $q2->whereNull($p . $ptkColumn)->where($p . $namaColumn, $nama));
+            } else {
+                $q->where($p . $namaColumn, $nama);
+            }
+        });
+    }
+
+    /**
      * Respons seragam: JSON untuk AJAX, redirect untuk submit form biasa.
      */
     protected function respond(Request $request, bool $ok, string $message, int $code = 200, array $extra = [])

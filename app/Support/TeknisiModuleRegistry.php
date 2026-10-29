@@ -85,6 +85,9 @@ final class TeknisiModuleRegistry
                 // bersama — tidak di-scope per akun, cukup unik per `ruang_id`.
                 'autoSync' => true,
                 'shared'   => true,
+                // Petugas area master = PJ ruang; hanya ruang milik PJ yang login
+                // yang ditampilkan (koordinator melihat semua).
+                'scopePj'  => true,
             ],
 
             'inspeksi-utilitas' => self::logSpec('inspeksi-utilitas', 'Inspeksi Utilitas & Instalasi', 'fas fa-bolt', 'var(--warning, #f59e0b)', 'Pemeriksaan panel listrik, genset, pompa, tandon, dan meteran air/listrik.', [
