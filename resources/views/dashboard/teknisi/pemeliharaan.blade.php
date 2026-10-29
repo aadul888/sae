@@ -29,12 +29,6 @@
                     title="Tambah Jadwal Preventive Maintenance">
                     <i class="fas fa-plus"></i>
                 </button>
-                <button type="button" class="btn btn-outline" data-teknisi-bulk-delete
-                    data-modul="pemeliharaan" data-endpoint="{{ route('dashboard.teknisi.bulk-delete') }}" disabled
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); opacity: 0.5; cursor: not-allowed;"
-                    title="Hapus data terpilih" aria-label="Hapus data terpilih">
-                    <i class="fas fa-trash-alt" style="color: var(--danger, #ef4444);"></i>
-                </button>
             </div>
         </div>
 
@@ -157,6 +151,14 @@
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                     title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
+
+                            <button type="button" class="btn btn-outline" data-teknisi-bulk-delete
+                                data-modul="pemeliharaan" data-endpoint="{{ route('dashboard.teknisi.bulk-delete') }}"
+                                style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: var(--radius-md, 8px);"
+                                title="Hapus data terpilih" aria-label="Hapus data terpilih">
+                                <i class="fas fa-trash-alt" style="color: var(--danger, #ef4444);"></i>
+                                <span>Hapus Terpilih</span>
+                            </button>
                         </div>
 
                         <div class="live-search-wrap" style="height: 38px;">

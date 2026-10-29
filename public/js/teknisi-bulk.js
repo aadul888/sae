@@ -16,10 +16,6 @@
         return boxes().filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
     }
 
-    function button() {
-        return document.querySelector("[data-teknisi-bulk-delete]");
-    }
-
     function sync() {
         var list = boxes();
         var checked = selectedIds().length;
@@ -27,12 +23,6 @@
         if (all) {
             all.checked = list.length > 0 && checked === list.length;
             all.indeterminate = checked > 0 && checked < list.length;
-        }
-        var btn = button();
-        if (btn) {
-            btn.disabled = checked === 0;
-            btn.style.opacity = checked === 0 ? "0.5" : "1";
-            btn.style.cursor = checked === 0 ? "not-allowed" : "pointer";
         }
     }
 
@@ -64,13 +54,20 @@
 
     function submit(btn) {
         var ids = selectedIds();
-        if (!ids.length) return;
+        if (!ids.length) {
+            if (window.Swal) {
+                window.Swal.fire({ icon: "info", title: "Belum ada data dipilih", text: "Centang minimal satu data dulu." });
+            } else {
+                window.alert("Centang minimal satu data dulu.");
+            }
+            return;
+        }
+
         var modul = btn.getAttribute("data-modul") || "";
         var endpoint = btn.getAttribute("data-endpoint");
         if (!endpoint) return;
 
         var go = function () {
-            btn.disabled = true;
             fetch(endpoint, {
                 method: "POST",
                 headers: {
@@ -95,7 +92,6 @@
                         window.alert(msg);
                         window.location.reload();
                     }
-                    if (!ok) btn.disabled = false;
                 })
                 .catch(function () {
                     if (window.Swal) {
@@ -103,7 +99,6 @@
                     } else {
                         window.alert("Terjadi kesalahan jaringan.");
                     }
-                    btn.disabled = false;
                 });
         };
 
@@ -141,13 +136,31 @@
         }
     });
 
+    // Re-inject setelah tabel diganti via AJAX (live search/filter, paginasi,
+    // maupun polling realtime sae-realtime.js) agar checkbox tidak hilang.
+    var pending = false;
+    function scheduleInject() {
+        if (pending) return;
+        pending = true;
+        setTimeout(function () {
+            pending = false;
+            inject();
+        }, 40);
+    }
+
+    window.addEventListener("sae:tableRefreshed", scheduleInject);
+
     var orig = window.refreshLiveTable;
     if (typeof orig === "function") {
         window.refreshLiveTable = function () {
             var r = orig.apply(this, arguments);
-            Promise.resolve(r).then(function () { setTimeout(inject, 0); });
+            Promise.resolve(r).then(scheduleInject);
             return r;
         };
+    }
+
+    if (window.MutationObserver) {
+        new MutationObserver(scheduleInject).observe(document.body, { childList: true, subtree: true });
     }
 
     if (document.readyState === "loading") {
