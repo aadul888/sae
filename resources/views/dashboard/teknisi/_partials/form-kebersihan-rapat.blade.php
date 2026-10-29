@@ -24,7 +24,12 @@
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
     <div>
         <label class="form-label" style="font-weight:600;">Lokasi</label>
-        <input type="text" name="lokasi" class="form-control" placeholder="Contoh: Ruang Rapat Utama" value="Ruang Rapat">
+        <input type="text" name="lokasi" class="form-control" list="dlLokasiRapat" placeholder="Contoh: Ruang Rapat Utama" value="Ruang Rapat">
+        <datalist id="dlLokasiRapat">
+            @foreach (($lokasiOptions ?? []) as $lok)
+                <option value="{{ $lok }}"></option>
+            @endforeach
+        </datalist>
     </div>
     <div>
         <label class="form-label" style="font-weight:600;">Nama Rapat / Kegiatan</label>

@@ -91,6 +91,7 @@ class TeknisiKebersihanRapatController extends TeknisiBaseController
                 'tahapList'   => self::TAHAP,
                 'kondisiList' => self::KONDISI,
                 'statusList'  => self::STATUS,
+                'lokasiOptions' => $this->lokasiOptions(),
             ]
         ));
     }

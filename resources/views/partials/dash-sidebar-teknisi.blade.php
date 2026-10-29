@@ -14,11 +14,18 @@
                 <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                 <span class="nav-label">Dashboard Teknisi</span>
             </a>
-            @if ($can('menu_teknisi_wo') || $can('menu_teknisi'))
-                <a href="{{ route('dashboard.teknisi.work-order') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-wrench"></i></span>
-                    <span class="nav-label">Work Order &amp; Perbaikan</span>
+
+            {{-- ==== KELOMPOK: PEMETAAN & MASTER ==== --}}
+            <div
+                style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                Pemetaan &amp; Master
+            </div>
+            @if ($can('menu_sarpras_ruang') || $can('menu_sarpras') || $can('menu_teknisi'))
+                <a href="{{ route('dashboard.sarpras.ruang.index') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.ruang*') ? 'active' : '' }}"
+                    title="Master pemetaan tanggung jawab ruang &amp; gedung (diinput Administrasi Sarpras)">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-door-open"></i></span>
+                    <span class="nav-label">Ruang &amp; Gedung</span>
                 </a>
             @endif
             @if ($can('menu_teknisi'))
@@ -27,6 +34,41 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
                     <span class="nav-label">Jadwal Area Tugas</span>
                 </a>
+            @endif
+
+            {{-- ==== KELOMPOK: LAYANAN PERBAIKAN ==== --}}
+            <div
+                style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                Layanan Perbaikan
+            </div>
+            @if ($can('menu_teknisi_wo') || $can('menu_teknisi'))
+                <a href="{{ route('dashboard.teknisi.work-order') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-wrench"></i></span>
+                    <span class="nav-label">Work Order &amp; Perbaikan</span>
+                </a>
+            @endif
+            @if ($can('menu_teknisi_pemeliharaan') || $can('menu_teknisi'))
+                <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                    <span class="nav-label">Pemeliharaan Preventif</span>
+                </a>
+            @endif
+            @if ($can('menu_teknisi'))
+                <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                    <span class="nav-label">Jurnal Perbaikan Sarpras</span>
+                </a>
+            @endif
+
+            {{-- ==== KELOMPOK: KEBERSIHAN & LINGKUNGAN ==== --}}
+            <div
+                style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                Kebersihan &amp; Lingkungan
+            </div>
+            @if ($can('menu_teknisi'))
                 <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.kebersihan-ruang*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>
@@ -42,16 +84,25 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-chair"></i></span>
                     <span class="nav-label">Sarana Kegiatan Rapat</span>
                 </a>
-                <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
-                    <span class="nav-label">Jurnal Perbaikan Sarpras</span>
-                </a>
+            @endif
+
+            {{-- ==== KELOMPOK: TUPOKSI & SUPERVISI ==== --}}
+            <div
+                style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                Tupoksi &amp; Supervisi
+            </div>
+            @if ($can('menu_teknisi'))
                 <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.supervisi*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
                     <span class="nav-label">Supervisi Teknisi</span>
                 </a>
+
+                {{-- ==== KELOMPOK: MODUL LAPANGAN ==== --}}
+                <div
+                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
+                    Modul Lapangan
+                </div>
                 @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-nested-link', 'iconClass' => 'nested-icon'])
             @endif
         </div>
