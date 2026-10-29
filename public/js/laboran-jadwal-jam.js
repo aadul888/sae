@@ -177,15 +177,12 @@
     }
 
     /**
-     * Batasi pilihan Jam ke-N agar mengikuti jam mapel pada Jadwal KBM,
-     * sekaligus menghormati jam yang masih tersedia (sisa JP).
+     * Isi pilihan "Jam ke-N s/d Jam ke-M" pada modal.
      *
-     * Contoh: mapel dijadwalkan Jam ke-2 s/d Jam ke-4 → hanya jam 2, 3, 4 yang
-     * bisa dipilih, dan rentangnya otomatis diisi 2 s/d 4. Bila jam 2–4 sudah
-     * terpakai praktik, dropdown menampilkan jam tersedia berikutnya.
-     *
-     * Bila mapel tidak punya jam KBM (mis. data KBM belum lengkap), SELURUH slot
-     * hari itu tetap ditampilkan agar laboran tidak buntu.
+     * SEMENTARA: pembatasan ke jam KBM mapel DIMATIKAN (selaras dengan
+     * `PAKSA_VALIDASI_KBM = false` di controller). SELURUH slot hari itu
+     * ditampilkan agar laboran bebas memilih. Blok jam KBM mapel tetap dipakai
+     * sebagai titik awal praktis, bukan pengunci pilihan.
      *
      * @param {HTMLSelectElement} selectGuruMapel dropdown guru & mapel
      * @param {string} hari nama hari aktif
@@ -199,19 +196,8 @@
 
         pastikanSlotHari(hari).then(function (semua) {
             const info = jamKbmDariOpsi(selectGuruMapel);
-            let slots = semua;
-
-            // Jam yang boleh dipilih: utamakan jam tersedia (sisa JP).
-            const boleh = info.jamTersedia.length ? info.jamTersedia : info.jamKe;
-
-            if (boleh.length) {
-                const terbatas = {};
-                boleh.forEach(function (k) {
-                    const key = String(k);
-                    if (semua[key]) terbatas[key] = semua[key];
-                });
-                if (Object.keys(terbatas).length) slots = terbatas;
-            }
+            // Semua slot hari itu selalu boleh dipilih.
+            const slots = semua;
 
             const adaDalamSlots = function (v) {
                 return v !== '' && v !== null && v !== undefined
@@ -223,21 +209,27 @@
                 }) || null;
             };
 
-            // Jam yang diinginkan (mis. dari sel grid) bila masih boleh dipilih.
+            // Jam yang diinginkan (mis. dari sel grid) bila tersedia di hari itu.
             let preMulai = (jamAwal !== undefined && jamAwal !== null && jamAwal !== '')
                 ? String(jamAwal) : (selectMulai.value || '');
             let preSelesai = (jamAkhir !== undefined && jamAkhir !== null && jamAkhir !== '')
                 ? String(jamAkhir) : (selectSelesai ? (selectSelesai.value || '') : '');
 
             if (!adaDalamSlots(preMulai)) {
-                // Di luar jam yang boleh dipilih: pakai jam tersedia pertama.
-                preMulai = Object.keys(slots)[0] || '';
+                // Titik awal praktis: jam awal blok KBM mapel bila ada, jika tidak
+                // slot pertama hari itu.
+                const awalanBlok = info.blok.length ? String(info.blok[0].mulai) : '';
+                preMulai = adaDalamSlots(awalanBlok) ? awalanBlok : (Object.keys(slots)[0] || '');
                 preSelesai = '';
             }
 
             const blok = preMulai ? blokMemuat(preMulai) : null;
             if (!adaDalamSlots(preSelesai) || Number(preSelesai) < Number(preMulai)) {
-                preSelesai = preMulai;
+                // Isi otomatis sampai akhir blok KBM mapel, agar rentang multi-JP
+                // (mis. Jam ke-2 s/d Jam ke-4) langsung terbentuk. Tetap boleh
+                // diubah laboran ke jam mana pun pada hari itu.
+                preSelesai = blok ? String(blok.selesai) : preMulai;
+                if (!adaDalamSlots(preSelesai)) preSelesai = preMulai;
             }
             // Jangan melampaui akhir blok KBM mapel ini.
             if (blok && Number(preSelesai) > Number(blok.selesai)) {

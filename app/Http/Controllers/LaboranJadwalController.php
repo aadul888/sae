@@ -20,6 +20,15 @@ class LaboranJadwalController extends Controller
     public const JENIS_LOKASI = LaboranJadwalService::JENIS_LOKASI;
     public const STATUS_LIST  = LaboranJadwalService::STATUS_LIST;
 
+    /**
+     * Ikatan jam praktik ke Jadwal KBM (kuota JP per mapel per hari).
+     *
+     * SEMENTARA DIMATIKAN atas permintaan pemilik modul: input jadwal praktik
+     * tidak boleh ditolak karena mapel tidak ada di Jadwal KBM atau JP melebihi
+     * kuota mapel. Ubah ke `true` untuk mengaktifkan lagi.
+     */
+    public const PAKSA_VALIDASI_KBM = false;
+
     protected LaboranJadwalService $service;
 
     public function __construct(?LaboranJadwalService $service = null)
@@ -545,7 +554,11 @@ class LaboranJadwalController extends Controller
             }
 
             // Filter KBM: hanya mapel yang terjadwal di kelas + hari ini.
-            if ($kbmMapelKeys && !$this->mapelCocokKbm($r, $kbmMapelKeys)) {
+            //
+            // ponytail: ikut dilonggarkan bersama `PAKSA_VALIDASI_KBM` supaya
+            // praktik boleh dicatat walau mapelnya tidak ada di Jadwal KBM.
+            // Aktifkan kembali bersamaan dengan flag tersebut.
+            if (self::PAKSA_VALIDASI_KBM && $kbmMapelKeys && !$this->mapelCocokKbm($r, $kbmMapelKeys)) {
                 continue;
             }
 
@@ -838,11 +851,17 @@ class LaboranJadwalController extends Controller
             if ($pesan = $this->service->findRoutineOverlap($data, $h)) {
                 return $this->jsonOrRedirect($request, false, $pesan, 422);
             }
-            // Kuota JP hanya divalidasi bila pembelajaran dipilih eksplisit (kontrak modal),
-            // agar tebakan mapel otomatis tidak memblokir praktik secara keliru.
-            if ($request->filled('pembelajaran_id')
-                && ($pesan = $this->service->findKuotaOverflow($data, $h, null, $tglContoh))) {
-                return $this->jsonOrRedirect($request, false, $pesan, 422);
+        }
+
+        // ponytail: validasi kuota/jam KBM SENGAJA DINONAKTIFKAN SEMENTARA.
+        // Praktik kini boleh dijadwalkan walau mapel tidak ada di Jadwal KBM,
+        // atau JP melebihi kuota mapel pada hari itu. Aktifkan kembali dengan
+        // mengubah PAKSA_VALIDASI_KBM menjadi true setelah data KBM terisi rapi.
+        if (self::PAKSA_VALIDASI_KBM && $request->filled('pembelajaran_id')) {
+            foreach ($perHari as $h => $tglContoh) {
+                if ($pesan = $this->service->findKuotaOverflow($data, $h, null, $tglContoh)) {
+                    return $this->jsonOrRedirect($request, false, $pesan, 422);
+                }
             }
         }
 
@@ -915,7 +934,7 @@ class LaboranJadwalController extends Controller
         if ($pesan = $this->service->findRoutineOverlap($data, $hariEdit)) {
             return $this->jsonOrRedirect($request, false, $pesan, 422);
         }
-        if ($request->filled('pembelajaran_id')
+        if (self::PAKSA_VALIDASI_KBM && $request->filled('pembelajaran_id')
             && ($pesan = $this->service->findKuotaOverflow($data, $hariEdit, (int) $id))) {
             return $this->jsonOrRedirect($request, false, $pesan, 422);
         }

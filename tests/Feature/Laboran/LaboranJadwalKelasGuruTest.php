@@ -75,8 +75,9 @@ class LaboranJadwalKelasGuruTest extends LaboranTestCase
     }
 
     /**
-     * Bila `hari` diberikan, pilihan guru & mapel dibatasi pada mata pelajaran
-     * yang benar-benar terjadwal di Jadwal KBM kelas + hari tersebut.
+     * Filter "hanya mapel yang terjadwal di KBM" SEMENTARA DILEPAS bersama
+     * `PAKSA_VALIDASI_KBM = false`. Yang diuji sekarang: parameter `hari`
+     * tetap diterima dan daftar tidak berubah/berkurang karenanya.
      */
     public function test_guru_mapel_dibatasi_pada_jadwal_kbm_kelas_dan_hari(): void
     {
@@ -118,27 +119,14 @@ class LaboranJadwalKelasGuruTest extends LaboranTestCase
 
         $this->assertNotEmpty($semua, 'Daftar tanpa filter hari tidak boleh kosong.');
         $this->assertNotEmpty($terfilter, 'Daftar dengan filter hari tidak boleh kosong.');
-        $this->assertLessThanOrEqual(
+
+        // ponytail: filter KBM dilepas sementara — daftar dengan `hari` harus
+        // sama dengan daftar tanpa `hari`. Kembalikan pemeriksaan "hanya mapel
+        // KBM" di sini setelah `PAKSA_VALIDASI_KBM` diaktifkan lagi.
+        $this->assertSame(
             count($semua),
             count($terfilter),
-            'Filter hari tidak boleh menambah pilihan.'
+            'Filter KBM sedang dilepas: parameter hari tidak boleh menyaring pilihan.'
         );
-
-        $pembelajaranKbm = DB::table('jadwal_kbm')
-            ->where('rombongan_belajar_id', $rombelId)
-            ->where('hari', $kbm->hari)
-            ->where('is_active', true)
-            ->where('pembelajaran_id', 'not like', 'ROUTINE_%')
-            ->pluck('pembelajaran_id')
-            ->map(fn ($v) => (string) $v)
-            ->all();
-
-        foreach ($terfilter as $item) {
-            $this->assertContains(
-                (string) $item['pembelajaran_id'],
-                $pembelajaranKbm,
-                'Hanya mapel yang terjadwal di KBM kelas + hari ini yang boleh muncul.'
-            );
-        }
     }
 }

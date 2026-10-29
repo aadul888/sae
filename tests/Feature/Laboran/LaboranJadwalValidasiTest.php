@@ -137,7 +137,12 @@ class LaboranJadwalValidasiTest extends LaboranTestCase
             ->assertStatus(200);
     }
 
-    public function test_praktik_melebihi_kuota_jp_mapel_ditolak(): void
+    /**
+     * SEMENTARA: blokir kuota JP dilepas (`PAKSA_VALIDASI_KBM = false`).
+     * Praktik melebihi kuota mapel kini DITERIMA. Setelah flag diaktifkan
+     * kembali, ubah kembali menjadi `assertStatus(422)` + pesan "melebihi".
+     */
+    public function test_praktik_melebihi_kuota_jp_mapel_diterima_saat_validasi_kbm_dilepas(): void
     {
         $rombel = $this->kelasReguler();
 
@@ -159,10 +164,8 @@ class LaboranJadwalValidasiTest extends LaboranTestCase
                 'tanggal' => '2026-11-03', // Selasa
                 'jam_mulai' => $rentang['mulai'],
                 'jam_selesai' => $rentang['selesai'],
-            ]);
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('melebihi', $res->json('message'));
+            ])
+            ->assertStatus(200);
     }
 
     public function test_praktik_sesuai_kuota_jp_mapel_diterima(): void
