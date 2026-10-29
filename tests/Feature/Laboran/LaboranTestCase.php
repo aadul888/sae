@@ -63,6 +63,9 @@ abstract class LaboranTestCase extends TestCase
     /** @var array<string, int> batas id per tabel saat setUp (cadangan bila tabel kosong) */
     protected array $preexistingMaxIds = [];
 
+    /** @var array<string, int> jumlah baris per tabel saat setUp */
+    protected array $preexistingCounts = [];
+
     /**
      * Berkas sementara yang sudah ada sebelum test berjalan.
      *
@@ -106,11 +109,12 @@ abstract class LaboranTestCase extends TestCase
                     continue;
                 }
                 $this->preexistingIds[$table] = DB::table($table)->pluck('id')->all();
-                // Cadangan bila tabel kosong: hapus hanya baris di atas batas ini.
                 $this->preexistingMaxIds[$table] = (int) DB::table($table)->max('id');
+                $this->preexistingCounts[$table] = count($this->preexistingIds[$table]);
             } catch (\Throwable $e) {
                 $this->preexistingIds[$table] = [];
                 $this->preexistingMaxIds[$table] = 0;
+                $this->preexistingCounts[$table] = 0;
             }
         }
     }
@@ -147,23 +151,29 @@ abstract class LaboranTestCase extends TestCase
 
         // Hapus HANYA baris yang dibuat selama test.
         //
-        // PENTING: JANGAN memakai `whereNotIn('id', ...)` lalu `delete()`.
-        // Bila daftar snapshot kosong, Laravel menghasilkan query TANPA klausa
-        // sehingga `delete()` mengosongkan SELURUH tabel (insiden data nyata
-        // terhapus). Karena itu penghapusan kini berbasis daftar id eksplisit:
-        // baris baru = id yang ada sekarang tetapi tidak ada di snapshot.
-        // Bila daftar itu kosong, tidak ada perintah DELETE yang dijalankan.
+        // PENTING: `whereNotIn('id', [])` / `where('id', '>', 0)` sama-sama
+        // menghasilkan query TANPA filter efektif, sehingga `delete()` bisa
+        // mengosongkan SELURUH tabel (insiden data nyata terhapus berulang).
+        // Karena itu penghapusan HANYA dilakukan bila jumlah baris bertambah
+        // dibanding snapshot setUp(); bila tabel kosong saat setUp, test ini
+        // tidak menghapus apa pun dari tabel tersebut.
         foreach (self::LAB_TABLES as $table) {
             try {
                 if (!Table::exists($table)) {
                     continue;
                 }
+                $sebelum = $this->preexistingCounts[$table] ?? 0;
+                $sesudah = (int) DB::table($table)->count();
+                if ($sesudah <= $sebelum) {
+                    continue; // tidak ada baris baru — jangan sentuh apa pun.
+                }
+
                 $preexisting = $this->preexistingIds[$table] ?? [];
-                $idsBaru = DB::table($table)
-                    ->when(!empty($preexisting), fn ($q) => $q->whereNotIn('id', $preexisting))
-                    ->when(empty($preexisting), fn ($q) => $q->where('id', '>', $this->preexistingMaxIds[$table] ?? 0))
-                    ->pluck('id')
-                    ->all();
+                $idsBaru = empty($preexisting)
+                    // Snapshot kosong: baris baru = id di atas batas, dan jumlah
+                    // baris DIJAMIN bertambah ($sesudah > 0), jadi pasti ada.
+                    ? DB::table($table)->where('id', '>', $this->preexistingMaxIds[$table] ?? 0)->pluck('id')->all()
+                    : DB::table($table)->whereNotIn('id', $preexisting)->pluck('id')->all();
 
                 if (!empty($idsBaru)) {
                     DB::table($table)->whereIn('id', $idsBaru)->delete();
@@ -180,6 +190,7 @@ abstract class LaboranTestCase extends TestCase
 
         $this->preexistingIds = [];
         $this->preexistingMaxIds = [];
+        $this->preexistingCounts = [];
 
         LaboranScope::flush();
         parent::tearDown();

@@ -61,28 +61,34 @@ class LaboranJadwalPraktikTest extends TestCase
     /** @var int batas id saat setUp (cadangan bila tabel kosong) */
     private int $jadwalMaxIdSebelum = 0;
 
+    /** @var int jumlah baris saat setUp */
+    private int $jadwalJumlahSebelum = 0;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->jadwalIdsSebelum = DB::table('laboran_jadwal_penggunaan')->pluck('id')->all();
         $this->jadwalMaxIdSebelum = (int) DB::table('laboran_jadwal_penggunaan')->max('id');
+        $this->jadwalJumlahSebelum = count($this->jadwalIdsSebelum);
     }
 
     protected function tearDown(): void
     {
         // Hanya hapus baris yang dibuat selama test (jangan sentuh data nyata).
-        // PENTING: hapus berdasarkan daftar id eksplisit. Bila daftar baris baru
-        // kosong, TIDAK ada perintah DELETE yang dijalankan — sehingga tidak
-        // mungkin mengosongkan tabel (insiden data nyata terhapus).
-        $idBaru = DB::table('laboran_jadwal_penggunaan')
-            ->when(!empty($this->jadwalIdsSebelum), fn ($q) => $q->whereNotIn('id', $this->jadwalIdsSebelum))
-            ->when(empty($this->jadwalIdsSebelum), fn ($q) => $q->where('id', '>', $this->jadwalMaxIdSebelum))
-            ->pluck('id')
-            ->all();
+        //
+        // PENTING: `whereNotIn('id', [])` dan `where('id', '>', 0)` sama-sama
+        // menghasilkan query tanpa filter efektif. Karena itu penghapusan HANYA
+        // dijalankan bila jumlah baris BERTAMBAH dibanding snapshot setUp().
+        $sesudah = (int) DB::table('laboran_jadwal_penggunaan')->count();
+        if ($sesudah > $this->jadwalJumlahSebelum) {
+            $idBaru = empty($this->jadwalIdsSebelum)
+                ? DB::table('laboran_jadwal_penggunaan')->where('id', '>', $this->jadwalMaxIdSebelum)->pluck('id')->all()
+                : DB::table('laboran_jadwal_penggunaan')->whereNotIn('id', $this->jadwalIdsSebelum)->pluck('id')->all();
 
-        if (!empty($idBaru)) {
-            DB::table('laboran_jadwal_penggunaan')->whereIn('id', $idBaru)->delete();
+            if (!empty($idBaru)) {
+                DB::table('laboran_jadwal_penggunaan')->whereIn('id', $idBaru)->delete();
+            }
         }
 
         parent::tearDown();
