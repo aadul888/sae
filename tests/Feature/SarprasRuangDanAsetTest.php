@@ -262,8 +262,8 @@ class SarprasRuangDanAsetTest extends TestCase
     }
 
     /**
-     * Teknisi: boleh lihat + ubah Ruang & Gedung dan buka Inventaris & Aset,
-     * tetapi TIDAK boleh menambah atau menghapus ruang.
+     * Teknisi: hak CRUD penuh pada Ruang & Gedung dan Inventaris & Aset,
+     * setara pengelola Sarpras (migrasi 2026_10_30_110000).
      */
     public function test_teknisi_boleh_lihat_dan_ubah_ruang_tanpa_tambah_hapus(): void
     {
@@ -322,19 +322,25 @@ class SarprasRuangDanAsetTest extends TestCase
 
         $this->assertSame('rusak_ringan', DB::table('sarpras_ruang')->where('id', $id)->value('kondisi'));
 
-        // Tambah: ditolak
+        // Tambah: ikut hak penuh teknisi (migrasi 2026_10_30_110000).
+        $kodeBaru = 'TEST-R-TEKNISI-' . strtoupper(bin2hex(random_bytes(4)));
         $this->withSession($session)->postJson(route('dashboard.sarpras.ruang.store'), [
-            'kode_ruang' => 'TEST-R-TEKNISI-02',
+            'kode_ruang' => $kodeBaru,
             'nama_ruang' => 'Ruang Baru Teknisi',
             'kondisi'    => 'baik',
-        ])->assertStatus(403);
+        ])->assertStatus(200);
 
-        // Hapus: ditolak
+        $ruangBaru = (int) DB::table('sarpras_ruang')->where('kode_ruang', $kodeBaru)->value('id');
+        $this->assertGreaterThan(0, $ruangBaru, 'Teknisi harus dapat menambah ruang.');
+        $this->createdRuang[] = $ruangBaru;
+
+        // Hapus: ikut hak penuh teknisi.
         $this->withSession($session)
-            ->deleteJson(route('dashboard.sarpras.ruang.destroy', $id))
-            ->assertStatus(403);
+            ->deleteJson(route('dashboard.sarpras.ruang.destroy', $ruangBaru))
+            ->assertStatus(200);
+        $this->assertFalse(DB::table('sarpras_ruang')->where('id', $ruangBaru)->exists());
 
-        // Inventaris & Aset: hak sama dengan Ruang & Gedung (baca + ubah).
+        // Inventaris & Aset: hak sama dengan Ruang & Gedung (CRUD penuh).
         $this->withSession($session)
             ->get(route('dashboard.sarpras.aset.index'))
             ->assertStatus(200);
@@ -373,14 +379,22 @@ class SarprasRuangDanAsetTest extends TestCase
 
         $this->assertSame('rusak_ringan', DB::table('sarpras_aset')->where('id', $asetId)->value('kondisi'));
 
+        $namaAsetBaru = 'Barang Baru Teknisi ' . strtoupper(bin2hex(random_bytes(4)));
         $this->withSession($session)->postJson(route('dashboard.sarpras.aset.store'), [
-            'nama_barang' => 'Barang Baru Teknisi',
+            'nama_barang' => $namaAsetBaru,
             'kategori'    => 'Elektronik',
             'sumber_dana' => 'BOS Reguler',
-        ])->assertStatus(403);
+            'jumlah'      => 1,
+            'satuan'      => 'unit',
+        ])->assertStatus(200);
+
+        $asetBaru = (int) DB::table('sarpras_aset')->where('nama_barang', $namaAsetBaru)->value('id');
+        $this->assertGreaterThan(0, $asetBaru, 'Teknisi harus dapat menambah aset.');
+        $this->createdAset[] = $asetBaru;
 
         $this->withSession($session)
-            ->deleteJson(route('dashboard.sarpras.aset.destroy', $asetId))
-            ->assertStatus(403);
+            ->deleteJson(route('dashboard.sarpras.aset.destroy', $asetBaru))
+            ->assertStatus(200);
+        $this->assertFalse(DB::table('sarpras_aset')->where('id', $asetBaru)->exists());
     }
 }

@@ -9,17 +9,16 @@ use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
- * Teknisi (pemegang tugas tambahan TEKNISI_IT) pada modul Sarpras:
- *  - Ruang & Gedung (menu_sarpras_ruang) dan Inventaris & Aset
- *    (menu_inventaris): hanya baca + ubah.
- *  - Tambah & hapus tetap milik pengelola Sarpras (menu_sarpras) dan Laboran,
- *    sehingga tombol/menucreate di UI tidak muncul untuk teknisi.
+ * Teknisi (pemegang tugas tambahan TEKNISI_IT) berhak CRUD penuh pada
+ * Sarpras: Ruang & Gedung (menu_sarpras_ruang) dan Inventaris & Aset
+ * (menu_inventaris) — setara pengelola Sarpras
+ * (lihat migrasi 2026_10_30_110000_set_full_crud_for_teknisi_sarpras_modules).
  */
 class TeknisiSarprasCrudTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function test_teknisi_hanya_boleh_baca_dan_ubah_ruang_dan_aset(): void
+    public function test_teknisi_dapat_tambah_ubah_hapus_ruang_dan_aset(): void
     {
         $duty = DB::table('ref_tugas_tambahan')->where('kode', 'TEKNISI_IT')->first();
         if (!$duty) {
@@ -45,16 +44,10 @@ class TeknisiSarprasCrudTest extends TestCase
         $user = ['id' => $userId, 'pengguna_id' => $userId, 'role' => 'tendik', 'ptk_id' => null];
 
         foreach (['menu_sarpras_ruang', 'menu_inventaris'] as $key) {
-            foreach (['read', 'update'] as $action) {
+            foreach (['read', 'create', 'update', 'delete'] as $action) {
                 $this->assertTrue(
                     RolePermission::canAccess($user, $key, $action),
                     "Teknisi harus boleh '{$action}' pada {$key}."
-                );
-            }
-            foreach (['create', 'delete'] as $action) {
-                $this->assertFalse(
-                    RolePermission::canAccess($user, $key, $action),
-                    "Teknisi TIDAK boleh '{$action}' pada {$key} (khusus pengelola Sarpras)."
                 );
             }
         }
