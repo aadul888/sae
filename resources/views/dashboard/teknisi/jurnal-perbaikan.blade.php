@@ -95,7 +95,7 @@
                                     data-field-estimasi_biaya="{{ $row->estimasi_biaya }}"
                                     data-field-realisasi_biaya="{{ $row->realisasi_biaya }}"
                                     data-field-status="{{ $row->status }}"
-                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                     <i class="fas fa-pen" style="font-size:var(--text-sm);"></i>
                                 </button>
                             @endif
@@ -103,7 +103,7 @@
                                 <form action="{{ route('dashboard.teknisi.jurnal-perbaikan.destroy', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Hapus jurnal perbaikan ini?" style="display:inline;">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn-icon" title="Hapus"
-                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                         <i class="fas fa-trash-alt" style="font-size:var(--text-sm);"></i>
                                     </button>
                                 </form>

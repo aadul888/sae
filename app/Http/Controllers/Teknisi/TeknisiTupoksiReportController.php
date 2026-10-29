@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teknisi;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Services\TeknisiTupoksiImportService;
+use App\Support\PeriodeLaporan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,8 +62,43 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
         $table = $spec['table'];
         $dateCol = $service->dateColumn($modul);
 
+        $mode = strtolower((string) $request->query('mode', 'ringkasan'));
+        if (!in_array($mode, ['ringkasan', 'lengkap'], true)) {
+            $mode = 'ringkasan';
+        }
+        $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
+        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
+            $orientasi = 'portrait';
+        }
+
+        // Prioritas: tipe periode (minggu/bulan/triwulan/semester/tahun).
+        // Tautan lama yang memakai `?dari=&sampai=` tetap didukung.
         $dari   = trim((string) $request->query('dari', ''));
         $sampai = trim((string) $request->query('sampai', ''));
+
+        if ($request->filled('periode')) {
+            $range = PeriodeLaporan::resolve(
+                (string) $request->query('periode'),
+                (int) $request->query('bulan', date('n')),
+                (int) $request->query('tahun', date('Y')),
+                (int) $request->query('triwulan', (int) ceil(date('n') / 3)),
+                (string) $request->query('semester', date('n') >= 7 ? '1' : '2'),
+                (string) $request->query('tahun_ajaran', ''),
+                $request->query('tanggal')
+            );
+            $dari   = $range['start'];
+            $sampai = $range['end'];
+        } else {
+            $range = [
+                'tipe'    => 'kustom',
+                'start'   => $dari,
+                'end'     => $sampai,
+                'label'   => ($dari !== '' || $sampai !== '')
+                    ? Carbon::parse($dari ?: '1900-01-01')->translatedFormat('d F Y') . ' s.d. ' . Carbon::parse($sampai ?: now()->toDateString())->translatedFormat('d F Y')
+                    : 'Seluruh Periode',
+                'singkat' => ($dari !== '' || $sampai !== '') ? $dari . ' - ' . $sampai : 'Seluruh Periode',
+            ];
+        }
 
         $query = DB::table($table);
         if ($dateCol && $dari !== '')   $query->where($dateCol, '>=', $dari);
@@ -83,23 +119,48 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
             return (object) $out;
         });
 
-        $range = [
-            'label' => ($dari !== '' || $sampai !== '')
-                ? Carbon::parse($dari ?: '1900-01-01')->translatedFormat('d F Y') . ' s.d. ' . Carbon::parse($sampai ?: now()->toDateString())->translatedFormat('d F Y')
-                : 'Seluruh Periode',
-            'dari' => $dari,
-            'sampai' => $sampai,
-        ];
-
         return view('dashboard.teknisi.laporan-cetak', [
             'modul'      => $modul,
             'title'      => $service->cetakTitle($modul),
             'items'      => $items,
+            'rows'       => $rows,
+            'types'      => $types,
+            'fieldMap'   => $fields,
             'range'      => $range,
+            'mode'       => $mode,
+            'orientasi'  => $orientasi,
+            'teknisiTtd' => $this->teknisiTtd($context),
             'sekolah'    => Sekolah::first(),
             'sekolahMeta' => SekolahMeta::first(),
             'dicetakPada' => now(),
         ]);
+    }
+
+    /**
+     * Pihak penanda tangan dokumen Teknisi: Teknisi pelaksana, Kepala TAS, dan
+     * Kepala Sekolah. Diresolusi terpusat agar perilakunya seragam antar modul.
+     *
+     * @return array{petugas:array{nama:string,nip:?string}, kepalaTas:?object, kepalaSekolah:?object}
+     */
+    private function teknisiTtd(array $context): array
+    {
+        $dokumen = app(\App\Services\LaboranDokumenService::class);
+
+        $petugas = [
+            'nama' => $context['nama'] ?? '',
+            'nip'  => null,
+        ];
+
+        $ptkId = $context['ptk_id'] ?? null;
+        if ($ptkId && \App\Support\Table::exists('gtk')) {
+            $petugas['nip'] = DB::table('gtk')->where('ptk_id', $ptkId)->value('nip') ?: null;
+        }
+
+        return [
+            'petugas'       => $petugas,
+            'kepalaTas'     => $dokumen->jabatan('KEPALA_TAS'),
+            'kepalaSekolah' => $dokumen->kepalaSekolah(),
+        ];
     }
 
     private function nomorColumn(object $row, array $types): string

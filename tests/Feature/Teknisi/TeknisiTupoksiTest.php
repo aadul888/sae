@@ -206,4 +206,134 @@ class TeknisiTupoksiTest extends TestCase
                 ->assertStatus(200);
         }
     }
+
+    // =========================================================================
+    // LAPORAN BERKALA (AREA TUGAS): minggu · bulan · triwulan · semester · tahun
+    // =========================================================================
+
+    /** Rentang tanggal tiap tipe periode harus tepat (dasar seluruh laporan). */
+    public function test_periode_laporan_menghasilkan_rentang_tepat(): void
+    {
+        $minggu = \App\Support\PeriodeLaporan::resolve('minggu', 1, 2026, 1, '1', '', '2026-11-16');
+        $this->assertSame('2026-11-16', $minggu['start'], 'Minggu mulai hari Senin.');
+        $this->assertSame('2026-11-22', $minggu['end']);
+
+        $bulan = \App\Support\PeriodeLaporan::resolve('bulan', 2, 2026, 1, '1', '', null);
+        $this->assertSame('2026-02-01', $bulan['start']);
+        $this->assertSame('2026-02-28', $bulan['end']);
+
+        $triwulan = \App\Support\PeriodeLaporan::resolve('triwulan', 1, 2026, 3, '1', '', null);
+        $this->assertSame('2026-07-01', $triwulan['start']);
+        $this->assertSame('2026-09-30', $triwulan['end']);
+
+        $ganjil = \App\Support\PeriodeLaporan::resolve('semester', 1, 2026, 1, '1', '2026/2027', null);
+        $this->assertSame('2026-07-01', $ganjil['start']);
+        $this->assertSame('2026-12-31', $ganjil['end']);
+
+        $genap = \App\Support\PeriodeLaporan::resolve('semester', 1, 2026, 1, '2', '2026/2027', null);
+        $this->assertSame('2027-01-01', $genap['start']);
+        $this->assertSame('2027-06-30', $genap['end']);
+
+        $tahun = \App\Support\PeriodeLaporan::resolve('tahun', 1, 2026, 1, '1', '', null);
+        $this->assertSame('2026-01-01', $tahun['start']);
+        $this->assertSame('2026-12-31', $tahun['end']);
+
+        // Tipe tak dikenal jatuh ke bulanan (tidak pernah error).
+        $fallback = \App\Support\PeriodeLaporan::resolve('ngawur', 5, 2026, 1, '1', '', null);
+        $this->assertSame('bulan', $fallback['tipe']);
+    }
+
+    /** Setiap tipe periode dapat mencetak data pada rentangnya. */
+    public function test_cetak_laporan_area_tugas_lima_tipe_periode(): void
+    {
+        $session = $this->adminSession();
+        $this->sisipAreaTugas('2026-11-16');
+
+        $periode = [
+            'minggu'   => ['periode' => 'minggu', 'tanggal' => '2026-11-16'],
+            'bulan'    => ['periode' => 'bulan', 'bulan' => 11, 'tahun' => 2026],
+            'triwulan' => ['periode' => 'triwulan', 'triwulan' => 4, 'tahun' => 2026],
+            'semester' => ['periode' => 'semester', 'semester' => 1, 'tahun_ajaran' => '2026/2027'],
+            'tahun'    => ['periode' => 'tahun', 'tahun' => 2026],
+        ];
+
+        foreach ($periode as $tipe => $query) {
+            $res = $this->withSession($session)
+                ->get(route('dashboard.teknisi.laporan.cetak', array_merge(['modul' => 'area-tugas'], $query)));
+
+            $res->assertStatus(200);
+            $body = $res->getContent();
+
+            $this->assertMatchesRegularExpression('/@page\s*\{[^}]*size:\s*A4/i', $body, "Periode {$tipe} bukan A4.");
+            $this->assertStringContainsString('AREA TUGAS', strtoupper($body), "Periode {$tipe} tidak memuat judul.");
+            $this->assertStringNotContainsString(
+                'Tidak ada data pada periode ini',
+                $body,
+                "Periode {$tipe} tidak menemukan data yang seharusnya masuk rentang."
+            );
+        }
+    }
+
+    /** Versi ringkasan = rekap; lengkap = rincian per catatan. */
+    public function test_cetak_laporan_area_tugas_versi_ringkasan_dan_lengkap(): void
+    {
+        $session = $this->adminSession();
+        $this->sisipAreaTugas('2026-11-16');
+
+        $ringkas = $this->withSession($session)->get(route('dashboard.teknisi.laporan.cetak', [
+            'modul' => 'area-tugas', 'periode' => 'tahun', 'tahun' => 2026, 'mode' => 'ringkasan',
+        ]));
+        $ringkas->assertStatus(200);
+        $ringkas->assertSee('Rekapitulasi jumlah catatan', false);
+        $ringkas->assertDontSee('Data ke-', false);
+
+        $lengkap = $this->withSession($session)->get(route('dashboard.teknisi.laporan.cetak', [
+            'modul' => 'area-tugas', 'periode' => 'tahun', 'tahun' => 2026, 'mode' => 'lengkap',
+        ]));
+        $lengkap->assertStatus(200);
+        $lengkap->assertSee('Data ke-', false);
+
+        // Tanda tangan 3 pihak: Teknisi, Kepala TAS, Kepala Sekolah.
+        $lengkap->assertSee('Teknisi,', false);
+        $lengkap->assertSee('Kepala Tenaga Administrasi Sekolah,', false);
+        $lengkap->assertSee('Kepala Satuan Pendidikan,', false);
+    }
+
+    /** Bar alat memuat kelima pilihan periode + tautan lama (dari/sampai) tetap hidup. */
+    public function test_cetak_laporan_area_tugas_memuat_pemilih_periode(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.laporan.cetak', [
+                'modul' => 'area-tugas', 'periode' => 'minggu', 'tanggal' => '2026-11-16',
+            ]));
+
+        $res->assertStatus(200);
+        foreach (['Mingguan', 'Bulanan', 'Triwulan', 'Semester', 'Tahunan'] as $label) {
+            $res->assertSee($label, false);
+        }
+
+        $lama = $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.laporan.cetak', [
+                'modul' => 'area-tugas', 'dari' => '2026-01-01', 'sampai' => '2026-12-31',
+            ]));
+        $lama->assertStatus(200);
+    }
+
+    /** Sisipkan satu jadwal area tugas (dibersihkan `tearDown`). */
+    private function sisipAreaTugas(string $tanggal): void
+    {
+        DB::table('teknisi_area_tugas')->insert([
+            'nomor_jadwal'    => 'AT/UJI/' . uniqid(),
+            'area'            => 'Gedung Uji Laporan',
+            'zona'            => 'Zona Uji',
+            'periode_jadwal'  => 'mingguan',
+            'petugas_nama'    => 'Teknisi Uji',
+            'shift'           => 'pagi',
+            'tanggal_mulai'   => $tanggal,
+            'jenis_tugas'     => 'tukang_kebersihan',
+            'status'          => 'aktif',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+    }
 }

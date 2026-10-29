@@ -43,8 +43,8 @@
     </a>
 
     <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'teknisi']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--pink, #ec4899);" title="Laporan &amp; Rekapitulasi Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: var(--pink, #ec4899);">
             <i class="fas fa-file-invoice"></i>
         </div>
         <span class="kepegawaian-quick-label">Laporan Kinerja</span>
@@ -54,48 +54,48 @@
 <!-- 1b. Akses Cepat Kelengkapan TUPOKSI Teknisi (5 Indikator Supervisi) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Jadwal Area Tugas Kebersihan (Indikator #1)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Jadwal Area Tugas Kebersihan (Indikator #1)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-clipboard-list"></i>
         </div>
         <span class="kepegawaian-quick-label">Area Tugas</span>
     </a>
 
     <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Kebersihan Lingkungan & Ruang Kerja (Indikator #2)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Kebersihan Lingkungan & Ruang Kerja (Indikator #2)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-broom"></i>
         </div>
         <span class="kepegawaian-quick-label">Kebersihan Ruang</span>
     </a>
 
     <a href="{{ route('dashboard.teknisi.kebersihan-rapat.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Kebersihan Lingkungan Ruang Rapat (Indikator #3)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Kebersihan Lingkungan Ruang Rapat (Indikator #3)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-people-roof"></i>
         </div>
         <span class="kepegawaian-quick-label">Kebersihan Rapat</span>
     </a>
 
     <a href="{{ route('dashboard.teknisi.sarana-rapat.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Laporan Sarana Kegiatan Rapat (Indikator #4)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Laporan Sarana Kegiatan Rapat (Indikator #4)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Sarana Rapat</span>
     </a>
 
     <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Pengarsipan & Laporan Perbaikan Sarpras (Indikator #5)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Pengarsipan & Laporan Perbaikan Sarpras (Indikator #5)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-screwdriver-wrench"></i>
         </div>
         <span class="kepegawaian-quick-label">Jurnal Perbaikan</span>
     </a>
 
     <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #ef4444;" title="Lembar Observasi Supervisi (Skor 1–4)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Lembar Observasi Supervisi (Skor 1-4)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Supervisi</span>
@@ -185,7 +185,7 @@
             <a href="{{ route('dashboard.teknisi.' . $row['route'] . '.index') }}"
                 style="text-decoration: none; background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 14px 16px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; transition: transform .15s, border-color .15s;"
                 onmouseover="this.style.borderColor='{{ $row['color'] }}'" onmouseout="this.style.borderColor='var(--border-color)'">
-                <div style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: {{ $row['color'] }}22; color: {{ $row['color'] }};">
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-md, 8px); display: flex; align-items: center; justify-content: center; font-size: var(--text-base, 1rem); flex-shrink: 0; background: {{ $row['color'] }}22; color: {{ $row['color'] }};">
                     <i class="fas {{ $row['icon'] }}"></i>
                 </div>
                 <div style="min-width: 0;">

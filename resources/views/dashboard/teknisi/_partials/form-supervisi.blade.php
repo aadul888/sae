@@ -51,7 +51,7 @@
     Skala: 1 = Kurang, 2 = Cukup, 3 = Baik, 4 = Sangat Baik.
 </p>
 
-<div style="overflow-x:auto; border:1px solid var(--border-color); border-radius:8px;">
+<div style="overflow-x:auto; border:1px solid var(--border-color); border-radius:var(--radius-md, 8px);">
     <table style="width:100%; border-collapse:collapse; font-size:var(--text-sm);">
         <thead>
             <tr style="background:var(--table-header-bg, #f8fafc);">

@@ -19,7 +19,7 @@
         banner-color="var(--primary, #3b82f6)"
         :create-route="route('dashboard.teknisi.area-tugas.store')"
         :filter-route="route('dashboard.teknisi.area-tugas.index')"
-        :cetak-route="route('dashboard.teknisi.laporan.cetak', ['modul' => 'area-tugas', 'dari' => now()->startOfMonth()->toDateString(), 'sampai' => now()->endOfMonth()->toDateString()])"
+        :cetak-route="route('dashboard.teknisi.laporan.cetak', ['modul' => 'area-tugas', 'periode' => 'bulan'])"
         import-modal-id="modalImportTeknisi"
         modal-id="modalAreaTugas"
         :stat-cards="$statCards"
@@ -94,7 +94,7 @@
                                     data-field-laporan_siswa="{{ $row->laporan_siswa }}"
                                     data-field-sumber_laporan="{{ $row->sumber_laporan }}"
                                     data-field-status="{{ $row->status }}"
-                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                     <i class="fas fa-pen" style="font-size:var(--text-sm);"></i>
                                 </button>
                             @endif
@@ -102,7 +102,7 @@
                                 <form action="{{ route('dashboard.teknisi.area-tugas.destroy', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Hapus jadwal area tugas ini?" style="display:inline;">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn-icon" title="Hapus"
-                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                         <i class="fas fa-trash-alt" style="font-size:var(--text-sm);"></i>
                                     </button>
                                 </form>

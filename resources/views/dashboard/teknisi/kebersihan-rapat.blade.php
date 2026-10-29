@@ -91,7 +91,7 @@
                                     data-field-temuan="{{ $row->temuan }}"
                                     data-field-tindak_lanjut="{{ $row->tindak_lanjut }}"
                                     data-field-status="{{ $row->status }}"
-                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                     <i class="fas fa-pen" style="font-size:var(--text-sm);"></i>
                                 </button>
                             @endif
@@ -99,7 +99,7 @@
                                 <form action="{{ route('dashboard.teknisi.kebersihan-rapat.destroy', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Hapus catatan kebersihan ruang rapat ini?" style="display:inline;">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn-icon" title="Hapus"
-                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                         <i class="fas fa-trash-alt" style="font-size:var(--text-sm);"></i>
                                     </button>
                                 </form>

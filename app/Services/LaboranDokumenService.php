@@ -117,6 +117,37 @@ class LaboranDokumenService
     }
 
     /**
+     * Pejabat dari tugas tambahan mana pun berdasarkan kode `ref_tugas_tambahan`.
+     *
+     * Dipakai modul Tendik lain (mis. Teknisi) agar tidak menduplikasi resolusi
+     * pejabat: cukup sebut kode tugasnya (mis. `KEPALA_TAS`, `TEKNISI_IT`).
+     */
+    public function jabatan(string $kode, ?string $jurusanId = null): ?object
+    {
+        return $this->pejabatDuty($kode, $jurusanId);
+    }
+
+    /**
+     * Pejabat di luar daftar tugas tambahan, dicari dari jabatan GTK (`gtk`).
+     *
+     * Dipakai modul Tendik yang penanda tangannya bukan pemegang tugas tambahan
+     * (mis. Waka Sarpras), dengan fallback ke pencocokan nama jabatan.
+     */
+    public function pejabatGtkFrasa(string $frasa): ?object
+    {
+        if (!Table::exists('gtk')) {
+            return null;
+        }
+
+        return DB::table('gtk')
+            ->where(function ($q) use ($frasa) {
+                $q->where('jenis_ptk_id_str', 'like', "%{$frasa}%")
+                  ->orWhere('jabatan_ptk_id_str', 'like', "%{$frasa}%");
+            })
+            ->first(['ptk_id', 'nama', 'nip', 'nuptk']);
+    }
+
+    /**
      * Kepala Program Keahlian (`KAPROG`) untuk jurusan dokumen.
      *
      * Bila tidak ada penugasan KAPROG, hasil `null` dan view menampilkan

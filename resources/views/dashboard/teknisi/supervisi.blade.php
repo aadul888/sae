@@ -84,7 +84,7 @@
                     <td style="padding:14px 18px; text-align:center;">
                         <div style="display:flex; gap:6px; justify-content:center;">
                             <a href="{{ route('dashboard.teknisi.supervisi.cetak', $row->id) }}" target="_blank" class="btn-icon" title="Cetak Lembar Supervisi"
-                                style="background:rgba(59,130,246,0.12); color:var(--primary); width:32px; height:32px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">
+                                style="background:rgba(59,130,246,0.12); color:var(--primary); width:32px; height:32px; border-radius:var(--radius-sm, 6px); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">
                                 <i class="fas fa-print" style="font-size:var(--text-sm);"></i>
                             </a>
                             @if ($canUpdate)
@@ -108,7 +108,7 @@
                                         data-field-skor_{{ $it->no_indikator }}="{{ $it->skor }}"
                                         data-field-catatan_{{ $it->no_indikator }}="{{ $it->catatan_supervisor }}"
                                     @endforeach
-                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                    style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                     <i class="fas fa-pen" style="font-size:var(--text-sm);"></i>
                                 </button>
                             @endif
@@ -116,7 +116,7 @@
                                 <form action="{{ route('dashboard.teknisi.supervisi.destroy', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Hapus lembar supervisi ini?" style="display:inline;">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn-icon" title="Hapus"
-                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:6px; border:none; cursor:pointer;">
+                                        style="background:#fee2e2; color:var(--danger,#ef4444); width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                         <i class="fas fa-trash-alt" style="font-size:var(--text-sm);"></i>
                                     </button>
                                 </form>
