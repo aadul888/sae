@@ -1,5 +1,5 @@
 {{--
-    Header Actions — Action bar baku modul Laboran.
+    Header Actions — Action bar baku modul Laboran & Teknisi.
 
     • Semua aksi dirender sebagai tombol IKON 38×38; teks dipindah ke
       `title` + `aria-label` (tooltip & pembaca layar tetap jelas).

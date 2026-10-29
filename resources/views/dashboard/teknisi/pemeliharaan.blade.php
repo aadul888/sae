@@ -3,6 +3,8 @@
 @section('title', 'Pemeliharaan Preventif Sarpras - Teknisi')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
+
     <div class="dash-content-inner">
         <!-- 1. Header Banner & Actions -->
         <div class="dash-banner"
@@ -23,14 +25,12 @@
                 </div>
             </div>
 
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <button type="button" class="btn btn-outline" data-modal-open="modalImportPM"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Import Excel">
                     <i class="fas fa-file-excel text-success"></i>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnTambahJadwalPM"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Jadwal Preventive Maintenance">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -159,10 +159,9 @@
 
                             <button type="button" class="btn btn-outline" data-teknisi-bulk-delete
                                 data-modul="pemeliharaan" data-endpoint="{{ route('dashboard.teknisi.bulk-delete') }}"
-                                style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: var(--radius-md, 8px);"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                                 title="Hapus data terpilih" aria-label="Hapus data terpilih">
                                 <i class="fas fa-trash-alt" style="color: var(--danger, #ef4444);"></i>
-                                <span>Hapus Terpilih</span>
                             </button>
                         </div>
 
