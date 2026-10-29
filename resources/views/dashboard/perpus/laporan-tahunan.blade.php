@@ -23,6 +23,7 @@
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')
+        @include('dashboard.perpus.partials.sub-nav-laporan')
 
         <div class="card" style="padding:14px 16px;margin-bottom:20px;">
             <form method="GET" action="{{ route('dashboard.perpustakaan.laporan.tahunan') }}" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">

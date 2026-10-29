@@ -34,6 +34,7 @@
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')
+        @include('dashboard.perpus.partials.sub-nav-koleksi')
 
         <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">

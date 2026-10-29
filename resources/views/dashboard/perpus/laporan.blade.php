@@ -32,6 +32,7 @@
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')
+        @include('dashboard.perpus.partials.sub-nav-laporan')
 
         <!-- 3. Filter Periode -->
         <div class="card" style="padding: 16px 18px; margin-bottom: 20px;">

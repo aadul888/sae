@@ -1,4 +1,6 @@
             {{-- 6. Submenu Per-Bidang: Perpustakaan --}}
+            {{-- Urutan mengikuti alur kerja pustakawan: siapkan koleksi -> daftarkan anggota ->
+                 layani sirkulasi -> catat kunjungan -> susun laporan. --}}
             @if ($can('menu_perpustakaan'))
                 <div class="dash-nav-nested-group {{ $isPerpustakaanActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-nested-toggle">
@@ -20,6 +22,19 @@
                                 <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book"></i></span>
                                 <span class="nav-label">Katalog &amp; Koleksi Buku</span>
                             </a>
+                            <a href="{{ route('dashboard.perpustakaan.import.form') }}"
+                                class="dash-nav-nested-link child-link {{ request()->routeIs('dashboard.perpustakaan.import*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-import"></i></span>
+                                <span class="nav-label">Import &amp; Scan Barcode</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_perpustakaan_anggota') || $can('menu_perpustakaan'))
+                            <a href="{{ route('dashboard.perpustakaan.anggota.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.anggota*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-id-card"></i></span>
+                                <span class="nav-label">Anggota &amp; Kartu Digital</span>
+                            </a>
                         @endif
                         @if ($can('menu_perpustakaan_sirkulasi') || $can('menu_perpustakaan'))
                             <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
@@ -39,26 +54,18 @@
                         @endif
                         @if ($can('menu_perpustakaan_laporan') || $can('menu_perpustakaan'))
                             <a href="{{ route('dashboard.perpustakaan.laporan.index') }}"
-                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.laporan*') ? 'active' : '' }}">
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.laporan.index') || request()->routeIs('dashboard.perpustakaan.laporan.cetak') ? 'active' : '' }}">
                                 <span class="nav-icon nested-icon"><i
                                         class="fas fa-fw fa-file-lines"></i></span>
                                 <span class="nav-label">Laporan &amp; Rekapitulasi</span>
                             </a>
-                        @endif
-                        @if ($can('menu_perpustakaan_anggota') || $can('menu_perpustakaan'))
-                            <a href="{{ route('dashboard.perpustakaan.anggota.index') }}"
-                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.anggota*') ? 'active' : '' }}">
+                            <a href="{{ route('dashboard.perpustakaan.laporan.tahunan') }}"
+                                class="dash-nav-nested-link child-link {{ request()->routeIs('dashboard.perpustakaan.laporan.tahunan*') ? 'active' : '' }}">
                                 <span class="nav-icon nested-icon"><i
-                                        class="fas fa-fw fa-id-card"></i></span>
-                                <span class="nav-label">Anggota &amp; Kartu Digital</span>
+                                        class="fas fa-fw fa-chart-column"></i></span>
+                                <span class="nav-label">Laporan Tahun Ajaran</span>
                             </a>
                         @endif
-                        <a href="{{ route('dashboard.perpustakaan.import.form') }}"
-                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.import*') ? 'active' : '' }}">
-                            <span class="nav-icon nested-icon"><i
-                                    class="fas fa-fw fa-file-import"></i></span>
-                            <span class="nav-label">Import &amp; Scan Barcode</span>
-                        </a>
                         <a href="{{ route('perpustakaan.index') }}" target="_blank"
                             class="dash-nav-nested-link">
                             <span class="nav-icon nested-icon"><i

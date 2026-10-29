@@ -19,6 +19,7 @@
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')
+        @include('dashboard.perpus.partials.sub-nav-koleksi')
 
         @if (session('error'))
             <div class="alert alert-danger" style="margin-bottom:16px;"><i class="fas fa-circle-exclamation"></i> {{ session('error') }}</div>
@@ -29,7 +30,7 @@
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;">
             {{-- A. Import Massal --}}
-            <div class="card" style="padding:20px;">
+            <div class="card" id="import-massal" style="padding:20px;scroll-margin-top:90px;">
                 <h3 style="margin:0 0 6px;font-size:var(--text-md,1.05rem);font-weight:800;"><i class="fas fa-file-excel" style="color:var(--success,#10b981);"></i> Import Massal (Excel / CSV)</h3>
                 <p style="color:var(--text-muted);font-size:var(--text-sm,0.84rem);margin:0 0 14px;">
                     Kolom yang dikenali: kode_buku, barcode, isbn, judul, penulis, penerbit, tahun_terbit, klasifikasi_ddc,
@@ -53,7 +54,7 @@
             </div>
 
             {{-- B. Scan Barcode/QR --}}
-            <div class="card" style="padding:20px;">
+            <div class="card" id="input-scan" style="padding:20px;scroll-margin-top:90px;">
                 <h3 style="margin:0 0 6px;font-size:var(--text-md,1.05rem);font-weight:800;"><i class="fas fa-barcode" style="color:var(--accent,#06b6d4);"></i> Input Buku Baru via Scan</h3>
                 <p style="color:var(--text-muted);font-size:var(--text-sm,0.84rem);margin:0 0 12px;">
                     Pindai barcode/QR dengan kamera atau scanner. Isi data pembelian &amp; harga aset sekolah.

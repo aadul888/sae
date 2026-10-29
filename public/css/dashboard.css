@@ -527,6 +527,11 @@
     opacity: 0.75;
 }
 
+/* Tautan anak (sub-bagian) di dalam submenu bidang, mis. Import & Scan di bawah Katalog. */
+.dash-nav-nested-link.child-link {
+    padding-left: 30px;
+}
+
 .dash-nav-nested-link:hover {
     background: rgba(99, 102, 241, 0.08);
     color: var(--text-color);
