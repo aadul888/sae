@@ -77,6 +77,12 @@ class TeknisiAreaMasterSyncTest extends TestCase
         $sebelum = DB::table('teknisi_area_master')->where('ruang_id', $ruangId)->exists();
         $this->assertFalse($sebelum, 'Prasyarat: area untuk ruang uji belum ada.');
 
+        // Jejak untuk pemangkasan: id ruang yang belum tercermin + waktu mulai.
+        $ruangIdsBaru = DB::table('sarpras_ruang')
+            ->whereNotIn('id', DB::table('teknisi_area_master')->whereNotNull('ruang_id')->select('ruang_id'))
+            ->pluck('id')->all();
+        $awal = now()->subMinute();
+
         $session = ['user' => [
             'id'           => $pj->user_id,
             'pengguna_id'  => $pj->user_id,
@@ -107,7 +113,20 @@ class TeknisiAreaMasterSyncTest extends TestCase
         $jumlah = DB::table('teknisi_area_master')->where('ruang_id', $ruangId)->count();
         $this->assertSame(1, $jumlah, 'Sinkronisasi harus idempoten.');
 
-        // Halaman Jadwal Area Tugas menurunkan jadwal dari area milik PJ.
+        // Ruang yang PJ-nya BUKAN teknisi juga harus ikut tercermin: teknisi
+        // adalah petugas lapangan seluruh area, bukan hanya area PJ-nya.
+        $ruangPjLain = DB::table('sarpras_ruang')
+            ->whereNotNull('penanggung_jawab_ptk_id')
+            ->where('penanggung_jawab_ptk_id', '<>', $pj->ptk_id)
+            ->orderBy('id')
+            ->first(['id', 'nama_ruang']);
+
+        if ($ruangPjLain) {
+            $this->assertDatabaseHas('teknisi_area_master', ['ruang_id' => $ruangPjLain->id]);
+            $this->assertTrue(true, 'Ruang PJ non-teknisi harus ikut tercermin.');
+        }
+
+        // Halaman Jadwal Area Tugas menurunkan jadwal dari seluruh area master.
         $this->withSession($session)
             ->get(route('dashboard.teknisi.area-tugas.index'))
             ->assertStatus(200)
@@ -117,11 +136,11 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->where('area', $namaRuang)
             ->where('petugas_ptk_id', $pj->ptk_id)
             ->first();
-        $this->assertNotNull($tugas, 'Ruang PJ harus muncul sebagai jadwal area tugas.');
+        $this->assertNotNull($tugas, 'Ruang harus muncul sebagai jadwal area tugas.');
         $this->createdTugasIds[] = (int) $tugas->id;
         $this->assertSame('aktif', $tugas->status);
 
-        // Halaman Pemeliharaan menurunkan jadwal preventif dari ruang milik PJ.
+        // Halaman Pemeliharaan menurunkan jadwal preventif dari seluruh area master.
         $this->withSession($session)
             ->get(route('dashboard.teknisi.pemeliharaan'))
             ->assertStatus(200)
@@ -131,7 +150,15 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->where('lokasi_aset', $namaRuang)
             ->where('user_id', $pj->user_id)
             ->first();
-        $this->assertNotNull($pm, 'Ruang PJ harus muncul sebagai jadwal pemeliharaan.');
+        $this->assertNotNull($pm, 'Ruang harus muncul sebagai jadwal pemeliharaan.');
         $this->createdPmIds[] = (int) $pm->id;
+
+        // Jadwal non-ruang-uji yang ikut terbentuk dipangkas agar data operasional bersih.
+        $this->createdAreaIds = array_merge($this->createdAreaIds, DB::table('teknisi_area_master')
+            ->whereIn('ruang_id', $ruangIdsBaru)->where('id', '<>', $area->id)->pluck('id')->map(fn ($v) => (int) $v)->all());
+        $this->createdTugasIds = array_merge($this->createdTugasIds, DB::table('teknisi_area_tugas')
+            ->where('petugas_ptk_id', $pj->ptk_id)->where('area', '<>', $namaRuang)->where('created_at', '>=', $awal)->pluck('id')->map(fn ($v) => (int) $v)->all());
+        $this->createdPmIds = array_merge($this->createdPmIds, DB::table('teknisi_pemeliharaan')
+            ->where('user_id', $pj->user_id)->where('lokasi_aset', '<>', $namaRuang)->where('created_at', '>=', $awal)->pluck('id')->map(fn ($v) => (int) $v)->all());
     }
 }

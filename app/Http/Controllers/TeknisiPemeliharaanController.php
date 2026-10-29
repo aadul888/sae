@@ -138,22 +138,21 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
     }
 
     /**
-     * Turunkan jadwal pemeliharaan preventif dari ruang MILIK PJ yang login.
+     * Turunkan jadwal pemeliharaan preventif dari seluruh area master.
      *
-     * Sumber: `teknisi_area_master` (cermin `sarpras_ruang`). Satu ruang = satu
-     * jadwal pemeliharaan awal (bangunan & fisik, bulanan). Idempoten lewat
-     * `lokasi_aset` + `user_id`; jadwal yang sudah ada tidak ditimpa.
+     * Sumber: `teknisi_area_master` (cermin semua `sarpras_ruang`). Satu ruang =
+     * satu jadwal pemeliharaan awal (bangunan & fisik, bulanan) milik teknisi
+     * yang login. Idempoten lewat `lokasi_aset` + `user_id`; jadwal yang sudah
+     * ada tidak ditimpa.
      */
     private function syncPemeliharaan(array $context): void
     {
-        $ptkId = $context['ptk_id'] ?? null;
         $userId = $context['user_id'] ?? null;
-        if (!$ptkId || !$userId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_pemeliharaan')) {
+        if (!$userId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_pemeliharaan')) {
             return;
         }
 
         $sumber = \Illuminate\Support\Facades\DB::table('teknisi_area_master')
-            ->where('petugas_ptk_id', $ptkId)
             ->orderBy('nama_area')
             ->get(['nama_area', 'gedung']);
 

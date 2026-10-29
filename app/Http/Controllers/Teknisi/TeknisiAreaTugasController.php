@@ -174,12 +174,12 @@ class TeknisiAreaTugasController extends TeknisiBaseController
     }
 
     /**
-     * Turunkan jadwal area tugas dari area master MILIK PJ yang login.
+     * Turunkan jadwal area tugas dari seluruh area master.
      *
-     * Sumbernya `teknisi_area_master` (hasil sinkron `sarpras_ruang`), sehingga
-     * satu ruang tanggung jawab = satu baris jadwal. Idempoten lewat nama area
-     * + pemilik akun; jadwal yang sudah ada dilewati agar suntingan petugas
-     * tidak tertimpa.
+     * Sumbernya `teknisi_area_master` (cermin semua `sarpras_ruang`), sehingga
+     * setiap ruang = satu baris jadwal milik teknisi yang login. Idempoten
+     * lewat nama area + pemilik akun; jadwal yang sudah ada dilewati agar
+     * suntingan petugas tidak tertimpa.
      */
     private function syncAreaTugas(array $context): void
     {
@@ -189,7 +189,6 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         }
 
         $sumber = DB::table('teknisi_area_master')
-            ->where('petugas_ptk_id', $ptkId)
             ->orderBy('nama_area')
             ->get(['nama_area', 'zona', 'gedung', 'frekuensi', 'kategori', 'status']);
 

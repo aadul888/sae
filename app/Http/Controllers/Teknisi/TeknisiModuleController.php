@@ -391,8 +391,7 @@ class TeknisiModuleController extends TeknisiBaseController
      *
      * Satu ruang = satu baris area. Kunci sinkronisasi `ruang_id`; nilai yang
      * sudah ada (kategori, frekuensi, status, keterangan) TIDAK ditimpa agar
-     * suntingan petugas tidak hilang. Ruang yang PJ-nya berganti cukup
-     * dilewati — baris lama tetap milik pemilik sebelumnya.
+     * suntingan petugas tidak hilang.
      */
     private function syncAreaMaster(array $context): void
     {
@@ -401,8 +400,9 @@ class TeknisiModuleController extends TeknisiBaseController
             return;
         }
 
+        // Teknisi adalah petugas lapangan: seluruh ruang master tercermin,
+        // bukan hanya yang PJ-nya berperan teknisi (PJ ruang umumnya guru).
         $ruang = DB::table('sarpras_ruang')
-            ->where('penanggung_jawab_ptk_id', $ptkId)
             ->orderBy('nama_ruang')
             ->get(['id', 'nama_ruang', 'gedung', 'lantai', 'kondisi', 'keterangan']);
 
