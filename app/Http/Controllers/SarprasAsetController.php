@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RolePermission;
 use App\Services\SarprasAsetImportService;
+use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -186,6 +187,107 @@ class SarprasAsetController extends Controller
             'canDelete',
             'perPage'
         ));
+    }
+
+    /**
+     * Unduh daftar Inventaris & Aset sesuai filter aktif sebagai Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $search         = trim($request->query('q', ''));
+        $kategoriFilter = trim($request->query('kategori', ''));
+        $kondisiFilter  = trim($request->query('kondisi', ''));
+        $ruangFilter    = trim($request->query('ruang_id', ''));
+        $jurusanFilter  = trim($request->query('jurusan_id', ''));
+
+        $query = DB::table('sarpras_aset as sa')
+            ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
+            ->leftJoin('jurusan_meta as jm', 'sa.jurusan_id', '=', 'jm.jurusan_id')
+            ->select('sa.*', 'sr.nama_ruang', 'sr.gedung', 'jm.nama_jurusan', 'jm.singkatan as jurusan_singkatan')
+            ->orderBy('sa.created_at', 'desc');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('sa.kode_aset', 'like', "%{$search}%")
+                  ->orWhere('sa.nama_barang', 'like', "%{$search}%")
+                  ->orWhere('sa.merk_tipe', 'like', "%{$search}%")
+                  ->orWhere('sr.nama_ruang', 'like', "%{$search}%")
+                  ->orWhere('jm.nama_jurusan', 'like', "%{$search}%")
+                  ->orWhere('jm.singkatan', 'like', "%{$search}%");
+            });
+        }
+        if ($kategoriFilter !== '') {
+            $query->where('sa.kategori', $kategoriFilter);
+        }
+        if ($kondisiFilter !== '') {
+            $query->where('sa.kondisi', $kondisiFilter);
+        }
+        if ($ruangFilter !== '') {
+            $query->where('sa.ruang_id', $ruangFilter);
+        }
+        if ($jurusanFilter !== '') {
+            if ($jurusanFilter === 'umum') {
+                $query->whereNull('sa.jurusan_id');
+            } else {
+                $query->where('sa.jurusan_id', $jurusanFilter);
+            }
+        }
+
+        $labelKondisi = ['baik' => 'Baik', 'rusak_ringan' => 'Rusak Ringan', 'rusak_berat' => 'Rusak Berat'];
+        $labelStatus  = [
+            'tersedia' => 'Tersedia', 'dipinjam' => 'Dipinjam',
+            'perbaikan' => 'Perbaikan', 'dihapuskan' => 'Dihapuskan',
+        ];
+
+        $rows = [];
+        foreach ($query->get() as $r) {
+            $rows[] = [
+                $r->kode_aset,
+                $r->nama_barang,
+                $r->kategori,
+                $r->merk_tipe,
+                $r->no_seri_pabrik,
+                $r->tahun_perolehan,
+                $r->sumber_dana,
+                $r->harga_perolehan !== null ? (float) $r->harga_perolehan : '',
+                (int) $r->jumlah,
+                $r->satuan,
+                (int) $r->jumlah_baik,
+                (int) $r->jumlah_rusak_ringan,
+                (int) $r->jumlah_rusak_berat,
+                $labelKondisi[$r->kondisi] ?? $r->kondisi,
+                $labelStatus[$r->status_ketersediaan] ?? $r->status_ketersediaan,
+                $r->nama_ruang ?: ($r->gedung ?: ''),
+                $r->jurusan_singkatan ?: ($r->nama_jurusan ?: 'Umum'),
+            ];
+        }
+
+        $headers = ['Kode Aset', 'Nama Barang', 'Kategori', 'Merk/Tipe', 'No. Seri Pabrik',
+            'Tahun Perolehan', 'Sumber Dana', 'Harga Perolehan (Rp)', 'Jumlah', 'Satuan',
+            'Baik', 'Rusak Ringan', 'Rusak Berat', 'Kondisi', 'Status', 'Ruang', 'Jurusan'];
+
+        $tempDir = storage_path('app/temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $path = $tempDir . '/aset_' . uniqid() . '.xlsx';
+
+        SimpleXlsxExporter::export($path, [
+            'title'    => 'Daftar Inventaris & Aset Sarpras',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+            'fields'   => array_filter([
+                'Pencarian' => $search !== '' ? $search : null,
+                'Kategori'  => $kategoriFilter !== '' ? $kategoriFilter : null,
+                'Kondisi'   => $kondisiFilter !== '' ? ($labelKondisi[$kondisiFilter] ?? $kondisiFilter) : null,
+                'Jumlah'    => count($rows) . ' barang',
+            ]),
+        ], $headers, $rows, ['sheetName' => 'Inventaris Aset']);
+
+        return response()->download($path, 'Inventaris_Aset_' . date('Ymd_His') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function store(Request $request)

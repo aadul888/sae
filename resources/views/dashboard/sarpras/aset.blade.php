@@ -23,6 +23,14 @@
                 </div>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                @if ($tab === 'sarpras')
+                    <a href="{{ route('dashboard.sarpras.aset.export', request()->only(['q', 'kategori', 'kondisi', 'ruang_id', 'jurusan_id'])) }}"
+                        class="btn btn-outline"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
+                        title="Unduh daftar Inventaris & Aset sebagai Excel sesuai filter">
+                        <i class="fas fa-file-excel text-success"></i> Unduh Excel
+                    </a>
+                @endif
                 @if ($canCreate && $tab === 'sarpras')
                     <button type="button" class="btn btn-outline" id="btnOpenImportAset"
                         style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"

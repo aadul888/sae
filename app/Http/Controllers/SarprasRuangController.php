@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RolePermission;
+use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
@@ -89,6 +90,83 @@ class SarprasRuangController extends Controller
             'canDelete',
             'perPage'
         ));
+    }
+
+    /**
+     * Unduh daftar Ruang & Gedung sesuai filter aktif sebagai Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $search = trim($request->query('q', ''));
+        $gedungFilter = trim($request->query('gedung', ''));
+        $kondisiFilter = trim($request->query('kondisi', ''));
+
+        $query = DB::table('sarpras_ruang as sr')
+            ->leftJoin('gtk', 'sr.penanggung_jawab_ptk_id', '=', 'gtk.ptk_id')
+            ->leftJoin('pengguna as pg', 'sr.penanggung_jawab_ptk_id', '=', 'pg.pengguna_id')
+            ->select('sr.*', DB::raw('COALESCE(gtk.nama, pg.nama) as pj_nama'))
+            ->orderBy('sr.gedung', 'asc')
+            ->orderBy('sr.nama_ruang', 'asc');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('sr.kode_ruang', 'like', "%{$search}%")
+                  ->orWhere('sr.nama_ruang', 'like', "%{$search}%")
+                  ->orWhere('sr.gedung', 'like', "%{$search}%")
+                  ->orWhere('gtk.nama', 'like', "%{$search}%")
+                  ->orWhere('pg.nama', 'like', "%{$search}%");
+            });
+        }
+        if ($gedungFilter !== '') {
+            $query->where('sr.gedung', $gedungFilter);
+        }
+        if ($kondisiFilter !== '') {
+            $query->where('sr.kondisi', $kondisiFilter);
+        }
+
+        $labelKondisi = ['baik' => 'Baik', 'rusak_ringan' => 'Rusak Ringan', 'rusak_berat' => 'Rusak Berat'];
+
+        $rows = [];
+        foreach ($query->get() as $r) {
+            $rows[] = [
+                $r->kode_ruang,
+                $r->nama_ruang,
+                $r->gedung,
+                $r->lantai,
+                $r->panjang !== null ? (float) $r->panjang : '',
+                $r->lebar !== null ? (float) $r->lebar : '',
+                $r->luas !== null ? (float) $r->luas : '',
+                $r->pj_nama,
+                $labelKondisi[$r->kondisi] ?? $r->kondisi,
+                $r->keterangan,
+            ];
+        }
+
+        $headers = ['Kode Ruang', 'Nama Ruang', 'Gedung', 'Lantai', 'Panjang (m)',
+            'Lebar (m)', 'Luas (m²)', 'Penanggung Jawab', 'Kondisi', 'Keterangan'];
+
+        $tempDir = storage_path('app/temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $path = $tempDir . '/ruang_' . uniqid() . '.xlsx';
+
+        SimpleXlsxExporter::export($path, [
+            'title'    => 'Daftar Ruang & Gedung',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
+            'fields'   => array_filter([
+                'Pencarian' => $search !== '' ? $search : null,
+                'Gedung'    => $gedungFilter !== '' ? $gedungFilter : null,
+                'Kondisi'   => $kondisiFilter !== '' ? ($labelKondisi[$kondisiFilter] ?? $kondisiFilter) : null,
+                'Jumlah'    => count($rows) . ' ruang',
+            ]),
+        ], $headers, $rows, ['sheetName' => 'Ruang & Gedung']);
+
+        return response()->download($path, 'Ruang_Gedung_' . date('Ymd_His') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function store(Request $request)

@@ -234,6 +234,34 @@ class SarprasRuangDanAsetTest extends TestCase
     }
 
     /**
+     * Tombol unduh Excel: Ruang & Gedung dan Inventaris & Aset mengikuti filter.
+     */
+    public function test_tombol_unduh_excel_ruang_dan_aset(): void
+    {
+        $session = ['user' => $this->adminSession()];
+
+        foreach ([
+            'dashboard.sarpras.ruang.export',
+            'dashboard.sarpras.aset.export',
+        ] as $route) {
+            $res = $this->withSession($session)->get(route($route));
+            $res->assertStatus(200);
+            $res->assertHeader('content-disposition');
+            $this->assertStringContainsString('.xlsx', (string) $res->headers->get('content-disposition'));
+        }
+
+        // Tombol tersedia di halaman (bukan hanya route).
+        $this->assertStringContainsString(
+            'Unduh Excel',
+            $this->withSession($session)->get(route('dashboard.sarpras.ruang.index'))->getContent()
+        );
+        $this->assertStringContainsString(
+            'Unduh Excel',
+            $this->withSession($session)->get(route('dashboard.sarpras.aset.index'))->getContent()
+        );
+    }
+
+    /**
      * Teknisi: boleh lihat + ubah Ruang & Gedung dan buka Inventaris & Aset,
      * tetapi TIDAK boleh menambah atau menghapus ruang.
      */
@@ -309,6 +337,14 @@ class SarprasRuangDanAsetTest extends TestCase
         // Inventaris & Aset: hak sama dengan Ruang & Gedung (baca + ubah).
         $this->withSession($session)
             ->get(route('dashboard.sarpras.aset.index'))
+            ->assertStatus(200);
+
+        // Unduh Excel ikut hak baca (bukan hanya pengelola Sarpras).
+        $this->withSession($session)
+            ->get(route('dashboard.sarpras.ruang.export'))
+            ->assertStatus(200);
+        $this->withSession($session)
+            ->get(route('dashboard.sarpras.aset.export'))
             ->assertStatus(200);
 
         $asetId = DB::table('sarpras_aset')->insertGetId([
