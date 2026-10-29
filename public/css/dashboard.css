@@ -6351,6 +6351,7 @@ input:disabled + .slider-toggle-crud {
 
 /* ---- Modal "Menu Lainnya" ---- */
 .quick-menu-backdrop .quick-menu-card {
+    position: relative;
     max-width: 860px;
     width: 95%;
     max-height: 88vh;
@@ -6360,17 +6361,13 @@ input:disabled + .slider-toggle-crud {
 
 .quick-menu-head {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+    align-items: center;
     padding: 16px 18px;
+    /* ruang untuk tombol tutup di pojok kanan atas */
+    padding-right: 60px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-hover);
     flex-shrink: 0;
-}
-
-.quick-menu-head-text {
-    min-width: 0;
 }
 
 .quick-menu-title {
@@ -6383,14 +6380,11 @@ input:disabled + .slider-toggle-crud {
     gap: 8px;
 }
 
-.quick-menu-subtitle {
-    margin: 3px 0 0 0;
-    font-size: var(--text-sm, 0.8125rem);
-    color: var(--text-muted);
-    line-height: 1.4;
-}
-
 .quick-menu-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
     width: var(--control-height-md, 38px);
     height: var(--control-height-md, 38px);
     min-width: var(--control-height-md, 38px);
@@ -6465,6 +6459,7 @@ input:disabled + .slider-toggle-crud {
     }
     .quick-menu-head {
         padding: 14px 14px;
+        padding-right: 56px;
     }
     .quick-menu-body {
         padding: 14px 14px 18px;

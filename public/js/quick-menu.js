@@ -171,21 +171,14 @@
 
         backdrop.innerHTML =
             '<div class="card quick-menu-card">' +
-            '<div class="quick-menu-head">' +
-            '<div class="quick-menu-head-text">' +
-            '<h3 class="quick-menu-title">' +
-            '<i class="fas fa-grip" aria-hidden="true"></i> Menu Lainnya</h3>' +
-            '<p class="quick-menu-subtitle">' +
-            overflow.length +
-            ' menu tambahan untuk ' +
-            heading +
-            ', dikelompokkan per kategori.</p>' +
-            '</div>' +
             '<button type="button" class="btn btn-outline quick-menu-close" data-close="' +
             id +
             '" title="Tutup" aria-label="Tutup">' +
             '<i class="fas fa-xmark" aria-hidden="true"></i>' +
             '</button>' +
+            '<div class="quick-menu-head">' +
+            '<h3 class="quick-menu-title">' +
+            '<i class="fas fa-grip" aria-hidden="true"></i> Menu Lainnya</h3>' +
             '</div>' +
             '<div class="quick-menu-body">' +
             groupsHtml +
@@ -208,6 +201,10 @@
         return { id: id, backdrop: backdrop };
     }
 
+    function closeModal(backdrop) {
+        backdrop.style.display = 'none';
+    }
+
     function openModal(backdrop) {
         backdrop.style.display = 'flex';
         var body = backdrop.querySelector('.quick-menu-body');
@@ -219,6 +216,30 @@
             } catch (_) {}
         }
     }
+
+    /**
+     * Modal "Lainnya" dibuat setelah DOMContentLoaded, jadi handler generik di
+     * dashboard.js tidak mengikatnya. Ditangani di sini: klik tombol tutup,
+     * klik area backdrop (di luar kartu), dan tombol Escape.
+     */
+    function bindDismiss(backdrop) {
+        backdrop.addEventListener('click', function (e) {
+            if (e.target.closest('.quick-menu-close')) {
+                closeModal(backdrop);
+                return;
+            }
+            if (e.target === backdrop) closeModal(backdrop);
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        document
+            .querySelectorAll('.quick-menu-backdrop')
+            .forEach(function (b) {
+                if (getComputedStyle(b).display !== 'none') closeModal(b);
+            });
+    });
 
     /* ---------------------------------------------------------- normalizer */
 
@@ -262,6 +283,7 @@
         });
 
         var modal = buildModal(grid, overflow);
+        bindDismiss(modal.backdrop);
 
         var more = makeMoreTile(overflow.length);
         more.addEventListener('click', function () {
