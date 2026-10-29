@@ -55,41 +55,41 @@
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-wifi"></i>
+            <i class="fas fa-screwdriver-wrench"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">100 Mbps</div>
-            <div class="dash-stat-label">Bandwidth Internet</div>
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_total'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Total Work Order</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-server"></i>
+            <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">99.8%</div>
-            <div class="dash-stat-label">Server Uptime</div>
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_selesai'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Perbaikan Selesai</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-desktop"></i>
+            <i class="fas fa-list-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">72 Unit</div>
-            <div class="dash-stat-label">PC Kantor &amp; Lab</div>
+            <div class="dash-stat-value">{{ number_format(($teknisiStats['wo_antrean'] ?? 0) + ($teknisiStats['wo_proses'] ?? 0), 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Antrean &amp; Proses</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
-            <i class="fas fa-check-double"></i>
+            <i class="fas fa-box-open"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Normal</div>
-            <div class="dash-stat-label">Status Jaringan</div>
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_menunggu_part'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Menunggu Sparepart</div>
         </div>
     </div>
 </div>

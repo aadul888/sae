@@ -52,6 +52,20 @@ final class Table
     }
 
     /**
+     * Apakah kolom tertentu ada pada tabel tertentu? Hasil di-cache per proses.
+     */
+    public static function hasColumn(string $table, string $column): bool
+    {
+        $key = '__col__' . $table . '.' . $column;
+
+        if (!array_key_exists($key, self::$cache)) {
+            self::$cache[$key] = self::exists($table) && Schema::hasColumn($table, $column);
+        }
+
+        return self::$cache[$key];
+    }
+
+    /**
      * Apakah SALAH SATU tabel ada?
      */
     public static function existsAny(string ...$tables): bool

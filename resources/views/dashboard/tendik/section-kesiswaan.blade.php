@@ -58,7 +58,7 @@
             <i class="fas fa-user-graduate"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($stats['total_siswa'] ?? 1126, 0, ',', '.') }}</div>
+            <div class="dash-stat-value">{{ number_format($stats['total_siswa'] ?? 0, 0, ',', '.') }}</div>
             <div class="dash-stat-label">Siswa Aktif</div>
         </div>
     </div>
@@ -78,7 +78,7 @@
             <i class="fas fa-door-open"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_rombel'] ?? 70 }}</div>
+            <div class="dash-stat-value">{{ $stats['total_rombel'] ?? 0 }}</div>
             <div class="dash-stat-label">Rombel / Kelas</div>
         </div>
     </div>
@@ -106,7 +106,7 @@
             </p>
         </div>
         <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary, #3b82f6); background: rgba(59,130,246,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(59,130,246,0.25);">
-            <i class="fas fa-user-graduate me-1"></i> {{ number_format($stats['total_siswa'] ?? 1126, 0, ',', '.') }} Siswa
+            <i class="fas fa-user-graduate me-1"></i> {{ number_format($stats['total_siswa'] ?? 0, 0, ',', '.') }} Siswa
         </div>
     </div>
 

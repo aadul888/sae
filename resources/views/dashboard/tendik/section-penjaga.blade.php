@@ -58,8 +58,8 @@
             <i class="fas fa-broom"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Bersih &amp; Rapi</div>
-            <div class="dash-stat-label">Kondisi Fasilitas</div>
+            <div class="dash-stat-value">{{ number_format($penjagaStats['checklist_hari_ini'] ?? 0, 0, ',', '.') }} Area</div>
+            <div class="dash-stat-label">Checklist Hari Ini</div>
         </div>
     </div>
 
@@ -68,8 +68,8 @@
             <i class="fas fa-door-closed"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Terkunci Aman</div>
-            <div class="dash-stat-label">Akses Gedung &amp; Pintu</div>
+            <div class="dash-stat-value">{{ number_format($penjagaStats['ronda_hari_ini'] ?? 0, 0, ',', '.') }} Kontrol</div>
+            <div class="dash-stat-label">Ronda Malam Hari Ini</div>
         </div>
     </div>
 
@@ -78,18 +78,18 @@
             <i class="fas fa-faucet-drip"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Lancar</div>
-            <div class="dash-stat-label">Sanitasi &amp; Air Bersih</div>
+            <div class="dash-stat-value">{{ number_format($penjagaStats['area_perlu_tindakan'] ?? 0, 0, ',', '.') }} Area</div>
+            <div class="dash-stat-label">Perlu Tindakan</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-            <i class="fas fa-lightbulb"></i>
+            <i class="fas fa-triangle-exclamation"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Terkontrol</div>
-            <div class="dash-stat-label">Penerangan Malam</div>
+            <div class="dash-stat-value">{{ number_format($penjagaStats['temuan_malam'] ?? 0, 0, ',', '.') }} Temuan</div>
+            <div class="dash-stat-label">Temuan Ronda</div>
         </div>
     </div>
 </div>

@@ -58,7 +58,7 @@
             <i class="fas fa-users-gear"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 19 }} Staf</div>
+            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
             <div class="dash-stat-label">Tenaga Administrasi</div>
         </div>
     </div>
@@ -68,7 +68,7 @@
             <i class="fas fa-award"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 38 }} GTK</div>
+            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
             <div class="dash-stat-label">SK Tugas Tambahan</div>
         </div>
     </div>
@@ -85,11 +85,11 @@
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-            <i class="fas fa-school"></i>
+            <i class="fas fa-clipboard-list"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Aktif</div>
-            <div class="dash-stat-label">Operasional Satuan</div>
+            <div class="dash-stat-value">{{ number_format($aktivitasBulanIniCount ?? 0, 0, ',', '.') }} Log</div>
+            <div class="dash-stat-label">Aktivitas Bulan Ini</div>
         </div>
     </div>
 </div>

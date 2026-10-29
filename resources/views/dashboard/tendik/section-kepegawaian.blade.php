@@ -58,7 +58,7 @@
             <i class="fas fa-chalkboard-user"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_guru'] ?? 48 }} Guru</div>
+            <div class="dash-stat-value">{{ $stats['total_guru'] ?? 0 }} Guru</div>
             <div class="dash-stat-label">Pendidik Terdaftar</div>
         </div>
     </div>
@@ -68,7 +68,7 @@
             <i class="fas fa-users-gear"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 19 }} Staf</div>
+            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
             <div class="dash-stat-label">Tenaga Kependidikan</div>
         </div>
     </div>
@@ -78,7 +78,7 @@
             <i class="fas fa-award"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 38 }} GTK</div>
+            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
             <div class="dash-stat-label">Tugas Tambahan</div>
         </div>
     </div>
@@ -88,7 +88,7 @@
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_jam_kbm'] ?? 840 }} JP</div>
+            <div class="dash-stat-value">{{ $stats['total_jam_kbm'] ?? 0 }} JP</div>
             <div class="dash-stat-label">Beban KBM Terdistribusi</div>
         </div>
     </div>
@@ -106,7 +106,7 @@
             </p>
         </div>
         <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary); background: rgba(99,102,241,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(99,102,241,0.25);">
-            <i class="fas fa-users me-1"></i> Total: {{ ($stats['total_guru'] ?? 48) + ($stats['total_tendik'] ?? 19) }} Personel
+            <i class="fas fa-users me-1"></i> Total: {{ ($stats['total_guru'] ?? 0) + ($stats['total_tendik'] ?? 0) }} Personel
         </div>
     </div>
 

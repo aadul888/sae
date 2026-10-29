@@ -233,16 +233,16 @@ class TendikDashboardStatsService
         $noSuratMasukTerakhir = Table::exists('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'masuk')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
         $noSuratKeluarTerakhir = Table::exists('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
 
-        $totalSiswa = Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
-        $siswaLaki = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
-        $siswaPerempuan = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 506;
+        $totalSiswa = Table::exists('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
+        $siswaLaki = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 0;
+        $siswaPerempuan = Table::exists('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 0;
         $siswaBerfoto = Table::exists('peserta_didik_meta') ? DB::table('peserta_didik_meta')->whereNotNull('foto_path')->count() : 0;
-        $totalRombel = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 70;
+        $totalRombel = Table::exists('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
 
-        $totalGuru = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count() : 48;
-        $totalTendik = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'not like', '%guru%')->count() : 19;
-        $gtkTugasCount = Table::exists('ptk_tugas_tambahan') ? DB::table('ptk_tugas_tambahan')->where('is_active', true)->distinct('ptk_id')->count('ptk_id') : 38;
-        $totalJamKbm = Table::exists('pembelajaran') ? DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') : 840;
+        $totalGuru = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count() : 0;
+        $totalTendik = Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'not like', '%guru%')->count() : 0;
+        $gtkTugasCount = Table::exists('ptk_tugas_tambahan') ? DB::table('ptk_tugas_tambahan')->where('is_active', true)->distinct('ptk_id')->count('ptk_id') : 0;
+        $totalJamKbm = Table::exists('pembelajaran') ? (int) (DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') ?: 0) : 0;
 
         $stats = [
             'total_surat_masuk'       => $totalSuratMasuk,
@@ -262,12 +262,12 @@ class TendikDashboardStatsService
             'total_tendik'       => $totalTendik,
             'gtk_tugas_tambahan' => $gtkTugasCount,
             'total_jam_kbm'      => $totalJamKbm,
-            'total_ruangan'      => Table::exists('rombongan_belajar') ? (DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') ?: 33) : 33,
-            'jam_praktik'        => Table::exists('pembelajaran') ? (DB::table('pembelajaran')->where(function ($q) {
+            'total_ruangan'      => Table::exists('rombongan_belajar') ? (int) DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') : 0,
+            'jam_praktik'        => Table::exists('pembelajaran') ? (int) (DB::table('pembelajaran')->where(function ($q) {
                 $q->where('nama_mata_pelajaran', 'like', '%praktik%')
                     ->orWhere('nama_mata_pelajaran', 'like', '%kejuruan%');
-            })->sum('jam_mengajar_per_minggu') ?: 48) : 48,
-            'total_pengguna'     => Table::exists('pengguna') ? DB::table('pengguna')->count() : 1230,
+            })->sum('jam_mengajar_per_minggu') ?: 0) : 0,
+            'total_pengguna'     => Table::exists('pengguna') ? DB::table('pengguna')->count() : 0,
         ];
 
         $stafTas = collect();
@@ -346,16 +346,31 @@ class TendikDashboardStatsService
                 ->get();
         }
 
-        $administrasi_tugas = [
-            ['nomor' => 'SRT/2026/09/012', 'kategori' => 'Surat Masuk', 'perihal' => 'Undangan Sosialisasi Kurikulum Dinas Pendidikan', 'pengirim' => 'Disdik Jabar', 'tgl' => '08 Sep 2026', 'status' => 'Sudah Didisposisi'],
-            ['nomor' => 'SRT/2026/09/011', 'kategori' => 'Surat Keluar', 'perihal' => 'Pemberitahuan Ujian Tengah Semester Ganjil', 'pengirim' => 'Bagian Kurikulum', 'tgl' => '07 Sep 2026', 'status' => 'Selesai Dicetak'],
-            ['nomor' => 'SRT/2026/09/010', 'kategori' => 'Surat Keterangan', 'perihal' => 'Keterangan Aktif Sekolah Peserta Didik (NISN: 008123456)', 'pengirim' => 'Tata Usaha', 'tgl' => '07 Sep 2026', 'status' => 'Menunggu TTD'],
-            ['nomor' => 'INV/2026/09/004', 'kategori' => 'Inventaris TU', 'perihal' => 'Pengadaan Kertas & ATK Kantor Bulan September', 'pengirim' => 'Staf Sarpras', 'tgl' => '06 Sep 2026', 'status' => 'Proses Verifikasi'],
-        ];
+        // Ringkasan administrasi persuratan terbaru (real dari tabel persuratan)
+        $administrasi_tugas = [];
+        if (Table::exists('persuratan')) {
+            $administrasi_tugas = DB::table('persuratan')
+                ->select('nomor_surat', 'jenis_surat', 'perihal', 'pengirim_asal', 'tujuan_penerima', 'tanggal_surat', 'status')
+                ->orderByDesc('tanggal_surat')
+                ->orderByDesc('id')
+                ->limit(6)
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'nomor'    => $row->nomor_surat ?: '-',
+                        'kategori' => ucfirst(str_replace('_', ' ', $row->jenis_surat ?: 'lainnya')),
+                        'perihal'  => $row->perihal ?: '-',
+                        'pengirim' => $row->pengirim_asal ?: ($row->tujuan_penerima ?: '-'),
+                        'tgl'      => $row->tanggal_surat ? \Illuminate\Support\Carbon::parse($row->tanggal_surat)->translatedFormat('d M Y') : '-',
+                        'status'   => ucfirst(str_replace('_', ' ', $row->status ?: '-')),
+                    ];
+                })
+                ->all();
+        }
 
         $today = date('Y-m-d');
         $piketStats = [
-            'total_guru'   => $totalGuru ?: 48,
+            'total_guru'   => $totalGuru ?: 0,
             'guru_hadir'   => 0,
             'jurnal_terisi' => 0,
             'izin_hari_ini' => 0,
@@ -425,9 +440,94 @@ class TendikDashboardStatsService
                 ->get();
         }
 
-        if ($piketStats['guru_hadir'] === 0) $piketStats['guru_hadir'] = min($piketStats['total_guru'], 36);
-        if ($piketStats['jurnal_terisi'] === 0) $piketStats['jurnal_terisi'] = 28;
-        if ($piketStats['izin_hari_ini'] === 0) $piketStats['izin_hari_ini'] = 5;
+        // ---- Statistik ringkas Teknisi IT (real dari teknisi_work_order) ----
+        $teknisiStats = [
+            'wo_total'    => 0,
+            'wo_antrean'  => 0,
+            'wo_proses'   => 0,
+            'wo_selesai'  => 0,
+            'wo_menunggu_part' => 0,
+        ];
+        if (Table::exists('teknisi_work_order')) {
+            $teknisiStats['wo_total']   = (int) DB::table('teknisi_work_order')->count();
+            $teknisiStats['wo_antrean'] = (int) DB::table('teknisi_work_order')->where('status', 'antrean')->count();
+            $teknisiStats['wo_proses']  = (int) DB::table('teknisi_work_order')->where('status', 'proses')->count();
+            $teknisiStats['wo_selesai'] = (int) DB::table('teknisi_work_order')->where('status', 'selesai')->count();
+            $teknisiStats['wo_menunggu_part'] = (int) DB::table('teknisi_work_order')->where('status', 'menunggu_sparepart')->count();
+        }
+
+        // ---- Statistik ringkas Keamanan (real) ----
+        $keamananStats = [
+            'tamu_hari_ini'   => 0,
+            'tamu_di_lokasi'  => 0,
+            'patroli_hari_ini' => 0,
+            'insiden_aktif'   => 0,
+        ];
+        if (Table::exists('keamanan_buku_tamu')) {
+            $keamananStats['tamu_hari_ini'] = (int) DB::table('keamanan_buku_tamu')->whereDate('tanggal', $today)->count();
+            $keamananStats['tamu_di_lokasi'] = (int) DB::table('keamanan_buku_tamu')->where('status', 'berada_di_lokasi')->count();
+        }
+        if (Table::exists('keamanan_patroli')) {
+            $keamananStats['patroli_hari_ini'] = (int) DB::table('keamanan_patroli')->whereDate('tanggal', $today)->count();
+        }
+        if (Table::exists('keamanan_insiden')) {
+            $keamananStats['insiden_aktif'] = (int) DB::table('keamanan_insiden')->where('status_penyelesaian', 'dalam_penanganan')->count();
+        }
+
+        // ---- Statistik ringkas Penjaga (real) ----
+        $penjagaStats = [
+            'checklist_hari_ini' => 0,
+            'area_perlu_tindakan' => 0,
+            'ronda_hari_ini'     => 0,
+            'temuan_malam'       => 0,
+        ];
+        if (Table::exists('kebersihan_checklist')) {
+            $penjagaStats['checklist_hari_ini'] = (int) DB::table('kebersihan_checklist')->whereDate('tanggal', $today)->count();
+            $penjagaStats['area_perlu_tindakan'] = (int) DB::table('kebersihan_checklist')
+                ->where(function ($q) {
+                    $q->where('kondisi_kebersihan', 'perlu_tindakan')
+                      ->orWhere('ketersediaan_air_sabun', 'air_mati');
+                })->count();
+        }
+        if (Table::exists('penjaga_malam_log')) {
+            $penjagaStats['ronda_hari_ini'] = (int) DB::table('penjaga_malam_log')->whereDate('tanggal', $today)->count();
+            $penjagaStats['temuan_malam'] = (int) DB::table('penjaga_malam_log')->where('situasi_keamanan', '<>', 'kondusif')->count();
+        }
+
+        // ---- Statistik ringkas Perpustakaan (real) ----
+        $perpusStats = [
+            'total_judul'        => 0,
+            'total_eksemplar'    => 0,
+            'kunjungan_hari_ini' => 0,
+            'pinjam_aktif'       => 0,
+        ];
+        if (Table::exists('perpus_koleksi_buku')) {
+            $perpusStats['total_judul'] = (int) DB::table('perpus_koleksi_buku')->count();
+            $perpusStats['total_eksemplar'] = (int) (DB::table('perpus_koleksi_buku')->sum('jumlah_eksemplar') ?: 0);
+        }
+        if (Table::exists('perpus_kunjungan')) {
+            $perpusStats['kunjungan_hari_ini'] = (int) DB::table('perpus_kunjungan')->whereDate('tanggal', $today)->count();
+        }
+        if (Table::exists('perpus_sirkulasi')) {
+            $perpusStats['pinjam_aktif'] = (int) DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->count();
+        }
+
+        // ---- Statistik ringkas Laboran (real) ----
+        $laboranStats = [
+            'total_ruang_lab' => 0,
+            'item_total'      => 0,
+            'item_baik'       => 0,
+            'item_rusak'      => 0,
+        ];
+        if (Table::exists('laboran_bahan_alat')) {
+            $laboranStats['total_ruang_lab'] = (int) DB::table('laboran_bahan_alat')
+                ->whereNotNull('ruang_lab_nama')->where('ruang_lab_nama', '<>', '')
+                ->distinct('ruang_lab_nama')->count('ruang_lab_nama');
+            $laboranStats['item_total'] = (int) DB::table('laboran_bahan_alat')->count();
+            $laboranStats['item_baik']  = (int) (DB::table('laboran_bahan_alat')->sum('jumlah_baik') ?: 0);
+            $laboranStats['item_rusak'] = (int) ((DB::table('laboran_bahan_alat')->sum('jumlah_rusak_ringan') ?: 0)
+                + (DB::table('laboran_bahan_alat')->sum('jumlah_rusak_berat') ?: 0));
+        }
 
         $kepegawaianCharts = [];
         if (Table::exists('gtk')) {
@@ -466,7 +566,7 @@ class TendikDashboardStatsService
                 ->toArray();
         }
 
-        $kepegawaianAktivitasMultiPeriode = KepegawaianStatsService::buildMultiPeriodeData($totalTendik ?: 19);
+        $kepegawaianAktivitasMultiPeriode = KepegawaianStatsService::buildMultiPeriodeData($totalTendik ?: 0);
 
         $chartsUmum = [
             'populasi' => [
@@ -576,140 +676,248 @@ class TendikDashboardStatsService
         $sarprasDashboard = SarprasDashboardService::build($user);
         $sarprasCharts = $sarprasDashboard['charts'];
 
+        // ---- Chart Laboran: agregasi real dari tabel laboran_* ----
         $laboranCharts = [
-            'sebaranUnit' => [
-                'Lab Komputer' => 2,
-                'Lab IPA / Sains' => 2,
-                'Lab Bahasa' => 1,
-                'Bengkel Kejuruan' => 2,
-            ],
-            'statusAlat' => [
-                'Kondisi Baik' => 142,
-                'Perlu Kalibrasi' => 5,
-                'Rusak Ringan' => 2,
-            ],
-            'kategoriBahan' => [
-                'Habis Pakai' => 45,
-                'Instrumen' => 38,
-                'APD Standar' => 60,
-            ],
+            'sebaranUnit'     => [],
+            'statusAlat'      => [],
+            'kategoriBahan'   => [],
         ];
+        if (Table::exists('laboran_bahan_alat')) {
+            $laboranCharts['sebaranUnit'] = DB::table('laboran_bahan_alat')
+                ->selectRaw('COALESCE(NULLIF(ruang_lab_nama, ""), "Tanpa Ruang") as unit, COUNT(*) as total')
+                ->groupBy('unit')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'unit')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $laboranCharts['statusAlat'] = [
+                'Kondisi Baik'    => (int) (DB::table('laboran_bahan_alat')->sum('jumlah_baik') ?: 0),
+                'Rusak Ringan'    => (int) (DB::table('laboran_bahan_alat')->sum('jumlah_rusak_ringan') ?: 0),
+                'Rusak Berat'     => (int) (DB::table('laboran_bahan_alat')->sum('jumlah_rusak_berat') ?: 0),
+                'Kedaluwarsa'     => (int) (DB::table('laboran_bahan_alat')->sum('jumlah_kedaluwarsa') ?: 0),
+            ];
+
+            $laboranCharts['kategoriBahan'] = DB::table('laboran_bahan_alat')
+                ->selectRaw('COALESCE(NULLIF(jenis, ""), "Lainnya") as jenis, COUNT(*) as total')
+                ->groupBy('jenis')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'jenis')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+
+        // ---- Chart Perpustakaan: perpus_koleksi_buku / perpus_sirkulasi / perpus_kunjungan ----
         $perpustakaanCharts = [
-            'kategoriBuku' => [
-                'Buku Teks' => 1840,
-                'Buku Kejuruan' => 920,
-                'Referensi' => 240,
-                'Literasi & Fiksi' => 420,
-            ],
-            'pengunjungTingkat' => [
-                'Kelas 10' => 148,
-                'Kelas 11' => 162,
-                'Kelas 12' => 110,
-                'GTK' => 35,
-            ],
-            'statusSirkulasi' => [
-                'Tersedia di Rak' => 3402,
-                'Dipinjam Siswa' => 18,
-            ],
+            'kategoriBuku'      => [],
+            'pengunjungTingkat' => [],
+            'statusSirkulasi'   => [],
         ];
+        if (Table::exists('perpus_koleksi_buku')) {
+            $perpustakaanCharts['kategoriBuku'] = DB::table('perpus_koleksi_buku')
+                ->selectRaw('COALESCE(NULLIF(kategori, ""), "Umum") as kategori, COUNT(*) as total')
+                ->groupBy('kategori')
+                ->orderByDesc('total')
+                ->pluck('total', 'kategori')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $tersedia = (int) (DB::table('perpus_koleksi_buku')->sum('eksemplar_tersedia') ?: 0);
+            $total    = (int) (DB::table('perpus_koleksi_buku')->sum('jumlah_eksemplar') ?: 0);
+            $perpustakaanCharts['statusSirkulasi'] = [
+                'Tersedia di Rak' => $tersedia,
+                'Dipinjam'        => max(0, $total - $tersedia),
+            ];
+        }
+        if (Table::exists('perpus_kunjungan')) {
+            $perpustakaanCharts['pengunjungTingkat'] = DB::table('perpus_kunjungan')
+                ->selectRaw('COALESCE(NULLIF(rombel_atau_unit, ""), "Lainnya") as unit, COUNT(*) as total')
+                ->groupBy('unit')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'unit')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+
+        // ---- Chart Keamanan: keamanan_buku_tamu / keamanan_patroli ----
         $keamananCharts = [
-            'kategoriTamu' => [
-                'Orang Tua Siswa' => 18,
-                'Dinas / Instansi' => 4,
-                'Mitra Industri' => 8,
-                'Tamu Umum' => 12,
-            ],
-            'zonaPatroli' => [
-                'Gerbang & Parkir' => 10,
-                'Gedung Teori' => 14,
-                'Lab & Bengkel' => 12,
-                'Pagar Keliling' => 8,
-            ],
-            'kondisiKeamanan' => [
-                'Aman & Tertib' => 42,
-                'Catatan Ringan' => 2,
-            ],
+            'kategoriTamu'     => [],
+            'zonaPatroli'      => [],
+            'kondisiKeamanan'  => [],
         ];
+        if (Table::exists('keamanan_buku_tamu')) {
+            $keamananCharts['kategoriTamu'] = DB::table('keamanan_buku_tamu')
+                ->selectRaw('COALESCE(NULLIF(keperluan, ""), "Lainnya") as keperluan, COUNT(*) as total')
+                ->groupBy('keperluan')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'keperluan')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+        if (Table::exists('keamanan_patroli')) {
+            $keamananCharts['zonaPatroli'] = DB::table('keamanan_patroli')
+                ->selectRaw('COALESCE(NULLIF(rute_zona, ""), "Lainnya") as zona, COUNT(*) as total')
+                ->groupBy('zona')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'zona')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $keamananCharts['kondisiKeamanan'] = DB::table('keamanan_patroli')
+                ->selectRaw('COALESCE(NULLIF(kondisi_lingkungan, ""), "lainnya") as kondisi, COUNT(*) as total')
+                ->groupBy('kondisi')
+                ->orderByDesc('total')
+                ->pluck('total', 'kondisi')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+
+        // ---- Chart Penjaga: kebersihan_checklist / penjaga_malam_log ----
         $penjagaCharts = [
-            'areaKebersihan' => [
-                'Ruang Kelas' => 35,
-                'Koridor & Selasar' => 12,
-                'Sanitasi & Toilet' => 10,
-                'Lapangan & Taman' => 4,
-            ],
-            'statusKontrolMalam' => [
-                'Pintu & Jendela' => 48,
-                'Lampu & Listrik' => 32,
-                'Gerbang Utama' => 4,
-            ],
-            'kondisiFasilitas' => [
-                'Bersih / Terawat' => 58,
-                'Perlu Perbaikan' => 3,
-            ],
+            'areaKebersihan'      => [],
+            'statusKontrolMalam'  => [],
+            'kondisiFasilitas'    => [],
         ];
+        if (Table::exists('kebersihan_checklist')) {
+            $penjagaCharts['areaKebersihan'] = DB::table('kebersihan_checklist')
+                ->selectRaw('COALESCE(NULLIF(area_zona, ""), "Lainnya") as area, COUNT(*) as total')
+                ->groupBy('area')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'area')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $penjagaCharts['kondisiFasilitas'] = DB::table('kebersihan_checklist')
+                ->selectRaw('COALESCE(NULLIF(kondisi_kebersihan, ""), "lainnya") as kondisi, COUNT(*) as total')
+                ->groupBy('kondisi')
+                ->orderByDesc('total')
+                ->pluck('total', 'kondisi')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+        if (Table::exists('penjaga_malam_log')) {
+            $penjagaCharts['statusKontrolMalam'] = DB::table('penjaga_malam_log')
+                ->selectRaw('COALESCE(NULLIF(status_pintu_jendela, ""), "lainnya") as status, COUNT(*) as total')
+                ->groupBy('status')
+                ->orderByDesc('total')
+                ->pluck('total', 'status')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+
+        // ---- Chart Piket: presensi_izin / agenda_kbm ----
         $piketCharts = [
-            'alasanIzin' => [
-                'Sakit / UKS' => 6,
-                'Keperluan Keluarga' => 3,
-                'Kedinasan / Lomba' => 4,
-            ],
-            'kategoriTerlambat' => [
-                '< 15 Menit' => 8,
-                '15 - 30 Menit' => 3,
-                '> 30 Menit' => 1,
-            ],
-            'keterisianJurnal' => [
-                'Jurnal Terisi' => 28,
-                'Menunggu Input' => 7,
-            ],
+            'alasanIzin'         => [],
+            'kategoriTerlambat'  => [],
+            'keterisianJurnal'   => [],
         ];
+        if (Table::exists('presensi_izin')) {
+            $piketCharts['alasanIzin'] = DB::table('presensi_izin')
+                ->selectRaw('COALESCE(NULLIF(alasan, ""), "Lainnya") as alasan, COUNT(*) as total')
+                ->groupBy('alasan')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'alasan')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $piketCharts['kategoriTerlambat'] = DB::table('presensi_izin')
+                ->selectRaw('COALESCE(NULLIF(jenis, ""), "lainnya") as jenis, COUNT(*) as total')
+                ->groupBy('jenis')
+                ->orderByDesc('total')
+                ->pluck('total', 'jenis')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+        if (Table::exists('agenda_kbm')) {
+            $todayPiket = date('Y-m-d');
+            $terisi = DB::table('agenda_kbm')->whereDate('tanggal', $todayPiket)->count();
+            $piketCharts['keterisianJurnal'] = [
+                'Jurnal Terisi'   => (int) $terisi,
+                'Belum Dilaporkan' => 0,
+            ];
+        }
+
+        // ---- Chart Teknisi: teknisi_work_order / teknisi_pemeliharaan ----
         $teknisiCharts = [
-            'kategoriPerbaikan' => [
-                'Jaringan & Internet' => 14,
-                'Komputer & Hardware' => 22,
-                'Printer & Scanner' => 8,
-                'Software & Sistem' => 12,
-            ],
-            'statusWO' => [
-                'Selesai' => 48,
-                'Dalam Pengerjaan' => 5,
-                'Menunggu Part' => 3,
-            ],
-            'sebaranPerangkat' => [
-                'Lab Komputer 1' => 36,
-                'Lab Komputer 2' => 36,
-                'Kantor TAS' => 12,
-                'Ruang Guru' => 16,
-            ],
+            'kategoriPerbaikan' => [],
+            'statusWO'          => [],
+            'sebaranPerangkat'  => [],
         ];
+        if (Table::exists('teknisi_work_order')) {
+            $teknisiCharts['kategoriPerbaikan'] = DB::table('teknisi_work_order')
+                ->selectRaw('COALESCE(NULLIF(kategori_perbaikan, ""), "lainnya") as kategori, COUNT(*) as total')
+                ->groupBy('kategori')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'kategori')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
 
+            $teknisiCharts['statusWO'] = DB::table('teknisi_work_order')
+                ->selectRaw('COALESCE(NULLIF(status, ""), "lainnya") as status, COUNT(*) as total')
+                ->groupBy('status')
+                ->orderByDesc('total')
+                ->pluck('total', 'status')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+
+            $teknisiCharts['sebaranPerangkat'] = DB::table('teknisi_work_order')
+                ->selectRaw('COALESCE(NULLIF(lokasi_unit, ""), "Lainnya") as lokasi, COUNT(*) as total')
+                ->groupBy('lokasi')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->pluck('total', 'lokasi')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+
+        // ---- Chart Kepala TAS: distribusi tendik per tugas tambahan + status kinerja ----
         $kepalaTasCharts = [
-            'distribusiTendik' => [
-                'Kepegawaian' => 2,
-                'Persuratan' => 2,
-                'Kesiswaan' => 2,
-                'Sarpras & Aset' => 2,
-                'Laboran' => 3,
-                'Perpustakaan' => 2,
-                'Teknisi IT' => 2,
-                'Keamanan & Satpam' => 3,
-                'Fasilitas & Penjaga' => 2,
-            ],
-            'statusKinerja' => [
-                'Tercapai 100%' => 7,
-                'Sedang Berjalan' => 3,
-                'Perlu Pendampingan' => 0,
-            ],
-            'komposisiGtk' => [
-                'Guru Pendidik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 48,
-                'Tenaga Tendik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 19,
+            'distribusiTendik' => [],
+            'statusKinerja'    => [],
+            'komposisiGtk'     => [
+                'Guru Pendidik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 0,
+                'Tenaga Tendik' => Table::exists('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 0,
             ],
         ];
+        if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
+            $kepalaTasCharts['distribusiTendik'] = DB::table('ptk_tugas_tambahan as ptt')
+                ->leftJoin('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('ptt.is_active', true)
+                ->selectRaw('COALESCE(NULLIF(rtt.nama, ""), "Lainnya") as tugas, COUNT(DISTINCT ptt.ptk_id) as total')
+                ->groupBy('tugas')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->pluck('total', 'tugas')
+                ->map(fn ($v) => (int) $v)
+                ->toArray();
+        }
+        if (Table::exists('tendik_indikator_kinerja')) {
+            $kpiAll = TendikIndikatorKinerja::where('is_active', true)->get();
+            $pctByIndikator = $kpiAll->mapWithKeys(function ($ind) {
+                $realisasi = Table::exists('tendik_aktivitas')
+                    ? DB::table('tendik_aktivitas')
+                        ->where('indikator_id', $ind->id)
+                        ->where('status', 'selesai')
+                        ->count()
+                    : 0;
+                $target = max(1, (int) $ind->target_kuantitas);
+                return [$ind->id => (int) round(($realisasi / $target) * 100)];
+            });
+
+            $kepalaTasCharts['statusKinerja'] = [
+                'Tercapai / Lebih'   => $pctByIndikator->filter(fn ($p) => $p >= 100)->count(),
+                'Sedang Berjalan'    => $pctByIndikator->filter(fn ($p) => $p > 0 && $p < 100)->count(),
+                'Belum Ada Realisasi'=> $pctByIndikator->filter(fn ($p) => $p === 0)->count(),
+            ];
+        }
 
         $kepegawaianIndikatorList = collect();
         if (Table::exists('tendik_indikator_kinerja')) {
@@ -743,7 +951,7 @@ class TendikDashboardStatsService
 
         foreach ($domainKeys as $dKey) {
             $dbBidang = $dKey === 'kepala-tas' ? 'kepala_tas' : $dKey;
-            $bidangMultiPeriode[$dKey] = KepegawaianStatsService::buildMultiPeriodeData($totalTendik ?: 19, $dbBidang);
+            $bidangMultiPeriode[$dKey] = KepegawaianStatsService::buildMultiPeriodeData($totalTendik ?: 0, $dbBidang);
 
             if (Table::exists('tendik_indikator_kinerja')) {
                 $bidangIndikatorList[$dKey] = TendikIndikatorKinerja::where('bidang', $dbBidang)
@@ -848,7 +1056,12 @@ class TendikDashboardStatsService
             'teknisiCharts',
             'kepalaTasCharts',
             'bidangMultiPeriode',
-            'bidangIndikatorList'
+            'bidangIndikatorList',
+            'teknisiStats',
+            'keamananStats',
+            'penjagaStats',
+            'perpusStats',
+            'laboranStats'
         );
     }
 }

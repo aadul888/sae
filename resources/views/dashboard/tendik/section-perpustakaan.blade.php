@@ -49,6 +49,46 @@
         </div>
         <span class="kepegawaian-quick-label">Laporan Kinerja</span>
     </a>
+
+    <a href="{{ route('dashboard.perpustakaan.laporan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--purple, #8b5cf6);" title="Rekap Koleksi, Sirkulasi &amp; Kunjungan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
+            <i class="fas fa-file-lines"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Pustaka</span>
+    </a>
+
+    <a href="{{ route('dashboard.perpustakaan.anggota.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #8b5cf6;" title="Registrasi Anggota &amp; Kartu Digital">
+        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+            <i class="fas fa-id-card"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Anggota</span>
+    </a>
+
+    <a href="{{ route('dashboard.perpustakaan.import.form') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Import Katalog &amp; Scan Barcode">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            <i class="fas fa-file-import"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Import &amp; Scan</span>
+    </a>
+
+    <a href="{{ route('dashboard.perpustakaan.laporan.tahunan') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Laporan Tahunan per Bulan (A3)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-chart-column"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Tahunan</span>
+    </a>
+
+    <a href="{{ route('perpustakaan.index') }}" target="_blank"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Halaman Publik Perpustakaan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-globe"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Situs Publik</span>
+    </a>
 </div>
 
 <!-- 2. Quick Stats Grid Perpustakaan (Responsive) -->
@@ -58,7 +98,7 @@
             <i class="fas fa-book-bookmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">284 Judul</div>
+            <div class="dash-stat-value">{{ number_format($perpusStats['total_judul'] ?? 0, 0, ',', '.') }} Judul</div>
             <div class="dash-stat-label">Buku Terdaftar</div>
         </div>
     </div>
@@ -68,7 +108,7 @@
             <i class="fas fa-book"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">3.420 Eks</div>
+            <div class="dash-stat-value">{{ number_format($perpusStats['total_eksemplar'] ?? 0, 0, ',', '.') }} Eks</div>
             <div class="dash-stat-label">Koleksi Fisik</div>
         </div>
     </div>
@@ -78,7 +118,7 @@
             <i class="fas fa-users-line"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">42 Siswa</div>
+            <div class="dash-stat-value">{{ number_format($perpusStats['kunjungan_hari_ini'] ?? 0, 0, ',', '.') }} Orang</div>
             <div class="dash-stat-label">Kunjungan Hari Ini</div>
         </div>
     </div>
@@ -88,7 +128,7 @@
             <i class="fas fa-hand-holding-hand"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">18 Buku</div>
+            <div class="dash-stat-value">{{ number_format($perpusStats['pinjam_aktif'] ?? 0, 0, ',', '.') }} Buku</div>
             <div class="dash-stat-label">Pinjaman Aktif</div>
         </div>
     </div>

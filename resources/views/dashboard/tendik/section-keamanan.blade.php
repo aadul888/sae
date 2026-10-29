@@ -55,11 +55,11 @@
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-user-shield"></i>
+            <i class="fas fa-address-book"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Aman &amp; Kondusif</div>
-            <div class="dash-stat-label">Status Lingkungan</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['tamu_hari_ini'] ?? 0, 0, ',', '.') }} Tamu</div>
+            <div class="dash-stat-label">Buku Tamu Hari Ini</div>
         </div>
     </div>
 
@@ -68,18 +68,18 @@
             <i class="fas fa-id-card-clip"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Aktif</div>
-            <div class="dash-stat-label">Pos Gerbang Depan</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['tamu_di_lokasi'] ?? 0, 0, ',', '.') }} Orang</div>
+            <div class="dash-stat-label">Tamu di Lokasi</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-route"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">24 Jam</div>
-            <div class="dash-stat-label">Penjagaan Shift</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['patroli_hari_ini'] ?? 0, 0, ',', '.') }} Ronda</div>
+            <div class="dash-stat-label">Patroli Hari Ini</div>
         </div>
     </div>
 
@@ -88,8 +88,8 @@
             <i class="fas fa-bell"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">0 Insiden</div>
-            <div class="dash-stat-label">Laporan Kejadian</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['insiden_aktif'] ?? 0, 0, ',', '.') }} Insiden</div>
+            <div class="dash-stat-label">Dalam Penanganan</div>
         </div>
     </div>
 </div>

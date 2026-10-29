@@ -88,8 +88,8 @@
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Aktif</div>
-            <div class="dash-stat-label">Status Petugas Piket</div>
+            <div class="dash-stat-value">{{ $piketStats['izin_menunggu'] ?? 0 }} Izin</div>
+            <div class="dash-stat-label">Menunggu Verifikasi</div>
         </div>
     </div>
 </div>

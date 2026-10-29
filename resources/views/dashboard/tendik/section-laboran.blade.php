@@ -114,7 +114,7 @@
             <i class="fas fa-flask"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">6 Ruang</div>
+            <div class="dash-stat-value">{{ number_format($laboranStats['total_ruang_lab'] ?? 0, 0, ',', '.') }} Ruang</div>
             <div class="dash-stat-label">Laboratorium &amp; Bengkel</div>
         </div>
     </div>
@@ -124,7 +124,7 @@
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['jam_praktik'] ?? 48 }} JP</div>
+            <div class="dash-stat-value">{{ number_format($stats['jam_praktik'] ?? 0, 0, ',', '.') }} JP</div>
             <div class="dash-stat-label">Praktik Kejuruan/Mgg</div>
         </div>
     </div>
@@ -134,8 +134,8 @@
             <i class="fas fa-microscope"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">96%</div>
-            <div class="dash-stat-label">Alat Siap Pakai</div>
+            <div class="dash-stat-value">{{ number_format($laboranStats['item_baik'] ?? 0, 0, ',', '.') }} Unit</div>
+            <div class="dash-stat-label">Alat Kondisi Baik</div>
         </div>
     </div>
 
@@ -144,8 +144,8 @@
             <i class="fas fa-shield-virus"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">K3 Laik</div>
-            <div class="dash-stat-label">Standar Keselamatan</div>
+            <div class="dash-stat-value">{{ number_format($laboranStats['item_rusak'] ?? 0, 0, ',', '.') }} Unit</div>
+            <div class="dash-stat-label">Alat Perlu Perbaikan</div>
         </div>
     </div>
 </div>
