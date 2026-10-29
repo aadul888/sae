@@ -459,16 +459,13 @@ window.handleDeleteFoto = async function () {
         currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
     if (!pdId) return;
 
-    const confirmed =
-        window.SAE && typeof window.SAE.confirm === "function"
-            ? await window.SAE.confirm(
-                  "Foto peserta didik ini akan dihapus permanen dari sistem.",
-                  "Hapus Pasfoto Peserta Didik?",
-                  "danger",
-                  "Ya, Hapus!",
-                  "Batal",
-              )
-            : confirm("Hapus foto peserta didik ini?");
+    const confirmed = await window.SAE.confirm(
+        "Foto peserta didik ini akan dihapus permanen dari sistem.",
+        "Hapus Pasfoto Peserta Didik?",
+        "danger",
+        "Ya, Hapus!",
+        "Batal"
+    );
 
     if (!confirmed) return;
 

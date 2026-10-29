@@ -443,16 +443,11 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const name = this.dataset.name || "pengumuman ini";
 
-            let confirmed = false;
-            if (window.SAE && typeof window.SAE.confirm === "function") {
-                confirmed = await window.SAE.confirm(
-                    `Apakah Anda yakin ingin menghapus pengumuman "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-                    "Hapus Pengumuman",
-                    "danger"
-                );
-            } else {
-                confirmed = confirm(`Apakah Anda yakin ingin menghapus "${name}"?`);
-            }
+            const confirmed = await window.SAE.confirm(
+                `Apakah Anda yakin ingin menghapus pengumuman "${name}"? Tindakan ini tidak dapat dibatalkan.`,
+                "Hapus Pengumuman",
+                "danger"
+            );
 
             if (confirmed) {
                 this.dataset.confirmed = "true";

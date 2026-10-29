@@ -213,12 +213,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus ${nama}?`)) {
-                    fetch(`/dashboard/sarpras/aset/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                    }).then(() => location.reload());
-                }
+                window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then((ok) => {
+                    if (ok) {
+                        fetch(`/dashboard/sarpras/aset/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                        }).then(() => location.reload());
+                    }
+                });
             }
         }
     });

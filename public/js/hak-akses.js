@@ -502,21 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? 'Tindakan ini akan mengembalikan seluruh menu setiap peran ke standar default dengan batas izin Read (Lihat) saja. Lanjutkan?'
                 : `Tindakan ini akan mengembalikan seluruh menu ${roleName} ke standar default dengan batas izin Read (Lihat) saja. Lanjutkan?`;
 
-            if (typeof Swal !== 'undefined') {
-                const result = await Swal.fire({
-                    title: titleMsg,
-                    text: confirmMsg,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Ya, Reset Sekarang',
-                    cancelButtonText: 'Batal'
-                });
-                confirmed = result.isConfirmed;
-            } else {
-                confirmed = confirm(confirmMsg);
-            }
+            confirmed = await window.SAE.confirm(confirmMsg, titleMsg, 'danger', 'Ya, Reset Sekarang');
 
             if (!confirmed) return;
 
@@ -707,21 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let confirmed = false;
             const confirmMsg = `Hapus modul "${name}" dari peran ${roleName}? Pengguna dengan peran ini tidak akan lagi memiliki hak akses ke modul tersebut.`;
 
-            if (typeof Swal !== 'undefined') {
-                const result = await Swal.fire({
-                    title: 'Hapus Modul dari Peran?',
-                    text: confirmMsg,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                });
-                confirmed = result.isConfirmed;
-            } else {
-                confirmed = confirm(confirmMsg);
-            }
+            confirmed = await window.SAE.confirm(confirmMsg, 'Hapus Modul dari Peran?', 'danger', 'Ya, Hapus');
 
             if (!confirmed) return;
 

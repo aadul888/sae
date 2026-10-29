@@ -102,15 +102,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     btnRun.addEventListener("click", async () => {
-        const confirmed = window.SAE && typeof window.SAE.confirm === "function"
-            ? await window.SAE.confirm(
-                  "Sistem akan memperbarui file kode dan migrasi database secara otomatis.",
-                  "Jalankan Pembaruan Sistem?",
-                  "info",
-                  "Ya, Pasang Sekarang",
-                  "Batal"
-              )
-            : confirm("Jalankan pembaruan sistem sekarang?");
+        const confirmed = await window.SAE.confirm(
+            "Sistem akan memperbarui file kode dan migrasi database secara otomatis.",
+            "Jalankan Pembaruan Sistem?",
+            "info",
+            "Ya, Pasang Sekarang",
+            "Batal"
+        );
 
         if (!confirmed) return;
 

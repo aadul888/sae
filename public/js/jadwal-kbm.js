@@ -53,59 +53,19 @@ window.handleTogglePemberlakuan = function (btn) {
             return data;
         })
         .then((data) => {
-            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
-            if (swalObj) {
-                swalObj.fire({
-                    icon: "success",
-                    title: "Berhasil!",
-                    text: data.message || "Status pemberlakuan jadwal berhasil diperbarui.",
-                    timer: 1800,
-                    showConfirmButton: false,
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                window.SAE.alert(data.message || "Status jadwal berhasil diperbarui.", 'Informasi', 'info');
-                window.location.reload();
-            }
+            window.SAE.alert(data.message || "Status pemberlakuan jadwal berhasil diperbarui.", "Berhasil!", "success", 1800)
+                .then(() => { window.location.reload(); });
         })
         .catch((err) => {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
-            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
-            if (swalObj) {
-                swalObj.fire({
-                    icon: "error",
-                    title: "Gagal Mengubah Status",
-                    text: err.message,
-                });
-            } else {
-                window.SAE.alert("Error: " + err.message, 'Informasi', 'info');
-            }
+            window.SAE.alert(err.message, "Gagal Mengubah Status", "error");
         });
     };
 
-    const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
-    if (swalObj) {
-        swalObj.fire({
-            title: title,
-            text: text,
-            icon: isAktifkan ? "question" : "warning",
-            showCancelButton: true,
-            confirmButtonColor: confirmBtnColor,
-            cancelButtonColor: "#64748b",
-            confirmButtonText: confirmBtnText,
-            cancelButtonText: "Batal",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                executeToggle();
-            }
-        });
-    } else {
-        if (confirm(`${title}\n\n${text}`)) {
-            executeToggle();
-        }
-    }
+    window.SAE.confirm(text, title, isAktifkan ? "info" : "warning", confirmBtnText).then((ok) => {
+        if (ok) executeToggle();
+    });
 };
 
 document.addEventListener("click", function (e) {
@@ -778,17 +738,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
         };
 
-        if (window.Swal) {
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus jadwal ${namaItem}? Tindakan ini tidak dapat dibatalkan.", "Hapus Jadwal KBM?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
-                    doDelete();
-                }
-            });
-        } else {
-            if (confirm(`Hapus jadwal ${namaItem}?`)) {
+        window.SAE.confirm(`Apakah Anda yakin ingin menghapus jadwal ${namaItem}? Tindakan ini tidak dapat dibatalkan.`, "Hapus Jadwal KBM?", 'danger', "Ya, Hapus!", "Batal").then(function(ok) {
+            if (ok) {
                 doDelete();
             }
-        }
+        });
     });
 
 });

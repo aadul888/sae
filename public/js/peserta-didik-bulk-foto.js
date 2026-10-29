@@ -28,10 +28,13 @@ window.openBulkUploadFotoModal = function (defaultRombel) {
     }
 };
 
-window.closeBulkUploadFotoModal = function () {
+window.closeBulkUploadFotoModal = async function () {
     if (isBulkUploading) {
-        const leave = confirm(
+        const leave = await window.SAE.confirm(
             "Proses unggah masal sedang berlangsung. Yakin ingin menutup?",
+            "Tutup Unggah Masal?",
+            "warning",
+            "Ya, Tutup"
         );
         if (!leave) return;
     }

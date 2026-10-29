@@ -556,26 +556,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
             };
 
-            if (window.Swal) {
-                Swal.fire({
-                    title: "Simpan & Generate Jadwal?",
-                    text: "Sistem akan menyimpan pengaturan waktu ini dan menyusun ulang seluruh jadwal KBM secara optimal dan tanpa bentrok.",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "Ya, Generate Sekarang!",
-                    cancelButtonText: "Batal",
-                    confirmButtonColor: "#6366f1",
-                    cancelButtonColor: "#6b7280",
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        executeAutoSchedule();
-                    }
-                });
-            } else {
-                if (confirm("Simpan pengaturan dan jalankan auto-generate sekarang?")) {
-                    executeAutoSchedule();
-                }
-            }
+            window.SAE.confirm(
+                "Sistem akan menyimpan pengaturan waktu ini dan menyusun ulang seluruh jadwal KBM secara optimal dan tanpa bentrok.",
+                "Simpan & Generate Jadwal?",
+                "info",
+                "Ya, Generate Sekarang!"
+            ).then((ok) => { if (ok) executeAutoSchedule(); });
         });
     }
 

@@ -613,19 +613,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (form && !form.dataset.confirmed) {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'data ini';
-            if (window.Swal) {
-                window.SAE.confirm("Apakah Anda yakin ingin menghapus ${name}? Tindakan ini tidak dapat dibatalkan.", "Konfirmasi Hapus", 'warning', "Ya, Hapus", "Batal").then((result) => {
-                    if (result.isConfirmed) {
-                        form.dataset.confirmed = 'true';
-                        form.submit();
-                    }
-                });
-            } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus ${name}?`)) {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${name}? Tindakan ini tidak dapat dibatalkan.`, "Konfirmasi Hapus", 'danger', "Ya, Hapus", "Batal").then((ok) => {
+                if (ok) {
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }
-            }
+            });
         }
     });
 });

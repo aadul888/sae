@@ -280,12 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = deleteBtn.dataset.id;
             const nomor = deleteBtn.dataset.nomor || 'surat ini';
 
-            if (typeof Swal === 'undefined') {
-                if (!confirm(`Yakin ingin menghapus arsip surat "${nomor}"?`)) return;
-            } else {
-                const result = await window.SAE.confirm("Yakin ingin menghapus arsip surat nomor \"${nomor}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Arsip Surat?", 'warning', "Ya, Hapus!", "Batal");
-                if (!result.isConfirmed) return;
-            }
+            const result = await window.SAE.confirm(`Yakin ingin menghapus arsip surat "${nomor}"? Tindakan ini tidak dapat dibatalkan.`, "Hapus Arsip Surat?", 'danger', "Ya, Hapus!", "Batal");
+            if (!result) return;
 
             try {
                 const res = await fetch(`/dashboard/persuratan/${id}`, {

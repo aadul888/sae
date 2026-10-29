@@ -273,16 +273,12 @@
                     } else {
                         const errorMsg = (data && data.message) ? data.message :
                             'Terjadi kegagalan saat instalasi (Kode HTTP ' + response.status + ').';
-                        if (window.Swal) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Instalasi Gagal',
-                                text: errorMsg,
-                                confirmButtonColor: '#ef4444'
-                            });
-                        } else {
-                            alert('Instalasi Gagal: ' + errorMsg);
-                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Instalasi Gagal',
+                            text: errorMsg,
+                            confirmButtonColor: '#ef4444'
+                        });
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnHtml;
                         if (progressBox) progressBox.style.display = 'none';
@@ -290,20 +286,15 @@
                 } catch (err) {
                     console.error('Install error:', err);
                     // Kemungkinan timeout atau jeda jaringan
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Memeriksa Status Server',
-                            text: 'Respon server tertunda atau waktu tunggu habis. Halaman akan dimuat ulang untuk mengecek status database yang sudah masuk.',
-                            confirmButtonText: 'Periksa Sekarang',
-                            confirmButtonColor: '#6366f1'
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    } else {
-                        alert('Koneksi tertunda. Memuat ulang halaman...');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Memeriksa Status Server',
+                        text: 'Respon server tertunda atau waktu tunggu habis. Halaman akan dimuat ulang untuk mengecek status database yang sudah masuk.',
+                        confirmButtonText: 'Periksa Sekarang',
+                        confirmButtonColor: '#6366f1'
+                    }).then(() => {
                         window.location.reload();
-                    }
+                    });
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
                 }

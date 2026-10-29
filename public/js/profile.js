@@ -412,23 +412,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Hapus Pasfoto?',
-                text: 'Foto profil Anda akan dihapus dan dikembalikan ke avatar bawaan.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-trash-can me-1"></i> Ya, Hapus',
-                cancelButtonText: 'Batal',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    doDelete();
-                }
-            });
-        } else if (confirm('Hapus Pasfoto? Foto profil Anda akan dikembalikan ke avatar bawaan.')) {
-            doDelete();
-        }
+        window.SAE.confirm(
+            'Foto profil Anda akan dihapus dan dikembalikan ke avatar bawaan.',
+            'Hapus Pasfoto?',
+            'danger',
+            'Ya, Hapus'
+        ).then((ok) => {
+            if (ok) {
+                doDelete();
+            }
+        });
     };
 });

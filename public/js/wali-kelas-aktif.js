@@ -607,7 +607,7 @@ window.handleDeleteFoto = async function () {
     const pdId = currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
     if (!pdId) return;
 
-    if (!confirm("Apakah Anda yakin ingin menghapus pasfoto peserta didik ini?")) return;
+    if (!(await window.SAE.confirm("Apakah Anda yakin ingin menghapus pasfoto peserta didik ini?", "Hapus Pasfoto?", "danger", "Ya, Hapus"))) return;
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 

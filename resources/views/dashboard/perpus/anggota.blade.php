@@ -96,7 +96,7 @@
                                             <i class="fas fa-power-off"></i>
                                         </button>
                                     </form>
-                                    <form method="POST" action="{{ route('dashboard.perpustakaan.anggota.destroy', $a->id) }}" style="display:inline;" onsubmit="return confirm('Hapus anggota ini?');">
+                                    <form method="POST" action="{{ route('dashboard.perpustakaan.anggota.destroy', $a->id) }}" style="display:inline;" data-confirm="delete" data-confirm-message="Hapus anggota ini?">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline" title="Hapus" style="padding:4px 8px;color:var(--danger,#ef4444);">
                                             <i class="fas fa-trash"></i>
@@ -234,6 +234,21 @@
 
     @push('scripts')
         <script>
+            // Konfirmasi hapus standar SAE (window.SAE.confirm)
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                if (!form || form.getAttribute('data-confirm') !== 'delete') return;
+                if (form.dataset.confirmed === 'true') return;
+                e.preventDefault();
+                var msg = form.getAttribute('data-confirm-message') || 'Yakin ingin menghapus data ini?';
+                window.SAE.confirm(msg, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then(function (ok) {
+                    if (ok) {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                });
+            });
+
             var PP_CEK_URL = @json(route('dashboard.perpustakaan.anggota.cek-master'));
             var ppTimer = null;
             var ppKandidat = [];

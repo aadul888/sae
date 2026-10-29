@@ -308,9 +308,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         } else {
-            if (confirm('Yakin ingin membatalkan pengajuan ' + jenis + ' ini?')) {
-                runDelete();
-            }
+            window.SAE.confirm('Yakin ingin membatalkan pengajuan ' + jenis + ' ini?', 'Batalkan Pengajuan?', 'warning', 'Ya, Batalkan').then(function (ok) {
+                if (ok) runDelete();
+            });
         }
     });
 

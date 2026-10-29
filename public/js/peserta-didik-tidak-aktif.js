@@ -118,21 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const confirmResult = window.Swal
-                ? await Swal.fire({
-                    title: 'Arsipkan Peserta Didik Kelas XII?',
-                    text: `Apakah Anda yakin ingin memindahkan ${count} peserta didik kelas XII ke dalam arsip Alumni (lulus)? Status pada data aktif akan dipindahkan ke arsip tidak aktif.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: 'var(--primary, #6366f1)',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: '<i class="fas fa-box-archive me-1"></i> Ya, Arsipkan Sekarang',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true,
-                })
-                : { isConfirmed: confirm(`Apakah Anda yakin ingin mengarsipkan ${count} peserta didik kelas XII?`) };
+            const confirmed = await window.SAE.confirm(
+                `Apakah Anda yakin ingin memindahkan ${count} peserta didik kelas XII ke dalam arsip Alumni (lulus)? Status pada data aktif akan dipindahkan ke arsip tidak aktif.`,
+                'Arsipkan Peserta Didik Kelas XII?',
+                'warning',
+                'Ya, Arsipkan Sekarang'
+            );
 
-            if (!confirmResult.isConfirmed) {
+            if (!confirmed) {
                 return;
             }
 

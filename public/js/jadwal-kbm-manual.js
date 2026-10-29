@@ -85,27 +85,9 @@ window.handleTogglePemberlakuan = function (btn) {
         });
     };
 
-    const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
-    if (swalObj) {
-        swalObj.fire({
-            title: title,
-            text: text,
-            icon: isAktifkan ? "question" : "warning",
-            showCancelButton: true,
-            confirmButtonColor: confirmBtnColor,
-            cancelButtonColor: "#64748b",
-            confirmButtonText: confirmBtnText,
-            cancelButtonText: "Batal",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                executeToggle();
-            }
-        });
-    } else {
-        if (confirm(`${title}\n\n${text}`)) {
-            executeToggle();
-        }
-    }
+    window.SAE.confirm(text, title, isAktifkan ? "info" : "warning", confirmBtnText).then((ok) => {
+        if (ok) executeToggle();
+    });
 };
 
 document.addEventListener("click", function (e) {
@@ -647,29 +629,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Helper Konfirmasi Hapus Slot (SweetAlert2 Bersih tanpa Nested Promise Trap)
+    // Helper Konfirmasi Hapus Slot
     function handleKonfirmasiHapusSlot(id, namaMapel, hari, jam) {
-        const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
-        if (!swalObj) {
-            if (confirm(`Hapus jadwal ${namaMapel} pada ${hari} (${jam})?`)) {
-                hapusSlotRequest(id);
-            }
-            return;
-        }
-
-        swalObj.fire({
-            title: "Hapus Slot Jadwal?",
-            html: `Apakah Anda yakin ingin menghapus jadwal <strong>${namaMapel}</strong> pada hari <strong>${hari} (${jam})</strong>?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#64748b",
-            confirmButtonText: '<i class="fas fa-trash me-1"></i> Ya, Hapus Slot',
-            cancelButtonText: "Batal",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                hapusSlotRequest(id);
-            }
+        window.SAE.confirm(
+            `Apakah Anda yakin ingin menghapus jadwal <strong>${namaMapel}</strong> pada hari <strong>${hari} (${jam})</strong>?`,
+            "Hapus Slot Jadwal?",
+            "danger",
+            "Ya, Hapus Slot"
+        ).then(function (ok) {
+            if (ok) hapusSlotRequest(id);
         });
     }
 
@@ -733,28 +701,14 @@ document.addEventListener("DOMContentLoaded", function () {
         btnResetRombel.addEventListener("click", function () {
             const rombelId = this.dataset.rombelId;
             const rombelName = this.dataset.rombelName || "kelas ini";
-            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
 
-            if (!swalObj) {
-                if (confirm(`Kosongkan seluruh jadwal mata pelajaran kelas ${rombelName}?`)) {
-                    resetRombelRequest(rombelId);
-                }
-                return;
-            }
-
-            swalObj.fire({
-                title: `Reset Jadwal Kelas ${rombelName}?`,
-                html: `Seluruh slot mata pelajaran yang telah dijadwalkan pada kelas <strong>${rombelName}</strong> akan dihapus (kegiatan rutin sekolah tetap dipertahankan). Tindakan ini tidak dapat dibatalkan!`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Kosongkan Jadwal',
-                cancelButtonText: "Batal",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    resetRombelRequest(rombelId);
-                }
+            window.SAE.confirm(
+                `Seluruh slot mata pelajaran yang telah dijadwalkan pada kelas <strong>${rombelName}</strong> akan dihapus (kegiatan rutin sekolah tetap dipertahankan). Tindakan ini tidak dapat dibatalkan!`,
+                `Reset Jadwal Kelas ${rombelName}?`,
+                "danger",
+                "Ya, Kosongkan Jadwal"
+            ).then(function (ok) {
+                if (ok) resetRombelRequest(rombelId);
             });
         });
     }
@@ -875,26 +829,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
             };
 
-            if (!swalObj) {
-                if (confirm(`Penuhi seluruh baris JP kelas ${rombelName} dari Jadwal Induk (Otomatis)?`)) {
-                    executeCopy();
-                }
-                return;
-            }
-
-            swalObj.fire({
-                title: `Penuhi Jadwal Kelas ${rombelName}?`,
-                html: `Seluruh slot mata pelajaran dari <strong>Jadwal Induk (Otomatis)</strong> akan disalin ke kelas ini sehingga seluruh baris JP terisi padat tanpa jam kosong. Anda tetap dapat mengedit atau menyesuaikan slot kapan saja.`,
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#6366f1",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Ya, Salin & Penuhi Baris JP',
-                cancelButtonText: "Batal",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    executeCopy();
-                }
+            window.SAE.confirm(
+                `Seluruh slot mata pelajaran dari <strong>Jadwal Induk (Otomatis)</strong> akan disalin ke kelas ini sehingga seluruh baris JP terisi padat tanpa jam kosong. Anda tetap dapat mengedit atau menyesuaikan slot kapan saja.`,
+                `Penuhi Jadwal Kelas ${rombelName}?`,
+                "info",
+                "Ya, Salin & Penuhi Baris JP"
+            ).then(function (ok) {
+                if (ok) executeCopy();
             });
         });
     }

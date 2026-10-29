@@ -12,15 +12,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const btn = formClean.querySelector("button[type='submit']");
         const originalBtnHtml = btn ? btn.innerHTML : "";
 
-        const confirmed = window.SAE && typeof window.SAE.confirm === "function"
-            ? await window.SAE.confirm(
-                  "Anda akan membersihkan cache & log data lama aplikasi. Proses ini aman dan tidak menghapus data Dapodik.",
-                  "Bersihkan Sistem?",
-                  "danger",
-                  "Ya, Bersihkan!",
-                  "Batal"
-              )
-            : confirm("Anda akan membersihkan cache & log data lama aplikasi. Lanjutkan?");
+        const confirmed = await window.SAE.confirm(
+            "Anda akan membersihkan cache & log data lama aplikasi. Proses ini aman dan tidak menghapus data Dapodik.",
+            "Bersihkan Sistem?",
+            "danger",
+            "Ya, Bersihkan!",
+            "Batal"
+        );
 
         if (!confirmed) return;
 
