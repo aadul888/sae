@@ -3,6 +3,7 @@
 namespace Tests\Feature\Laboran;
 
 use App\Services\LaboranDokumenService;
+use App\Support\LaboranScope;
 use App\Support\Table;
 use Illuminate\Support\Facades\DB;
 
@@ -450,6 +451,152 @@ class LaboranCetakDokumenTest extends LaboranTestCase
             );
             $this->assertNotEmpty(LaboranDokumenService::DOKUMEN[$jenis]['label']);
             $this->assertNotEmpty(LaboranDokumenService::DOKUMEN[$jenis]['kategori']);
+        }
+    }
+
+    // =========================================================================
+    // PILIHAN PENANDA TANGAN KAPROG (petugas ditugaskan >1 jurusan)
+    // =========================================================================
+
+    /**
+     * Bangun konteks cakupan dengan daftar jurusan tertentu lalu pulihkan
+     * penugasan LABORAN setelah selesai.
+     *
+     * @param  array<int, string>  $jurusanIds
+     * @return array{0: array, 1: int}
+     */
+    private function scopeMultiJurusan(array $jurusanIds): array
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'LABORAN')
+            ->where('ptt.is_active', true)
+            ->select('ptt.*')
+            ->first();
+
+        $this->assertNotNull($duty, 'Baris tugas tambahan LABORAN tidak tersedia.');
+        $this->created['duty_id'] = $duty->id;
+
+        DB::table('ptk_tugas_tambahan')->where('id', $duty->id)
+            ->update(['jurusan_id' => implode(',', $jurusanIds)]);
+
+        $pengguna = DB::table('pengguna')->where('pengguna_id', $duty->user_id)->first();
+        $this->assertNotNull($pengguna, 'Data pengguna laboran tidak ditemukan.');
+
+        LaboranScope::flush();
+
+        $session = ['user' => [
+            'id'           => $pengguna->pengguna_id,
+            'pengguna_id'  => $pengguna->pengguna_id,
+            'name'         => $pengguna->nama,
+            'nama'         => $pengguna->nama,
+            'username'     => $pengguna->username,
+            'role'         => 'tendik',
+            'peran_id_str' => $pengguna->peran_id_str,
+            'ptk_id'       => $duty->ptk_id,
+        ]];
+
+        return [$session, $duty->id];
+    }
+
+    /**
+     * Petugas dengan >1 jurusan mendapat pilihan Kaprog; petugas 1 jurusan tidak.
+     */
+    public function test_pilihan_kaprog_hanya_untuk_petugas_multi_jurusan(): void
+    {
+        $service = app(LaboranDokumenService::class);
+
+        // Satu jurusan → tanpa pilihan.
+        $this->assertSame([], $service->kaprogOpsi([
+            'jurusan_id'   => self::JUR_ATPH,
+            'jurusan_ids'  => [self::JUR_ATPH],
+            'ptk_id'       => null,
+            'nama'         => 'Petugas Uji',
+        ]), 'Petugas satu jurusan tidak boleh diberi pilihan penanda tangan.');
+
+        // Tanpa jurusan (admin / belum ditetapkan) → tanpa pilihan.
+        $this->assertSame([], $service->kaprogOpsi([
+            'jurusan_id'  => null,
+            'jurusan_ids' => [],
+            'ptk_id'      => null,
+            'nama'        => 'Petugas Uji',
+        ]));
+
+        // Dua jurusan berbeda → dua pilihan (setiap opsi memuat jurusan & kaprog).
+        $opsi = $service->kaprogOpsi([
+            'jurusan_id'  => self::JUR_ATPH,
+            'jurusan_ids' => [self::JUR_ATPH, self::JUR_TKJ],
+            'ptk_id'      => null,
+            'nama'        => 'Petugas Uji',
+        ]);
+
+        $this->assertGreaterThanOrEqual(2, count($opsi), 'Petugas multi-jurusan harus mendapat pilihan Kaprog.');
+        foreach ($opsi as $o) {
+            $this->assertArrayHasKey('jurusan_id', $o);
+            $this->assertArrayHasKey('nama', $o);
+            $this->assertArrayHasKey('kaprog', $o);
+        }
+        $this->assertContains(self::JUR_ATPH, array_column($opsi, 'jurusan_id'));
+        $this->assertContains(self::JUR_TKJ, array_column($opsi, 'jurusan_id'));
+    }
+
+    /**
+     * Kode jurusan INDUK & ANAK dengan Kaprog sama digabung menjadi satu pilihan.
+     */
+    public function test_pilihan_kaprog_menggabungkan_jurusan_induk_dan_anak(): void
+    {
+        $opsi = app(LaboranDokumenService::class)->kaprogOpsi([
+            'jurusan_id'  => '26010',
+            'jurusan_ids' => ['26010', '26010475', self::JUR_TKJ],
+            'ptk_id'      => null,
+            'nama'        => 'Petugas Uji',
+        ]);
+
+        $kunci = array_map(
+            fn ($o) => $o['kaprog']?->ptk_id ?: 'jurusan:' . $o['jurusan_id'],
+            $opsi
+        );
+
+        $this->assertSame(array_values(array_unique($kunci)), $kunci, 'Pilihan Kaprog tidak boleh duplikat.');
+    }
+
+    /**
+     * Parameter `jurusan_id` pada URL cetak memilih jurusan dokumen, dan nilai
+     * di luar cakupan pengguna diabaikan (tidak boleh mengganti penanda tangan).
+     */
+    public function test_pilihan_kaprog_lewat_url_cetak(): void
+    {
+        [$session] = $this->scopeMultiJurusan([self::JUR_ATPH, self::JUR_TKJ]);
+
+        $res = $this->withSession($session)->get(route('dashboard.laboran.jurnal.cetak', [
+            'jurusan_id' => self::JUR_TKJ,
+        ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('Tanda tangan Kaprog', false);
+
+        // Nilai di luar cakupan → jatuh kembali ke jurusan pertama milik petugas.
+        $asing = $this->withSession($session)->get(route('dashboard.laboran.jurnal.cetak', [
+            'jurusan_id' => '99999999',
+        ]));
+        $asing->assertStatus(200);
+    }
+
+    /**
+     * Semua halaman cetak tetap 200 untuk petugas multi-jurusan (tanpa efek
+     * samping pada modul yang tidak memakai blok tanda tangan).
+     */
+    public function test_semua_halaman_cetak_tetap_merender_untuk_petugas_multi_jurusan(): void
+    {
+        [$session] = $this->scopeMultiJurusan([self::JUR_ATPH, self::JUR_TKJ]);
+
+        foreach ($this->endpoints() as $route => $jenis) {
+            if ($route === 'dashboard.laboran.kerusakan.cetak') {
+                continue; // butuh {id}
+            }
+
+            $res = $this->withSession($session)->get(route($route));
+            $res->assertStatus(200);
         }
     }
 }

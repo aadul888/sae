@@ -26,6 +26,15 @@
 
     $namaJurusan = $jurusan->nama_jurusan ?? ($context['jurusan_nama'] ?? null);
 
+    // Bila petugas ditugaskan >1 jurusan dan pengguna memilih salah satunya pada
+    // bar alat, tampilkan Kaprog pilihan itu (dokumen hanya boleh ditandatangani
+    // Kaprog jurusan yang bersangkutan).
+    $pilihan = collect($kaprogOpsi ?? [])->firstWhere('jurusan_id', $jurusanId ?? null);
+    if ($pilihan) {
+        $kaprog      = $pilihan['kaprog'] ?? null;
+        $namaJurusan = $pilihan['nama'] ?? $namaJurusan;
+    }
+
     // Penanda tangan yang belum memiliki penugasan aktif → diberi garis titik
     // agar dokumen tetap sah ditandatangani manual saat supervisi.
     $belumDitetapkan = fn ($pejabat) => empty($pejabat?->nama) ? ' sig-belum-ditetapkan' : '';

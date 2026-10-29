@@ -159,6 +159,59 @@ class LaboranDokumenService
     }
 
     /**
+     * Daftar KAPROG yang dapat dipilih sebagai penanda tangan dokumen.
+     *
+     * Dipakai ketika petugas ditugaskan pada **lebih dari satu jurusan**: dokumen
+     * resmi hanya boleh ditandatangani Kaprog jurusan yang bersangkutan, sehingga
+     * pengguna diberi pilihan alih-alih sistem menebak.
+     *
+     * Hanya jurusan yang benar-benar menjadi cakupan petugas (`$context['jurusan_ids']`)
+     * yang ditawarkan. Tiap entri = satu jurusan + pejabat KAPROG-nya.
+     *
+     * @return array<int, array{jurusan_id:string, nama:string, kaprog:?object}>
+     */
+    public function kaprogOpsi(array $context): array
+    {
+        $ids = array_values(array_filter(
+            array_map(fn ($v) => trim((string) $v), (array) ($context['jurusan_ids'] ?? [])),
+            fn ($v) => $v !== ''
+        ));
+
+        // Satu jurusan saja → tidak perlu pilihan; dokumen memakai jurusan itu.
+        if (count($ids) < 2) {
+            return [];
+        }
+
+        $nama = Table::exists('jurusan_meta')
+            ? DB::table('jurusan_meta')->whereIn('jurusan_id', $ids)
+                ->pluck('nama_jurusan', 'jurusan_id')->all()
+            : [];
+
+        // Kode jurusan INDUK & anak (mis. `47012` & `47012650`) menunjuk Kaprog
+        // yang sama, jadi cukup tampilkan SATU pilihan per pejabat. Bila Kaprog
+        // belum ditetapkan, gunakan kode jurusan sebagai kunci agar tetap muncul.
+        $opsi = [];
+        $seen = [];
+        foreach ($ids as $id) {
+            $kaprog = $this->kaprog($id);
+            $kunci  = $kaprog?->ptk_id ?: 'jurusan:' . $id;
+
+            if (isset($seen[$kunci])) {
+                continue;
+            }
+            $seen[$kunci] = true;
+
+            $opsi[] = [
+                'jurusan_id' => $id,
+                'nama'       => $nama[$id] ?? $id,
+                'kaprog'     => $kaprog,
+            ];
+        }
+
+        return $opsi;
+    }
+
+    /**
      * Ambil pejabat dari tugas tambahan berdasarkan kode.
      *
      * `ptk_tugas_tambahan.jurusan_id` dapat berisi multi-jurusan (dipisah koma
@@ -295,7 +348,21 @@ class LaboranDokumenService
      */
     public function dokumen(string $jenis, array $context, array $opsi = []): array
     {
+        // Pilihan KAPROG (bila petugas ditugaskan >1 jurusan) dihitung lebih
+        // dulu, lalu jurusan dokumen mengikuti pilihan pengguna bila sah.
+        $kaprogOpsi = $this->kaprogOpsi($context);
+
         $jurusanId = $opsi['jurusan_id'] ?? ($context['jurusan_id'] ?? null);
+        if (!empty($kaprogOpsi)) {
+            $req   = $opsi['request'] ?? null;
+            $pilih = $req instanceof Request
+                ? trim((string) $req->query('jurusan_id', ''))
+                : trim((string) ($opsi['pilih_jurusan_id'] ?? ''));
+
+            $sah = collect($kaprogOpsi)->pluck('jurusan_id')->contains($pilih);
+            $jurusanId = $sah ? $pilih : $jurusanId;
+        }
+        $opsi['jurusan_id'] = $jurusanId;
 
         $mode = strtolower((string) ($opsi['mode'] ?? 'ringkasan'));
         if (!in_array($mode, self::MODE, true)) {
@@ -318,6 +385,8 @@ class LaboranDokumenService
             'sekolah'       => $this->sekolah(),
             'sekolahMeta'   => $this->sekolahMeta(),
             'jurusan'       => $this->jurusan($jurusanId),
+            'jurusanId'     => $jurusanId,
+            'kaprogOpsi'    => $kaprogOpsi,
             'kepalaSekolah' => $pejabat['kepalaSekolah'],
             'kepalaLab'     => $pejabat['kepalaLab'],
             'kaprog'        => $pejabat['kaprog'],

@@ -37,6 +37,10 @@ trait DokumenCetakLaboran
      */
     protected function dokumenCetak(string $jenis, array $context, array $opsi = []): array
     {
+        // Sertakan request agar pemilihan jurusan penanda tangan (bila petugas
+        // ditugaskan >1 jurusan) terbaca konsisten tanpa mengubah tiap controller.
+        $opsi['request'] ??= request();
+
         return $this->dokumenService()->dokumen($jenis, $context, $opsi);
     }
 

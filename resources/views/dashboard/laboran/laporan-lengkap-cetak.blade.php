@@ -63,6 +63,8 @@
             </a>
         </div>
 
+        @include('dashboard.laboran.partials.pilih-kaprog')
+
         <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Laporan (Print / PDF)
         </button>
