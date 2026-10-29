@@ -99,6 +99,64 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
         );
     }
 
+    /**
+     * Satu sesi praktik dengan BEBERAPA guru pada lokasi & jam yang sama.
+     *
+     * Guru tambahan dikirim sebagai `ptk_ids[]` (cara modal jadwal bekerja).
+     * Server harus menyimpan semua guru ke `ptk_ids` dan mengisi
+     * `guru_pendamping` dengan nama guru selain guru utama.
+     */
+    public function test_beberapa_guru_dalam_satu_sesi_pada_lokasi_dan_jam_sama(): void
+    {
+        $rombel = $this->kelasReguler();
+        $ids = DB::table('gtk')->whereNotNull('ptk_id')->limit(3)->pluck('ptk_id')->all();
+        $this->assertCount(3, $ids, 'Butuh minimal tiga guru untuk pengujian multi-guru.');
+        [$g1, $g2, $g3] = $ids;
+
+        $payload = $this->payloadSemester('Lab Komputer 1', $rombel->rombongan_belajar_id, $g1, 'Informatika');
+        $payload['ptk_ids'] = [$g2, $g3];
+
+        $this->simpan($payload)->assertStatus(200);
+
+        $row = DB::table('laboran_jadwal_penggunaan')
+            ->where('ruang_lab_nama', 'Lab Komputer 1')
+            ->where('rombel_id', $rombel->rombongan_belajar_id)
+            ->whereNull('jadwal_seri_id')
+            ->orderByDesc('id')
+            ->first();
+
+        $this->assertNotNull($row, 'Sesi multi-guru harus tersimpan.');
+        $this->assertSame($g1, $row->ptk_id, 'Guru utama tetap tersimpan di ptk_id.');
+
+        $ptkIds = json_decode((string) $row->ptk_ids, true);
+        $this->assertIsArray($ptkIds);
+        $this->assertCount(3, $ptkIds, 'Ketiga guru harus tersimpan di ptk_ids.');
+        $this->assertContains($g1, $ptkIds);
+        $this->assertContains($g2, $ptkIds);
+        $this->assertContains($g3, $ptkIds);
+
+        $namaG2 = (string) DB::table('gtk')->where('ptk_id', $g2)->value('nama');
+        $this->assertNotNull($row->guru_pendamping, 'Nama guru pendamping harus terisi.');
+        $this->assertStringContainsString($namaG2, (string) $row->guru_pendamping);
+    }
+
+    /**
+     * Endpoint daftar guru dipakai modal untuk memilih guru ikut serta.
+     */
+    public function test_endpoint_daftar_guru_mengembalikan_ptk_dan_nama(): void
+    {
+        $res = $this->withSession($this->adminSession())
+            ->getJson(route('dashboard.laboran.jadwal.daftar-guru'));
+
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
+
+        $guru = $res->json('guru');
+        $this->assertIsArray($guru);
+        $this->assertNotEmpty($guru, 'Daftar guru tidak boleh kosong pada basis data nyata.');
+        $this->assertArrayHasKey('ptk_id', $guru[0]);
+        $this->assertArrayHasKey('nama', $guru[0]);
+    }
+
     public function test_ruang_sama_dengan_rombel_berbeda_dan_guru_berbeda_diterima(): void
     {
         $rombelA = $this->kelasReguler(0);

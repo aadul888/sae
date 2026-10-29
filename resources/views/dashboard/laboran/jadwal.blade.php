@@ -653,6 +653,9 @@
                 src="{{ asset('js/laboran-jadwal-jam.js') }}?v={{ file_exists(public_path('js/laboran-jadwal-jam.js')) ? filemtime(public_path('js/laboran-jadwal-jam.js')) : time() }}">
             </script>
             <script
+                src="{{ asset('js/laboran-jadwal-pengajar.js') }}?v={{ file_exists(public_path('js/laboran-jadwal-pengajar.js')) ? filemtime(public_path('js/laboran-jadwal-pengajar.js')) : time() }}">
+            </script>
+            <script
                 src="{{ asset('js/laboran-jadwal.js') }}?v={{ file_exists(public_path('js/laboran-jadwal.js')) ? filemtime(public_path('js/laboran-jadwal.js')) : time() }}">
             </script>
         @endpush

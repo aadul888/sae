@@ -110,6 +110,23 @@
                 <div id="guruMapelHintSemester" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
                     Daftar diambil otomatis dari pembelajaran kelas yang dipilih.
                 </div>
+                <div id="guruPengajarSemester" class="guru-pengajar" data-form="Semester" style="display: none; margin-top: var(--space-4);">
+                    <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">
+                        <i class="fas fa-users me-1"></i> Guru Ikut Serta (boleh lebih dari satu)
+                    </div>
+                    <div class="guru-pengajar-tags" style="display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0;"></div>
+                    <div style="display: flex; gap: var(--space-3);">
+                        <select class="form-control guru-pengajar-pilih">
+                            <option value="">-- Tambah guru pengajar --</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary guru-pengajar-tambah" style="white-space: nowrap;">
+                            <i class="fas fa-plus me-1"></i> Tambah
+                        </button>
+                    </div>
+                    <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
+                        Guru yang ditambahkan mengajar bersama di tempat dan jam yang sama.
+                    </div>
+                </div>
             </div>
 
             {{-- 5. Hari Praktik (otomatis dari slot matriks) --}}

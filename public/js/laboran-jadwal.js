@@ -111,6 +111,15 @@ document.addEventListener('DOMContentLoaded', function () {
         jamKeDariWaktu
     } = window.SAELaboranJam.init(BASE_URL);
 
+    // Pemilih "Guru Ikut Serta" — lihat js/laboran-jadwal-pengajar.js
+    const {
+        cariPanelPengajar,
+        muatDaftarGuru,
+        resetGuruPengajar,
+        isiGuruPengajarDariData,
+        syncGuruPengajarInputs
+    } = window.SAELaboranPengajar.init(BASE_URL);
+
     // -------------------------------------------------------------------------
     // 7. Dropdown Guru & Mata Pelajaran dari Kelas (Dapodik Pembelajaran)
     // -------------------------------------------------------------------------
@@ -164,6 +173,13 @@ document.addEventListener('DOMContentLoaded', function () {
         selectEl.disabled = false;
         if (hintEl) {
             hintEl.innerHTML = '<i class="fas fa-circle-check me-1" style="color: var(--success, #10b981);"></i> ' + items.length + ' mata pelajaran dimuat otomatis dari kelas.';
+        }
+
+        // Tampilkan pilihan guru ikut serta (tim pengajar) begitu daftar siap.
+        const panel = cariPanelPengajar(selectEl);
+        if (panel) {
+            panel.style.display = 'block';
+            muatDaftarGuru(panel);
         }
     }
 
@@ -458,6 +474,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Jadwalkan Praktik (Semester)';
             bukaKunciKelas(selectRombelSemester);
             setGuruMapelOptions(selectGuruMapelSemester, hintSemester, []);
+            resetGuruPengajar(document.getElementById('guruPengajarSemester'));
             if (inputTanggalSemester) inputTanggalSemester.value = fmtDate(new Date());
             // Catatan: nilai tanggal semester diisi otomatis (tidak diminta ke
             // laboran) karena jadwal berlaku 1 semester penuh, bukan per tanggal.
@@ -474,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalMingguanTitle) modalJadwalMingguanTitle.textContent = 'Jadwalkan Praktik (Mingguan)';
             bukaKunciKelas(selectRombelMingguan);
             setGuruMapelOptions(selectGuruMapelMingguan, hintMingguan, []);
+            resetGuruPengajar(document.getElementById('guruPengajarMingguan'));
             if (inputTanggalMingguan) {
                 inputTanggalMingguan.value = fmtDate(new Date());
             }
@@ -564,6 +582,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectLokasiSemester) selectLokasiSemester.value = d.lokasi || '';
             bukaKunciKelas(selectRombelSemester);
             if (selectRombelSemester) selectRombelSemester.value = d.rombelId || '';
+            resetGuruPengajar(document.getElementById('guruPengajarSemester'));
+            isiGuruPengajarDariData('guruPengajarSemester', d);
             if (inputTanggalSemester) inputTanggalSemester.value = d.tanggal || '';
             const hariEditS = hariDariTanggal(d.tanggal) || 'Senin';
             if (inputHariSemester) inputHariSemester.value = hariEditS;
@@ -591,6 +611,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectLokasiMingguan) selectLokasiMingguan.value = d.lokasi || '';
             bukaKunciKelas(selectRombelMingguan);
             if (selectRombelMingguan) selectRombelMingguan.value = d.rombelId || '';
+            resetGuruPengajar(document.getElementById('guruPengajarMingguan'));
+            isiGuruPengajarDariData('guruPengajarMingguan', d);
             if (inputTanggalMingguan) inputTanggalMingguan.value = d.tanggal || '';
             const hariEditM = hariDariTanggal(d.tanggal) || 'Senin';
             if (inputHariMingguan) inputHariMingguan.value = hariEditM;
@@ -652,6 +674,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Pastikan data guru & mapel tersinkronisasi ke hidden input form
             syncGuruMapelHiddenInputs(form, selectGuruMapel);
+            // Guru ikut serta (opsional) dikirim sebagai ptk_ids[].
+            syncGuruPengajarInputs(form, selectGuruMapel);
 
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalHtml = submitBtn ? submitBtn.innerHTML : '';

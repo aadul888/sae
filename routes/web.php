@@ -763,6 +763,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Daftar gabungan guru + mapel + kelas (dari pembelajaran semua rombel)
         Route::get('/jadwal/guru-mapel', [\App\Http\Controllers\LaboranJadwalController::class, 'guruMapelList'])->name('jadwal.guru-mapel')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
 
+        // Daftar guru (GTK aktif) untuk memilih guru pendamping / tim pengajar
+        Route::get('/jadwal/daftar-guru', [\App\Http\Controllers\LaboranJadwalController::class, 'daftarGuru'])->name('jadwal.daftar-guru')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
+
         // Slot jam pelajaran (JP) untuk alokasi waktu modal jadwal
         Route::get('/jadwal/slots', [\App\Http\Controllers\LaboranJadwalController::class, 'slotList'])->name('jadwal.slots')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
 
