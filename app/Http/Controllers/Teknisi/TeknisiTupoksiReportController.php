@@ -112,6 +112,8 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
         }
 
         $query = DB::table($table);
+        // Cakupan per akun: teknisi hanya mencetak catatannya sendiri.
+        $this->scopeOwned($query, $context, null, $this->ownerColumn($table));
         if ($dateCol && $dari !== '')   $query->where($dateCol, '>=', $dari);
         if ($dateCol && $sampai !== '') $query->where($dateCol, '<=', $sampai);
 
@@ -172,6 +174,17 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
             'kepalaTas'     => $dokumen->jabatan('KEPALA_TAS'),
             'kepalaSekolah' => $dokumen->kepalaSekolah(),
         ];
+    }
+
+    /**
+     * Kolom penanda pemilik baris per tabel TUPOKSI.
+     *
+     * `teknisi_supervisi` menyimpan teknisi yang dinilai pada `teknisi_ptk_id`
+     * (bukan `petugas_ptk_id`); tabel lain memakai penanda petugas bawaan.
+     */
+    private function ownerColumn(string $table): string
+    {
+        return $table === 'teknisi_supervisi' ? 'teknisi_ptk_id' : 'petugas_ptk_id';
     }
 
     private function nomorColumn(object $row, array $types): string

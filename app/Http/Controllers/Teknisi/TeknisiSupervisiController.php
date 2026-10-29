@@ -239,6 +239,12 @@ class TeknisiSupervisiController extends TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
+        $row = $this->findRow('teknisi_supervisi', $id);
+        if (!$row) return $this->respond($request, false, 'Data supervisi tidak ditemukan.', 404);
+        if (!$this->ownsRow($row, $context, 'teknisi_ptk_id')) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus lembar supervisi milik sendiri.', 403);
+        }
+
         DB::transaction(function () use ($id) {
             DB::table('teknisi_supervisi_item')->where('supervisi_id', $id)->delete();
             DB::table('teknisi_supervisi')->where('id', $id)->delete();
@@ -258,6 +264,9 @@ class TeknisiSupervisiController extends TeknisiBaseController
         $supervisi = DB::table('teknisi_supervisi')->where('id', $id)->first();
         if (!$supervisi) {
             abort(404, 'Data supervisi tidak ditemukan.');
+        }
+        if (!$this->ownsRow($supervisi, $context, 'teknisi_ptk_id')) {
+            abort(403, 'Anda hanya dapat mencetak lembar supervisi milik sendiri.');
         }
 
         $items = DB::table('teknisi_supervisi_item')
@@ -334,14 +343,16 @@ class TeknisiSupervisiController extends TeknisiBaseController
      *
      * @return array<int, object{no:int, indikator:string, jumlah:int, satuan:string, catatan:string}>
      */
-    public function rekapBukti(): array
+    public function rekapBukti(array $context = []): array
     {
         $rekap = [];
-        $jumlahFn = function (string $tabel, ?callable $filter = null): int {
+        $jumlahFn = function (string $tabel, ?callable $filter = null) use ($context): int {
             if (!\App\Support\Table::exists($tabel)) {
                 return 0;
             }
             $q = DB::table($tabel);
+            // Cakupan per akun: hitungan bukti fisik mengikuti data yang terlihat.
+            $this->scopeOwned($q, $context, null, $tabel === 'teknisi_supervisi' ? 'teknisi_ptk_id' : 'petugas_ptk_id');
             if ($filter) $filter($q);
             return (int) $q->count();
         };

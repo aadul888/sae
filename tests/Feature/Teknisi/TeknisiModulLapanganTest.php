@@ -385,6 +385,46 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
+     * Cetak laporan TUPOKSI & lembar supervisi tunduk pada cakupan akun:
+     * teknisi tidak boleh melihat baris milik teknisi lain di dokumen cetak.
+     */
+    public function test_cetak_tupoksi_dan_supervisi_ikut_cakupan_akun(): void
+    {
+        $a = $this->teknisiSession(0);
+        $b = $this->teknisiSession(1);
+
+        $areaA = 'Area A ' . uniqid();
+        $areaB = 'Area B ' . uniqid();
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.area-tugas.store'), [
+                'area'            => $areaA,
+                'petugas_nama'    => $a['user']['nama'],
+                'tanggal_mulai'   => now()->toDateString(),
+            ])
+            ->assertStatus(200);
+        $this->withSession($b)
+            ->postJson(route('dashboard.teknisi.area-tugas.store'), [
+                'area'            => $areaB,
+                'petugas_nama'    => $b['user']['nama'],
+                'tanggal_mulai'   => now()->toDateString(),
+            ])
+            ->assertStatus(200);
+
+        // B tidak melihat dokumen cetak milik A.
+        $this->withSession($b)
+            ->get(route('dashboard.teknisi.laporan.cetak', ['modul' => 'area-tugas']))
+            ->assertStatus(200)
+            ->assertDontSee($areaA, false);
+
+        // Koordinator melihat semua.
+        $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.laporan.cetak', ['modul' => 'area-tugas']))
+            ->assertStatus(200)
+            ->assertSee($areaA, false);
+    }
+
+    /**
      * Bulk delete mengenali seluruh modul Teknisi (10 lapangan + 6 TUPOKSI + WO + PM).
      */
     public function test_bulk_delete_mengenali_semua_modul(): void
