@@ -677,22 +677,21 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Ruang & Gedung
         Route::get('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'index'])->name('ruang.index')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
         Route::get('/ruang/export', [\App\Http\Controllers\SarprasRuangController::class, 'exportExcel'])->name('ruang.export')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
-        // Tambah & hapus ruang tetap khusus pengelola Sarpras (menu_sarpras);
-        // teknisi hanya membaca dan memperbarui kondisi ruang.
-        Route::post('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'store'])->name('ruang.store')->middleware('permission:menu_sarpras,create');
+        // Ruang & Gedung: tambah/ubah/hapus boleh pengelola Sarpras (menu_sarpras),
+        // Teknisi, dan tenaga Sarpras lain lewat menu_sarpras_ruang.
+        Route::post('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'store'])->name('ruang.store')->middleware('permission:menu_sarpras|menu_sarpras_ruang,create');
         Route::put('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'update'])->name('ruang.update')->middleware('permission:menu_sarpras|menu_sarpras_ruang,update');
-        Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras,delete');
+        Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras|menu_sarpras_ruang,delete');
 
-        // Inventaris & Aset — teknisi memakai menu_inventaris dengan hak yang
-        // sama seperti Ruang & Gedung: baca + ubah. Tambah/hapus tetap milik
-        // pengelola Sarpras (menu_sarpras) dan Laboran.
+        // Inventaris & Aset — Teknisi & tenaga Sarpras lain memakai menu_inventaris
+        // dengan hak penuh (CRUD) seperti pengelola Sarpras (menu_sarpras) dan Laboran.
         Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,read');
         Route::get('/aset/export', [\App\Http\Controllers\SarprasAsetController::class, 'exportExcel'])->name('aset.export')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,read');
         Route::get('/aset/template', [\App\Http\Controllers\SarprasAsetController::class, 'templateExcel'])->name('aset.template')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,read');
-        Route::post('/aset/import', [\App\Http\Controllers\SarprasAsetController::class, 'importExcel'])->name('aset.import')->middleware('permission:menu_sarpras|menu_laboran,create');
-        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_sarpras|menu_laboran,create');
+        Route::post('/aset/import', [\App\Http\Controllers\SarprasAsetController::class, 'importExcel'])->name('aset.import')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,create');
+        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,create');
         Route::put('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'update'])->name('aset.update')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,update');
-        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_sarpras|menu_laboran,delete');
+        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,delete');
 
         // Peminjaman Sarpras (dialihkan ke modul peminjaman alat terpadu)
         Route::get('/peminjaman', function () {

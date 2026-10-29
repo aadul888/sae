@@ -61,6 +61,7 @@ class LaboranInventarisController extends Controller
         $kondisiFilter = trim($request->query('kondisi', ''));
         $sumberFilter  = trim($request->query('sumber_dana', ''));
         $jurusanFilter = trim($request->query('jurusan', ''));
+        $merkFilter    = trim($request->query('merk', ''));
 
         $query = DB::table('laboran_bahan_alat as lba')
             ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
@@ -72,6 +73,7 @@ class LaboranInventarisController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('lba.kode_item', 'like', "%{$search}%")
                   ->orWhere('lba.nama_item', 'like', "%{$search}%")
+                  ->orWhere('lba.merk', 'like', "%{$search}%")
                   ->orWhere('lba.spesifikasi', 'like', "%{$search}%")
                   ->orWhere('lba.lokasi_lemari_rak', 'like', "%{$search}%");
             });
@@ -91,6 +93,10 @@ class LaboranInventarisController extends Controller
 
         if ($sumberFilter !== '') {
             $query->where('lba.sumber_dana', $sumberFilter);
+        }
+
+        if ($merkFilter !== '') {
+            $query->where('lba.merk', $merkFilter);
         }
 
         if ($jurusanFilter !== '' && $context['unrestricted']) {
@@ -127,6 +133,11 @@ class LaboranInventarisController extends Controller
             $daftarLab = array_values(array_unique(array_merge($daftarLab, $existingLabs)));
         }
 
+        // Master merk yang sudah tercatat (dalam cakupan) untuk filter & saran input
+        $merkQuery = DB::table('laboran_bahan_alat')->whereNotNull('merk')->where('merk', '!=', '');
+        LaboranScope::apply($merkQuery, 'jurusan_id', $context);
+        $daftarMerk = $merkQuery->distinct()->orderBy('merk')->pluck('merk')->toArray();
+
         // Referensi aset Sarpras (untuk salin data)
         $daftarAsetSarpras = DB::table('sarpras_aset as sa')
             ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
@@ -149,8 +160,10 @@ class LaboranInventarisController extends Controller
             'jenisFilter'        => $jenisFilter,
             'kondisiFilter'      => $kondisiFilter,
             'sumberFilter'       => $sumberFilter,
+            'merkFilter'         => $merkFilter,
             'jurusanFilter'      => $jurusanFilter,
             'daftarLab'          => $daftarLab,
+            'daftarMerk'         => $daftarMerk,
             'daftarRuangSarpras' => $daftarRuangSarpras,
             'daftarAsetSarpras'  => $daftarAsetSarpras,
             'statTotal'          => $statTotal,
@@ -182,6 +195,7 @@ class LaboranInventarisController extends Controller
             // Kode item OPSIONAL: bila kosong dibuat otomatis oleh sistem.
             'kode_item'         => 'nullable|string|max:50|unique:laboran_bahan_alat,kode_item',
             'nama_item'         => 'required|string|max:255',
+            'merk'              => 'nullable|string|max:100',
             'jenis'             => 'required|in:alat,bahan_habis_pakai',
             'stok_total'        => 'required|numeric|min:0.01',
             'satuan'            => 'required|string|max:30',
@@ -214,6 +228,7 @@ class LaboranInventarisController extends Controller
             'ruang_lab_nama'      => $request->ruang_lab_nama,
             'kode_item'           => $kode,
             'nama_item'           => trim($request->nama_item),
+            'merk'                => $request->filled('merk') ? trim((string) $request->merk) : null,
             'jenis'               => $request->jenis,
             'spesifikasi'         => $request->spesifikasi,
             'stok_total'          => $stokTotal,
@@ -315,6 +330,7 @@ class LaboranInventarisController extends Controller
             // Kode item OPSIONAL: bila dikosongkan akan dibuat otomatis.
             'kode_item'         => 'nullable|string|max:50|unique:laboran_bahan_alat,kode_item,' . $id,
             'nama_item'         => 'required|string|max:255',
+            'merk'              => 'nullable|string|max:100',
             'jenis'             => 'required|in:alat,bahan_habis_pakai',
             'stok_total'        => 'required|numeric|min:0.01',
             'stok_tersedia'     => 'required|numeric|min:0',
@@ -346,6 +362,7 @@ class LaboranInventarisController extends Controller
             'ruang_lab_nama'      => $request->ruang_lab_nama,
             'kode_item'           => $kode,
             'nama_item'           => trim($request->nama_item),
+            'merk'                => $request->filled('merk') ? trim((string) $request->merk) : null,
             'jenis'               => $request->jenis,
             'spesifikasi'         => $request->spesifikasi,
             'stok_total'          => $stokTotal,

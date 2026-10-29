@@ -22,12 +22,12 @@ class SarprasAsetController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        // Teknisi memakai menu_inventaris dengan hak sama seperti Ruang & Gedung:
-        // baca + ubah. Tambah/hapus hanya pengelola Sarpras (menu_sarpras) & Laboran.
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
+        // Teknisi & tenaga Sarpras lain memakai menu_inventaris dengan hak penuh
+        // (CRUD) seperti pengelola Sarpras (menu_sarpras) & Laboran.
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'create') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
         $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'read') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read');
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'update') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
 
         $tab = $request->query('tab', 'sarpras');
         if (!in_array($tab, ['sarpras', 'laboran'], true)) {

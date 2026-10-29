@@ -19,6 +19,7 @@ class LaboranInventarisImportService
     public const HEADERS = [
         'kode_item',
         'nama_item',
+        'merk',
         'jenis',
         'kategori',
         'spesifikasi',
@@ -44,19 +45,19 @@ class LaboranInventarisImportService
     {
         return [
             [
-                'ITM-LAB-001', 'Mikroskop Binokuler Digital', 'alat', 'Optik',
+                'ITM-LAB-001', 'Mikroskop Binokuler Digital', 'Olympus', 'alat', 'Optik',
                 'Perbesaran 1000x, kamera USB 5MP',
                 '5', 'unit', 'baik', '4', '1', '0', '0',
                 'Lab Biologi', 'Lemari A-01', '', '2024-07-15', '2024', 'BOS Reguler',
             ],
             [
-                '', 'Traktor Tangan Mini', 'alat', 'Mesin Pertanian',
+                '', 'Traktor Tangan Mini', 'Yanmar', 'alat', 'Mesin Pertanian',
                 'Kapasitas 8 PK, roda dua',
                 '10', 'unit', 'baik', '5', '3', '2', '0',
                 'Lahan Praktik ATPH', 'Gudang Alsintan', '', '2023-02-20', '2023', 'DAK Fisik',
             ],
             [
-                'ITM-LAB-002', 'Alkohol 70% 1 Liter', 'bahan_habis_pakai', 'Bahan Kimia',
+                'ITM-LAB-002', 'Alkohol 70% 1 Liter', 'OneMed', 'bahan_habis_pakai', 'Bahan Kimia',
                 'Kemasan botol 1000 ml teknis',
                 '20', 'botol', 'baik', '20', '0', '0', '0',
                 'Lab Kimia', 'Rak Bahan C-03', '2028-12-31', '2025-01-10', '2025', 'BOS Reguler',
@@ -95,6 +96,7 @@ class LaboranInventarisImportService
             'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Diunduh ' . now()->translatedFormat('d F Y H:i'),
             'fields'   => [
                 'Kode Item'       => 'Boleh dikosongkan — sistem akan membuat kode otomatis',
+                'Merk'            => 'Merk / pabrikan alat (opsional), mis. Olympus, Yanmar, OneMed',
                 'Rincian Kondisi' => 'jumlah_baik + jumlah_rusak_ringan + jumlah_rusak_berat + jumlah_kedaluwarsa = stok_total',
                 'Data Pengadaan'  => 'tanggal_pengadaan (YYYY-MM-DD), tahun_pengadaan & sumber_dana (BOS Reguler, DAK, dll)',
             ],
@@ -252,6 +254,7 @@ class LaboranInventarisImportService
         return [
             'kode_item'           => $kode,
             'nama_item'           => $nama,
+            'merk'                => mb_substr((string) ($n['merk'] ?? ($n['merek'] ?? ($n['brand'] ?? ''))), 0, 100) ?: null,
             'jenis'               => $jenis,
             'stok_total'          => $total,
             'stok_tersedia'       => $tersedia,
@@ -332,6 +335,7 @@ class LaboranInventarisImportService
     {
         DB::table('laboran_bahan_alat')->where('id', $existing->id)->update([
             'nama_item'           => $d['nama_item'],
+            'merk'                => $d['merk'] ?: $existing->merk,
             'jenis'               => $d['jenis'],
             'stok_total'          => $d['stok_total'],
             'stok_tersedia'       => $d['stok_tersedia'],
@@ -359,6 +363,7 @@ class LaboranInventarisImportService
             'ruang_lab_nama'      => $d['ruang_lab_nama'],
             'kode_item'           => $d['kode_item'],
             'nama_item'           => $d['nama_item'],
+            'merk'                => $d['merk'],
             'jenis'               => $d['jenis'],
             'spesifikasi'         => $d['spesifikasi'] ?: null,
             'stok_total'          => max(0.01, $d['stok_total']),

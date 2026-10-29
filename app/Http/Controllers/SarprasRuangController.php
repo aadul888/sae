@@ -20,14 +20,16 @@ class SarprasRuangController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        // Teknisi mendapat menu_sarpras_ruang (baca + ubah); tambah/hapus ruang
-        // tetap milik pengelola Sarpras (menu_sarpras).
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create');
+        // Teknisi & tenaga Sarpras lain memakai menu_sarpras_ruang dengan hak
+        // penuh (CRUD) seperti pengelola Sarpras (menu_sarpras).
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'create');
         $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read')
             || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'read');
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update')
             || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'delete');
 
         $search = trim($request->query('q', ''));
         $gedungFilter = trim($request->query('gedung', ''));

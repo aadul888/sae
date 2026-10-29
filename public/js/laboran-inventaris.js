@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labRuang').value = data.lab || '';
             document.getElementById('labKode').value = data.kode || '';
             document.getElementById('labNama').value = data.nama || '';
+            const elMerkEdit = document.getElementById('labMerk');
+            if (elMerkEdit) elMerkEdit.value = data.merk || '';
             document.getElementById('labJenis').value = data.jenis || 'alat';
             document.getElementById('labStokTotal').value = data.stoktotal || 1;
             document.getElementById('labStokTersedia').value = data.stoktersedia || 1;
@@ -67,6 +69,8 @@ document.addEventListener('DOMContentLoaded', function () {
             methodInput.value = 'POST';
             form.action = '/dashboard/laboran/inventaris';
             form.reset();
+            const elMerk = document.getElementById('labMerk');
+            if (elMerk) elMerk.value = '';
             setJumlahKondisi({ baik: 0, rusak_ringan: 0, rusak_berat: 0, kedaluwarsa: 0 });
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'none';
             if (wrapperAsetSarpras) wrapperAsetSarpras.style.display = 'block';
@@ -182,8 +186,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const satuan = selectedOpt.getAttribute('data-satuan') || 'unit';
             const kondisi = selectedOpt.getAttribute('data-kondisi') || 'baik';
             const spek = selectedOpt.getAttribute('data-spek') || '';
+            const merk = selectedOpt.getAttribute('data-merk') || '';
 
             if (nama) document.getElementById('labNama').value = nama;
+            if (merk) {
+                const elMerk = document.getElementById('labMerk');
+                if (elMerk) elMerk.value = merk;
+            }
             if (kode) document.getElementById('labKode').value = kode + '-LAB';
             if (satuan) document.getElementById('labSatuan').value = satuan;
             if (kondisi) document.getElementById('labKondisi').value = kondisi;
@@ -224,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 lab: btnEdit.dataset.lab,
                 kode: btnEdit.dataset.kode,
                 nama: btnEdit.dataset.nama,
+                merk: btnEdit.dataset.merk,
                 jenis: btnEdit.dataset.jenis,
                 stoktotal: btnEdit.dataset.stoktotal,
                 stoktersedia: btnEdit.dataset.stoktersedia,

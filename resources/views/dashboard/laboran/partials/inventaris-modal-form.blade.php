@@ -35,7 +35,8 @@
                                     <option value="{{ $ast->id }}" data-nama="{{ $ast->nama_barang }}"
                                         data-kode="{{ $ast->kode_aset }}" data-ruang="{{ $ast->ruang_nama }}"
                                         data-satuan="{{ $ast->satuan }}" data-kondisi="{{ $ast->kondisi }}"
-                                        data-spek="{{ $ast->merk_tipe ? 'Merk/Tipe: ' . $ast->merk_tipe : '' }}">
+                                        data-spek="{{ $ast->merk_tipe ? 'Merk/Tipe: ' . $ast->merk_tipe : '' }}"
+                                        data-merk="{{ $ast->merk_tipe }}">
                                         {{ $ast->nama_barang }} &bull; {{ $ast->kode_aset }} (Lokasi:
                                         {{ $ast->ruang_nama ?: 'Sarpras' }})
                                     </option>
@@ -131,6 +132,18 @@
                                 Alat / Bahan <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="nama_item" id="labNama" class="form-control"
                                 placeholder="Mikroskop Binokuler / Asam Klorida" required>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Merk
+                                <span style="font-size: var(--text-xs, 0.75rem); font-weight: 400; color: var(--text-muted);">(opsional)</span></label>
+                            <input type="text" name="merk" id="labMerk" class="form-control" list="listMerkLab"
+                                placeholder="Olympus / Yanmar / OneMed">
+                            <datalist id="listMerkLab">
+                                @foreach (($daftarMerk ?? []) as $m)
+                                    <option value="{{ $m }}"></option>
+                                @endforeach
+                            </datalist>
                         </div>
                     </div>
 

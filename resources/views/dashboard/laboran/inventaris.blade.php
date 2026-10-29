@@ -122,6 +122,14 @@
                                 @endif
                             </select>
 
+                            <select name="merk" id="filterMerk" class="toolbar-filter-select" style="height: 38px;">
+                                <option value="">Semua Merk</option>
+                                @foreach (($daftarMerk ?? []) as $m)
+                                    <option value="{{ $m }}" {{ ($merkFilter ?? '') === $m ? 'selected' : '' }}>
+                                        {{ $m }}</option>
+                                @endforeach
+                            </select>
+
                             <select name="jenis" id="filterJenis" class="toolbar-filter-select" style="height: 38px;">
                                 <option value="">Semua Jenis</option>
                                 <option value="alat" {{ $jenisFilter === 'alat' ? 'selected' : '' }}>Alat</option>
@@ -153,7 +161,7 @@
                                 @endforeach
                             </select>
 
-                            @if ($search || $labFilter || $jenisFilter || $kondisiFilter || !empty($sumberFilter))
+                            @if ($search || $labFilter || $jenisFilter || $kondisiFilter || !empty($sumberFilter) || !empty($merkFilter))
                                 <a href="{{ route('dashboard.laboran.inventaris.index') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -232,6 +240,10 @@
                                 <td data-label="Item" style="padding: 14px 18px;">
                                     <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->nama_item }}</div>
+                                    @if (!empty($item->merk))
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                                            Merk: {{ $item->merk }}</div>
+                                    @endif
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                         {{ $item->kode_item }}</div>
                                     @if (!empty($item->nama_jurusan) || !empty($item->singkatan))
@@ -339,6 +351,7 @@
                                             <button type="button" class="btn-icon btn-edit-lab"
                                                 data-id="{{ $item->id }}" data-lab="{{ $item->ruang_lab_nama }}"
                                                 data-kode="{{ $item->kode_item }}" data-nama="{{ $item->nama_item }}"
+                                                data-merk="{{ $item->merk }}"
                                                 data-jenis="{{ $item->jenis }}"
                                                 data-stoktotal="{{ (float) $item->stok_total }}"
                                                 data-stoktersedia="{{ (float) $item->stok_tersedia }}"
