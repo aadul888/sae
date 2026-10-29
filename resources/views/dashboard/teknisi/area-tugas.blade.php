@@ -68,7 +68,7 @@
                         @endif
                     </td>
                     <td style="padding:14px 18px;">
-                        <div style="font-weight:600; color:var(--text-heading);">{{ $pjRuang[$row->ruang_id] ?? $row->petugas_nama }}</div>
+                        <div style="font-weight:600; color:var(--text-heading);">{{ $row->petugas_nama }}</div>
                         <div style="font-size:var(--text-xs); color:var(--text-muted);">
                             {{ $row->tanggal_mulai ? \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') : '—' }}
                         </div>

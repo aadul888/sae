@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Area Master, Area Tugas, dan Pemeliharaan mengikuti penanggung jawab ruang
- * di master Sarpras secara langsung (tanpa aksi tambahan).
+ * Modul Teknisi Lapangan:
+ *  - Master Area & Zona (area-master) adalah data bersama: cermin semua ruang
+ *    Sarpras, kolom Petugas mengikuti PJ ruang.
+ *  - Modul lain (area tugas, pemeliharaan, dll) hanya menampilkan data milik
+ *    akun yang login (koordinator melihat semua).
  *
  * Berjalan di database operasional: hanya baris hasil uji yang dihapus.
  */
@@ -44,7 +47,7 @@ class TeknisiAreaMasterSyncTest extends TestCase
     }
 
     /**
-     * Ruang uji + dua akun teknisi (pemilik awal & pemilik baru).
+     * Ruang uji + dua akun teknisi (pemilik awal & akun lain).
      *
      * @return array{0: object, 1: object, 2: int, 3: string}|null
      */
@@ -61,7 +64,7 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->get();
 
         if ($teknisi->count() < 2) {
-            $this->markTestSkipped('Perlu minimal dua akun teknisi untuk menguji pergantian PJ.');
+            $this->markTestSkipped('Perlu minimal dua akun teknisi untuk menguji pemisahan data.');
         }
 
         $namaRuang = 'Ruang Uji Area Sync ' . uniqid();
@@ -95,13 +98,13 @@ class TeknisiAreaMasterSyncTest extends TestCase
         ]];
     }
 
-    public function test_area_master_mencerminkan_ruang_dan_petugas_dari_pj(): void
+    public function test_area_master_adalah_data_bersama_dan_mencerminkan_pj(): void
     {
         $siap = $this->siapkanRuangUji();
         if (!$siap) {
             return;
         }
-        [$pjA, , $ruangId, $namaRuang] = $siap;
+        [$pjA, $pjB, $ruangId, $namaRuang] = $siap;
 
         $this->withSession($this->sesi($pjA))
             ->get(route('dashboard.teknisi.modul.index', ['modul' => 'area-master']))
@@ -113,104 +116,88 @@ class TeknisiAreaMasterSyncTest extends TestCase
         $this->createdAreaIds[] = (int) $area->id;
 
         $this->assertSame($namaRuang, $area->nama_area);
-        $this->assertSame('Gedung Uji Sync', $area->gedung);
         $this->assertNull($area->user_id, 'Area master adalah data bersama, bukan milik akun.');
         $this->assertSame((string) $pjA->ptk_id, (string) $area->petugas_ptk_id);
         $this->assertSame($pjA->nama, $area->petugas_nama);
-        $this->assertSame('aktif', $area->status);
-        $this->assertNotEmpty($area->kode_area);
+
+        // Data bersama: akun lain pun melihat baris yang sama.
+        $this->withSession($this->sesi($pjB))
+            ->get(route('dashboard.teknisi.modul.index', ['modul' => 'area-master']))
+            ->assertStatus(200)
+            ->assertSee($namaRuang, false);
 
         $jumlah = DB::table('teknisi_area_master')->where('ruang_id', $ruangId)->count();
         $this->assertSame(1, $jumlah, 'Sinkronisasi harus idempoten.');
     }
 
-    public function test_pergantian_pj_langsung_menggeser_area_tugas_dan_pemeliharaan(): void
+    public function test_jadwal_area_tugas_terpisah_per_akun(): void
     {
         $siap = $this->siapkanRuangUji();
         if (!$siap) {
             return;
         }
-        [$pjA, $pjB, $ruangId, $namaRuang] = $siap;
-        $awal = now()->subMinute();
+        [$akunA, $akunB, , $namaRuang] = $siap;
 
-        // Halaman A: ruang muncul sebagai jadwal milik A.
-        $this->withSession($this->sesi($pjA))
-            ->get(route('dashboard.teknisi.area-tugas.index'))
-            ->assertStatus(200)
-            ->assertSee($namaRuang, false);
-        $this->withSession($this->sesi($pjA))
-            ->get(route('dashboard.teknisi.pemeliharaan'))
-            ->assertStatus(200)
-            ->assertSee($namaRuang, false);
+        // A membuat jadwal area tugas.
+        $this->withSession($this->sesi($akunA))
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->post(route('dashboard.teknisi.area-tugas.store'), [
+                'area'         => $namaRuang,
+                'periode_jadwal' => 'harian',
+                'petugas_nama' => $akunA->nama,
+                'shift'        => 'pagi',
+                'jenis_tugas'  => 'tukang_kebersihan',
+                'status'       => 'aktif',
+            ])
+            ->assertStatus(200);
 
         $tugasA = DB::table('teknisi_area_tugas')
-            ->where('ruang_id', $ruangId)->where('user_id', $pjA->user_id)->first();
-        $this->assertNotNull($tugasA, 'Ruang PJ A harus muncul di jadwal area tugas A.');
+            ->where('area', $namaRuang)->where('user_id', $akunA->user_id)->first();
+        $this->assertNotNull($tugasA, 'Jadwal harus tersimpan milik akun A.');
         $this->createdTugasIds[] = (int) $tugasA->id;
 
+        // A melihat jadwalnya; B tidak. Dicek lewat nomor jadwal (unik di tabel,
+        // tidak muncul di dropdown lokasi).
+        $this->withSession($this->sesi($akunA))
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertSee($tugasA->nomor_jadwal, false);
+        $this->withSession($this->sesi($akunB))
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertDontSee($tugasA->nomor_jadwal, false);
+    }
+
+    public function test_pemeliharaan_terpisah_per_akun(): void
+    {
+        $siap = $this->siapkanRuangUji();
+        if (!$siap) {
+            return;
+        }
+        [$akunA, $akunB, , $namaRuang] = $siap;
+
+        $this->withSession($this->sesi($akunA))
+            ->post(route('dashboard.teknisi.pemeliharaan.store'), [
+                'nama_kegiatan' => 'Uji ' . $namaRuang,
+                'kategori'      => 'bangunan',
+                'lokasi_aset'   => $namaRuang,
+                'frekuensi'     => 'bulanan',
+                'tgl_jadwal'    => now()->toDateString(),
+            ]);
+
         $pmA = DB::table('teknisi_pemeliharaan')
-            ->where('ruang_id', $ruangId)->where('user_id', $pjA->user_id)->first();
-        $this->assertNotNull($pmA, 'Ruang PJ A harus muncul di pemeliharaan A.');
+            ->where('lokasi_aset', $namaRuang)->where('user_id', $akunA->user_id)->first();
+        $this->assertNotNull($pmA, 'Jadwal pemeliharaan harus tersimpan milik akun A.');
         $this->createdPmIds[] = (int) $pmA->id;
 
-        // PJ dipindahkan ke akun B lewat master Sarpras — tanpa aksi lain.
-        DB::table('sarpras_ruang')->where('id', $ruangId)->update([
-            'penanggung_jawab_ptk_id' => $pjB->ptk_id,
-            'updated_at'              => now(),
-        ]);
-
-        // Halaman B: ruang langsung muncul.
-        $this->withSession($this->sesi($pjB))
-            ->get(route('dashboard.teknisi.area-tugas.index'))
-            ->assertStatus(200)
-            ->assertSee($namaRuang, false);
-        $this->withSession($this->sesi($pjB))
+        $this->withSession($this->sesi($akunA))
             ->get(route('dashboard.teknisi.pemeliharaan'))
             ->assertStatus(200)
-            ->assertSee($namaRuang, false);
-
-        $this->assertDatabaseHas('teknisi_area_tugas', [
-            'ruang_id' => $ruangId,
-            'user_id'  => $pjB->user_id,
-        ]);
-        $this->assertDatabaseHas('teknisi_pemeliharaan', [
-            'ruang_id' => $ruangId,
-            'user_id'  => $pjB->user_id,
-        ]);
-
-        // Petugas di area master ikut berganti.
-        $this->assertSame($pjB->nama, DB::table('teknisi_area_master')
-            ->where('ruang_id', $ruangId)->value('petugas_nama'));
-
-        // Halaman A: ruang tidak lagi tampil (filter PJ bersifat live).
-        $this->withSession($this->sesi($pjA))
-            ->get(route('dashboard.teknisi.area-tugas.index'))
-            ->assertStatus(200)
-            ->assertDontSee($namaRuang, false);
-        $this->withSession($this->sesi($pjA))
+            ->assertSee($pmA->kode_pemeliharaan, false);
+        $this->withSession($this->sesi($akunB))
             ->get(route('dashboard.teknisi.pemeliharaan'))
             ->assertStatus(200)
-            ->assertDontSee($namaRuang, false);
-
-        // Bersihkan jadwal milik B hasil pergantian PJ.
-        $this->createdTugasIds = array_merge($this->createdTugasIds, DB::table('teknisi_area_tugas')
-            ->where('ruang_id', $ruangId)->pluck('id')->map(fn ($v) => (int) $v)->all());
-        $this->createdPmIds = array_merge($this->createdPmIds, DB::table('teknisi_pemeliharaan')
-            ->where('ruang_id', $ruangId)->pluck('id')->map(fn ($v) => (int) $v)->all());
-
-        // Jadwal lain yang ikut terbentuk saat uji dipangkas.
-        $this->createdTugasIds = array_merge($this->createdTugasIds, DB::table('teknisi_area_tugas')
-            ->whereIn('user_id', [$pjA->user_id, $pjB->user_id])
-            ->where('created_at', '>=', $awal)
-            ->where('ruang_id', '<>', $ruangId)
-            ->pluck('id')->map(fn ($v) => (int) $v)->all());
-        $this->createdPmIds = array_merge($this->createdPmIds, DB::table('teknisi_pemeliharaan')
-            ->whereIn('user_id', [$pjA->user_id, $pjB->user_id])
-            ->where('created_at', '>=', $awal)
-            ->where('ruang_id', '<>', $ruangId)
-            ->pluck('id')->map(fn ($v) => (int) $v)->all());
-        $this->createdAreaIds = array_merge($this->createdAreaIds, DB::table('teknisi_area_master')
-            ->where('created_at', '>=', $awal)->pluck('id')->map(fn ($v) => (int) $v)->all());
+            ->assertDontSee($pmA->kode_pemeliharaan, false);
     }
 
     public function test_menyimpan_area_master_tidak_menggeser_petugas_dari_pj(): void
@@ -230,11 +217,8 @@ class TeknisiAreaMasterSyncTest extends TestCase
         $this->assertNotNull($area, 'Ruang uji harus tercermin ke area master.');
         $this->createdAreaIds[] = (int) $area->id;
 
-        $this->assertSame($pjA->nama, DB::table('teknisi_area_master')
-            ->where('ruang_id', $ruangId)->value('petugas_nama'));
-
-        // Teknisi B menyunting baris area milik PJ A (mis. mengganti frekuensi),
-        // termasuk mengirim nama petugas sendiri seperti form lama.
+        // Akun lain menyunting baris area milik PJ A, termasuk mengirim nama
+        // petugas sendiri seperti form lama.
         $this->withSession($this->sesi($pjB))
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
             ->put(route('dashboard.teknisi.modul.update', ['modul' => 'area-master', 'id' => $area->id]), [
@@ -291,8 +275,7 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->assertStatus(200)
             ->assertSee($namaRuang, false);
 
-        // Koordinator hanya melihat; jadwal tidak boleh dibuat atas namanya
-        // sendiri (itu akan mengotori daftar tugas teknisi).
+        // Koordinator hanya melihat; tidak ada jadwal yang dibuat atas namanya.
         $this->assertSame(0, DB::table('teknisi_area_tugas')
             ->where('user_id', $koordinator->pengguna_id)->count());
         $this->assertSame(0, DB::table('teknisi_pemeliharaan')

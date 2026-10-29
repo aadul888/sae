@@ -194,92 +194,16 @@ abstract class TeknisiBaseController extends Controller
     }
 
     /**
-     * Id ruang (`sarpras_ruang.id`) yang penanggung jawabnya = akun login.
-     *
-     * Dibaca LANGSUNG dari master Sarpras setiap request, tanpa cache, sehingga
-     * penggantian PJ langsung menggeser ruang ke halaman teknisi yang baru
-     * tanpa perlu aksi tambahan. `null` = pengguna tidak membatasi apa pun
-     * (koordinator melihat semua ruang).
-     *
-     * @return array<int, int>|null
+     * Daftar lokasi (ruang) untuk dropdown, dari master sarana prasarana.
      */
-    protected function ruangMilikPj(array $context): ?array
+    protected function lokasiOptions(): array
     {
-        if ($this->isKoordinator($context)) {
-            return null;
-        }
-
-        $ptkId  = $context['ptk_id'] ?? null;
-        $userId = $context['user_id'] ?? null;
-
-        // PJ kadang diisi dengan `ptk_id` GTK, kadang dengan `pengguna_id`
-        // (lihat join `gtk` + `pengguna` di SarprasRuangController).
-        $kunci = array_values(array_filter([$ptkId, $userId], fn ($v) => $v !== null && $v !== ''));
-
-        if (empty($kunci) || !\App\Support\Table::exists('sarpras_ruang')) {
+        if (!\App\Support\Table::exists('sarpras_ruang')) {
             return [];
         }
 
-        return DB::table('sarpras_ruang')
-            ->whereIn('penanggung_jawab_ptk_id', $kunci)
-            ->pluck('id')
-            ->map(fn ($v) => (int) $v)
-            ->all();
-    }
-
-    /**
-     * Batasi query ke ruang yang PJ-nya akun login (koordinator: tanpa batas).
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  string  $column  Kolom berisi `sarpras_ruang.id` pada tabel target.
-     * @param  bool  $izinkanTanpaRuang  Baris lama tanpa `ruang_id` (dibuat manual
-     *         sebelum pemetaan ruang) tetap tampil bagi pemiliknya agar data
-     *         yang sudah diinput tidak hilang.
-     */
-    protected function scopeRuangPj($query, array $context, string $column, ?string $alias = null, bool $izinkanTanpaRuang = false)
-    {
-        $ids = $this->ruangMilikPj($context);
-        if ($ids === null) {
-            return $query;
-        }
-
-        $kolom = ($alias ? $alias . '.' : '') . $column;
-
-        if (empty($ids)) {
-            return $izinkanTanpaRuang
-                ? $query->whereNull($kolom)
-                : $query->whereRaw('1 = 0');
-        }
-
-        return $izinkanTanpaRuang
-            ? $query->where(fn ($q) => $q->whereIn($kolom, $ids)->orWhereNull($kolom))
-            : $query->whereIn($kolom, $ids);
-    }
-
-    /**
-     * Peta `sarpras_ruang.id` => nama penanggung jawab saat ini.
-     *
-     * Dipakai untuk menampilkan kolom PJ secara langsung, sehingga baris lama
-     * yang menyimpan nama PJ basi tetap tampil sesuai penunjukan terbaru.
-     *
-     * @param  array<int, int|string|null>  $ruangIds
-     * @return array<int, string>
-     */
-    protected function pjNamaPerRuang(array $ruangIds): array
-    {
-        $ids = array_values(array_filter(array_map('intval', $ruangIds)));
-        if (empty($ids) || !\App\Support\Table::exists('sarpras_ruang')) {
-            return [];
-        }
-
-        return DB::table('sarpras_ruang as r')
-            ->leftJoin('gtk as g', 'r.penanggung_jawab_ptk_id', '=', 'g.ptk_id')
-            ->leftJoin('pengguna as p', 'r.penanggung_jawab_ptk_id', '=', 'p.pengguna_id')
-            ->whereIn('r.id', $ids)
-            ->get(['r.id', DB::raw('COALESCE(g.nama, p.nama) as pj_nama')])
-            ->filter(fn ($row) => filled($row->pj_nama))
-            ->mapWithKeys(fn ($row) => [(int) $row->id => (string) $row->pj_nama])
-            ->all();
+        return DB::table('sarpras_ruang')->whereNotNull('nama_ruang')
+            ->orderBy('nama_ruang')->pluck('nama_ruang')->all();
     }
 
     /**
@@ -363,23 +287,6 @@ abstract class TeknisiBaseController extends Controller
         } catch (\Throwable $e) {
             // abaikan: pencatatan jejak bukan bagian kritis impor
         }
-    }
-
-    /**
-     * Daftar lokasi (ruang) untuk dropdown, dari master sarana prasarana.
-     */
-    protected function lokasiOptions(?array $context = null): array
-    {
-        if (!\App\Support\Table::exists('sarpras_ruang')) {
-            return [];
-        }
-
-        $query = DB::table('sarpras_ruang')->whereNotNull('nama_ruang');
-        if ($context !== null) {
-            $this->scopeRuangPj($query, $context, 'id');
-        }
-
-        return $query->orderBy('nama_ruang')->pluck('nama_ruang')->all();
     }
 
     /**

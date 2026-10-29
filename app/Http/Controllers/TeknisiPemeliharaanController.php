@@ -46,17 +46,11 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $frekuensi = $request->input('frekuensi');
         $perPage = (int) $request->input('per_page', 15);
 
-        // Segarkan cermin master Sarpras lebih dulu agar pergantian PJ langsung
-        // terlihat, lalu turunkan jadwal untuk ruang milik PJ yang login.
-        \App\Support\TeknisiAreaMirror::sync();
-        $this->syncPemeliharaan($context);
-
+        // Data jadwal pemeliharaan hanya milik akun yang login (admin/koordinator
+        // melihat semua). Tidak lagi diturunkan dari PJ ruang Sarpras.
         $query = TeknisiPemeliharaan::latest('tgl_jadwal')->latest('id');
         // Tabel pemeliharaan hanya punya penanda `user_id` (tanpa kolom ptk).
         $this->scopeOwned($query->getQuery(), $context, null, null);
-        // Filter live: hanya ruang yang PJ-nya akun login (master Sarpras).
-        // Jadwal lama tanpa `ruang_id` tetap tampil bagi pemiliknya.
-        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -89,17 +83,14 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         ];
 
         $ruangQuery = \Illuminate\Support\Facades\DB::table('sarpras_ruang');
-        $this->scopeRuangPj($ruangQuery, $context, 'id');
         $daftarRuang = $ruangQuery->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
         $daftarAset = \Illuminate\Support\Facades\DB::table('sarpras_aset')->select('id', 'nama_barang', 'kode_aset', 'kategori')->orderBy('nama_barang', 'asc')->get();
-        // Nama PJ ditampilkan dari master Sarpras (live), bukan nilai tersimpan.
-        $pjRuang = $this->pjNamaPerRuang($pemeliharaan->pluck('ruang_id')->all());
+
         return view('dashboard.teknisi.pemeliharaan', compact(
             'pemeliharaan',
             'stats',
             'daftarRuang',
             'daftarAset',
-            'pjRuang',
             'q',
             'kategori',
             'status',
@@ -130,19 +121,16 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $nextNum = $lastItem ? ((int) substr($lastItem->kode_pemeliharaan, -4)) + 1 : 1;
         $kodePm = $prefix . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
 
-        // PJ mengikuti penanggung jawab ruang di master Sarpras; isian bebas
-        // hanya dipakai bila lokasi bukan ruang master (mis. aset lepas).
-        $ruang = $this->pjUntukLokasi($request->lokasi_aset);
-
+        // Jadwal pemeliharaan milik akun yang login; PJ mengikuti akun tersebut.
         TeknisiPemeliharaan::create([
-            'ruang_id'          => $ruang['ruang_id'],
+            'ruang_id'          => $this->ruangIdDariLokasi($request->lokasi_aset),
             'kode_pemeliharaan' => $kodePm,
             'nama_kegiatan'    => $request->nama_kegiatan,
             'kategori'         => $request->kategori,
             'lokasi_aset'      => $request->lokasi_aset,
             'frekuensi'        => $request->frekuensi,
             'tgl_jadwal'       => $request->tgl_jadwal,
-            'penanggung_jawab' => $ruang['pj_nama'] ?: $request->penanggung_jawab,
+            'penanggung_jawab' => $context['nama'] ?: $request->penanggung_jawab,
             'biaya'            => $request->biaya ?? 0,
             'user_id'          => $context['user_id'],
             'status'           => 'terjadwal',
@@ -152,78 +140,13 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             ->with('success', "Jadwal pemeliharaan {$kodePm} berhasil didaftarkan.");
     }
 
-    /**
-     * Turunkan jadwal pemeliharaan preventif dari ruang yang PJ-nya akun login.
-     *
-     * Sumber: `teknisi_area_master` (cermin `sarpras_ruang`), disaring dengan
-     * ruang milik PJ yang dibaca live dari master. Satu ruang = satu jadwal
-     * awal (bangunan, bulanan). Idempoten lewat `ruang_id` + `user_id`.
-     */
-    private function syncPemeliharaan(array $context): void
-    {
-        $userId = $context['user_id'] ?? null;
-        if (!$userId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_pemeliharaan')) {
-            return;
-        }
-
-        $ruangIds = $this->ruangMilikPj($context);
-        // Koordinator (null) melihat seluruh jadwal apa adanya dan tidak
-        // menurunkan jadwal baru atas namanya sendiri.
-        if ($ruangIds === null || empty($ruangIds)) {
-            return;
-        }
-
-        $sumber = \Illuminate\Support\Facades\DB::table('teknisi_area_master')
-            ->whereIn('ruang_id', $ruangIds)
-            ->orderBy('nama_area')
-            ->get(['ruang_id', 'nama_area', 'gedung', 'petugas_nama']);
-
-        if ($sumber->isEmpty()) {
-            return;
-        }
-
-        $ada = \Illuminate\Support\Facades\DB::table('teknisi_pemeliharaan')
-            ->where('user_id', $userId)
-            ->where(fn ($b) => $b
-                ->whereIn('ruang_id', $sumber->pluck('ruang_id')->filter()->all())
-                ->orWhereIn('lokasi_aset', $sumber->pluck('nama_area')->all()))
-            ->get(['ruang_id', 'lokasi_aset']);
-
-        $sudahRuang = $ada->pluck('ruang_id')->filter()->flip();
-        $sudahNama  = $ada->pluck('lokasi_aset')->flip();
-
-        $prefix = 'PM-' . date('Ym') . '-';
-        $urut = (int) substr((string) TeknisiPemeliharaan::where('kode_pemeliharaan', 'like', "{$prefix}%")
-            ->orderByDesc('id')->value('kode_pemeliharaan'), -4);
-
-        foreach ($sumber as $r) {
-            if (isset($sudahRuang[$r->ruang_id]) || isset($sudahNama[$r->nama_area])) {
-                continue;
-            }
-
-            TeknisiPemeliharaan::create([
-                'ruang_id'          => $r->ruang_id,
-                'kode_pemeliharaan' => $prefix . str_pad((string) ++$urut, 4, '0', STR_PAD_LEFT),
-                'nama_kegiatan'     => 'Pemeliharaan ' . $r->nama_area,
-                'kategori'          => 'bangunan',
-                'lokasi_aset'       => $r->nama_area,
-                'frekuensi'         => 'bulanan',
-                'tgl_jadwal'        => now()->addWeek()->startOfWeek()->toDateString(),
-                // PJ jadwal = penanggung jawab ruang di master Sarpras.
-                'penanggung_jawab'  => $r->petugas_nama ?: ($context['nama'] ?? null),
-                'user_id'           => $userId,
-                'status'            => 'terjadwal',
-            ]);
-        }
-    }
-
-    /** Jumlah jadwal per status, mengikuti cakupan akun + PJ ruang. */
+    /** Jumlah jadwal per status, mengikuti cakupan akun (login). */
     private function statPemeliharaan(array $context, string $status): int
     {
         $q = TeknisiPemeliharaan::where('status', $status)->getQuery();
         $this->scopeOwned($q, $context, null, null);
 
-        return $this->scopeRuangPj($q, $context, 'ruang_id', null, true)->count();
+        return $q->count();
     }
 
     /** Unduh template Excel jadwal pemeliharaan preventif. */
@@ -302,19 +225,17 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
                 ? $row['status'] : 'terjadwal';
 
             $lokasiImport = $lokasi !== '' ? $lokasi : 'Unit';
-            $ruang = $this->pjUntukLokasi($lokasiImport);
 
             TeknisiPemeliharaan::create([
-                'ruang_id'          => $ruang['ruang_id'],
+                'ruang_id'          => $this->ruangIdDariLokasi($lokasiImport),
                 'kode_pemeliharaan' => $this->nomorPemeliharaan(),
                 'nama_kegiatan'     => $namaKegiatan !== '' ? $namaKegiatan : 'Kegiatan Pemeliharaan',
                 'kategori'          => $kategori,
                 'lokasi_aset'       => $lokasiImport,
                 'frekuensi'         => $frekuensi,
                 'tgl_jadwal'        => $this->parseTanggal($row['tgl_jadwal'] ?? null) ?: now()->toDateString(),
-                // PJ mengikuti master Sarpras bila lokasi adalah ruang; isian
-                // berkas hanya dipakai untuk lokasi non-ruang.
-                'penanggung_jawab'  => $ruang['pj_nama'] ?: (trim((string) ($row['penanggung_jawab'] ?? '')) ?: null),
+                // PJ = akun yang mengunggah (data milik akun login).
+                'penanggung_jawab'  => $context['nama'] ?: (trim((string) ($row['penanggung_jawab'] ?? '')) ?: null),
                 'biaya'             => is_numeric($row['biaya'] ?? null) ? (float) $row['biaya'] : 0,
                 'catatan_hasil'     => trim((string) ($row['catatan_hasil'] ?? '')) ?: null,
                 'status'            => $status,
@@ -345,35 +266,27 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
     }
 
     /**
-     * Ruang + nama PJ dari teks lokasi yang dipilih pengguna.
+     * Id ruang (`sarpras_ruang.id`) dari teks lokasi yang dipilih pengguna.
      *
      * Datalist menulis `Nama Ruang (Gedung)`, jadi akhiran kurung dibuang
-     * sebelum dicocokkan ke master Sarpras. PJ diambil dari master (bukan dari
-     * isian bebas) agar jadwal selalu mengikuti penanggung jawab ruang.
-     *
-     * @return array{ruang_id: ?int, pj_nama: ?string}
+     * sebelum dicocokkan ke master Sarpras. `null` bila lokasi bukan ruang
+     * master (mis. aset lepas).
      */
-    private function pjUntukLokasi(?string $lokasi): array
+    private function ruangIdDariLokasi(?string $lokasi): ?int
     {
         $teks = trim((string) $lokasi);
         if ($teks === '' || !\App\Support\Table::exists('sarpras_ruang')) {
-            return ['ruang_id' => null, 'pj_nama' => null];
+            return null;
         }
 
         $nama = preg_replace('/\s*\([^()]*\)\s*$/', '', $teks) ?: $teks;
 
-        $ruang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')
+        $id = \Illuminate\Support\Facades\DB::table('sarpras_ruang')
             ->where('nama_ruang', $nama)
             ->orWhere('nama_ruang', $teks)
-            ->first(['id']);
+            ->value('id');
 
-        if (!$ruang) {
-            return ['ruang_id' => null, 'pj_nama' => null];
-        }
-
-        $pj = $this->pjNamaPerRuang([$ruang->id]);
-
-        return ['ruang_id' => (int) $ruang->id, 'pj_nama' => $pj[$ruang->id] ?? null];
+        return $id ? (int) $id : null;
     }
 
     private function parseTanggal($value): ?string
