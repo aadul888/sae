@@ -39,7 +39,7 @@
         @foreach ($hariList as $hari)
             <div style="margin-bottom: 24px; page-break-inside: avoid;">
                 <div class="day-header-banner"
-                    style="background: #1e3a8a; color: #ffffff !important; padding: 6px 12px; font-weight: 800; font-size: var(--text-sm, 0.8125rem); border-radius: 4px 4px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                    style="background: #1e3a8a; color: #ffffff !important; padding: 6px 12px; font-weight: 800; font-size: var(--text-sm, 0.8125rem); border-radius:var(--radius-xs) 4px 0 0; display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #ffffff !important;"><i class="fas fa-calendar-day me-1"
                             style="color: #ffffff !important;"></i> HARI {{ strtoupper($hari) }}</span>
                     <span style="color: #ffffff !important;">Total JP: {{ count($slots) }} JP</span>
@@ -137,7 +137,7 @@
                 <p class="sig-name">
                     {{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
                 <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
-                    {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
+                    {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: 'â€”') }}</p>
             </div>
 
             <div class="sig-box">
@@ -148,7 +148,7 @@
                 <p class="sig-name">
                     {{ $wakaKurikulum?->nama ?? '......................................................' }}</p>
                 <p style="font-size: var(--text-xs, 0.75rem); color: #4b5563;">NIP.
-                    {{ $wakaKurikulum?->nip ?: ($wakaKurikulum?->nuptk ?: '—') }}</p>
+                    {{ $wakaKurikulum?->nip ?: ($wakaKurikulum?->nuptk ?: 'â€”') }}</p>
             </div>
         </div>
     </div>

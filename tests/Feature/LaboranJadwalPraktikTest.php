@@ -259,7 +259,9 @@ class LaboranJadwalPraktikTest extends TestCase
     public function test_lapangan_dan_lahan_mengizinkan_jadwal_bersamaan(): void
     {
         $rombel = $this->kelasReguler();
-        $tanggal = now()->addDays(3)->toDateString();
+        // Tanggal tetap (Selasa) agar tidak bergantung tanggal berjalan dan
+        // tidak jatuh pada akhir pekan (Sabtu/Minggu tanpa slot KBM).
+        $tanggal = '2026-11-03';
 
         $payload = [
             'ruang_lab_nama' => 'Lapangan Praktik Outdoor',

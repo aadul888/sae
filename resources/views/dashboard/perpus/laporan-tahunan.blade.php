@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Laporan Tahun Ajaran — Perpustakaan')
+@section('title', 'Laporan Tahun Ajaran â€” Perpustakaan')
 
 @section('content')
     <div class="dash-content-inner">
@@ -12,7 +12,7 @@
                 <div>
                     <h2 style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);margin:0;">Laporan Per Tahun Ajaran</h2>
                     <div style="font-size:var(--text-sm,0.8125rem);color:var(--text-muted);margin-top:2px;">
-                        Rekap bulanan (Juli–Juni) dengan grafik — siap cetak ukuran A3.
+                        Rekap bulanan (Juliâ€“Juni) dengan grafik â€” siap cetak ukuran A3.
                     </div>
                 </div>
             </div>
@@ -27,7 +27,7 @@
         <div class="card" style="padding:14px 16px;margin-bottom:20px;">
             <form method="GET" action="{{ route('dashboard.perpustakaan.laporan.tahunan') }}" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
                 <div>
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Tahun Ajaran</label>
+                    <label style="font-size:var(--text-xs,0.78rem);font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Tahun Ajaran</label>
                     <select name="ta" class="form-control" style="height:38px;min-width:150px;">
                         @foreach ($taOptions as $opt)
                             <option value="{{ $opt }}" {{ $ta === $opt ? 'selected' : '' }}>{{ $opt }}</option>
@@ -35,23 +35,23 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary" style="height:38px;padding:0 16px;"><i class="fas fa-filter"></i> Tampilkan</button>
-                <span style="font-size:0.82rem;color:var(--text-muted);">Periode: {{ $periodeLabel }}</span>
+                <span style="font-size:var(--text-sm,0.82rem);color:var(--text-muted);">Periode: {{ $periodeLabel }}</span>
             </form>
         </div>
 
         <div class="dash-stat-grid" style="margin-bottom:20px;">
-            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;"><i class="fas fa-book-reader"></i></div>
+            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(59,130,246,0.12);color:var(--primary,#3b82f6);"><i class="fas fa-book-reader"></i></div>
                 <div class="dash-stat-info"><div class="dash-stat-value">{{ number_format($totals['pinjam'], 0, ',', '.') }}</div><div class="dash-stat-label">Total Peminjaman</div></div></div>
-            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"><i class="fas fa-users-line"></i></div>
+            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(139,92,246,0.12);color:var(--purple,#8b5cf6);"><i class="fas fa-users-line"></i></div>
                 <div class="dash-stat-info"><div class="dash-stat-value">{{ number_format($totals['kunjungan'], 0, ',', '.') }}</div><div class="dash-stat-label">Total Kunjungan</div></div></div>
-            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(16,185,129,0.12);color:#10b981;"><i class="fas fa-user-plus"></i></div>
+            <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(16,185,129,0.12);color:var(--success,#10b981);"><i class="fas fa-user-plus"></i></div>
                 <div class="dash-stat-info"><div class="dash-stat-value">{{ number_format($totals['anggota_baru'], 0, ',', '.') }}</div><div class="dash-stat-label">Anggota Baru</div></div></div>
             <div class="dash-stat-card"><div class="dash-stat-icon" style="background:rgba(236,72,153,0.12);color:#ec4899;"><i class="fas fa-money-bill-wave"></i></div>
                 <div class="dash-stat-info"><div class="dash-stat-value">Rp {{ number_format($totals['biaya_aset'], 0, ',', '.') }}</div><div class="dash-stat-label">Nilai Aset Buku Baru</div></div></div>
         </div>
 
         <div class="card" style="padding:18px 20px;margin-bottom:20px;">
-            <h3 style="margin:0 0 14px;font-size:1rem;font-weight:800;"><i class="fas fa-chart-line" style="color:#3b82f6;"></i> Tren Bulanan</h3>
+            <h3 style="margin:0 0 14px;font-size:var(--text-md,1rem);font-weight:800;"><i class="fas fa-chart-line" style="color:var(--primary,#3b82f6);"></i> Tren Bulanan</h3>
             <div style="height:280px;"><canvas id="chartTahunanPerpus"></canvas></div>
         </div>
 

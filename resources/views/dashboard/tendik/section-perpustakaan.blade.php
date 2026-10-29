@@ -3,24 +3,24 @@
 <!-- 1. Akses Cepat Menu Perpustakaan (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Katalog & Koleksi Buku">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, var(--primary,#3b82f6));" title="Katalog & Koleksi Buku">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, var(--primary,#3b82f6));">
             <i class="fas fa-book"></i>
         </div>
         <span class="kepegawaian-quick-label">Katalog Buku</span>
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Sirkulasi & Pengembalian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, var(--success,#10b981));" title="Sirkulasi & Pengembalian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, var(--success,#10b981));">
             <i class="fas fa-exchange-alt"></i>
         </div>
         <span class="kepegawaian-quick-label">Sirkulasi</span>
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Buku Tamu Pengunjung">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, var(--warning,#f59e0b));" title="Buku Tamu Pengunjung">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, var(--warning,#f59e0b));">
             <i class="fas fa-users-line"></i>
         </div>
         <span class="kepegawaian-quick-label">Kunjungan</span>
@@ -35,8 +35,8 @@
     </a>
 
     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'perpustakaan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, var(--accent,#06b6d4));" title="Input Log Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, var(--accent,#06b6d4));">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Aktivitas Harian</span>
@@ -51,40 +51,40 @@
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.laporan.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--purple, #8b5cf6);" title="Rekap Koleksi, Sirkulasi &amp; Kunjungan">
-        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--purple, var(--purple,#8b5cf6));" title="Rekap Koleksi, Sirkulasi &amp; Kunjungan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, var(--purple,#8b5cf6));">
             <i class="fas fa-file-lines"></i>
         </div>
         <span class="kepegawaian-quick-label">Laporan Pustaka</span>
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.anggota.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #8b5cf6;" title="Registrasi Anggota &amp; Kartu Digital">
-        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--purple,#8b5cf6);" title="Registrasi Anggota &amp; Kartu Digital">
+        <div class="kepegawaian-quick-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple,#8b5cf6);">
             <i class="fas fa-id-card"></i>
         </div>
         <span class="kepegawaian-quick-label">Anggota</span>
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.import.form') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Import Katalog &amp; Scan Barcode">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent,#06b6d4);" title="Import Katalog &amp; Scan Barcode">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent,#06b6d4);">
             <i class="fas fa-file-import"></i>
         </div>
         <span class="kepegawaian-quick-label">Import &amp; Scan</span>
     </a>
 
     <a href="{{ route('dashboard.perpustakaan.laporan.tahunan') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Laporan Tahunan per Bulan (A3)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, var(--warning,#f59e0b));" title="Laporan Tahunan per Bulan (A3)">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, var(--warning,#f59e0b));">
             <i class="fas fa-chart-column"></i>
         </div>
         <span class="kepegawaian-quick-label">Laporan Tahunan</span>
     </a>
 
     <a href="{{ route('perpustakaan.index') }}" target="_blank"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Halaman Publik Perpustakaan">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, var(--success,#10b981));" title="Halaman Publik Perpustakaan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, var(--success,#10b981));">
             <i class="fas fa-globe"></i>
         </div>
         <span class="kepegawaian-quick-label">Situs Publik</span>
@@ -94,7 +94,7 @@
 <!-- 2. Quick Stats Grid Perpustakaan (Responsive) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, var(--primary,#3b82f6));">
             <i class="fas fa-book-bookmark"></i>
         </div>
         <div class="dash-stat-info">
@@ -104,7 +104,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, var(--success,#10b981));">
             <i class="fas fa-book"></i>
         </div>
         <div class="dash-stat-info">
@@ -114,7 +114,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, var(--warning,#f59e0b));">
             <i class="fas fa-users-line"></i>
         </div>
         <div class="dash-stat-info">
@@ -124,7 +124,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
+        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, var(--purple,#8b5cf6));">
             <i class="fas fa-hand-holding-hand"></i>
         </div>
         <div class="dash-stat-info">

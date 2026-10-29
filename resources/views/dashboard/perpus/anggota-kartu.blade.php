@@ -1,6 +1,6 @@
 @extends('layouts.cetak')
 
-@section('title', 'Kartu Anggota Perpustakaan — ' . $member->nama)
+@section('title', 'Kartu Anggota Perpustakaan â€” ' . $member->nama)
 
 @section('content')
     <div class="paper" style="max-width:520px;">
@@ -10,8 +10,8 @@
             <h2 style="margin:0;font-size:13pt;font-weight:800;text-transform:uppercase;">Kartu Anggota Perpustakaan</h2>
         </div>
 
-        <div style="border:2px solid #0f172a;border-radius:14px;padding:20px;display:flex;gap:22px;align-items:center;">
-            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:8px;line-height:0;">
+        <div style="border:2px solid #0f172a;border-radius:var(--radius-lg);padding:20px;display:flex;gap:22px;align-items:center;">
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:var(--radius-md);padding:8px;line-height:0;">
                 {!! $qrSvg !!}
             </div>
             <div style="flex:1;">

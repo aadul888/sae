@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Perpustakaan TA {{ $ta }} — A3</title>
+    <title>Laporan Perpustakaan TA {{ $ta }} â€” A3</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <style>
         @page { size: A3 landscape; margin: 12mm; }
         body { font-family: Arial, Helvetica, sans-serif; color: #000; margin: 0; background: #e5e7eb; }
         .sheet { background: #fff; width: 397mm; min-height: 273mm; margin: 0 auto 16px; padding: 10mm 12mm; box-sizing: border-box; }
         .no-print { position: sticky; top: 0; background: #0f172a; color: #fff; padding: 10px 16px; display: flex; gap: 10px; justify-content: flex-end; }
-        .no-print a, .no-print button { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; text-decoration: none; font-size: 13px; }
+        .no-print a, .no-print button { padding: 8px 16px; border-radius:var(--radius-md); border: none; font-weight: 700; cursor: pointer; text-decoration: none; font-size: 13px; }
         .btn-print { background: #3b82f6; color: #fff; }
         .btn-back { background: #334155; color: #fff; }
         table.data { width: 100%; border-collapse: collapse; font-size: 9pt; }
@@ -20,7 +20,7 @@
         .title { text-align: center; margin: 10px 0 14px; }
         .title h2 { margin: 0; font-size: 15pt; text-transform: uppercase; }
         .chart-wrap { display: flex; gap: 16px; margin: 14px 0; }
-        .chart-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; }
+        .chart-box { flex: 1; border: 1px solid #cbd5e1; border-radius:var(--radius-md); padding: 8px; }
         .chart-box canvas { width: 100%; height: 300px; }
         .ttd { display: flex; justify-content: space-between; margin-top: 28px; font-size: 10pt; text-align: center; }
         .ttd div { width: 30%; }

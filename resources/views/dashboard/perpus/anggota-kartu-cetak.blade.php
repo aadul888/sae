@@ -16,14 +16,14 @@
 
         <div class="pp-cardsheet" style="display:flex;flex-wrap:wrap;gap:12px;">
             @forelse ($members as $m)
-                <div style="width:340px;border:1px solid #94a3b8;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;page-break-inside:avoid;">
-                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:4px;line-height:0;">
+                <div style="width:340px;border:1px solid #94a3b8;border-radius:var(--radius-md);padding:10px;display:flex;gap:10px;align-items:center;page-break-inside:avoid;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:var(--radius-md);padding:4px;line-height:0;">
                         {!! $m->qr_svg !!}
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-family:monospace;font-size:9pt;font-weight:800;color:#be185d;">{{ $m->nomor_anggota }}</div>
                         <div style="font-size:10pt;font-weight:700;line-height:1.25;margin-top:2px;overflow:hidden;text-overflow:ellipsis;">{{ $m->nama }}</div>
-                        <div style="font-size:8pt;color:#475569;margin-top:2px;">{{ ucfirst($m->tipe) }}{{ $m->rombel_atau_unit ? ' • ' . $m->rombel_atau_unit : '' }}</div>
+                        <div style="font-size:8pt;color:#475569;margin-top:2px;">{{ ucfirst($m->tipe) }}{{ $m->rombel_atau_unit ? ' â€¢ ' . $m->rombel_atau_unit : '' }}</div>
                     </div>
                 </div>
             @empty
