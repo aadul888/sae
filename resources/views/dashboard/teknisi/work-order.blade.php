@@ -24,6 +24,16 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="{{ route('dashboard.teknisi.work-order.cetak') }}" target="_blank" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Cetak Laporan Work Order">
+                    <i class="fas fa-print"></i>
+                </a>
+                <button type="button" class="btn btn-outline" data-modal-open="modalImportWO"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Import Excel">
+                    <i class="fas fa-file-excel text-success"></i>
+                </button>
                 <button type="button" class="btn btn-primary" id="btnBuatWorkOrder"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Buat Work Order Baru">
@@ -302,7 +312,7 @@
                                             <i class="fas fa-edit" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                         </button>
                                         <form action="{{ route('dashboard.teknisi.work-order.destroy', $row->id) }}"
-                                            method="POST" style="display: inline;" data-confirm="delete">
+                                            method="POST" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-wo"
@@ -426,6 +436,7 @@
                                             [{{ $ast->kode_aset }}]</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="ruang_id" id="ruangIdWO" value="">
                             </div>
                             <div>
                                 <label class="form-label"
@@ -537,10 +548,18 @@
                 </form>
             </div>
         </div>
-    @endsection
+        @include('dashboard.teknisi._partials.modal-import', [
+        'modalId' => 'modalImportWO',
+        'title' => 'Import Work Order',
+        'templateRoute' => route('dashboard.teknisi.work-order.template'),
+        'actionRoute' => route('dashboard.teknisi.work-order.import'),
+        'hint' => 'Satu baris = satu work order. Data hasil impor menjadi milik akun Anda.',
+    ])
+@endsection
 
-    @push('scripts')
-        <script
-            src="{{ asset('js/teknisi-work-order.js') }}?v={{ file_exists(public_path('js/teknisi-work-order.js')) ? filemtime(public_path('js/teknisi-work-order.js')) : time() }}">
-        </script>
-    @endpush
+@push('scripts')
+    <script
+        src="{{ asset('js/teknisi-work-order.js') }}?v={{ file_exists(public_path('js/teknisi-work-order.js')) ? filemtime(public_path('js/teknisi-work-order.js')) : time() }}">
+    </script>
+    @include('dashboard.teknisi._partials.scripts')
+@endpush

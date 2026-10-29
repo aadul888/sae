@@ -281,4 +281,23 @@ class TeknisiModulLapanganTest extends TestCase
             ->get('/dashboard/teknisi/modul/modul-ngawur')
             ->assertStatus(404);
     }
+
+    /**
+     * Regresi: work order & pemeliharaan memakai kolom kepemilikan yang benar
+     * (`teknisi_ptk_id` / hanya `user_id`), bukan `petugas_ptk_id` yang tidak ada.
+     */
+    public function test_work_order_dan_pemeliharaan_terbuka_untuk_teknisi_lapangan(): void
+    {
+        $this->withSession($this->teknisiSession(0))
+            ->get(route('dashboard.teknisi.work-order'))
+            ->assertStatus(200);
+
+        $this->withSession($this->teknisiSession(0))
+            ->get(route('dashboard.teknisi.pemeliharaan'))
+            ->assertStatus(200);
+
+        $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.work-order.cetak', ['periode' => 'tahun', 'tahun' => date('Y')]))
+            ->assertStatus(200);
+    }
 }

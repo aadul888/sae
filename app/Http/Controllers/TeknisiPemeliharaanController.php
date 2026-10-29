@@ -20,7 +20,8 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $perPage = (int) $request->input('per_page', 15);
 
         $query = TeknisiPemeliharaan::latest('tgl_jadwal')->latest('id');
-        $this->scopeOwned($query->getQuery(), $context);
+        // Tabel pemeliharaan hanya punya penanda `user_id` (tanpa kolom ptk).
+        $this->scopeOwned($query->getQuery(), $context, null, null);
 
         if (!empty($q)) {
             $query->where(function ($b) use ($q) {
@@ -46,10 +47,10 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         $pemeliharaan = $query->paginate($perPage)->withQueryString();
 
         $stats = [
-            'terjadwal' => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'terjadwal')->getQuery(), $context)->count(),
-            'proses'    => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'proses')->getQuery(), $context)->count(),
-            'selesai'   => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'selesai')->getQuery(), $context)->count(),
-            'tertunda'  => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'tertunda')->getQuery(), $context)->count(),
+            'terjadwal' => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'terjadwal')->getQuery(), $context, null, null)->count(),
+            'proses'    => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'proses')->getQuery(), $context, null, null)->count(),
+            'selesai'   => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'selesai')->getQuery(), $context, null, null)->count(),
+            'tertunda'  => $this->scopeOwned(TeknisiPemeliharaan::where('status', 'tertunda')->getQuery(), $context, null, null)->count(),
         ];
 
         $daftarRuang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
@@ -108,6 +109,9 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
 
     public function updateStatus(Request $request, $id)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $request->validate([
             'status'         => 'required|in:terjadwal,proses,selesai,tertunda',
             'tgl_realisasi'  => 'nullable|date',
@@ -116,6 +120,9 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         ]);
 
         $pm = TeknisiPemeliharaan::findOrFail($id);
+        if (!$this->ownsRow($pm, $context, null)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah jadwal milik sendiri.', 403);
+        }
         $pm->status = $request->status;
         $pm->catatan_hasil = $request->catatan_hasil;
         if ($request->has('biaya')) {
@@ -132,9 +139,15 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             ->with('success', "Realisasi pemeliharaan {$pm->kode_pemeliharaan} berhasil diperbarui.");
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        [$res, $context] = $this->boot($request);
+        if ($res) return $res;
+
         $pm = TeknisiPemeliharaan::findOrFail($id);
+        if (!$this->ownsRow($pm, $context, null)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus jadwal milik sendiri.', 403);
+        }
         $pm->delete();
 
         return redirect()->route('dashboard.teknisi.pemeliharaan')

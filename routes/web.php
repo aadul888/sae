@@ -1015,6 +1015,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/work-order', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'store'])->name('work-order.store')->middleware('permission:menu_teknisi|menu_teknisi_wo,create');
         Route::post('/work-order/{id}/status', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'updateStatus'])->name('work-order.status')->middleware('permission:menu_teknisi|menu_teknisi_wo,update');
         Route::delete('/work-order/{id}', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'destroy'])->name('work-order.destroy')->middleware('permission:menu_teknisi|menu_teknisi_wo,delete');
+        Route::get('/work-order/template', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'template'])->name('work-order.template')->middleware('permission:menu_teknisi|menu_teknisi_wo,read');
+        Route::post('/work-order/import', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'import'])->name('work-order.import')->middleware('permission:menu_teknisi|menu_teknisi_wo,create');
+        Route::get('/work-order/cetak', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'cetak'])->name('work-order.cetak')->middleware('permission:menu_teknisi|menu_teknisi_wo,read');
 
         // Pemeliharaan Preventif (Maintenance Routine)
         Route::get('/pemeliharaan', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'index'])->name('pemeliharaan')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,read');
