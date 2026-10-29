@@ -318,9 +318,22 @@ class LaboranJadwalLaporanService
     {
         $context = LaboranScope::resolve();
 
-        $mode  = strtolower((string) $request->query('mode', 'mingguan'));
-        if (!in_array($mode, ['mingguan', 'bulanan', 'semester'], true)) {
-            $mode = 'mingguan';
+        // Cakupan waktu jadwal: mingguan | bulanan | semester.
+        //
+        // Parameter kanonik `mode_jadwal`. Parameter `mode` lama (dipakai tautan
+        // & pengujian sebelum penyatuan dokumen) tetap dihormati agar tidak
+        // merusak tautan yang sudah beredar: bila `mode` berisi nama cakupan,
+        // nilai itu dipakai sebagai cakupan dan VERSI jatuh ke `lengkap`.
+        $rentang = strtolower((string) $request->query('mode_jadwal', ''));
+        if (!in_array($rentang, ['mingguan', 'bulanan', 'semester'], true)) {
+            $lama = strtolower((string) $request->query('mode', ''));
+            $rentang = in_array($lama, ['mingguan', 'bulanan', 'semester'], true) ? $lama : 'mingguan';
+        }
+
+        // VERSI penyajian: ringkasan (rekap saja) | lengkap (rekap + rincian).
+        $versi = strtolower((string) $request->query('mode', 'lengkap'));
+        if (!in_array($versi, LaboranDokumenService::MODE, true)) {
+            $versi = 'lengkap';
         }
 
         $ptkId = trim((string) $request->query('ptk_id', ''));
@@ -329,11 +342,11 @@ class LaboranJadwalLaporanService
         $semester = (string) $request->query('semester', date('n') >= 7 ? '1' : '2');
 
         // Rentang: minggu berjalan (Senin–Sabtu), satu bulan penuh, atau satu semester.
-        if ($mode === 'bulanan') {
+        if ($rentang === 'bulanan') {
             $start = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
             $end   = $start->copy()->endOfMonth();
             $label = 'Bulan ' . $start->translatedFormat('F Y');
-        } elseif ($mode === 'semester') {
+        } elseif ($rentang === 'semester') {
             $curYear = $tahun ?: (int) date('Y');
             $tahunAjaran = $request->query('tahun_ajaran', $semester === '1'
                 ? "{$curYear}/" . ($curYear + 1)
@@ -385,7 +398,7 @@ class LaboranJadwalLaporanService
         $perTanggal = $items->groupBy('tanggal')->sortKeys()->toArray();
         // Semester juga dikelompokkan per bulan agar cetak terstruktur
         $perBulan = [];
-        if ($mode === 'semester') {
+        if ($rentang === 'semester') {
             $perBulan = $items
                 ->groupBy(fn($i) => Carbon::parse($i->tanggal)->format('Y-m'))
                 ->sortKeys()
@@ -408,17 +421,51 @@ class LaboranJadwalLaporanService
             ->orderBy('nama')
             ->get(['ptk_id', 'nama', 'nip']);
 
-        // Pejabat penanda tangan terpusat (Kepala Sekolah, Kepala Lab, KAPROG).
-        $pejabat = $this->dokumen->pejabat($context);
-        $petugas = $pejabat['petugas'];
-
+        // Pejabat, sekolah, dan pencatatan cetak disiapkan terpusat oleh
+        // `LaboranDokumenService::dokumen()` di bawah.
         $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
         if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
             $orientasi = 'portrait';
         }
 
-        return [
-            'mode'        => $mode,
+        // Rekap untuk mode ringkasan — dikelompokkan per guru & per lokasi,
+        // agar dokumen tetap berguna untuk supervisi tanpa daftar rinci.
+        $rekapGuru = $items
+            ->groupBy(fn ($i) => $i->guru_nama ?: 'Tanpa Guru')
+            ->map(fn ($g, $nama) => (object) [
+                'nama'  => $nama,
+                'sesi'  => $g->count(),
+                'menit' => (int) $g->sum(fn ($i) => $this->durasiMenit($i->jam_mulai, $i->jam_selesai)),
+                'hari'  => $g->pluck('tanggal')->unique()->count(),
+            ])
+            ->sortByDesc('sesi')
+            ->values();
+
+        $rekapLokasi = $items
+            ->groupBy(fn ($i) => $i->ruang_lab_nama ?: 'Tanpa Lokasi')
+            ->map(fn ($g, $nama) => (object) [
+                'nama'  => $nama,
+                'sesi'  => $g->count(),
+                'menit' => (int) $g->sum(fn ($i) => $this->durasiMenit($i->jam_mulai, $i->jam_selesai)),
+                'hari'  => $g->pluck('tanggal')->unique()->count(),
+            ])
+            ->sortByDesc('sesi')
+            ->values();
+
+        $rekapStatus = $items
+            ->groupBy('status')
+            ->map(fn ($g, $status) => (object) [
+                'status' => $status,
+                'label'  => LaboranJadwalService::STATUS_LIST[$status] ?? ucfirst((string) $status),
+                'jumlah' => $g->count(),
+            ])
+            ->sortByDesc('jumlah')
+            ->values();
+
+        $judul = 'Jadwal Praktik per Guru — ' . $label;
+
+        return array_merge([
+            'rentang'     => $rentang,
             'label'       => $label,
             'start'       => $start->toDateString(),
             'end'         => $end->toDateString(),
@@ -436,29 +483,25 @@ class LaboranJadwalLaporanService
             'hariAktif'   => $items->pluck('tanggal')->unique()->count(),
             'lokasiUnik'  => $items->pluck('ruang_lab_nama')->unique()->count(),
             'daftarGuru'  => $daftarGuru,
-            'sekolah'     => Sekolah::first(),
-            'sekolahMeta' => SekolahMeta::first(),
-            'kepalaSekolah' => $pejabat['kepalaSekolah'],
-            'kepalaLab'     => $pejabat['kepalaLab'],
-            'kaprog'        => $pejabat['kaprog'],
-            'orientasi'   => $orientasi,
-            'petugas'     => $petugas,
+            'rekapGuru'   => $rekapGuru,
+            'rekapLokasi' => $rekapLokasi,
+            'rekapStatus' => $rekapStatus,
             'statusLabels' => LaboranJadwalService::STATUS_LIST,
             'jenisLabels'  => LaboranJadwalService::JENIS_LOKASI,
-            'logCetak'     => $this->dokumen->catatCetak('jadwal-per-guru', $context, [
-                'mode'           => 'lengkap',
-                'orientasi'      => $orientasi,
-                'judul'          => 'Jadwal Praktik per Guru — ' . $label,
-                'periode_label'  => $label,
-                'periode_dari'   => $start->toDateString(),
-                'periode_sampai' => $end->toDateString(),
-                'jumlah_baris'   => $items->count(),
-                'filter'         => [
-                    'mode'   => $mode,
-                    'ptk_id' => $ptkId,
-                ],
-            ]),
-        ];
+            'backUrl'      => route('dashboard.laboran.jadwal.index'),
+        ], $this->dokumen->dokumen('jadwal-per-guru', $context, [
+            'mode'           => $versi,
+            'orientasi'      => $orientasi,
+            'judul'          => $judul,
+            'periode_label'  => $label,
+            'periode_dari'   => $start->toDateString(),
+            'periode_sampai' => $end->toDateString(),
+            'jumlah_baris'   => $items->count(),
+            'filter'         => [
+                'rentang' => $rentang,
+                'ptk_id'  => $ptkId,
+            ],
+        ]));
     }
 
     /**

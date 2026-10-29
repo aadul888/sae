@@ -127,7 +127,7 @@
                         </button>
                         <div id="dropdownMenuCetakJadwal"
                             style="display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.25); min-width: 220px; z-index: 1000; overflow: hidden;">
-                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode' => 'mingguan', 'auto' => 1]) }}" target="_blank"
+                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode_jadwal' => 'mingguan']) }}" target="_blank"
                                 style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm); border-bottom: 1px solid var(--border-color);">
                                 <i class="fas fa-calendar-week text-primary" style="width: 16px;"></i>
                                 <div>
@@ -135,7 +135,7 @@
                                     <div style="font-size: var(--text-2xs); color: var(--text-muted);">Sesi berulang per minggu</div>
                                 </div>
                             </a>
-                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode' => 'semester', 'auto' => 1]) }}" target="_blank"
+                            <a href="{{ route('dashboard.laboran.jadwal.cetak', ['mode_jadwal' => 'semester']) }}" target="_blank"
                                 style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--text-color); text-decoration: none; font-size: var(--text-sm); border-bottom: 1px solid var(--border-color);">
                                 <i class="fas fa-calendar-range text-success" style="width: 16px;"></i>
                                 <div>

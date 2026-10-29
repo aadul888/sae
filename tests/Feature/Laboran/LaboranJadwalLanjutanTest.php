@@ -193,8 +193,32 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     }
 
     // =========================================================================
-    // JADWAL PER GURU (kini diakses langsung via cetak dari halaman jadwal)
+    // JADWAL PER GURU (dokumen cetak A4 — disamakan dengan dokumen Laboran lain)
     // =========================================================================
+
+    /**
+     * Sisipkan satu sesi praktik pada tanggal tertentu (dibersihkan `tearDown`).
+     */
+    private function sisipkanSesi(string $tanggal, array $override = []): void
+    {
+        $rombel = $this->kelasReguler();
+
+        DB::table('laboran_jadwal_penggunaan')->insert(array_merge([
+            'ruang_lab_nama' => 'Lab Cetak Uji',
+            'jenis_lokasi'   => 'lab',
+            'ptk_id'         => DB::table('gtk')->value('ptk_id'),
+            'rombel_id'      => $rombel->rombongan_belajar_id,
+            'mata_pelajaran' => 'Mapel Cetak Uji',
+            'tanggal'        => $tanggal,
+            'pemberlakuan'   => 'sekali',
+            'jam_mulai'      => '07:00',
+            'jam_selesai'    => '09:00',
+            'status'         => 'dijadwalkan',
+            'jurusan_id'     => self::JUR_ATPH,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ], $override));
+    }
 
     public function test_cetak_jadwal_per_guru_menghasilkan_dokumen(): void
     {
@@ -216,6 +240,108 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
 
         $res->assertStatus(200);
         $res->assertSee('Semester', false);
+    }
+
+    /**
+     * Versi RINGKASAN memuat rekap saja (tanpa tabel rincian), versi LENGKAP
+     * menambahkan rincian sesi. Keduanya berbagi kop, bar alat, dan blok
+     * tanda tangan 3 pihak seperti dokumen Laboran lainnya.
+     */
+    public function test_cetak_jadwal_membedakan_versi_ringkasan_dan_lengkap(): void
+    {
+        $tanggal = '2027-03-01'; // Senin
+        $this->sisipkanSesi($tanggal);
+
+        $session = $this->adminSession();
+        $url = fn (string $mode) => route('dashboard.laboran.jadwal.cetak', [
+            'mode_jadwal' => 'mingguan',
+            'mode'        => $mode,
+            'tanggal'     => $tanggal,
+        ]);
+
+        $ringkas = $this->withSession($session)->get($url('ringkasan'));
+        $ringkas->assertStatus(200);
+
+        // Rekap selalu tampil → dokumen tetap berguna untuk supervisi.
+        $ringkas->assertSee('Rekapitulasi Beban Mengajar per Guru', false);
+        $ringkas->assertSee('Rekapitulasi Penggunaan Lokasi Praktik', false);
+
+        // Rincian sesi TIDAK boleh muncul pada versi ringkasan.
+        $ringkas->assertDontSee('Rincian Sesi', false);
+        $ringkas->assertSee('memuat rekap beban mengajar', false);
+
+        $lengkap = $this->withSession($session)->get($url('lengkap'));
+        $lengkap->assertStatus(200);
+
+        $lengkap->assertSee('Rekapitulasi Beban Mengajar per Guru', false);
+        $lengkap->assertSee('Rincian Sesi per Hari', false);
+        $lengkap->assertSee('Mapel Cetak Uji', false);
+        $lengkap->assertDontSee('memuat rekap beban mengajar', false);
+    }
+
+    /**
+     * `mode_jadwal` mengatur cakupan waktu (mingguan|bulanan|semester),
+     * `mode` mengatur versi (ringkasan|lengkap). Jangan tertukar.
+     */
+    public function test_cetak_jadwal_mode_jadwal_semester_mengelompokkan_per_bulan(): void
+    {
+        $this->sisipkanSesi('2026-11-16');
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.cetak', [
+                'mode_jadwal' => 'semester',
+                'mode'        => 'lengkap',
+                'semester'    => '1',
+                'tahun'       => 2026,
+            ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('Semester Ganjil', false);
+        $res->assertSee('Rincian Sesi per Bulan', false);
+        $res->assertSee('November 2026', false);
+    }
+
+    /**
+     * Tautan lama (`mode=mingguan|bulanan|semester`) tetap berfungsi:
+     * nilainya dibaca sebagai cakupan waktu, versi jatuh ke `lengkap`.
+     */
+    public function test_cetak_jadwal_tautan_lama_tetap_berfungsi(): void
+    {
+        $this->sisipkanSesi('2027-03-01');
+
+        $res = $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.cetak', [
+                'mode' => 'mingguan', 'tanggal' => '2027-03-01',
+            ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('Minggu 01 Mar 2027', false);
+        $res->assertSee('Rincian Sesi per Hari', false);
+    }
+
+    /** Setiap halaman cetak jadwal tercatat di riwayat cetak (audit supervisi). */
+    public function test_cetak_jadwal_tercatat_di_riwayat_cetak(): void
+    {
+        $sebelum = DB::table('laboran_log_cetak')
+            ->where('jenis_dokumen', 'jadwal-per-guru')->count();
+
+        $this->withSession($this->adminSession())
+            ->get(route('dashboard.laboran.jadwal.cetak', [
+                'mode_jadwal' => 'bulanan',
+                'mode'        => 'ringkasan',
+                'bulan'       => 6,
+                'tahun'       => 2027,
+            ]))->assertStatus(200);
+
+        $baru = DB::table('laboran_log_cetak')
+            ->where('jenis_dokumen', 'jadwal-per-guru')
+            ->orderByDesc('id')->first();
+
+        $this->assertSame($sebelum + 1, DB::table('laboran_log_cetak')
+            ->where('jenis_dokumen', 'jadwal-per-guru')->count());
+        $this->assertSame('ringkasan', $baru->mode);
+        $this->assertSame('Bulan Juni 2027', $baru->periode_label);
+        $this->assertSame('Jadwal Praktik per Guru — Bulan Juni 2027', $baru->judul_dokumen);
     }
 
     public function test_tab_pemberlakuan_mengubah_mode_aktif(): void
