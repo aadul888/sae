@@ -66,7 +66,7 @@
     <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
         <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                <tr style="border-bottom: 1px solid var(--border-color); ">
                     <th style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                         No</th>
                     <th style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">

@@ -374,7 +374,7 @@
                             style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem); margin-bottom: 0;">
                             <thead>
                                 <tr
-                                    style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                                    style="border-bottom: 1px solid var(--border-color);">
                                     <th style="padding: 6px 10px; color: var(--text-muted);">Mata Pelajaran</th>
                                     <th style="padding: 6px 10px; color: var(--text-muted);">Rombel</th>
                                     <th style="padding: 6px 10px; color: var(--text-muted); text-align: center;">Jam/Mg

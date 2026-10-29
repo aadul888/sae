@@ -176,7 +176,7 @@
                 {{-- TABEL PENUGASAN TUGAS TAMBAHAN --}}
                 <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 No</th>
@@ -344,7 +344,7 @@
                 {{-- TABEL PENGGUNA STANDAR (ADMIN, GURU, TENDIK, SISWA) --}}
                 <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             @php
                                 $cols = [['nama', 'Nama'], ['username', 'Username']];
                                 if ($activeTab === 'peserta_didik') {

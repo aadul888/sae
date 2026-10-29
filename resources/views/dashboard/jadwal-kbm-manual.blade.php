@@ -745,7 +745,7 @@
                         <table class="table matrix-table">
                             <thead>
                                 <tr
-                                    style="background: rgba(255,255,255,0.03); border-bottom: 1.5px solid var(--border-color);">
+                                    style="border-bottom: 1.5px solid var(--border-color);">
                                     <th class="sticky-jp-col"
                                         style="padding: 10px 8px; width: 88px; min-width: 88px; text-align: center; font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: var(--text-xs, 0.75rem);">
                                         Jam / JP

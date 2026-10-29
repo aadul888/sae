@@ -54,7 +54,7 @@
 <div style="overflow-x:auto; border:1px solid var(--border-color); border-radius:var(--radius-md, 8px);">
     <table style="width:100%; border-collapse:collapse; font-size:var(--text-sm);">
         <thead>
-            <tr style="background:var(--table-header-bg, #f8fafc);">
+            <tr>
                 <th style="padding:8px 10px; width:36px; text-align:center; border-bottom:1px solid var(--border-color);">No</th>
                 <th style="padding:8px 10px; text-align:left; border-bottom:1px solid var(--border-color);">Indikator Tupoksi &amp; Bukti Fisik</th>
                 <th style="padding:8px 10px; width:90px; text-align:center; border-bottom:1px solid var(--border-color);">Skor</th>

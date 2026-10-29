@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Hak Akses & Peran — SAE')
+@section('title', 'Hak Akses & Peran â€” SAE')
 @section('dash_title', 'Hak Akses & Peran')
 
 @section('content')
@@ -117,7 +117,7 @@
                 <table class="table table-hover table-hak-akses" id="hakAksesTable"
                     style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             <th class="module-th sortable-th" data-col="no"
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center; cursor: pointer;">
                                 No <span class="sort-icon">&#9650;&#9660;</span>
@@ -325,16 +325,16 @@
                                 <i class="fas fa-search"
                                     style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); pointer-events: none;"></i>
                                 <input type="text" id="filterModuleOptions" placeholder="Ketik untuk mencari modul..."
-                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: var(--text-main, #0f172a); color: #f8fafc; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;"
+                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: var(--input-bg); color: var(--text-main); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;"
                                     autocomplete="off">
                             </div>
                             <select name="permission_key" id="selectAddModule" required
-                                style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
+                                style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: var(--card-bg) !important; color: var(--text-main) !important; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
                                 <option value="" style="background-color: #1e293b; color: var(--text-muted, #94a3b8);">-- Pilih Modul
                                     untuk Ditambahkan --</option>
                                 @forelse ($availableModulesToAdd as $groupName => $groupModules)
-                                    <optgroup label="📂 {{ $groupName }}"
-                                        style="color: var(--text-muted, #94a3b8); background-color: var(--text-main, #0f172a); font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
+                                    <optgroup label="ðŸ“‚ {{ $groupName }}"
+                                        style="color: var(--text-muted, #94a3b8); background-color: var(--dropdown-bg); font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
                                         @foreach ($groupModules as $mVal)
                                             <option value="{{ $mVal['key'] }}"
                                                 style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">
@@ -345,10 +345,10 @@
                                     <option disabled style="background-color: #1e293b; color: var(--text-muted, #94a3b8);">Semua modul sistem
                                         sudah aktif untuk peran ini</option>
                                 @endforelse
-                                <optgroup label="─────────────────────"
-                                    style="color: #334155; background-color: var(--text-main, #0f172a);"></optgroup>
+                                <optgroup label="â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+                                    style="color: var(--text-muted); background-color: var(--dropdown-bg);"></optgroup>
                                 <option value="__NEW_CUSTOM_MODULE__"
-                                    style="background-color: var(--text-main, #0f172a); color: #38bdf8; font-weight: 600; padding: 8px 12px;">
+                                    style="background-color: var(--dropdown-bg); color: var(--primary); font-weight: 600; padding: 8px 12px;">
                                     + Daftarkan Modul Baru / Mendatang...</option>
                             </select>
 

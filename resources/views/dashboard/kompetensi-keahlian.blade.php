@@ -106,7 +106,7 @@
         <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
             <table class="table table-pd table-keahlian" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
                         @php
                             $cols = [
                                 ['kode', 'Kode Jurusan'],
@@ -312,7 +312,7 @@
                 <table class="table"
                     style="min-width: 620px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Rombel</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Tingkat</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Wali Kelas</th>

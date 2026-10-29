@@ -166,7 +166,7 @@
             <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                        <tr style="border-bottom: 1px solid var(--border-color); ">
                             @if ($canDelete)
                                 <th style="width: 34px; text-align: center; padding: 12px 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted);">
                                     <input type="checkbox" id="chkAllBhp" title="Pilih semua" style="cursor: pointer; accent-color: var(--primary);">

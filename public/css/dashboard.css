@@ -2494,13 +2494,10 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
    Tabel data (datatable) — tema seragam, mengikuti .sae-table global.
    Berlaku untuk semua tabel .table-pd agar header/baris ikut dark & light mode.
    -------------------------------------------------------------------------- */
-.table-pd {
-    width: 100%;
-    border-collapse: collapse;
-    color: var(--text-main);
-}
-
-.table-pd thead th {
+/* Header tabel di dalam datatable selalu mengikuti tema (dark & light). */
+.table-pd thead th,
+.table-responsive-stack thead th,
+.datatable-card-wrapper thead th {
     background: var(--table-header-bg, var(--bg-card-hover));
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
@@ -2510,17 +2507,16 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     white-space: nowrap;
 }
 
-.table-pd tbody td {
-    border-bottom: 1px solid var(--border-color);
+.table-pd tbody td,
+.table-responsive-stack tbody td,
+.datatable-card-wrapper tbody td {
     color: var(--text-main);
     vertical-align: middle;
 }
 
-.table-pd tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.table-pd tbody tr:hover {
+.table-pd tbody tr:hover,
+.table-responsive-stack tbody tr:hover,
+.datatable-card-wrapper tbody tr:hover {
     background: var(--bg-hover);
 }
 

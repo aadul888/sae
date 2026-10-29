@@ -191,7 +191,7 @@
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr
-                            style="background-color: var(--table-header-bg, #f8fafc); border-bottom: 1px solid var(--border-color);">
+                            style="border-bottom: 1px solid var(--border-color);">
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px;">
                                 No</th>
@@ -489,7 +489,7 @@
                 <form id="formUpdateWO" action="" method="POST" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
-                        <div style="background: var(--table-header-bg, #f8fafc); padding: 12px; border-radius: var(--radius-md, 8px);">
+                        <div style="background: var(--bg-card-hover); padding: 12px; border-radius: var(--radius-md, 8px);">
                             <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Nomor WO:</div>
                             <div id="updateNomorWO"
                                 style="font-weight: 700; color: var(--text-heading); font-size: var(--text-md, 1rem); font-family: monospace;">

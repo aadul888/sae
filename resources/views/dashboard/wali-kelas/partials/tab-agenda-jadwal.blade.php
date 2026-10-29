@@ -138,7 +138,7 @@
             style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr
-                    style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color); text-align: left;">
+                    style="border-bottom: 1px solid var(--border-color); text-align: left;">
                     <th class="th-jam"
                         style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
                         <i class="fas fa-clock text-primary me-1"></i> Jam KBM

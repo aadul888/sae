@@ -23,7 +23,11 @@
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
+    --info: #0ea5e9;
+    --pink: #ec4899;
     --purple: #8b5cf6;
+    --primary-color: #3b82f6;
+    --surface-2: rgba(28, 39, 64, 0.9);
     --input-bg: rgba(0, 0, 0, 0.3);
     --navbar-bg: rgba(11, 15, 25, 0.85);
     --nav-bg: rgba(11, 15, 25, 0.85);
@@ -59,7 +63,11 @@
     --success: #059669;
     --warning: #d97706;
     --danger: #dc2626;
+    --info: #0284c7;
+    --pink: #db2777;
     --purple: #7c3aed;
+    --primary-color: #2563eb;
+    --surface-2: #f1f5f9;
     --input-bg: rgba(241, 245, 249, 0.9);
     --navbar-bg: rgba(255, 255, 255, 0.85);
     --nav-bg: rgba(255, 255, 255, 0.85);

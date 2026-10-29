@@ -137,7 +137,7 @@
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr
-                            style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            style="border-bottom: 1px solid var(--border-color);">
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>

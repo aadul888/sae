@@ -179,7 +179,7 @@
         <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
                         @php
                             $cols = [
                                 ['nama', 'Nama Rombel'],
@@ -352,7 +352,7 @@
                 <table class="table"
                     style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
                                 No</th>
@@ -378,7 +378,7 @@
                 <table class="table"
                     style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: var(--text-sm, 0.8125rem);">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
                                 No</th>

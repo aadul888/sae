@@ -47,7 +47,7 @@
         </x-slot:filter>
 
         <thead>
-            <tr style="background-color: var(--table-header-bg, #f8fafc); border-bottom: 1px solid var(--border-color);">
+            <tr style="border-bottom: 1px solid var(--border-color);">
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">No</th>
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tanggal & Lokasi</th>
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Area & Tahap</th>
