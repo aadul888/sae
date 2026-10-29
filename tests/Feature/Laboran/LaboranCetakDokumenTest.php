@@ -573,14 +573,15 @@ class LaboranCetakDokumenTest extends LaboranTestCase
         ]));
 
         $res->assertStatus(200);
-        $res->assertSee('Tanda tangan Kaprog', false);
 
-        // Bentuknya DROPDOWN (select), bukan deretan tombol.
+        // Pemilih berupa DROPDOWN (select.select-cetak), bukan deretan tombol.
+        // Label teks dihilangkan agar bar alat padat — opsi cukup menerangkan diri.
         $this->assertMatchesRegularExpression(
             '/<select[^>]*select-cetak[^>]*>/',
             $res->getContent(),
             'Pemilih Kaprog harus berupa dropdown (select.select-cetak).'
         );
+        $this->assertStringNotContainsString('btn-orientasi', $res->getContent());
 
         // Nilai di luar cakupan → jatuh kembali ke jurusan pertama milik petugas.
         $asing = $this->withSession($session)->get(route('dashboard.laboran.jurnal.cetak', [

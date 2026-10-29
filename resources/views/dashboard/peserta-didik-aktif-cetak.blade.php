@@ -20,16 +20,7 @@
             <i class="fas fa-arrow-left"></i> Tutup
         </a>
 
-        <div class="orientation-switch">
-            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'landscape']) }}"
-                class="btn-orientasi {{ $orientasi === 'landscape' ? 'active' : '' }}" title="Kertas A4 Landscape">
-                <i class="fas fa-file-invoice"></i> Landscape
-            </a>
-            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
-                class="btn-orientasi {{ $orientasi === 'portrait' ? 'active' : '' }}" title="Kertas A4 Portrait">
-                <i class="fas fa-file"></i> Portrait
-            </a>
-        </div>
+        @include('dashboard.laboran.partials.pilih-orientasi')
 
         <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak / Simpan PDF

@@ -26,8 +26,6 @@
 
 @if (count($opsiKaprog) > 1)
     <div class="doc-toolbar-group">
-        <span class="doc-toolbar-label">Tanda tangan Kaprog:</span>
-
         <select class="select-cetak" onchange="if(this.value){window.location.href=this.value;}"
             title="Pilih jurusan penanda tangan Kepala Program Keahlian">
             @foreach ($opsiKaprog as $opsi)

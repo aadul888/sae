@@ -162,17 +162,25 @@
             <i class="fas fa-arrow-left"></i>
         </button>
 
-        @foreach (['ringkasan' => 'Ringkasan', 'lengkap' => 'Lengkap'] as $mk => $ml)
-            <a href="{{ $cetakUrl($params(['mode' => $mk])) }}"
-                class="btn-action {{ $mode === $mk ? 'btn-print' : 'btn-back' }}">{{ $ml }}</a>
-        @endforeach
+        <div class="doc-toolbar-group">
+            <select class="select-cetak" onchange="if(this.value){window.location.href=this.value;}"
+                title="Pilih versi laporan">
+                <option value="{{ $cetakUrl($params(['mode' => 'ringkasan'])) }}"
+                    {{ $mode === 'ringkasan' ? 'selected' : '' }}>Ringkasan</option>
+                <option value="{{ $cetakUrl($params(['mode' => 'lengkap'])) }}"
+                    {{ $mode === 'lengkap' ? 'selected' : '' }}>Lengkap</option>
+            </select>
+        </div>
 
-        @foreach (['portrait' => 'Tegak', 'landscape' => 'Mendatar'] as $ok => $ol)
-            <a href="{{ $cetakUrl($params(['orientasi' => $ok])) }}"
-                class="btn-action {{ $orientasi === $ok ? 'btn-print' : 'btn-back' }}" title="Orientasi {{ $ol }}">
-                <i class="fas fa-{{ $ok === 'portrait' ? '-file' : '-table-columns' }}"></i>
-            </a>
-        @endforeach
+        <div class="doc-toolbar-group">
+            <select class="select-cetak" onchange="if(this.value){window.location.href=this.value;}"
+                title="Pilih orientasi kertas A4">
+                <option value="{{ $cetakUrl($params(['orientasi' => 'portrait'])) }}"
+                    {{ $orientasi === 'portrait' ? 'selected' : '' }}>Tegak (Portrait)</option>
+                <option value="{{ $cetakUrl($params(['orientasi' => 'landscape'])) }}"
+                    {{ $orientasi === 'landscape' ? 'selected' : '' }}>Mendatar (Landscape)</option>
+            </select>
+        </div>
 
         @if ($mode === 'lengkap' && $totalHalaman > 1)
             <a href="{{ $cetakUrl($params(['hal' => max(1, $halamanAktif - 1)])) }}"

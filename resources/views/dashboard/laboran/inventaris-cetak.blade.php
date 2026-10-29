@@ -107,17 +107,13 @@
             <i class="fas fa-arrow-left"></i> Tutup
         </button>
         <div class="doc-toolbar-group">
-            <a href="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
-                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'active' : '' }}"
-                title="Versi ringkas: rekap per ruang/lokasi">
-                <i class="fas fa-list"></i> Ringkasan
-            </a>
-            <a href="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
-                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'active' : '' }}"
-                title="Versi lengkap: rincian seluruh item alat">
-                <i class="fas fa-table-list"></i> Lengkap
-            </a>
-            <span class="doc-toolbar-sep"></span>
+            <select class="select-cetak" onchange="if(this.value){window.location.href=this.value;}"
+                title="Pilih versi laporan">
+                <option value="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
+                    {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'selected' : '' }}>Ringkasan</option>
+                <option value="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
+                    {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'selected' : '' }}>Lengkap</option>
+            </select>
         </div>
 
         @include('dashboard.laboran.partials.pilih-kaprog')

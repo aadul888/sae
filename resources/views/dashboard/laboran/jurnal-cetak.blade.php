@@ -30,31 +30,7 @@
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
 
-        <div class="doc-toolbar-group">
-            <span class="doc-toolbar-label">Laporan:</span>
-            <a href="{{ request()->fullUrlWithQuery(['mode' => 'ringkasan']) }}"
-                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'ringkasan' ? 'active' : '' }}"
-                title="Versi ringkas: hanya rekapitulasi indikator tupoksi">
-                <i class="fas fa-list"></i> Ringkasan
-            </a>
-            <a href="{{ request()->fullUrlWithQuery(['mode' => 'lengkap']) }}"
-                class="btn-orientasi {{ ($mode ?? 'ringkasan') === 'lengkap' ? 'active' : '' }}"
-                title="Versi lengkap: rekapitulasi + rincian tiap kegiatan">
-                <i class="fas fa-table-list"></i> Lengkap
-            </a>
-            <span class="doc-toolbar-sep"></span>
-        </div>
-
-        <div class="orientation-switch">
-            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
-                class="btn-orientasi {{ $orientasi === 'portrait' ? 'active' : '' }}" title="Kertas A4 Portrait">
-                <i class="fas fa-file"></i> Portrait
-            </a>
-            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'landscape']) }}"
-                class="btn-orientasi {{ $orientasi === 'landscape' ? 'active' : '' }}" title="Kertas A4 Landscape">
-                <i class="fas fa-file-invoice"></i> Landscape
-            </a>
-        </div>
+        @include('dashboard.laboran.partials.pilih-tampilan')
 
         @include('dashboard.laboran.partials.pilih-kaprog')
 

@@ -57,37 +57,7 @@
                 <i class="fas fa-arrow-left"></i> Kembali
             </a>
 
-            <div class="doc-toolbar-group">
-                @php
-                    $modeAktif = $mode ?? 'ringkasan';
-                    $modeDasar = request()->except(['mode', 'orientasi']);
-                @endphp
-
-                <span class="doc-toolbar-label">Laporan:</span>
-                <a href="{{ request()->url() }}?{{ http_build_query(array_merge($modeDasar, ['mode' => 'ringkasan', 'orientasi' => $orientasi ?? 'portrait'])) }}"
-                    class="btn-orientasi {{ $modeAktif === 'ringkasan' ? 'active' : '' }}"
-                    title="Tampilkan versi ringkas (rekap saja)">
-                    <i class="fas fa-list"></i> Ringkasan
-                </a>
-                <a href="{{ request()->url() }}?{{ http_build_query(array_merge($modeDasar, ['mode' => 'lengkap', 'orientasi' => $orientasi ?? 'portrait'])) }}"
-                    class="btn-orientasi {{ $modeAktif === 'lengkap' ? 'active' : '' }}"
-                    title="Tampilkan versi lengkap (rincian per baris)">
-                    <i class="fas fa-table-list"></i> Lengkap
-                </a>
-
-                <span class="doc-toolbar-sep"></span>
-
-                <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
-                    class="btn-orientasi {{ ($orientasi ?? 'portrait') === 'portrait' ? 'active' : '' }}"
-                    title="Kertas A4 Portrait">
-                    <i class="fas fa-file"></i> Portrait
-                </a>
-                <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'landscape']) }}"
-                    class="btn-orientasi {{ ($orientasi ?? 'portrait') === 'landscape' ? 'active' : '' }}"
-                    title="Kertas A4 Landscape">
-                    <i class="fas fa-file-invoice"></i> Landscape
-                </a>
-            </div>
+            @include('dashboard.laboran.partials.pilih-tampilan')
 
             @include('dashboard.laboran.partials.pilih-kaprog')
 
