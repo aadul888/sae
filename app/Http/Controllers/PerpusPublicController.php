@@ -233,14 +233,16 @@ class PerpusPublicController extends Controller
 
     /**
      * Verifikasi password anggota umum (tanpa akun SAE).
-     * Bila password belum pernah diatur, password awal = NISN/NIP.
+     *
+     * Bila password belum pernah diatur, password awal = NISN/NIP, atau nomor
+     * anggota bila NISN/NIP kosong (anggota umum boleh tanpa identitas sekolah).
      */
     private function cekPasswordUmum(PerpusAnggota $member, string $password): bool
     {
         $stored = (string) ($member->password ?? '');
 
         if ($stored === '') {
-            $awal = trim((string) $member->nisn_nip);
+            $awal = trim((string) ($member->nisn_nip ?: $member->nomor_anggota));
 
             return $awal !== '' && $password === $awal;
         }

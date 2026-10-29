@@ -102,8 +102,18 @@ class PerpusAnggotaController extends Controller
             return back()->withInput()->with('error', 'NISN/NIP tersebut sudah terdaftar sebagai anggota.');
         }
 
+        // Nomor anggota dibuat lebih dahulu karena dipakai sebagai password awal
+        // bila pustakawan tidak mengisinya dan NISN/NIP juga kosong. Tanpa ini
+        // anggota umum tanpa nomor identitas tidak akan pernah bisa masuk.
+        $nomorAnggota = PerpusAnggota::generateNomor('umum');
+
+        $passwordAwal = trim((string) $request->input('password', ''));
+        if ($passwordAwal === '') {
+            $passwordAwal = $nisnNip ?: $nomorAnggota;
+        }
+
         PerpusAnggota::create([
-            'nomor_anggota' => PerpusAnggota::generateNomor('umum'),
+            'nomor_anggota' => $nomorAnggota,
             'token_kartu' => Str::random(32),
             'tipe' => 'umum',
             'siswa_id' => null,
@@ -114,12 +124,13 @@ class PerpusAnggotaController extends Controller
             'jenis_kelamin' => $request->jenis_kelamin,
             'telepon' => $request->telepon,
             'email' => $request->email,
-            'password' => $request->password ? Hash::make($request->password) : null,
+            'password' => Hash::make($passwordAwal),
             'is_active' => true,
             'tgl_daftar' => now()->toDateString(),
         ]);
 
-        return redirect()->route('dashboard.perpustakaan.anggota.index')->with('success', 'Anggota umum berhasil didaftarkan.');
+        return redirect()->route('dashboard.perpustakaan.anggota.index')
+            ->with('success', "Anggota umum berhasil didaftarkan (No. {$nomorAnggota}). Password awal: {$passwordAwal} — minta anggota segera mengubahnya di halaman profil.");
     }
 
     /**

@@ -200,9 +200,17 @@
                                     <small style="color:var(--text-muted);">(opsional)</small></label>
                                 <input type="email" name="email" class="form-control" value="{{ old('email') }}">
                             </div>
-                            <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);">
-                                <i class="fas fa-circle-info"></i>
-                                Anggota umum masuk memakai nomor anggota / NISN-NIP dan password yang diatur pustakawan.
+                            <div>
+                                <label style="font-size:var(--text-sm,0.8rem);font-weight:700;">Password Awal
+                                    <small style="color:var(--text-muted);">(opsional)</small></label>
+                                <input type="text" name="password" class="form-control"
+                                    placeholder="Kosongkan = NISN/NIP (atau nomor anggota)" autocomplete="off">
+                                <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);margin-top:5px;">
+                                    <i class="fas fa-circle-info"></i>
+                                    Anggota umum tidak punya akun SAE, jadi password-nya dikelola di sini.
+                                    Bila dikosongkan, password awal = NISN/NIP &mdash; atau nomor anggota bila
+                                    NISN/NIP kosong. Anggota dapat mengubahnya sendiri lewat halaman profil.
+                                </div>
                             </div>
                         </div>
                     </div>
