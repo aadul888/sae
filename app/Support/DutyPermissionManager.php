@@ -190,7 +190,7 @@ final class DutyPermissionManager
             }
         }
 
-        $teknisiAll = ['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_rfid', 'menu_inventaris'];
+        $teknisiAll = ['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_rfid', 'menu_inventaris', 'menu_sarpras_ruang'];
         foreach (['TEKNISI_IT', 'KEPALA_TAS'] as $kode) {
             $ref = RefTugasTambahan::where('kode', $kode)->first();
             if ($ref) {

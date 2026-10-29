@@ -232,4 +232,78 @@ class SarprasRuangDanAsetTest extends TestCase
         $res->assertHeader('content-disposition');
         $this->assertStringContainsString('Format_Import_Aset_Sarpras.xlsx', $res->headers->get('content-disposition'));
     }
+
+    /**
+     * Teknisi: boleh lihat + ubah Ruang & Gedung dan buka Inventaris & Aset,
+     * tetapi TIDAK boleh menambah atau menghapus ruang.
+     */
+    public function test_teknisi_boleh_lihat_dan_ubah_ruang_tanpa_tambah_hapus(): void
+    {
+        $teknisi = DB::table('ptk_tugas_tambahan as p')
+            ->join('ref_tugas_tambahan as r', 'p.tugas_tambahan_id', '=', 'r.id')
+            ->where('p.is_active', true)
+            ->where('r.kode', 'like', 'TEKNISI%')
+            ->whereNotNull('p.user_id')
+            ->select('p.user_id', 'p.ptk_id')
+            ->first();
+
+        if (!$teknisi) {
+            $this->markTestSkipped('Tidak ada akun teknisi aktif untuk diuji.');
+        }
+
+        $session = ['user' => [
+            'id'           => $teknisi->user_id,
+            'pengguna_id'  => $teknisi->user_id,
+            'name'         => 'Teknisi Uji',
+            'nama'         => 'Teknisi Uji',
+            'username'     => 'teknisi_ruang_uji',
+            'role'         => 'tendik',
+            'peran_id_str' => 'Tenaga Administrasi',
+            'ptk_id'       => $teknisi->ptk_id,
+        ]];
+
+        // Baca: boleh
+        $this->withSession($session)
+            ->get(route('dashboard.sarpras.ruang.index'))
+            ->assertStatus(200);
+
+        // Inventaris & Aset: boleh dibuka
+        $this->withSession($session)
+            ->get(route('dashboard.sarpras.aset.index'))
+            ->assertStatus(200);
+
+        // Ubah: boleh
+        $id = DB::table('sarpras_ruang')->insertGetId([
+            'kode_ruang' => 'TEST-R-TEKNISI-01',
+            'nama_ruang' => 'Ruang Uji Teknisi',
+            'gedung'     => 'Gedung Uji',
+            'lantai'     => '1',
+            'kondisi'    => 'baik',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $this->createdRuang[] = (int) $id;
+
+        $this->withSession($session)->putJson(route('dashboard.sarpras.ruang.update', $id), [
+            'kode_ruang' => 'TEST-R-TEKNISI-01',
+            'nama_ruang' => 'Ruang Uji Teknisi',
+            'gedung'     => 'Gedung Uji',
+            'lantai'     => '1',
+            'kondisi'    => 'rusak_ringan',
+        ])->assertStatus(200);
+
+        $this->assertSame('rusak_ringan', DB::table('sarpras_ruang')->where('id', $id)->value('kondisi'));
+
+        // Tambah: ditolak
+        $this->withSession($session)->postJson(route('dashboard.sarpras.ruang.store'), [
+            'kode_ruang' => 'TEST-R-TEKNISI-02',
+            'nama_ruang' => 'Ruang Baru Teknisi',
+            'kondisi'    => 'baik',
+        ])->assertStatus(403);
+
+        // Hapus: ditolak
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.sarpras.ruang.destroy', $id))
+            ->assertStatus(403);
+    }
 }

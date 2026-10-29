@@ -28,6 +28,14 @@
                     <span class="nav-label">Ruang &amp; Gedung</span>
                 </a>
             @endif
+            @if ($can('menu_inventaris') || $can('menu_sarpras'))
+                <a href="{{ route('dashboard.sarpras.aset.index') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.aset*') ? 'active' : '' }}"
+                    title="Inventaris &amp; aset sarpras sekolah">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
+                    <span class="nav-label">Inventaris &amp; Aset</span>
+                </a>
+            @endif
             @if ($can('menu_teknisi'))
                 <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.area-tugas*') ? 'active' : '' }}">

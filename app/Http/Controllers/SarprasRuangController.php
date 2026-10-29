@@ -19,9 +19,13 @@ class SarprasRuangController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
+        // Teknisi mendapat menu_sarpras_ruang (baca + ubah); tambah/hapus ruang
+        // tetap milik pengelola Sarpras (menu_sarpras).
         $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras_ruang', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete');
 
         $search = trim($request->query('q', ''));

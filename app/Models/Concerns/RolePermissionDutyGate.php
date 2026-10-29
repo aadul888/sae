@@ -131,7 +131,7 @@ trait RolePermissionDutyGate
                     $allowedKeys[$k] = true;
                 }
             } elseif (in_array($kode, ['TEKNISI_IT', 'TEKNISI_GEDUNG', 'TEKNISI_LAPANGAN'], true)) {
-                foreach (['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_inventaris'] as $k) {
+                foreach (['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_inventaris', 'menu_sarpras_ruang'] as $k) {
                     $allowedKeys[$k] = true;
                 }
             } elseif ($kode === 'PETUGAS_KEAMANAN' || $kode === 'SATPAM') {

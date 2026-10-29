@@ -174,6 +174,7 @@ final class DutyPermissionDefaults
                 'menu_teknisi_pemeliharaan',
                 'menu_rfid',
                 'menu_inventaris',
+                'menu_sarpras_ruang',
             ],
             'LABORAN' => [
                 'menu_laboran',

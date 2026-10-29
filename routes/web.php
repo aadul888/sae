@@ -676,9 +676,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::prefix('sarpras')->name('sarpras.')->group(function () {
         // Ruang & Gedung
         Route::get('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'index'])->name('ruang.index')->middleware('permission:menu_sarpras|menu_sarpras_ruang,read');
-        Route::post('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'store'])->name('ruang.store')->middleware('permission:menu_sarpras|menu_sarpras_ruang,create');
+        // Tambah & hapus ruang tetap khusus pengelola Sarpras (menu_sarpras);
+        // teknisi hanya membaca dan memperbarui kondisi ruang.
+        Route::post('/ruang', [\App\Http\Controllers\SarprasRuangController::class, 'store'])->name('ruang.store')->middleware('permission:menu_sarpras,create');
         Route::put('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'update'])->name('ruang.update')->middleware('permission:menu_sarpras|menu_sarpras_ruang,update');
-        Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras|menu_sarpras_ruang,delete');
+        Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras,delete');
 
         // Inventaris & Aset
         Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,read');
