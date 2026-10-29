@@ -33,23 +33,7 @@
             </div>
         </div>
 
-        <!-- 2. Tab Navigasi Sub-Modul Perpustakaan Baku SAE -->
-        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-            <div class="periode-nav-desktop">
-                <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
-                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
-                    <i class="fas fa-book"></i> Katalog Koleksi Buku
-                </a>
-                <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
-                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
-                    <i class="fas fa-exchange-alt"></i> Sirkulasi Peminjaman
-                </a>
-                <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
-                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
-                    <i class="fas fa-user-check"></i> Buku Kunjungan
-                </a>
-            </div>
-        </div>
+        @include('dashboard.perpus.partials.tab-nav')
 
         <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">

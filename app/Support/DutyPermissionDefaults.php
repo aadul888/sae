@@ -198,6 +198,8 @@ final class DutyPermissionDefaults
                 'menu_perpustakaan_koleksi',
                 'menu_perpustakaan_sirkulasi',
                 'menu_perpustakaan_kunjungan',
+                'menu_perpustakaan_laporan',
+                'menu_perpustakaan_anggota',
                 'menu_inventaris',
             ],
             'SATPAM' => [

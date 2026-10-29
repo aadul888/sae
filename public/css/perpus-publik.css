@@ -1,0 +1,42 @@
+/* ==========================================================================
+   Perpustakaan — Gaya Tambahan Khusus Cetak Kartu Anggota
+   --------------------------------------------------------------------------
+   Halaman publik & portal anggota memakai `layouts.app` + SAE Design System
+   (tokens.css, components.css, sae.css) agar tema konsisten dengan halaman
+   lain. Berkas ini HANYA menyiapkan tata letak cetak kartu anggota massal.
+   ========================================================================== */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
+
+.pp-cardsheet {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6, 12px);
+    justify-content: flex-start;
+}
+
+.pp-printcard {
+    width: 320px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-7, 14px);
+    display: flex;
+    gap: var(--space-6, 12px);
+    align-items: center;
+    background: #fff;
+    page-break-inside: avoid;
+}
+
+.pp-printcard .qr {
+    width: 96px;
+    height: 96px;
+}
+
+.pp-printcard .qr svg {
+    width: 96px;
+    height: 96px;
+}

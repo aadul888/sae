@@ -97,6 +97,10 @@ class PerpusKoleksiController extends Controller
             'jumlah_eksemplar' => $eksemplar,
             'eksemplar_tersedia' => $eksemplar,
             'lokasi_rak' => $request->lokasi_rak,
+            'barcode' => $request->barcode ?: null,
+            'tgl_pembelian' => $request->tgl_pembelian ?: null,
+            'harga_perolehan' => $request->harga_perolehan ?: 0,
+            'sumber_dana' => $request->sumber_dana ?: null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -133,6 +137,10 @@ class PerpusKoleksiController extends Controller
             'jumlah_eksemplar' => $eksemplarBaru,
             'eksemplar_tersedia' => $tersediaBaru,
             'lokasi_rak' => $request->lokasi_rak,
+            'barcode' => $request->barcode ?: null,
+            'tgl_pembelian' => $request->tgl_pembelian ?: null,
+            'harga_perolehan' => $request->harga_perolehan ?: 0,
+            'sumber_dana' => $request->sumber_dana ?: null,
             'updated_at' => now(),
         ]);
 

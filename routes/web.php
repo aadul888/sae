@@ -105,6 +105,31 @@ Route::get('/verifikasi-pelajar/{nisn}', [\App\Http\Controllers\KartuPelajarCont
 Route::get('/kartu-pelajar/preview/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'preview'])->name('kartu-pelajar.preview');
 Route::get('/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->where('nisn', '[0-9]{10}')->name('kartu-pelajar.verify-legacy');
 
+// Perpustakaan Publik — Katalog, Gerbang Anggota & Area Member
+Route::prefix('perpustakaan')->name('perpustakaan.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PerpusPublicController::class, 'index'])->name('index');
+    Route::get('/login', [\App\Http\Controllers\PerpusPublicController::class, 'loginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\PerpusPublicController::class, 'login'])->name('login.post');
+    Route::post('/aktifkan', [\App\Http\Controllers\PerpusPublicController::class, 'aktifkan'])->name('aktifkan');
+    Route::post('/logout', [\App\Http\Controllers\PerpusPublicController::class, 'logout'])->name('logout');
+    Route::get('/verifikasi/{token}', [\App\Http\Controllers\PerpusPublicController::class, 'verifikasi'])->name('verifikasi');
+
+    // Area member (butuh sesi anggota; dijaga di controller).
+    Route::get('/portal', [\App\Http\Controllers\PerpusPublicController::class, 'portal'])->name('portal');
+    Route::get('/katalog', [\App\Http\Controllers\PerpusPublicController::class, 'katalog'])->name('katalog');
+    Route::get('/buku/{id}', [\App\Http\Controllers\PerpusPublicController::class, 'detail'])->name('buku.detail');
+    Route::post('/buku/{id}/reservasi', [\App\Http\Controllers\PerpusPublicController::class, 'reservasi'])->name('buku.reservasi');
+    Route::post('/buku/{id}/ulasan', [\App\Http\Controllers\PerpusPublicController::class, 'simpanUlasan'])->name('buku.ulasan');
+    Route::post('/reservasi/{id}/batal', [\App\Http\Controllers\PerpusPublicController::class, 'batalkanReservasi'])->name('reservasi.batal');
+    Route::get('/notifikasi', [\App\Http\Controllers\PerpusPublicController::class, 'notifikasi'])->name('notifikasi');
+    Route::post('/notifikasi/baca', [\App\Http\Controllers\PerpusPublicController::class, 'tandaiNotifikasi'])->name('notifikasi.baca');
+    Route::post('/notifikasi/{id}/baca', [\App\Http\Controllers\PerpusPublicController::class, 'tandaiNotifikasi'])->name('notifikasi.baca.satu');
+    Route::get('/profil', [\App\Http\Controllers\PerpusPublicController::class, 'profil'])->name('profil');
+    Route::post('/profil', [\App\Http\Controllers\PerpusPublicController::class, 'updateProfil'])->name('profil.update');
+    Route::post('/profil/password', [\App\Http\Controllers\PerpusPublicController::class, 'updatePassword'])->name('profil.password');
+    Route::post('/checkin', [\App\Http\Controllers\PerpusPublicController::class, 'checkin'])->name('checkin');
+});
+
 // SAE Forms — Formulir & Survei Publik
 Route::get('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic'])->name('formulir.public');
 Route::post('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'submitPublic'])->name('formulir.submit');
@@ -958,6 +983,27 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/kunjungan', [\App\Http\Controllers\PerpusKunjunganController::class, 'index'])->name('kunjungan')->middleware('permission:menu_perpustakaan|menu_perpustakaan_kunjungan,read');
         Route::post('/kunjungan', [\App\Http\Controllers\PerpusKunjunganController::class, 'store'])->name('kunjungan.store')->middleware('permission:menu_perpustakaan|menu_perpustakaan_kunjungan,create');
         Route::delete('/kunjungan/{id}', [\App\Http\Controllers\PerpusKunjunganController::class, 'destroy'])->name('kunjungan.destroy')->middleware('permission:menu_perpustakaan|menu_perpustakaan_kunjungan,delete');
+
+        // Laporan & Rekapitulasi Perpustakaan
+        Route::get('/laporan', [\App\Http\Controllers\PerpusLaporanController::class, 'index'])->name('laporan.index')->middleware('permission:menu_perpustakaan|menu_perpustakaan_laporan,read');
+        Route::get('/laporan/cetak', [\App\Http\Controllers\PerpusLaporanController::class, 'cetak'])->name('laporan.cetak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_laporan,read');
+        Route::get('/laporan/tahun-ajaran', [\App\Http\Controllers\PerpusLaporanController::class, 'tahunAjaran'])->name('laporan.tahunan')->middleware('permission:menu_perpustakaan|menu_perpustakaan_laporan,read');
+        Route::get('/laporan/tahun-ajaran/cetak', [\App\Http\Controllers\PerpusLaporanController::class, 'cetakTahunAjaran'])->name('laporan.tahunan.cetak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_laporan,read');
+
+        // Registrasi Anggota + ID Card Digital
+        Route::get('/anggota', [\App\Http\Controllers\PerpusAnggotaController::class, 'index'])->name('anggota.index')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
+        Route::post('/anggota', [\App\Http\Controllers\PerpusAnggotaController::class, 'store'])->name('anggota.store')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,create');
+        Route::put('/anggota/{id}', [\App\Http\Controllers\PerpusAnggotaController::class, 'update'])->name('anggota.update')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,update');
+        Route::post('/anggota/{id}/toggle', [\App\Http\Controllers\PerpusAnggotaController::class, 'toggle'])->name('anggota.toggle')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,update');
+        Route::delete('/anggota/{id}', [\App\Http\Controllers\PerpusAnggotaController::class, 'destroy'])->name('anggota.destroy')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,delete');
+        Route::get('/anggota/kartu/cetak', [\App\Http\Controllers\PerpusAnggotaController::class, 'cetakKartu'])->name('anggota.kartu.cetak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
+        Route::get('/anggota/{id}/kartu', [\App\Http\Controllers\PerpusAnggotaController::class, 'kartu'])->name('anggota.kartu')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
+
+        // Import Katalog & Input Cepat Scan Barcode
+        Route::get('/import', [\App\Http\Controllers\PerpusImportController::class, 'form'])->name('import.form')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,read');
+        Route::get('/import/template', [\App\Http\Controllers\PerpusImportController::class, 'template'])->name('import.template')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,read');
+        Route::post('/import', [\App\Http\Controllers\PerpusImportController::class, 'import'])->name('import.process')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
+        Route::post('/koleksi-scan', [\App\Http\Controllers\PerpusImportController::class, 'storeScan'])->name('koleksi.scan')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
     });
 
     // 7. Teknisi & Maintenance (Work Order & Pemeliharaan Preventif)

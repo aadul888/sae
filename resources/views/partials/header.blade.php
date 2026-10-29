@@ -64,6 +64,22 @@
                         </div>
                     </div>
                 </a>
+
+                <!-- 2. Perpustakaan Digital (Kiosk Katalog Publik) -->
+                <a href="{{ route('perpustakaan.index') }}" class="mega-item-card" target="_blank">
+                    <div class="mega-item-icon" style="background: rgba(236, 72, 153, 0.14); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.25);">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="mega-item-text">
+                        <div class="mega-item-title">
+                            <span>Perpustakaan Digital</span>
+                            <span class="badge-live-dot">KIOSK</span>
+                        </div>
+                        <div class="mega-item-desc">
+                            Katalog publik &amp; gerbang anggota — pindai kartu digital untuk masuk, lengkap dengan statistik live.
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
+use App\Models\PerpusAnggota;
 
 class PerpusSirkulasiController extends Controller
 {
@@ -111,12 +112,23 @@ class PerpusSirkulasiController extends Controller
 
         $peminjamId = $request->peminjam_id ?: ('ID-' . strtoupper(substr(md5($request->peminjam_nama), 0, 8)));
 
-        DB::transaction(function () use ($request, $buku, $kodeTransaksi, $petugasPtkId, $peminjamId) {
-            DB::table('perpus_sirkulasi')->insert([
+        // Identitas kanonik: tautkan ke perpus_anggota agar riwayat anggota akurat.
+        $anggota = \App\Services\PerpustakaanIdentitasService::findAnggota($request->peminjam_id)
+            ?: (PerpusAnggota::where('nama', $request->peminjam_nama)
+                ->when($request->peminjam_tipe, fn($q) => $q->where('tipe', $request->peminjam_tipe === 'guru' ? 'gtk' : $request->peminjam_tipe))
+                ->limit(2)->get()->count() === 1
+                ? PerpusAnggota::where('nama', $request->peminjam_nama)->first()
+                : null);
+
+        $anggotaId = $anggota?->id;
+
+        DB::transaction(function () use ($request, $buku, $kodeTransaksi, $petugasPtkId, $peminjamId, $anggotaId) {
+            DB::table('perpus_sirkulasi')->insert(array_filter([
                 'kode_transaksi' => $kodeTransaksi,
                 'buku_id' => $request->buku_id,
                 'peminjam_tipe' => $request->peminjam_tipe,
                 'peminjam_id' => $peminjamId,
+                'anggota_id' => \App\Services\PerpustakaanIdentitasService::hasAnggotaColumn('perpus_sirkulasi') ? $anggotaId : null,
                 'peminjam_nama' => $request->peminjam_nama,
                 'tgl_pinjam' => $request->tgl_pinjam,
                 'tgl_jatuh_tempo' => $request->tgl_jatuh_tempo,
@@ -127,11 +139,26 @@ class PerpusSirkulasiController extends Controller
                 'catatan' => $request->catatan,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+            ], fn($v) => $v !== null));
 
             // Kurangi stok tersedia
             DB::table('perpus_koleksi_buku')->where('id', $buku->id)->decrement('eksemplar_tersedia', 1);
         });
+
+        // Poin literasi + notifikasi untuk anggota terdaftar.
+        if ($anggota) {
+            try {
+                \App\Services\PerpustakaanMemberService::tambahPoin($anggota, 'pinjam');
+                \App\Services\PerpustakaanMemberService::notifikasi(
+                    $anggota,
+                    'Peminjaman berhasil dicatat',
+                    'Buku "' . $buku->judul . '" dipinjam. Jatuh tempo ' . \Carbon\Carbon::parse($request->tgl_jatuh_tempo)->translatedFormat('d F Y') . '.',
+                    ['kategori' => 'sirkulasi', 'tipe' => 'info', 'icon' => 'fa-solid fa-book-open']
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal memproses poin/notifikasi pinjam: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('dashboard.perpustakaan.sirkulasi')->with('success', 'Peminjaman buku berhasil dicatat (' . $kodeTransaksi . ').');
     }
@@ -166,6 +193,79 @@ class PerpusSirkulasiController extends Controller
             // Tambah kembali stok tersedia buku
             DB::table('perpus_koleksi_buku')->where('id', $sirkulasi->buku_id)->increment('eksemplar_tersedia', 1);
         });
+
+        // Poin literasi + notifikasi untuk anggota terdaftar.
+        try {
+            $anggota = null;
+
+            if (!empty($sirkulasi->anggota_id)) {
+                $anggota = PerpusAnggota::find($sirkulasi->anggota_id);
+            }
+            if (!$anggota) {
+                $anggota = \App\Services\PerpustakaanIdentitasService::findAnggota($sirkulasi->peminjam_id ?? null);
+            }
+            if (!$anggota && !empty($sirkulasi->peminjam_nama)) {
+                $kandidat = PerpusAnggota::where('nama', $sirkulasi->peminjam_nama)->limit(2)->get();
+                $anggota = $kandidat->count() === 1 ? $kandidat->first() : null;
+            }
+
+            if ($anggota) {
+                // Tautkan bila belum tertaut (transaksi lama).
+                if (empty($sirkulasi->anggota_id)
+                    && \App\Services\PerpustakaanIdentitasService::hasAnggotaColumn('perpus_sirkulasi')) {
+                    DB::table('perpus_sirkulasi')->where('id', $sirkulasi->id)->update(['anggota_id' => $anggota->id]);
+                }
+
+                $aktivitas = $denda > 0 ? 'kembali_telat' : 'kembali_tepat';
+                \App\Services\PerpustakaanMemberService::tambahPoin($anggota, $aktivitas);
+
+                $judulBuku = DB::table('perpus_koleksi_buku')->where('id', $sirkulasi->buku_id)->value('judul') ?: 'buku';
+                $pesan = $denda > 0
+                    ? 'Buku "' . $judulBuku . '" dikembalikan dengan keterlambatan. Denda Rp ' . number_format($denda, 0, ',', '.') . '.'
+                    : 'Buku "' . $judulBuku . '" dikembalikan tepat waktu. Terima kasih!';
+
+                \App\Services\PerpustakaanMemberService::notifikasi(
+                    $anggota,
+                    $denda > 0 ? 'Buku dikembalikan (terlambat)' : 'Buku dikembalikan tepat waktu',
+                    $pesan,
+                    [
+                        'kategori' => 'sirkulasi',
+                        'tipe'     => $denda > 0 ? 'warning' : 'success',
+                        'icon'     => 'fa-solid fa-circle-check',
+                    ]
+                );
+
+                // Reservasi yang menunggu untuk buku ini -> beri tahu bahwa stok tersedia.
+                if (\App\Support\Table::exists('perpus_reservasi')) {
+                    $siap = DB::table('perpus_reservasi')
+                        ->where('buku_id', $sirkulasi->buku_id)
+                        ->where('status', 'menunggu')
+                        ->orderBy('antrean')
+                        ->first();
+
+                    if ($siap) {
+                        DB::table('perpus_reservasi')->where('id', $siap->id)->update([
+                            'status'      => 'siap',
+                            'notified_at' => now(),
+                            'expires_at'  => now()->addDays(2),
+                            'updated_at'  => now(),
+                        ]);
+
+                        $pemesan = PerpusAnggota::find($siap->anggota_id);
+                        if ($pemesan) {
+                            \App\Services\PerpustakaanMemberService::notifikasi(
+                                $pemesan,
+                                'Buku pesanan Anda tersedia',
+                                'Buku "' . $judulBuku . '" sudah tersedia. Ambil dalam 2 hari kerja.',
+                                ['kategori' => 'reservasi', 'tipe' => 'success', 'icon' => 'fa-solid fa-book-open']
+                            );
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal memproses poin/notifikasi pengembalian: ' . $e->getMessage());
+        }
 
         $msg = 'Buku berhasil dikembalikan.';
         if ($denda > 0) {

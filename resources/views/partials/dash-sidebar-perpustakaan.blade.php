@@ -37,9 +37,34 @@
                                 <span class="nav-label">Buku Kunjungan Harian</span>
                             </a>
                         @endif
+                        @if ($can('menu_perpustakaan_laporan') || $can('menu_perpustakaan'))
+                            <a href="{{ route('dashboard.perpustakaan.laporan.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.laporan*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-file-lines"></i></span>
+                                <span class="nav-label">Laporan &amp; Rekapitulasi</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_perpustakaan_anggota') || $can('menu_perpustakaan'))
+                            <a href="{{ route('dashboard.perpustakaan.anggota.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.anggota*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-id-card"></i></span>
+                                <span class="nav-label">Anggota &amp; Kartu Digital</span>
+                            </a>
+                        @endif
+                        <a href="{{ route('dashboard.perpustakaan.import.form') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.import*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i
+                                    class="fas fa-fw fa-file-import"></i></span>
+                            <span class="nav-label">Import &amp; Scan Barcode</span>
+                        </a>
+                        <a href="{{ route('perpustakaan.index') }}" target="_blank"
+                            class="dash-nav-nested-link">
+                            <span class="nav-icon nested-icon"><i
+                                    class="fas fa-fw fa-globe"></i></span>
+                            <span class="nav-label">Halaman Publik Perpus</span>
+                        </a>
                     </div>
-                    <span class="nav-label">Buku Kunjungan Harian</span>
-                    </a>
                 </div>
-        </div>
-@endif
+            @endif

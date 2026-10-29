@@ -430,6 +430,16 @@ final class PermissionDictionary
                     'icon' => 'fa-user-check',
                     'roles' => ['tugas_tambahan'],
                 ],
+                'menu_perpustakaan_laporan' => [
+                    'label' => 'Perpustakaan: Laporan & Rekapitulasi',
+                    'icon' => 'fa-file-lines',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_perpustakaan_anggota' => [
+                    'label' => 'Perpustakaan: Registrasi Anggota & Kartu Digital',
+                    'icon' => 'fa-id-card',
+                    'roles' => ['tugas_tambahan'],
+                ],
             ],
 
             'Tendik: Teknisi IT' => [
