@@ -4,6 +4,7 @@
 @section('dash_title', $isKepalaTas ?? false ? 'Portal TAS' : 'Portal Tendik')
 
 @section('content')
+<div class="dash-content-inner">
     @php
         $hour = date('H');
         $greeting =
@@ -118,6 +119,7 @@
     <!-- Dynamic Section Content by Domain -->
     @include('dashboard.tendik.section-' . $activeSection)
 
+</div>
 @endsection
 
 @push('scripts')

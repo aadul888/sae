@@ -50,6 +50,57 @@
     );
 @endphp
 
+
+
+<!-- 2. KPI Induk Sarpras (Data Nyata) -->
+<div class="dash-stat-grid" style="margin-bottom: 18px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($rp['ruang_total'] ?? 0, 0, ',', '.') }} Ruang</div>
+            <div class="dash-stat-label">{{ number_format($rp['gedung_total'] ?? 0, 0, ',', '.') }} Gedung Terdata
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-boxes-stacked"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($rp['aset_unit'] ?? 0, 0, ',', '.') }} Unit</div>
+            <div class="dash-stat-label">{{ number_format($rp['aset_jenis'] ?? 0, 0, ',', '.') }} Jenis Aset</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-screwdriver-wrench"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">
+                {{ number_format(($rp['wo_antrean'] ?? 0) + ($rp['wo_proses'] ?? 0), 0, ',', '.') }} Tiket
+            </div>
+            <div class="dash-stat-label">Perbaikan Berjalan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
+            <i class="fas fa-gauge-high"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $rp['skor_kelayakan'] ?? 0 }}%</div>
+            <div class="dash-stat-label">Skor Kelayakan Fisik</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Kendali Sarpras -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.sarpras.ruang.index') }}" class="kepegawaian-quick-btn"
@@ -148,54 +199,6 @@
     </a>
 </div>
 
-<!-- 2. KPI Induk Sarpras (Data Nyata) -->
-<div class="dash-stat-grid" style="margin-bottom: 18px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-building"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($rp['ruang_total'] ?? 0, 0, ',', '.') }} Ruang</div>
-            <div class="dash-stat-label">{{ number_format($rp['gedung_total'] ?? 0, 0, ',', '.') }} Gedung Terdata
-            </div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-boxes-stacked"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($rp['aset_unit'] ?? 0, 0, ',', '.') }} Unit</div>
-            <div class="dash-stat-label">{{ number_format($rp['aset_jenis'] ?? 0, 0, ',', '.') }} Jenis Aset</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-screwdriver-wrench"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">
-                {{ number_format(($rp['wo_antrean'] ?? 0) + ($rp['wo_proses'] ?? 0), 0, ',', '.') }} Tiket
-            </div>
-            <div class="dash-stat-label">Perbaikan Berjalan</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-gauge-high"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $rp['skor_kelayakan'] ?? 0 }}%</div>
-            <div class="dash-stat-label">Skor Kelayakan Fisik</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 3. Peringatan Operasional -->

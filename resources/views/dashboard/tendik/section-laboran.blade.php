@@ -1,5 +1,53 @@
 {{-- Section Dashboard: Laboran (Staf Khusus Ruang Laboratorium) --}}
 
+
+
+<!-- 2. Quick Stats Grid Laboran (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-flask"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($laboranStats['total_ruang_lab'] ?? 0, 0, ',', '.') }} Ruang</div>
+            <div class="dash-stat-label">Laboratorium &amp; Bengkel</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($stats['jam_praktik'] ?? 0, 0, ',', '.') }} JP</div>
+            <div class="dash-stat-label">Praktik Kejuruan/Mgg</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-microscope"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($laboranStats['item_baik'] ?? 0, 0, ',', '.') }} Unit</div>
+            <div class="dash-stat-label">Alat Kondisi Baik</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+            <i class="fas fa-shield-virus"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($laboranStats['item_rusak'] ?? 0, 0, ',', '.') }} Unit</div>
+            <div class="dash-stat-label">Alat Perlu Perbaikan</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Laboran (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.sarpras.aset.index') }}"
@@ -107,51 +155,6 @@
     </a>
 </div>
 
-<!-- 2. Quick Stats Grid Laboran (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-flask"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($laboranStats['total_ruang_lab'] ?? 0, 0, ',', '.') }} Ruang</div>
-            <div class="dash-stat-label">Laboratorium &amp; Bengkel</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($stats['jam_praktik'] ?? 0, 0, ',', '.') }} JP</div>
-            <div class="dash-stat-label">Praktik Kejuruan/Mgg</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-microscope"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($laboranStats['item_baik'] ?? 0, 0, ',', '.') }} Unit</div>
-            <div class="dash-stat-label">Alat Kondisi Baik</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-            <i class="fas fa-shield-virus"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($laboranStats['item_rusak'] ?? 0, 0, ',', '.') }} Unit</div>
-            <div class="dash-stat-label">Alat Perlu Perbaikan</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 3. Section: Visualisasi Statistik & Fasilitas Laboratorium -->

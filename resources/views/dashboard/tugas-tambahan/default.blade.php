@@ -71,30 +71,21 @@
         </p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 30px;">
+    <div class="kepegawaian-quick-grid" data-quick-title="Akses Cepat Modul {{ $duty->nama }}">
         @forelse ($grantedModules as $mod)
             @php
                 $modRoute = $mod['route'] ?? null;
                 $hasRoute = $modRoute && \Illuminate\Support\Facades\Route::has($modRoute);
                 $url = $hasRoute ? route($modRoute) : '#';
             @endphp
-            <a href="{{ $url }}" class="card" style="padding: 18px 20px; border-radius: var(--radius-lg, 12px); margin: 0; text-decoration: none; color: inherit; transition: all 0.25s ease; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden;"
-               onmouseover="this.style.borderColor='rgba(99,102,241,0.5)'; this.style.transform='translateY(-2px)';"
-               onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)';">
-                <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(99, 102, 241, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+            <a href="{{ $url }}" class="kepegawaian-quick-btn"
+               style="--quick-color: var(--primary, #3b82f6);"
+               title="{{ $mod['label'] }}{{ isset($mod['group']) ? ' — ' . $mod['group'] : '' }}">
+                <div class="kepegawaian-quick-icon"
+                     style="background: rgba(99, 102, 241, 0.12); color: var(--primary, #6366f1);">
                     <i class="fas {{ $mod['icon'] ?? 'fa-cube' }}"></i>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ $mod['label'] }}
-                    </div>
-                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                        {{ $mod['group'] ?? 'Modul Sistem' }}
-                    </div>
-                </div>
-                <div style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+                <span class="kepegawaian-quick-label">{{ $mod['label'] }}</span>
             </a>
         @empty
             <div class="card" style="grid-column: 1 / -1; padding: 30px; text-align: center; color: var(--text-muted);">

@@ -158,7 +158,7 @@
             <h3 style="font-size: var(--text-md); font-weight: var(--font-bold); margin: 0 0 var(--space-7) 0; color: var(--text-color); display: flex; align-items: center; gap: var(--space-3);">
                 <i class="fas fa-grip text-primary"></i> Modul Laboratorium
             </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-5);">
+            <div class="kepegawaian-quick-grid" data-quick-title="Modul Laboratorium">
                 @foreach ([
                         ['route' => 'dashboard.laboran.kebutuhan.index', 'icon' => 'fa-clipboard-list', 'label' => 'Analisis Kebutuhan', 'desc' => 'Tupoksi #6', 'color' => 'var(--accent, #06b6d4)'],
                         ['route' => 'dashboard.laboran.pengadaan.index', 'icon' => 'fa-file-invoice-dollar', 'label' => 'Usulan Pengadaan', 'desc' => 'Tupoksi #6', 'color' => 'var(--purple, #8b5cf6)'],
@@ -174,15 +174,13 @@
                         ['route' => 'dashboard.laboran.arsip.index', 'icon' => 'fa-box-archive', 'label' => 'Arsip Dokumen', 'desc' => 'Tupoksi #7', 'color' => 'var(--purple, #8b5cf6)'],
                     ] as $mod)
                         <a href="{{ route($mod['route']) }}"
-                            style="display: flex; align-items: flex-start; gap: var(--space-5); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--bg-hover); border: 1px solid var(--border-color); text-decoration: none; color: var(--text-color); transition: var(--transition-base);"
+                            class="kepegawaian-quick-btn"
+                            style="--quick-color: {{ $mod['color'] }};"
                             title="{{ $mod['label'] }} — {{ $mod['desc'] }}">
-                            <span style="width: 38px; height: 38px; flex-shrink: 0; border-radius: var(--radius-md); background: rgba(59,130,246,0.12); color: {{ $mod['color'] }}; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-md);">
+                            <span class="kepegawaian-quick-icon" style="background: rgba(59,130,246,0.12); color: {{ $mod['color'] }};">
                                 <i class="fas {{ $mod['icon'] }}"></i>
                             </span>
-                            <span style="min-width: 0;">
-                                <span style="display: block; font-weight: var(--font-bold); font-size: var(--text-base);">{{ $mod['label'] }}</span>
-                                <span style="display: block; font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-1);">{{ $mod['desc'] }}</span>
-                            </span>
+                            <span class="kepegawaian-quick-label">{{ $mod['label'] }}</span>
                         </a>
                     @endforeach
             </div>

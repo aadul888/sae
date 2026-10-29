@@ -1,5 +1,51 @@
 {{-- Section Dashboard: Teknisi IT & Infrastruktur Jaringan --}}
 
+<!-- 2. Quick Stats Grid Teknisi IT (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-screwdriver-wrench"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_total'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Total Work Order</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-circle-check"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_selesai'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Perbaikan Selesai</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-list-check"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format(($teknisiStats['wo_antrean'] ?? 0) + ($teknisiStats['wo_proses'] ?? 0), 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Antrean &amp; Proses</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
+            <i class="fas fa-box-open"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_menunggu_part'] ?? 0, 0, ',', '.') }} Tiket</div>
+            <div class="dash-stat-label">Menunggu Sparepart</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Teknisi IT (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.teknisi.work-order') }}"
@@ -101,52 +147,6 @@
         <span class="kepegawaian-quick-label">Supervisi</span>
     </a>
 </div>
-
-<!-- 2. Quick Stats Grid Teknisi IT (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-screwdriver-wrench"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_total'] ?? 0, 0, ',', '.') }} Tiket</div>
-            <div class="dash-stat-label">Total Work Order</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-circle-check"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_selesai'] ?? 0, 0, ',', '.') }} Tiket</div>
-            <div class="dash-stat-label">Perbaikan Selesai</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-list-check"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format(($teknisiStats['wo_antrean'] ?? 0) + ($teknisiStats['wo_proses'] ?? 0), 0, ',', '.') }} Tiket</div>
-            <div class="dash-stat-label">Antrean &amp; Proses</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
-            <i class="fas fa-box-open"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($teknisiStats['wo_menunggu_part'] ?? 0, 0, ',', '.') }} Tiket</div>
-            <div class="dash-stat-label">Menunggu Sparepart</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 2b. Rekap Kelengkapan TUPOKSI & Supervisi Teknisi -->

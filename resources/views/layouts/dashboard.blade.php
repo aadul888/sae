@@ -120,6 +120,12 @@
         <script
             src="{{ asset('js/datatable-cards.js') }}?v={{ file_exists(public_path('js/datatable-cards.js')) ? filemtime(public_path('js/datatable-cards.js')) : time() }}">
         </script>
+        <script
+            src="{{ asset('js/header-actions.js') }}?v={{ file_exists(public_path('js/header-actions.js')) ? filemtime(public_path('js/header-actions.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/quick-menu.js') }}?v={{ file_exists(public_path('js/quick-menu.js')) ? filemtime(public_path('js/quick-menu.js')) : time() }}">
+        </script>
         @stack('scripts')
 </body>
 

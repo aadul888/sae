@@ -1,5 +1,52 @@
 {{-- Section Dashboard: Kepala Tenaga Administrasi Sekolah (Kepala TAS / KTU) --}}
 
+
+<!-- 2. Quick Stats Grid Kepala TAS (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-users-gear"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
+            <div class="dash-stat-label">Tenaga Administrasi</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-award"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
+            <div class="dash-stat-label">SK Tugas Tambahan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ ($stats['total_surat_masuk'] ?? 0) + ($stats['total_surat_keluar'] ?? 0) }} Dok</div>
+            <div class="dash-stat-label">Tata Kelola Surat</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($aktivitasBulanIniCount ?? 0, 0, ',', '.') }} Log</div>
+            <div class="dash-stat-label">Aktivitas Bulan Ini</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Kepala TAS (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.tendik-aktif.index') }}"
@@ -50,52 +97,6 @@
         <span class="kepegawaian-quick-label">Laporan Kinerja</span>
     </a>
 </div>
-
-<!-- 2. Quick Stats Grid Kepala TAS (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-users-gear"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
-            <div class="dash-stat-label">Tenaga Administrasi</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-award"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
-            <div class="dash-stat-label">SK Tugas Tambahan</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-inbox"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ ($stats['total_surat_masuk'] ?? 0) + ($stats['total_surat_keluar'] ?? 0) }} Dok</div>
-            <div class="dash-stat-label">Tata Kelola Surat</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-            <i class="fas fa-clipboard-list"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($aktivitasBulanIniCount ?? 0, 0, ',', '.') }} Log</div>
-            <div class="dash-stat-label">Aktivitas Bulan Ini</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 3. Section: Visualisasi Statistik Koordinasi & Supervisi Tendik -->

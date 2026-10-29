@@ -1,14 +1,4 @@
-{{-- Section Dashboard: Staf Administrasi Persuratan & Tata Usaha Umum — SAE --}}
-
-@php
-    $hdd = $stats['hdd_status'] ?? [
-        'is_ready' => true,
-        'free_formatted' => '54.2 GB',
-        'total_formatted' => '256 GB',
-        'percent_used' => 21.2,
-        'path' => storage_path('app/arsip_persuratan'),
-    ];
-@endphp
+﻿{{-- Section Dashboard: Staf Administrasi Persuratan --}}
 
 <!-- 1. Card Rekap Statistik Persuratan (Paling Atas) -->
 <div class="dash-stat-grid" style="margin-bottom: 20px; gap: 14px;">
@@ -55,6 +45,59 @@
 
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
+
+
+<!-- 3. Akses Cepat Menu Persuratan (Responsive Grid Seimbang & Genap) -->
+<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
+    <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--primary, #3b82f6);" title="Buku Agenda Surat Masuk">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Surat Masuk</span>
+    </a>
+
+    <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--success, #10b981);" title="Buku Agenda Surat Keluar">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Surat Keluar</span>
+    </a>
+
+    <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--warning, #f59e0b);" title="Pengaturan &amp; Kearsipan HDD">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-sliders"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Pengaturan &amp; Arsip</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Target Capaian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
+        style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
+    </a>
+</div>
+
 
 
 <!-- 2. Card Interaktif: Nomor Surat Masuk & Keluar Terakhir (Dashboard) -->
@@ -121,56 +164,18 @@
     </div>
 </div>
 
-<!-- 3. Akses Cepat Menu Persuratan (Responsive Grid Seimbang & Genap) -->
-<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-    <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--primary, #3b82f6);" title="Buku Agenda Surat Masuk">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-inbox"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Surat Masuk</span>
-    </a>
+atan & Tata Usaha Umum â€” SAE --}}
 
-    <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--success, #10b981);" title="Buku Agenda Surat Keluar">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-paper-plane"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Surat Keluar</span>
-    </a>
+@php
+    $hdd = $stats['hdd_status'] ?? [
+        'is_ready' => true,
+        'free_formatted' => '54.2 GB',
+        'total_formatted' => '256 GB',
+        'percent_used' => 21.2,
+        'path' => storage_path('app/arsip_persuratan'),
+    ];
+@endphp
 
-    <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--warning, #f59e0b);" title="Pengaturan &amp; Kearsipan HDD">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-sliders"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Pengaturan &amp; Arsip</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-bullseye"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Target Capaian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
-            <i class="fas fa-file-invoice"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
-    </a>
-</div>
 
 <!-- 4. Section: Visualisasi Statistik & Distribusi Persuratan -->
 <div class="card"

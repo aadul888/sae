@@ -1,5 +1,52 @@
 {{-- Section Dashboard: Staf Administrasi Kepegawaian --}}
 
+
+<!-- 2. Quick Stats Grid Kepegawaian (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-chalkboard-user"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['total_guru'] ?? 0 }} Guru</div>
+            <div class="dash-stat-label">Pendidik Terdaftar</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
+            <i class="fas fa-users-gear"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
+            <div class="dash-stat-label">Tenaga Kependidikan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-award"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
+            <div class="dash-stat-label">Tugas Tambahan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ $stats['total_jam_kbm'] ?? 0 }} JP</div>
+            <div class="dash-stat-label">Beban KBM Terdistribusi</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Kepegawaian (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'pegawai']) }}"
@@ -50,52 +97,6 @@
         <span class="kepegawaian-quick-label">Laporan Kinerja</span>
     </a>
 </div>
-
-<!-- 2. Quick Stats Grid Kepegawaian (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-chalkboard-user"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_guru'] ?? 0 }} Guru</div>
-            <div class="dash-stat-label">Pendidik Terdaftar</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-users-gear"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 0 }} Staf</div>
-            <div class="dash-stat-label">Tenaga Kependidikan</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-award"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 0 }} GTK</div>
-            <div class="dash-stat-label">Tugas Tambahan</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_jam_kbm'] ?? 0 }} JP</div>
-            <div class="dash-stat-label">Beban KBM Terdistribusi</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 2. Section: Statistik & Demografi GTK (Dengan Angka Permanen pada Diagram) -->
@@ -324,6 +325,5 @@
         'multiPeriode' => $kepegawaianAktivitasMultiPeriode ?? [],
     ], JSON_UNESCAPED_UNICODE) !!}
 </script>
-
 
 

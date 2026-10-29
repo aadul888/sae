@@ -1,5 +1,53 @@
 {{-- Section Dashboard: Fasilitas & Penjaga Sekolah --}}
 
+
+
+<!-- 2. Quick Stats Grid Penjaga (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-broom"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($penjagaStats['checklist_hari_ini'] ?? 0, 0, ',', '.') }} Area</div>
+            <div class="dash-stat-label">Checklist Hari Ini</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-door-closed"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($penjagaStats['ronda_hari_ini'] ?? 0, 0, ',', '.') }} Kontrol</div>
+            <div class="dash-stat-label">Ronda Malam Hari Ini</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-faucet-drip"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($penjagaStats['area_perlu_tindakan'] ?? 0, 0, ',', '.') }} Area</div>
+            <div class="dash-stat-label">Perlu Tindakan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($penjagaStats['temuan_malam'] ?? 0, 0, ',', '.') }} Temuan</div>
+            <div class="dash-stat-label">Temuan Ronda</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Penjaga (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
@@ -51,51 +99,6 @@
     </a>
 </div>
 
-<!-- 2. Quick Stats Grid Penjaga (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-broom"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($penjagaStats['checklist_hari_ini'] ?? 0, 0, ',', '.') }} Area</div>
-            <div class="dash-stat-label">Checklist Hari Ini</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-door-closed"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($penjagaStats['ronda_hari_ini'] ?? 0, 0, ',', '.') }} Kontrol</div>
-            <div class="dash-stat-label">Ronda Malam Hari Ini</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-faucet-drip"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($penjagaStats['area_perlu_tindakan'] ?? 0, 0, ',', '.') }} Area</div>
-            <div class="dash-stat-label">Perlu Tindakan</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-            <i class="fas fa-triangle-exclamation"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($penjagaStats['temuan_malam'] ?? 0, 0, ',', '.') }} Temuan</div>
-            <div class="dash-stat-label">Temuan Ronda</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 3. Section: Visualisasi Statistik Fasilitas & Kontrol Penjaga Sekolah -->

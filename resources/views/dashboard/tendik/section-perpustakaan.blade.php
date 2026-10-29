@@ -1,5 +1,53 @@
 {{-- Section Dashboard: Pustakawan (Staf Pelayanan Perpustakaan) --}}
 
+
+
+<!-- 2. Quick Stats Grid Perpustakaan (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, var(--primary,#3b82f6));">
+            <i class="fas fa-book-bookmark"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($perpusStats['total_judul'] ?? 0, 0, ',', '.') }} Judul</div>
+            <div class="dash-stat-label">Buku Terdaftar</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, var(--success,#10b981));">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($perpusStats['total_eksemplar'] ?? 0, 0, ',', '.') }} Eks</div>
+            <div class="dash-stat-label">Koleksi Fisik</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, var(--warning,#f59e0b));">
+            <i class="fas fa-users-line"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($perpusStats['kunjungan_hari_ini'] ?? 0, 0, ',', '.') }} Orang</div>
+            <div class="dash-stat-label">Kunjungan Hari Ini</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, var(--purple,#8b5cf6));">
+            <i class="fas fa-hand-holding-hand"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">{{ number_format($perpusStats['pinjam_aktif'] ?? 0, 0, ',', '.') }} Buku</div>
+            <div class="dash-stat-label">Pinjaman Aktif</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
 <!-- 1. Akses Cepat Menu Perpustakaan (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
@@ -91,51 +139,6 @@
     </a>
 </div>
 
-<!-- 2. Quick Stats Grid Perpustakaan (Responsive) -->
-<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, var(--primary,#3b82f6));">
-            <i class="fas fa-book-bookmark"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($perpusStats['total_judul'] ?? 0, 0, ',', '.') }} Judul</div>
-            <div class="dash-stat-label">Buku Terdaftar</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, var(--success,#10b981));">
-            <i class="fas fa-book"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($perpusStats['total_eksemplar'] ?? 0, 0, ',', '.') }} Eks</div>
-            <div class="dash-stat-label">Koleksi Fisik</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, var(--warning,#f59e0b));">
-            <i class="fas fa-users-line"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($perpusStats['kunjungan_hari_ini'] ?? 0, 0, ',', '.') }} Orang</div>
-            <div class="dash-stat-label">Kunjungan Hari Ini</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, var(--purple,#8b5cf6));">
-            <i class="fas fa-hand-holding-hand"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($perpusStats['pinjam_aktif'] ?? 0, 0, ',', '.') }} Buku</div>
-            <div class="dash-stat-label">Pinjaman Aktif</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
-@include('dashboard.tendik.partials.domain-tabs')
 
 
 <!-- 3. Section: Visualisasi Statistik Koleksi & Pengunjung Perpustakaan -->

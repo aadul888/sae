@@ -1,4 +1,4 @@
-{{-- Section: Portal Umum Tenaga Kependidikan & Administrasi (Universal untuk seluruh Tendik) --}}
+﻿{{-- Section: Portal Umum Tenaga Kependidikan & Administrasi (Universal untuk seluruh Tendik) --}}
 
 <!-- 1. Quick Stats Grid Universal (4 Cards Maksimal) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
@@ -58,6 +58,59 @@
 
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
+
+
+<!-- 3. Quick Links Modul Tendik Universal -->
+<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
+    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);"
+        title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Target &amp; Capaian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--success, #10b981);" title="Input Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.laporan.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: #ec4899;" title="Laporan Kinerja Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik-aktif.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--primary, #3b82f6);" title="Direktori Data Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
+            <i class="fas fa-id-badge"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Data Tendik</span>
+    </a>
+
+    <a href="{{ route('dashboard.guru-aktif.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: var(--warning, #f59e0b);" title="Direktori Data Guru">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
+            <i class="fas fa-chalkboard-user"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Data Guru</span>
+    </a>
+
+    <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}" class="kepegawaian-quick-btn"
+        style="--quick-color: #14b8a6;" title="Pengelolaan Buku Induk Siswa">
+        <div class="kepegawaian-quick-icon" style="background: rgba(20, 184, 166, 0.15); color: #14b8a6;">
+            <i class="fas fa-address-book"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Buku Induk Siswa</span>
+    </a>
+</div>
+
 
 
 <!-- 2. Section: Visualisasi Statistik & Demografi Satuan Pendidikan -->
@@ -166,56 +219,8 @@
     </div>
 </div>
 
-<!-- 3. Quick Links Modul Tendik Universal -->
-<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);"
-        title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-bullseye"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Target &amp; Capaian</span>
-    </a>
+Administrasi (Universal untuk seluruh Tendik) --}}
 
-    <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--success, #10b981);" title="Input Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.laporan.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #ec4899;" title="Laporan Kinerja Tendik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
-            <i class="fas fa-file-invoice"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik-aktif.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--primary, #3b82f6);" title="Direktori Data Tendik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-id-badge"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Data Tendik</span>
-    </a>
-
-    <a href="{{ route('dashboard.guru-aktif.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--warning, #f59e0b);" title="Direktori Data Guru">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-chalkboard-user"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Data Guru</span>
-    </a>
-
-    <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #14b8a6;" title="Pengelolaan Buku Induk Siswa">
-        <div class="kepegawaian-quick-icon" style="background: rgba(20, 184, 166, 0.15); color: #14b8a6;">
-            <i class="fas fa-address-book"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Buku Induk Siswa</span>
-    </a>
-</div>
 
 <!-- Payload JSON Data Chart Umum untuk JS -->
 <script type="application/json" id="sectionUmumChartPayload">
