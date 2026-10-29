@@ -114,6 +114,9 @@
         <script
             src="{{ asset('js/pwa.js') }}?v={{ file_exists(public_path('js/pwa.js')) ? filemtime(public_path('js/pwa.js')) : time() }}">
         </script>
+        <script
+            src="{{ asset('js/modal-drag.js') }}?v={{ file_exists(public_path('js/modal-drag.js')) ? filemtime(public_path('js/modal-drag.js')) : time() }}">
+        </script>
         @stack('scripts')
 </body>
 

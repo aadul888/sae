@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function openModal(isEdit = false, data = {}) {
         if (!modal) return;
         modal.style.display = 'flex';
+        if (window.SAE && window.SAE.modal) window.SAE.modal.reset(modal);
         if (isEdit) {
             modalTitle.textContent = 'Edit Data Ruang';
             methodInput.value = 'PUT';

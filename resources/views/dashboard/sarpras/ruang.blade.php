@@ -4,6 +4,8 @@
 @section('dash_title', 'Ruang & Gedung')
 
 @section('content')
+    @include('dashboard.laboran.partials.header-actions')
+
     <div class="dash-content-inner">
         {{-- 1. Header Banner & Action Button --}}
         <div class="dash-banner"
@@ -22,17 +24,16 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions dash-banner-access">
                 <a href="{{ route('dashboard.sarpras.ruang.export', request()->only(['q', 'gedung', 'kondisi'])) }}"
                     class="btn btn-outline"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                    title="Unduh daftar Ruang & Gedung sebagai Excel sesuai filter">
-                    <i class="fas fa-file-excel text-success"></i> Unduh Excel
+                    title="Unduh daftar Ruang &amp; Gedung sebagai Excel sesuai filter"
+                    aria-label="Unduh Excel">
+                    <i class="fas fa-file-excel text-success"></i>
                 </a>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalRuang"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Tambah Ruangan Baru">
+                        title="Tambah Ruangan Baru" aria-label="Tambah Ruangan Baru">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -260,20 +261,19 @@
         </div>
 
         {{-- Modal Tambah / Edit Ruang --}}
-        <div id="modalRuang" class="modal-backdrop"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card"
-                style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg, 12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div id="modalRuang" class="modal-backdrop">
+            <div class="card" style="max-width: 550px; max-height: 90vh;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                     <h3 id="modalRuangTitle"
                         style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color);">
                         Tambah Data Ruang
                     </h3>
-                    <button type="button" id="btnCloseModalRuang"
+                    <button type="button" id="btnCloseModalRuang" aria-label="Tutup"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
 
-                <form id="formRuang" method="POST" action="{{ route('dashboard.sarpras.ruang.store') }}">
+                <form id="formRuang" method="POST" action="{{ route('dashboard.sarpras.ruang.store') }}"
+                    style="overflow-y: auto; min-height: 0;">
                     @csrf
                     <input type="hidden" name="_method" id="ruangMethod" value="POST">
                     <input type="hidden" name="id" id="ruangId">
@@ -361,7 +361,7 @@
                             placeholder="Luas ruang, kelengkapan proyektor, AC, kapasitas kursi..."></textarea>
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                         <button type="button" class="btn btn-secondary" id="btnCancelModalRuang">Batal</button>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan
                             Data</button>
