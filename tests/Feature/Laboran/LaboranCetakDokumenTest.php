@@ -607,4 +607,26 @@ class LaboranCetakDokumenTest extends LaboranTestCase
             $res->assertStatus(200);
         }
     }
+
+    /**
+     * Cetak kebersihan bisa dibatasi per BULAN lewat parameter `bulan`
+     * (YYYY-MM); akhir bulan selalu tepat (mis. Februari = 28 hari).
+     */
+    public function test_kebersihan_dapat_dicetak_per_bulan(): void
+    {
+        $session = $this->adminSession();
+
+        $res = $this->withSession($session)->get(route('dashboard.laboran.kebersihan.cetak', [
+            'bulan' => '2026-02',
+        ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('01 FEBRUARI 2026 S.D. 28 FEBRUARI 2026', false);
+        $res->assertSee('saePilihBulan', false);
+
+        // Tanpa `bulan`, pemilih tetap tampil (bulan berjalan).
+        $this->withSession($session)->get(route('dashboard.laboran.kebersihan.cetak'))
+            ->assertStatus(200)
+            ->assertSee('saePilihBulan', false);
+    }
 }

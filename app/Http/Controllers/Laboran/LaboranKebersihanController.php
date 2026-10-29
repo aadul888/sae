@@ -203,8 +203,17 @@ class LaboranKebersihanController extends LaboranBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        $dari   = (string) $request->query('dari', now()->startOfMonth()->toDateString());
-        $sampai = (string) $request->query('sampai', now()->endOfMonth()->toDateString());
+        // Cetak per bulan: `bulan` (YYYY-MM) → rentang 1..akhir bulan.
+        // Bila tidak dikirim, fallback ke `dari`/`sampai` atau bulan berjalan.
+        $bulan = trim((string) $request->query('bulan', ''));
+        if (preg_match('#^\d{4}-\d{2}$#', $bulan)) {
+            $acuan  = Carbon::createFromFormat('Y-m-d', $bulan . '-01')->startOfMonth();
+            $dari   = $acuan->toDateString();
+            $sampai = $acuan->copy()->endOfMonth()->toDateString();
+        } else {
+            $dari   = (string) $request->query('dari', now()->startOfMonth()->toDateString());
+            $sampai = (string) $request->query('sampai', now()->endOfMonth()->toDateString());
+        }
 
         $query = DB::table('laboran_kebersihan')->whereBetween('tanggal_kegiatan', [$dari, $sampai]);
         LaboranScope::apply($query, 'jurusan_id', $context);

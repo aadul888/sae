@@ -32,6 +32,12 @@
 
         @include('dashboard.laboran.partials.pilih-tampilan')
 
+        <div class="doc-toolbar-group">
+            <input type="month" class="select-cetak" style="max-width:150px;"
+                value="{{ \Carbon\Carbon::parse($range['start'])->format('Y-m') }}"
+                onchange="saePilihBulan(this.value)" title="Cetak per bulan">
+        </div>
+
         @include('dashboard.laboran.partials.pilih-kaprog')
 
         <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
@@ -190,6 +196,19 @@
     </div>
 
     <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script>
+        // Cetak per bulan: ubah pilihan bulan → set parameter `bulan` (YYYY-MM),
+        // pertahankan parameter lain (mode/orientasi/Kaprog). Batas tanggal
+        // dihitung di server agar akhir bulan selalu tepat (mis. Februari).
+        function saePilihBulan(val) {
+            if (!val) return;
+            var p = new URLSearchParams(window.location.search);
+            p.set('bulan', val);
+            p.delete('dari');
+            p.delete('sampai');
+            window.location.href = window.location.pathname + '?' + p.toString();
+        }
+    </script>
 </body>
 
 </html>
