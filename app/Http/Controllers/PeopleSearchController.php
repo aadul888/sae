@@ -13,7 +13,7 @@ class PeopleSearchController extends Controller
         $validated = $request->validate([
             'q' => 'nullable|required_without:id|string|min:2|max:100',
             'id' => 'nullable|string|max:100',
-            'type' => 'required|in:siswa,gtk,all',
+            'type' => 'required|in:siswa,gtk,all,personel',
         ]);
 
         $query = trim($validated['q'] ?? '');
@@ -46,7 +46,7 @@ class PeopleSearchController extends Controller
             $results = $results->concat($students);
         }
 
-        if (in_array($type, ['gtk', 'all'], true)) {
+        if (in_array($type, ['gtk', 'all', 'personel'], true)) {
             $gtkList = DB::table('gtk')
                 ->when($selectedId, fn ($builder) => $builder->where('ptk_id', $selectedId))
                 ->when(!$selectedId, function ($builder) use ($query) {
@@ -72,6 +72,39 @@ class PeopleSearchController extends Controller
                 });
 
             $results = $results->concat($gtkList);
+        }
+
+        // Pengguna manual (di luar Dapodik): akun `pengguna` tanpa `ptk_id`.
+        if ($type === 'personel') {
+            $manualUsers = DB::table('pengguna')
+                ->when($selectedId, fn ($builder) => $builder->where('pengguna_id', $selectedId))
+                ->when(!$selectedId, function ($builder) use ($query) {
+                    $builder->where(function ($search) use ($query) {
+                        $search->where('nama', 'like', "%{$query}%")
+                            ->orWhere('username', 'like', "%{$query}%")
+                            ->orWhere('no_hp', 'like', "%{$query}%");
+                    });
+                })
+                ->where(function ($builder) {
+                    $builder->whereNull('ptk_id')->orWhere('ptk_id', '');
+                })
+                ->whereNull('peserta_didik_id')
+                ->where(function ($builder) {
+                    $builder->whereNull('peran_id_str')
+                        ->orWhere('peran_id_str', 'not like', '%peserta didik%');
+                })
+                ->orderBy('nama')
+                ->limit($selectedId ? 1 : 20)
+                ->get(['pengguna_id as id', 'nama', 'username', 'peran_id_str'])
+                ->map(fn ($user) => [
+                    'id' => $user->id,
+                    'nama' => $user->nama,
+                    'identifier' => 'Username: ' . ($user->username ?: '-'),
+                    'context' => $user->peran_id_str ?: 'Pengguna Manual (di luar Dapodik)',
+                    'type' => 'pengguna',
+                ]);
+
+            $results = $results->concat($manualUsers);
         }
 
         return response()->json($results->sortBy('nama')->take($selectedId ? 1 : 30)->values());

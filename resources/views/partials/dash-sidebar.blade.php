@@ -1089,10 +1089,35 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-wrench"></i></span>
                     <span class="nav-label">Work Order &amp; Perbaikan</span>
                 </a>
-                <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
-                    <span class="nav-label">Jadwal Pemeliharaan PM</span>
+                <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.area-tugas*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
+                    <span class="nav-label">Jadwal Area Tugas</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.kebersihan-ruang*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-broom"></i></span>
+                    <span class="nav-label">Kebersihan Ruang</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.kebersihan-rapat.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.kebersihan-rapat*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-people-roof"></i></span>
+                    <span class="nav-label">Kebersihan Ruang Rapat</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.sarana-rapat.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.sarana-rapat*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-chair"></i></span>
+                    <span class="nav-label">Sarana Kegiatan Rapat</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                    <span class="nav-label">Jurnal Perbaikan Sarpras</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.supervisi*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
+                    <span class="nav-label">Supervisi Teknisi</span>
                 </a>
             </div>
         </div>
@@ -2154,10 +2179,35 @@
                             <span class="nav-icon nested-icon"><i class="fas fa-fw fa-wrench"></i></span>
                             <span class="nav-label">Work Order &amp; Perbaikan</span>
                         </a>
-                        <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
-                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
-                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
-                            <span class="nav-label">Jadwal Pemeliharaan PM</span>
+                        <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.area-tugas*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
+                            <span class="nav-label">Jadwal Area Tugas</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.kebersihan-ruang*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>
+                            <span class="nav-label">Kebersihan Ruang</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.kebersihan-rapat.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.kebersihan-rapat*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-people-roof"></i></span>
+                            <span class="nav-label">Kebersihan Ruang Rapat</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.sarana-rapat.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.sarana-rapat*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-chair"></i></span>
+                            <span class="nav-label">Sarana Kegiatan Rapat</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                            <span class="nav-label">Jurnal Perbaikan Sarpras</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
+                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.supervisi*') ? 'active' : '' }}">
+                            <span class="nav-icon nested-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
+                            <span class="nav-label">Supervisi Teknisi</span>
                         </a>
                     </div>
                 </div>

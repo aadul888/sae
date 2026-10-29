@@ -456,6 +456,29 @@ class TendikDashboardStatsService
             $teknisiStats['wo_menunggu_part'] = (int) DB::table('teknisi_work_order')->where('status', 'menunggu_sparepart')->count();
         }
 
+        // ---- Rekap bukti fisik 5 indikator tupoksi Teknisi (untuk kartu supervisi) ----
+        $teknisiTupoksiMap = [
+            1 => ['label' => 'Jadwal Area Tugas Kebersihan', 'tabel' => 'teknisi_area_tugas'],
+            2 => ['label' => 'Kebersihan Lingkungan & Ruang Kerja', 'tabel' => 'teknisi_kebersihan_ruang'],
+            3 => ['label' => 'Kebersihan Lingkungan Ruang Rapat', 'tabel' => 'teknisi_kebersihan_rapat'],
+            4 => ['label' => 'Laporan Sarana Kegiatan Rapat', 'tabel' => 'teknisi_sarana_rapat'],
+            5 => ['label' => 'Pengarsipan & Laporan Perbaikan Sarpras', 'tabel' => 'teknisi_jurnal_perbaikan'],
+        ];
+        $teknisiTupoksiRekap = [];
+        foreach ($teknisiTupoksiMap as $no => $meta) {
+            $teknisiTupoksiRekap[$no] = (object) [
+                'no'     => $no,
+                'label'  => $meta['label'],
+                'jumlah' => Table::exists($meta['tabel']) ? (int) DB::table($meta['tabel'])->count() : 0,
+            ];
+        }
+        $teknisiStatistik = [
+            'supervisi_total'  => Table::exists('teknisi_supervisi') ? (int) DB::table('teknisi_supervisi')->count() : 0,
+            'supervisi_final'  => Table::exists('teknisi_supervisi') ? (int) DB::table('teknisi_supervisi')->where('status', 'final')->count() : 0,
+            'supervisi_nilai'  => Table::exists('teknisi_supervisi') ? (float) DB::table('teknisi_supervisi')->whereNotNull('nilai_akhir')->avg('nilai_akhir') : 0,
+            'indikator_terisi' => count(array_filter($teknisiTupoksiRekap, fn ($r) => $r->jumlah > 0)),
+        ];
+
         // ---- Statistik ringkas Keamanan (real) ----
         $keamananStats = [
             'tamu_hari_ini'   => 0,
@@ -1058,6 +1081,8 @@ class TendikDashboardStatsService
             'bidangMultiPeriode',
             'bidangIndikatorList',
             'teknisiStats',
+            'teknisiTupoksiRekap',
+            'teknisiStatistik',
             'keamananStats',
             'penjagaStats',
             'perpusStats',

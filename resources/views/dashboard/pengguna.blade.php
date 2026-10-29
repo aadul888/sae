@@ -582,14 +582,15 @@
                 <div class="modal-form-grid">
                     <div class="form-group-compact full-width">
                         <label>Pilih Personel / PTK <span class="text-danger">*</span></label>
-                        <select name="ptk_id" id="dutyPtkSelect" required>
-                            <option value="">-- Pilih PTK / GTK --</option>
-                            @foreach ($ptkList as $p)
-                                <option value="{{ $p->ptk_id }}">{{ $p->nama }}
-                                    ({{ $p->nip ? 'NIP: ' . $p->nip : ($p->jenis_ptk_id_str ?: 'GTK') }})
-                                </option>
-                            @endforeach
-                        </select>
+                        <input type="search" id="dutyPersonelLookup" class="form-control"
+                            placeholder="Ketik nama atau ID (NIP/NUPTK/NIK/username)..." autocomplete="off" required
+                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="personel"
+                            data-people-target="#dutyPersonelId" data-people-require-selection="true">
+                        <input type="hidden" id="dutyPersonelId" name="ptk_id">
+                        <small class="d-block mt-1"
+                            style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Ketik minimal 2 huruf. GTK Dapodik maupun pengguna manual (di luar Dapodik) dapat dipilih.
+                        </small>
                     </div>
 
                     <div class="form-group-compact full-width">

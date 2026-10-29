@@ -266,7 +266,6 @@ class UserController extends Controller
             ->orderBy('nama')
             ->get();
 
-        $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
         $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
         // Daftar jurusan untuk penetapan cakupan Laboran/Kaprog.
         // Dikelompokkan berpasangan antara Program Keahlian (Kelas X) & Konsentrasi Keahlian (Kelas XI-XII).
@@ -332,7 +331,6 @@ class UserController extends Controller
             'tugasTambahanList',
             'list',
             'refTugasList',
-            'ptkList',
             'rombelList',
             'jurusanList',
             'jurusanGroups',
@@ -597,9 +595,23 @@ class UserController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        $ptkId = $request->input('ptk_id');
+        $personelId = (string) $request->input('ptk_id');
         $tugasId = (int) $request->input('tugas_tambahan_id');
         $rombelId = $request->input('rombel_id');
+
+        // Personel boleh berasal dari GTK Dapodik (ptk_id) atau pengguna manual (pengguna_id).
+        $gtk = DB::table('gtk')->where('ptk_id', $personelId)->first();
+        if ($gtk) {
+            $ptkId = $personelId;
+            $userId = DB::table('pengguna')->where('ptk_id', $ptkId)->value('pengguna_id');
+        } else {
+            $manualUser = DB::table('pengguna')->where('pengguna_id', $personelId)->first();
+            if (!$manualUser) {
+                return response()->json(['status' => 'error', 'message' => 'Personel tidak ditemukan. Pilih dari hasil pencarian.'], 422);
+            }
+            $ptkId = null;
+            $userId = $manualUser->pengguna_id;
+        }
 
         $rawJurusan = $request->input('jurusan_ids') ?? $request->input('jurusan_id');
         $jurusanId = null;
@@ -615,10 +627,13 @@ class UserController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Tugas tambahan tidak ditemukan.'], 422);
         }
 
-        // 1. Cek apakah PTK ini sudah mengemban tugas tambahan yang sama
-        $existingPtkDuty = \App\Models\PtkTugasTambahan::where('ptk_id', $ptkId)
-            ->where('tugas_tambahan_id', $tugasId)
+        // 1. Cek apakah Personel ini sudah mengemban tugas tambahan yang sama
+        $existingPtkDuty = \App\Models\PtkTugasTambahan::where('tugas_tambahan_id', $tugasId)
             ->where('is_active', true)
+            ->where(function ($q) use ($ptkId, $userId) {
+                if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+                if ($userId) $q->orWhere('user_id', $userId);
+            })
             ->first();
 
         if ($existingPtkDuty) {
@@ -643,7 +658,7 @@ class UserController extends Controller
                 ->first();
 
             if ($existingClassWali) {
-                $ptkName = DB::table('gtk')->where('ptk_id', $existingClassWali->ptk_id)->value('nama') ?? 'Guru lain';
+                $ptkName = $this->dutyPersonelName($existingClassWali) ?: 'Guru lain';
                 return response()->json([
                     'status' => 'error',
                     'message' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName}).",
@@ -659,16 +674,13 @@ class UserController extends Controller
                 ->first();
 
             if ($existingSingle) {
-                $occupantName = DB::table('gtk')->where('ptk_id', $existingSingle->ptk_id)->value('nama')
-                    ?? (DB::table('pengguna')->where('ptk_id', $existingSingle->ptk_id)->value('nama') ?? 'Personel lain');
+                $occupantName = $this->dutyPersonelName($existingSingle) ?: 'Personel lain';
                 return response()->json([
                     'status' => 'error',
                     'message' => "Jabatan {$tugas->nama} saat ini sudah dijabat oleh {$occupantName}.",
                 ], 422);
             }
         }
-
-        $userId = DB::table('pengguna')->where('ptk_id', $ptkId)->value('pengguna_id');
 
         \App\Models\PtkTugasTambahan::create([
             'user_id' => $userId,
@@ -689,6 +701,25 @@ class UserController extends Controller
             'status' => 'success',
             'message' => 'Penugasan tugas tambahan berhasil disimpan.',
         ]);
+    }
+
+    /**
+     * Nama personel pemegang penugasan (GTK Dapodik atau pengguna manual).
+     */
+    private function dutyPersonelName(\App\Models\PtkTugasTambahan $duty): ?string
+    {
+        if (!empty($duty->ptk_id)) {
+            $nama = DB::table('gtk')->where('ptk_id', $duty->ptk_id)->value('nama');
+            if ($nama) {
+                return $nama;
+            }
+        }
+
+        if (!empty($duty->user_id)) {
+            return DB::table('pengguna')->where('pengguna_id', $duty->user_id)->value('nama');
+        }
+
+        return null;
     }
 
     /**
