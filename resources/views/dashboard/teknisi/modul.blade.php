@@ -17,7 +17,9 @@
         :per-page="$perPage"
         :search="$search"
         :can-create="$canCreate"
-        :can-import="$canCreate">
+        :can-import="$canCreate"
+        :can-delete="$canDelete"
+        bulk-modul="{{ $modul }}">
 
         <x-slot:filter>
             @if ($spec['dateCol'])
@@ -43,7 +45,7 @@
         </thead>
         <tbody>
             @forelse ($list as $row)
-                <tr style="border-bottom:1px solid var(--border-color);">
+                <tr style="border-bottom:1px solid var(--border-color);" data-bulk-id="{{ $row->id }}">
                     <td style="padding:14px 18px; color:var(--text-muted);">{{ $list->firstItem() + $loop->index }}</td>
                     <td style="padding:14px 18px;">
                         <div style="font-weight:700; font-family:monospace; color:var(--text-heading);">

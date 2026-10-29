@@ -34,6 +34,12 @@
                     title="Import Excel">
                     <i class="fas fa-file-excel text-success"></i>
                 </button>
+                <button type="button" class="btn btn-outline" data-teknisi-bulk-delete
+                    data-modul="work-order" data-endpoint="{{ route('dashboard.teknisi.bulk-delete') }}" disabled
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); opacity: 0.5; cursor: not-allowed;"
+                    title="Hapus data terpilih" aria-label="Hapus data terpilih">
+                    <i class="fas fa-trash-alt" style="color: var(--danger, #ef4444);"></i>
+                </button>
                 <button type="button" class="btn btn-primary" id="btnBuatWorkOrder"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Buat Work Order Baru">
@@ -246,7 +252,7 @@
                                     'label' => ucfirst($row->status),
                                 ];
                             @endphp
-                            <tr style="border-bottom: 1px solid var(--border-color);">
+                            <tr style="border-bottom: 1px solid var(--border-color);" data-bulk-id="{{ $row->id }}">
                                 <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
                                     {{ ($workOrders->currentPage() - 1) * $workOrders->perPage() + $loop->iteration }}
                                 </td>
@@ -560,6 +566,9 @@
 @push('scripts')
     <script
         src="{{ asset('js/teknisi-work-order.js') }}?v={{ file_exists(public_path('js/teknisi-work-order.js')) ? filemtime(public_path('js/teknisi-work-order.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/teknisi-bulk.js') }}?v={{ file_exists(public_path('js/teknisi-bulk.js')) ? filemtime(public_path('js/teknisi-bulk.js')) : time() }}">
     </script>
     @include('dashboard.teknisi._partials.scripts')
 @endpush

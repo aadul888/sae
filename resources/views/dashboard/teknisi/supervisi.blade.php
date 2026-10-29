@@ -26,7 +26,9 @@
         :cetak-route="route('dashboard.teknisi.laporan.cetak', ['modul' => 'supervisi'])"
         import-modal-id="modalImportTeknisi"
         :can-create="$canCreate"
-        :can-import="$canCreate">
+        :can-import="$canCreate"
+        :can-delete="$canDelete"
+        bulk-modul="supervisi">
 
         <x-slot:filter>
             <select name="status" class="toolbar-filter-select" style="height:38px; min-width:130px;">
@@ -66,7 +68,7 @@
                     ][$row->kualifikasi] ?? ['#f1f5f9', '#475569'];
                     $items = $itemsBySupervisi[$row->id] ?? collect();
                 @endphp
-                <tr style="border-bottom:1px solid var(--border-color);">
+                <tr style="border-bottom:1px solid var(--border-color);" data-bulk-id="{{ $row->id }}">
                     <td style="padding:14px 18px; color:var(--text-muted);">{{ $list->firstItem() + $loop->index }}</td>
                     <td style="padding:14px 18px;">
                         <div style="font-weight:700; font-family:monospace; color:var(--text-heading);">{{ $row->nomor_supervisi }}</div>

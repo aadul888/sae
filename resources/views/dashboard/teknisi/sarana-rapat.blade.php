@@ -25,7 +25,9 @@
         :cetak-route="route('dashboard.teknisi.laporan.cetak', ['modul' => 'sarana-rapat', 'dari' => now()->startOfMonth()->toDateString(), 'sampai' => now()->endOfMonth()->toDateString()])"
         import-modal-id="modalImportTeknisi"
         :can-create="$canCreate"
-        :can-import="$canCreate">
+        :can-import="$canCreate"
+        :can-delete="$canDelete"
+        bulk-modul="sarana-rapat">
 
         <x-slot:filter>
             <select name="kelengkapan" class="toolbar-filter-select" style="height:38px; min-width:160px;">
@@ -58,7 +60,7 @@
                 @php
                     $sc = ['lengkap' => ['#dcfce7', '#15803d'], 'kurang' => ['#fef3c7', '#92400e'], 'tidak_lengkap' => ['#fee2e2', '#b91c1c']][$row->kelengkapan_sarana] ?? ['#f1f5f9', '#475569'];
                 @endphp
-                <tr style="border-bottom:1px solid var(--border-color);">
+                <tr style="border-bottom:1px solid var(--border-color);" data-bulk-id="{{ $row->id }}">
                     <td style="padding:14px 18px; color:var(--text-muted);">{{ $list->firstItem() + $loop->index }}</td>
                     <td style="padding:14px 18px;">
                         <div style="font-weight:700; font-family:monospace; color:var(--text-heading);">{{ $row->nomor_laporan }}</div>

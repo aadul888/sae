@@ -300,4 +300,69 @@ class TeknisiModulLapanganTest extends TestCase
             ->get(route('dashboard.teknisi.work-order.cetak', ['periode' => 'tahun', 'tahun' => date('Y')]))
             ->assertStatus(200);
     }
+
+    /**
+     * Bulk delete mengenali seluruh modul Teknisi (10 lapangan + 6 TUPOKSI + WO + PM).
+     */
+    public function test_bulk_delete_mengenali_semua_modul(): void
+    {
+        $moduls = array_merge(self::MODULES, [
+            'area-tugas', 'kebersihan-ruang', 'kebersihan-rapat',
+            'sarana-rapat', 'jurnal-perbaikan', 'supervisi',
+            'work-order', 'pemeliharaan',
+        ]);
+
+        foreach ($moduls as $modul) {
+            $this->withSession($this->adminSession())
+                ->postJson(route('dashboard.teknisi.bulk-delete'), ['modul' => $modul, 'ids' => [999999999]])
+                ->assertStatus(200)
+                ->assertJsonPath('count', 0);
+        }
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.teknisi.bulk-delete'), ['modul' => 'modul-ngawur', 'ids' => [1]])
+            ->assertStatus(404);
+    }
+
+    /**
+     * Bulk delete hanya menghapus baris milik pengguna; milik teknisi lain dilewati.
+     */
+    public function test_bulk_delete_hanya_menghapus_milik_pengguna(): void
+    {
+        $a = $this->teknisiSession(0);
+        $b = $this->teknisiSession(1);
+
+        $judulA = 'Bulk A ' . uniqid();
+        $judulB = 'Bulk B ' . uniqid();
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.modul.store', ['modul' => 'inspeksi-utilitas']), [
+                'tanggal' => now()->toDateString(), 'subjek' => $judulA, 'kategori' => 'genset',
+            ])
+            ->assertStatus(200);
+        $this->withSession($b)
+            ->postJson(route('dashboard.teknisi.modul.store', ['modul' => 'inspeksi-utilitas']), [
+                'tanggal' => now()->toDateString(), 'subjek' => $judulB, 'kategori' => 'pompa_air',
+            ])
+            ->assertStatus(200);
+
+        $idA = (int) DB::table('teknisi_log_harian')->where('subjek', $judulA)->value('id');
+        $idB = (int) DB::table('teknisi_log_harian')->where('subjek', $judulB)->value('id');
+
+        // B mencoba menghapus milik A: dilewati, tidak terhapus.
+        $this->withSession($b)
+            ->postJson(route('dashboard.teknisi.bulk-delete'), ['modul' => 'inspeksi-utilitas', 'ids' => [$idA]])
+            ->assertStatus(200)
+            ->assertJsonPath('count', 0)
+            ->assertJsonPath('skipped', 1);
+        $this->assertNotNull(DB::table('teknisi_log_harian')->where('id', $idA)->first());
+
+        // A menghapus miliknya sendiri: terhapus.
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.bulk-delete'), ['modul' => 'inspeksi-utilitas', 'ids' => [$idA]])
+            ->assertStatus(200)
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('skipped', 0);
+        $this->assertNull(DB::table('teknisi_log_harian')->where('id', $idA)->first());
+    }
 }

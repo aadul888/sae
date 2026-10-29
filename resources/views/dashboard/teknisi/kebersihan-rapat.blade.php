@@ -26,7 +26,9 @@
         :cetak-route="route('dashboard.teknisi.laporan.cetak', ['modul' => 'kebersihan-rapat', 'dari' => now()->startOfMonth()->toDateString(), 'sampai' => now()->endOfMonth()->toDateString()])"
         import-modal-id="modalImportTeknisi"
         :can-create="$canCreate"
-        :can-import="$canCreate">
+        :can-import="$canCreate"
+        :can-delete="$canDelete"
+        bulk-modul="kebersihan-rapat">
 
         <x-slot:filter>
             <select name="area" class="toolbar-filter-select" style="height:38px; min-width:140px;">
@@ -62,7 +64,7 @@
         </thead>
         <tbody>
             @forelse ($list as $row)
-                <tr style="border-bottom:1px solid var(--border-color);">
+                <tr style="border-bottom:1px solid var(--border-color);" data-bulk-id="{{ $row->id }}">
                     <td style="padding:14px 18px; color:var(--text-muted);">{{ $list->firstItem() + $loop->index }}</td>
                     <td style="padding:14px 18px;">
                         <div style="font-weight:700; font-family:monospace; color:var(--text-heading);">{{ $row->nomor_kegiatan }}</div>

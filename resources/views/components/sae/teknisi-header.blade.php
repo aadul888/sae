@@ -14,6 +14,8 @@
     'showSearch' => true,
     'canCreate' => false,
     'canImport' => false,
+    'canDelete' => false,
+    'bulkModul' => null,
 ])
 
 @php
@@ -59,6 +61,14 @@
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Import Excel" aria-label="Import Excel">
                     <i class="fas fa-file-excel text-success"></i>
+                </button>
+            @endif
+            @if ($bulkModul && $canDelete)
+                <button type="button" class="btn btn-outline" data-teknisi-bulk-delete
+                    data-modul="{{ $bulkModul }}" data-endpoint="{{ route('dashboard.teknisi.bulk-delete') }}" disabled
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); opacity: 0.5; cursor: not-allowed;"
+                    title="Hapus data terpilih" aria-label="Hapus data terpilih">
+                    <i class="fas fa-trash-alt" style="color: var(--danger, #ef4444);"></i>
                 </button>
             @endif
         </div>
@@ -137,3 +147,13 @@
         @endisset
     </div>
 </div>
+
+@if ($bulkModul)
+    @once
+        @push('scripts')
+            <script
+                src="{{ asset('js/teknisi-bulk.js') }}?v={{ file_exists(public_path('js/teknisi-bulk.js')) ? filemtime(public_path('js/teknisi-bulk.js')) : time() }}">
+            </script>
+        @endpush
+    @endonce
+@endif

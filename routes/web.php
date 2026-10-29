@@ -1025,6 +1025,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/pemeliharaan/{id}/status', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'updateStatus'])->name('pemeliharaan.status')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,update');
         Route::delete('/pemeliharaan/{id}', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'destroy'])->name('pemeliharaan.destroy')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,delete');
 
+        // Hapus massal (bulk) seluruh datatable modul Teknisi
+        Route::post('/bulk-delete', [\App\Http\Controllers\Teknisi\TeknisiBulkDeleteController::class, 'destroy'])
+            ->name('bulk-delete')
+            ->middleware('permission:menu_teknisi|menu_teknisi_wo|menu_teknisi_pemeliharaan,delete');
+
         // =====================================================================
         // KELENGKAPAN TUPOKSI TEKNISI (5 Indikator Supervisi)
         // =====================================================================
