@@ -120,7 +120,7 @@
                 <input type="text" name="hari[]" id="inputHariSemester" class="form-control" value="Senin" readonly
                     style="background: var(--bg-hover); cursor: not-allowed;" tabindex="-1">
                 <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">
-                    <i class="fas fa-circle-info text-primary me-1"></i> Otomatis mengikuti slot hari yang dipilih pada matriks.
+                    <i class="fas fa-circle-info text-primary me-1"></i> Jadwal berlaku 1 semester penuh — bukan per tanggal. Pengisian ini hanya untuk mengubah sesi yang sudah ada.
                 </div>
             </div>
 

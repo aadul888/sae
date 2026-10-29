@@ -458,9 +458,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalJadwalSemesterTitle) modalJadwalSemesterTitle.textContent = 'Jadwalkan Praktik (Semester)';
             bukaKunciKelas(selectRombelSemester);
             setGuruMapelOptions(selectGuruMapelSemester, hintSemester, []);
-            if (inputTanggalSemester) {
-                inputTanggalSemester.value = fmtDate(new Date());
-            }
+            if (inputTanggalSemester) inputTanggalSemester.value = fmtDate(new Date());
+            // Catatan: nilai tanggal semester diisi otomatis (tidak diminta ke
+            // laboran) karena jadwal berlaku 1 semester penuh, bukan per tanggal.
             const hariAwal = (inputHariSemester && inArray(inputHariSemester.value, HARI_URUT))
                 ? inputHariSemester.value : 'Senin';
             if (inputHariSemester) inputHariSemester.value = hariAwal;
@@ -476,6 +476,11 @@ document.addEventListener('DOMContentLoaded', function () {
             setGuruMapelOptions(selectGuruMapelMingguan, hintMingguan, []);
             if (inputTanggalMingguan) {
                 inputTanggalMingguan.value = fmtDate(new Date());
+            }
+            // Isi tanggal awal sesuai hari matriks agar validasi hari cocok,
+            // sekalipun laboran tidak menyentuh kolom tanggal.
+            if (inputHariMingguan && inArray(inputHariMingguan.value, HARI_URUT)) {
+                inputTanggalMingguan.value = tanggalUntukHari(inputHariMingguan.value);
             }
             if (selectPemberlakuanMingguM) selectPemberlakuanMingguM.value = '1';
             if (selectPemberlakuanMingguAkhirM) selectPemberlakuanMingguAkhirM.value = '1';
@@ -712,7 +717,9 @@ document.addEventListener('DOMContentLoaded', function () {
         selectGuruMapelSemester,
         selectJamKeMulaiSemester,
         selectJamKeSelesaiSemester,
-        inputTanggalSemester,
+        // Semester berlaku 1 semester penuh: tanggal awal tidak diminta saat
+        // pengisian baru (sesi lama tetap menyimpan tanggalnya sendiri).
+        null,
         null,
         null,
         modalJadwalSemester

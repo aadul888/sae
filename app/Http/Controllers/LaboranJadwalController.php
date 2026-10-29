@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
+use App\Http\Controllers\Concerns\LaboranJadwalValidasi;
 use App\Http\Controllers\Concerns\NormalisasiPayloadJadwalLaboran;
 use App\Models\RolePermission;
 use App\Services\LaboranJadwalService;
@@ -15,19 +16,8 @@ use Illuminate\Support\Str;
 class LaboranJadwalController extends Controller
 {
     use ChecksAuthenticatedSession;
+    use LaboranJadwalValidasi;
     use NormalisasiPayloadJadwalLaboran;
-
-    public const JENIS_LOKASI = LaboranJadwalService::JENIS_LOKASI;
-    public const STATUS_LIST  = LaboranJadwalService::STATUS_LIST;
-
-    /**
-     * Ikatan jam praktik ke Jadwal KBM (kuota JP per mapel per hari).
-     *
-     * SEMENTARA DIMATIKAN atas permintaan pemilik modul: input jadwal praktik
-     * tidak boleh ditolak karena mapel tidak ada di Jadwal KBM atau JP melebihi
-     * kuota mapel. Ubah ke `true` untuk mengaktifkan lagi.
-     */
-    public const PAKSA_VALIDASI_KBM = false;
 
     protected LaboranJadwalService $service;
 
@@ -865,7 +855,13 @@ class LaboranJadwalController extends Controller
             }
         }
 
-        if ($conflict = $this->service->findConflictForDates($data, $targetDates)) {
+        // ponytail: pemeriksaan bentrok GURU pada ulangan harian sesi SENGAJA
+        // DINONAKTIFKAN SEMENTARA atas permintaan pemilik modul. Kombinasi guru
+        // multi-kelas sering sah, sehingga penolakan menghambat kerja. Kode
+        // tetap utuh; aktifkan kembali dengan mengubah
+        // PAKSA_VALIDASI_BENTROK menjadi true.
+        if (self::PAKSA_VALIDASI_BENTROK
+            && ($conflict = $this->service->findConflictForDates($data, $targetDates))) {
             return $this->jsonOrRedirect($request, false, $conflict, 422);
         }
 
@@ -939,7 +935,8 @@ class LaboranJadwalController extends Controller
             return $this->jsonOrRedirect($request, false, $pesan, 422);
         }
 
-        if ($conflict = $this->service->findConflictSingleDate($data, $data['tanggal'], $this->service->extractAllPtkIds($data), (int) $id)) {
+        if (self::PAKSA_VALIDASI_BENTROK
+            && ($conflict = $this->service->findConflictSingleDate($data, $data['tanggal'], $this->service->extractAllPtkIds($data), (int) $id))) {
             return $this->jsonOrRedirect($request, false, $conflict, 422);
         }
 

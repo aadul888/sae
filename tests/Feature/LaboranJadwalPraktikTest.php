@@ -303,7 +303,10 @@ class LaboranJadwalPraktikTest extends TestCase
     }
 
     /**
-     * Bentrok GURU tetap ditolak meskipun lokasinya lahan/lapangan.
+     * SEMENTARA: bentrok GURU dilepas (`PAKSA_VALIDASI_BENTROK = false`).
+     * Guru sama pada jam beririsan kini diterima. Setelah flag diaktifkan
+     * kembali, kembalikan `assertStatus(422)` + pesan "sudah memiliki jadwal
+     * praktik lain" pada penolakan kedua di bawah.
      */
     public function test_bentrok_guru_tetap_ditolak_di_lapangan(): void
     {
@@ -328,7 +331,7 @@ class LaboranJadwalPraktikTest extends TestCase
             ->postJson(route('dashboard.laboran.jadwal.store'), $payload)
             ->assertStatus(200);
 
-        // Guru sama, jam beririsan, lokasi berbeda -> harus 422
+        // Guru sama, jam beririsan, lokasi berbeda -> kini DITERIMA (bentrok guru dilepas).
         $res = $this->withSession($this->adminSession())
             ->postJson(route('dashboard.laboran.jadwal.store'), array_merge($payload, [
                 'ruang_lab_nama' => 'Lahan Praktik ATPH',
@@ -337,8 +340,7 @@ class LaboranJadwalPraktikTest extends TestCase
                 'jam_selesai'    => '09:00',
             ]));
 
-        $res->assertStatus(422);
-        $this->assertStringContainsString('sudah memiliki jadwal praktik lain', $res->json('message'));
+        $res->assertStatus(200);
     }
 
     public function test_ubah_status_tidak_menghapus_topik(): void

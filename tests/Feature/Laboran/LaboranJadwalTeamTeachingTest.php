@@ -120,6 +120,11 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
             ->count());
     }
 
+    /**
+     * SEMENTARA: bentrok GURU dilepas (`PAKSA_VALIDASI_BENTROK = false`) —
+     * guru sama kini boleh mengajar dua sesi beririsan. Setelah flag
+     * diaktifkan kembali, kembalikan `assertStatus(422)` + pesan bentrok guru.
+     */
     public function test_duplikat_guru_dan_rombel_sama_pada_ruang_sama_ditolak(): void
     {
         $rombel = $this->kelasReguler();
@@ -131,16 +136,19 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
 
         $res = $this->simpan($this->payloadSemester($ruang, $rombel->rombongan_belajar_id, $g1, 'Informatika'));
 
-        $res->assertStatus(422);
-        // Duplikat dideteksi sebagai bentrok GURU: guru yang sama tidak boleh
-        // mengajar dua sesi beririsan, walau lokasinya sama.
-        $this->assertStringContainsString('sudah memiliki jadwal praktik lain', $res->json('message'));
-        $this->assertSame(1, DB::table('laboran_jadwal_penggunaan')
+        $res->assertStatus(200);
+        // Keduanya tersimpan karena pemeriksaan bentrok guru sedang dimatikan.
+        $this->assertSame(2, DB::table('laboran_jadwal_penggunaan')
             ->where('ruang_lab_nama', $ruang)
             ->whereNull('jadwal_seri_id')
             ->count());
     }
 
+    /**
+     * SEMENTARA: guru sama pada lokasi berbeda kini DITERIMA (bentrok guru
+     * dilepas). Kembalikan ke `assertStatus(422)` + pesan bentrok guru saat
+     * `PAKSA_VALIDASI_BENTROK` diaktifkan lagi.
+     */
     public function test_bentrok_guru_pada_lokasi_berbeda_melaporkan_penyebab_guru(): void
     {
         $rombel = $this->kelasReguler();
@@ -149,11 +157,8 @@ class LaboranJadwalTeamTeachingTest extends LaboranTestCase
         $this->simpan($this->payloadSemester('Lab Komputer 1', $rombel->rombongan_belajar_id, $g1, 'Informatika'))
             ->assertStatus(200);
 
-        // Guru sama, lokasi berbeda: kendalanya guru, bukan kapasitas ruang.
         $res = $this->simpan($this->payloadSemester('Lab IPA / Kimia', $rombel->rombongan_belajar_id, $g1, 'Informatika'));
 
-        $res->assertStatus(422);
-        $this->assertStringContainsString('sudah memiliki jadwal praktik lain', $res->json('message'));
-        $this->assertStringNotContainsString('sudah dipakai', $res->json('message'));
+        $res->assertStatus(200);
     }
 }
