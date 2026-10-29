@@ -305,5 +305,46 @@ class SarprasRuangDanAsetTest extends TestCase
         $this->withSession($session)
             ->deleteJson(route('dashboard.sarpras.ruang.destroy', $id))
             ->assertStatus(403);
+
+        // Inventaris & Aset: hak sama dengan Ruang & Gedung (baca + ubah).
+        $this->withSession($session)
+            ->get(route('dashboard.sarpras.aset.index'))
+            ->assertStatus(200);
+
+        $asetId = DB::table('sarpras_aset')->insertGetId([
+            'kode_aset'    => 'AST-TEST-TEKNISI-01',
+            'nama_barang'  => 'Barang Uji Teknisi',
+            'kategori'     => 'Elektronik',
+            'sumber_dana'  => 'BOS Reguler',
+            'kondisi'      => 'baik',
+            'jumlah'       => 1,
+            'satuan'       => 'unit',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+        $this->createdAset[] = (int) $asetId;
+
+        $this->withSession($session)->putJson(route('dashboard.sarpras.aset.update', $asetId), [
+            'kode_aset'           => 'AST-TEST-TEKNISI-01',
+            'nama_barang'         => 'Barang Uji Teknisi',
+            'kategori'            => 'Elektronik',
+            'sumber_dana'         => 'BOS Reguler',
+            'kondisi'             => 'rusak_ringan',
+            'jumlah'              => 1,
+            'satuan'              => 'unit',
+            'status_ketersediaan' => 'tersedia',
+        ])->assertStatus(200);
+
+        $this->assertSame('rusak_ringan', DB::table('sarpras_aset')->where('id', $asetId)->value('kondisi'));
+
+        $this->withSession($session)->postJson(route('dashboard.sarpras.aset.store'), [
+            'nama_barang' => 'Barang Baru Teknisi',
+            'kategori'    => 'Elektronik',
+            'sumber_dana' => 'BOS Reguler',
+        ])->assertStatus(403);
+
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.sarpras.aset.destroy', $asetId))
+            ->assertStatus(403);
     }
 }
