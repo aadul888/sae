@@ -56,6 +56,10 @@
     </div>
 </div>
 
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
+
 <!-- 2. Section: Visualisasi Statistik & Demografi Satuan Pendidikan -->
 <div class="card"
     style="padding: 20px 22px; margin-bottom: 24px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); background: var(--card-bg);">

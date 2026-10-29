@@ -2591,19 +2591,20 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         display: none !important;
     }
 
-    /* Item Judul / Nama Utama Sebagai Header Kartu Mobile */
-    .table-responsive-stack tbody td.cell-pd-nama,
-    .table-responsive-stack tbody td[data-label="Nama Lengkap"],
-    .table-responsive-stack tbody td[data-label="Nama"],
-    .table-responsive-stack tbody td[data-label="Nama Data"],
-    .table-responsive-stack tbody td[data-label="Nama Pegawai"],
-    .table-responsive-stack tbody td[data-label="Sasaran"],
-    .table-responsive-stack tbody td[data-label="Judul"],
-    .table-responsive-stack tbody td[data-label="Nama Barang"],
-    .table-responsive-stack tbody td[data-label="Barang"],
-    .table-responsive-stack tbody td[data-label="Mata Pelajaran"],
-    .table-responsive-stack tbody td[data-label="Agenda"],
-    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) {
+    /* Item Judul / Nama Utama Sebagai Header Kartu Mobile
+       (baris `.dt-card` dikelola public/js/datatable-cards.js) */
+    .table-responsive-stack tbody tr:not(.dt-card) td.cell-pd-nama,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Lengkap"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Data"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Pegawai"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Sasaran"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Judul"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Barang"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"],
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"],
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) {
         display: flex !important;
         align-items: center !important;
         justify-content: flex-start !important;
@@ -2616,32 +2617,32 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         width: 100% !important;
         text-align: left !important;
     }
-    .table-responsive-stack tbody td.cell-pd-nama::before,
-    .table-responsive-stack tbody td[data-label="Nama Lengkap"]::before,
-    .table-responsive-stack tbody td[data-label="Nama"]::before,
-    .table-responsive-stack tbody td[data-label="Nama Data"]::before,
-    .table-responsive-stack tbody td[data-label="Nama Pegawai"]::before,
-    .table-responsive-stack tbody td[data-label="Sasaran"]::before,
-    .table-responsive-stack tbody td[data-label="Judul"]::before,
-    .table-responsive-stack tbody td[data-label="Nama Barang"]::before,
-    .table-responsive-stack tbody td[data-label="Barang"]::before,
-    .table-responsive-stack tbody td[data-label="Mata Pelajaran"]::before,
-    .table-responsive-stack tbody td[data-label="Agenda"]::before,
-    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"])::before {
+    .table-responsive-stack tbody tr:not(.dt-card) td.cell-pd-nama::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Lengkap"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Data"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Pegawai"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Sasaran"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Judul"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Barang"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"]::before,
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"])::before {
         display: none !important;
     }
-    .table-responsive-stack tbody td.cell-pd-nama > *,
-    .table-responsive-stack tbody td[data-label="Nama Lengkap"] > *,
-    .table-responsive-stack tbody td[data-label="Nama"] > *,
-    .table-responsive-stack tbody td[data-label="Nama Data"] > *,
-    .table-responsive-stack tbody td[data-label="Nama Pegawai"] > *,
-    .table-responsive-stack tbody td[data-label="Sasaran"] > *,
-    .table-responsive-stack tbody td[data-label="Judul"] > *,
-    .table-responsive-stack tbody td[data-label="Nama Barang"] > *,
-    .table-responsive-stack tbody td[data-label="Barang"] > *,
-    .table-responsive-stack tbody td[data-label="Mata Pelajaran"] > *,
-    .table-responsive-stack tbody td[data-label="Agenda"] > *,
-    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) > * {
+    .table-responsive-stack tbody tr:not(.dt-card) td.cell-pd-nama > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Lengkap"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Data"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Pegawai"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Sasaran"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Judul"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Nama Barang"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"] > *,
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) > * {
         max-width: 100% !important;
         width: 100% !important;
         justify-content: flex-start !important;
@@ -5546,7 +5547,7 @@ input:disabled + .slider-toggle-crud {
 /* Quick Actions Grid Kepegawaian (Responsive, Balanced & Even Grid) */
 .kepegawaian-quick-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 22px;
     width: 100%;
@@ -5604,8 +5605,23 @@ input:disabled + .slider-toggle-crud {
 
 @media (max-width: 1024px) {
     .kepegawaian-quick-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        /* Tetap 4 kolom (pola 4x2) — hanya dirapatkan agar tidak meluber. */
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    .kepegawaian-quick-btn {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+    .kepegawaian-quick-icon {
+        width: 30px;
+        height: 30px;
+        font-size: var(--text-sm, 0.8125rem);
+        border-radius: var(--radius-md, 8px);
+    }
+    .kepegawaian-quick-label {
+        font-size: var(--text-xs, 0.75rem);
+        line-height: 1.25;
     }
 }
 
@@ -5883,6 +5899,294 @@ input:disabled + .slider-toggle-crud {
         flex: 1 1 auto;
         min-height: var(--control-height-md, 38px);
         justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   DATATABLE MODE KARTU RINGKAS (MOBILE)
+   Baris datatable di layar kecil hanya menampilkan teks utama. Sel detail
+   (termasuk kolom aksi) disembunyikan dan dibuka saat kartu diketuk.
+   Kelas `dt-card-*` dipasang oleh public/js/datatable-cards.js.
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Kartu: ringkas, satu blok, tanpa jarak antar sel. */
+    .table-responsive-stack tbody tr.dt-card,
+    .table-pd tbody tr.dt-card {
+        display: block !important;
+        position: relative !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-lg, 12px) !important;
+        background: var(--card-bg, #131b2e) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
+        padding: 0 !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .table-responsive-stack tbody tr.dt-card.dt-card-open,
+    .table-pd tbody tr.dt-card.dt-card-open {
+        border-color: var(--primary) !important;
+    }
+
+    /* --- Teks utama (hero) --- */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero,
+    .table-pd tbody tr.dt-card > td.dt-card-hero {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 12px 14px !important;
+        margin: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid transparent !important;
+        text-align: left !important;
+        font-weight: 700 !important;
+        font-size: var(--text-base, 0.875rem) !important;
+        color: var(--text-color) !important;
+        min-height: 0 !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card.dt-card-open > td.dt-card-hero,
+    .table-pd tbody tr.dt-card.dt-card-open > td.dt-card-hero {
+        border-bottom-color: var(--border-color) !important;
+    }
+
+    /* Jangan tampilkan label pseudo pada teks utama. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero::before,
+    .table-pd tbody tr.dt-card > td.dt-card-hero::before {
+        display: none !important;
+    }
+
+    /* Konten teks utama tetap mengalir ke kiri, bukan ke kanan seperti sel detail. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero > *,
+    .table-pd tbody tr.dt-card > td.dt-card-hero > * {
+        max-width: 100% !important;
+        width: auto !important;
+        min-width: 0 !important;
+        flex: 0 1 auto !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        font-weight: inherit !important;
+        color: inherit !important;
+        overflow: hidden !important;
+    }
+
+    /* Hanya elemen pertama yang memenuhi ruang; sisanya (kode/badge) tetap
+       rapat di kanan sebelum tombol buka-detail. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero > *:first-child,
+    .table-pd tbody tr.dt-card > td.dt-card-hero > *:first-child {
+        flex: 1 1 auto !important;
+    }
+
+    /* Judul/nama pada hero boleh terpotong satu baris agar kartu tetap ringkas. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero .pd-nama,
+    .table-pd tbody tr.dt-card > td.dt-card-hero .pd-nama {
+        font-size: var(--text-base, 0.875rem) !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero .pd-title-row,
+    .table-pd tbody tr.dt-card > td.dt-card-hero .pd-title-row {
+        flex-wrap: nowrap !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero .pd-main-wrapper,
+    .table-pd tbody tr.dt-card > td.dt-card-hero .pd-main-wrapper {
+        align-items: center !important;
+        gap: 10px !important;
+        min-width: 0 !important;
+    }
+
+    /* Foto & badge sekunder disembunyikan agar baris utama benar-benar ringkas. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero .pd-foto-thumb,
+    .table-pd tbody tr.dt-card > td.dt-card-hero .pd-foto-thumb {
+        width: 32px !important;
+        height: 32px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* --- Kolom centang: tetap tampil di kiri judul --- */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-check,
+    .table-pd tbody tr.dt-card > td.dt-card-check {
+        position: absolute !important;
+        /* Sejajar dengan baris teks utama, bukan di tengah tinggi kartu:
+           saat detail dibuka, checkbox tidak boleh berpindah ke area detail. */
+        top: 12px !important;
+        left: 12px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: visible !important;
+        z-index: 2 !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-check::before,
+    .table-pd tbody tr.dt-card > td.dt-card-check::before {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-check > *,
+    .table-pd tbody tr.dt-card > td.dt-card-check > * {
+        margin: 0 !important;
+        max-width: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    /* Geser hero agar tidak tertimpa kolom centang. */
+    .table-responsive-stack tbody tr.dt-card.dt-card-has-check > td.dt-card-hero,
+    .table-pd tbody tr.dt-card.dt-card-has-check > td.dt-card-hero {
+        padding-left: 42px !important;
+    }
+
+    /* Baris teks utama bisa diketuk untuk membuka detail. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero.dt-card-hero--interactive,
+    .table-pd tbody tr.dt-card > td.dt-card-hero.dt-card-hero--interactive {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero:active,
+    .table-pd tbody tr.dt-card > td.dt-card-hero:active {
+        background: var(--bg-hover);
+    }
+
+    /* --- Sel detail: hanya tampil saat kartu terbuka --- */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-detail,
+    .table-pd tbody tr.dt-card > td.dt-card-detail {
+        display: none !important;
+    }
+
+    /* Kolom nomor urut tidak perlu di kartu. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-index,
+    .table-pd tbody tr.dt-card > td.dt-card-index {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card.dt-card-open > td.dt-card-detail,
+    .table-pd tbody tr.dt-card.dt-card-open > td.dt-card-detail {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 8px 14px !important;
+        margin: 0 !important;
+        border: none !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.06) !important;
+        text-align: right !important;
+        font-size: var(--text-sm, 0.8125rem) !important;
+        color: var(--text-muted) !important;
+        box-sizing: border-box !important;
+    }
+
+    [data-theme="light"] .table-responsive-stack tbody tr.dt-card.dt-card-open > td.dt-card-detail,
+    [data-theme="light"] .table-pd tbody tr.dt-card.dt-card-open > td.dt-card-detail {
+        border-bottom-color: rgba(0, 0, 0, 0.06) !important;
+    }
+
+    /* Baris detail terakhir tidak perlu garis bawah. */
+    .table-responsive-stack tbody tr.dt-card.dt-card-open > td.dt-card-detail:last-of-type,
+    .table-pd tbody tr.dt-card.dt-card-open > td.dt-card-detail:last-of-type {
+        border-bottom: none !important;
+    }
+
+    /* Kolom aksi jadi footer kartu. */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-detail.dt-card-actions,
+    .table-pd tbody tr.dt-card > td.dt-card-detail.dt-card-actions {
+        justify-content: flex-end !important;
+        background: var(--bg-hover) !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-detail.dt-card-actions::before,
+    .table-pd tbody tr.dt-card > td.dt-card-detail.dt-card-actions::before {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-detail .table-actions,
+    .table-pd tbody tr.dt-card > td.dt-card-detail .table-actions {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 6px !important;
+        max-width: 100% !important;
+        flex-wrap: wrap !important;
+    }
+
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-detail .btn-icon,
+    .table-pd tbody tr.dt-card > td.dt-card-detail .btn-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: var(--text-sm, 0.8125rem) !important;
+        border-radius: var(--radius-md, 8px) !important;
+    }
+
+    /* --- Tombol buka/tutup detail --- */
+    .table-responsive-stack tbody tr.dt-card > td.dt-card-hero > .dt-card-toggle,
+    .table-pd tbody tr.dt-card > td.dt-card-hero > .dt-card-toggle {
+        flex: 0 0 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        width: 30px !important;
+        height: 30px !important;
+        margin-left: auto !important;
+        overflow: visible !important;
+    }
+
+    .dt-card-toggle {
+        flex: 0 0 30px;
+        min-width: 30px;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md, 8px);
+        border: 1px solid var(--border-color);
+        background: var(--bg-hover);
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: var(--text-sm, 0.8125rem);
+        line-height: 1;
+        padding: 0;
+        transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .dt-card-toggle:hover {
+        color: var(--text-color);
+        border-color: var(--primary);
+    }
+
+    .dt-card-open > td.dt-card-hero .dt-card-toggle {
+        transform: rotate(180deg);
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* Baris kosong tetap seperti semula. */
+    .table-responsive-stack tbody tr.dt-card > td[colspan],
+    .table-pd tbody tr.dt-card > td[colspan] {
+        position: static !important;
+        padding: 24px 12px !important;
     }
 }
 

@@ -53,6 +53,10 @@
     </div>
 </div>
 
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
+
 <!-- 2. Card Interaktif: Nomor Surat Masuk & Keluar Terakhir (Dashboard) -->
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px;">

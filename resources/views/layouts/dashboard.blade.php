@@ -117,6 +117,9 @@
         <script
             src="{{ asset('js/modal-drag.js') }}?v={{ file_exists(public_path('js/modal-drag.js')) ? filemtime(public_path('js/modal-drag.js')) : time() }}">
         </script>
+        <script
+            src="{{ asset('js/datatable-cards.js') }}?v={{ file_exists(public_path('js/datatable-cards.js')) ? filemtime(public_path('js/datatable-cards.js')) : time() }}">
+        </script>
         @stack('scripts')
 </body>
 

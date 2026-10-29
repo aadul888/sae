@@ -145,6 +145,10 @@
     </div>
 </div>
 
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
+
 <!-- 2b. Rekap Kelengkapan TUPOKSI & Supervisi Teknisi -->
 @php
     $rekap = $teknisiTupoksiRekap ?? [];

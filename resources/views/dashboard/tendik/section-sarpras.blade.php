@@ -194,6 +194,10 @@
     </div>
 </div>
 
+<!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
+@include('dashboard.tendik.partials.domain-tabs')
+
+
 <!-- 3. Peringatan Operasional -->
 @if (!empty($rpWarn))
     <div class="card"
