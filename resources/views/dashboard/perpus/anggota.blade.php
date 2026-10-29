@@ -134,19 +134,28 @@
                         </select>
                     </div>
 
-                    {{-- ===== PESERTA DIDIK & GTK: cukup NISN/NIP, sisanya otomatis ===== --}}
+                    {{-- ===== PESERTA DIDIK & GTK: cari lewat NISN/NIP atau nama ===== --}}
                     <div id="ppBlokOtomatis">
                         <label style="font-size:var(--text-sm,0.8rem);font-weight:700;" for="ppInputNisnNip" id="ppLabelNisnNip">
-                            NISN <span style="color:var(--danger,#ef4444);">*</span>
+                            NISN atau Nama <span style="color:var(--danger,#ef4444);">*</span>
                         </label>
                         <input type="text" name="nisn_nip" id="ppInputNisnNip" class="form-control"
-                            value="{{ old('nisn_nip') }}" placeholder="Ketik NISN, data lain terisi otomatis"
+                            value="{{ old('nisn_nip') }}" placeholder="Ketik NISN, atau nama untuk mencari"
                             autocomplete="off" oninput="ppCariMaster()">
+                        <input type="hidden" name="master_tipe" id="ppMasterTipeInput" value="{{ old('master_tipe') }}">
+                        <input type="hidden" name="master_id" id="ppMasterIdInput" value="{{ old('master_id') }}">
                         <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);margin-top:5px;">
                             <i class="fas fa-wand-magic-sparkles"></i>
-                            Data nama, rombel/unit, dan kontak ditarik otomatis dari database sekolah.
+                            Ketik NISN/NIP untuk pencarian langsung, atau ketik nama (min. 3 huruf) lalu pilih
+                            dari daftar. Data nama, rombel/unit, dan kontak ditarik otomatis dari database sekolah.
                         </div>
 
+                        {{-- Daftar kandidat hasil pencarian nama --}}
+                        <div id="ppDaftarKandidat"
+                            style="display:none;margin-top:10px;max-height:230px;overflow-y:auto;
+                                   border:1px solid var(--border-color);border-radius:var(--radius-md,8px);"></div>
+
+                        {{-- Kandidat yang dipilih --}}
                         <div id="ppHasilMaster"
                             style="display:none;margin-top:10px;padding:12px;border-radius:var(--radius-md,8px);
                                    border:1px solid var(--border-color);background:rgba(59,130,246,0.05);">
@@ -227,12 +236,19 @@
         <script>
             var PP_CEK_URL = @json(route('dashboard.perpustakaan.anggota.cek-master'));
             var ppTimer = null;
+            var ppKandidat = [];
 
             function openModalAnggota() {
                 document.getElementById('modalAnggota').style.display = 'flex';
                 ppGantiTipe();
             }
             function closeModalAnggota() { document.getElementById('modalAnggota').style.display = 'none'; }
+
+            function ppEsc(teks) {
+                return String(teks == null ? '' : teks).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
 
             // Tampilkan blok otomatis (PD/GTK) atau manual (umum).
             function ppGantiTipe() {
@@ -249,74 +265,135 @@
                 document.getElementById('ppNamaUmum').required = !otomatis;
                 document.getElementById('ppInputNisnNip').required = otomatis;
 
-                document.getElementById('ppLabelNisnNip').innerHTML = (tipe === 'gtk' ? 'NIP' : 'NISN')
+                document.getElementById('ppLabelNisnNip').innerHTML = (tipe === 'gtk' ? 'NIP atau Nama' : 'NISN atau Nama')
                     + ' <span style="color:var(--danger,#ef4444);">*</span>';
 
                 document.getElementById('ppInputNisnNip').placeholder = tipe === 'gtk'
-                    ? 'Ketik NIP, data GTK terisi otomatis'
-                    : 'Ketik NISN, data peserta didik terisi otomatis';
+                    ? 'Ketik NIP, atau nama GTK untuk mencari'
+                    : 'Ketik NISN, atau nama peserta didik untuk mencari';
 
                 ppResetMaster();
             }
 
+            // Bersihkan pilihan kandidat setiap kali input berubah / tipe berganti.
             function ppResetMaster() {
+                ppKandidat = [];
+                document.getElementById('ppMasterTipeInput').value = '';
+                document.getElementById('ppMasterIdInput').value = '';
                 document.getElementById('ppHasilMaster').style.display = 'none';
                 document.getElementById('ppPesanMaster').style.display = 'none';
+
+                var daftar = document.getElementById('ppDaftarKandidat');
+                daftar.style.display = 'none';
+                daftar.innerHTML = '';
+
                 document.getElementById('ppTombolDaftar').disabled = false;
+                document.getElementById('ppInputNisnNip').required = true;
             }
 
-            // Cari data master dengan debounce agar tidak membanjiri server.
+            function ppPesan(warna, html) {
+                var pesan = document.getElementById('ppPesanMaster');
+                pesan.style.display = 'block';
+                pesan.style.color = warna;
+                pesan.innerHTML = html;
+            }
+
+            // Cari data master: angka = NISN/NIP, selain itu = nama.
             function ppCariMaster() {
                 clearTimeout(ppTimer);
 
                 var nilai = document.getElementById('ppInputNisnNip').value.trim();
-                var pesan = document.getElementById('ppPesanMaster');
+                var tipe = document.getElementById('ppTipeAnggota').value;
 
                 ppResetMaster();
-                if (nilai.length < 4) return;
+
+                var angka = /^[0-9\s.\-]+$/.test(nilai);
+                if (nilai.length < (angka ? 4 : 3)) return;
 
                 ppTimer = setTimeout(function () {
-                    fetch(PP_CEK_URL + '?nisn_nip=' + encodeURIComponent(nilai), {
+                    fetch(PP_CEK_URL + '?q=' + encodeURIComponent(nilai) + '&tipe=' + encodeURIComponent(tipe), {
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                     }).then(function (r) {
                         return r.json();
                     }).then(function (d) {
                         if (!d.ok) {
-                            pesan.style.display = 'block';
-                            pesan.style.color = 'var(--danger,#ef4444)';
-                            pesan.innerHTML = '<i class="fas fa-circle-exclamation"></i> ' + d.pesan;
+                            ppPesan('var(--danger,#ef4444)', '<i class="fas fa-circle-exclamation"></i> ' + ppEsc(d.pesan));
                             document.getElementById('ppTombolDaftar').disabled = true;
                             return;
                         }
-
-                        var detail = [];
-                        if (d.rombel_atau_unit) detail.push(d.rombel_atau_unit);
-                        if (d.jenis_kelamin) detail.push(d.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan');
-                        if (d.email) detail.push(d.email);
-                        if (d.telepon) detail.push(d.telepon);
-
-                        document.getElementById('ppMasterNama').textContent = d.nama || '-';
-                        document.getElementById('ppMasterDetail').textContent = detail.join(' \u00b7 ') || 'Data master ditemukan';
-                        document.getElementById('ppMasterTipe').textContent = d.tipe_label;
-                        document.getElementById('ppHasilMaster').style.display = 'block';
-
-                        pesan.style.display = 'block';
-                        if (d.sudah_terdaftar) {
-                            pesan.style.color = 'var(--warning,#f59e0b)';
-                            pesan.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Sudah terdaftar (No. '
-                                + d.nomor_anggota + ').';
-                            document.getElementById('ppTombolDaftar').disabled = true;
-                        } else {
-                            pesan.style.color = 'var(--success,#10b981)';
-                            pesan.innerHTML = '<i class="fas fa-circle-check"></i> Belum terdaftar \u2014 siap didaftarkan.';
-                            document.getElementById('ppTombolDaftar').disabled = false;
-                        }
+                        ppTampilkanKandidat(d.hasil || []);
                     }).catch(function () {
-                        pesan.style.display = 'block';
-                        pesan.style.color = 'var(--danger,#ef4444)';
-                        pesan.innerHTML = '<i class="fas fa-circle-exclamation"></i> Gagal memeriksa data. Coba lagi.';
+                        ppPesan('var(--danger,#ef4444)', '<i class="fas fa-circle-exclamation"></i> Gagal memeriksa data. Coba lagi.');
                     });
-                }, 450);
+                }, 400);
+            }
+
+            function ppTampilkanKandidat(hasil) {
+                ppKandidat = hasil;
+
+                // Hasil tunggal tidak perlu memilih: langsung tampilkan kartunya.
+                if (hasil.length === 1) {
+                    ppPilihKandidat(0);
+                    return;
+                }
+
+                var daftar = document.getElementById('ppDaftarKandidat');
+                daftar.innerHTML = hasil.map(function (d, i) {
+                    var info = [d.nisn_nip || 'tanpa NISN/NIP', d.rombel_atau_unit,
+                        d.sudah_terdaftar ? 'sudah terdaftar' : null].filter(Boolean).join(' \u2022 ');
+
+                    return '<button type="button" onclick="ppPilihKandidat(' + i + ')" '
+                        + 'style="display:flex;width:100%;gap:10px;align-items:center;text-align:left;padding:10px 12px;'
+                        + 'background:transparent;border:none;border-bottom:1px solid var(--border-color);cursor:pointer;font:inherit;">'
+                        + '<span style="flex:1;min-width:0;">'
+                        + '<span style="display:block;font-weight:700;font-size:var(--text-sm,0.875rem);">' + ppEsc(d.nama) + '</span>'
+                        + '<span style="display:block;font-size:var(--text-xs,0.75rem);color:var(--text-muted);">' + ppEsc(info) + '</span>'
+                        + '</span>'
+                        + '<i class="fas ' + (d.sudah_terdaftar ? 'fa-circle-check' : 'fa-chevron-right') + '" style="color:'
+                        + (d.sudah_terdaftar ? 'var(--success,#10b981)' : 'var(--text-muted)') + ';"></i>'
+                        + '</button>';
+                }).join('');
+
+                daftar.style.display = 'block';
+                ppPesan('var(--text-muted)', '<i class="fas fa-list"></i> ' + hasil.length
+                    + ' kandidat ditemukan \u2014 pilih salah satu.');
+            }
+
+            function ppPilihKandidat(i) {
+                var d = ppKandidat[i];
+                if (!d) return;
+
+                document.getElementById('ppMasterTipeInput').value = d.tipe;
+                document.getElementById('ppMasterIdInput').value = d.bisa_pilih ? d.master_id : '';
+                if (d.nisn_nip) {
+                    document.getElementById('ppInputNisnNip').value = d.nisn_nip;
+                }
+
+                var detail = [];
+                if (d.rombel_atau_unit) detail.push(d.rombel_atau_unit);
+                if (d.jenis_kelamin) detail.push(d.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan');
+                if (d.nisn_nip) detail.push('NISN/NIP: ' + d.nisn_nip);
+
+                document.getElementById('ppMasterNama').textContent = d.nama || '-';
+                document.getElementById('ppMasterDetail').textContent = detail.join(' \u00b7 ') || 'Data master ditemukan';
+                document.getElementById('ppMasterTipe').textContent = d.tipe_label;
+                document.getElementById('ppHasilMaster').style.display = 'block';
+                document.getElementById('ppDaftarKandidat').style.display = 'none';
+
+                if (d.sudah_terdaftar) {
+                    ppPesan('var(--warning,#f59e0b)', '<i class="fas fa-triangle-exclamation"></i> Sudah terdaftar (No. '
+                        + ppEsc(d.nomor_anggota) + ').');
+                    document.getElementById('ppTombolDaftar').disabled = true;
+                } else if (!d.bisa_pilih) {
+                    ppPesan('var(--danger,#ef4444)', '<i class="fas fa-circle-exclamation"></i> Data ini tidak punya ID master, tidak bisa didaftarkan otomatis.');
+                    document.getElementById('ppTombolDaftar').disabled = true;
+                } else {
+                    ppPesan('var(--success,#10b981)', '<i class="fas fa-circle-check"></i> Siap didaftarkan.');
+                    document.getElementById('ppTombolDaftar').disabled = false;
+                }
+
+                // Sudah ada pilihan master: nomor tidak wajib lagi.
+                document.getElementById('ppInputNisnNip').required = !d.bisa_pilih;
             }
 
             @if ($errors->any()) document.addEventListener('DOMContentLoaded', openModalAnggota); @endif

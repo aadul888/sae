@@ -57,30 +57,41 @@ class PerpusAnggotaController extends Controller
         $tipe = (string) $request->input('tipe', 'siswa');
 
         // =================================================================
-        // PESERTA DIDIK & GTK — cukup NISN/NIP, sisanya dibaca dari master data
+        // PESERTA DIDIK & GTK — cukup NISN/NIP, atau dipilih dari hasil
+        // pencarian nama; sisanya dibaca dari master data
         // =================================================================
         if (in_array($tipe, ['siswa', 'gtk'], true)) {
-            $request->validate([
-                'tipe'     => 'required|in:siswa,gtk',
-                'nisn_nip' => 'required|string|max:40',
-            ], [
-                'nisn_nip.required' => $tipe === 'gtk'
-                    ? 'NIP wajib diisi untuk mendaftarkan GTK.'
-                    : 'NISN wajib diisi untuk mendaftarkan peserta didik.',
-            ]);
+            $request->validate(['tipe' => 'required|in:siswa,gtk']);
 
-            $identifier = trim((string) $request->input('nisn_nip'));
-            $hasil = PerpustakaanIdentitasService::daftarDariMasterData($identifier);
+            $masterTipe = (string) $request->input('master_tipe', '');
+            $masterId = trim((string) $request->input('master_id', ''));
+            $identifier = trim((string) $request->input('nisn_nip', ''));
+
+            // Jalur 1: kandidat dipilih dari hasil pencarian nama.
+            if ($masterId !== '' && $masterTipe === $tipe) {
+                $hasil = PerpustakaanIdentitasService::daftarDariMasterId($masterTipe, $masterId);
+            } else {
+                // Jalur 2: diketik langsung NISN/NIP.
+                $request->validate([
+                    'nisn_nip' => 'required|string|max:40',
+                ], [
+                    'nisn_nip.required' => $tipe === 'gtk'
+                        ? 'Isi NIP atau pilih nama GTK dari daftar hasil pencarian.'
+                        : 'Isi NISN atau pilih nama peserta didik dari daftar hasil pencarian.',
+                ]);
+
+                $hasil = PerpustakaanIdentitasService::daftarDariMasterData($identifier);
+            }
 
             if ($hasil['status'] === 'tidak_ditemukan') {
                 return back()->withInput()->with('error', $tipe === 'gtk'
-                    ? "NIP {$identifier} tidak ditemukan pada data GTK sekolah. Periksa kembali nomornya."
-                    : "NISN {$identifier} tidak ditemukan pada data peserta didik. Periksa kembali nomornya.");
+                    ? 'Data GTK tidak ditemukan pada master data sekolah. Periksa kembali NIP atau namanya.'
+                    : 'Data peserta didik tidak ditemukan pada master data sekolah. Periksa kembali NISN atau namanya.');
             }
 
             if ($hasil['status'] === 'sudah_terdaftar') {
                 $lama = $hasil['anggota'];
-                return back()->with('error', "NISN/NIP {$identifier} sudah terdaftar sebagai anggota atas nama {$lama->nama} (No. {$lama->nomor_anggota}).");
+                return back()->with('error', "{$lama->nama} sudah terdaftar sebagai anggota (No. {$lama->nomor_anggota}).");
             }
 
             $anggota = $hasil['anggota'];
@@ -136,47 +147,69 @@ class PerpusAnggotaController extends Controller
 
     /**
      * Pratinjau data master sebelum mendaftar (dipanggil via AJAX dari modal).
-     * Pustakawan cukup mengetik NISN/NIP lalu data lain tampil otomatis,
-     * sehingga tidak ada risiko salah ketik nama/rombel.
+     * Pustakawan bisa mengetik NISN/NIP (angka) atau potongan nama; data lain
+     * tampil otomatis sehingga tidak ada risiko salah ketik nama/rombel.
      */
     public function cekMasterData(Request $request)
     {
         if ($redirect = $this->guard()) return $redirect;
 
-        $identifier = trim((string) $request->query('nisn_nip', ''));
-        if ($identifier === '') {
-            return response()->json(['ok' => false, 'pesan' => 'NISN/NIP belum diisi.'], 422);
+        $q = trim((string) $request->query('q', $request->query('nisn_nip', '')));
+        $tipe = (string) $request->query('tipe', 'siswa');
+        $tipe = in_array($tipe, ['siswa', 'gtk'], true) ? $tipe : 'siswa';
+
+        if ($q === '') {
+            return response()->json(['ok' => false, 'pesan' => 'Isi NISN/NIP atau nama anggota.'], 422);
         }
 
-        $data = PerpustakaanIdentitasService::cariMasterData($identifier);
-        if (!$data) {
+        // Angka → telusuri nomor identitas. Selain itu → cari berdasarkan nama.
+        $kandidat = [];
+        if (preg_match('/^[0-9\s.\-]+$/', $q)) {
+            $data = PerpustakaanIdentitasService::cariMasterData(preg_replace('/[^0-9]/', '', $q));
+            $kandidat = $data ? [$data] : [];
+        } else {
+            $kandidat = PerpustakaanIdentitasService::cariMasterDataByNama($q, $tipe);
+        }
+
+        $hasil = [];
+        foreach ($kandidat as $data) {
+            if (($data['tipe'] ?? '') !== $tipe) {
+                continue;
+            }
+
+            $sudah = PerpustakaanIdentitasService::anggotaUntuk($data);
+            $masterId = $data['tipe'] === 'gtk' ? $data['ptk_id'] : $data['siswa_id'];
+
+            $hasil[] = [
+                'tipe' => $data['tipe'],
+                'tipe_label' => $data['tipe'] === 'gtk' ? 'GTK' : 'Peserta Didik',
+                'master_id' => $masterId,
+                'bisa_pilih' => !empty($masterId),
+                'nisn_nip' => $data['nisn_nip'],
+                'nama' => $data['nama'],
+                'rombel_atau_unit' => $data['rombel_atau_unit'],
+                'jenis_kelamin' => $data['jenis_kelamin'],
+                'email' => $data['email'],
+                'telepon' => $data['telepon'],
+                'sudah_terdaftar' => (bool) $sudah,
+                'nomor_anggota' => $sudah->nomor_anggota ?? null,
+            ];
+        }
+
+        if (empty($hasil)) {
             return response()->json([
                 'ok' => false,
-                'pesan' => 'Nomor tersebut tidak ditemukan pada data peserta didik maupun GTK.',
+                'pesan' => $tipe === 'gtk'
+                    ? 'Data GTK tidak ditemukan pada master data. Periksa NIP atau namanya.'
+                    : 'Data peserta didik tidak ditemukan pada master data. Periksa NISN atau namanya.',
             ]);
         }
 
-        // Apakah sudah menjadi anggota?
-        $sudah = null;
-        if ($data['tipe'] === 'siswa' && !empty($data['siswa_id'])) {
-            $sudah = PerpusAnggota::where('siswa_id', $data['siswa_id'])->first();
-        } elseif ($data['tipe'] === 'gtk' && !empty($data['ptk_id'])) {
-            $sudah = PerpusAnggota::where('ptk_id', $data['ptk_id'])->first();
-        }
-        $sudah = $sudah ?: PerpusAnggota::where('nisn_nip', $data['nisn_nip'])->first();
-
         return response()->json([
             'ok' => true,
-            'tipe' => $data['tipe'],
-            'tipe_label' => $data['tipe'] === 'gtk' ? 'GTK' : 'Peserta Didik',
-            'nisn_nip' => $data['nisn_nip'],
-            'nama' => $data['nama'],
-            'rombel_atau_unit' => $data['rombel_atau_unit'],
-            'jenis_kelamin' => $data['jenis_kelamin'],
-            'email' => $data['email'],
-            'telepon' => $data['telepon'],
-            'sudah_terdaftar' => $sudah ? true : false,
-            'nomor_anggota' => $sudah->nomor_anggota ?? null,
+            'tipe' => $tipe,
+            'tipe_label' => $tipe === 'gtk' ? 'GTK' : 'Peserta Didik',
+            'hasil' => $hasil,
         ]);
     }
 

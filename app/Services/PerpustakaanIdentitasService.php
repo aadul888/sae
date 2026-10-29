@@ -134,25 +134,7 @@ class PerpustakaanIdentitasService
                     ->first();
 
                 if ($pd) {
-                    $telepon = null;
-                    foreach (['nomor_telepon_seluler', 'nomor_telepon_rumah'] as $c) {
-                        if (!empty($pd->{$c})) {
-                            $telepon = $pd->{$c};
-                            break;
-                        }
-                    }
-
-                    return [
-                        'tipe'             => 'siswa',
-                        'siswa_id'         => $pd->peserta_didik_id ?? null,
-                        'ptk_id'           => null,
-                        'nisn_nip'         => $pd->nisn ?? $identifier,
-                        'nama'             => (string) ($pd->nama ?? ''),
-                        'rombel_atau_unit' => $pd->nama_rombel ?? null,
-                        'jenis_kelamin'    => $pd->jenis_kelamin ?? null,
-                        'email'            => $pd->email ?? null,
-                        'telepon'          => $telepon,
-                    ];
+                    return self::barisPesertaDidik($pd, $identifier);
                 }
             }
         }
@@ -174,17 +156,7 @@ class PerpustakaanIdentitasService
                     ->first();
 
                 if ($gtk) {
-                    return [
-                        'tipe'             => 'gtk',
-                        'siswa_id'         => null,
-                        'ptk_id'           => $gtk->ptk_id ?? null,
-                        'nisn_nip'         => $gtk->nip ?? $identifier,
-                        'nama'             => (string) ($gtk->nama ?? ''),
-                        'rombel_atau_unit' => $gtk->jabatan_ptk_id_str ?? null,
-                        'jenis_kelamin'    => $gtk->jenis_kelamin ?? null,
-                        'email'            => $gtk->email ?? null,
-                        'telepon'          => $gtk->no_hp ?? null,
-                    ];
+                    return self::barisGtk($gtk, $identifier);
                 }
             }
         }
@@ -193,37 +165,110 @@ class PerpustakaanIdentitasService
     }
 
     /**
-     * Daftarkan anggota perpustakaan dari master data (NISN/NIP saja).
-     * Idempoten: bila NISN/NIP sudah menjadi anggota, kembalikan anggota lama.
+     * Cari kandidat master data berdasarkan potongan nama.
+     * Dipakai bila pustakawan tidak hafal NISN/NIP anggota.
+     *
+     * @param  string  $tipe  'siswa' | 'gtk' — satu jenis saja agar hasil tidak campur.
+     * @return array<int, array> Kandidat dengan bentuk sama seperti cariMasterData().
+     */
+    public static function cariMasterDataByNama(string $nama, string $tipe = 'siswa', int $limit = 10): array
+    {
+        $nama = trim($nama);
+        if (mb_strlen($nama) < 3) {
+            return [];
+        }
+
+        // Wildcard pengguna di-escape agar pola pencarian tetap literal.
+        $pola = '%' . str_replace(['%', '_'], ['\%', '\_'], $nama) . '%';
+        $hasil = [];
+
+        if ($tipe === 'gtk') {
+            if (Table::exists('gtk') && Table::hasColumn('gtk', 'nama')) {
+                foreach (DB::table('gtk')->where('nama', 'like', $pola)->orderBy('nama')->limit($limit)->get() as $gtk) {
+                    $hasil[] = self::barisGtk($gtk, null);
+                }
+            }
+
+            return $hasil;
+        }
+
+        if (Table::exists('peserta_didik') && Table::hasColumn('peserta_didik', 'nama')) {
+            foreach (DB::table('peserta_didik')->where('nama', 'like', $pola)->orderBy('nama')->limit($limit)->get() as $pd) {
+                $hasil[] = self::barisPesertaDidik($pd, null);
+            }
+        }
+
+        return $hasil;
+    }
+
+    /** Bentuk baris kandidat dari record peserta_didik. */
+    private static function barisPesertaDidik($pd, ?string $identifier): array
+    {
+        $telepon = null;
+        foreach (['nomor_telepon_seluler', 'nomor_telepon_rumah'] as $c) {
+            if (!empty($pd->{$c})) {
+                $telepon = $pd->{$c};
+                break;
+            }
+        }
+
+        return [
+            'tipe'             => 'siswa',
+            'siswa_id'         => $pd->peserta_didik_id ?? null,
+            'ptk_id'           => null,
+            'nisn_nip'         => $pd->nisn ?? ($identifier ?: null),
+            'nama'             => (string) ($pd->nama ?? ''),
+            'rombel_atau_unit' => $pd->nama_rombel ?? null,
+            'jenis_kelamin'    => $pd->jenis_kelamin ?? null,
+            'email'            => $pd->email ?? null,
+            'telepon'          => $telepon,
+        ];
+    }
+
+    /** Bentuk baris kandidat dari record gtk. */
+    private static function barisGtk($gtk, ?string $identifier): array
+    {
+        return [
+            'tipe'             => 'gtk',
+            'siswa_id'         => null,
+            'ptk_id'           => $gtk->ptk_id ?? null,
+            'nisn_nip'         => $gtk->nip ?? ($identifier ?: null),
+            'nama'             => (string) ($gtk->nama ?? ''),
+            'rombel_atau_unit' => $gtk->jabatan_ptk_id_str ?? null,
+            'jenis_kelamin'    => $gtk->jenis_kelamin ?? null,
+            'email'            => $gtk->email ?? null,
+            'telepon'          => $gtk->no_hp ?? null,
+        ];
+    }
+
+    /** Anggota perpustakaan yang sudah ada untuk kandidat master data ini. */
+    public static function anggotaUntuk(array $data): ?PerpusAnggota
+    {
+        if ($data['tipe'] === 'siswa' && !empty($data['siswa_id'])) {
+            if ($found = PerpusAnggota::where('siswa_id', $data['siswa_id'])->first()) {
+                return $found;
+            }
+        } elseif ($data['tipe'] === 'gtk' && !empty($data['ptk_id'])) {
+            if ($found = PerpusAnggota::where('ptk_id', $data['ptk_id'])->first()) {
+                return $found;
+            }
+        }
+
+        return !empty($data['nisn_nip'])
+            ? PerpusAnggota::where('nisn_nip', $data['nisn_nip'])->first()
+            : null;
+    }
+
+    /**
+     * Daftarkan anggota perpustakaan dari hasil master data.
+     * Idempoten: bila sudah menjadi anggota, kembalikan anggota lama.
      *
      * @return array{status:string, anggota:?PerpusAnggota}
-     *         status: 'dibuat' | 'sudah_terdaftar' | 'tidak_ditemukan'
+     *         status: 'dibuat' | 'sudah_terdaftar'
      */
-    public static function daftarDariMasterData(string $identifier): array
+    public static function daftarkan(array $data): array
     {
-        $identifier = trim($identifier);
-        if ($identifier === '') {
-            return ['status' => 'tidak_ditemukan', 'anggota' => null];
-        }
-
-        $data = self::cariMasterData($identifier);
-        if (!$data) {
-            return ['status' => 'tidak_ditemukan', 'anggota' => null];
-        }
-
-        // Sudah pernah didaftarkan? (cek lewat id master & NISN/NIP)
-        $existing = null;
-        if ($data['tipe'] === 'siswa' && !empty($data['siswa_id'])) {
-            $existing = PerpusAnggota::where('siswa_id', $data['siswa_id'])->first();
-        } elseif ($data['tipe'] === 'gtk' && !empty($data['ptk_id'])) {
-            $existing = PerpusAnggota::where('ptk_id', $data['ptk_id'])->first();
-        }
-
-        if (!$existing && !empty($data['nisn_nip'])) {
-            $existing = PerpusAnggota::where('nisn_nip', $data['nisn_nip'])->first();
-        }
-
-        if ($existing) {
+        if ($existing = self::anggotaUntuk($data)) {
             return ['status' => 'sudah_terdaftar', 'anggota' => $existing];
         }
 
@@ -245,6 +290,48 @@ class PerpustakaanIdentitasService
         ]);
 
         return ['status' => 'dibuat', 'anggota' => $anggota];
+    }
+
+    /**
+     * Daftarkan anggota perpustakaan dari master data lewat NISN/NIP.
+     *
+     * @return array{status:string, anggota:?PerpusAnggota}
+     *         status: 'dibuat' | 'sudah_terdaftar' | 'tidak_ditemukan'
+     */
+    public static function daftarDariMasterData(string $identifier): array
+    {
+        $data = self::cariMasterData(trim($identifier));
+        if (!$data) {
+            return ['status' => 'tidak_ditemukan', 'anggota' => null];
+        }
+
+        return self::daftarkan($data);
+    }
+
+    /**
+     * Daftarkan anggota dari kandidat master data terpilih
+     * (hasil pencarian berdasarkan nama).
+     *
+     * @return array{status:string, anggota:?PerpusAnggota}
+     */
+    public static function daftarDariMasterId(string $tipe, string $id): array
+    {
+        $id = trim($id);
+        $data = null;
+
+        if ($id !== '' && $tipe === 'siswa' && Table::exists('peserta_didik')) {
+            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+            $data = $pd ? self::barisPesertaDidik($pd, null) : null;
+        } elseif ($id !== '' && $tipe === 'gtk' && Table::exists('gtk')) {
+            $gtk = DB::table('gtk')->where('ptk_id', $id)->first();
+            $data = $gtk ? self::barisGtk($gtk, null) : null;
+        }
+
+        if (!$data) {
+            return ['status' => 'tidak_ditemukan', 'anggota' => null];
+        }
+
+        return self::daftarkan($data);
     }
 
     /**
