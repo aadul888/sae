@@ -356,14 +356,15 @@ class LaboranJadwalLaporanService
             $end   = Carbon::parse($range['end']);
             $label = $range['label'];
         } else {
+            // MINGGUAN: dokumen bulan berjalan yang dipecah menjadi satu blok
+            // matriks PER PEKAN (Senin–Sabtu) — "dicetak per bulan".
             $acuan = $request->filled('tanggal')
                 ? Carbon::parse((string) $request->query('tanggal'))
                 : Carbon::now();
 
-            // Senin sebagai awal minggu; Sabtu sebagai akhir (sekolah 6 hari).
-            $start = $acuan->copy()->startOfWeek(Carbon::MONDAY);
-            $end   = $start->copy()->addDays(5);
-            $label = 'Minggu ' . $start->translatedFormat('d M Y') . ' s.d. ' . $end->translatedFormat('d M Y');
+            $start = $acuan->copy()->startOfMonth();
+            $end   = $acuan->copy()->endOfMonth();
+            $label = 'Bulan ' . $start->translatedFormat('F Y');
         }
 
         $query = DB::table('laboran_jadwal_penggunaan as ljp')
@@ -409,6 +410,12 @@ class LaboranJadwalLaporanService
                 ->toArray();
         }
 
+        // Gaya KBM: matriks JAM x TANGGAL. Untuk cetak per BULAN = satu matriks
+        // seluruh tanggal bulan itu. Untuk cetak per MINGGU = satu blok matriks
+        // per pekan (Senin–Sabtu) dan SEMUA pekan bulan itu digabung dalam satu
+        // dokumen. Struktur: [ ['label'=>.., 'tanggal'=>[..], 'matriks'=>[..]] ]
+        $blokMinggu = $this->buildBlokMingguMatrix($start, $end, $rentang, $items);
+
         $totalMenit = 0;
         foreach ($items as $it) {
             $totalMenit += $this->durasiMenit($it->jam_mulai, $it->jam_selesai);
@@ -423,9 +430,11 @@ class LaboranJadwalLaporanService
 
         // Pejabat, sekolah, dan pencatatan cetak disiapkan terpusat oleh
         // `LaboranDokumenService::dokumen()` di bawah.
-        $orientasi = strtolower((string) $request->query('orientasi', 'portrait'));
+        // Matriks (lengkap) butuh ruang lebar → default LANDSCAPE; rekap cukup portrait.
+        $orientasiDefault = $versi === 'lengkap' ? 'landscape' : 'portrait';
+        $orientasi = strtolower((string) $request->query('orientasi', $orientasiDefault));
         if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
-            $orientasi = 'portrait';
+            $orientasi = $orientasiDefault;
         }
 
         // Rekap untuk mode ringkasan — dikelompokkan per guru & per lokasi,
@@ -486,6 +495,7 @@ class LaboranJadwalLaporanService
             'rekapGuru'   => $rekapGuru,
             'rekapLokasi' => $rekapLokasi,
             'rekapStatus' => $rekapStatus,
+            'blokMinggu'  => $blokMinggu,
             'statusLabels' => LaboranJadwalService::STATUS_LIST,
             'jenisLabels'  => LaboranJadwalService::JENIS_LOKASI,
             'backUrl'      => route('dashboard.laboran.jadwal.index'),
@@ -502,6 +512,98 @@ class LaboranJadwalLaporanService
                 'ptk_id'  => $ptkId,
             ],
         ]));
+    }
+
+    /**
+     * Matriks gaya KBM: JAM (jam_mulai) x TANGGAL untuk cetak praktik.
+     *
+     * - Bulanan : satu blok berisi seluruh tanggal bulan itu.
+     * - Mingguan: satu blok PER PEKAN (Senin–Sabtu); semua pekan bulan itu
+     *   digabung dalam satu dokumen ("cetak sekali per bulan").
+     * - Semester: satu blok PER BULAN sepanjang semester.
+     *
+     * @param  \Illuminate\Support\Collection  $items
+     * @return array<int, array{label:string, tanggal:array<int,array{tanggal:string,hari:string,is_libur:bool}>, slot:array<int,string>, matriks:array<string,array<string,array<int,object>>>}>
+     */
+    protected function buildBlokMingguMatrix(Carbon $start, Carbon $end, string $rentang, $items): array
+    {
+        // Slot baris = daftar jam_mulai unik (mis. 07:00, 08:00, ...) yang muncul.
+        $slotJam = $items
+            ->pluck('jam_mulai')
+            ->filter()
+            ->map(fn ($j) => substr((string) $j, 0, 5))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        // Indeks item per [tanggal][jam_mulai] — sel matriks menampilkan
+        // mapel/guru/kelas seperti gaya KBM (bisa lebih dari satu sesi paralel).
+        $byTanggalJam = [];
+        foreach ($items as $it) {
+            $tgl = (string) $it->tanggal;
+            $jam = substr((string) $it->jam_mulai, 0, 5);
+            $byTanggalJam[$tgl][$jam][] = $it;
+        }
+
+        // Tentukan blok: per pekan (mingguan) / per bulan (semester) / tunggal.
+        $blokRentang = [];
+        if ($rentang === 'mingguan') {
+            $cursor = $start->copy()->startOfWeek(Carbon::MONDAY);
+            while ($cursor->lte($end)) {
+                $blokRentang[] = [
+                    'label' => 'Pekan ' . $cursor->translatedFormat('d M') . ' – ' . $cursor->copy()->addDays(5)->translatedFormat('d M Y'),
+                    'start' => $cursor->copy(),
+                    'end'   => $cursor->copy()->addDays(5),
+                ];
+                $cursor->addWeek();
+            }
+        } elseif ($rentang === 'semester') {
+            $cursor = $start->copy()->startOfMonth();
+            while ($cursor->lte($end)) {
+                $blokRentang[] = [
+                    'label' => 'Bulan ' . $cursor->translatedFormat('F Y'),
+                    'start' => $cursor->copy()->startOfMonth(),
+                    'end'   => $cursor->copy()->endOfMonth(),
+                ];
+                $cursor->addMonthNoOverflow()->startOfMonth();
+            }
+        } else {
+            $blokRentang[] = ['label' => '', 'start' => $start->copy(), 'end' => $end->copy()];
+        }
+
+        $blok = [];
+        foreach ($blokRentang as $br) {
+            $tanggalList = [];
+            $cur = $br['start']->copy();
+            while ($cur->lte($br['end'])) {
+                $tgl = $cur->toDateString();
+                $dalamPeriode = $tgl >= $start->toDateString() && $tgl <= $end->toDateString();
+                $tanggalList[] = [
+                    'tanggal'  => $tgl,
+                    'hari'     => $cur->translatedFormat('D'),
+                    'is_libur' => !$dalamPeriode || $cur->isSunday(),
+                ];
+                $cur->addDay();
+            }
+
+            // Matriks dibatasi tanggal pada blok ini saja.
+            $matriks = [];
+            foreach ($byTanggalJam as $tgl => $perJam) {
+                if ($tgl >= $br['start']->toDateString() && $tgl <= $br['end']->toDateString()) {
+                    $matriks[$tgl] = $perJam;
+                }
+            }
+
+            $blok[] = [
+                'label'   => $br['label'],
+                'tanggal' => $tanggalList,
+                'slot'    => $slotJam,
+                'matriks' => $matriks,
+            ];
+        }
+
+        return $blok;
     }
 
     /**

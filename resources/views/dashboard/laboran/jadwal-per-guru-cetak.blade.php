@@ -149,136 +149,61 @@
                 {{ $totalSesi }} sesi praktik beserta jam, kelas, dan materi.
             </div>
         @else
-            {{-- B. Rincian sesi — hanya pada versi LENGKAP --}}
-            @if ($rentang === 'semester')
-                <div class="section-subhead"><i class="fas fa-calendar-days"></i> C. Rincian Sesi per Bulan</div>
-                @foreach ($perBulan as $blok)
+            {{-- C. Matriks JAM × TANGGAL gaya jadwal KBM.
+                 Mingguan → satu blok per pekan; Semester → satu blok per bulan;
+                 Bulanan → satu blok. Semua blok tercetak dalam satu dokumen. --}}
+            <div class="section-subhead"><i class="fas fa-table-cells"></i> C. Matriks Jadwal Praktik</div>
+
+            @foreach ($blokMinggu as $blok)
+                @if ($blok['label'] !== '')
                     <div class="section-subhead" style="margin-top: 10px;">
-                        <i class="fas fa-calendar"></i> {{ $blok['label'] }}
-                        &bull; {{ count($blok['rows']) }} sesi
+                        <i class="fas fa-calendar-week"></i> {{ $blok['label'] }}
                     </div>
-                    <table class="table-data">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">No</th>
-                                <th style="width: 110px;">Tanggal</th>
-                                <th style="width: 110px;">Jam</th>
-                                <th>Lokasi Praktik</th>
-                                <th style="width: 110px;">Kelas</th>
-                                <th>Mata Pelajaran</th>
-                                <th style="width: 150px;">Guru</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($blok['rows'] as $i => $r)
-                                <tr>
-                                    <td class="center font-mono">{{ $i + 1 }}</td>
-                                    <td class="center">
-                                        {{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('d/m/Y') }}
-                                        <div style="color: #6b7280;">
-                                            {{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('l') }}
-                                        </div>
-                                    </td>
-                                    <td class="center font-mono">{{ substr((string) $r->jam_mulai, 0, 5) }}&ndash;{{ substr((string) $r->jam_selesai, 0, 5) }}</td>
-                                    <td>{{ $r->ruang_lab_nama ?: '—' }}</td>
-                                    <td class="center">{{ $r->rombel_nama ?: '—' }}</td>
-                                    <td>{{ $r->mata_pelajaran ?: '—' }}</td>
-                                    <td>
-                                        {{ $r->guru_nama ?: '—' }}
-                                        @if (!empty($r->guru_pendamping))
-                                            <div style="color: #6b7280;">+ {{ $r->guru_pendamping }}</div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endforeach
-            @elseif ($rentang === 'mingguan')
-                <div class="section-subhead"><i class="fas fa-calendar-week"></i> C. Rincian Sesi per Hari</div>
-                <table class="table-data">
+                @endif
+
+                <table class="table-data jadwal-praktik-grid">
                     <thead>
                         <tr>
-                            <th style="width: 110px;">Jam</th>
-                            <th>Lokasi Praktik</th>
-                            <th style="width: 110px;">Kelas</th>
-                            <th>Mata Pelajaran</th>
-                            <th style="width: 150px;">Guru</th>
-                            <th>Topik / Materi</th>
+                            <th style="width: 70px;">Jam</th>
+                            @foreach ($blok['tanggal'] as $t)
+                                <th class="center {{ $t['is_libur'] ? 'is-libur' : '' }}"
+                                    style="min-width: 74px;">
+                                    <div style="font-weight: 800;">{{ (int) substr($t['tanggal'], 8, 2) }}</div>
+                                    <div style="font-weight: 500;">{{ strtoupper($t['hari']) }}</div>
+                                </th>
+                            @endforeach
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($perHari as $hari => $rows)
-                            @continue($rows->isEmpty())
+                        @forelse ($blok['slot'] as $jam)
                             <tr>
-                                <td colspan="6" style="font-weight: 700; background: #f1f5f9;">
-                                    {{ strtoupper($hari) }}
+                                <td class="center font-mono font-bold">{{ $jam }}</td>
+                                @foreach ($blok['tanggal'] as $t)
+                                    @php $sesi = $blok['matriks'][$t['tanggal']][$jam] ?? []; @endphp
+                                    <td class="{{ $t['is_libur'] ? 'is-libur' : '' }}"
+                                        style="vertical-align: top; padding: 4px;">
+                                        @foreach ($sesi as $r)
+                                            <div style="margin-bottom: 4px; line-height: 1.25;">
+                                                <div style="font-weight: 700;">{{ $r->mata_pelajaran ?: '—' }}</div>
+                                                <div style="color: #6b7280;">{{ $r->ruang_lab_nama ?: '—' }}</div>
+                                                <div style="color: #6b7280;">{{ $r->rombel_nama ?: '' }}</div>
+                                                <div style="color: #6b7280;">{{ $r->guru_nama ?: '' }}</div>
+                                            </div>
+                                        @endforeach
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ count($blok['tanggal']) + 1 }}" class="center"
+                                    style="padding: 14px; color: #6b7280;">
+                                    <em>Tidak ada sesi praktik pada periode ini.</em>
                                 </td>
                             </tr>
-                            @foreach ($rows as $r)
-                                <tr>
-                                    <td class="center font-mono">{{ substr((string) $r->jam_mulai, 0, 5) }}&ndash;{{ substr((string) $r->jam_selesai, 0, 5) }}</td>
-                                    <td>
-                                        {{ $r->ruang_lab_nama ?: '—' }}
-                                        <div style="color: #6b7280;">{{ $jenisLabels[$r->jenis_lokasi] ?? '' }}</div>
-                                    </td>
-                                    <td class="center">{{ $r->rombel_nama ?: '—' }}</td>
-                                    <td>{{ $r->mata_pelajaran ?: '—' }}</td>
-                                    <td>
-                                        {{ $r->guru_nama ?: '—' }}
-                                        @if (!empty($r->guru_pendamping))
-                                            <div style="color: #6b7280;">+ {{ $r->guru_pendamping }}</div>
-                                        @endif
-                                    </td>
-                                    <td>{{ $r->topik_praktik ?: '—' }}</td>
-                                </tr>
-                            @endforeach
-                        @endforeach
+                        @endforelse
                     </tbody>
                 </table>
-            @else
-                <div class="section-subhead"><i class="fas fa-calendar-days"></i> C. Rincian Sesi per Tanggal</div>
-                <table class="table-data">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;">No</th>
-                            <th style="width: 110px;">Tanggal</th>
-                            <th style="width: 110px;">Jam</th>
-                            <th>Lokasi Praktik</th>
-                            <th style="width: 110px;">Kelas</th>
-                            <th>Mata Pelajaran</th>
-                            <th style="width: 150px;">Guru</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $no = 0; @endphp
-                        @foreach ($perTanggal as $tgl => $rows)
-                            @foreach ($rows as $r)
-                                @php $no++; @endphp
-                                <tr>
-                                    <td class="center font-mono">{{ $no }}</td>
-                                    <td class="center">
-                                        {{ \Carbon\Carbon::parse($tgl)->translatedFormat('d/m/Y') }}
-                                        <div style="color: #6b7280;">
-                                            {{ \Carbon\Carbon::parse($tgl)->translatedFormat('l') }}
-                                        </div>
-                                    </td>
-                                    <td class="center font-mono">{{ substr((string) $r->jam_mulai, 0, 5) }}&ndash;{{ substr((string) $r->jam_selesai, 0, 5) }}</td>
-                                    <td>{{ $r->ruang_lab_nama ?: '—' }}</td>
-                                    <td class="center">{{ $r->rombel_nama ?: '—' }}</td>
-                                    <td>{{ $r->mata_pelajaran ?: '—' }}</td>
-                                    <td>
-                                        {{ $r->guru_nama ?: '—' }}
-                                        @if (!empty($r->guru_pendamping))
-                                            <div style="color: #6b7280;">+ {{ $r->guru_pendamping }}</div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
+            @endforeach
         @endif
     @endif
 @endsection

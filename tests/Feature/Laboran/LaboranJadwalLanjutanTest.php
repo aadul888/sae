@@ -274,7 +274,7 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
         $lengkap->assertStatus(200);
 
         $lengkap->assertSee('Rekapitulasi Beban Mengajar per Guru', false);
-        $lengkap->assertSee('Rincian Sesi per Hari', false);
+        $lengkap->assertSee('Matriks Jadwal Praktik', false);
         $lengkap->assertSee('Mapel Cetak Uji', false);
         $lengkap->assertDontSee('memuat rekap beban mengajar', false);
     }
@@ -297,8 +297,9 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
 
         $res->assertStatus(200);
         $res->assertSee('Semester Ganjil', false);
-        $res->assertSee('Rincian Sesi per Bulan', false);
-        $res->assertSee('November 2026', false);
+        $res->assertSee('Matriks Jadwal Praktik', false);
+        // Semester = satu blok matriks per bulan.
+        $res->assertSee('Bulan November 2026', false);
     }
 
     /**
@@ -315,8 +316,10 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
             ]));
 
         $res->assertStatus(200);
-        $res->assertSee('Minggu 01 Mar 2027', false);
-        $res->assertSee('Rincian Sesi per Hari', false);
+        // Mingguan = dokumen bulan berjalan, dipecah satu blok per pekan.
+        $res->assertSee('Bulan Maret 2027', false);
+        $res->assertSee('Pekan 01 Mar – 06 Mar 2027', false);
+        $res->assertSee('Matriks Jadwal Praktik', false);
     }
 
     /** Setiap halaman cetak jadwal tercatat di riwayat cetak (audit supervisi). */

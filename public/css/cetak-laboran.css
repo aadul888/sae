@@ -183,3 +183,35 @@
         flex: 1 1 45%;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Grid jadwal praktik gaya KBM (jam x tanggal): dipakai dokumen
+   "Jadwal Praktik per Guru" agar tampil seperti cetak jadwal KBM.
+   -------------------------------------------------------------------------- */
+.jadwal-praktik-grid {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.jadwal-praktik-grid th,
+.jadwal-praktik-grid td {
+    border: 1px solid var(--border-color, #cbd5e1);
+}
+
+.jadwal-praktik-grid thead th {
+    background: var(--primary, #1e3a8a);
+    color: #ffffff;
+    text-align: center;
+    font-size: var(--text-2xs, 0.6875rem);
+    padding: 4px 2px;
+}
+
+.jadwal-praktik-grid td {
+    font-size: var(--text-2xs, 0.6875rem);
+}
+
+.jadwal-praktik-grid td.is-libur,
+.jadwal-praktik-grid th.is-libur {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
