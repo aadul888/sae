@@ -41,8 +41,14 @@
                     <option value="{{ $k }}" {{ $tahapFilter === $k ? 'selected' : '' }}>{{ $v }}</option>
                 @endforeach
             </select>
-            <input type="date" name="dari" value="{{ $dari }}" class="form-control" style="height:38px;" title="Dari Tanggal">
-            <input type="date" name="sampai" value="{{ $sampai }}" class="form-control" style="height:38px;" title="Sampai Tanggal">
+            <div class="toolbar-filter-date" title="Dari Tanggal">
+                <i class="fas fa-calendar-alt" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"></i>
+                <input type="date" name="dari" value="{{ $dari }}">
+            </div>
+            <div class="toolbar-filter-date" title="Sampai Tanggal">
+                <i class="fas fa-calendar-alt" style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"></i>
+                <input type="date" name="sampai" value="{{ $sampai }}">
+            </div>
         </x-slot:filter>
 
         <thead>
