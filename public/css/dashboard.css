@@ -3086,7 +3086,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         overflow-wrap: anywhere !important;
     }
 
-    .table-pd tbody td.cell-pd-nama .badge:not(.badge-gender):not(.d-none-mobile) {
+    .table-pd tbody td.cell-pd-nama .badge:not(.badge-gender):not(.d-none-mobile):not(.badge-koordinator--off) {
         display: inline-flex !important;
         align-items: center !important;
         white-space: nowrap !important;
@@ -3099,7 +3099,8 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     .table-pd tbody td.cell-pd-nama .badge-gender,
     .table-pd tbody td.cell-pd-nama .badge.badge-gender,
     .table-pd tbody td.cell-pd-nama .d-none-mobile,
-    .table-pd tbody td.cell-pd-nama .badge.d-none-mobile {
+    .table-pd tbody td.cell-pd-nama .badge.d-none-mobile,
+    .table-pd tbody td.cell-pd-nama .badge-koordinator--off {
         display: none !important;
     }
 
@@ -6161,6 +6162,11 @@ input:disabled + .slider-toggle-crud {
         height: 30px !important;
         margin-left: auto !important;
         overflow: visible !important;
+        /* `td.dt-card-hero > *` memaksa justify-content:flex-start untuk teks;
+           tombol ini harus tetap memusatkan ikon chevron di dalam kotaknya. */
+        justify-content: center !important;
+        align-items: center !important;
+        align-self: center !important;
     }
 
     .dt-card-toggle {

@@ -166,6 +166,7 @@ document.addEventListener("click", async function (e) {
 
             const badge = document.getElementById("badgeKoordinator_" + pdId);
             if (badge) {
+                badge.classList.toggle("badge-koordinator--off", !newStatus);
                 badge.style.display = newStatus ? "inline-flex" : "none";
             }
 

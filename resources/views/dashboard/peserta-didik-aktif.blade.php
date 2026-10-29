@@ -258,21 +258,13 @@
                                             style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                             <span class="pd-nama"
                                                 style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
-                                            @if (!empty($item->is_koordinator))
-                                                <span class="badge badge-koordinator"
-                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
-                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
-                                                </span>
-                                            @else
-                                                <span class="badge badge-koordinator"
-                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="display: none; background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
-                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
-                                                </span>
-                                            @endif
+                                            <span
+                                                class="badge badge-koordinator{{ !empty($item->is_koordinator) ? '' : ' badge-koordinator--off' }}"
+                                                id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                style="display: {{ !empty($item->is_koordinator) ? 'inline-flex' : 'none' }}; background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
+                                                title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
+                                            </span>
                                         </div>
                                         @if ($item->nik)
                                             <div
