@@ -996,6 +996,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::put('/anggota/{id}', [\App\Http\Controllers\PerpusAnggotaController::class, 'update'])->name('anggota.update')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,update');
         Route::post('/anggota/{id}/toggle', [\App\Http\Controllers\PerpusAnggotaController::class, 'toggle'])->name('anggota.toggle')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,update');
         Route::delete('/anggota/{id}', [\App\Http\Controllers\PerpusAnggotaController::class, 'destroy'])->name('anggota.destroy')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,delete');
+        Route::get('/anggota/cek-master', [\App\Http\Controllers\PerpusAnggotaController::class, 'cekMasterData'])->name('anggota.cek-master')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
         Route::get('/anggota/kartu/cetak', [\App\Http\Controllers\PerpusAnggotaController::class, 'cetakKartu'])->name('anggota.kartu.cetak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
         Route::get('/anggota/{id}/kartu', [\App\Http\Controllers\PerpusAnggotaController::class, 'kartu'])->name('anggota.kartu')->middleware('permission:menu_perpustakaan|menu_perpustakaan_anggota,read');
 

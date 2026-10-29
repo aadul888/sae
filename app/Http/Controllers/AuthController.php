@@ -191,35 +191,10 @@ class AuthController extends Controller
         $identifier = trim($request->input('username'));
         $password = $request->input('password');
 
-        // Cari user berdasarkan username, atau relasi GTK/Peserta Didik jika tabel dan kolomnya tersedia.
-        $userQuery = User::where('username', $identifier);
-        if (Table::exists('gtk')) {
-            $gtkColumns = array_values(array_filter(['nip', 'nuptk', 'nik', 'email'], fn($column) => Schema::hasColumn('gtk', $column)));
-            if ($gtkColumns) {
-                $userQuery->orWhereIn('ptk_id', function ($q) use ($identifier, $gtkColumns) {
-                    $q->select('ptk_id')->from('gtk')
-                        ->where(function ($sub) use ($identifier, $gtkColumns) {
-                            foreach ($gtkColumns as $column) {
-                                $sub->orWhere($column, $identifier);
-                            }
-                        });
-                });
-            }
-        }
-        if (Table::exists('peserta_didik')) {
-            $pdColumns = array_values(array_filter(['nisn', 'nik', 'nipd', 'email'], fn($column) => Schema::hasColumn('peserta_didik', $column)));
-            if ($pdColumns) {
-                $userQuery->orWhereIn('peserta_didik_id', function ($q) use ($identifier, $pdColumns) {
-                    $q->select('peserta_didik_id')->from('peserta_didik')
-                        ->where(function ($sub) use ($identifier, $pdColumns) {
-                            foreach ($pdColumns as $column) {
-                                $sub->orWhere($column, $identifier);
-                            }
-                        });
-                });
-            }
-        }
-        $user = $userQuery->first();
+        // Cari user berdasarkan username, atau relasi GTK/Peserta Didik.
+        // Logika dipusatkan di SaeKredensialService agar identik dengan login
+        // manual anggota perpustakaan (satu sumber aturan kredensial SAE).
+        $user = \App\Services\SaeKredensialService::cariUser($identifier);
 
         if (!$user) {
             // Cek apakah ada di tabel peserta_didik (misal belum dibuatkan record pengguna)
@@ -305,23 +280,9 @@ class AuthController extends Controller
             }
         }
 
-        $isValid = false;
-        $dbPassword = $user->password ?? '';
-
-        if (empty($dbPassword)) {
-            // Password kosong di Dapodik: ijinkan password default 'Sae12345!' atau NISN/NIP
-            if ($password === 'Sae12345!' || $password === $identifier) {
-                $isValid = true;
-            }
-        } elseif (password_verify($password, $dbPassword)) {
-            $isValid = true;
-        } elseif (Hash::needsRehash($dbPassword)) {
-            if ($password === $dbPassword || md5($password) === $dbPassword || sha1($password) === $dbPassword) {
-                $isValid = true;
-            }
-        }
-
-        if (!$isValid) {
+        // Verifikasi password memakai aturan yang sama dengan login perpustakaan
+        // (lihat SaeKredensialService::cekPassword()).
+        if (!\App\Services\SaeKredensialService::cekPassword($user, (string) $identifier, $password)) {
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
         }
 

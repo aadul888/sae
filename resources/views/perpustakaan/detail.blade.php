@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $buku->judul . ' — Katalog Perpustakaan Digital')
-@section('meta_description', 'Detail koleksi "' . \Illuminate\Support\Str::limit($buku->judul, 120) . '" oleh ' . ($buku->penulis ?: 'penulis tidak diketahui') . ' — ketersediaan, lokasi rak, ulasan, dan reservasi.')
+@section('title', $buku->judul . ' Ã¢â‚¬â€ Katalog Perpustakaan Digital')
+@section('meta_description', 'Detail koleksi "' . \Illuminate\Support\Str::limit($buku->judul, 120) . '" oleh ' . ($buku->penulis ?: 'penulis tidak diketahui') . ' Ã¢â‚¬â€ ketersediaan, lokasi rak, ulasan, dan reservasi.')
 
 @php
     $tersedia = (int) ($buku->eksemplar_tersedia ?? 0);
@@ -20,10 +20,10 @@
                     font-size:var(--text-xs,.75rem);color:var(--text-muted);">
             <a href="{{ route('perpustakaan.index') }}"
                 style="color:var(--text-muted);text-decoration:none;">Perpustakaan</a>
-            <i class="fas fa-chevron-right" style="opacity:.4;font-size:.6rem;"></i>
+            <i class="fas fa-chevron-right" style="opacity:.4;font-size:var(--text-2xs,.6rem);"></i>
             <a href="{{ route('perpustakaan.katalog') }}"
                 style="color:var(--text-muted);text-decoration:none;">Katalog</a>
-            <i class="fas fa-chevron-right" style="opacity:.4;font-size:.6rem;"></i>
+            <i class="fas fa-chevron-right" style="opacity:.4;font-size:var(--text-2xs,.6rem);"></i>
             <span style="color:var(--text-main);font-weight:600;">{{ \Illuminate\Support\Str::limit($buku->judul, 45) }}</span>
         </div>
 
@@ -39,7 +39,7 @@
                             alt="Cover {{ $buku->judul }}" style="width:100%;height:100%;object-fit:cover;">
                     @else
                         <div style="text-align:center;padding:2rem;">
-                            <i class="fas fa-book" style="font-size:4rem;color:var(--primary);opacity:.35;"></i>
+                            <i class="fas fa-book" style="font-size:var(--text-6xl,4rem);color:var(--primary);opacity:.35;"></i>
                             <div style="font-size:var(--text-xs,.75rem);color:var(--text-muted);margin-top:12px;">
                                 Cover belum tersedia
                             </div>
@@ -146,7 +146,7 @@
 
                 @if ($member && $sudahMeminjam)
                     <div class="alert alert-info" style="margin-top:1rem;font-size:var(--text-xs,.75rem);">
-                        <i class="fas fa-circle-check"></i> Anda pernah meminjam buku ini — silakan berikan ulasan di bawah.
+                        <i class="fas fa-circle-check"></i> Anda pernah meminjam buku ini Ã¢â‚¬â€ silakan berikan ulasan di bawah.
                     </div>
                 @endif
             </div>
@@ -179,8 +179,8 @@
                             <span style="font-size:var(--text-sm,.8125rem);color:var(--text-muted);font-weight:600;">Rating:</span>
                             <div style="display:flex;gap:4px;" id="ppRatingStars">
                                 @for ($i = 1; $i <= 5; $i++)
-                                    <button type="button" data-value="{{ $i }}"
-                                        style="background:none;border:none;cursor:pointer;padding:2px;font-size:1.15rem;
+                                    <button type="button" data-value="{{ $i }}" aria-label="Beri rating {{ $i }} dari 5"
+                                        style="background:none;border:none;cursor:pointer;padding:2px;font-size:var(--text-lg,1.15rem);
                                                color:{{ ($ulasanSaya->rating ?? 0) >= $i ? 'var(--warning,#f59e0b)' : 'var(--text-muted)' }};opacity:{{ ($ulasanSaya->rating ?? 0) >= $i ? '1' : '.3' }};">
                                         <i class="fas fa-star"></i>
                                     </button>
@@ -228,7 +228,7 @@
                                         <i class="fas fa-star" style="opacity:{{ $i <= $u->rating ? '1' : '.25' }};"></i>
                                     @endfor
                                 </span>
-                                <span style="font-size:.6875rem;color:var(--text-muted);opacity:.8;">
+                                <span style="font-size:var(--text-2xs,.6875rem);color:var(--text-muted);opacity:.8;">
                                     {{ \Carbon\Carbon::parse($u->created_at)->diffForHumans() }}
                                 </span>
                             </div>
@@ -242,7 +242,7 @@
                 @empty
                     <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
                         <i class="fas fa-comment-slash"
-                            style="font-size:2rem;opacity:.3;display:block;margin-bottom:10px;"></i>
+                            style="font-size:var(--text-3xl,2rem);opacity:.3;display:block;margin-bottom:10px;"></i>
                         <div style="font-size:var(--text-sm,.8125rem);">Belum ada ulasan untuk buku ini.</div>
                     </div>
                 @endforelse

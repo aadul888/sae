@@ -16,7 +16,8 @@
                     </a>
                 </div>
                 <p style="font-size:var(--text-sm,0.8125rem);color:var(--text-muted);margin-bottom:1.25rem;">
-                    Pindai kartu anggota QR Anda, atau masuk menggunakan NISN/NIP bila belum memegang kartu.
+                    Pindai kartu anggota QR Anda, atau masuk memakai <strong>akun SAE</strong> yang sama
+                    seperti saat login ke portal sekolah.
                 </p>
 
                 @if (session('error'))
@@ -46,16 +47,16 @@
                 <div
                     style="display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text-muted);font-size:var(--text-xs,0.75rem);">
                     <span style="flex:1;height:1px;background:var(--border-glass);"></span>
-                    atau gunakan NISN / NIP
+                    atau akun SAE
                     <span style="flex:1;height:1px;background:var(--border-glass);"></span>
                 </div>
 
                 <form method="POST" action="{{ route('perpustakaan.login.post') }}">
                     @csrf
                     <div class="input-group">
-                        <label class="input-label" for="ppIdentifier">NISN / NIP / Nomor Anggota</label>
+                        <label class="input-label" for="ppIdentifier">Username / NISN / NIP / Email</label>
                         <input type="text" id="ppIdentifier" name="identifier" value="{{ old('identifier') }}"
-                            class="input-field" placeholder="Contoh: 0071234567" autocomplete="username">
+                            class="input-field" placeholder="Sama seperti login portal SAE" autocomplete="username">
                         @error('identifier')
                             <div style="font-size:var(--text-xs,0.75rem);color:var(--danger,#ef4444);margin-top:5px;">
                                 {{ $message }}</div>
@@ -64,16 +65,32 @@
                     <div class="input-group">
                         <label class="input-label" for="ppPassword">Password</label>
                         <input type="password" id="ppPassword" name="password" class="input-field"
-                            placeholder="Kosongkan bila belum pernah diubah" autocomplete="current-password">
+                            placeholder="Password akun SAE Anda" autocomplete="current-password">
+                        @error('password')
+                            <div style="font-size:var(--text-xs,0.75rem);color:var(--danger,#ef4444);margin-top:5px;">
+                                {{ $message }}</div>
+                        @enderror
                         <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);margin-top:5px;">
-                            Password awal = NISN/NIP Anda.
+                            <i class="fas fa-lock"></i> Gunakan username &amp; password yang sama dengan portal SAE.
+                            Keanggotaan perpustakaan harus terdaftar lebih dahulu.
                         </div>
                     </div>
                     <button type="submit" class="btn btn-outline"
                         style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                        <i class="fas fa-right-to-bracket"></i> Masuk dengan NISN / NIP
+                        <i class="fas fa-right-to-bracket"></i> Masuk dengan Akun SAE
                     </button>
                 </form>
+
+                @if (session('user'))
+                    <div
+                        style="margin-top:1rem;padding:.75rem .9rem;border-radius:var(--radius-md,8px);
+                               background:rgba(59,130,246,.07);border:1px solid var(--border-glass);
+                               font-size:var(--text-xs,.75rem);color:var(--text-muted);">
+                        <i class="fas fa-circle-info"></i>
+                        Anda sudah login ke portal SAE tetapi belum terdaftar sebagai anggota perpustakaan.
+                        Hubungi pustakawan untuk pendaftaran.
+                    </div>
+                @endif
             </div>
         </section>
     </div>

@@ -8,7 +8,7 @@
         <section class="hero" style="grid-template-columns:1fr;max-width:560px;margin:0 auto;">
             <div class="card-nisn" style="text-align:center;">
                 @if (!$member)
-                    <div style="font-size:3rem;color:var(--danger,#ef4444);margin-bottom:.5rem;">
+                    <div style="font-size:var(--text-5xl,3rem);color:var(--danger,#ef4444);margin-bottom:.5rem;">
                         <i class="fas fa-circle-xmark"></i>
                     </div>
                     <h1 class="hero-title" style="font-size:clamp(1.3rem,4vw,1.75rem);margin-bottom:.5rem;">Kartu Tidak
@@ -22,7 +22,7 @@
                         <i class="fas fa-book-open"></i> Ke Katalog Perpustakaan
                     </a>
                 @else
-                    <div style="font-size:2.75rem;color:var(--success,#10b981);margin-bottom:.35rem;">
+                    <div style="font-size:var(--text-5xl,2.75rem);color:var(--success,#10b981);margin-bottom:.35rem;">
                         <i class="fas fa-circle-check"></i>
                     </div>
                     <h1 class="hero-title" style="font-size:clamp(1.3rem,4vw,1.75rem);margin-bottom:.35rem;">Kartu Anggota

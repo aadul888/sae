@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Perpustakaan Digital — ' . (\App\Models\Sekolah::first()?->nama ?? 'Sekolah'))
-@section('meta_description', 'Katalog publik dan gerbang anggota Perpustakaan Digital sekolah — telusuri koleksi buku, pindai kartu anggota, dan pantau statistik literasi secara realtime.')
+@section('title', 'Perpustakaan Digital Ã¢â‚¬â€ ' . (\App\Models\Sekolah::first()?->nama ?? 'Sekolah'))
+@section('meta_description', 'Katalog publik dan gerbang anggota Perpustakaan Digital sekolah Ã¢â‚¬â€ telusuri koleksi buku, pindai kartu anggota, dan pantau statistik literasi secara realtime.')
 
 @section('content')
     <div class="container">
@@ -229,7 +229,7 @@
                         <ul class="service-list">
                             @forelse ($populer->take(3) as $p)
                                 <li><i class="fas fa-book text-primary me-2"></i> {{ \Illuminate\Support\Str::limit($p->judul, 42) }}
-                                    <span style="color:var(--text-muted);">({{ $p->total }}×)</span></li>
+                                    <span style="color:var(--text-muted);">({{ $p->total }}Ãƒâ€”)</span></li>
                             @empty
                                 <li><i class="fas fa-minus text-muted me-2"></i> Belum ada data peminjaman</li>
                             @endforelse
@@ -284,7 +284,7 @@
             @if ($buku->isEmpty())
                 <div class="chart-box" style="text-align:center;padding:3rem 1.5rem;">
                     <i class="fas fa-book"
-                        style="font-size:2.5rem;opacity:.35;display:block;margin-bottom:12px;"></i>
+                        style="font-size:var(--text-4xl,2.5rem);opacity:.35;display:block;margin-bottom:12px;"></i>
                     <div style="color:var(--text-muted);">Belum ada koleksi yang cocok dengan pencarian Anda.</div>
                 </div>
             @else

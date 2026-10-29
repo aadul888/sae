@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PerpusAnggota;
+use App\Models\User;
 use App\Services\PerpustakaanIdentitasService;
 use App\Services\PerpustakaanMemberService;
+use App\Services\SaeKredensialService;
 use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -164,17 +166,23 @@ class PerpusPublicController extends Controller
             return redirect()->route('perpustakaan.portal')->with('success', 'Selamat datang, ' . $member->nama . '.');
         }
 
-        // --- Gerbang 2: NISN/NIP + password ---
+        // --- Gerbang 2: NISN/NIP + password SAE ---
+        // Kredensial yang dipakai adalah kredensial akun SAE (tabel `pengguna`),
+        // jadi anggota memakai username & password yang sama seperti login SAE.
+        // Meski kredensialnya valid, akses DITOLAK bila belum terdaftar sebagai
+        // anggota perpustakaan (tidak ada auto-provision di jalur login).
         $request->validate([
             'identifier' => 'required|string',
-            'password'   => 'nullable|string',
+            'password'   => 'required|string',
         ], [
             'identifier.required' => 'Isi NISN/NIP atau pindai kartu anggota.',
+            'password.required'   => 'Password wajib diisi (gunakan password akun SAE Anda).',
         ]);
 
         $identifier = trim((string) $request->input('identifier'));
         $password = (string) $request->input('password', '');
 
+        // 1) Anggota harus terdaftar lebih dahulu.
         $member = PerpusAnggota::where('is_active', true)
             ->where(function ($qb) use ($identifier) {
                 $qb->where('nisn_nip', $identifier)
@@ -187,17 +195,100 @@ class PerpusPublicController extends Controller
             return back()->withInput()->with('error', 'Anggota dengan NISN/NIP tersebut belum terdaftar. Silakan hubungi pustakawan atau aktifkan keanggotaan dari akun SAE Anda.');
         }
 
-        $stored = (string) $member->password;
-        $ok = $stored === ''
-            ? ($password === (string) $member->nisn_nip) // password awal = NISN/NIP
-            : Hash::check($password, $stored);
+        // 2) Verifikasi password.
+        //    - Peserta didik & GTK : memakai kredensial akun SAE (sama persis
+        //      dengan login portal SAE).
+        //    - Umum               : tidak punya akun SAE, password dikelola
+        //      pada data keanggotaan perpustakaan.
+        if ($member->tipe === 'umum') {
+            if (!$this->cekPasswordUmum($member, $password)) {
+                return back()->withInput()->with('error', 'Password anggota tidak sesuai.');
+            }
 
-        if (!$ok) {
-            return back()->withInput()->with('error', 'Password anggota salah.');
+            $this->establishSession($member, $request);
+            return redirect()->route('perpustakaan.portal')->with('success', 'Selamat datang, ' . $member->nama . '.');
+        }
+
+        $saeUser = SaeKredensialService::autentikasi($identifier, $password);
+
+        // Identitas alternatif: anggota bisa masuk lewat nomor anggota / email,
+        // sementara akun SAE-nya terdaftar dengan NISN/NIP.
+        if (!$saeUser && $member->nisn_nip) {
+            $saeUser = SaeKredensialService::autentikasi((string) $member->nisn_nip, $password);
+        }
+
+        if (!$saeUser) {
+            return back()->withInput()->with('error', 'Password tidak sesuai dengan akun SAE Anda. Gunakan username & password yang sama seperti saat login ke portal SAE.');
+        }
+
+        // 3) Akun SAE harus benar-benar milik anggota ini — jangan sampai
+        //    kredensial milik orang lain dipakai masuk ke akun anggota.
+        if (!$this->akunSaeCocokDenganAnggota($saeUser, $member)) {
+            return back()->withInput()->with('error', 'Akun SAE tersebut tidak terhubung dengan keanggotaan perpustakaan ini. Hubungi pustakawan untuk penyesuaian data.');
         }
 
         $this->establishSession($member, $request);
         return redirect()->route('perpustakaan.portal')->with('success', 'Selamat datang, ' . $member->nama . '.');
+    }
+
+    /**
+     * Verifikasi password anggota umum (tanpa akun SAE).
+     * Bila password belum pernah diatur, password awal = NISN/NIP.
+     */
+    private function cekPasswordUmum(PerpusAnggota $member, string $password): bool
+    {
+        $stored = (string) ($member->password ?? '');
+
+        if ($stored === '') {
+            $awal = trim((string) $member->nisn_nip);
+
+            return $awal !== '' && $password === $awal;
+        }
+
+        return Hash::check($password, $stored);
+    }
+
+    /**
+     * Pastikan akun SAE yang berhasil login memang milik anggota perpustakaan
+     * yang dituju (bukan sekadar kebetulan nomornya sama).
+     */
+    private function akunSaeCocokDenganAnggota(User $saeUser, PerpusAnggota $member): bool
+    {
+        // Cocok lewat id master data (paling kuat).
+        if (!empty($saeUser->peserta_didik_id) && !empty($member->siswa_id)
+            && (string) $saeUser->peserta_didik_id === (string) $member->siswa_id) {
+            return true;
+        }
+
+        if (!empty($saeUser->ptk_id) && !empty($member->ptk_id)
+            && (string) $saeUser->ptk_id === (string) $member->ptk_id) {
+            return true;
+        }
+
+        // Cocok lewat username = NISN/NIP anggota.
+        $username = trim((string) ($saeUser->username ?? ''));
+        if ($username !== '' && $member->nisn_nip && $username === trim((string) $member->nisn_nip)) {
+            return true;
+        }
+
+        // Cocok lewat NISN/NIP pada master data akun.
+        if (!empty($saeUser->peserta_didik_id) && Table::exists('peserta_didik')) {
+            $nisn = DB::table('peserta_didik')
+                ->where('peserta_didik_id', $saeUser->peserta_didik_id)
+                ->value('nisn');
+            if ($nisn && $member->nisn_nip && trim((string) $nisn) === trim((string) $member->nisn_nip)) {
+                return true;
+            }
+        }
+
+        if (!empty($saeUser->ptk_id) && Table::exists('gtk') && Table::hasColumn('gtk', 'nip')) {
+            $nip = DB::table('gtk')->where('ptk_id', $saeUser->ptk_id)->value('nip');
+            if ($nip && $member->nisn_nip && trim((string) $nip) === trim((string) $member->nisn_nip)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -463,6 +554,12 @@ class PerpusPublicController extends Controller
     {
         $member = $this->requireMember();
 
+        // Peserta didik & GTK memakai password akun SAE — tidak boleh diubah
+        // dari sini agar kredensial kedua portal tetap satu.
+        if ($member->tipe !== 'umum') {
+            return back()->with('error', 'Password akun Anda mengikuti akun SAE. Silakan ubah password melalui portal SAE.');
+        }
+
         $request->validate([
             'password_lama' => 'required|string',
             'password_baru' => 'required|string|min:6|confirmed',
@@ -473,15 +570,7 @@ class PerpusPublicController extends Controller
             'password_baru.min'       => 'Password baru minimal 6 karakter.',
         ]);
 
-        $stored = (string) $member->password;
-        $lama = (string) $request->input('password_lama');
-
-        // Password awal = NISN/NIP bila belum pernah diubah.
-        $valid = $stored === ''
-            ? $lama === (string) $member->nisn_nip
-            : Hash::check($lama, $stored);
-
-        if (!$valid) {
+        if (!$this->cekPasswordUmum($member, (string) $request->input('password_lama'))) {
             return back()->with('error', 'Password lama tidak sesuai.');
         }
 

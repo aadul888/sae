@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Profil Anggota — ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Profil Anggota â€” ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Kelola profil, kontak, password, dan kartu anggota digital Perpustakaan Sekolah.')
 
 @section('content')
@@ -94,9 +94,9 @@
                                 {{ number_format($level['poin'], 0, ',', '.') }} poin
                             </span>
                         </div>
-                        <div style="height:8px;border-radius:999px;background:rgba(148,163,184,.22);overflow:hidden;">
+                        <div style="height:8px;border-radius:var(--radius-pill);background:rgba(148,163,184,.22);overflow:hidden;">
                             <div
-                                style="height:100%;width:{{ $level['progress'] }}%;border-radius:999px;
+                                style="height:100%;width:{{ $level['progress'] }}%;border-radius:var(--radius-pill);
                                        background:linear-gradient(90deg,{{ $level['warna'] }},var(--accent,#06b6d4));">
                             </div>
                         </div>
@@ -155,43 +155,63 @@
                     </form>
                 </div>
 
-                {{-- Password --}}
+                {{-- Password: mengikuti akun SAE --}}
                 <div class="chart-box" style="padding:0;overflow:hidden;">
                     <div class="analytics-head" style="padding:1.1rem 1.25rem;border-bottom:1px solid var(--border-glass);">
                         <div class="chart-box-title" style="margin:0;">
-                            <i class="fas fa-lock me-2 text-warning"></i>Ganti Password
+                            <i class="fas fa-lock me-2 text-warning"></i>Password Akun
                         </div>
                     </div>
-                    <form method="POST" action="{{ route('perpustakaan.profil.password') }}" style="padding:1.25rem;">
-                        @csrf
-                        <div class="input-group">
-                            <label class="input-label" for="ppPassLama">Password Saat Ini</label>
-                            <input type="password" id="ppPassLama" name="password_lama" class="input-field"
-                                placeholder="Password lama / NISN-NIP awal" autocomplete="current-password">
-                            @error('password_lama')
-                                <div style="font-size:var(--text-xs,.75rem);color:var(--danger,#ef4444);margin-top:5px;">
-                                    {{ $message }}</div>
-                            @enderror
+                    <div style="padding:1.25rem;">
+                        <div
+                            style="padding:.9rem 1rem;border-radius:var(--radius-lg,12px);
+                                   background:rgba(59,130,246,.06);border:1px solid var(--border-glass);
+                                   font-size:var(--text-sm,.8125rem);color:var(--text-muted);line-height:1.6;">
+                            <i class="fas fa-shield-halved text-primary me-2"></i>
+                            @if ($member->tipe === 'umum')
+                                Anda adalah <strong>anggota umum</strong>, sehingga password dikelola di sini.
+                                Peserta didik dan GTK mengikuti password akun SAE.
+                            @else
+                                Password perpustakaan mengikuti <strong>password akun SAE</strong> Anda.
+                                Untuk mengubahnya, gunakan menu ubah password pada portal SAE, lalu masuk kembali
+                                ke perpustakaan dengan password baru tersebut.
+                            @endif
                         </div>
-                        <div class="input-group">
-                            <label class="input-label" for="ppPassBaru">Password Baru</label>
-                            <input type="password" id="ppPassBaru" name="password_baru" class="input-field"
-                                placeholder="Minimal 6 karakter" autocomplete="new-password">
-                            @error('password_baru')
-                                <div style="font-size:var(--text-xs,.75rem);color:var(--danger,#ef4444);margin-top:5px;">
-                                    {{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="input-group">
-                            <label class="input-label" for="ppPassKonfirmasi">Konfirmasi Password Baru</label>
-                            <input type="password" id="ppPassKonfirmasi" name="password_baru_confirmation"
-                                class="input-field" placeholder="Ulangi password baru" autocomplete="new-password">
-                        </div>
-                        <button type="submit" class="btn btn-outline"
-                            style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                            <i class="fas fa-key"></i> Ubah Password
-                        </button>
-                    </form>
+
+                        @if ($member->tipe === 'umum')
+                            <form method="POST" action="{{ route('perpustakaan.profil.password') }}"
+                                style="margin-top:1rem;">
+                                @csrf
+                                <div class="input-group">
+                                    <label class="input-label" for="ppPassLama">Password Saat Ini</label>
+                                    <input type="password" id="ppPassLama" name="password_lama" class="input-field"
+                                        placeholder="Password lama" autocomplete="current-password">
+                                    @error('password_lama')
+                                        <div style="font-size:var(--text-xs,.75rem);color:var(--danger,#ef4444);margin-top:5px;">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label" for="ppPassBaru">Password Baru</label>
+                                    <input type="password" id="ppPassBaru" name="password_baru" class="input-field"
+                                        placeholder="Minimal 6 karakter" autocomplete="new-password">
+                                    @error('password_baru')
+                                        <div style="font-size:var(--text-xs,.75rem);color:var(--danger,#ef4444);margin-top:5px;">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label" for="ppPassKonfirmasi">Konfirmasi Password Baru</label>
+                                    <input type="password" id="ppPassKonfirmasi" name="password_baru_confirmation"
+                                        class="input-field" placeholder="Ulangi password baru" autocomplete="new-password">
+                                </div>
+                                <button type="submit" class="btn btn-outline"
+                                    style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+                                    <i class="fas fa-key"></i> Ubah Password
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

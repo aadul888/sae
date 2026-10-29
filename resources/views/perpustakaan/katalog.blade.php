@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Katalog Koleksi — Perpustakaan Digital')
+@section('title', 'Katalog Koleksi Ã¢â‚¬â€ Perpustakaan Digital')
 @section('meta_description', 'Telusuri katalog koleksi Perpustakaan Digital sekolah: cari berdasarkan judul, penulis, penerbit, ISBN, atau kategori.')
 
 @php
@@ -74,7 +74,7 @@
         {{-- ===== Grid Buku ===== --}}
         @if ($buku->isEmpty())
             <div class="chart-box" style="text-align:center;padding:3rem 1.5rem;">
-                <i class="fas fa-book" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:12px;"></i>
+                <i class="fas fa-book" style="font-size:var(--text-4xl,2.5rem);opacity:.3;display:block;margin-bottom:12px;"></i>
                 <div style="color:var(--text-muted);font-size:var(--text-sm,.8125rem);">
                     Tidak ada koleksi yang cocok. Coba kata kunci lain.
                 </div>
@@ -93,7 +93,7 @@
                                     style="width:100%;height:100%;object-fit:cover;">
                             @else
                                 <i class="fas fa-book"
-                                    style="font-size:2.6rem;color:var(--primary);opacity:.45;"></i>
+                                    style="font-size:var(--text-4xl,2.6rem);color:var(--primary);opacity:.45;"></i>
                             @endif
                             <span
                                 style="position:absolute;top:9px;right:9px;font-size:var(--text-2xs,.6875rem);font-weight:800;

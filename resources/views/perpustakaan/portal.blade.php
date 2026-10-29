@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Beranda Anggota — ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Beranda Anggota ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Dashboard anggota Perpustakaan Digital: kartu anggota QR, poin literasi, pinjaman aktif, reservasi, dan rekomendasi buku.')
 
 @php
@@ -108,16 +108,16 @@
                         </span>
                         <span style="color:var(--text-muted);">
                             @if ($level['next'])
-                                {{ number_format($level['sisa'], 0, ',', '.') }} poin lagi → {{ $level['next_label'] }}
+                                {{ number_format($level['sisa'], 0, ',', '.') }} poin lagi ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {{ $level['next_label'] }}
                             @else
-                                Level tertinggi tercapai 🎉
+                                Level tertinggi tercapai ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°
                             @endif
                         </span>
                     </div>
                     <div
-                        style="height:8px;border-radius:999px;background:rgba(148,163,184,.22);overflow:hidden;">
+                        style="height:8px;border-radius:var(--radius-pill);background:rgba(148,163,184,.22);overflow:hidden;">
                         <div
-                            style="height:100%;width:{{ $level['progress'] }}%;border-radius:999px;
+                            style="height:100%;width:{{ $level['progress'] }}%;border-radius:var(--radius-pill);
                                    background:linear-gradient(90deg,{{ $level['warna'] }},var(--accent,#06b6d4));
                                    transition:width .8s cubic-bezier(.4,0,.2,1);">
                         </div>
@@ -227,7 +227,7 @@
                     @empty
                         <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
                             <i class="fas fa-mug-hot"
-                                style="font-size:1.9rem;opacity:.35;display:block;margin-bottom:10px;"></i>
+                                style="font-size:var(--text-3xl,1.9rem);opacity:.35;display:block;margin-bottom:10px;"></i>
                             <div style="font-size:var(--text-sm,.8125rem);">Tidak ada pinjaman aktif.</div>
                             <a href="{{ route('perpustakaan.katalog') }}"
                                 style="font-size:var(--text-xs,.75rem);color:var(--primary);text-decoration:none;font-weight:700;">
@@ -266,7 +266,7 @@
                             style="display:flex;gap:.75rem;align-items:flex-start;padding:.7rem 0;border-bottom:1px dashed var(--border-glass);">
                             <div
                                 style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
-                                       background:{{ $warna }}1f;color:{{ $warna }};font-size:.75rem;">
+                                       background:{{ $warna }}1f;color:{{ $warna }};font-size:var(--text-xs,.75rem);">
                                 <i class="{{ $n->icon ?: 'fa-solid fa-bell' }}"></i>
                             </div>
                             <div style="flex:1;min-width:0;">
@@ -283,7 +283,7 @@
                                         {{ \Illuminate\Support\Str::limit($n->pesan, 90) }}
                                     </div>
                                 @endif
-                                <div style="font-size:.6875rem;color:var(--text-muted);opacity:.75;margin-top:3px;">
+                                <div style="font-size:var(--text-2xs,.6875rem);color:var(--text-muted);opacity:.75;margin-top:3px;">
                                     {{ \Carbon\Carbon::parse($n->created_at)->diffForHumans() }}
                                 </div>
                             </div>
@@ -291,7 +291,7 @@
                     @empty
                         <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
                             <i class="fas fa-bell-slash"
-                                style="font-size:1.9rem;opacity:.35;display:block;margin-bottom:10px;"></i>
+                                style="font-size:var(--text-3xl,1.9rem);opacity:.35;display:block;margin-bottom:10px;"></i>
                             <div style="font-size:var(--text-sm,.8125rem);">Belum ada notifikasi.</div>
                         </div>
                     @endforelse
@@ -366,9 +366,9 @@
             @if ($rekomendasi->isEmpty())
                 <div class="chart-box" style="text-align:center;padding:2.5rem 1.5rem;">
                     <i class="fas fa-book-open"
-                        style="font-size:2.2rem;opacity:.3;display:block;margin-bottom:12px;"></i>
+                        style="font-size:var(--text-4xl,2.2rem);opacity:.3;display:block;margin-bottom:12px;"></i>
                     <div style="color:var(--text-muted);font-size:var(--text-sm,.8125rem);">
-                        Belum ada rekomendasi — pinjam buku pertama Anda untuk mulai.
+                        Belum ada rekomendasi ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pinjam buku pertama Anda untuk mulai.
                     </div>
                 </div>
             @else
@@ -451,7 +451,7 @@
                             <tr>
                                 <td colspan="7" style="padding:2.5rem;text-align:center;color:var(--text-muted);">
                                     <i class="fas fa-book"
-                                        style="font-size:2rem;opacity:.3;display:block;margin-bottom:10px;"></i>
+                                        style="font-size:var(--text-3xl,2rem);opacity:.3;display:block;margin-bottom:10px;"></i>
                                     Belum ada riwayat peminjaman.
                                 </td>
                             </tr>

@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\PerpusAnggota;
+use App\Support\Table;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * PerpustakaanMemberService
@@ -43,7 +43,7 @@ class PerpustakaanMemberService
     public static function tambahPoin(PerpusAnggota $anggota, string $aktivitas, int $qty = 1): int
     {
         $perAktivitas = self::POIN[$aktivitas] ?? 0;
-        if ($perAktivitas <= 0 || !Schema::hasColumn('perpus_anggota', 'poin')) {
+        if ($perAktivitas <= 0 || !Table::hasColumn('perpus_anggota', 'poin')) {
             return 0;
         }
 
@@ -104,7 +104,7 @@ class PerpustakaanMemberService
 
     public static function notifikasi(PerpusAnggota $anggota, string $judul, ?string $pesan = null, array $opsi = []): void
     {
-        if (!Schema::hasTable('perpus_notifikasi')) {
+        if (!Table::exists('perpus_notifikasi')) {
             return;
         }
 
@@ -128,7 +128,7 @@ class PerpustakaanMemberService
 
     public static function notifikasiBelumDibaca(PerpusAnggota $anggota): int
     {
-        if (!Schema::hasTable('perpus_notifikasi')) {
+        if (!Table::exists('perpus_notifikasi')) {
             return 0;
         }
         return (int) DB::table('perpus_notifikasi')
@@ -139,7 +139,7 @@ class PerpustakaanMemberService
 
     public static function daftarNotifikasi(PerpusAnggota $anggota, int $limit = 20)
     {
-        if (!Schema::hasTable('perpus_notifikasi')) {
+        if (!Table::exists('perpus_notifikasi')) {
             return collect();
         }
         return DB::table('perpus_notifikasi')
@@ -151,7 +151,7 @@ class PerpustakaanMemberService
 
     public static function tandaiDibaca(PerpusAnggota $anggota, ?int $id = null): void
     {
-        if (!Schema::hasTable('perpus_notifikasi')) {
+        if (!Table::exists('perpus_notifikasi')) {
             return;
         }
         $q = DB::table('perpus_notifikasi')->where('anggota_id', $anggota->id);
@@ -167,7 +167,7 @@ class PerpustakaanMemberService
 
     public static function bisaReservasi(PerpusAnggota $anggota, int $bukuId): array
     {
-        if (!Schema::hasTable('perpus_reservasi')) {
+        if (!Table::exists('perpus_reservasi')) {
             return [false, 'Fitur reservasi belum tersedia.'];
         }
 
@@ -176,7 +176,7 @@ class PerpustakaanMemberService
             return [false, 'Buku tidak ditemukan.'];
         }
         if ((int) $buku->eksemplar_tersedia > 0) {
-            return [false, 'Buku masih tersedia — silakan pinjam langsung di meja layanan.'];
+            return [false, 'Buku masih tersedia â€” silakan pinjam langsung di meja layanan.'];
         }
 
         $sudah = DB::table('perpus_reservasi')
@@ -234,7 +234,7 @@ class PerpustakaanMemberService
 
     public static function reservasiAnggota(PerpusAnggota $anggota)
     {
-        if (!Schema::hasTable('perpus_reservasi')) {
+        if (!Table::exists('perpus_reservasi')) {
             return collect();
         }
         return DB::table('perpus_reservasi as r')
@@ -248,7 +248,7 @@ class PerpustakaanMemberService
 
     public static function batalkanReservasi(PerpusAnggota $anggota, int $id): bool
     {
-        if (!Schema::hasTable('perpus_reservasi')) {
+        if (!Table::exists('perpus_reservasi')) {
             return false;
         }
         $row = DB::table('perpus_reservasi')
@@ -279,7 +279,7 @@ class PerpustakaanMemberService
      */
     public static function rekomendasi(PerpusAnggota $anggota, int $limit = 6)
     {
-        if (!Schema::hasTable('perpus_koleksi_buku')) {
+        if (!Table::exists('perpus_koleksi_buku')) {
             return collect();
         }
 
@@ -337,9 +337,9 @@ class PerpustakaanMemberService
         $ringkasan = PerpustakaanIdentitasService::ringkasanPinjaman($anggota);
 
         $kunjungan = 0;
-        if (Schema::hasTable('perpus_kunjungan')) {
+        if (Table::exists('perpus_kunjungan')) {
             $q = DB::table('perpus_kunjungan');
-            if (Schema::hasColumn('perpus_kunjungan', 'anggota_id')) {
+            if (Table::hasColumn('perpus_kunjungan', 'anggota_id')) {
                 $q->where('anggota_id', $anggota->id);
             } else {
                 $q->where('pengunjung_id', $anggota->siswa_id ?? $anggota->nisn_nip);
@@ -348,7 +348,7 @@ class PerpustakaanMemberService
         }
 
         $reservasiAktif = 0;
-        if (Schema::hasTable('perpus_reservasi')) {
+        if (Table::exists('perpus_reservasi')) {
             $reservasiAktif = (int) DB::table('perpus_reservasi')
                 ->where('anggota_id', $anggota->id)
                 ->whereIn('status', ['menunggu', 'siap'])

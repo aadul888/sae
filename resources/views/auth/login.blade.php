@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login Portal — SAE (Sistem Aplikasi Edukasi)')
+@section('title', 'Login Portal â€” SAE (Sistem Aplikasi Edukasi)')
 
 @section('content')
     <div class="container"
@@ -92,8 +92,8 @@
                     </label>
                     <div class="input-group"
                         style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 0; display: flex; align-items: center; overflow: hidden;">
-                        <input type="password" name="password" id="passwordInput" required placeholder="••••••••"
-                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none; border-radius: 12px 0 0 12px;">
+                        <input type="password" name="password" id="passwordInput" required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none; border-radius:var(--radius-lg) 0 0 12px;">
                         <button type="button" onclick="togglePass('passwordInput', 'eyeIcon')"
                             style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;" aria-label="Tampilkan password">
                             <i class="fas fa-eye" id="eyeIcon"></i>
@@ -164,7 +164,7 @@
                             maxlength="10" autocomplete="off"
                             value="{{ old('tgl_lahir_anak') }}"
                             placeholder="DD-MM-YYYY (contoh: 17-08-2008)"
-                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none; border-radius: 12px 0 0 12px;">
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); outline: none; border-radius:var(--radius-lg) 0 0 12px;">
                         <div id="btnPickerWrapper" class="calendar-picker-btn" title="Pilih tanggal dari kalender">
                             <i class="fas fa-calendar-days" style="font-size: var(--text-xl, 1.25rem); pointer-events: none;"></i>
                             <input type="date" id="nativeDatePicker" aria-label="Pilih Tanggal Lahir Siswa" tabindex="-1">

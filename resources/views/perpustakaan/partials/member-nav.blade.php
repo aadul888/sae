@@ -22,7 +22,7 @@
         <div style="display:flex;align-items:center;gap:.85rem;flex:1 1 260px;min-width:0;">
             <div
                 style="width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
-                       font-weight:800;font-size:1.05rem;letter-spacing:.5px;color:#fff;
+                       font-weight:800;font-size:var(--text-md,1.05rem);letter-spacing:.5px;color:#fff;
                        background:linear-gradient(135deg,var(--primary,#3b82f6),var(--accent,#06b6d4));
                        box-shadow:0 6px 18px rgba(59,130,246,.35);">
                 {{ $member->inisial() }}
@@ -80,8 +80,8 @@
                 <i class="fas {{ $m['icon'] }}"></i> {{ $m['label'] }}
                 @if ($m['key'] === 'notifikasi' && $unread > 0)
                     <span
-                        style="background:var(--danger,#ef4444);color:#fff;font-size:.625rem;font-weight:800;
-                               min-width:17px;height:17px;border-radius:999px;display:inline-grid;place-items:center;padding:0 4px;">
+                        style="background:var(--danger,#ef4444);color:#fff;font-size:var(--text-2xs,.625rem);font-weight:800;
+                               min-width:17px;height:17px;border-radius:var(--radius-pill);display:inline-grid;place-items:center;padding:0 4px;">
                         {{ $unread > 99 ? '99+' : $unread }}
                     </span>
                 @endif

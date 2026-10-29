@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\PerpusAnggota;
+use App\Support\Table;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -34,7 +34,7 @@ class PerpustakaanIdentitasService
     /** Kolom kanonik tersedia? (aman untuk instalasi lama) */
     public static function hasAnggotaColumn(string $table): bool
     {
-        return Schema::hasTable($table) && Schema::hasColumn($table, 'anggota_id');
+        return Table::exists($table) && Table::hasColumn($table, 'anggota_id');
     }
 
     /**
@@ -96,6 +96,158 @@ class PerpustakaanIdentitasService
     }
 
     /**
+     * Cari identitas di master data sekolah berdasarkan NISN/NIP saja.
+     * ---------------------------------------------------------------------
+     * Dipakai oleh form registrasi anggota di dashboard: pustakawan cukup
+     * mengetik NISN (peserta didik) atau NIP (GTK), lalu seluruh data lain
+     * ditarik otomatis dari `peserta_didik` / `gtk`.
+     *
+     * Urutan pencarian dibuat toleran karena satu nomor bisa tersimpan pada
+     * kolom berbeda: NISN → NIK → NIPD untuk peserta didik, lalu
+     * NIP → NUPTK → NIK untuk GTK.
+     *
+     * @return array{tipe:string, siswa_id:?string, ptk_id:?string, nisn_nip:?string,
+     *               nama:string, rombel_atau_unit:?string, jenis_kelamin:?string,
+     *               email:?string, telepon:?string}|null null bila tidak ada di master data.
+     */
+    public static function cariMasterData(string $identifier): ?array
+    {
+        $identifier = trim($identifier);
+        if ($identifier === '') {
+            return null;
+        }
+
+        // --- 1. Peserta didik ---
+        if (Table::exists('peserta_didik')) {
+            $kolomPd = array_values(array_filter(
+                ['nisn', 'nik', 'nipd'],
+                fn (string $c) => Table::hasColumn('peserta_didik', $c)
+            ));
+
+            if (!empty($kolomPd)) {
+                $pd = DB::table('peserta_didik')
+                    ->where(function ($q) use ($identifier, $kolomPd) {
+                        foreach ($kolomPd as $kolom) {
+                            $q->orWhere($kolom, $identifier);
+                        }
+                    })
+                    ->first();
+
+                if ($pd) {
+                    $telepon = null;
+                    foreach (['nomor_telepon_seluler', 'nomor_telepon_rumah'] as $c) {
+                        if (!empty($pd->{$c})) {
+                            $telepon = $pd->{$c};
+                            break;
+                        }
+                    }
+
+                    return [
+                        'tipe'             => 'siswa',
+                        'siswa_id'         => $pd->peserta_didik_id ?? null,
+                        'ptk_id'           => null,
+                        'nisn_nip'         => $pd->nisn ?? $identifier,
+                        'nama'             => (string) ($pd->nama ?? ''),
+                        'rombel_atau_unit' => $pd->nama_rombel ?? null,
+                        'jenis_kelamin'    => $pd->jenis_kelamin ?? null,
+                        'email'            => $pd->email ?? null,
+                        'telepon'          => $telepon,
+                    ];
+                }
+            }
+        }
+
+        // --- 2. GTK ---
+        if (Table::exists('gtk')) {
+            $kolomGtk = array_values(array_filter(
+                ['nip', 'nuptk', 'nik'],
+                fn (string $c) => Table::hasColumn('gtk', $c)
+            ));
+
+            if (!empty($kolomGtk)) {
+                $gtk = DB::table('gtk')
+                    ->where(function ($q) use ($identifier, $kolomGtk) {
+                        foreach ($kolomGtk as $kolom) {
+                            $q->orWhere($kolom, $identifier);
+                        }
+                    })
+                    ->first();
+
+                if ($gtk) {
+                    return [
+                        'tipe'             => 'gtk',
+                        'siswa_id'         => null,
+                        'ptk_id'           => $gtk->ptk_id ?? null,
+                        'nisn_nip'         => $gtk->nip ?? $identifier,
+                        'nama'             => (string) ($gtk->nama ?? ''),
+                        'rombel_atau_unit' => $gtk->jabatan_ptk_id_str ?? null,
+                        'jenis_kelamin'    => $gtk->jenis_kelamin ?? null,
+                        'email'            => $gtk->email ?? null,
+                        'telepon'          => $gtk->no_hp ?? null,
+                    ];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Daftarkan anggota perpustakaan dari master data (NISN/NIP saja).
+     * Idempoten: bila NISN/NIP sudah menjadi anggota, kembalikan anggota lama.
+     *
+     * @return array{status:string, anggota:?PerpusAnggota}
+     *         status: 'dibuat' | 'sudah_terdaftar' | 'tidak_ditemukan'
+     */
+    public static function daftarDariMasterData(string $identifier): array
+    {
+        $identifier = trim($identifier);
+        if ($identifier === '') {
+            return ['status' => 'tidak_ditemukan', 'anggota' => null];
+        }
+
+        $data = self::cariMasterData($identifier);
+        if (!$data) {
+            return ['status' => 'tidak_ditemukan', 'anggota' => null];
+        }
+
+        // Sudah pernah didaftarkan? (cek lewat id master & NISN/NIP)
+        $existing = null;
+        if ($data['tipe'] === 'siswa' && !empty($data['siswa_id'])) {
+            $existing = PerpusAnggota::where('siswa_id', $data['siswa_id'])->first();
+        } elseif ($data['tipe'] === 'gtk' && !empty($data['ptk_id'])) {
+            $existing = PerpusAnggota::where('ptk_id', $data['ptk_id'])->first();
+        }
+
+        if (!$existing && !empty($data['nisn_nip'])) {
+            $existing = PerpusAnggota::where('nisn_nip', $data['nisn_nip'])->first();
+        }
+
+        if ($existing) {
+            return ['status' => 'sudah_terdaftar', 'anggota' => $existing];
+        }
+
+        $anggota = PerpusAnggota::create([
+            'nomor_anggota'    => PerpusAnggota::generateNomor($data['tipe']),
+            'token_kartu'      => Str::random(32),
+            'tipe'             => $data['tipe'],
+            'siswa_id'         => $data['siswa_id'],
+            'ptk_id'           => $data['ptk_id'],
+            'nisn_nip'         => $data['nisn_nip'],
+            'nama'             => $data['nama'] !== '' ? $data['nama'] : ($data['tipe'] === 'gtk' ? 'GTK' : 'Peserta Didik'),
+            'rombel_atau_unit' => $data['rombel_atau_unit'],
+            'jenis_kelamin'    => $data['jenis_kelamin'],
+            'telepon'          => $data['telepon'],
+            'email'            => $data['email'],
+            'is_active'        => true,
+            'tgl_daftar'       => now()->toDateString(),
+            'auto_provisioned' => false,
+        ]);
+
+        return ['status' => 'dibuat', 'anggota' => $anggota];
+    }
+
+    /**
      * Auto-provision anggota perpustakaan dari master data sekolah saat anggota
      * pertama kali masuk lewat gerbang. Hanya untuk peserta didik & GTK.
      *
@@ -126,7 +278,7 @@ class PerpustakaanIdentitasService
 
         // --- Peserta didik ---
         if ($isSiswa && ($nisn !== '' || $pdId !== '')) {
-            if (!Schema::hasTable('peserta_didik')) {
+            if (!Table::exists('peserta_didik')) {
                 return null;
             }
             $pd = DB::table('peserta_didik')
@@ -162,14 +314,14 @@ class PerpustakaanIdentitasService
 
         // --- GTK ---
         if (!$isSiswa && ($nip !== '' || $ptkId !== '')) {
-            if (!Schema::hasTable('gtk')) {
+            if (!Table::exists('gtk')) {
                 return null;
             }
             $gtk = null;
             if ($ptkId !== '') {
                 $gtk = DB::table('gtk')->where('ptk_id', $ptkId)->first();
             }
-            if (!$gtk && $nip !== '' && Schema::hasColumn('gtk', 'nip')) {
+            if (!$gtk && $nip !== '' && Table::hasColumn('gtk', 'nip')) {
                 $gtk = DB::table('gtk')->where('nip', $nip)->first();
             }
             if (!$gtk) {

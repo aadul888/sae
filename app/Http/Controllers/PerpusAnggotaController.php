@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PerpusAnggota;
 use App\Models\RolePermission;
+use App\Services\PerpustakaanIdentitasService;
 use App\Services\QrCodeService;
 use App\Support\Table;
 use Illuminate\Http\Request;
@@ -52,45 +53,64 @@ class PerpusAnggotaController extends Controller
     {
         if ($redirect = $this->guard()) return $redirect;
 
+        $tipe = (string) $request->input('tipe', 'siswa');
+
+        // =================================================================
+        // PESERTA DIDIK & GTK — cukup NISN/NIP, sisanya dibaca dari master data
+        // =================================================================
+        if (in_array($tipe, ['siswa', 'gtk'], true)) {
+            $request->validate([
+                'tipe'     => 'required|in:siswa,gtk',
+                'nisn_nip' => 'required|string|max:40',
+            ], [
+                'nisn_nip.required' => $tipe === 'gtk'
+                    ? 'NIP wajib diisi untuk mendaftarkan GTK.'
+                    : 'NISN wajib diisi untuk mendaftarkan peserta didik.',
+            ]);
+
+            $identifier = trim((string) $request->input('nisn_nip'));
+            $hasil = PerpustakaanIdentitasService::daftarDariMasterData($identifier);
+
+            if ($hasil['status'] === 'tidak_ditemukan') {
+                return back()->withInput()->with('error', $tipe === 'gtk'
+                    ? "NIP {$identifier} tidak ditemukan pada data GTK sekolah. Periksa kembali nomornya."
+                    : "NISN {$identifier} tidak ditemukan pada data peserta didik. Periksa kembali nomornya.");
+            }
+
+            if ($hasil['status'] === 'sudah_terdaftar') {
+                $lama = $hasil['anggota'];
+                return back()->with('error', "NISN/NIP {$identifier} sudah terdaftar sebagai anggota atas nama {$lama->nama} (No. {$lama->nomor_anggota}).");
+            }
+
+            $anggota = $hasil['anggota'];
+
+            return redirect()->route('dashboard.perpustakaan.anggota.index')
+                ->with('success', "Anggota berhasil didaftarkan: {$anggota->nama} ({$anggota->nomor_anggota}). Data ditarik otomatis dari master data sekolah.");
+        }
+
+        // =================================================================
+        // UMUM — bukan warga sekolah, data diisi manual
+        // =================================================================
         $request->validate([
-            'tipe' => 'required|in:siswa,gtk,umum',
+            'tipe' => 'required|in:umum',
             'nama' => 'required|string|max:255',
             'nisn_nip' => 'nullable|string|max:40',
         ]);
 
-        $tipe = $request->tipe;
-        $siswaId = null;
-        $ptkId = null;
-        $rombel = $request->rombel_atau_unit;
-
-        // Tarik data otomatis bila NISN/NIP merujuk ke master data sekolah
-        if ($tipe === 'siswa' && $request->nisn_nip && Table::exists('peserta_didik')) {
-            $pd = DB::table('peserta_didik')->where('nisn', $request->nisn_nip)->first();
-            if ($pd) {
-                $siswaId = $pd->peserta_didik_id ?? null;
-                $rombel = $rombel ?: ($pd->nama_rombel ?? null);
-            }
-        } elseif ($tipe === 'gtk' && $request->nisn_nip) {
-            $ptk = DB::table('gtk')
-                ->when(\Illuminate\Support\Facades\Schema::hasColumn('gtk', 'nip'), fn($q) => $q->where('nip', $request->nisn_nip))
-                ->first();
-            $ptkId = $ptk->ptk_id ?? null;
-        }
-
-        $nisnNip = $request->nisn_nip ?: null;
+        $nisnNip = trim((string) $request->input('nisn_nip')) ?: null;
         if ($nisnNip && PerpusAnggota::where('nisn_nip', $nisnNip)->exists()) {
             return back()->withInput()->with('error', 'NISN/NIP tersebut sudah terdaftar sebagai anggota.');
         }
 
         PerpusAnggota::create([
-            'nomor_anggota' => PerpusAnggota::generateNomor($tipe),
+            'nomor_anggota' => PerpusAnggota::generateNomor('umum'),
             'token_kartu' => Str::random(32),
-            'tipe' => $tipe,
-            'siswa_id' => $siswaId,
-            'ptk_id' => $ptkId,
+            'tipe' => 'umum',
+            'siswa_id' => null,
+            'ptk_id' => null,
             'nisn_nip' => $nisnNip,
             'nama' => $request->nama,
-            'rombel_atau_unit' => $rombel,
+            'rombel_atau_unit' => $request->rombel_atau_unit,
             'jenis_kelamin' => $request->jenis_kelamin,
             'telepon' => $request->telepon,
             'email' => $request->email,
@@ -99,7 +119,53 @@ class PerpusAnggotaController extends Controller
             'tgl_daftar' => now()->toDateString(),
         ]);
 
-        return redirect()->route('dashboard.perpustakaan.anggota.index')->with('success', 'Anggota perpustakaan berhasil didaftarkan.');
+        return redirect()->route('dashboard.perpustakaan.anggota.index')->with('success', 'Anggota umum berhasil didaftarkan.');
+    }
+
+    /**
+     * Pratinjau data master sebelum mendaftar (dipanggil via AJAX dari modal).
+     * Pustakawan cukup mengetik NISN/NIP lalu data lain tampil otomatis,
+     * sehingga tidak ada risiko salah ketik nama/rombel.
+     */
+    public function cekMasterData(Request $request)
+    {
+        if ($redirect = $this->guard()) return $redirect;
+
+        $identifier = trim((string) $request->query('nisn_nip', ''));
+        if ($identifier === '') {
+            return response()->json(['ok' => false, 'pesan' => 'NISN/NIP belum diisi.'], 422);
+        }
+
+        $data = PerpustakaanIdentitasService::cariMasterData($identifier);
+        if (!$data) {
+            return response()->json([
+                'ok' => false,
+                'pesan' => 'Nomor tersebut tidak ditemukan pada data peserta didik maupun GTK.',
+            ]);
+        }
+
+        // Apakah sudah menjadi anggota?
+        $sudah = null;
+        if ($data['tipe'] === 'siswa' && !empty($data['siswa_id'])) {
+            $sudah = PerpusAnggota::where('siswa_id', $data['siswa_id'])->first();
+        } elseif ($data['tipe'] === 'gtk' && !empty($data['ptk_id'])) {
+            $sudah = PerpusAnggota::where('ptk_id', $data['ptk_id'])->first();
+        }
+        $sudah = $sudah ?: PerpusAnggota::where('nisn_nip', $data['nisn_nip'])->first();
+
+        return response()->json([
+            'ok' => true,
+            'tipe' => $data['tipe'],
+            'tipe_label' => $data['tipe'] === 'gtk' ? 'GTK' : 'Peserta Didik',
+            'nisn_nip' => $data['nisn_nip'],
+            'nama' => $data['nama'],
+            'rombel_atau_unit' => $data['rombel_atau_unit'],
+            'jenis_kelamin' => $data['jenis_kelamin'],
+            'email' => $data['email'],
+            'telepon' => $data['telepon'],
+            'sudah_terdaftar' => $sudah ? true : false,
+            'nomor_anggota' => $sudah->nomor_anggota ?? null,
+        ]);
     }
 
     public function update(Request $request, int $id)

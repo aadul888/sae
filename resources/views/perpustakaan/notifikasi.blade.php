@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Notifikasi — ' . $member->nama . ' | Perpustakaan Digital')
+@section('title', 'Notifikasi â€” ' . $member->nama . ' | Perpustakaan Digital')
 @section('meta_description', 'Pusat notifikasi anggota Perpustakaan Digital: pengingat jatuh tempo, status reservasi, dan informasi layanan.')
 
 @php
@@ -61,7 +61,7 @@
                                {{ $n->is_read ? 'opacity:.78;' : '' }}">
                         <div
                             style="width:38px;height:38px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
-                                   background:{{ $warna }}1f;color:{{ $warna }};font-size:.85rem;">
+                                   background:{{ $warna }}1f;color:{{ $warna }};font-size:var(--text-base,.85rem);">
                             <i class="{{ $n->icon ?: 'fa-solid fa-bell' }}"></i>
                         </div>
 
@@ -91,14 +91,14 @@
                             @endif
 
                             <div style="display:flex;align-items:center;gap:.85rem;flex-wrap:wrap;margin-top:6px;">
-                                <span style="font-size:.6875rem;color:var(--text-muted);opacity:.8;">
+                                <span style="font-size:var(--text-2xs,.6875rem);color:var(--text-muted);opacity:.8;">
                                     <i class="fas fa-clock me-1"></i>
                                     {{ \Carbon\Carbon::parse($n->created_at)->translatedFormat('d M Y, H:i') }}
                                     &bull; {{ \Carbon\Carbon::parse($n->created_at)->diffForHumans() }}
                                 </span>
                                 @if (!empty($n->url))
                                     <a href="{{ $n->url }}"
-                                        style="font-size:.6875rem;color:var(--primary);font-weight:700;text-decoration:none;">
+                                        style="font-size:var(--text-2xs,.6875rem);color:var(--primary);font-weight:700;text-decoration:none;">
                                         Buka <i class="fas fa-arrow-right"></i>
                                     </a>
                                 @endif
@@ -109,7 +109,7 @@
                             <form method="POST" action="{{ route('perpustakaan.notifikasi.baca.satu', $n->id) }}"
                                 style="margin:0;flex-shrink:0;">
                                 @csrf
-                                <button type="submit" class="btn btn-outline"
+                                <button type="submit" class="btn btn-outline" aria-label="Tandai notifikasi ini sudah dibaca"
                                     style="padding:.35rem .65rem;font-size:var(--text-xs,.75rem);">
                                     <i class="fas fa-check"></i>
                                 </button>
@@ -119,7 +119,7 @@
                 @empty
                     <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
                         <i class="fas fa-bell-slash"
-                            style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:14px;"></i>
+                            style="font-size:var(--text-4xl,2.5rem);opacity:.3;display:block;margin-bottom:14px;"></i>
                         <div style="font-size:var(--text-sm,.8125rem);">Belum ada notifikasi untuk Anda.</div>
                         <a href="{{ route('perpustakaan.katalog') }}"
                             style="font-size:var(--text-xs,.75rem);color:var(--primary);font-weight:700;text-decoration:none;">
