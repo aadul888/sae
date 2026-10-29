@@ -1,34 +1,52 @@
+{{--
+    Cetak kartu anggota perpustakaan massal.
+    Tiap lembar A4 landscape memuat 5 pasang (5 depan di atas, 5 belakang di bawah)
+    dengan urutan sejajar agar hasil potong presisi. Parameter: $cards (array kartu).
+--}}
 @extends('layouts.cetak')
 
 @section('title', 'Cetak Kartu Anggota Massal')
+@section('print_text', 'Cetak Semua Kartu')
 
 @section('styles')
     <link rel="stylesheet"
-        href="{{ asset('css/perpus-publik.css') }}?v={{ @filemtime(public_path('css/perpus-publik.css')) ?: '1' }}">
+        href="{{ asset('css/kartu-pelajar.css') }}?v={{ file_exists(public_path('css/kartu-pelajar.css')) ? filemtime(public_path('css/kartu-pelajar.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/perpus-kartu.css') }}?v={{ file_exists(public_path('css/perpus-kartu.css')) ? filemtime(public_path('css/perpus-kartu.css')) : time() }}">
 @endsection
 
 @section('content')
-    <div class="paper" style="max-width:1120px;" class2="landscape">
-        @include('partials.kop-surat')
-        <h2 style="text-align:center;margin:10px 0 16px;font-size:12pt;font-weight:800;text-transform:uppercase;">
-            Kartu Anggota Perpustakaan ({{ $members->count() }} kartu)
-        </h2>
+    @php $chunks = collect($cards)->chunk(5); @endphp
 
-        <div class="pp-cardsheet" style="display:flex;flex-wrap:wrap;gap:12px;">
-            @forelse ($members as $m)
-                <div style="width:340px;border:1px solid #94a3b8;border-radius:var(--radius-md);padding:10px;display:flex;gap:10px;align-items:center;page-break-inside:avoid;">
-                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:var(--radius-md);padding:4px;line-height:0;">
-                        {!! $m->qr_svg !!}
+    @if ($chunks->isNotEmpty())
+        <div class="kp-sheet-wrapper">
+            @foreach ($chunks as $idx => $chunk)
+                <div class="kp-a4-sheet" data-page="{{ $idx + 1 }}">
+                    <div class="kp-sheet-row kp-row-front">
+                        @foreach ($chunk as $card)
+                            @include('perpus.kartu.card-front', ['card' => $card])
+                        @endforeach
                     </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-family:monospace;font-size:9pt;font-weight:800;color:#be185d;">{{ $m->nomor_anggota }}</div>
-                        <div style="font-size:10pt;font-weight:700;line-height:1.25;margin-top:2px;overflow:hidden;text-overflow:ellipsis;">{{ $m->nama }}</div>
-                        <div style="font-size:8pt;color:#475569;margin-top:2px;">{{ ucfirst($m->tipe) }}{{ $m->rombel_atau_unit ? ' â€¢ ' . $m->rombel_atau_unit : '' }}</div>
+
+                    <div class="kp-sheet-cut-gap">
+                        <div class="kp-cut-line"></div>
+                    </div>
+
+                    <div class="kp-sheet-row kp-row-back">
+                        @foreach ($chunk as $card)
+                            @include('perpus.kartu.card-back', ['card' => $card])
+                        @endforeach
                     </div>
                 </div>
-            @empty
-                <p style="text-align:center;width:100%;color:#64748b;">Tidak ada anggota untuk dicetak.</p>
-            @endforelse
+            @endforeach
         </div>
-    </div>
+    @else
+        <div style="text-align:center;padding:48px;background:#fff;border-radius:var(--radius-lg,12px);max-width:560px;margin:80px auto;">
+            <i class="fas fa-id-card" style="font-size:40px;color:var(--text-muted,#94a3b8);"></i>
+            <h3 style="font-size:var(--text-lg,1.125rem);color:#1e293b;margin:12px 0 6px;">Tidak Ada Anggota untuk Dicetak</h3>
+            <p style="font-size:var(--text-base,0.875rem);color:var(--text-muted,#64748b);margin:0;">
+                Daftarkan anggota terlebih dahulu, atau pilih anggota tertentu lewat parameter <code>ids</code>.
+            </p>
+        </div>
+    @endif
 @endsection

@@ -99,6 +99,49 @@ class PerpustakaanMemberService
     }
 
     // ---------------------------------------------------------------------
+    // KARTU ANGGOTA
+    // ---------------------------------------------------------------------
+
+    /**
+     * Susun data kartu anggota (digital & cetak) dari master anggota.
+     *
+     * Data yang ditampilkan disesuaikan kebutuhan member perpustakaan:
+     * nomor anggota, level & poin literasi, status keanggotaan, masa berlaku,
+     * QR verifikasi, dan barcode untuk pemindaian sirkulasi.
+     *
+     * @param  array  $sekolah  Hasil KartuPelajarPrintService::getSekolahInfo()
+     *                          (dibuat sekali oleh pemanggil agar tidak diulang per kartu).
+     * @param  bool   $lengkap  Sertakan statistik pinjaman (query tambahan); hindari saat cetak massal.
+     */
+    public static function kartuData(PerpusAnggota $anggota, array $sekolah, bool $lengkap = false): array
+    {
+        $foto = trim((string) ($anggota->foto ?? ''));
+
+        $data = [
+            'nama'             => $anggota->nama,
+            'nomor_anggota'    => $anggota->nomor_anggota,
+            'nisn_nip'         => $anggota->nisn_nip,
+            'tipe_label'       => $anggota->tipeLabel(),
+            'rombel_atau_unit' => $anggota->rombel_atau_unit,
+            'status'           => $anggota->is_active ? 'AKTIF' : 'NONAKTIF',
+            'masa_berlaku'     => optional($anggota->tgl_kadaluarsa)->format('d/m/Y'),
+            'inisial'          => $anggota->inisial(),
+            'foto_url'         => $foto !== '' ? $foto : null,
+            'level'            => self::level($anggota),
+            'qr_code_svg'      => QrCodeService::generateSvg($anggota->verifyUrl(), 120, 0),
+            'barcode_svg'      => BarcodeService::generateCode128Svg($anggota->nomor_anggota ?: '0000000000', 36, 2),
+            'verify_url'       => $anggota->verifyUrl(),
+            'sekolah'          => $sekolah,
+        ];
+
+        if ($lengkap) {
+            $data['statistik'] = self::statistik($anggota);
+        }
+
+        return $data;
+    }
+
+    // ---------------------------------------------------------------------
     // NOTIFIKASI
     // ---------------------------------------------------------------------
 

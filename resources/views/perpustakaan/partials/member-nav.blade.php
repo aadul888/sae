@@ -12,6 +12,7 @@
         ['key' => 'portal', 'label' => 'Beranda Anggota', 'icon' => 'fa-house-user', 'route' => 'perpustakaan.portal'],
         ['key' => 'katalog', 'label' => 'Katalog', 'icon' => 'fa-book-open', 'route' => 'perpustakaan.katalog'],
         ['key' => 'notifikasi', 'label' => 'Notifikasi', 'icon' => 'fa-bell', 'route' => 'perpustakaan.notifikasi'],
+        ['key' => 'kartu', 'label' => 'Kartu Saya', 'icon' => 'fa-id-card', 'route' => 'perpustakaan.kartu'],
         ['key' => 'profil', 'label' => 'Profil', 'icon' => 'fa-user-gear', 'route' => 'perpustakaan.profil'],
     ];
 @endphp

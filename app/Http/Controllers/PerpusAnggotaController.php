@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\PerpusAnggota;
 use App\Models\RolePermission;
+use App\Services\KartuPelajarPrintService;
 use App\Services\PerpustakaanIdentitasService;
-use App\Services\QrCodeService;
+use App\Services\PerpustakaanMemberService;
 use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -211,30 +212,37 @@ class PerpusAnggotaController extends Controller
         return back()->with('success', 'Anggota dihapus.');
     }
 
-    /** Kartu anggota digital (QR). */
+    /** Kartu anggota digital (satu anggota: sisi depan + belakang). */
     public function kartu(int $id)
     {
         if ($redirect = $this->guard()) return $redirect;
         $member = PerpusAnggota::findOrFail($id);
-        $qrSvg = QrCodeService::generateSvg($member->verifyUrl(), 220, 1);
+        $card = PerpustakaanMemberService::kartuData($member, $this->sekolahInfo(), true);
 
-        return view('dashboard.perpus.anggota-kartu', compact('member', 'qrSvg'));
+        return view('perpus.kartu.sheet', compact('card'));
     }
 
-    /** Halaman publik verifikasi token (reuse view publik). */
+    /** Cetak kartu anggota massal (5 pasang per lembar A4). */
     public function cetakKartu(Request $request)
     {
         if ($redirect = $this->guard()) return $redirect;
 
         $ids = array_filter((array) $request->query('ids', []));
+        $sekolah = $this->sekolahInfo();
+
         $members = PerpusAnggota::when($ids, fn($q) => $q->whereIn('id', $ids), fn($q) => $q->limit(50))
             ->orderBy('nama')
-            ->get()
-            ->each(function ($m) {
-                $m->qr_svg = QrCodeService::generateSvg($m->verifyUrl(), 90, 0);
-            });
+            ->get();
 
-        return view('dashboard.perpus.anggota-kartu-cetak', compact('members'));
+        $cards = $members->map(fn($m) => PerpustakaanMemberService::kartuData($m, $sekolah))->all();
+
+        return view('dashboard.perpus.anggota-kartu-cetak', compact('members', 'cards'));
+    }
+
+    /** Info sekolah/perpustakaan untuk kop & kontak kartu. */
+    private function sekolahInfo(): array
+    {
+        return app(KartuPelajarPrintService::class)->getSekolahInfo();
     }
 
     private function guard()

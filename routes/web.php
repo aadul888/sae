@@ -125,6 +125,7 @@ Route::prefix('perpustakaan')->name('perpustakaan.')->group(function () {
     Route::post('/notifikasi/baca', [\App\Http\Controllers\PerpusPublicController::class, 'tandaiNotifikasi'])->name('notifikasi.baca');
     Route::post('/notifikasi/{id}/baca', [\App\Http\Controllers\PerpusPublicController::class, 'tandaiNotifikasi'])->name('notifikasi.baca.satu');
     Route::get('/profil', [\App\Http\Controllers\PerpusPublicController::class, 'profil'])->name('profil');
+    Route::get('/kartu', [\App\Http\Controllers\PerpusPublicController::class, 'kartuSaya'])->name('kartu');
     Route::post('/profil', [\App\Http\Controllers\PerpusPublicController::class, 'updateProfil'])->name('profil.update');
     Route::post('/profil/password', [\App\Http\Controllers\PerpusPublicController::class, 'updatePassword'])->name('profil.password');
     Route::post('/checkin', [\App\Http\Controllers\PerpusPublicController::class, 'checkin'])->name('checkin');

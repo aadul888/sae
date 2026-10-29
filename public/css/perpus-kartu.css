@@ -1,0 +1,128 @@
+/**
+ * Tema kartu anggota Perpustakaan Digital SAE.
+ * Melengkapi struktur .kp-* (kartu-pelajar.css) dengan palet rose/emas
+ * agar visualnya berbeda dari kartu pelajar (navy/biru).
+ * Format fisik tetap Portrait CR-80 56mm x 87mm.
+ */
+
+.pk-theme {
+    --pk-deep: #4c0519;
+    --pk-rose: #9d174d;
+    --pk-accent: #be185d;
+    --pk-gold: #f59e0b;
+    --pk-soft: #fdf2f8;
+    --pk-line: #fbcfe8;
+}
+
+/* Pita aksen atas kartu */
+.pk-theme .kp-bg-decor {
+    background: linear-gradient(90deg, var(--pk-deep) 0%, var(--pk-rose) 55%, var(--pk-gold) 100%);
+}
+
+.pk-theme .kp-bg-decor-back {
+    background: linear-gradient(90deg, var(--pk-deep) 0%, var(--pk-rose) 100%);
+}
+
+/* Header */
+.pk-theme .kp-card-type {
+    color: var(--pk-accent);
+}
+
+.pk-theme .kp-school-name {
+    color: var(--pk-deep);
+}
+
+/* Nomor anggota */
+.pk-theme .kp-nisn-pill {
+    background: var(--pk-soft);
+    border-color: var(--pk-line);
+}
+
+.pk-theme .kp-nisn-value {
+    color: var(--pk-rose);
+}
+
+/* QR */
+.pk-theme .kp-qrcode-box:hover {
+    background: rgba(190, 24, 93, 0.08);
+}
+
+.pk-theme .kp-qrcode-box:hover .kp-qr-wrapper {
+    border-color: var(--pk-accent);
+    box-shadow: 0 2px 8px rgba(190, 24, 93, 0.25);
+}
+
+.pk-theme .kp-qr-sublabel {
+    color: var(--pk-accent);
+}
+
+/* Footer */
+.pk-theme .kp-footer-strip {
+    color: var(--pk-rose);
+    border-top-color: var(--pk-line);
+}
+
+/* Punggung kartu */
+.pk-theme .kp-back-title {
+    color: var(--pk-deep);
+}
+
+.pk-theme .kp-terms-title {
+    color: var(--pk-rose);
+}
+
+.pk-theme .kp-barcode-text {
+    color: var(--pk-deep);
+}
+
+.pk-theme .kp-back-contact i {
+    color: var(--pk-accent);
+}
+
+/* Pita level literasi pada sisi depan */
+.pk-level-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #ffffff;
+    border: 0.5px solid currentColor;
+    border-radius: 1.5mm;
+    padding: 1px 5px;
+    width: fit-content;
+    font-size: 4.8pt;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+/* Blok level literasi pada sisi belakang */
+.pk-level-block {
+    margin-bottom: 1.4mm;
+}
+
+.pk-level-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 4.8pt;
+    font-weight: 800;
+    color: var(--pk-rose);
+}
+
+.pk-level-bar {
+    height: 1.4mm;
+    background: var(--pk-soft);
+    border: 0.5px solid var(--pk-line);
+    border-radius: var(--radius-pill, 999px);
+    overflow: hidden;
+    margin: 1px 0;
+}
+
+.pk-level-bar span {
+    display: block;
+    height: 100%;
+}
+
+.pk-level-note {
+    font-size: 4.3pt;
+    color: #64748b;
+}

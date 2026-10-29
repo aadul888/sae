@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PerpusAnggota;
 use App\Models\User;
+use App\Services\KartuPelajarPrintService;
 use App\Services\PerpustakaanIdentitasService;
 use App\Services\PerpustakaanMemberService;
 use App\Services\SaeKredensialService;
@@ -529,6 +530,19 @@ class PerpusPublicController extends Controller
         $level = PerpustakaanMemberService::level($member);
 
         return view('perpustakaan.profil', compact('member', 'level'));
+    }
+
+    /** Kartu anggota digital milik member (bisa dicetak / disimpan sebagai PDF). */
+    public function kartuSaya()
+    {
+        $member = $this->requireMember();
+        $card = PerpustakaanMemberService::kartuData(
+            $member,
+            app(KartuPelajarPrintService::class)->getSekolahInfo(),
+            true
+        );
+
+        return view('perpus.kartu.sheet', compact('card'));
     }
 
     public function updateProfil(Request $request)
