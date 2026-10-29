@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonColor: 'var(--primary, #6366f1)',
                     });
                 } else {
-                    alert('Tidak ada peserta didik kelas XII yang perlu diarsipkan.');
+                    window.SAE.alert('Tidak ada peserta didik kelas XII yang perlu diarsipkan.', 'Informasi', 'info');
                 }
                 return;
             }
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             confirmButtonColor: 'var(--primary, #6366f1)',
                         });
                     } else {
-                        alert(result.message);
+                        window.SAE.alert(result.message, 'Informasi', 'info');
                     }
                     window.location.reload();
                 } else {
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             confirmButtonColor: 'var(--primary, #6366f1)',
                         });
                     } else {
-                        alert('Gagal: ' + (result.message || 'Terjadi kesalahan'));
+                        window.SAE.alert('Gagal: ' + (result.message || 'Terjadi kesalahan'), 'Informasi', 'info');
                     }
                 }
             } catch (error) {
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonColor: 'var(--primary, #6366f1)',
                     });
                 } else {
-                    alert('Terjadi kesalahan saat mengarsipkan data.');
+                    window.SAE.alert('Terjadi kesalahan saat mengarsipkan data.', 'Informasi', 'info');
                 }
             }
         });
@@ -402,7 +402,7 @@ window.handleImportExcelSubmit = async function (e) {
                 confirmButtonColor: "#6366f1",
             });
         } else {
-            alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.");
+            window.SAE.alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.", 'Informasi', 'info');
         }
         return;
     }
@@ -448,7 +448,7 @@ window.handleImportExcelSubmit = async function (e) {
                     confirmButtonColor: "#10b981",
                 });
             } else {
-                alert(json.message);
+                window.SAE.alert(json.message, 'Informasi', 'info');
             }
 
             const targetUrl = new URL(window.location.origin + window.location.pathname);
@@ -481,7 +481,7 @@ window.handleImportExcelSubmit = async function (e) {
                     confirmButtonColor: "#ef4444",
                 });
             } else {
-                alert(errorMsg);
+                window.SAE.alert(errorMsg, 'Informasi', 'info');
             }
         }
     } catch (err) {
@@ -495,7 +495,7 @@ window.handleImportExcelSubmit = async function (e) {
                 confirmButtonColor: "#ef4444",
             });
         } else {
-            alert("Kesalahan jaringan: " + err.message);
+            window.SAE.alert("Kesalahan jaringan: " + err.message, 'Informasi', 'info');
         }
     } finally {
         if (progress) progress.style.display = "none";

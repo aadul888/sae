@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
         return new Promise((resolve) => {
-            alert(title + '\n' + msg);
+            window.SAE.alert(title + '\n' + msg, 'Informasi', 'info');
             resolve();
         });
     }

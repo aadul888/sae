@@ -166,6 +166,32 @@ class TeknisiTupoksiTest extends TestCase
             ->assertStatus(200);
     }
 
+    /**
+     * Nama petugas pada berkas impor diabaikan — selalu akun yang mengunggah.
+     */
+    public function test_import_tupoksi_mengabaikan_nama_petugas_dari_berkas(): void
+    {
+        $session = $this->adminSession();
+        $namaLogin = $session['user']['nama'];
+
+        $area = 'Area Uji Petugas ' . uniqid();
+        $csv = "area,petugas_nama,petugas_ptk_id,status\n"
+            . "{$area},Petugas Palsu,ptk-palsu,aktif\n";
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.laporan.import', ['modul' => 'area-tugas']), [
+                'file' => \Illuminate\Http\UploadedFile::fake()->createWithContent('area.csv', $csv),
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $row = DB::table('teknisi_area_tugas')->where('area', $area)->first();
+        $this->assertNotNull($row, 'Baris area tugas tidak masuk.');
+        $this->assertSame($namaLogin, $row->petugas_nama, 'Nama petugas harus dari akun login.');
+        $this->assertSame((string) $session['user']['pengguna_id'], (string) $row->user_id);
+        $this->assertNotSame('ptk-palsu', (string) $row->petugas_ptk_id);
+    }
+
     public function test_template_import_cetak_setiap_modul(): void
     {
         $session = $this->adminSession();

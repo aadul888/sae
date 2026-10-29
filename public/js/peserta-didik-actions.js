@@ -229,7 +229,7 @@ window.handleCetakDataRombelBackdropClick = function (e) {
 window.proceedCetakDataRombel = function () {
     const select = document.getElementById("selectCetakDataRombel");
     if (!select || !select.value) {
-        alert("Silakan pilih rombongan belajar (kelas) terlebih dahulu.");
+        window.SAE.alert("Silakan pilih rombongan belajar (kelas) terlebih dahulu.", 'Informasi', 'info');
         return;
     }
     const rombelName = select.value;
@@ -281,7 +281,7 @@ window.handleImportExcelSubmit = async function (e) {
                 confirmButtonColor: "#6366f1",
             });
         } else {
-            alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.");
+            window.SAE.alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.", 'Informasi', 'info');
         }
         return;
     }
@@ -327,7 +327,7 @@ window.handleImportExcelSubmit = async function (e) {
                     confirmButtonColor: "#10b981",
                 });
             } else {
-                alert(json.message);
+                window.SAE.alert(json.message, 'Informasi', 'info');
             }
 
             // Bersihkan filter pencarian agar data yang baru diimpor langsung terlihat
@@ -364,7 +364,7 @@ window.handleImportExcelSubmit = async function (e) {
                     confirmButtonColor: "#ef4444",
                 });
             } else {
-                alert(errorMsg);
+                window.SAE.alert(errorMsg, 'Informasi', 'info');
             }
         }
     } catch (err) {
@@ -378,7 +378,7 @@ window.handleImportExcelSubmit = async function (e) {
                 confirmButtonColor: "#ef4444",
             });
         } else {
-            alert("Kesalahan jaringan: " + err.message);
+            window.SAE.alert("Kesalahan jaringan: " + err.message, 'Informasi', 'info');
         }
     } finally {
         if (progress) progress.style.display = "none";

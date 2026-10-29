@@ -65,7 +65,7 @@ window.handleTogglePemberlakuan = function (btn) {
                     window.location.reload();
                 });
             } else {
-                alert(data.message || "Status jadwal berhasil diperbarui.");
+                window.SAE.alert(data.message || "Status jadwal berhasil diperbarui.", 'Informasi', 'info');
                 window.location.reload();
             }
         })
@@ -80,7 +80,7 @@ window.handleTogglePemberlakuan = function (btn) {
                     text: err.message,
                 });
             } else {
-                alert("Error: " + err.message);
+                window.SAE.alert("Error: " + err.message, 'Informasi', 'info');
             }
         });
     };
@@ -711,7 +711,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         showConfirmButton: false,
                     }).then(() => window.location.reload());
                 } else {
-                    alert(res.message || "Slot jadwal berhasil dihapus.");
+                    window.SAE.alert(res.message || "Slot jadwal berhasil dihapus.", 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -723,7 +723,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         text: err.message || "Terjadi kesalahan saat menghapus slot jadwal.",
                     });
                 } else {
-                    alert("Error: " + err.message);
+                    window.SAE.alert("Error: " + err.message, 'Informasi', 'info');
                 }
             });
     }
@@ -797,7 +797,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         showConfirmButton: false,
                     }).then(() => window.location.reload());
                 } else {
-                    alert(res.message);
+                    window.SAE.alert(res.message, 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -809,7 +809,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         text: err.message || "Terjadi kesalahan saat mengosongkan jadwal kelas.",
                     });
                 } else {
-                    alert(err.message);
+                    window.SAE.alert(err.message, 'Informasi', 'info');
                 }
             });
     }
@@ -858,7 +858,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 showConfirmButton: false,
                             }).then(() => window.location.reload());
                         } else {
-                            alert(res.message);
+                            window.SAE.alert(res.message, 'Informasi', 'info');
                             window.location.reload();
                         }
                     })
@@ -870,7 +870,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 text: err.message || "Terjadi kesalahan saat menyalin jadwal induk.",
                             });
                         } else {
-                            alert(err.message);
+                            window.SAE.alert(err.message, 'Informasi', 'info');
                         }
                     });
             };
@@ -977,7 +977,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         showConfirmButton: false,
                     }).then(() => window.location.reload());
                 } else {
-                    alert(res.message);
+                    window.SAE.alert(res.message, 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -990,7 +990,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         text: err.message,
                     });
                 } else {
-                    alert(err.message);
+                    window.SAE.alert(err.message, 'Informasi', 'info');
                 }
             })
             .finally(() => {

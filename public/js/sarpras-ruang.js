@@ -104,16 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
             if (window.Swal) {
-                Swal.fire({
-                    title: 'Hapus Ruang?',
-                    text: `Apakah Anda yakin ingin menghapus ${nama}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((res) => {
+                window.SAE.confirm("Apakah Anda yakin ingin menghapus ${nama}?", "Hapus Ruang?", 'warning', "Ya, Hapus", "Batal").then((res) => {
                     if (res.isConfirmed) {
                         fetch(`/dashboard/sarpras/ruang/${id}`, {
                             method: 'DELETE',
@@ -137,13 +128,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus ${nama}?`)) {
-                    // Fallback
-                    fetch(`/dashboard/sarpras/ruang/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                    }).then(() => location.reload());
-                }
+                window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then((ok) => {
+                    if (ok) {
+                        fetch(`/dashboard/sarpras/ruang/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                        }).then(() => location.reload());
+                    }
+                });
             }
         }
     });

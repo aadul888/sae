@@ -267,6 +267,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
                 'pelapor_nama'        => trim((string) ($row['pelapor_nama'] ?? '')) ?: null,
                 'status'              => 'antrean',
                 'user_id'             => $context['user_id'],
+                'teknisi_ptk_id'      => $context['ptk_id'] ?? null,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ]);

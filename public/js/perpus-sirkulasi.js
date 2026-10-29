@@ -118,16 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formDel = btnDelete.closest('form');
             const kode = btnDelete.getAttribute('data-kode') || 'transaksi ini';
 
-            Swal.fire({
-                title: 'Hapus Transaksi?',
-                text: `Apakah Anda yakin ingin menghapus data transaksi "${kode}"? Stok buku akan disesuaikan.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus data transaksi \"${kode}\"? Stok buku akan disesuaikan.", "Hapus Transaksi?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     formDel.submit();
                 }

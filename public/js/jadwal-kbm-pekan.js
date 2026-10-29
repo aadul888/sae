@@ -19,15 +19,9 @@
         return input ? input.value : "";
     };
 
-    const swal = () => (typeof Swal !== "undefined" ? Swal : window.Swal || null);
-
     const notify = (icon, title, text) => {
-        const s = swal();
-        if (s) {
-            s.fire({ icon, title, text, timer: icon === "success" ? 1800 : undefined, showConfirmButton: icon !== "success" });
-            return;
-        }
-        if (icon === "error") alert(title + "\n\n" + text);
+        if (icon === "success") return window.SAE.alert(text, title, "success", 1800);
+        return window.SAE.alert(text, title, icon === "error" ? "error" : "info");
     };
 
     const requestJson = async (url, method, payload) => {
@@ -73,25 +67,12 @@
             }
         };
 
-        if (!s) {
-            if (confirm("Sinkronkan pekan dengan Kalender Pendidikan?")) run();
-            return;
-        }
-
-        s.fire({
-            title: "Sinkron Pekan dengan Kalender?",
-            html:
-                "Pekan dibentuk otomatis dari rentang semester (Senin–Sabtu).<br>" +
-                "<strong>Pekan baru selalu berstatus Draft.</strong> Tanggal pekan yang masih draft akan diperbarui, " +
-                "pekan yang sudah diberlakukan tidak diubah.",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: "Ya, Sinkronkan",
-            cancelButtonText: "Batal",
-            confirmButtonColor: "#2563eb",
-        }).then((r) => {
-            if (r.isConfirmed) run();
-        });
+        window.SAE.confirm(
+            "Pekan dibentuk otomatis dari rentang semester (Senin–Sabtu).<br><strong>Pekan baru selalu berstatus Draft.</strong> Tanggal pekan yang masih draft akan diperbarui, pekan yang sudah diberlakukan tidak diubah.",
+            "Sinkron Pekan dengan Kalender?",
+            "info",
+            "Ya, Sinkronkan"
+        ).then((ok) => { if (ok) run(); });
     };
 
     // ------------------------------------------------------------- ubah status
@@ -117,23 +98,12 @@
             }
         };
 
-        const s = swal();
-        if (!s) {
-            if (confirm(title + "\n\n" + text)) run();
-            return;
-        }
-
-        s.fire({
-            title,
+        window.SAE.confirm(
             text,
-            icon: isAktif ? "question" : "warning",
-            showCancelButton: true,
-            confirmButtonText: isAktif ? "Ya, Berlakukan" : "Ya, Jadikan Draft",
-            cancelButtonText: "Batal",
-            confirmButtonColor: isAktif ? "#10b981" : "#f59e0b",
-        }).then((r) => {
-            if (r.isConfirmed) run();
-        });
+            title,
+            isAktif ? "info" : "warning",
+            isAktif ? "Ya, Berlakukan" : "Ya, Jadikan Draft"
+        ).then((ok) => { if (ok) run(); });
     };
 
     // ------------------------------------------------------------ modal edit

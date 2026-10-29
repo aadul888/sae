@@ -99,16 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         delForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const name = delForm.dataset.name || 'tiket ini';
-            Swal.fire({
-                title: 'Konfirmasi Hapus',
-                text: `Apakah Anda yakin ingin menghapus ${name}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus ${name}?", "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     delForm.submit();
                 }

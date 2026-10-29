@@ -268,16 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'Surat ini';
 
-            Swal.fire({
-                title: 'Hapus Surat Masuk?',
-                text: `Apakah Anda yakin ingin menghapus "${name}" beserta berkas arsipnya di harddisk? Tindakan ini permanen.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then(result => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\" beserta berkas arsipnya di harddisk? Tindakan ini permanen.", "Hapus Surat Masuk?", 'warning', "Ya, Hapus", "Batal").then(result => {
                 if (result.isConfirmed) {
                     form.submit();
                 }

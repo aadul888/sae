@@ -243,13 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     closeEditPembayaran();
 
                     if (autoKirimWa && data.wa_url) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Data Disimpan!",
-                            text: "Catatan pembayaran berhasil disimpan. Membuka WhatsApp untuk mengirimkan rincian & QR Code...",
-                            timer: 2000,
-                            showConfirmButton: false,
-                        }).then(() => {
+                        window.SAE.alert("Catatan pembayaran berhasil disimpan. Membuka WhatsApp untuk mengirimkan rincian & QR Code...", "Data Disimpan!", 'success').then(() => {
                             window.open(data.wa_url, "_blank");
                             if (typeof window.refreshLiveTable === "function") {
                                 window.refreshLiveTable(window.location.href);
@@ -443,13 +437,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (window.SAE && typeof window.SAE.toast === "function") {
                 window.SAE.toast("Teks pesan WhatsApp berhasil disalin!", "success");
             } else if (window.Swal) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Tersalin!",
-                    text: "Teks pesan WhatsApp berhasil disalin ke clipboard.",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+                window.SAE.alert("Teks pesan WhatsApp berhasil disalin ke clipboard.", "Tersalin!", 'success');
             }
         });
     };
@@ -467,16 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (window.Swal) {
-            Swal.fire({
-                title: "Reset Template WhatsApp?",
-                text: "Format pesan WhatsApp akan dikembalikan ke template bawaan sistem.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#f59e0b",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: "Ya, Reset ke Default",
-                cancelButtonText: "Batal",
-            }).then((result) => {
+            window.SAE.confirm("Format pesan WhatsApp akan dikembalikan ke template bawaan sistem.", "Reset Template WhatsApp?", 'warning', "Ya, Reset ke Default", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     doReset();
                 }

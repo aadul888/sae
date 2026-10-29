@@ -40,16 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
         formEl.addEventListener('submit', function (e) {
             if (questions.length === 0) {
                 e.preventDefault();
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'Pertanyaan Kosong',
-                        text: 'Harap tambahkan setidaknya 1 pertanyaan ke dalam formulir.',
-                        icon: 'warning',
-                        confirmButtonColor: 'var(--primary, #0284c7)',
-                        confirmButtonText: 'Mengerti'
-                    });
-                } else {
-                    alert('Harap tambahkan setidaknya 1 pertanyaan ke dalam formulir.');
+                {
+                    window.SAE.alert("Harap tambahkan setidaknya 1 pertanyaan ke dalam formulir.", "Pertanyaan Kosong", 'warning');
                 }
                 return;
             }
@@ -137,26 +129,19 @@ window.addField = function (type, defaultLabel) {
  */
 window.removeField = function (index) {
     if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: 'Hapus Pertanyaan?',
-            text: `Hapus pertanyaan "${questions[index].label || 'ini'}"?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Hapus',
-            cancelButtonText: 'Batal'
-        }).then((res) => {
+        window.SAE.confirm("Hapus pertanyaan \"${questions[index].label || 'ini'}\"?", "Hapus Pertanyaan?", 'info', "Hapus", "Batal").then((res) => {
             if (res.isConfirmed) {
                 questions.splice(index, 1);
                 renderQuestions();
             }
         });
     } else {
-        if (confirm('Hapus pertanyaan ini?')) {
-            questions.splice(index, 1);
-            renderQuestions();
-        }
+        window.SAE.confirm('Hapus pertanyaan ini?', 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then(function(ok) {
+            if (ok) {
+                questions.splice(index, 1);
+                renderQuestions();
+            }
+        });
     }
 };
 

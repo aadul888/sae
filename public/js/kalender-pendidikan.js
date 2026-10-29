@@ -334,15 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         const agendaName = delForm.getAttribute("data-name") || "agenda ini";
 
-        Swal.fire({
-            title: "Hapus Agenda Kalender?",
-            html: `Apakah Anda yakin ingin menghapus agenda <strong>"${agendaName}"</strong>?<br><small class="text-muted">Tindakan ini juga akan memperbarui perhitungan Hari Efektif Belajar secara otomatis.</small>`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> Ya, Hapus',
-            cancelButtonText: "Batal",
-            confirmButtonColor: "#ef4444",
-        }).then(async (result) => {
+        window.SAE.confirm("Apakah Anda yakin ingin menghapus agenda <strong>\"${agendaName}\"</strong>?<br><small class=\"text-muted\">Tindakan ini juga akan memperbarui perhitungan Hari Efektif Belajar secara otomatis.</small>", "Hapus Agenda Kalender?", 'warning', "<i class=\"fas fa-trash-can me-1\"></i> Ya, Hapus", "Batal").then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     Swal.fire({

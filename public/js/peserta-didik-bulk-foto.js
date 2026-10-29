@@ -112,7 +112,7 @@ window.handleBulkRombelChange = async function (rombelName) {
                 "danger",
             );
         } else {
-            alert(err.message);
+            window.SAE.alert(err.message, 'Informasi', 'info');
         }
     } finally {
         if (loadingSpinner) loadingSpinner.style.display = "none";
@@ -618,9 +618,7 @@ window.executeBulkUploadQueue = async function () {
                 "warning",
             );
         } else {
-            alert(
-                "Silakan pilih berkas ZIP atau pasfoto PNG terlebih dahulu.",
-            );
+            window.SAE.alert("Silakan pilih berkas ZIP atau pasfoto PNG terlebih dahulu.", 'Informasi', 'warning');
         }
         return;
     }

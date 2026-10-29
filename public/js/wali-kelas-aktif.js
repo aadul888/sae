@@ -450,7 +450,7 @@ function handleFilePreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Pasfoto peserta didik wajib berformat PNG (.png).", "warning");
         } else {
-            alert("File harus berformat PNG (.png).");
+            window.SAE.alert("File harus berformat PNG (.png).", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("fotoFileInput");
         if (fileInput) fileInput.value = "";
@@ -461,7 +461,7 @@ function handleFilePreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Ukuran file pasfoto maksimal 5 MB.", "danger");
         } else {
-            alert("Ukuran file maksimal 5 MB.");
+            window.SAE.alert("Ukuran file maksimal 5 MB.", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("fotoFileInput");
         if (fileInput) fileInput.value = "";
@@ -502,7 +502,7 @@ window.handleDownloadFoto = function () {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Peserta didik belum dipilih.", "warning");
         } else {
-            alert("Peserta didik belum dipilih.");
+            window.SAE.alert("Peserta didik belum dipilih.", 'Informasi', 'info');
         }
         return;
     }
@@ -535,7 +535,7 @@ window.handleDownloadFoto = function () {
     if (window.SAE && typeof window.SAE.toast === "function") {
         window.SAE.toast("Belum ada pasfoto yang dapat diunduh.", "warning");
     } else {
-        alert("Belum ada pasfoto yang dapat diunduh.");
+        window.SAE.alert("Belum ada pasfoto yang dapat diunduh.", 'Informasi', 'info');
     }
 };
 
@@ -545,12 +545,12 @@ window.handleSubmitFoto = async function () {
     const btnSubmit = document.getElementById("btnSubmitFoto");
 
     if (!pdId) {
-        alert("ID peserta didik tidak valid.");
+        window.SAE.alert("ID peserta didik tidak valid.", 'Informasi', 'info');
         return;
     }
 
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Silakan pilih file foto terlebih dahulu.");
+        window.SAE.alert("Silakan pilih file foto terlebih dahulu.", 'Informasi', 'info');
         return;
     }
 
@@ -582,7 +582,7 @@ window.handleSubmitFoto = async function () {
             if (window.SAE && typeof window.SAE.toast === "function") {
                 window.SAE.toast(`Foto ${json.data.nama || "peserta didik"} berhasil disimpan!`, "success");
             } else {
-                alert("Foto berhasil disimpan!");
+                window.SAE.alert("Foto berhasil disimpan!", 'Informasi', 'info');
             }
             window.closeUploadFotoModal();
             setTimeout(() => window.location.reload(), 500);
@@ -593,7 +593,7 @@ window.handleSubmitFoto = async function () {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast(err.message || "Gagal mengunggah foto.", "danger");
         } else {
-            alert(err.message || "Gagal mengunggah foto.");
+            window.SAE.alert(err.message || "Gagal mengunggah foto.", 'Informasi', 'info');
         }
     } finally {
         if (btnSubmit) {
@@ -627,7 +627,7 @@ window.handleDeleteFoto = async function () {
             throw new Error(json.message || "Gagal menghapus foto.");
         }
     } catch (err) {
-        alert(err.message || "Terjadi kesalahan.");
+        window.SAE.alert(err.message || "Terjadi kesalahan.", 'Informasi', 'info');
     }
 };
 
@@ -642,21 +642,7 @@ document.addEventListener("click", async function (e) {
     const pdNama = btnReset.dataset.nama || "Peserta Didik";
     const pdNisn = btnReset.dataset.nisn || "NISN";
 
-    const result = await Swal.fire({
-        title: "Reset Password Akun?",
-        html:
-            `Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +
-            `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
-            `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
-            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#f59e0b",
-        cancelButtonColor: "#64748b",
-        confirmButtonText: '<i class="fas fa-key me-1"></i> Ya, Reset Password',
-        cancelButtonText: "Batal",
-        reverseButtons: true,
-    });
+    const result = await window.SAE.confirm("Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +\n            `<div style=\"font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;\">` +\n            `<i class=\"fas fa-info-circle text-warning me-1\"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +\n            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>", "Reset Password Akun?", 'warning', "<i class=\"fas fa-key me-1\"></i> Ya, Reset Password", "Batal");
 
     if (!result.isConfirmed) return;
 
@@ -703,12 +689,7 @@ document.addEventListener("click", async function (e) {
             });
         }
     } catch (err) {
-        Swal.fire({
-            title: "Kesalahan Jaringan",
-            text: "Gagal terhubung ke server. Silakan coba kembali.",
-            icon: "error",
-            confirmButtonColor: "#ef4444",
-        });
+        window.SAE.alert("Gagal terhubung ke server. Silakan coba kembali.", "Kesalahan Jaringan", 'error');
     }
 });
 
@@ -817,11 +798,6 @@ document.addEventListener("click", async function (e) {
             });
         }
     } catch (err) {
-        Swal.fire({
-            title: "Kesalahan Jaringan",
-            text: "Gagal terhubung ke server.",
-            icon: "error",
-            confirmButtonColor: "#ef4444",
-        });
+        window.SAE.alert("Gagal terhubung ke server.", "Kesalahan Jaringan", 'error');
     }
 });

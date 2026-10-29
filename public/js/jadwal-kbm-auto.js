@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             text: err.message,
                         });
                     } else {
-                        alert(err.message);
+                        window.SAE.alert(err.message, 'Informasi', 'info');
                     }
                 })
                 .finally(() => {
@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 triggerPageRefresh();
                             });
                         } else {
-                            alert(data.message || "Generate jadwal selesai!");
+                            window.SAE.alert(data.message || "Generate jadwal selesai!", 'Informasi', 'info');
                             triggerPageRefresh();
                         }
                     })
@@ -545,7 +545,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 });
                             }
                         } else {
-                            alert(err.message || "Gagal generate");
+                            window.SAE.alert(err.message || "Gagal generate", 'Informasi', 'info');
                         }
                     })
                     .finally(() => {
@@ -706,7 +706,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         text: "Silakan pilih guru terlebih dahulu.",
                     });
                 } else {
-                    alert("Silakan pilih guru terlebih dahulu.");
+                    window.SAE.alert("Silakan pilih guru terlebih dahulu.", 'Informasi', 'info');
                 }
                 return;
             }
@@ -758,7 +758,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             showConfirmButton: false,
                         });
                     } else {
-                        alert(data.message || "Preferensi berhasil disimpan!");
+                        window.SAE.alert(data.message || "Preferensi berhasil disimpan!", 'Informasi', 'info');
                     }
                 })
                 .catch((err) => {
@@ -769,7 +769,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             text: err.message,
                         });
                     } else {
-                        alert(err.message);
+                        window.SAE.alert(err.message, 'Informasi', 'info');
                     }
                 })
                 .finally(() => {

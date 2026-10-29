@@ -602,16 +602,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const form = e.target;
         if (form && form.matches(".delete-request-form, .form-destroy-request, form[action*='/delete']")) {
             e.preventDefault();
-            const result = await Swal.fire({
-                title: "Hapus Request?",
-                text: "Data antrean cetak kartu ini akan dihapus permanen.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: "Ya, Hapus!",
-                cancelButtonText: "Batal",
-            });
+            const result = await window.SAE.confirm("Data antrean cetak kartu ini akan dihapus permanen.", "Hapus Request?", 'warning', "Ya, Hapus!", "Batal");
             if (!result.isConfirmed) return;
 
             try {
@@ -850,16 +841,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const form = e.target;
         if (form && (form.matches('form.delete-pengeluaran-form') || form.matches('form[action*="destroy-pengeluaran"]'))) {
             e.preventDefault();
-            const result = await Swal.fire({
-                title: "Hapus Pengeluaran?",
-                text: "Catatan belanja/pengeluaran ini akan dihapus permanen.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: "Ya, Hapus!",
-                cancelButtonText: "Batal",
-            });
+            const result = await window.SAE.confirm("Catatan belanja/pengeluaran ini akan dihapus permanen.", "Hapus Pengeluaran?", 'warning', "Ya, Hapus!", "Batal");
             if (!result.isConfirmed) return;
 
             try {

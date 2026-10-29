@@ -261,13 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btn.disabled || btn.hasAttribute('disabled')) {
             e.preventDefault();
             if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Presensi Dinonaktifkan',
-                    text: 'Pencatatan presensi dinonaktifkan pada hari libur / non-aktif belajar.',
-                    timer: 2500,
-                    showConfirmButton: false
-                });
+                window.SAE.alert("Pencatatan presensi dinonaktifkan pada hari libur / non-aktif belajar.", "Presensi Dinonaktifkan", 'warning');
             }
             return;
         }
@@ -469,16 +463,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rombelId = this.getAttribute('data-rombel');
             const tanggal = this.getAttribute('data-tanggal') || document.getElementById('filterTanggal')?.value || new Date().toISOString().slice(0, 10);
 
-            Swal.fire({
-                title: 'Reset Presensi Kelas?',
-                text: 'Seluruh catatan presensi manual untuk tanggal terpilih akan dikosongkan kembali agar dapat diulangi. Presensi mandiri (RFID/QR) tetap terlindungi.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Reset Presensi',
-                cancelButtonText: 'Batal'
-            }).then(async (result) => {
+            window.SAE.confirm("Seluruh catatan presensi manual untuk tanggal terpilih akan dikosongkan kembali agar dapat diulangi. Presensi mandiri (RFID/QR) tetap terlindungi.", "Reset Presensi Kelas?", 'warning', "<i class=\"fas fa-rotate-left me-1\"></i> Ya, Reset Presensi", "Batal").then(async (result) => {
                 if (result.isConfirmed) {
                     try {
                         Swal.fire({

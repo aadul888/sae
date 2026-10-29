@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (window.SAE && typeof window.SAE.toast === "function") {
                 window.SAE.toast(error.message || "Gagal membersihkan data sistem.", "danger");
             } else {
-                alert("Gagal: " + error.message);
+                window.SAE.alert("Gagal: " + error.message, 'Informasi', 'info');
             }
         } finally {
             if (btn) {

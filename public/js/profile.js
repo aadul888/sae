@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     text: 'Hanya format gambar PNG, JPG, atau JPEG yang diperbolehkan.',
                 });
             } else {
-                alert('Hanya format gambar PNG, JPG, atau JPEG yang diperbolehkan.');
+                window.SAE.alert('Hanya format gambar PNG, JPG, atau JPEG yang diperbolehkan.', 'Informasi', 'info');
             }
             return;
         }
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     text: 'Ukuran file tidak boleh melebihi 5 MB.',
                 });
             } else {
-                alert('Ukuran file tidak boleh melebihi 5 MB.');
+                window.SAE.alert('Ukuran file tidak boleh melebihi 5 MB.', 'Informasi', 'info');
             }
             return;
         }
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     text: 'Silakan pilih file foto terlebih dahulu.',
                 });
             } else {
-                alert('Silakan pilih file foto terlebih dahulu.');
+                window.SAE.alert('Silakan pilih file foto terlebih dahulu.', 'Informasi', 'info');
             }
             return;
         }
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.reload();
                 });
             } else {
-                alert(data.message);
+                window.SAE.alert(data.message, 'Informasi', 'info');
                 window.location.reload();
             }
         })
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     text: err.message,
                 });
             } else {
-                alert(err.message);
+                window.SAE.alert(err.message, 'Informasi', 'info');
             }
         })
         .finally(() => {
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.location.reload();
                     });
                 } else {
-                    alert(data.message);
+                    window.SAE.alert(data.message, 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         text: err.message,
                     });
                 } else {
-                    alert(err.message);
+                    window.SAE.alert(err.message, 'Informasi', 'info');
                 }
             });
         };

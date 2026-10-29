@@ -29,6 +29,16 @@ abstract class TeknisiBaseController extends Controller
     protected string $permissionKey = 'menu_teknisi';
 
     /**
+     * Kolom identitas petugas yang TIDAK diminta dari berkas impor.
+     *
+     * Nilainya selalu diisi otomatis dari akun yang sedang login, sehingga
+     * template Excel tidak memuat kolom nama/ID petugas.
+     *
+     * @var array<int, string>
+     */
+    public const AUTO_OWNER_COLUMNS = ['petugas_nama', 'petugas_ptk_id'];
+
+    /**
      * Siapkan konteks pengguna: cek sesi + resolusi identitas petugas.
      *
      * @return array{0: mixed, 1: array} [redirectResponse|null, context]

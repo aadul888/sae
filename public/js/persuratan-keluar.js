@@ -15,16 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 1. Notifikasi Cetak Langsung Setelah Surat Keterangan Diterbitkan
     if (cetakSuratKetId && suratKetCetakBaseUrl) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Surat Keterangan Berhasil Diterbitkan!',
-            text: 'Dokumen dan QR Code verifikasi telah siap. Apakah Anda ingin langsung mencetak lembar resmi sekarang?',
-            showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-print me-1"></i> Cetak Sekarang',
-            cancelButtonText: 'Nanti Saja'
-        }).then(res => {
+        window.SAE.confirm("Dokumen dan QR Code verifikasi telah siap. Apakah Anda ingin langsung mencetak lembar resmi sekarang?", "Surat Keterangan Berhasil Diterbitkan!", 'success', "<i class=\"fas fa-print me-1\"></i> Cetak Sekarang", "Nanti Saja").then(res => {
             if (res.isConfirmed) {
                 window.open(suratKetCetakBaseUrl + '/' + cetakSuratKetId + '/cetak', '_blank');
             }
@@ -36,16 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Notifikasi Cetak Langsung Setelah Surat Template Autocrat Diterbitkan
     if (cetakTemplateId && templateCetakBaseUrl) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Surat Template Berhasil Diterbitkan!',
-            text: 'Dokumen Autocrat dan QR Code verifikasi telah siap. Apakah Anda ingin langsung mencetak lembar resmi sekarang?',
-            showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-print me-1"></i> Cetak Sekarang',
-            cancelButtonText: 'Nanti Saja'
-        }).then(res => {
+        window.SAE.confirm("Dokumen Autocrat dan QR Code verifikasi telah siap. Apakah Anda ingin langsung mencetak lembar resmi sekarang?", "Surat Template Berhasil Diterbitkan!", 'success', "<i class=\"fas fa-print me-1\"></i> Cetak Sekarang", "Nanti Saja").then(res => {
             if (res.isConfirmed) {
                 window.open(templateCetakBaseUrl + '/' + cetakTemplateId + '/cetak', '_blank');
             }
@@ -159,12 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnQuickBastKeluar.addEventListener('click', function () {
             if (!selectSarprasAsetKeluar || !selectSarprasAsetKeluar.value) {
                 if (window.Swal) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Pilih Aset Terlebih Dahulu',
-                        text: 'Silakan pilih salah satu barang sarpras pada dropdown di bawah sebelum menggunakan format BAST otomatis.',
-                        confirmButtonColor: '#6366f1'
-                    });
+                    window.SAE.alert("Silakan pilih salah satu barang sarpras pada dropdown di bawah sebelum menggunakan format BAST otomatis.", "Pilih Aset Terlebih Dahulu", 'info');
                 }
                 return;
             }
@@ -441,16 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'Surat ini';
 
-            Swal.fire({
-                title: 'Hapus Surat Keluar?',
-                text: `Apakah Anda yakin ingin menghapus "${name}" beserta arsip dokumennya di harddisk? Tindakan ini permanen.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then(result => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\" beserta arsip dokumennya di harddisk? Tindakan ini permanen.", "Hapus Surat Keluar?", 'warning', "Ya, Hapus", "Batal").then(result => {
                 if (result.isConfirmed) {
                     form.submit();
                 }
@@ -646,16 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'data ini';
             if (window.Swal) {
-                Swal.fire({
-                    title: 'Konfirmasi Hapus',
-                    text: `Apakah Anda yakin ingin menghapus ${name}? Tindakan ini tidak dapat dibatalkan.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
+                window.SAE.confirm("Apakah Anda yakin ingin menghapus ${name}? Tindakan ini tidak dapat dibatalkan.", "Konfirmasi Hapus", 'warning', "Ya, Hapus", "Batal").then((result) => {
                     if (result.isConfirmed) {
                         form.dataset.confirmed = 'true';
                         form.submit();

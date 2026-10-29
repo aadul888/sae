@@ -106,16 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formDel = btnDelete.closest('form');
             const nama = btnDelete.getAttribute('data-nama') || 'log ini';
 
-            Swal.fire({
-                title: 'Hapus Kunjungan?',
-                text: `Apakah Anda yakin ingin menghapus data kunjungan dari "${nama}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus data kunjungan dari \"${nama}\"?", "Hapus Kunjungan?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     formDel.submit();
                 }

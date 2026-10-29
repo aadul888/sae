@@ -261,16 +261,7 @@
         updateInstallUI(false);
 
         if (window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Aplikasi Terpasang!',
-                text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
-                confirmButtonColor: '#4f6ef7',
-                confirmButtonText: '<i class="fas fa-check"></i> Siap Digunakan',
-                timer: 3500,
-                background: 'var(--bg-card, #131b2e)',
-                color: 'var(--text-main, #f8fafc)'
-            });
+            window.SAE.alert("SAE telah berhasil dipasang ke layar utama perangkat Anda.", "Aplikasi Terpasang!", 'success');
         }
     }
 
@@ -301,15 +292,7 @@
             if (banner) banner.remove();
             updateInstallUI(false);
             if (window.Swal) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Aplikasi Sudah Terpasang',
-                    text: 'SAE sudah aktif dalam mode layar utama perangkat Anda.',
-                    timer: 2500,
-                    showConfirmButton: false,
-                    background: 'var(--bg-card, #131b2e)',
-                    color: 'var(--text-main, #f8fafc)'
-                });
+                window.SAE.alert("SAE sudah aktif dalam mode layar utama perangkat Anda.", "Aplikasi Sudah Terpasang", 'info');
             }
             return;
         }
@@ -410,7 +393,7 @@
             `;
         }
 
-        if (window.Swal) {
+        {
             Swal.fire({
                 icon: 'info',
                 title: guideTitle,
@@ -424,8 +407,6 @@
                 background: 'var(--bg-card, #131b2e)',
                 color: 'var(--text-main, #f8fafc)'
             });
-        } else {
-            alert('Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar Utama" / "Instal Aplikasi" untuk memasang SAE.');
         }
     };
 

@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonColor: '#6366f1'
                     });
                 } else {
-                    alert('Tanggal selesai tidak boleh sebelum tanggal mulai.');
+                    window.SAE.alert('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'Informasi', 'info');
                 }
                 return;
             }
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.location.reload();
                     });
                 } else {
-                    alert(res.message || 'Permohonan berhasil dikirim.');
+                    window.SAE.alert(res.message || 'Permohonan berhasil dikirim.', 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonColor: '#ef4444'
                     });
                 } else {
-                    alert('Gagal: ' + err.message);
+                    window.SAE.alert('Gagal: ' + err.message, 'Informasi', 'info');
                 }
             })
             .finally(() => {
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.location.reload();
                     });
                 } else {
-                    alert(res.message || 'Berhasil dibatalkan.');
+                    window.SAE.alert(res.message || 'Berhasil dibatalkan.', 'Informasi', 'info');
                     window.location.reload();
                 }
             })
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonColor: '#ef4444'
                     });
                 } else {
-                    alert('Gagal: ' + err.message);
+                    window.SAE.alert('Gagal: ' + err.message, 'Informasi', 'info');
                 }
             });
         };

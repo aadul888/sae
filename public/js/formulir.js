@@ -91,28 +91,19 @@ function initDeleteConfirmations() {
         const itemName = form.getAttribute('data-name') || 'item ini';
 
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Konfirmasi Hapus',
-                html: `Apakah Anda yakin ingin menghapus <b>${itemName}</b>?<br><small style="color: #ef4444;">Tindakan ini tidak dapat dibatalkan dan seluruh data terkait akan dihapus permanen.</small>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-trash me-1"></i> Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true,
-                focusCancel: true
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus <b>${itemName}</b>?<br><small style=\"color: #ef4444;\">Tindakan ini tidak dapat dibatalkan dan seluruh data terkait akan dihapus permanen.</small>", "Konfirmasi Hapus", 'warning', "<i class=\"fas fa-trash me-1\"></i> Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }
             });
         } else {
-            if (confirm(`Apakah Anda yakin ingin menghapus ${itemName}?`)) {
-                form.dataset.confirmed = 'true';
-                form.submit();
-            }
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${itemName}?`, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then(function(ok) {
+                if (ok) {
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                }
+            });
         }
     });
 }
@@ -492,14 +483,12 @@ function initFormToggles() {
             }
         } catch (err) {
             console.error('Error toggling form:', err);
-            if (typeof Swal !== 'undefined') {
+            {
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',
                     text: err.message || 'Terjadi kesalahan sistem saat memperbarui status formulir.',
                 });
-            } else {
-                alert(err.message || 'Terjadi kesalahan sistem saat memperbarui status formulir.');
             }
         } finally {
             toggleBtn.style.opacity = '';

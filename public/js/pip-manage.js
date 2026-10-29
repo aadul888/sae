@@ -368,24 +368,11 @@ document.addEventListener("DOMContentLoaded", function () {
     window.pipHapusUsulan = async function (id, nama, status) {
         if (status === "sudah_diajukan" || status === "ditolak") {
             const label = status === "sudah_diajukan" ? "Sudah Diusulkan" : "Ditolak";
-            Swal.fire({
-                icon: "warning",
-                title: "Tidak Dapat Dihapus",
-                text: `Usulan PIP untuk ${nama} berstatus "${label}" sehingga tidak dapat dihapus.`,
-            });
+            window.SAE.alert("Usulan PIP untuk ${nama} berstatus \"${label}\" sehingga tidak dapat dihapus.", "Tidak Dapat Dihapus", 'warning');
             return;
         }
 
-        const r = await Swal.fire({
-            title: "Hapus Usulan?",
-            text: `Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Hapus!",
-            cancelButtonText: "Batal",
-        });
+        const r = await window.SAE.confirm("Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.", "Hapus Usulan?", 'warning', "Ya, Hapus!", "Batal");
         if (!r.isConfirmed) return;
         try {
             const { ok, data } = await post(tpl(CFG.urlTemplates.destroyUsulan, id), {});
@@ -489,16 +476,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         const targetLabel = actionLabels[action] || action;
 
-        const confirmResult = await Swal.fire({
-            title: `Tandai ${ids.length} Usulan?`,
-            text: `Ubah status verifikasi ${ids.length} usulan terpilih menjadi '${targetLabel}'.`,
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: action === "set_ditolak" ? "#ef4444" : "#10b981",
-            cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Lanjutkan",
-            cancelButtonText: "Batal",
-        });
+        const confirmResult = await window.SAE.confirm("Ubah status verifikasi ${ids.length} usulan terpilih menjadi '${targetLabel}'.", "Tandai ${ids.length} Usulan?", 'info', "Ya, Lanjutkan", "Batal");
         if (!confirmResult.isConfirmed) return;
 
         try {
@@ -707,11 +685,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.pipHapusRiwayat = async function (id, nama) {
-        const r = await Swal.fire({
-            title: "Hapus Riwayat?", text: `Catatan riwayat PIP ${nama} akan dihapus permanen.`, icon: "warning",
-            showCancelButton: true, confirmButtonColor: "#ef4444", cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Hapus!", cancelButtonText: "Batal",
-        });
+        const r = await window.SAE.confirm("Catatan riwayat PIP ${nama} akan dihapus permanen.", "Hapus Riwayat?", 'warning', "Ya, Hapus!", "Batal");
         if (!r.isConfirmed) return;
         try {
             const { ok, data } = await post(tpl(CFG.urlTemplates.destroyRiwayat, id), {});

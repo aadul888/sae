@@ -267,24 +267,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const name = this.dataset.name || 'berkas ini';
 
             if (window.Swal) {
-                Swal.fire({
-                    title: 'Hapus Berkas?',
-                    text: `Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280'
-                }).then((result) => {
+                window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Berkas?", 'warning', "Ya, Hapus", "Batal").then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
                     }
                 });
             } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus "${name}"?`)) {
-                    form.submit();
-                }
+                window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`, "Hapus Berkas?", 'danger', "Ya, Hapus", "Batal").then((ok) => {
+                    if (ok) {
+                        form.submit();
+                    }
+                });
             }
         });
     });

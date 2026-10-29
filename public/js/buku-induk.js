@@ -228,15 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnSync = document.getElementById('btnSyncBukuInduk');
     if (btnSync) {
         btnSync.addEventListener('click', function () {
-            Swal.fire({
-                title: 'Sinkronkan Buku Induk?',
-                html: 'Seluruh peserta didik akan diinisialisasi ke <strong>Buku Klaper</strong> dan <strong>profil identitas</strong> bila belum ada.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Sinkronkan',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#2563eb',
-            }).then(async (result) => {
+            window.SAE.confirm("Seluruh peserta didik akan diinisialisasi ke <strong>Buku Klaper</strong> dan <strong>profil identitas</strong> bila belum ada.", "Sinkronkan Buku Induk?", 'info', "Ya, Sinkronkan", "Batal").then(async (result) => {
                 if (!result.isConfirmed) return;
 
                 Swal.fire({

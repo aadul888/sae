@@ -103,22 +103,12 @@ window.unduhHalamanSingleJpg = async function (mode) {
         }
 
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil Diunduh!',
-                text: 'Berkas gambar kartu pelajar telah disimpan ke komputer Anda.',
-                timer: 2000,
-                showConfirmButton: false
-            });
+            window.SAE.alert("Berkas gambar kartu pelajar telah disimpan ke komputer Anda.", "Berhasil Diunduh!", 'success');
         }
     } catch (e) {
         console.error(e);
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal Mengunduh',
-                text: 'Terjadi kendala saat merender berkas gambar.'
-            });
+            window.SAE.alert("Terjadi kendala saat merender berkas gambar.", "Gagal Mengunduh", 'error');
         }
     } finally {
         if (btn) {
@@ -139,11 +129,7 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
 
     if (typeof JSZip === 'undefined') {
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Pustaka Belum Siap',
-                text: 'Pustaka kompresi ZIP sedang dimuat, silakan tunggu sebentar.'
-            });
+            window.SAE.alert("Pustaka kompresi ZIP sedang dimuat, silakan tunggu sebentar.", "Pustaka Belum Siap", 'error');
         }
         return;
     }
@@ -166,7 +152,7 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
 
     if (!studentItems.length) {
         if (typeof Swal !== 'undefined') {
-            Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Tidak ada kartu pelajar yang ditemukan untuk diunduh.' });
+            window.SAE.alert("Tidak ada kartu pelajar yang ditemukan untuk diunduh.", "Data Kosong", 'warning');
         }
         return;
     }
@@ -303,13 +289,7 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
         URL.revokeObjectURL(link.href);
 
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil Diunduh!',
-                text: `${totalFiles} berkas JPG berhasil dikompresi ke dalam ZIP.`,
-                timer: 2500,
-                showConfirmButton: false
-            });
+            window.SAE.alert("${totalFiles} berkas JPG berhasil dikompresi ke dalam ZIP.", "Berhasil Diunduh!", 'success');
         }
     } catch (err) {
         console.error('Error saat proses masal JPG:', err);

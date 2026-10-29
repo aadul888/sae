@@ -174,24 +174,17 @@ document.addEventListener('click', function (e) {
         const judul = btnDelete.getAttribute('data-judul') || 'buku ini';
 
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Konfirmasi Hapus',
-                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus buku \"${judul}\"?", "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     formDel.submit();
                 }
             });
         } else {
-            if (confirm(`Apakah Anda yakin ingin menghapus buku "${judul}"?`)) {
-                formDel.submit();
-            }
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus buku "${judul}"?`, "Konfirmasi Hapus", 'danger', "Ya, Hapus!", "Batal").then((ok) => {
+                if (ok) {
+                    formDel.submit();
+                }
+            });
         }
     }
 });

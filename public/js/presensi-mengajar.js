@@ -617,14 +617,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                 errMsg = errVals[0][0];
                             }
                         }
-                        if (typeof Swal !== "undefined") {
+                        {
                             Swal.fire({
                                 icon: "error",
                                 title: "Gagal Menyimpan",
                                 text: errMsg,
                             });
-                        } else {
-                            alert(errMsg);
                         }
                     }
                 })
@@ -836,16 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!id) return;
 
         if (typeof Swal !== "undefined") {
-            Swal.fire({
-                title: "Hapus Catatan Presensi?",
-                html: `Apakah Anda yakin ingin menghapus presensi mengajar <strong>${name}</strong>? Data jurnal yang terhubung akan dilepaskan relasinya.`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: "Ya, Hapus Data",
-                cancelButtonText: "Batal",
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus presensi mengajar <strong>${name}</strong>? Data jurnal yang terhubung akan dilepaskan relasinya.", "Hapus Catatan Presensi?", 'warning', "Ya, Hapus Data", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/dashboard/presensi-mengajar/${id}`, {
                         method: "DELETE",
@@ -876,11 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         })
                         .catch(() => {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Kesalahan",
-                                text: "Terjadi kesalahan sistem saat menghapus data.",
-                            });
+                            window.SAE.alert("Terjadi kesalahan sistem saat menghapus data.", "Kesalahan", 'error');
                         });
                 }
             });

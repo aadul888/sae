@@ -41,15 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnSyncKlaper = document.getElementById('btnSyncKlaper');
     if (btnSyncKlaper) {
         btnSyncKlaper.addEventListener('click', function () {
-            Swal.fire({
-                title: 'Sinkronkan Buku Klaper?',
-                text: 'Data seluruh peserta didik aktif dari Dapodik akan disinkronkan ke Buku Klaper.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Sinkronkan',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#2563eb',
-            }).then((result) => {
+            window.SAE.confirm("Data seluruh peserta didik aktif dari Dapodik akan disinkronkan ke Buku Klaper.", "Sinkronkan Buku Klaper?", 'info', "Ya, Sinkronkan", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Memproses...',

@@ -50,7 +50,7 @@ function handleSekolahFilePreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Logo sekolah wajib berformat PNG (.png) untuk kebutuhan kartu pelajar dan dokumen resmi.", "warning");
         } else {
-            alert("Logo sekolah wajib berformat PNG (.png).");
+            window.SAE.alert("Logo sekolah wajib berformat PNG (.png).", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("cardLogoFileInput");
         if (fileInput) fileInput.value = "";
@@ -61,7 +61,7 @@ function handleSekolahFilePreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Ukuran file logo sekolah maksimal 5 MB sebelum dikompresi.", "danger");
         } else {
-            alert("Ukuran file maksimal 5 MB.");
+            window.SAE.alert("Ukuran file maksimal 5 MB.", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("cardLogoFileInput");
         if (fileInput) fileInput.value = "";
@@ -288,7 +288,7 @@ function handleSekolahKopPreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Kop surat sekolah wajib berformat PNG (.png) untuk kebutuhan surat resmi, rapor, dan cetak.", "warning");
         } else {
-            alert("Kop surat wajib berformat PNG (.png).");
+            window.SAE.alert("Kop surat wajib berformat PNG (.png).", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("cardKopFileInput");
         if (fileInput) fileInput.value = "";
@@ -299,7 +299,7 @@ function handleSekolahKopPreview(file) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Ukuran berkas kop surat maksimal 6 MB sebelum dikompresi.", "danger");
         } else {
-            alert("Ukuran berkas kop surat maksimal 6 MB.");
+            window.SAE.alert("Ukuran berkas kop surat maksimal 6 MB.", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("cardKopFileInput");
         if (fileInput) fileInput.value = "";

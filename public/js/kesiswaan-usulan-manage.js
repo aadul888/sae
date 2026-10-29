@@ -222,15 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const pdId = modal.getAttribute('data-pd-id');
             const catatan = (document.getElementById('catatanVerifikasiUsulanInput')?.value || '').trim();
 
-            const confirm = await Swal.fire({
-                title: 'Setujui Seluruh Usulan?',
-                text: 'Data identitas peserta didik akan langsung diperbarui ke database sesuai pengajuan yang dipilih.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Setujui',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#10b981'
-            });
+            const confirm = await window.SAE.confirm("Data identitas peserta didik akan langsung diperbarui ke database sesuai pengajuan yang dipilih.", "Setujui Seluruh Usulan?", 'info', "Ya, Setujui", "Batal");
 
             if (!confirm.isConfirmed) return;
 
@@ -353,15 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const modal = document.getElementById('modalPengelolaanUsulan');
             const pdId = modal.getAttribute('data-pd-id');
 
-            const confirm = await Swal.fire({
-                title: 'Tandai Selesai di Dapodik?',
-                text: 'Status usulan ini akan ditandai telah selesai di-input / disinkronkan ke aplikasi Dapodik.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Tandai Selesai',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#3b82f6'
-            });
+            const confirm = await window.SAE.confirm("Status usulan ini akan ditandai telah selesai di-input / disinkronkan ke aplikasi Dapodik.", "Tandai Selesai di Dapodik?", 'info', "Ya, Tandai Selesai", "Batal");
 
             if (!confirm.isConfirmed) return;
 

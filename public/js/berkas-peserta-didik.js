@@ -37,7 +37,7 @@ function initPdfFileInputValidation() {
                         confirmButtonColor: '#ef4444'
                     });
                 } else {
-                    alert('Format file ditolak! Sistem hanya menerima file PDF (.pdf).');
+                    window.SAE.alert('Format file ditolak! Sistem hanya menerima file PDF (.pdf).', 'Informasi', 'info');
                 }
                 this.value = '';
                 return;
@@ -54,7 +54,7 @@ function initPdfFileInputValidation() {
                         confirmButtonColor: '#f59e0b'
                     });
                 } else {
-                    alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5 MB.');
+                    window.SAE.alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5 MB.', 'Informasi', 'info');
                 }
                 this.value = '';
                 return;

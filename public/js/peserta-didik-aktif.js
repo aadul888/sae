@@ -262,7 +262,7 @@ function handleFilePreview(file) {
                 "warning",
             );
         } else {
-            alert("File harus berformat PNG (.png).");
+            window.SAE.alert("File harus berformat PNG (.png).", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("fotoFileInput");
         if (fileInput) fileInput.value = "";
@@ -277,7 +277,7 @@ function handleFilePreview(file) {
                 "danger",
             );
         } else {
-            alert("Ukuran file maksimal 5 MB.");
+            window.SAE.alert("Ukuran file maksimal 5 MB.", 'Informasi', 'info');
         }
         const fileInput = document.getElementById("fotoFileInput");
         if (fileInput) fileInput.value = "";

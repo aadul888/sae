@@ -1000,16 +1000,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const targetUrl = this.getAttribute('href');
             if (this.id === 'btnKioskLock') {
-                Swal.fire({
-                    title: 'Kunci Terminal?',
-                    text: 'Terminal pemindai akan dikunci dan memerlukan kode akses / RFID untuk dibuka kembali.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: '<i class="fas fa-lock me-1"></i> Kunci Sekarang',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
+                window.SAE.confirm("Terminal pemindai akan dikunci dan memerlukan kode akses / RFID untuk dibuka kembali.", "Kunci Terminal?", 'warning', "<i class=\"fas fa-lock me-1\"></i> Kunci Sekarang", "Batal").then((result) => {
                     if (result.isConfirmed) {
                         window.location.replace(targetUrl);
                     }

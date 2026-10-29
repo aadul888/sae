@@ -42,7 +42,7 @@ window.openKartuPelajarModal = function(nisn) {
                     confirmButtonColor: '#ef4444'
                 });
             } else {
-                alert(data.message || 'Gagal memuat kartu pelajar.');
+                window.SAE.alert(data.message || 'Gagal memuat kartu pelajar.', 'Informasi', 'info');
             }
             window.closeKartuPelajarModal();
             return;
@@ -75,7 +75,7 @@ window.openKartuPelajarModal = function(nisn) {
                 confirmButtonColor: '#ef4444'
             });
         } else {
-            alert('Terjadi kesalahan saat memuat data kartu pelajar.');
+            window.SAE.alert('Terjadi kesalahan saat memuat data kartu pelajar.', 'Informasi', 'info');
         }
         window.closeKartuPelajarModal();
     });
@@ -132,7 +132,7 @@ window.unduhKartuJpg = async function(mode) {
                 confirmButtonColor: '#ef4444'
             });
         } else {
-            alert('Gagal memuat script html2canvas untuk unduh JPG.');
+            window.SAE.alert('Gagal memuat script html2canvas untuk unduh JPG.', 'Informasi', 'info');
         }
         if (btn) {
             btn.innerHTML = originalHtml;
@@ -226,7 +226,7 @@ window.unduhKartuJpg = async function(mode) {
                 confirmButtonColor: '#ef4444'
             });
         } else {
-            alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'));
+            window.SAE.alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'), 'Informasi', 'info');
         }
     } finally {
         if (btn) {
@@ -368,7 +368,7 @@ window.proceedCetakRombel = function() {
                 confirmButtonColor: '#4f46e5'
             });
         } else {
-            alert('Silakan pilih rombongan belajar terlebih dahulu.');
+            window.SAE.alert('Silakan pilih rombongan belajar terlebih dahulu.', 'Informasi', 'info');
         }
         return;
     }

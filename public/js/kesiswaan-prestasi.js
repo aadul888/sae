@@ -69,11 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(err => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Kesalahan!',
-                    text: 'Gagal terhubung ke server.'
-                });
+                window.SAE.alert("Gagal terhubung ke server.", "Kesalahan!", 'error');
             });
         });
     }
@@ -86,16 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         const itemName = form.getAttribute('data-name') || 'data ini';
 
-        Swal.fire({
-            title: 'Hapus Prestasi?',
-            text: `Apakah Anda yakin ingin menghapus ${itemName}? Tindakan ini tidak dapat dibatalkan.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
+        window.SAE.confirm("Apakah Anda yakin ingin menghapus ${itemName}? Tindakan ini tidak dapat dibatalkan.", "Hapus Prestasi?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Menghapus...',

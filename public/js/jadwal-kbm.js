@@ -65,7 +65,7 @@ window.handleTogglePemberlakuan = function (btn) {
                     window.location.reload();
                 });
             } else {
-                alert(data.message || "Status jadwal berhasil diperbarui.");
+                window.SAE.alert(data.message || "Status jadwal berhasil diperbarui.", 'Informasi', 'info');
                 window.location.reload();
             }
         })
@@ -80,7 +80,7 @@ window.handleTogglePemberlakuan = function (btn) {
                     text: err.message,
                 });
             } else {
-                alert("Error: " + err.message);
+                window.SAE.alert("Error: " + err.message, 'Informasi', 'info');
             }
         });
     };
@@ -621,14 +621,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch((err) => {
-                    if (window.Swal) {
+                    {
                         Swal.fire({
                             icon: "error",
                             title: "Gagal Menyimpan",
                             text: err.message,
                         });
-                    } else {
-                        alert(err.message);
                     }
                 })
                 .finally(() => {
@@ -770,29 +768,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch((err) => {
-                    if (window.Swal) {
+                    {
                         Swal.fire({
                             icon: "error",
                             title: "Gagal Menghapus",
                             text: err.message,
                         });
-                    } else {
-                        alert(err.message);
                     }
                 });
         };
 
         if (window.Swal) {
-            Swal.fire({
-                title: "Hapus Jadwal KBM?",
-                text: `Apakah Anda yakin ingin menghapus jadwal ${namaItem}? Tindakan ini tidak dapat dibatalkan.`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#6b7280",
-                confirmButtonText: "Ya, Hapus!",
-                cancelButtonText: "Batal",
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus jadwal ${namaItem}? Tindakan ini tidak dapat dibatalkan.", "Hapus Jadwal KBM?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     doDelete();
                 }

@@ -189,16 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = getCsrfToken();
 
             if (window.Swal) {
-                Swal.fire({
-                    title: 'Hapus Aset?',
-                    text: `Apakah Anda yakin ingin menghapus data ${nama}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((res) => {
+                window.SAE.confirm("Apakah Anda yakin ingin menghapus data ${nama}?", "Hapus Aset?", 'warning', "Ya, Hapus", "Batal").then((res) => {
                     if (res.isConfirmed) {
                         fetch(`/dashboard/sarpras/aset/${id}`, {
                             method: 'DELETE',
@@ -276,10 +267,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             function showError(title, msg) {
-                if (typeof Swal !== 'undefined') {
+                {
                     Swal.fire({ title: title, text: msg, icon: 'error' });
-                } else {
-                    alert(title + ': ' + msg);
                 }
             }
 
@@ -352,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             window.location.reload();
                         });
                     } else {
-                        alert(data.message || 'Data berhasil diimpor.');
+                        window.SAE.alert(data.message || 'Data berhasil diimpor.', 'Informasi', 'info');
                         window.location.reload();
                     }
                     return;

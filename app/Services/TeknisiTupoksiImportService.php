@@ -213,7 +213,24 @@ class TeknisiTupoksiImportService
     /** @return array<int, string> */
     public function headers(string $modul): array
     {
-        return array_keys($this->spec($modul)['columns']);
+        return array_keys($this->userColumns($modul));
+    }
+
+    /**
+     * Kolom yang diisi otomatis dari akun pengunggah — tidak diminta di berkas.
+     *
+     * @return array<int, string>
+     */
+    public const AUTO_OWNER_COLUMNS = ['petugas_nama', 'petugas_ptk_id'];
+
+    /**
+     * Kolom modul tanpa identitas petugas (untuk header template impor).
+     *
+     * @return array<string,string>
+     */
+    public function userColumns(string $modul): array
+    {
+        return array_diff_key($this->spec($modul)['columns'], array_flip(self::AUTO_OWNER_COLUMNS));
     }
 
     public function title(string $modul): string
@@ -358,6 +375,9 @@ class TeknisiTupoksiImportService
         foreach ($spec['columns'] as $col => $type) {
             if ($type === 'skor' || preg_match('/^catatan_\d$/', $col)) {
                 continue; // item supervisi ditangani terpisah
+            }
+            if (in_array($col, self::AUTO_OWNER_COLUMNS, true)) {
+                continue; // diisi otomatis dari akun pengunggah
             }
 
             $raw = $n[$col] ?? null;

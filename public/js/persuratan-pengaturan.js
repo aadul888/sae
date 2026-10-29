@@ -117,12 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnTestHdd.addEventListener('click', function () {
             const path = hddPathInput ? hddPathInput.value.trim() : '';
             if (!path) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Path HDD Kosong',
-                    text: 'Silakan masukkan path direktori harddisk terlebih dahulu.',
-                    confirmButtonColor: '#6366f1'
-                });
+                window.SAE.alert("Silakan masukkan path direktori harddisk terlebih dahulu.", "Path HDD Kosong", 'warning');
                 return;
             }
 
@@ -144,13 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     btnTestHdd.innerHTML = '<i class="fas fa-plug-circle-check me-1"></i> Uji Akses Folder';
 
                     if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Koneksi HDD Berhasil!',
-                            html: `Direktori harddisk valid dan siap digunakan untuk membaca &amp; menulis berkas.<br><br>
-                                   <strong>Kapasitas Tersedia:</strong> ${data.free_formatted} dari ${data.total_formatted}`,
-                            confirmButtonColor: '#10b981'
-                        });
+                        window.SAE.alert("Direktori harddisk valid dan siap digunakan untuk membaca &amp; menulis berkas.<br><br>\n                                   <strong>Kapasitas Tersedia:</strong> ${data.free_formatted} dari ${data.total_formatted}", "Koneksi HDD Berhasil!", 'success');
 
                         if (hddStatusIndicator) {
                             hddStatusIndicator.className = 'badge-compact badge-success';
@@ -175,12 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(() => {
                     btnTestHdd.disabled = false;
                     btnTestHdd.innerHTML = '<i class="fas fa-plug-circle-check me-1"></i> Uji Akses Folder';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Kesalahan Sistem',
-                        text: 'Terjadi kegagalan jaringan saat menghubungi server.',
-                        confirmButtonColor: '#ef4444'
-                    });
+                    window.SAE.alert("Terjadi kegagalan jaringan saat menghubungi server.", "Kesalahan Sistem", 'error');
                 });
         });
     }
@@ -270,16 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'Item ini';
 
-            Swal.fire({
-                title: 'Hapus Kode Indeks?',
-                text: `Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then(result => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Kode Indeks?", 'warning', "Ya, Hapus", "Batal").then(result => {
                 if (result.isConfirmed) {
                     form.submit();
                 }

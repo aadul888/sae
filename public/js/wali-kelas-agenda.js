@@ -605,16 +605,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const id = btn.getAttribute("data-id");
         if (!id) return;
 
-        Swal.fire({
-            title: "Hapus Agenda Kelas?",
-            text: "Data agenda kegiatan ini akan dihapus dari arsip kelas binaan.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Hapus!",
-            cancelButtonText: "Batal",
-        }).then(async (result) => {
+        window.SAE.confirm("Data agenda kegiatan ini akan dihapus dari arsip kelas binaan.", "Hapus Agenda Kelas?", 'warning', "Ya, Hapus!", "Batal").then(async (result) => {
             if (!result.isConfirmed) return;
 
             const csrfToken =

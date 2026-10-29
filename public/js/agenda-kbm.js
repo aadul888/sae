@@ -425,14 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.location.reload();
                     }
                 } else {
-                    if (typeof Swal !== 'undefined') {
+                    {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal Menyimpan',
                             text: data.message || 'Terjadi kesalahan validasi data agenda.'
                         });
-                    } else {
-                        alert(data.message || 'Gagal menyimpan.');
                     }
                 }
             })
@@ -443,11 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnSaveAgenda.innerHTML = '<i class="fas fa-check me-1"></i> Simpan';
                 }
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Kesalahan Sistem',
-                        text: 'Terjadi kesalahan saat menyimpan agenda KBM.'
-                    });
+                    window.SAE.alert("Terjadi kesalahan saat menyimpan agenda KBM.", "Kesalahan Sistem", 'error');
                 }
             });
         });
@@ -594,16 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!id) return;
 
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Hapus Jurnal KBM?',
-                html: `Apakah Anda yakin ingin menghapus catatan agenda <strong>${name}</strong>?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            window.SAE.confirm("Apakah Anda yakin ingin menghapus catatan agenda <strong>${name}</strong>?", "Hapus Jurnal KBM?", 'warning', "Ya, Hapus", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/dashboard/agenda-kbm/${id}`, {
                         method: 'DELETE',
@@ -632,11 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(() => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Kesalahan',
-                            text: 'Terjadi kesalahan sistem saat menghapus data.'
-                        });
+                        window.SAE.alert("Terjadi kesalahan sistem saat menghapus data.", "Kesalahan", 'error');
                     });
                 }
             });

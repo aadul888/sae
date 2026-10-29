@@ -62,16 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnSyncKlaper = document.getElementById('btnSyncKlaper');
     if (btnSyncKlaper) {
         btnSyncKlaper.addEventListener('click', function () {
-            Swal.fire({
-                title: 'Sinkronkan Buku Klaper?',
-                text: 'Sistem akan mendaftarkan seluruh peserta didik aktif dari database ke buku klaper & induk secara otomatis.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Sinkronkan!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#4f46e5',
-                cancelButtonColor: '#6b7280'
-            }).then((result) => {
+            window.SAE.confirm("Sistem akan mendaftarkan seluruh peserta didik aktif dari database ke buku klaper & induk secara otomatis.", "Sinkronkan Buku Klaper?", 'info', "Ya, Sinkronkan!", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Memproses...',
@@ -219,16 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const jenis = document.getElementById('mutasi_jenis')?.value || 'Mutasi';
 
-            Swal.fire({
-                title: `Simpan Data ${jenis}?`,
-                text: 'Pastikan nomor surat dan data sekolah asal/tujuan sudah sesuai.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Simpan',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#4f46e5',
-                cancelButtonColor: '#6b7280'
-            }).then((result) => {
+            window.SAE.confirm("Pastikan nomor surat dan data sekolah asal/tujuan sudah sesuai.", "Simpan Data ${jenis}?", 'info', "Ya, Simpan", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
                 }

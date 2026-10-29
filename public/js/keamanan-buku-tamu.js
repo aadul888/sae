@@ -78,24 +78,17 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = delForm.dataset.name || 'tamu ini';
             if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Konfirmasi Hapus',
-                    text: `Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
+                window.SAE.confirm("Apakah Anda yakin ingin menghapus catatan tamu \"${name}\"?", "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
                     if (result.isConfirmed) {
                         delForm.submit();
                     }
                 });
             } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`)) {
-                    delForm.submit();
-                }
+                window.SAE.confirm(`Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`, "Konfirmasi Hapus", 'danger', "Ya, Hapus!", "Batal").then((ok) => {
+                    if (ok) {
+                        delForm.submit();
+                    }
+                });
             }
         });
     });

@@ -136,15 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => window.location.reload(), 600);
                 } else {
                     const errorMsg = data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Gagal menyimpan data.');
-                    if (typeof Swal !== 'undefined') {
+                    {
                         Swal.fire({
                             icon: 'error',
                             title: 'Peringatan Validasi',
                             text: errorMsg,
                             confirmButtonColor: '#2563eb'
                         });
-                    } else {
-                        alert(errorMsg);
                     }
                 }
             } catch (err) {
@@ -285,16 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof Swal === 'undefined') {
                 if (!confirm(`Yakin ingin menghapus arsip surat "${nomor}"?`)) return;
             } else {
-                const result = await Swal.fire({
-                    title: 'Hapus Arsip Surat?',
-                    text: `Yakin ingin menghapus arsip surat nomor "${nomor}"? Tindakan ini tidak dapat dibatalkan.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                });
+                const result = await window.SAE.confirm("Yakin ingin menghapus arsip surat nomor \"${nomor}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Arsip Surat?", 'warning', "Ya, Hapus!", "Batal");
                 if (!result.isConfirmed) return;
             }
 

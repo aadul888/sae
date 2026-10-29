@@ -357,6 +357,34 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
+     * Nama petugas TIDAK diambil dari berkas impor — selalu akun yang login.
+     * Kolom `petugas_nama` di CSV harus diabaikan.
+     */
+    public function test_import_mengabaikan_nama_petugas_dari_berkas(): void
+    {
+        $a = $this->teknisiSession(0);
+        $userId = (string) $a['user']['pengguna_id'];
+        $namaLogin = $a['user']['nama'];
+
+        $subjek = 'APAR Uji ' . uniqid();
+        $csv = "tanggal,lokasi,petugas_nama,petugas_ptk_id,subjek,kategori,kondisi\n"
+            . now()->toDateString() . ",Gedung A,Orang Palsu,ptk-palsu,{$subjek},apar,baik\n";
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.modul.import', ['modul' => 'apar-k3']), [
+                'file' => UploadedFile::fake()->createWithContent('apar.csv', $csv),
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $row = DB::table('teknisi_log_harian')->where('subjek', $subjek)->first();
+        $this->assertNotNull($row, 'Baris hasil impor tidak masuk.');
+        $this->assertSame($userId, (string) $row->user_id);
+        $this->assertSame($namaLogin, $row->petugas_nama, 'Nama petugas harus dari akun login, bukan berkas.');
+        $this->assertNotSame('ptk-palsu', (string) $row->petugas_ptk_id, 'PTK petugas tidak boleh diambil dari berkas.');
+    }
+
+    /**
      * Bulk delete mengenali seluruh modul Teknisi (10 lapangan + 6 TUPOKSI + WO + PM).
      */
     public function test_bulk_delete_mengenali_semua_modul(): void

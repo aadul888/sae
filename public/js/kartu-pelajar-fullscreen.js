@@ -88,7 +88,7 @@
                         confirmButtonColor: '#ef4444'
                     });
                 } else {
-                    alert(data.message || 'Gagal memuat kartu pelajar.');
+                    window.SAE.alert(data.message || 'Gagal memuat kartu pelajar.', 'Informasi', 'info');
                 }
                 window.closeKartuPelajarModal();
                 return;
@@ -134,7 +134,7 @@
                     confirmButtonColor: '#ef4444'
                 });
             } else {
-                alert('Terjadi kesalahan saat memuat kartu pelajar.');
+                window.SAE.alert('Terjadi kesalahan saat memuat kartu pelajar.', 'Informasi', 'info');
             }
             window.closeKartuPelajarModal();
         });

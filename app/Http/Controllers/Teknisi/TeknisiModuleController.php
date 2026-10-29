@@ -152,9 +152,12 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($res) return $res;
 
         $spec = TeknisiModuleRegistry::get($modul);
-        $headers = array_keys($spec['columns']);
+        // Kolom identitas petugas tidak ikut di template: diisi otomatis
+        // dari akun yang mengunggah.
+        $columns = array_diff_key($spec['columns'], array_flip(self::AUTO_OWNER_COLUMNS));
+        $headers = array_keys($columns);
         $contoh = [];
-        foreach ($spec['columns'] as $col => $conf) {
+        foreach ($columns as $col => $conf) {
             $contoh[] = $this->contohNilai($col, $conf);
         }
 
@@ -166,6 +169,7 @@ class TeknisiModuleController extends TeknisiBaseController
             'fields'   => [
                 'Nomor Dokumen' => 'Boleh dikosongkan — sistem membuat otomatis.',
                 'Tanggal'       => 'Format YYYY-MM-DD.',
+                'Petugas'       => 'Tidak perlu diisi — otomatis memakai akun yang mengunggah.',
                 'Data per Akun' => 'Baris yang diimpor menjadi milik akun pengunggah.',
             ],
         ], $headers, [$contoh], ['sheetName' => mb_substr($spec['title'], 0, 28)]);
@@ -210,6 +214,11 @@ class TeknisiModuleController extends TeknisiBaseController
 
             $payload = [];
             foreach ($spec['columns'] as $col => $conf) {
+                // Identitas petugas tidak dibaca dari berkas: diisi otomatis
+                // dari akun yang mengunggah (lihat ownerColumns()).
+                if (in_array($col, self::AUTO_OWNER_COLUMNS, true)) {
+                    continue;
+                }
                 $val = $this->coerce($row[$col] ?? null, $conf['type'] ?? 'string');
                 if ($val !== null && $val !== '') {
                     $payload[$col] = $val;
@@ -219,8 +228,8 @@ class TeknisiModuleController extends TeknisiBaseController
                 continue;
             }
 
-            $payload += ($spec['fixed'] ?? []);
-            $payload += $this->ownerColumns($context);
+            // Nilai dari ownerColumns() harus menang atas isi berkas.
+            $payload = array_merge($payload, $spec['fixed'] ?? [], $this->ownerColumns($context));
             $payload[$nomorCol] = $this->generateNomor($spec['table'], $nomorCol, $prefix);
             $payload['created_at'] = now();
             $payload['updated_at'] = now();

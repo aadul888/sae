@@ -198,16 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rombelNama = this.getAttribute('data-rombel-nama');
             const ctx = getContextData();
 
-            Swal.fire({
-                title: 'Tandai Hadir Semua?',
-                text: `Tandai seluruh peserta didik di kelas ${rombelNama} sebagai Hadir (H) pada mata pelajaran ini?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-check-double me-1"></i> Ya, Hadir Semua',
-                cancelButtonText: 'Batal'
-            }).then(async (result) => {
+            window.SAE.confirm("Tandai seluruh peserta didik di kelas ${rombelNama} sebagai Hadir (H) pada mata pelajaran ini?", "Tandai Hadir Semua?", 'info', "<i class=\"fas fa-check-double me-1\"></i> Ya, Hadir Semua", "Batal").then(async (result) => {
                 if (result.isConfirmed) {
                     try {
                         Swal.fire({
@@ -260,16 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rombelNama = this.getAttribute('data-rombel-nama');
             const ctx = getContextData();
 
-            Swal.fire({
-                title: 'Reset Presensi Kelas?',
-                text: `Seluruh catatan presensi siswa kelas ${rombelNama} pada mata pelajaran ini akan dikosongkan kembali agar dapat diulang.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Reset Presensi',
-                cancelButtonText: 'Batal'
-            }).then(async (result) => {
+            window.SAE.confirm("Seluruh catatan presensi siswa kelas ${rombelNama} pada mata pelajaran ini akan dikosongkan kembali agar dapat diulang.", "Reset Presensi Kelas?", 'warning', "<i class=\"fas fa-rotate-left me-1\"></i> Ya, Reset Presensi", "Batal").then(async (result) => {
                 if (result.isConfirmed) {
                     try {
                         Swal.fire({

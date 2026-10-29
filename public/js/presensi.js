@@ -330,11 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const rfidUid = inputRfidUid.value.trim().toUpperCase();
 
             if (!rfidUid) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'UID Kartu Kosong',
-                    text: 'Silakan tap kartu pada reader atau ketikkan UID kartu RFID.',
-                });
+                window.SAE.alert("Silakan tap kartu pada reader atau ketikkan UID kartu RFID.", "UID Kartu Kosong", 'warning');
                 return;
             }
 
@@ -386,11 +382,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Kesalahan Jaringan',
-                    text: 'Tidak dapat terhubung ke server.'
-                });
+                window.SAE.alert("Tidak dapat terhubung ke server.", "Kesalahan Jaringan", 'error');
             }
         });
     }
@@ -455,13 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (inLat) inLat.value = lat;
                     if (inLon) inLon.value = lon;
                     updateGoogleMapsLink();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Titik Dapodik Diterapkan',
-                        text: `Lintang: ${lat}, Bujur: ${lon}`,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                    window.SAE.alert("Lintang: ${lat}, Bujur: ${lon}", "Titik Dapodik Diterapkan", 'info');
                 } else {
                     Swal.fire('Informasi', 'Data koordinat sekolah di Dapodik belum terisi.', 'warning');
                 }
@@ -493,13 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (inLat) inLat.value = lat;
                         if (inLon) inLon.value = lon;
                         updateGoogleMapsLink();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Lokasi Terdeteksi!',
-                            text: `GPS: ${lat}, ${lon} (Akurasi: ±${Math.round(pos.coords.accuracy)}m)`,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
+                        window.SAE.alert("GPS: ${lat}, ${lon} (Akurasi: ±${Math.round(pos.coords.accuracy)}m)", "Lokasi Terdeteksi!", 'success');
                     },
                     (err) => {
                         Swal.fire({
@@ -524,15 +504,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!code) return;
             const successNotice = () => {
                 if (!silent) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Kode Akses Disalin!',
-                        text: `Kode "${code}" berhasil disalin ke clipboard.`,
-                        timer: 2000,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
+                    window.SAE.alert("Kode \"${code}\" berhasil disalin ke clipboard.", "Kode Akses Disalin!", 'success');
                 }
             };
 
@@ -564,11 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
         async function saveKodeAksesAjax(code) {
             const cleanCode = (code || '').trim().toUpperCase().replace(/\s/g, '');
             if (!cleanCode || cleanCode.length < 3) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Kode Terlalu Pendek',
-                    text: 'Kode akses minimal terdiri dari 3 karakter.'
-                });
+                window.SAE.alert("Kode akses minimal terdiri dari 3 karakter.", "Kode Terlalu Pendek", 'warning');
                 return;
             }
 
@@ -618,15 +586,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 copyKodeAksesToClipboard(data.kode_akses, true);
 
                 // Notifikasi sukses
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Kode Akses Otomatis Tersimpan!',
-                    html: `Kode terminal berhasil diperbarui menjadi <b style="font-family: monospace; font-size: 1.25rem; color: #38bdf8; letter-spacing: 2px;">${data.kode_akses}</b> dan telah tersimpan otomatis ke database.`,
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
+                window.SAE.alert("Kode terminal berhasil diperbarui menjadi <b style=\"font-family: monospace; font-size: 1.25rem; color: #38bdf8; letter-spacing: 2px;\">${data.kode_akses}</b> dan telah tersimpan otomatis ke database.", "Kode Akses Otomatis Tersimpan!", 'success');
             } catch (err) {
                 Swal.fire({
                     icon: 'error',
@@ -675,11 +635,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnCopyCode.addEventListener('click', function () {
                 const val = inputKodeAkses.value.trim().toUpperCase().replace(/\s/g, '');
                 if (!val) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Kode Kosong',
-                        text: 'Silakan ketik atau acak kode akses terlebih dahulu.'
-                    });
+                    window.SAE.alert("Silakan ketik atau acak kode akses terlebih dahulu.", "Kode Kosong", 'warning');
                     return;
                 }
                 copyKodeAksesToClipboard(val, false);
@@ -708,15 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const url = this.getAttribute('data-url');
                 if (url) {
                     const notify = () => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Tautan Kiosk Disalin!',
-                            text: 'URL terminal scanner berhasil disalin ke clipboard.',
-                            timer: 2000,
-                            showConfirmButton: false,
-                            toast: true,
-                            position: 'top-end'
-                        });
+                        window.SAE.alert("URL terminal scanner berhasil disalin ke clipboard.", "Tautan Kiosk Disalin!", 'success');
                     };
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(url).then(notify).catch(() => fallbackClipboard(url, notify));
@@ -790,11 +738,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Tidak dapat menghubungi server.'
-                });
+                window.SAE.alert("Tidak dapat menghubungi server.", "Error", 'error');
             }
         });
     }
