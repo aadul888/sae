@@ -11,6 +11,9 @@
     @foreach ($spec['columns'] as $col => $conf)
         @php $type = $conf['type'] ?? 'string'; @endphp
         @continue($type === 'hidden')
+        {{-- Kolom turunan (mis. Petugas pada area master) diisi sistem dari
+             master Sarpras, jadi tidak ditampilkan sebagai isian. --}}
+        @continue(!empty($conf['derived']))
 
         <div style="{{ $grid($conf) }}">
             <label class="form-label" style="font-weight:600;">

@@ -12,6 +12,7 @@ class TeknisiPemeliharaan extends Model
     protected $table = 'teknisi_pemeliharaan';
 
     protected $fillable = [
+        'ruang_id',
         'kode_pemeliharaan',
         'nama_kegiatan',
         'kategori',

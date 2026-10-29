@@ -74,7 +74,7 @@ final class TeknisiModuleRegistry
                     'lantai'       => ['label' => 'Lantai', 'type' => 'string'],
                     'kategori'     => ['label' => 'Kategori', 'type' => 'select', 'options' => self::KATEGORI_AREA],
                     'frekuensi'    => ['label' => 'Frekuensi', 'type' => 'select', 'options' => self::FREKUENSI],
-                    'petugas_nama' => ['label' => 'Petugas', 'type' => 'string', 'people' => true],
+                    'petugas_nama' => ['label' => 'Petugas', 'type' => 'string', 'people' => true, 'derived' => true],
                     'petugas_ptk_id' => ['label' => 'PTK Petugas', 'type' => 'hidden'],
                     'status'       => ['label' => 'Status', 'type' => 'select', 'options' => ['aktif' => 'Aktif', 'nonaktif' => 'Nonaktif'], 'default' => 'aktif'],
                     'keterangan'   => ['label' => 'Keterangan', 'type' => 'text', 'wide' => true],

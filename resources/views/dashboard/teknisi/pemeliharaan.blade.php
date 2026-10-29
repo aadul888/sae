@@ -275,7 +275,7 @@
                                 </td>
                                 <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div style="font-weight: 600; color: var(--text-heading);">
-                                        {{ $row->penanggung_jawab ?: '-' }}</div>
+                                        {{ $pjRuang[$row->ruang_id] ?? ($row->penanggung_jawab ?: '-') }}</div>
                                     @if ($row->biaya > 0)
                                         <div style="font-size: var(--text-sm, 0.8125rem); color: var(--warning, #d97706); font-weight: 600; margin-top: 2px;">
                                             Rp {{ number_format($row->biaya, 0, ',', '.') }}

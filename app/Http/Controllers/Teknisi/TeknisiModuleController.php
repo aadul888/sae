@@ -238,8 +238,12 @@ class TeknisiModuleController extends TeknisiBaseController
                 continue;
             }
 
-            // Nilai dari ownerColumns() harus menang atas isi berkas.
-            $payload = array_merge($payload, $spec['fixed'] ?? [], $this->ownerColumns($context));
+            // Nilai dari ownerColumns() harus menang atas isi berkas. Modul
+            // bersama (area-master) tidak menyimpan jejak pemilik sama sekali.
+            $payload = array_merge($payload, $spec['fixed'] ?? []);
+            if (empty($spec['shared'])) {
+                $payload = array_merge($payload, $this->ownerColumns($context));
+            }
             $payload[$nomorCol] = $this->generateNomor($spec['table'], $nomorCol, $prefix);
             $payload['created_at'] = now();
             $payload['updated_at'] = now();
@@ -402,109 +406,14 @@ class TeknisiModuleController extends TeknisiBaseController
     }
 
     /**
-     * Cerminkan `sarpras_ruang` milik PJ yang login ke `teknisi_area_master`.
+     * Cerminkan `sarpras_ruang` ke `teknisi_area_master`.
      *
-     * Satu ruang = satu baris area. Kunci sinkronisasi `ruang_id`; nilai yang
-     * sudah ada (kategori, frekuensi, status, keterangan) TIDAK ditimpa agar
-     * suntingan petugas tidak hilang.
+     * Logika dipusatkan di {@see \App\Support\TeknisiAreaMirror} agar halaman
+     * area tugas & pemeliharaan memakai cermin yang sama pada request yang sama.
      */
     private function syncAreaMaster(): void
     {
-        if (!\App\Support\Table::existsAll('sarpras_ruang', 'teknisi_area_master')) {
-            return;
-        }
-
-        // Teknisi adalah petugas lapangan: seluruh ruang master tercermin,
-        // bukan hanya yang PJ-nya berperan teknisi (PJ ruang umumnya guru).
-        $ruang = DB::table('sarpras_ruang')
-            ->orderBy('nama_ruang')
-            ->get(['id', 'nama_ruang', 'gedung', 'lantai', 'kondisi', 'keterangan']);
-
-        if ($ruang->isEmpty()) {
-            return;
-        }
-
-        $ada = DB::table('teknisi_area_master')
-            ->whereIn('ruang_id', $ruang->pluck('id')->all())
-            ->pluck('ruang_id')
-            ->flip();
-
-        $baru = [];
-        $urut = $this->nomorTerakhir('teknisi_area_master', 'kode_area', 'AR');
-        foreach ($ruang as $r) {
-            if (isset($ada[$r->id])) {
-                continue;
-            }
-            $urut++;
-            $baru[] = [
-                'kode_area'       => sprintf('AR/%s/%04d', now()->format('Ym'), $urut),
-                'nama_area'       => $r->nama_ruang,
-                'zona'            => $r->gedung,
-                'gedung'          => $r->gedung,
-                'lantai'          => $r->lantai,
-                'ruang_id'        => $r->id,
-                'kategori'        => self::kategoriDariRuang((string) $r->nama_ruang),
-                'frekuensi'       => 'harian',
-                // Petugas diisi lewat form area; sync hanya menurunkan ruang.
-                'petugas_ptk_id'  => null,
-                'petugas_nama'    => null,
-                'status'          => $r->kondisi === 'baik' ? 'aktif' : 'nonaktif',
-                'keterangan'      => $r->keterangan,
-                // Tabel bersama: tanpa `user_id` agar tidak terkunci ke akun
-                // yang kebetulan membuka halaman lebih dulu.
-                'user_id'         => null,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ];
-        }
-
-        if (!empty($baru)) {
-            DB::table('teknisi_area_master')->insert($baru);
-        }
-    }
-
-    /**
-     * Nomor urut terakhir dokumen berprefix `PREFIX/YYYYMM/NNNN` pada bulan ini.
-     */
-    private function nomorTerakhir(string $table, string $column, string $prefix): int
-    {
-        $last = DB::table($table)
-            ->where($column, 'like', "{$prefix}/" . now()->format('Ym') . '/%')
-            ->orderByDesc('id')
-            ->value($column);
-
-        if (!$last) {
-            return 0;
-        }
-
-        $parts = explode('/', (string) $last);
-
-        return (int) end($parts);
-    }
-
-    /**
-     * Tebak kategori area dari nama ruang master (`administrasi`, `laboratorium`, ...).
-     */
-    private static function kategoriDariRuang(string $nama): string
-    {
-        $n = mb_strtolower($nama);
-
-        return match (true) {
-            str_contains($n, 'wc'), str_contains($n, 'jamban'), str_contains($n, 'kantin'),
-            str_contains($n, 'koperasi') => 'fasilitas_umum',
-            str_contains($n, 'lab'), str_contains($n, 'bengkel'),
-            str_contains($n, 'studio'), str_contains($n, 'greenhouse') => 'laboratorium',
-            str_contains($n, 'aula'), str_contains($n, 'lapangan'),
-            str_contains($n, 'gor'), str_contains($n, 'lahan'),
-            str_contains($n, 'kebun') => 'lapangan',
-            str_contains($n, 'teras'), str_contains($n, 'halaman') => 'teras_halaman',
-            str_contains($n, 'rapat'), str_contains($n, 'guru'),
-            str_contains($n, 'kepala'), str_contains($n, 'tata usaha'),
-            str_contains($n, 'tu'), str_contains($n, 'perpustakaan') => 'administrasi',
-            str_contains($n, 'operator'), str_contains($n, 'bendahara'),
-            str_contains($n, 'wakasek'), str_contains($n, 'humas') => 'perkantoran',
-            default => 'lainnya',
-        };
+        \App\Support\TeknisiAreaMirror::sync();
     }
 
     /** @return array<string, mixed> */
@@ -516,6 +425,12 @@ class TeknisiModuleController extends TeknisiBaseController
             $type = $conf['type'] ?? 'string';
 
             if ($type === 'hidden') {
+                continue;
+            }
+
+            // Modul bersama (area-master): Petugas adalah turunan PJ Sarpras,
+            // tidak boleh diisi bebas dari form/impor.
+            if (!empty($spec['shared']) && in_array($col, self::AUTO_OWNER_COLUMNS, true)) {
                 continue;
             }
 
@@ -570,6 +485,16 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($spec['table'] === 'teknisi_aset_mutasi' && !empty($payload['ke_ruang_id']) && !empty($payload['aset_id'])) {
             DB::table('sarpras_aset')->where('id', $payload['aset_id'])
                 ->update(['ruang_id' => $payload['ke_ruang_id'], 'updated_at' => now()]);
+        }
+
+        // Modul `shared` (master bersama, mis. area-master) tidak menyimpan
+        // jejak pemilik: kolom Petugas di sana adalah cermin PJ master Sarpras,
+        // bukan akun yang kebetulan menyunting. Tanpa ini, menyimpan/mengimpor
+        // satu baris akan menggeser PJ ruang ke akun penyunting.
+        if (!empty($spec['shared'])) {
+            $payload = array_diff_key($payload, array_flip(self::AUTO_OWNER_COLUMNS), ['user_id' => true]);
+
+            return $payload + ($spec['fixed'] ?? []);
         }
 
         return $payload + ($spec['fixed'] ?? []) + $this->ownerColumns($context);
