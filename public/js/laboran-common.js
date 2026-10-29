@@ -32,19 +32,13 @@
     }
 
     function notifySuccess(message, reload) {
-        return Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: message,
-            timer: 1400,
-            showConfirmButton: false
-        }).then(function () {
+        return window.SAE.alert(message, 'Berhasil', 'success', 1400).then(function () {
             if (reload !== false) window.location.reload();
         });
     }
 
     function notifyError(title, message) {
-        return Swal.fire({ icon: 'error', title: title, text: message });
+        return window.SAE.alert(message, title, 'error');
     }
 
     function openModal(el) {
@@ -147,17 +141,8 @@
                 });
         };
 
-        Swal.fire({
-            title: 'Hapus Data?',
-            text: 'Apakah Anda yakin ingin menghapus "' + label + '"?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then(function (result) {
-            if (result.isConfirmed) doDelete();
+        window.SAE.confirm('Apakah Anda yakin ingin menghapus "' + label + '"?', 'Hapus Data?', 'danger', 'Ya, Hapus!').then(function (ok) {
+            if (ok) doDelete();
         });
     }
 

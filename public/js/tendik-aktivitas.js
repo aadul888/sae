@@ -37,12 +37,12 @@ window.simpanTupoksiManual = function () {
 
     if (!judul) {
         if (inputJ) inputJ.focus();
-        alert('Judul Tupoksi wajib diisi.');
+        window.SAE.alert('Judul Tupoksi wajib diisi.', 'Data Belum Lengkap', 'warning');
         return;
     }
     if (!uraian) {
         if (inputU) inputU.focus();
-        alert('Uraian tugas wajib diisi.');
+        window.SAE.alert('Uraian tugas wajib diisi.', 'Data Belum Lengkap', 'warning');
         return;
     }
 
@@ -480,32 +480,12 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const itemName = formTarget.getAttribute('data-name') || 'aktivitas ini';
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Konfirmasi Hapus?',
-                    text: `Apakah Anda yakin ingin menghapus "${itemName}"? Tindakan ini tidak dapat dibatalkan.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: '<i class="fas fa-trash-can me-1"></i> Ya, Hapus',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true,
-                    customClass: {
-                        popup: 'sae-swal-popup',
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        formTarget.removeAttribute('data-confirm');
-                        formTarget.submit();
-                    }
-                });
-            } else {
-                if (confirm(`Hapus ${itemName}?`)) {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${itemName}"? Tindakan ini tidak dapat dibatalkan.`, 'Konfirmasi Hapus?', 'danger', 'Ya, Hapus').then((ok) => {
+                if (ok) {
                     formTarget.removeAttribute('data-confirm');
                     formTarget.submit();
                 }
-            }
+            });
         }
     });
 

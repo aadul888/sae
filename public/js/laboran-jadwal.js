@@ -837,22 +837,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         };
 
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Hapus Jadwal Praktik?',
-                text: 'Apakah Anda yakin ingin menghapus jadwal untuk "' + mapel + '"?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) doDelete();
-            });
-        } else if (confirm('Hapus jadwal untuk "' + mapel + '"?')) {
-            doDelete();
-        }
+        window.SAE.confirm('Apakah Anda yakin ingin menghapus jadwal untuk "' + mapel + '"?', 'Hapus Jadwal Praktik?', 'danger', 'Ya, Hapus!').then(function (ok) {
+            if (ok) doDelete();
+        });
     });
 
     // -------------------------------------------------------------------------
@@ -874,26 +861,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const promptTitle = 'Memberlakukan Jadwal ' + targetLabel + '?';
         const promptHtml = 'Apakah Anda yakin ingin memberlakukan <strong>Jadwal ' + targetLabel + '</strong>?<br><small style="color: var(--text-muted);">Sistem akan secara ketat menerapkan Jadwal ' + targetLabel + ' sebagai acuan tunggal.</small>';
 
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: promptTitle,
-                html: promptHtml,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Berlakukan',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) {
-                    window.location.href = targetUrl;
-                }
-            });
-        } else {
-            if (confirm('Apakah Anda yakin ingin memberlakukan Jadwal ' + targetLabel + '?')) {
-                window.location.href = targetUrl;
-            }
-        }
+        window.SAE.confirm(promptHtml, promptTitle, 'warning', 'Ya, Berlakukan').then(function (ok) {
+            if (ok) window.location.href = targetUrl;
+        });
     });
 
     // -------------------------------------------------------------------------
@@ -940,23 +910,15 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const modeLabel = mode === 'semester' ? 'Semester' : 'Mingguan';
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: status === 'aktif' ? 'Aktifkan Pemberlakuan ' + modeLabel + '?' : 'Matikan Pemberlakuan?',
-                html: status === 'aktif'
-                    ? 'Mode <strong>' + modeLabel + '</strong> akan menjadi acuan penentuan jadwal praktik yang diberlakukan.'
-                    : 'Pemberlakuan jadwal akan kembali ke status <strong>draft</strong>.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Lanjutkan',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) doToggle();
+        if (status === 'aktif') {
+            const htmlAktif = 'Mode <strong>' + modeLabel + '</strong> akan menjadi acuan penentuan jadwal praktik yang diberlakukan.';
+            window.SAE.confirm(htmlAktif, 'Aktifkan Pemberlakuan ' + modeLabel + '?', 'info', 'Ya, Lanjutkan').then(function (ok) {
+                if (ok) doToggle();
             });
         } else {
-            doToggle();
+            window.SAE.confirm('Pemberlakuan jadwal akan kembali ke status <strong>draft</strong>.', 'Matikan Pemberlakuan?', 'info', 'Ya, Lanjutkan').then(function (ok) {
+                if (ok) doToggle();
+            });
         }
     });
 });

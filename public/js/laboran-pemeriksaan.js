@@ -191,19 +191,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
             };
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Hapus Item?',
-                    text: 'Hapus "' + nama + '" dari daftar ceklist?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then(function (r) { if (r.isConfirmed) doDelete(); });
-            } else if (confirm('Hapus "' + nama + '"?')) {
-                doDelete();
-            }
+            window.SAE.confirm('Hapus "' + nama + '" dari daftar ceklist?', 'Hapus Item?', 'danger', 'Ya, Hapus!').then(function (ok) {
+                if (ok) doDelete();
+            });
         });
     }
 });

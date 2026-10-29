@@ -254,20 +254,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const setujui = e.target.closest('.btn-setujui-pinjam');
         if (setujui) {
             const nama = setujui.dataset.nama || 'peminjam ini';
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Setujui Peminjaman?',
-                    text: 'Setujui pengajuan dari "' + nama + '"?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Setujui',
-                    cancelButtonText: 'Batal'
-                }).then(function (r) {
-                    if (r.isConfirmed) ubahStatus(setujui.dataset.id, 'disetujui', 'Disetujui', setujui);
-                });
-            } else if (confirm('Setujui peminjaman dari "' + nama + '"?')) {
-                ubahStatus(setujui.dataset.id, 'disetujui', 'Disetujui', setujui);
-            }
+            window.SAE.confirm('Setujui pengajuan dari "' + nama + '"?', 'Setujui Peminjaman?', 'info', 'Ya, Setujui').then(function (ok) {
+                if (ok) ubahStatus(setujui.dataset.id, 'disetujui', 'Disetujui', setujui);
+            });
             return;
         }
 
@@ -275,20 +264,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const serah = e.target.closest('.btn-serah-terima');
         if (serah) {
             const nama = serah.dataset.nama || 'peminjam ini';
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Serah Terima Alat?',
-                    text: 'Alat diserahkan kepada "' + nama + '". Stok tersedia akan berkurang.',
-                    icon: 'info',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Serahkan',
-                    cancelButtonText: 'Batal'
-                }).then(function (r) {
-                    if (r.isConfirmed) ubahStatus(serah.dataset.id, 'dipinjam', 'Dipinjam', serah);
-                });
-            } else if (confirm('Serahkan alat kepada "' + nama + '"?')) {
-                ubahStatus(serah.dataset.id, 'dipinjam', 'Dipinjam', serah);
-            }
+            window.SAE.confirm('Alat diserahkan kepada "' + nama + '". Stok tersedia akan berkurang.', 'Serah Terima Alat?', 'info', 'Ya, Serahkan').then(function (ok) {
+                if (ok) ubahStatus(serah.dataset.id, 'dipinjam', 'Dipinjam', serah);
+            });
             return;
         }
 
@@ -337,18 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
             };
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Tandai Peminjaman Terlambat?',
-                    text: 'Semua peminjaman yang melewati tenggat akan ditandai terlambat.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Tandai',
-                    cancelButtonText: 'Batal'
-                }).then(function (r) { if (r.isConfirmed) doPost(); });
-            } else if (confirm('Tandai semua peminjaman terlambat?')) {
-                doPost();
-            }
+            window.SAE.confirm('Semua peminjaman yang melewati tenggat akan ditandai terlambat.', 'Tandai Peminjaman Terlambat?', 'warning', 'Ya, Tandai').then(function (ok) {
+                if (ok) doPost();
+            });
         }
     });
 

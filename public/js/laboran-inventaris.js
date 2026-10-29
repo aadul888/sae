@@ -247,47 +247,28 @@ document.addEventListener('DOMContentLoaded', function () {
             const nama = btnDelete.dataset.nama || 'item ini';
             const csrfToken = getCsrfToken();
 
-            if (window.Swal) {
-                Swal.fire({
-                    title: 'Hapus Item Lab?',
-                    text: `Apakah Anda yakin ingin menghapus data ${nama}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        fetch(`/dashboard/laboran/inventaris/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(r => r.json())
-                        .then(res => {
-                            if (res.status === 'success') {
-                                Swal.fire('Berhasil!', res.message, 'success').then(() => location.reload());
-                            } else {
-                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
-                            }
-                        })
-                        .catch(() => {
-                            Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
-                        });
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus data ${nama}?`, 'Hapus Item Lab?', 'danger', 'Ya, Hapus').then((ok) => {
+                if (!ok) return;
+                fetch(`/dashboard/laboran/inventaris/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        window.SAE.alert(res.message, 'Berhasil!', 'success').then(() => location.reload());
+                    } else {
+                        window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
+                    }
+                })
+                .catch(() => {
+                    window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error');
                 });
-            } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus ${nama}?`)) {
-                    fetch(`/dashboard/laboran/inventaris/${id}`, {
-                        method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                    }).then(() => location.reload());
-                }
-            }
+            });
         }
     });
 
@@ -385,27 +366,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (res) {
                 if (res.status === 'success') {
                     selectedLabIds.clear();
-                    Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
+                    window.SAE.alert(res.message, 'Berhasil!', 'success').then(function () { location.reload(); });
                 } else {
-                    Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                    window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
                 }
             })
             .catch(function () {
-                Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
+                window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error');
             });
         };
 
-        Swal.fire({
-            title: 'Hapus ' + ids.length + ' Item Lab?',
-            text: 'Item yang sedang dipinjam akan dilewati otomatis.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then(function (res) {
-            if (res.isConfirmed) doBulk();
+        window.SAE.confirm('Item yang sedang dipinjam akan dilewati otomatis.', 'Hapus ' + ids.length + ' Item Lab?', 'danger', 'Ya, Hapus!').then(function (ok) {
+            if (ok) doBulk();
         });
     });
 
@@ -445,11 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             function showError(title, msg) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ title: title, text: msg, icon: 'error' });
-                } else {
-                    alert(title + ': ' + msg);
-                }
+                window.SAE.alert(msg, title, 'error');
             }
 
             const fileInput = document.getElementById('fileImportInventaris');
@@ -514,18 +482,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (result.ok && data.status === 'success') {
                     closeModalImport();
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Import Berhasil',
-                            text: data.message || 'Data berhasil diimpor.',
-                            icon: 'success'
-                        }).then(function () {
-                            window.location.reload();
-                        });
-                    } else {
-                        alert(data.message || 'Data berhasil diimpor.');
+                    window.SAE.alert(data.message || 'Data berhasil diimpor.', 'Import Berhasil', 'success').then(function () {
                         window.location.reload();
-                    }
+                    });
                     return;
                 }
 

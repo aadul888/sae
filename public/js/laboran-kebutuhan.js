@@ -277,42 +277,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.status === 'success' || data.success) {
-                        Swal.fire({
-                            title: 'Analisis Selesai',
-                            text: data.message || 'Hasil analisis berhasil diterapkan.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(function () {
+                        window.SAE.alert(data.message || 'Hasil analisis berhasil diterapkan.', 'Analisis Selesai', 'success').then(function () {
                             window.location.reload();
                         });
                     } else {
-                        Swal.fire({
-                            title: 'Galat',
-                            text: data.message || 'Gagal menjalankan analisis kebutuhan.',
-                            icon: 'error'
-                        });
+                        window.SAE.alert(data.message || 'Gagal menjalankan analisis kebutuhan.', 'Galat', 'error');
                     }
                 })
                 .catch(function (err) {
-                    Swal.fire({
-                        title: 'Kesalahan Sistem',
-                        text: err.message || 'Terjadi kesalahan saat memproses analisis.',
-                        icon: 'error'
-                    });
+                    window.SAE.alert(err.message || 'Terjadi kesalahan saat memproses analisis.', 'Kesalahan Sistem', 'error');
                 });
             };
 
-            Swal.fire({
-                title: 'Jalankan Analisis Kebutuhan?',
-                html: 'Sistem akan memindai stok inventaris yang <strong>kritis, habis, rusak</strong>, atau menipis dalam cakupan jurusan Anda dan otomatis memasukkannya ke daftar kebutuhan.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Jalankan Sekarang',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) doAnalisis();
+            window.SAE.confirm(
+                'Sistem akan memindai stok inventaris yang <strong>kritis, habis, rusak</strong>, atau menipis dalam cakupan jurusan Anda dan otomatis memasukkannya ke daftar kebutuhan.',
+                'Jalankan Analisis Kebutuhan?',
+                'info',
+                'Jalankan Sekarang'
+            ).then(function (ok) {
+                if (ok) doAnalisis();
             });
         }
     });

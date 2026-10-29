@@ -108,17 +108,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = btnDelete.dataset.id;
             const nama = btnDelete.dataset.nama || 'bahan ini';
 
-            Swal.fire({
-                title: 'Hapus Bahan?',
-                text: 'Apakah Anda yakin ingin menghapus "' + nama + '"?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            }).then(function (res) {
-                if (!res.isConfirmed) return;
+            window.SAE.confirm('Apakah Anda yakin ingin menghapus "' + nama + '"?', 'Hapus Bahan?', 'danger', 'Ya, Hapus').then(function (ok) {
+                if (!ok) return;
                 fetch('/dashboard/laboran/bhp/' + id, {
                     method: 'DELETE',
                     headers: { 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' }
@@ -126,12 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(function (r) { return r.json(); })
                 .then(function (res) {
                     if (res.status === 'success') {
-                        Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
+                        window.SAE.alert(res.message, 'Berhasil!', 'success').then(function () { location.reload(); });
                     } else {
-                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                        window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
                     }
                 })
-                .catch(function () { Swal.fire('Error', 'Gagal memproses permintaan.', 'error'); });
+                .catch(function () { window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error'); });
             });
         }
     });
@@ -160,11 +151,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(function (data) {
                 closeModal();
-                Swal.fire('Berhasil!', data.message || 'Data berhasil disimpan.', 'success')
+                window.SAE.alert(data.message || 'Data berhasil disimpan.', 'Berhasil!', 'success')
                     .then(function () { location.reload(); });
             })
             .catch(function (err) {
-                Swal.fire('Gagal', err.message || 'Terjadi kesalahan pada sistem.', 'error');
+                window.SAE.alert(err.message || 'Terjadi kesalahan pada sistem.', 'Gagal', 'error');
             })
             .finally(function () {
                 if (submitBtn) {
@@ -221,17 +212,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const ids = Array.from(document.querySelectorAll('.chk-item-bhp:checked')).map(function (c) { return c.value; });
         if (ids.length === 0) return;
 
-        Swal.fire({
-            title: 'Hapus ' + ids.length + ' Bahan?',
-            text: 'Bahan yang sedang dipinjam akan dilewati otomatis.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then(function (res) {
-            if (!res.isConfirmed) return;
+        window.SAE.confirm('Bahan yang sedang dipinjam akan dilewati otomatis.', 'Hapus ' + ids.length + ' Bahan?', 'danger', 'Ya, Hapus!').then(function (ok) {
+            if (!ok) return;
             fetch('/dashboard/laboran/bhp/bulk-delete', {
                 method: 'POST',
                 headers: {
@@ -245,12 +227,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (res) {
                 if (res.status === 'success') {
                     selectedIds.clear();
-                    Swal.fire('Berhasil!', res.message, 'success').then(function () { location.reload(); });
+                    window.SAE.alert(res.message, 'Berhasil!', 'success').then(function () { location.reload(); });
                 } else {
-                    Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                    window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
                 }
             })
-            .catch(function () { Swal.fire('Error', 'Gagal memproses permintaan.', 'error'); });
+            .catch(function () { window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error'); });
         });
     });
 
@@ -297,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const fileInput = document.getElementById('fileImportBhp');
             if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                Swal.fire('Berkas Belum Dipilih', 'Pilih berkas Excel/CSV terlebih dahulu.', 'error');
+                window.SAE.alert('Pilih berkas Excel/CSV terlebih dahulu.', 'Berkas Belum Dipilih', 'error');
                 return;
             }
 
@@ -334,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const data = result.data || {};
                 if (result.ok && data.status === 'success') {
                     closeImport();
-                    Swal.fire('Import Berhasil', data.message || 'Data berhasil diimpor.', 'success')
+                    window.SAE.alert(data.message || 'Data berhasil diimpor.', 'Import Berhasil', 'success')
                         .then(function () { window.location.reload(); });
                     return;
                 }
@@ -343,14 +325,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     const first = Object.values(data.errors)[0];
                     if (Array.isArray(first) && first.length > 0) errMsg = first[0];
                 }
-                Swal.fire('Gagal Import', errMsg, 'error');
+                window.SAE.alert(errMsg, 'Gagal Import', 'error');
             })
             .catch(function (err) {
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalHtml;
                 }
-                Swal.fire('Kesalahan Sistem', err.message || 'Gagal mengunggah berkas.', 'error');
+                window.SAE.alert(err.message || 'Gagal mengunggah berkas.', 'Kesalahan Sistem', 'error');
             });
         });
     }

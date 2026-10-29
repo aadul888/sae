@@ -277,28 +277,12 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'sasaran ini';
 
-            if (window.Swal) {
-                Swal.fire({
-                    title: 'Hapus Sasaran & Target?',
-                    text: `Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.removeAttribute('data-confirm');
-                        form.submit();
-                    }
-                });
-            } else {
-                if (confirm(`Hapus "${name}"?`)) {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`, 'Hapus Sasaran & Target?', 'danger', 'Ya, Hapus').then((ok) => {
+                if (ok) {
                     form.removeAttribute('data-confirm');
                     form.submit();
                 }
-            }
+            });
         }
     });
 

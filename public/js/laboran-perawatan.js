@@ -290,18 +290,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
             };
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Tandai Sudah Dirawat?',
-                    text: 'Jadwal berikutnya untuk "' + nama + '" akan digeser sesuai interval.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Tandai',
-                    cancelButtonText: 'Batal'
-                }).then(function (r) { if (r.isConfirmed) doPost(); });
-            } else if (confirm('Tandai "' + nama + '" sudah dirawat?')) {
-                doPost();
-            }
+            window.SAE.confirm('Jadwal berikutnya untuk "' + nama + '" akan digeser sesuai interval.', 'Tandai Sudah Dirawat?', 'info', 'Ya, Tandai').then(function (ok) {
+                if (ok) doPost();
+            });
         }
     });
 });

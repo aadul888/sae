@@ -175,17 +175,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // Berita acara tersimpan lebih dulu; cetak hanya ditawarkan
                     // setelah data benar-benar tersimpan di server.
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil Disimpan',
-                        text: data.message || 'Berita acara tersimpan. Anda dapat mencetaknya sekarang.',
-                        showCancelButton: true,
-                        confirmButtonText: '<i class="fas fa-print me-1"></i> Cetak Sekarang',
-                        cancelButtonText: 'Nanti',
-                        confirmButtonColor: '#2563eb',
-                        cancelButtonColor: '#6b7280',
-                    }).then(function (res) {
-                        if (res.isConfirmed && data.id) {
+                    window.SAE.confirm(
+                        data.message || 'Berita acara tersimpan. Anda dapat mencetaknya sekarang.',
+                        'Berhasil Disimpan',
+                        'success',
+                        'Cetak Sekarang',
+                        'Nanti'
+                    ).then(function (ok) {
+                        if (ok && data.id) {
                             window.open(BASE + '/' + data.id + '/cetak', '_blank');
                         }
                         window.location.reload();
