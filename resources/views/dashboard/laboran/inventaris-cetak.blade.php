@@ -18,26 +18,6 @@
             margin: 10mm 12mm;
         }
 
-        .sched-head {
-            text-align: center;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-
-        .sched-head h1 {
-            font-size: 15px;
-            font-weight: 800;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        .sched-head .sub {
-            font-size: 10.5px;
-            margin-top: 3px;
-            color: #475569;
-        }
-
         .meta {
             display: flex;
             justify-content: space-between;
@@ -124,19 +104,24 @@
     </div>
 
     <div class="cetak-page">
-        <div class="sched-head">
-            <h1>{{ $sekolah->nama ?? 'SEKOLAH' }}</h1>
-            <div class="sub">
-                {{ $sekolah->alamat ?? '' }}
-                @if (!empty($sekolah->npsn))
-                    &bull; NPSN {{ $sekolah->npsn }}
-                @endif
+        <div class="watermark-sae">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
+        </div>
+
+        @include('partials.kop-surat')
+
+        <div class="doc-header">
+            @if (empty($sekolahMeta?->kop_url))
+                <div class="school-name">{{ $sekolah->nama ?? 'SATUAN PENDIDIKAN' }}</div>
+            @endif
+            <div class="doc-title-main">BUKU INDUK INVENTARIS ALAT PRAKTIK</div>
+            <div class="doc-subtitle">
+                JURUSAN / BIDANG: {{ strtoupper($scopeBadge['label'] ?? 'SEMUA JURUSAN') }}
             </div>
         </div>
 
         <div class="meta">
             <div>
-                <strong>BUKU INDUK INVENTARIS ALAT PRAKTIK</strong><br>
                 Jurusan / Bidang: {{ $scopeBadge['label'] ?? 'Semua Jurusan' }}<br>
                 Sumber Anggaran: <strong>{{ !empty($sumberFilter) ? $sumberFilter : 'Semua Sumber Anggaran' }}</strong>
             </div>
@@ -175,7 +160,7 @@
                         </td>
                         <td>{{ $it->ruang_lab_nama }}</td>
                         <td>{{ $it->lokasi_lemari_rak ?: '-' }}</td>
-                        <td class="right" style="font-weight: 700;">{{ (float) $it->stok_total }}</td>
+                        <td class="right" style="font-weight: 700;">{{ number_format((float) $it->stok_total, 0, ',', '.') }}</td>
                         <td class="center">{{ $it->satuan }}</td>
                         <td class="center">
                             {{ ucfirst(str_replace('_', ' ', $it->kondisi)) }}
@@ -220,7 +205,7 @@
                             <td class="center">{{ $i + 1 }}</td>
                             <td><strong>{{ $rr->ruang }}</strong></td>
                             <td class="center font-bold">{{ $rr->item }}</td>
-                            <td class="right font-bold">{{ (float) $rr->stok }}</td>
+                            <td class="right font-bold">{{ number_format((float) $rr->stok, 0, ',', '.') }}</td>
                             <td class="center">{{ $rr->baik }}</td>
                             <td class="center">{{ $rr->rusak }}</td>
                         </tr>
@@ -236,7 +221,7 @@
                     <tr>
                         <td colspan="2" class="right">Jumlah</td>
                         <td class="center">{{ count($items) }}</td>
-                        <td class="right">{{ (float) collect($items)->sum(fn ($x) => (float) $x->stok_total) }}</td>
+                        <td class="right">{{ number_format((float) collect($items)->sum(fn ($x) => (float) $x->stok_total), 0, ',', '.') }}</td>
                         <td class="center">{{ collect($items)->where('kondisi', 'baik')->count() }}</td>
                         <td class="center">{{ collect($items)->whereIn('kondisi', ['rusak_ringan', 'rusak_berat'])->count() }}</td>
                     </tr>
