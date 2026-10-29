@@ -47,6 +47,18 @@ final class TeknisiModuleRegistry
     ];
 
     /**
+     * Pengelompokan modul lapangan pada sidebar, mengikuti alur pengisian:
+     * referensi → inspeksi harian → tindak lanjut.
+     *
+     * @var array<string, string>
+     */
+    public const GRUP = [
+        'master'    => 'Referensi & Master',
+        'inspeksi'  => 'Inspeksi & Pemeriksaan',
+        'tindak'    => 'Tindak Lanjut & Usulan',
+    ];
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     public static function all(): array
@@ -57,6 +69,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['kode_area', 'AR'],
                 'title'   => 'Master Area & Zona Kebersihan',
                 'desc'    => 'Daftar baku area/zona kebersihan beserta penanggung jawab. Menjadi rujukan jadwal area tugas dan checklist kebersihan.',
+                'grup'    => 'master',
                 'icon'    => 'fas fa-map-location-dot',
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => null,
@@ -154,6 +167,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['nomor_usulan', 'UP'],
                 'title'   => 'Usulan Pengadaan Sarana Prasarana',
                 'desc'    => 'Usulan kebutuhan barang dari unit kerja beserta estimasi biaya dan status verifikasi.',
+                'grup'    => 'tindak',
                 'icon'    => 'fas fa-cart-plus',
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => 'tanggal',
@@ -182,41 +196,12 @@ final class TeknisiModuleRegistry
                 'list' => ['nama_barang', 'unit_pemohon', 'urgensi', 'estimasi_biaya', 'status'],
             ],
 
-            'tindak-lanjut' => [
-                'table'   => 'teknisi_tindak_lanjut',
-                'nomor'   => ['nomor', 'TL'],
-                'title'   => 'Tindak Lanjut Hasil Supervisi',
-                'desc'    => 'Rencana aksi atas temuan supervisi beserta target, realisasi, dan bukti penyelesaian.',
-                'icon'    => 'fas fa-list-check',
-                'color'   => 'var(--purple, #8b5cf6)',
-                'dateCol' => 'tanggal',
-                'order'   => ['tanggal', 'desc'],
-                'stats'   => [
-                    ['label' => 'Total Tindak Lanjut', 'icon' => 'fas fa-list-check', 'color' => 'var(--purple, #8b5cf6)'],
-                    ['label' => 'Terbuka', 'icon' => 'fas fa-folder-open', 'color' => 'var(--warning, #f59e0b)', 'where' => ['status', 'terbuka']],
-                    ['label' => 'Proses', 'icon' => 'fas fa-spinner', 'color' => 'var(--primary, #3b82f6)', 'where' => ['status', 'proses']],
-                    ['label' => 'Selesai', 'icon' => 'fas fa-circle-check', 'color' => 'var(--success, #10b981)', 'where' => ['status', 'selesai']],
-                ],
-                'columns' => [
-                    'tanggal'         => ['label' => 'Tanggal', 'type' => 'date', 'required' => true, 'default' => 'today'],
-                    'supervisi_nomor' => ['label' => 'Nomor Supervisi', 'type' => 'string'],
-                    'teknisi_nama'    => ['label' => 'Teknisi', 'type' => 'string', 'people' => true],
-                    'temuan'          => ['label' => 'Temuan', 'type' => 'text', 'required' => true, 'wide' => true],
-                    'rencana_aksi'    => ['label' => 'Rencana Aksi', 'type' => 'text', 'required' => true, 'wide' => true],
-                    'penanggung_jawab' => ['label' => 'Penanggung Jawab', 'type' => 'string'],
-                    'target_selesai'  => ['label' => 'Target Selesai', 'type' => 'date'],
-                    'tanggal_realisasi' => ['label' => 'Tanggal Realisasi', 'type' => 'date'],
-                    'bukti_tindak_lanjut' => ['label' => 'Bukti Tindak Lanjut', 'type' => 'text', 'wide' => true],
-                    'status'          => ['label' => 'Status', 'type' => 'select', 'options' => ['terbuka' => 'Terbuka', 'proses' => 'Proses', 'selesai' => 'Selesai'], 'default' => 'terbuka'],
-                ],
-                'list' => ['temuan', 'teknisi_nama', 'target_selesai', 'status'],
-            ],
-
             'aset-mutasi' => [
                 'table'   => 'teknisi_aset_mutasi',
                 'nomor'   => ['nomor', 'AM'],
                 'title'   => 'Mutasi Lokasi Aset',
                 'desc'    => 'Riwayat perpindahan aset antar ruang beserta kondisi dan alasan pemindahan.',
+                'grup'    => 'tindak',
                 'icon'    => 'fas fa-arrow-right-arrow-left',
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => 'tanggal',
@@ -246,6 +231,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['nomor_pinjam', 'PR'],
                 'title'   => 'Peminjaman Ruang & Fasilitas',
                 'desc'    => 'Permohonan penggunaan aula, GOR, lapangan, dan ruang rapat beserta persetujuan.',
+                'grup'    => 'tindak',
                 'icon'    => 'fas fa-door-open',
                 'color'   => 'var(--success, #10b981)',
                 'dateCol' => 'tanggal',
@@ -325,6 +311,7 @@ final class TeknisiModuleRegistry
             'fixed'   => ['modul' => $modul],
             'title'   => $title,
             'desc'    => $desc,
+            'grup'    => 'inspeksi',
             'icon'    => $icon,
             'color'   => $color,
             'dateCol' => 'tanggal',

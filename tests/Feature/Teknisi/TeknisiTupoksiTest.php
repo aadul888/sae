@@ -120,7 +120,7 @@ class TeknisiTupoksiTest extends TestCase
         }
     }
 
-    public function test_store_dan_index_supervisi(): void
+    public function test_store_dan_index_modul_tupoksi(): void
     {
         $session = $this->adminSession();
 
@@ -138,32 +138,6 @@ class TeknisiTupoksiTest extends TestCase
                 "Baris {$table} tidak bertambah."
             );
         }
-
-        // Supervisi: 5 indikator dengan skor 1-4.
-        $this->withSession($session)
-            ->postJson(route('dashboard.teknisi.supervisi.store'), [
-                'teknisi_nama'     => 'Teknisi Uji',
-                'supervisor_nama'  => 'Supervisor Uji',
-                'tanggal_supervisi' => now()->toDateString(),
-                'tahun_ajaran'     => '2025/2026',
-                'semester'         => 'ganjil',
-                'skor'             => [1 => 4, 2 => 3, 3 => 4, 4 => 3, 5 => 4],
-                'catatan'          => [1 => 'Baik', 2 => 'Cukup', 3 => 'Baik', 4 => 'Cukup', 5 => 'Baik'],
-                'catatan_umum'     => 'Cukup baik.',
-            ])
-            ->assertStatus(200);
-
-        $row = DB::table('teknisi_supervisi')->where('teknisi_nama', 'Teknisi Uji')->first();
-        $this->assertNotNull($row);
-        $this->assertSame(5, DB::table('teknisi_supervisi_item')->where('supervisi_id', $row->id)->count());
-
-        $this->withSession($session)
-            ->get(route('dashboard.teknisi.supervisi.index'))
-            ->assertStatus(200);
-
-        $this->withSession($session)
-            ->get(route('dashboard.teknisi.supervisi.cetak', $row->id))
-            ->assertStatus(200);
     }
 
     /**
@@ -202,7 +176,6 @@ class TeknisiTupoksiTest extends TestCase
             'kebersihan-rapat' => ['tanggal_kegiatan,lokasi,nama_rapat,area,tahap,kondisi,status', '2026-10-01,Ruang Rapat Uji,Rapat Uji,ruang_rapat,sebelum_acara,bersih,selesai'],
             'sarana-rapat'     => ['tanggal_rapat,nama_rapat,ruang_nama,jumlah_peserta,kelengkapan_sarana,status', '2026-10-01,Rapat Uji,Ruang Uji,20,lengkap,selesai'],
             'jurnal-perbaikan' => ['tanggal,lokasi_unit,jenis_pekerjaan,uraian_kegiatan,status', '2026-10-01,Lab Uji,perbaikan,Ganti kabel LAN,selesai'],
-            'supervisi'        => ['tanggal_supervisi,teknisi_nama,supervisor_nama,status,skor_1,skor_2,skor_3,skor_4,skor_5', '2026-10-01,Teknisi Uji,Supervisor Uji,final,4,3,4,3,4'],
         ];
 
         foreach ($spec as $modul => [$header, $row]) {

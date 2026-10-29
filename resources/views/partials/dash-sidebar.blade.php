@@ -1014,17 +1014,15 @@
                 <i class="fas fa-chevron-right arrow-icon"></i>
             </button>
             <div class="dash-nav-submenu">
+                @php $grupJudul = 'padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;'; @endphp
                 <a href="{{ route('dashboard.tendik', ['bidang' => 'teknisi']) }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi' ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                     <span class="nav-label">Dashboard Teknisi</span>
                 </a>
 
-                {{-- Kelompok: Pemetaan & Master --}}
-                <div
-                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
-                    Pemetaan &amp; Master
-                </div>
+                {{-- Kelompok: Master & Referensi --}}
+                <div style="{{ $grupJudul }}">Master &amp; Referensi</div>
                 <a href="{{ route('dashboard.sarpras.ruang.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.ruang*') ? 'active' : '' }}"
                     title="Master pemetaan tanggung jawab ruang &amp; gedung (diinput Administrasi Sarpras)">
@@ -1039,38 +1037,18 @@
                         <span class="nav-label">Inventaris &amp; Aset</span>
                     </a>
                 @endif
+                @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-sublink', 'iconClass' => 'sub-icon', 'grup' => 'master', 'judul' => false])
+
+                {{-- Kelompok: Perencanaan Tugas --}}
+                <div style="{{ $grupJudul }}">Perencanaan Tugas</div>
                 <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.area-tugas*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
                     <span class="nav-label">Jadwal Area Tugas</span>
                 </a>
 
-                {{-- Kelompok: Layanan Perbaikan --}}
-                <div
-                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
-                    Layanan Perbaikan
-                </div>
-                <a href="{{ route('dashboard.teknisi.work-order') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-wrench"></i></span>
-                    <span class="nav-label">Work Order &amp; Perbaikan</span>
-                </a>
-                <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
-                    <span class="nav-label">Pemeliharaan Preventif</span>
-                </a>
-                <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
-                    <span class="nav-label">Jurnal Perbaikan Sarpras</span>
-                </a>
-
-                {{-- Kelompok: Kebersihan & Lingkungan --}}
-                <div
-                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
-                    Kebersihan &amp; Lingkungan
-                </div>
+                {{-- Kelompok: Pelaksanaan Harian --}}
+                <div style="{{ $grupJudul }}">Pelaksanaan Harian</div>
                 <a href="{{ route('dashboard.teknisi.kebersihan-ruang.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.kebersihan-ruang*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-broom"></i></span>
@@ -1087,22 +1065,25 @@
                     <span class="nav-label">Sarana Kegiatan Rapat</span>
                 </a>
 
-                {{-- Kelompok: Tupoksi & Supervisi --}}
-                <div
-                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
-                    Tupoksi &amp; Supervisi
-                </div>
-                <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.supervisi*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
-                    <span class="nav-label">Supervisi Teknisi</span>
+                {{-- Kelompok: Perbaikan & Pemeliharaan --}}
+                <div style="{{ $grupJudul }}">Perbaikan &amp; Pemeliharaan</div>
+                <a href="{{ route('dashboard.teknisi.work-order') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-wrench"></i></span>
+                    <span class="nav-label">Work Order &amp; Perbaikan</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                    <span class="nav-label">Pemeliharaan Preventif</span>
+                </a>
+                <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.jurnal-perbaikan*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-screwdriver-wrench"></i></span>
+                    <span class="nav-label">Jurnal Perbaikan Sarpras</span>
                 </a>
 
-                {{-- Kelompok: Modul Lapangan --}}
-                <div
-                    style="padding: 8px 14px 3px; font-size: var(--text-2xs, 0.6875rem); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); opacity: 0.75;">
-                    Modul Lapangan
-                </div>
+                {{-- Kelompok: Inspeksi, Tindak Lanjut & Modul --}}
                 @include('partials.dash-sidebar-teknisi-modul', ['linkClass' => 'dash-nav-sublink', 'iconClass' => 'sub-icon'])
             </div>
         </div>

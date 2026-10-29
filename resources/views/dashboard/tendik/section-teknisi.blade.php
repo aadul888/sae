@@ -97,7 +97,7 @@
     </a>
 </div>
 
-<!-- 1b. Akses Cepat Kelengkapan TUPOKSI Teknisi (5 Indikator Supervisi) -->
+<!-- 1b. Akses Cepat Kelengkapan TUPOKSI Teknisi (5 Indikator) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.teknisi.area-tugas.index') }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Jadwal Area Tugas Kebersihan (Indikator #1)">
@@ -138,18 +138,10 @@
         </div>
         <span class="kepegawaian-quick-label">Jurnal Perbaikan</span>
     </a>
-
-    <a href="{{ route('dashboard.teknisi.supervisi.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Lembar Observasi Supervisi (Skor 1-4)">
-        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Supervisi</span>
-    </a>
 </div>
 
 
-<!-- 2b. Rekap Kelengkapan TUPOKSI & Supervisi Teknisi -->
+<!-- 2b. Rekap Kelengkapan TUPOKSI Teknisi -->
 @php
     $rekap = $teknisiTupoksiRekap ?? [];
     $stat = $teknisiStatistik ?? [];
@@ -165,22 +157,11 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
         <div>
             <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-list-check text-success"></i> Kelengkapan TUPOKSI &amp; Supervisi Teknisi
+                <i class="fas fa-list-check text-success"></i> Kelengkapan TUPOKSI Teknisi
             </h3>
             <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 3px 0 0 0;">
-                Rekapitulasi bukti fisik 5 indikator tupoksi dan hasil observasi supervisi teknisi.
+                Rekapitulasi bukti fisik 5 indikator tupoksi teknisi.
             </p>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; background: rgba(239,68,68,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(239,68,68,0.25);">
-                <i class="fas fa-clipboard-check me-1"></i> Supervisi: {{ number_format($stat['supervisi_total'] ?? 0, 0, ',', '.') }}
-            </span>
-            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
-                <i class="fas fa-circle-check me-1"></i> Final: {{ number_format($stat['supervisi_final'] ?? 0, 0, ',', '.') }}
-            </span>
-            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #6366f1; background: rgba(99,102,241,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(99,102,241,0.25);">
-                <i class="fas fa-star me-1"></i> Nilai: {{ number_format($stat['supervisi_nilai'] ?? 0, 1, ',', '.') }}
-            </span>
         </div>
     </div>
 

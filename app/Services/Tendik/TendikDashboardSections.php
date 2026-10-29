@@ -102,9 +102,6 @@ class TendikDashboardSections
         }
 
         $statistik = [
-            'supervisi_total'  => Table::exists('teknisi_supervisi') ? (int) DB::table('teknisi_supervisi')->count() : 0,
-            'supervisi_final'  => Table::exists('teknisi_supervisi') ? (int) DB::table('teknisi_supervisi')->where('status', 'final')->count() : 0,
-            'supervisi_nilai'  => Table::exists('teknisi_supervisi') ? (float) DB::table('teknisi_supervisi')->whereNotNull('nilai_akhir')->avg('nilai_akhir') : 0,
             'indikator_terisi' => count(array_filter($tupoksiRekap, fn ($r) => $r->jumlah > 0)),
         ];
 

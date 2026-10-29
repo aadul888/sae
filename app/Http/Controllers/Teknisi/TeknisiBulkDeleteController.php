@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Hapus massal (bulk) untuk seluruh datatable modul Teknisi.
  *
- * Satu endpoint melayani 10 modul lapangan (registry), 6 modul TUPOKSI,
+ * Satu endpoint melayani 9 modul lapangan (registry), 5 modul TUPOKSI,
  * Work Order, dan Pemeliharaan. Baris yang bukan milik pengguna (bagi
  * teknisi non-koordinator) dilewati, bukan dihapus.
  */

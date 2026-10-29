@@ -418,20 +418,11 @@ return function () {
             Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 
-        // Lembar Observasi Supervisi Teknisi (5 indikator, skor 1-4)
-        Route::prefix('supervisi')->name('supervisi.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiSupervisiController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
-            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiSupervisiController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
-            Route::get('/{id}/cetak', [\App\Http\Controllers\Teknisi\TeknisiSupervisiController::class, 'cetak'])->name('cetak')->middleware('permission:menu_teknisi,read');
-            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiSupervisiController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiSupervisiController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
-        });
-
         // =====================================================================
         // MODUL TEKNISI LAPANGAN (generik, per-akun petugas)
         // =====================================================================
         $modulLapangan = 'area-master|inspeksi-utilitas|apar-k3|pest-control|higiene-kantin|pemakaian-bahan'
-            . '|usulan-pengadaan|tindak-lanjut|aset-mutasi|peminjaman-ruang';
+            . '|usulan-pengadaan|aset-mutasi|peminjaman-ruang';
 
         Route::prefix('modul/{modul}')->name('modul.')->where(['modul' => $modulLapangan])->group(function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiModuleController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
@@ -444,9 +435,9 @@ return function () {
         });
 
         // =====================================================================
-        // LAPORAN (CETAK PER HALAMAN) & IMPORT EXCEL — 6 modul TUPOKSI
+        // LAPORAN (CETAK PER HALAMAN) & IMPORT EXCEL — 5 modul TUPOKSI
         // =====================================================================
-        $modulRegex = 'area-tugas|kebersihan-ruang|kebersihan-rapat|sarana-rapat|jurnal-perbaikan|supervisi';
+        $modulRegex = 'area-tugas|kebersihan-ruang|kebersihan-rapat|sarana-rapat|jurnal-perbaikan';
         Route::get('/laporan/{modul}/template', [\App\Http\Controllers\Teknisi\TeknisiTupoksiReportController::class, 'template'])
             ->name('laporan.template')->where('modul', $modulRegex)->middleware('permission:menu_teknisi,read');
         Route::post('/laporan/{modul}/import', [\App\Http\Controllers\Teknisi\TeknisiTupoksiReportController::class, 'import'])

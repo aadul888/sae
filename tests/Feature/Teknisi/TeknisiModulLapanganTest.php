@@ -13,7 +13,7 @@ use Tests\TestCase;
  * Aturan yang diuji:
  *  - Teknisi lapangan hanya melihat & mengubah catatannya sendiri.
  *  - Koordinator (admin) melihat seluruh catatan.
- *  - Sepuluh modul generik dapat dibuka, diunduh templatenya, dan dicetak.
+ *  - Sembilan modul generik dapat dibuka, diunduh templatenya, dan dicetak.
  *
  * Berjalan di database operasional: cleanup hanya menghapus baris baru
  * (snapshot id di setUp).
@@ -28,7 +28,6 @@ class TeknisiModulLapanganTest extends TestCase
         'higiene-kantin',
         'pemakaian-bahan',
         'usulan-pengadaan',
-        'tindak-lanjut',
         'aset-mutasi',
         'peminjaman-ruang',
     ];
@@ -45,7 +44,7 @@ class TeknisiModulLapanganTest extends TestCase
 
         $tables = array_merge(
             ['teknisi_area_master', 'teknisi_log_harian', 'teknisi_usulan_pengadaan',
-             'teknisi_tindak_lanjut', 'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
+             'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
              'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order'],
             ['teknisi_area_tugas']
         );
@@ -149,7 +148,7 @@ class TeknisiModulLapanganTest extends TestCase
     // Uji
     // ------------------------------------------------------------------
 
-    public function test_sepuluh_modul_dapat_dibuka_dicetak_dan_diunduh_template(): void
+    public function test_sembilan_modul_dapat_dibuka_dicetak_dan_diunduh_template(): void
     {
         $session = $this->adminSession();
 
@@ -385,10 +384,10 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
-     * Cetak laporan TUPOKSI & lembar supervisi tunduk pada cakupan akun:
+     * Cetak laporan TUPOKSI tunduk pada cakupan akun:
      * teknisi tidak boleh melihat baris milik teknisi lain di dokumen cetak.
      */
-    public function test_cetak_tupoksi_dan_supervisi_ikut_cakupan_akun(): void
+    public function test_cetak_tupoksi_ikut_cakupan_akun(): void
     {
         $a = $this->teknisiSession(0);
         $b = $this->teknisiSession(1);
