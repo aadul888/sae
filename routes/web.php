@@ -1024,6 +1024,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/pemeliharaan', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'store'])->name('pemeliharaan.store')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,create');
         Route::post('/pemeliharaan/{id}/status', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'updateStatus'])->name('pemeliharaan.status')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,update');
         Route::delete('/pemeliharaan/{id}', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'destroy'])->name('pemeliharaan.destroy')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,delete');
+        Route::get('/pemeliharaan/template', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'template'])->name('pemeliharaan.template')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,read');
+        Route::post('/pemeliharaan/import', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'import'])->name('pemeliharaan.import')->middleware('permission:menu_teknisi|menu_teknisi_pemeliharaan,create');
 
         // Hapus massal (bulk) seluruh datatable modul Teknisi
         Route::post('/bulk-delete', [\App\Http\Controllers\Teknisi\TeknisiBulkDeleteController::class, 'destroy'])

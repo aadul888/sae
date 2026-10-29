@@ -229,9 +229,13 @@ class TeknisiModuleController extends TeknisiBaseController
             $imported++;
         }
 
+        $this->logImport($context, $modul, $spec['title'], $file, $imported);
+
+        $oleh = trim((string) ($context['nama'] ?? '')) ?: 'akun Anda';
+
         return response()->json([
             'status'  => 'success',
-            'message' => "Import selesai: {$imported} baris masuk.",
+            'message' => "Import selesai: {$imported} baris masuk. Diunggah oleh {$oleh}.",
             'count'   => $imported,
         ]);
     }

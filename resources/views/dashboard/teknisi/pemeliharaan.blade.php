@@ -24,6 +24,11 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline" data-modal-open="modalImportPM"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Import Excel">
+                    <i class="fas fa-file-excel text-success"></i>
+                </button>
                 <button type="button" class="btn btn-primary" id="btnTambahJadwalPM"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Jadwal Preventive Maintenance">
@@ -510,6 +515,14 @@
                 </form>
             </div>
         </div>
+
+        @include('dashboard.teknisi._partials.modal-import', [
+            'modalId' => 'modalImportPM',
+            'title' => 'Import Jadwal Pemeliharaan',
+            'templateRoute' => route('dashboard.teknisi.pemeliharaan.template'),
+            'actionRoute' => route('dashboard.teknisi.pemeliharaan.import'),
+            'hint' => 'Satu baris = satu jadwal. Data hasil impor menjadi milik akun Anda.',
+        ])
     @endsection
 
     @push('scripts')
@@ -519,4 +532,5 @@
         <script
             src="{{ asset('js/teknisi-bulk.js') }}?v={{ file_exists(public_path('js/teknisi-bulk.js')) ? filemtime(public_path('js/teknisi-bulk.js')) : time() }}">
         </script>
+        @include('dashboard.teknisi._partials.scripts')
     @endpush

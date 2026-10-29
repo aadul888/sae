@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -232,6 +233,37 @@ abstract class TeknisiBaseController extends Controller
         }
 
         return $nomor;
+    }
+
+    /**
+     * Catat riwayat unggah (import) Excel: siapa pengguna yang mengunggah.
+     *
+     * Bersifat best-effort — kegagalan pencatatan tidak boleh menggagalkan
+     * impor yang sudah berhasil. Bila tabel log belum ada, dilewati diam-diam.
+     */
+    protected function logImport(array $context, string $modul, string $judul, ?UploadedFile $file, int $imported, int $updated = 0): void
+    {
+        if (!\App\Support\Table::exists('teknisi_import_log')) {
+            return;
+        }
+
+        try {
+            DB::table('teknisi_import_log')->insert([
+                'modul'         => mb_substr($modul, 0, 60),
+                'judul'         => mb_substr($judul, 0, 200),
+                'file_name'     => $file ? mb_substr($file->getClientOriginalName(), 0, 255) : null,
+                'rows_imported' => $imported,
+                'rows_updated'  => $updated,
+                'user_id'       => $context['user_id'] ?? null,
+                'user_nama'     => $context['nama'] ?? null,
+                'user_role'     => $context['role'] ?? null,
+                'ip_address'    => request()->ip(),
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+        } catch (\Throwable $e) {
+            // abaikan: pencatatan jejak bukan bagian kritis impor
+        }
     }
 
     /**

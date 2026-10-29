@@ -23,6 +23,7 @@ class TeknisiTupoksiTest extends TestCase
         'teknisi_jurnal_perbaikan',
         'teknisi_supervisi',
         'teknisi_supervisi_item',
+        'teknisi_import_log',
     ];
 
     /** @var array<string, array<int, int>> */
@@ -199,6 +200,19 @@ class TeknisiTupoksiTest extends TestCase
                 DB::table($table)->count(),
                 "Baris {$table} tidak bertambah setelah import."
             );
+
+            // 2b. Pengunggah tercatat: kolom user_id + riwayat unggah.
+            $imported = DB::table($table)->orderByDesc('id')->first();
+            $this->assertSame(
+                (string) $session['user']['pengguna_id'],
+                (string) $imported->user_id,
+                "Import {$modul} harus mencatat akun pengunggah."
+            );
+
+            $log = DB::table('teknisi_import_log')->where('modul', $modul)->orderByDesc('id')->first();
+            $this->assertNotNull($log, "Riwayat unggah {$modul} tidak tercatat.");
+            $this->assertSame((string) $session['user']['pengguna_id'], (string) $log->user_id);
+            $this->assertSame($session['user']['nama'], $log->user_nama);
 
             // 3. Cetak laporan (per halaman).
             $this->withSession($session)

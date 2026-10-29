@@ -273,9 +273,13 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
             $imported++;
         }
 
+        $this->logImport($context, 'work-order', 'Work Order & Tiket Perbaikan', $file, $imported);
+
+        $oleh = trim((string) ($context['nama'] ?? '')) ?: 'akun Anda';
+
         return response()->json([
             'status'  => 'success',
-            'message' => "Import selesai: {$imported} baris masuk.",
+            'message' => "Import selesai: {$imported} baris masuk. Diunggah oleh {$oleh}.",
             'count'   => $imported,
         ]);
     }

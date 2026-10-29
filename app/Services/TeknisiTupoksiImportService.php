@@ -399,6 +399,9 @@ class TeknisiTupoksiImportService
             }
         }
 
+        // Jejak akun pengunggah/pembuat baris (untuk semua modul termasuk supervisi).
+        $payload['user_id'] = $context['user_id'] ?? null;
+
         if (empty($spec['items'])) {
             $payload['petugas_ptk_id'] = $context['ptk_id'] ?? null;
             $payload['petugas_nama'] = $payload['petugas_nama'] ?? ($context['nama'] ?? null);

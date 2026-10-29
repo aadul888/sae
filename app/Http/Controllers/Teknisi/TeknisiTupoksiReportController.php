@@ -46,9 +46,20 @@ class TeknisiTupoksiReportController extends TeknisiBaseController
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
         }
 
+        $this->logImport(
+            $context,
+            $modul,
+            $service->title($modul),
+            $request->file('file'),
+            $hasil['imported'],
+            $hasil['updated']
+        );
+
+        $oleh = trim((string) ($context['nama'] ?? '')) ?: 'akun Anda';
+
         return response()->json([
             'status'  => 'success',
-            'message' => "Import selesai: {$hasil['imported']} baris baru, {$hasil['updated']} diperbarui.",
+            'message' => "Import selesai: {$hasil['imported']} baris baru, {$hasil['updated']} diperbarui. Diunggah oleh {$oleh}.",
             'count'   => $hasil['imported'] + $hasil['updated'],
         ]);
     }

@@ -45,7 +45,8 @@ class TeknisiModulLapanganTest extends TestCase
 
         $tables = array_merge(
             ['teknisi_area_master', 'teknisi_log_harian', 'teknisi_usulan_pengadaan',
-             'teknisi_tindak_lanjut', 'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang'],
+             'teknisi_tindak_lanjut', 'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
+             'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order'],
             ['teknisi_area_tugas']
         );
 
@@ -299,6 +300,60 @@ class TeknisiModulLapanganTest extends TestCase
         $this->withSession($this->adminSession())
             ->get(route('dashboard.teknisi.work-order.cetak', ['periode' => 'tahun', 'tahun' => date('Y')]))
             ->assertStatus(200);
+    }
+
+    /**
+     * Setiap unggahan Excel mencatat akun pengunggah — baik pada baris data
+     * (`user_id`) maupun pada riwayat unggah `teknisi_import_log`.
+     */
+    public function test_import_work_order_dan_pemeliharaan_mencatat_pengunggah(): void
+    {
+        $a = $this->teknisiSession(0);
+        $userId = (string) $a['user']['pengguna_id'];
+        $nama = $a['user']['nama'];
+
+        // Work order
+        $lokasi = 'Ruang Uji WO ' . uniqid();
+        $csvWo = "tanggal,lokasi_unit,kategori_perbaikan,deskripsi_kerusakan,tingkat_urgensi\n"
+            . now()->toDateString() . ",{$lokasi},komputer,Layar tidak menyala,normal\n";
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.work-order.import'), [
+                'file' => UploadedFile::fake()->createWithContent('wo.csv', $csvWo),
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $wo = DB::table('teknisi_work_order')->where('lokasi_unit', $lokasi)->first();
+        $this->assertNotNull($wo, 'Baris work order tidak masuk.');
+        $this->assertSame($userId, (string) $wo->user_id, 'Work order harus mencatat akun pengunggah.');
+
+        $logWo = DB::table('teknisi_import_log')->where('modul', 'work-order')->orderByDesc('id')->first();
+        $this->assertNotNull($logWo);
+        $this->assertSame($userId, (string) $logWo->user_id);
+        $this->assertSame($nama, $logWo->user_nama);
+        $this->assertSame('wo.csv', $logWo->file_name);
+
+        // Pemeliharaan preventif
+        $kegiatan = 'Servis AC Uji ' . uniqid();
+        $csvPm = "nama_kegiatan,kategori,lokasi_aset,frekuensi,tgl_jadwal,status\n"
+            . "{$kegiatan},ac_pendingin,Ruang Guru,bulanan," . now()->toDateString() . ",terjadwal\n";
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.pemeliharaan.import'), [
+                'file' => UploadedFile::fake()->createWithContent('pm.csv', $csvPm),
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $pm = DB::table('teknisi_pemeliharaan')->where('nama_kegiatan', $kegiatan)->first();
+        $this->assertNotNull($pm, 'Baris pemeliharaan tidak masuk.');
+        $this->assertSame($userId, (string) $pm->user_id, 'Pemeliharaan harus mencatat akun pengunggah.');
+
+        $logPm = DB::table('teknisi_import_log')->where('modul', 'pemeliharaan')->orderByDesc('id')->first();
+        $this->assertNotNull($logPm);
+        $this->assertSame($userId, (string) $logPm->user_id);
+        $this->assertSame('pm.csv', $logPm->file_name);
     }
 
     /**
