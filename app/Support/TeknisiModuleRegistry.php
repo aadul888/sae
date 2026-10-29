@@ -81,8 +81,10 @@ final class TeknisiModuleRegistry
                 ],
                 'list' => ['nama_area', 'kategori', 'frekuensi', 'petugas_nama', 'status'],
                 // Area Master adalah cermin master Sarpras: barisnya diturunkan
-                // dari `sarpras_ruang` sesuai PJ yang login (lihat syncAreaMaster).
+                // dari `sarpras_ruang` (lihat syncAreaMaster). Tabel ini data
+                // bersama — tidak di-scope per akun, cukup unik per `ruang_id`.
                 'autoSync' => true,
+                'shared'   => true,
             ],
 
             'inspeksi-utilitas' => self::logSpec('inspeksi-utilitas', 'Inspeksi Utilitas & Instalasi', 'fas fa-bolt', 'var(--warning, #f59e0b)', 'Pemeriksaan panel listrik, genset, pompa, tandon, dan meteran air/listrik.', [

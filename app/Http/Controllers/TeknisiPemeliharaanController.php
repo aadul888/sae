@@ -143,7 +143,8 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
      * Sumber: `teknisi_area_master` (cermin semua `sarpras_ruang`). Satu ruang =
      * satu jadwal pemeliharaan awal (bangunan & fisik, bulanan) milik teknisi
      * yang login. Idempoten lewat `lokasi_aset` + `user_id`; jadwal yang sudah
-     * ada tidak ditimpa.
+     * ada tidak ditimpa. Berlaku juga untuk pengguna input manual tanpa
+     * `ptk_id`.
      */
     private function syncPemeliharaan(array $context): void
     {

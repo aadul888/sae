@@ -773,13 +773,17 @@ class FeederReceiverController extends Controller
             ->where(function ($q) {
                 $q->whereNull('peserta_didik_id')->where('peran_id_str', '!=', 'Peserta Didik');
             })
+            // Akun manual/seed tidak ikut jadi sasaran sinkronisasi Dapodik.
+            ->where(fn ($q) => $q->whereNull('sumber_data')->orWhereNotIn('sumber_data', ['manual', 'seed']))
             ->get();
 
         $existingStaffById = [];
         $existingStaffByUsername = [];
         foreach ($existingStaff as $st) {
             $existingStaffById[$st->pengguna_id] = $st;
-            if (!empty($st->username)) {
+            // Akun input manual (tidak pernah datang dari Dapodik → `raw_data`
+            // kosong) TIDAK boleh jadi sasaran timpaan. Lihat pencocokan di bawah.
+            if (!empty($st->username) && !empty($st->raw_data)) {
                 $existingStaffByUsername[$st->username] = $st;
             }
         }
@@ -822,6 +826,7 @@ class FeederReceiverController extends Controller
                     'no_hp' => $hp,
                     'ptk_id' => $ptkId,
                     'raw_data' => $rawData,
+                    'sumber_data' => 'dapodik',
                     'updated_at' => $now,
                 ];
 
@@ -851,6 +856,7 @@ class FeederReceiverController extends Controller
                     'ptk_id' => $ptkId,
                     'peserta_didik_id' => $u['peserta_didik_id'] ?? null,
                     'raw_data' => $rawData,
+                    'sumber_data' => 'dapodik',
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];

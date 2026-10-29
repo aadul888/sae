@@ -39,11 +39,15 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $query = DB::table($spec['table'] . ' as t')->select('t.*');
         $this->applyFixed($query, $spec, 't');
-        // Master area: pastikan daftar ruang milik PJ yang login sudah tercermin.
+        // Master area: pastikan seluruh ruang Sarpras sudah tercermin.
         if (!empty($spec['autoSync'])) {
-            $this->syncAreaMaster($context);
+            $this->syncAreaMaster();
         }
-        $this->scopeOwned($query, $context, 't', 'petugas_ptk_id');
+        // Modul `shared` (master bersama) tidak di-scope per akun: setiap teknisi
+        // melihat daftar yang sama, suntingan tetap dijaga `ownsRow()`.
+        if (empty($spec['shared'])) {
+            $this->scopeOwned($query, $context, 't', 'petugas_ptk_id');
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($spec) {
@@ -57,7 +61,9 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $statQuery = DB::table($spec['table']);
         $this->applyFixed($statQuery, $spec);
-        $this->scopeOwned($statQuery, $context);
+        if (empty($spec['shared'])) {
+            $this->scopeOwned($statQuery, $context);
+        }
 
         $statCards = [];
         foreach ($spec['stats'] as $stat) {
@@ -120,7 +126,7 @@ class TeknisiModuleController extends TeknisiBaseController
         $spec = TeknisiModuleRegistry::get($modul);
         $row = $this->findRow($spec['table'], $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRow($row, $context)) {
+        if (!$this->bolehUbah($spec, $row, $context)) {
             return $this->respond($request, false, 'Anda hanya dapat mengubah data milik sendiri.', 403);
         }
 
@@ -140,7 +146,7 @@ class TeknisiModuleController extends TeknisiBaseController
         $spec = TeknisiModuleRegistry::get($modul);
         $row = $this->findRow($spec['table'], $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRow($row, $context)) {
+        if (!$this->bolehUbah($spec, $row, $context)) {
             return $this->respond($request, false, 'Anda hanya dapat menghapus data milik sendiri.', 403);
         }
 
@@ -378,6 +384,15 @@ class TeknisiModuleController extends TeknisiBaseController
     // Helper
     // ------------------------------------------------------------------
 
+    /**
+     * Modul `shared` (master bersama, mis. area-master) boleh diubah semua
+     * teknisi; modul lain tetap terikat pemilik baris.
+     */
+    private function bolehUbah(array $spec, object $row, array $context): bool
+    {
+        return !empty($spec['shared']) || $this->ownsRow($row, $context);
+    }
+
     private function applyFixed($query, array $spec, ?string $alias = null): void
     {
         $p = $alias ? $alias . '.' : '';
@@ -393,10 +408,9 @@ class TeknisiModuleController extends TeknisiBaseController
      * sudah ada (kategori, frekuensi, status, keterangan) TIDAK ditimpa agar
      * suntingan petugas tidak hilang.
      */
-    private function syncAreaMaster(array $context): void
+    private function syncAreaMaster(): void
     {
-        $ptkId = $context['ptk_id'] ?? null;
-        if (!$ptkId || !\App\Support\Table::existsAll('sarpras_ruang', 'teknisi_area_master')) {
+        if (!\App\Support\Table::existsAll('sarpras_ruang', 'teknisi_area_master')) {
             return;
         }
 
@@ -431,11 +445,14 @@ class TeknisiModuleController extends TeknisiBaseController
                 'ruang_id'        => $r->id,
                 'kategori'        => self::kategoriDariRuang((string) $r->nama_ruang),
                 'frekuensi'       => 'harian',
-                'petugas_ptk_id'  => $ptkId,
-                'petugas_nama'    => $context['nama'] ?? null,
+                // Petugas diisi lewat form area; sync hanya menurunkan ruang.
+                'petugas_ptk_id'  => null,
+                'petugas_nama'    => null,
                 'status'          => $r->kondisi === 'baik' ? 'aktif' : 'nonaktif',
                 'keterangan'      => $r->keterangan,
-                'user_id'         => $context['user_id'] ?? null,
+                // Tabel bersama: tanpa `user_id` agar tidak terkunci ke akun
+                // yang kebetulan membuka halaman lebih dulu.
+                'user_id'         => null,
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ];

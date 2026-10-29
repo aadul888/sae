@@ -105,7 +105,10 @@ class TeknisiAreaMasterSyncTest extends TestCase
 
         $this->assertSame($namaRuang, $area->nama_area);
         $this->assertSame('Gedung Uji Sync', $area->gedung);
-        $this->assertSame((string) $pj->ptk_id, (string) $area->petugas_ptk_id);
+        // Petugas diisi lewat form area; sync hanya menurunkan ruang.
+        $this->assertNull($area->user_id);
+        // "Bukti bersama": baris terlihat oleh akun teknisi lain, bukan hanya pembukanya.
+        $this->assertSame($namaRuang, $area->nama_area);
         $this->assertSame('aktif', $area->status);
         $this->assertNotEmpty($area->kode_area);
 
@@ -160,5 +163,71 @@ class TeknisiAreaMasterSyncTest extends TestCase
             ->where('petugas_ptk_id', $pj->ptk_id)->where('area', '<>', $namaRuang)->where('created_at', '>=', $awal)->pluck('id')->map(fn ($v) => (int) $v)->all());
         $this->createdPmIds = array_merge($this->createdPmIds, DB::table('teknisi_pemeliharaan')
             ->where('user_id', $pj->user_id)->where('lokasi_aset', '<>', $namaRuang)->where('created_at', '>=', $awal)->pluck('id')->map(fn ($v) => (int) $v)->all());
+    }
+
+    /**
+     * Pengguna yang diinput manual (tanpa baris GTK / `ptk_id`) tetap mendapat
+     * ruang otomatis di ketiga halaman.
+     */
+    public function test_pengguna_tanpa_ptk_tetap_mendapat_ruang_otomatis(): void
+    {
+        $akun = DB::table('pengguna')
+            ->whereNotNull('nama')
+            ->where(fn ($q) => $q->whereNull('ptk_id')->orWhere('ptk_id', ''))
+            ->whereNotIn('peran_id_str', ['Peserta Didik', 'Tidak Aktif', 'Alumni'])
+            ->first(['pengguna_id', 'nama', 'username', 'peran_id_str']);
+
+        if (!$akun) {
+            $this->markTestSkipped('Tidak ada pengguna input manual (tanpa ptk_id) untuk diuji.');
+        }
+
+        $userId = (string) $akun->pengguna_id;
+        $session = ['user' => [
+            'id'           => $userId,
+            'pengguna_id'  => $userId,
+            'name'         => $akun->nama,
+            'nama'         => $akun->nama,
+            'username'     => $akun->username,
+            // Akses modul teknisi datang dari peran tugas_tambahan (duty gate),
+            // bukan dari peran tendik.
+            'role'         => 'tugas_tambahan',
+            'peran_id_str' => 'Tenaga Administrasi',
+            'ptk_id'       => null,
+        ]] + (DB::table('ref_tugas_tambahan')->where('kode', 'TEKNISI_IT')->exists()
+            ? ['duty_codes' => ['TEKNISI_IT']]
+            : []);
+
+        $awal = now()->subMinute();
+        $namaRuang = DB::table('sarpras_ruang')
+            ->where('nama_ruang', 'not like', '%&%')
+            ->orderBy('nama_ruang')
+            ->value('nama_ruang');
+        $this->assertNotEmpty($namaRuang, 'Prasyarat: master ruang tidak boleh kosong.');
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.modul.index', ['modul' => 'area-master']))
+            ->assertStatus(200)
+            ->assertSee($namaRuang, false);
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertSee($namaRuang, false);
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.pemeliharaan'))
+            ->assertStatus(200)
+            ->assertSee($namaRuang, false);
+
+        // Jejak buatan uji dibersihkan (tanpa ptk_id, hanya milik akun uji).
+        $this->createdAreaIds = array_merge($this->createdAreaIds, DB::table('teknisi_area_master')
+            ->where('user_id', $userId)->pluck('id')->map(fn ($v) => (int) $v)->all());
+        $this->createdTugasIds = array_merge($this->createdTugasIds, DB::table('teknisi_area_tugas')
+            ->where('user_id', $userId)->pluck('id')->map(fn ($v) => (int) $v)->all());
+        $this->createdPmIds = array_merge($this->createdPmIds, DB::table('teknisi_pemeliharaan')
+            ->where('user_id', $userId)->pluck('id')->map(fn ($v) => (int) $v)->all());
+
+        $this->assertNotEmpty($this->createdTugasIds, 'Akun tanpa ptk_id harus tetap mendapat area tugas.');
+        $this->assertNotEmpty($this->createdPmIds, 'Akun tanpa ptk_id harus tetap mendapat jadwal pemeliharaan.');
     }
 }

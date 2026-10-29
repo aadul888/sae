@@ -183,8 +183,11 @@ class TeknisiAreaTugasController extends TeknisiBaseController
      */
     private function syncAreaTugas(array $context): void
     {
-        $ptkId = $context['ptk_id'] ?? null;
-        if (!$ptkId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_area_tugas')) {
+        // Pemilik jadwal = akun login. `ptk_id` opsional: pengguna yang diinput
+        // manual (operator, staf non-PTK) tidak punya baris GTK.
+        $userId = $context['user_id'] ?? null;
+        $ptkId  = $context['ptk_id'] ?? null;
+        if (!$userId || !\App\Support\Table::existsAll('teknisi_area_master', 'teknisi_area_tugas')) {
             return;
         }
 
@@ -196,10 +199,10 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             return;
         }
 
-        // Idempoten lewat nama area + pemilik (tabel jadwal tidak punya ruang_id).
+        // Idempoten lewat nama area + pemilik akun (tabel jadwal tidak punya ruang_id).
         $ada = DB::table('teknisi_area_tugas')
             ->whereIn('area', $sumber->pluck('nama_area')->all())
-            ->where('petugas_ptk_id', $ptkId)
+            ->where('user_id', $userId)
             ->pluck('area')
             ->flip();
 
@@ -212,7 +215,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             $urut++;
             $baru[] = [
                 'nomor_jadwal'   => sprintf('AT/%s/%04d', now()->format('Ym'), $urut),
-                'user_id'        => $context['user_id'] ?? null,
+                'user_id'        => $userId,
                 'area'           => $a->nama_area,
                 'zona'           => $a->zona ?: $a->gedung,
                 'periode_jadwal' => $a->frekuensi ?: 'harian',
