@@ -411,6 +411,10 @@ final class TeknisiModuleRegistry
                  'can' => ['menu_teknisi'],
                  'active' => 'dashboard.teknisi.area-tugas*',
                  'title' => 'Jadwal pembagian area tugas kebersihan: harian (pagi/siang/sore), mingguan, bulanan, semester, tahunan'],
+                ['label' => 'Pemeliharaan Preventif', 'icon' => 'fas fa-calendar-check',
+                 'route' => 'dashboard.teknisi.pemeliharaan', 'params' => [],
+                 'can' => ['menu_teknisi_pemeliharaan', 'menu_teknisi'], 'active' => 'dashboard.teknisi.pemeliharaan*',
+                 'title' => 'Perencanaan jadwal pemeliharaan berkala (preventif) sarana & prasarana'],
             ],
 
             'harian' => [
@@ -431,14 +435,10 @@ final class TeknisiModuleRegistry
                  'can' => ['menu_teknisi_wo', 'menu_teknisi'], 'active' => 'dashboard.teknisi.work-order*',
                  'title' => 'Tiket perbaikan bangunan, listrik, air, AC, IT, kebersihan',
                  'relation' => ['label' => 'Arsip: Jurnal Perbaikan', 'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => []]],
-                ['label' => 'Pemeliharaan Preventif', 'icon' => 'fas fa-calendar-check',
-                 'route' => 'dashboard.teknisi.pemeliharaan', 'params' => [],
-                 'can' => ['menu_teknisi_pemeliharaan', 'menu_teknisi'], 'active' => 'dashboard.teknisi.pemeliharaan*',
-                 'title' => 'Jadwal pemeliharaan berkala'],
                 ['label' => 'Jurnal Perbaikan Sarpras', 'icon' => 'fas fa-screwdriver-wrench',
                  'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => [],
                  'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.jurnal-perbaikan*',
-                 'title' => 'Rekap otomatis dari Work Order selesai (Tupoksi #5)'],
+                 'title' => 'Jurnal Perbaikan Sarpras (tindak lanjut Work Order / tiket perbaikan)'],
             ],
 
             'inspeksi' => [

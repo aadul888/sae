@@ -9,20 +9,6 @@
         $isInspeksi = array_key_exists($modul, $inspeksiTabs);
     @endphp
 
-    @if ($isInspeksi)
-        <div class="dash-content-inner" style="margin-bottom:-12px;">
-            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
-                @foreach ($inspeksiTabs as $key => $label)
-                    <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => $key]) }}"
-                        class="btn {{ $key === $modul ? 'btn-primary' : 'btn-outline' }}"
-                        style="font-size:var(--text-sm);">
-                        {{ $label }}
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    @endif
-
     <x-sae.teknisi-header
         :banner-title="$spec['title']"
         :banner-desc="$spec['desc']"
@@ -42,6 +28,22 @@
         :can-import="$canCreate"
         :can-delete="$canDelete"
         bulk-modul="{{ $modul }}">
+
+        @if ($isInspeksi)
+            {{-- Tab Inspeksi Fasilitas: DI BAWAH stat grid (bukan di atas banner). --}}
+            <x-slot:tabnav>
+                <div class="periode-nav-wrapper">
+                    <div class="periode-nav-desktop">
+                        @foreach ($inspeksiTabs as $key => $label)
+                            <a href="{{ route('dashboard.teknisi.modul.index', ['modul' => $key]) }}"
+                                class="periode-nav-tab {{ $key === $modul ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-check"></i> {{ $label }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </x-slot:tabnav>
+        @endif
 
         <x-slot:filter>
             @if ($spec['dateCol'])

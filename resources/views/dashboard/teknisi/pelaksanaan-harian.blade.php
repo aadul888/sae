@@ -53,6 +53,20 @@
             <input type="hidden" name="tab" value="{{ $tab }}">
         </x-slot:filter>
 
+        <x-slot:tabnav>
+            {{-- Jurnal Pelaksanaan dibagi 2 bagian: sesi sesuai jadwal + perbaikan WO. --}}
+            <div class="periode-nav-wrapper">
+                <div class="periode-nav-desktop">
+                    <a href="{{ route('dashboard.teknisi.pelaksanaan-harian.index') }}" class="periode-nav-tab active">
+                        <i class="fas fa-list-check"></i> Sesuai Jadwal
+                    </a>
+                    <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}" class="periode-nav-tab">
+                        <i class="fas fa-screwdriver-wrench"></i> Perbaikan Sarpras (WO)
+                    </a>
+                </div>
+            </div>
+        </x-slot:tabnav>
+
         <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">No</th>

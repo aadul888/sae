@@ -13,8 +13,8 @@
     @endphp
 
     <x-sae.teknisi-header
-        banner-title="Jurnal Perbaikan Sarana Prasarana"
-        banner-desc="Bukti fisik Indikator #5 — rekap otomatis dari Work Order berstatus selesai (baca-saja)."
+        banner-title="Jurnal Pelaksanaan Perbaikan Sarpras"
+        banner-desc="Bagian jurnal pelaksanaan dari Work Order berstatus selesai (baca-saja): perbaikan sarpras hasil tindak lanjut tiket."
         banner-icon="fas fa-screwdriver-wrench"
         banner-color="var(--primary, #3b82f6)"
         :filter-route="route('dashboard.teknisi.jurnal-perbaikan.index')"
@@ -24,6 +24,20 @@
         :cetak-route="route('dashboard.teknisi.jurnal-perbaikan.cetak')"
         :cetak-periode="true"
         :cetak-params="[]">
+
+        <x-slot:tabnav>
+            {{-- Jurnal Pelaksanaan dibagi 2 bagian: sesi sesuai jadwal + perbaikan WO. --}}
+            <div class="periode-nav-wrapper">
+                <div class="periode-nav-desktop">
+                    <a href="{{ route('dashboard.teknisi.pelaksanaan-harian.index') }}" class="periode-nav-tab">
+                        <i class="fas fa-list-check"></i> Sesuai Jadwal
+                    </a>
+                    <a href="{{ route('dashboard.teknisi.jurnal-perbaikan.index') }}" class="periode-nav-tab active">
+                        <i class="fas fa-screwdriver-wrench"></i> Perbaikan Sarpras (WO)
+                    </a>
+                </div>
+            </div>
+        </x-slot:tabnav>
 
         <x-slot:filter>
             <select name="kategori" class="toolbar-filter-select" style="height:38px; min-width:160px;">

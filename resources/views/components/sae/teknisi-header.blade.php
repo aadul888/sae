@@ -107,6 +107,12 @@
         </div>
     @endif
 
+    {{-- 2b. Navigasi tab halaman (opsional) — DI BAWAH stat grid / kartu,
+         tepat sebelum blok konten. Dilarang menaruh tab di atas banner. --}}
+    @isset($tabnav)
+        {{ $tabnav }}
+    @endisset
+
     <!-- 3. Datatable -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <div class="datatable-toolbar">
