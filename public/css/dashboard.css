@@ -3378,11 +3378,28 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         min-height: 0;
     }
 
+    /* Form modal: header & footer tetap, badan form yang digulir. Tanpa ini
+       `overflow:hidden` pada kartu membuat isi form panjang tak terjangkau. */
+    .modal-backdrop .modal-card > form {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+    }
+    .modal-backdrop .modal-card > form > div:first-of-type {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
     /* Gagang geser nonaktif di layar sentuh kecil */
     .modal-backdrop > .card > div:first-child,
     .modal-backdrop > .card > header:first-child,
     .modal-backdrop > .modal-card > div:first-child {
         cursor: default !important;
+        touch-action: auto !important;
     }
     .rombel-tab-buttons {
         display: none !important;
