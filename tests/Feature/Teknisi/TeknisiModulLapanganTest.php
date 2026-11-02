@@ -419,7 +419,7 @@ class TeknisiModulLapanganTest extends TestCase
             ->assertStatus(200)
             ->assertSee($subjek, false);
 
-        // Ubah pemakaian → baris pelaksanaan ikut diperbarui (tidak dobel).
+        // Ubah pemakaian â†’ baris pelaksanaan ikut diperbarui (tidak dobel).
         $this->withSession($session)
             ->putJson(route('dashboard.teknisi.modul.update', ['modul' => 'pemakaian-bahan', 'id' => $log->id]), [
                 'tanggal'  => now()->toDateString(),
@@ -433,7 +433,7 @@ class TeknisiModulLapanganTest extends TestCase
         $this->assertSame(1, DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->count());
         $this->assertStringContainsString($subjek . ' (revisi)', DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->value('area'));
 
-        // Hapus pemakaian → baris pelaksanaan ikut terhapus.
+        // Hapus pemakaian â†’ baris pelaksanaan ikut terhapus.
         $this->withSession($session)
             ->deleteJson(route('dashboard.teknisi.modul.destroy', ['modul' => 'pemakaian-bahan', 'id' => $log->id]))
             ->assertStatus(200);
@@ -460,7 +460,7 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
-     * Setiap unggahan Excel mencatat akun pengunggah — baik pada baris data
+     * Setiap unggahan Excel mencatat akun pengunggah â€” baik pada baris data
      * (`user_id`) maupun pada riwayat unggah `teknisi_import_log`.
      */
     public function test_import_work_order_dan_pemeliharaan_mencatat_pengunggah(): void
@@ -514,7 +514,7 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
-     * Nama petugas TIDAK diambil dari berkas impor — selalu akun yang login.
+     * Nama petugas TIDAK diambil dari berkas impor â€” selalu akun yang login.
      * Kolom `petugas_nama` di CSV harus diabaikan.
      */
     public function test_import_mengabaikan_nama_petugas_dari_berkas(): void
@@ -644,5 +644,81 @@ class TeknisiModulLapanganTest extends TestCase
             ->assertJsonPath('count', 1)
             ->assertJsonPath('skipped', 0);
         $this->assertNull(DB::table('teknisi_log_harian')->where('id', $idA)->first());
+    }
+
+    /**
+     * Regresi: cakupan berdasar PENGGUNA login, bukan PJ ruang.
+     *
+     * Baris yang `petugas_ptk_id`-nya milik pengguna login WAJIB muncul walau
+     * `user_id`-nya akun lain (satu orang >1 akun), dan baris PM yang
+     * `penanggung_jawab`-nya nama pengguna login juga muncul. Baris milik
+     * petugas lain tidak muncul.
+     */
+    public function test_cakupan_pengguna_login_bukan_pj_ruang(): void
+    {
+        $a = $this->teknisiSession(0);
+        $b = $this->teknisiSession(1);
+
+        $ptkA = (string) $a['user']['ptk_id'];
+        $ptkB = (string) $b['user']['ptk_id'];
+        $userB = (string) $b['user']['pengguna_id'];
+
+        $areaA = 'Regr-AT-A ' . uniqid(); // ptk A, user_id B -> A harus lihat
+        $areaB = 'Regr-AT-B ' . uniqid(); // ptk B, user_id lain -> A tidak lihat
+        $pmA   = 'Regr-PM-A ' . uniqid(); // penanggung_jawab = nama A
+        $pmB   = 'Regr-PM-B ' . uniqid(); // penanggung_jawab = nama lain
+
+        $now = now();
+        DB::table('teknisi_area_tugas')->insert([
+            ['nomor_jadwal' => 'REGR-' . uniqid(), 'user_id' => $userB, 'area' => $areaA,
+             'petugas_ptk_id' => $ptkA, 'petugas_nama' => $a['user']['nama'],
+             'periode_jadwal' => 'harian', 'status' => 'aktif', 'created_at' => $now, 'updated_at' => $now],
+            ['nomor_jadwal' => 'REGR-' . uniqid(), 'user_id' => 'ffffffff-0000-0000-0000-000000000000',
+             'area' => $areaB, 'petugas_ptk_id' => $ptkB, 'petugas_nama' => $b['user']['nama'],
+             'periode_jadwal' => 'harian', 'status' => 'aktif', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+
+        if (Table::exists('teknisi_pemeliharaan')) {
+            DB::table('teknisi_pemeliharaan')->insert([
+                ['kode_pemeliharaan' => 'REGR-' . uniqid(), 'nama_kegiatan' => $pmA,
+                 'kategori' => 'bangunan', 'lokasi_aset' => 'Ruang Uji Regr',
+                 'frekuensi' => 'bulanan', 'tgl_jadwal' => $now->toDateString(),
+                 'penanggung_jawab' => $a['user']['nama'], 'status' => 'terjadwal',
+                 'user_id' => $userB, 'created_at' => $now, 'updated_at' => $now],
+                ['kode_pemeliharaan' => 'REGR-' . uniqid(), 'nama_kegiatan' => $pmB,
+                 'kategori' => 'bangunan', 'lokasi_aset' => 'Ruang Uji Regr',
+                 'frekuensi' => 'bulanan', 'tgl_jadwal' => $now->toDateString(),
+                 'penanggung_jawab' => 'Orang Lain ' . uniqid(), 'status' => 'terjadwal',
+                 'user_id' => null, 'created_at' => $now, 'updated_at' => $now],
+            ]);
+        }
+
+        // A melihat baris ber-ptk A (walau user_id-nya akun B), bukan baris ptk B.
+        $this->withSession($a)
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertSee($areaA, false)
+            ->assertDontSee($areaB, false);
+
+        // Teknisi B melihat baris miliknya sendiri (user_id cocok).
+        $this->withSession($b)
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertSee($areaA, false);
+
+        if (Table::exists('teknisi_pemeliharaan')) {
+            $this->withSession($a)
+                ->get(route('dashboard.teknisi.pemeliharaan'))
+                ->assertStatus(200)
+                ->assertSee($pmA, false)
+                ->assertDontSee($pmB, false);
+        }
+
+        // Koordinator melihat semuanya.
+        $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.area-tugas.index'))
+            ->assertStatus(200)
+            ->assertSee($areaA, false)
+            ->assertSee($areaB, false);
     }
 }

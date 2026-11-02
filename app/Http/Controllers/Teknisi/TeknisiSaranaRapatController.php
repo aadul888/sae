@@ -55,7 +55,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         }
 
         $query = DB::table('teknisi_sarana_rapat as s')->select('s.*');
-        $this->scopeRuangPj($query, $context, 'ruang_id', 's', true);
+        $this->scopeOwned($query, $context, 's');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('s.nama_rapat', 'like', "%{$search}%")
@@ -68,7 +68,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         if ($sampai !== '') $query->where('s.tanggal_rapat', '<=', $sampai);
 
         $statBase = DB::table('teknisi_sarana_rapat');
-        $this->scopeRuangPj($statBase, $context, 'ruang_id', null, true);
+        $this->scopeOwned($statBase, $context);
         if ($dari !== '')   $statBase->where('tanggal_rapat', '>=', $dari);
         if ($sampai !== '') $statBase->where('tanggal_rapat', '<=', $sampai);
         $statTotal   = (clone $statBase)->count();
@@ -92,7 +92,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
                 'statusList'      => self::STATUS,
                 'tahapList'       => self::TAHAP,
                 'kondisiList'     => self::KONDISI,
-                'lokasiOptions'   => $this->lokasiOptions($context),
+                'lokasiOptions'   => $this->lokasiOptions(),
                 // Ruang diambil dari master Ruang & Gedung; sarana dari
                 // inventaris aset (teknisi cukup menceklist kesiapan).
                 'ruangOptions'    => $sources['ruang'] ?? [],
@@ -145,8 +145,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_sarana_rapat', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang yang menjadi tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik Anda.', 403);
         }
 
         $data = $this->validated($request);
@@ -185,8 +185,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_sarana_rapat', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus data pada ruang yang menjadi tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus data milik Anda.', 403);
         }
 
         DB::table('teknisi_sarana_rapat')->where('id', $id)->delete();

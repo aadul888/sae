@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
  * Pelaksanaan Harian — jurnal konfirmasi rencana Jadwal Area Tugas.
  *
  * Setiap rencana (teknisi_area_tugas) yang jatuh pada suatu tanggal dapat
- * dikonfirmasi "sudah dikerjakan" atau belum. Cakupan data mengikuti ruang PJ
- * akun login (lihat TeknisiBaseController::scopeRuangPj).
+ * dikonfirmasi "sudah dikerjakan" atau belum. Cakupan data mengikuti PENGGUNA
+ * yang login (lihat TeknisiBaseController::scopeOwned).
  *
  * Tab bawaan menampilkan yang BELUM dikerjakan; tab kedua menampilkan yang
  * sudah selesai. Filter: hari ini, periode (pagi/siang/sore, mingguan, dst).
@@ -61,7 +61,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         $this->generateHariIni($context);
 
         $query = DB::table('teknisi_pelaksanaan_harian as p')->select('p.*');
-        $this->scopeRuangPj($query, $context, 'ruang_id', 'p', true);
+        $this->scopeOwned($query, $context, 'p');
         $query->where('p.status', $tab);
 
         if ($search !== '') {
@@ -76,7 +76,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         if ($tanggal !== '')        $query->where('p.tanggal', $tanggal);
 
         $statBase = DB::table('teknisi_pelaksanaan_harian');
-        $this->scopeRuangPj($statBase, $context, 'ruang_id', null, true);
+        $this->scopeOwned($statBase, $context);
         $statTotal   = (clone $statBase)->count();
         $statBelum   = (clone $statBase)->where('status', 'belum')->count();
         $statSelesai = (clone $statBase)->where('status', 'selesai')->count();
@@ -91,7 +91,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         $rencanaQuery = DB::table('teknisi_area_tugas as a')
             ->select('a.id', 'a.area', 'a.periode_jadwal', 'a.shift')
             ->whereIn('a.status', ['aktif', 'draf'])->orderBy('a.area');
-        $this->scopeRuangPj($rencanaQuery, $context, 'ruang_id', 'a', true);
+        $this->scopeOwned($rencanaQuery, $context, 'a');
         $rencanaOptions = $rencanaQuery->get();
 
         return view('dashboard.teknisi.pelaksanaan-harian', array_merge(
@@ -118,7 +118,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
             ->select('a.id', 'a.ruang_id', 'a.area', 'a.periode_jadwal', 'a.shift',
                 'a.petugas_ptk_id', 'a.petugas_nama')
             ->whereIn('a.status', ['aktif', 'draf']);
-        $this->scopeRuangPj($rencana, $context, 'ruang_id', 'a', true);
+        $this->scopeOwned($rencana, $context, 'a');
         // Hanya rencana yang sudah mulai (atau belum dijadwalkan) per hari ini.
         $rencana->where(function ($q) use ($today) {
             $q->whereNull('tanggal_mulai')->orWhere('tanggal_mulai', '<=', $today);
@@ -170,8 +170,8 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         if (!$rencana) {
             return $this->respond($request, false, 'Rencana jadwal tidak ditemukan.', 404);
         }
-        if (!$this->ownsRowRuang($rencana, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($rencana, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik Anda.', 403);
         }
 
         $ada = DB::table('teknisi_pelaksanaan_harian')
@@ -209,8 +209,8 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_pelaksanaan_harian', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik Anda.', 403);
         }
 
         $data = $request->validate([
@@ -241,8 +241,8 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_pelaksanaan_harian', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah data milik Anda.', 403);
         }
 
         DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->update([
@@ -260,8 +260,8 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_pelaksanaan_harian', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus data pada ruang tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus data milik Anda.', 403);
         }
 
         DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->delete();

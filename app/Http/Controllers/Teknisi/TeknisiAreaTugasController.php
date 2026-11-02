@@ -53,10 +53,10 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         $perPage      = (int) $request->query('perPage', $request->query('per_page', 15));
         $perPage      = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
 
-        // Cakupan = ruang yang PJ-nya akun login (dibaca live dari Ruang &
-        // Gedung). Baris lama tanpa ruang tetap tampil bagi pembuatnya.
+        // Cakupan = PENGGUNA yang login: baris yang petugasnya (atau pembuatnya)
+        // akun ini. Kolom Petugas tetap menampilkan PJ ruang (lihat pjRuang).
         $query = DB::table('teknisi_area_tugas as a')->select('a.*');
-        $this->scopeRuangPj($query, $context, 'ruang_id', 'a', true);
+        $this->scopeOwned($query, $context, 'a');
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -70,7 +70,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         if ($statusFilter !== '') $query->where('a.status', $statusFilter);
 
         $statBase = DB::table('teknisi_area_tugas');
-        $this->scopeRuangPj($statBase, $context, 'ruang_id', null, true);
+        $this->scopeOwned($statBase, $context);
         $statTotal    = (clone $statBase)->count();
         $statAktif    = (clone $statBase)->where('status', 'aktif')->count();
         $statSampah   = (clone $statBase)->where('jenis_tugas', 'pengolahan_sampah')->count();
@@ -93,7 +93,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
                 'periodeList' => self::PERIODE,
                 'shiftList'  => self::SHIFT,
                 'statusList' => self::STATUS,
-                'lokasiOptions' => $this->lokasiOptions($context),
+                'lokasiOptions' => $this->lokasiOptions(),
                 'teknisiOptions' => $this->teknisiOptions(),
             ]
         ));
@@ -140,8 +140,8 @@ class TeknisiAreaTugasController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_area_tugas', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang yang menjadi tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat mengubah jadwal milik Anda.', 403);
         }
 
         $data = $this->validated($request);
@@ -177,8 +177,8 @@ class TeknisiAreaTugasController extends TeknisiBaseController
 
         $row = $this->findRow('teknisi_area_tugas', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat menghapus data pada ruang yang menjadi tanggung jawab Anda.', 403);
+        if (!$this->ownsRow($row, $context)) {
+            return $this->respond($request, false, 'Anda hanya dapat menghapus jadwal milik Anda.', 403);
         }
 
         DB::table('teknisi_area_tugas')->where('id', $id)->delete();

@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\DB;
  */
 class TeknisiBulkDeleteController extends TeknisiBaseController
 {
-    /** Tabel di luar registry: [nama tabel, kolom penanda ptk (null bila tak ada)]. */
+    /** Tabel di luar registry: [nama tabel, kolom penanda ptk, kolom nama (opsional)]. */
     private const EXTRA = [
-        'area-tugas'         => ['teknisi_area_tugas', 'petugas_ptk_id'],
-        'pelaksanaan-harian' => ['teknisi_pelaksanaan_harian', 'petugas_ptk_id'],
-        'sarana-rapat'       => ['teknisi_sarana_rapat', 'petugas_ptk_id'],
-        'work-order'         => ['teknisi_work_order', 'teknisi_ptk_id'],
-        'pemeliharaan'       => ['teknisi_pemeliharaan', null],
+        'area-tugas'         => ['teknisi_area_tugas', 'petugas_ptk_id', null],
+        'pelaksanaan-harian' => ['teknisi_pelaksanaan_harian', 'petugas_ptk_id', null],
+        'sarana-rapat'       => ['teknisi_sarana_rapat', 'petugas_ptk_id', null],
+        'work-order'         => ['teknisi_work_order', 'teknisi_ptk_id', null],
+        'pemeliharaan'       => ['teknisi_pemeliharaan', null, 'penanggung_jawab'],
     ];
 
     public function destroy(Request $request)
@@ -36,7 +36,7 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
             'ids.*' => 'required',
         ]);
 
-        [$table, $ptkColumn] = $this->resolve($data['modul']);
+        [$table, $ptkColumn, $nameColumn] = $this->resolve($data['modul']);
         if (!$table || !Table::exists($table)) {
             return response()->json(['status' => 'error', 'message' => 'Modul tidak dikenal.'], 404);
         }
@@ -54,7 +54,7 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
 
         $deleted = 0;
         foreach ($rows as $row) {
-            if (!$this->ownsRow($row, $context, $ptkColumn)) {
+            if (!$this->ownsRow($row, $context, $ptkColumn, $nameColumn)) {
                 continue;
             }
             DB::table($table)->where('id', $row->id)->delete();
@@ -75,7 +75,7 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
         ]);
     }
 
-    /** @return array{0:?string,1:?string} */
+    /** @return array{0:?string,1:?string,2:?string} */
     private function resolve(string $modul): array
     {
         if (isset(self::EXTRA[$modul])) {
@@ -83,9 +83,9 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
         }
 
         if (in_array($modul, TeknisiModuleRegistry::keys(), true)) {
-            return [TeknisiModuleRegistry::get($modul)['table'], 'petugas_ptk_id'];
+            return [TeknisiModuleRegistry::get($modul)['table'], 'petugas_ptk_id', null];
         }
 
-        return [null, null];
+        return [null, null, null];
     }
 }

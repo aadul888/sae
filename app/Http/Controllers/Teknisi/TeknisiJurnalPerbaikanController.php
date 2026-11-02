@@ -63,7 +63,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         }
 
         $query = TeknisiWorkOrder::query()->where('status', 'selesai');
-        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
+        $this->scopeOwned($query->getQuery(), $context, null, 'teknisi_ptk_id');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('lokasi_unit', 'like', "%{$search}%")
@@ -80,7 +80,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         if ($sampai !== '') $query->where($dateCol, '<=', $sampai);
 
         $statBase = TeknisiWorkOrder::query()->where('status', 'selesai');
-        $this->scopeRuangPj($statBase->getQuery(), $context, 'ruang_id', null, true);
+        $this->scopeOwned($statBase->getQuery(), $context, null, 'teknisi_ptk_id');
         if ($dari !== '')   $statBase->where($dateCol, '>=', $dari);
         if ($sampai !== '') $statBase->where($dateCol, '<=', $sampai);
         $statTotal     = (clone $statBase)->count();
@@ -141,7 +141,7 @@ class TeknisiJurnalPerbaikanController extends TeknisiBaseController
         }
 
         $query = TeknisiWorkOrder::query()->where('status', 'selesai');
-        $this->scopeRuangPj($query->getQuery(), $context, 'ruang_id', null, true);
+        $this->scopeOwned($query->getQuery(), $context, null, 'teknisi_ptk_id');
         if ($dari !== '')   $query->where('tgl_selesai', '>=', $dari);
         if ($sampai !== '') $query->where('tgl_selesai', '<=', $sampai);
 

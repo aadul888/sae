@@ -127,14 +127,17 @@ abstract class TeknisiBaseController extends Controller
     /**
      * Batasi query ke data milik pengguna kecuali ia koordinator.
      *
-     * Kepemilikan: kolom `user_id` = akun pembuat, atau baris lama tanpa
-     * `user_id` yang `petugas_ptk_id`-nya milik pengguna.
+     * Kepemilikan = PENGGUNA yang login: baris tampil bila kolom `ptkColumn`
+     * (mis. `petugas_ptk_id`) = ptk pengguna, ATAU `user_id` = akun pengguna.
+     * Cocok lewat ptk menjangkau satu orang yang punya lebih dari satu akun.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
      * @param  string|null  $alias  Awalan tabel (mis. 'a') bila query memakai alias.
+     * @param  string|null  $ptkColumn  Kolom penanda ptk petugas; null = hanya `user_id`/nama.
+     * @param  string|null  $nameColumn  Kolom nama petugas (tabel tanpa kolom ptk, mis. `penanggung_jawab`).
      * @return \Illuminate\Database\Query\Builder
      */
-    protected function scopeOwned($query, array $context, ?string $alias = null, ?string $ptkColumn = 'petugas_ptk_id')
+    protected function scopeOwned($query, array $context, ?string $alias = null, ?string $ptkColumn = 'petugas_ptk_id', ?string $nameColumn = null)
     {
         if ($this->isKoordinator($context)) {
             return $query;
@@ -143,19 +146,21 @@ abstract class TeknisiBaseController extends Controller
         $p = $alias ? $alias . '.' : '';
         $userId = $context['user_id'] ?? null;
         $ptkId  = $context['ptk_id'] ?? null;
+        $nama   = trim((string) ($context['nama'] ?? ''));
 
-        if (!$userId && !$ptkId) {
+        if (!$userId && !$ptkId && ($nameColumn === null || $nama === '')) {
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where(function ($q) use ($p, $userId, $ptkId, $ptkColumn) {
+        return $query->where(function ($q) use ($p, $userId, $ptkId, $ptkColumn, $nameColumn, $nama) {
             if ($userId) {
                 $q->where($p . 'user_id', $userId);
             }
             if ($ptkId && $ptkColumn) {
-                $q->orWhere(function ($q2) use ($p, $ptkId, $ptkColumn) {
-                    $q2->whereNull($p . 'user_id')->where($p . $ptkColumn, $ptkId);
-                });
+                $q->orWhere($p . $ptkColumn, $ptkId);
+            }
+            if ($nameColumn && $nama !== '') {
+                $q->orWhereRaw('LOWER(' . $p . $nameColumn . ') = ?', [mb_strtolower($nama)]);
             }
         });
     }
@@ -163,7 +168,7 @@ abstract class TeknisiBaseController extends Controller
     /**
      * Apakah baris ini boleh diubah/dihapus pengguna?
      */
-    protected function ownsRow(object $row, array $context, ?string $ptkColumn = 'petugas_ptk_id'): bool
+    protected function ownsRow(object $row, array $context, ?string $ptkColumn = 'petugas_ptk_id', ?string $nameColumn = null): bool
     {
         if ($this->isKoordinator($context)) {
             return true;
@@ -171,13 +176,18 @@ abstract class TeknisiBaseController extends Controller
 
         $userId = $context['user_id'] ?? null;
         $ptkId  = $context['ptk_id'] ?? null;
+        $nama   = trim((string) ($context['nama'] ?? ''));
 
         if ($userId && (string) ($row->user_id ?? '') === (string) $userId) {
             return true;
         }
 
-        return $ptkId && empty($row->user_id) && $ptkColumn
-            && (string) ($row->{$ptkColumn} ?? '') === (string) $ptkId;
+        if ($ptkId && $ptkColumn && (string) ($row->{$ptkColumn} ?? '') === (string) $ptkId) {
+            return true;
+        }
+
+        return $nameColumn && $nama !== ''
+            && mb_strtolower(trim((string) ($row->{$nameColumn} ?? ''))) === mb_strtolower($nama);
     }
 
     /**
@@ -224,80 +234,6 @@ abstract class TeknisiBaseController extends Controller
             ->pluck('id')
             ->map(fn ($v) => (int) $v)
             ->all();
-    }
-
-    /**
-     * Batasi query ke ruang yang PJ-nya akun login (koordinator: tanpa batas).
-     *
-     * Baris lama tanpa `ruang_id` (dibuat manual sebelum pemetaan ruang) tetap
-     * tampil bagi pembuatnya agar data lama tidak hilang.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  string  $column  Kolom berisi `sarpras_ruang.id` pada tabel target.
-     * @param  bool  $izinkanTanpaRuang  Ikut tampilkan baris `ruang_id` kosong milik akun login.
-     */
-    protected function scopeRuangPj($query, array $context, string $column, ?string $alias = null, bool $izinkanTanpaRuang = false)
-    {
-        $ids = $this->ruangMilikPj($context);
-        if ($ids === null) {
-            return $query;
-        }
-
-        $kolom = ($alias ? $alias . '.' : '') . $column;
-
-        if (empty($ids)) {
-            if (!$izinkanTanpaRuang) {
-                return $query->whereRaw('1 = 0');
-            }
-
-            return $this->scopeTanpaRuangPj($query, $context, $column, $alias);
-        }
-
-        if (!$izinkanTanpaRuang) {
-            return $query->whereIn($kolom, $ids);
-        }
-
-        return $query->where(function ($q) use ($kolom, $ids, $context, $column, $alias) {
-            $q->whereIn($kolom, $ids);
-            $this->scopeTanpaRuangPj($q, $context, $column, $alias, true);
-        });
-    }
-
-    /**
-     * Syarat tambahan: `ruang_id` kosong DAN baris milik akun login.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     */
-    private function scopeTanpaRuangPj($query, array $context, string $column, ?string $alias, bool $or = false)
-    {
-        $kolom  = ($alias ? $alias . '.' : '') . $column;
-        $userId = $context['user_id'] ?? null;
-
-        $closure = fn ($q) => $userId
-            ? $q->whereNull($kolom)->where('user_id', $userId)
-            : $q->whereRaw('1 = 0');
-
-        return $or ? $query->orWhere($closure) : $query->where($closure);
-    }
-
-    /**
-     * Kepemilikan berbasis ruang PJ: baris boleh diubah bila berada di ruang
-     * yang PJ-nya akun login, atau baris tanpa ruang milik akun login.
-     */
-    protected function ownsRowRuang(object $row, array $context, ?string $ruangColumn = 'ruang_id'): bool
-    {
-        if ($this->isKoordinator($context)) {
-            return true;
-        }
-
-        $ruangId = $row->{$ruangColumn} ?? null;
-        if ($ruangId !== null && $ruangId !== '') {
-            $ids = $this->ruangMilikPj($context);
-
-            return is_array($ids) && in_array((int) $ruangId, $ids, true);
-        }
-
-        return (string) ($row->user_id ?? '') === (string) ($context['user_id'] ?? '');
     }
 
     /**

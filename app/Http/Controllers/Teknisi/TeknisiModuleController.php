@@ -20,10 +20,10 @@ use Illuminate\Support\Facades\Schema;
  * {@see TeknisiModuleRegistry}: daftar, tambah/ubah/hapus, unduh template,
  * impor Excel, dan cetak laporan (satu catatan per halaman).
  *
- * Semua data dibatasi pada ruang yang penanggung jawabnya = akun login
- * (lihat TeknisiBaseController::scopeOwned & scopeRuangPj): teknisi lapangan
- * hanya melihat & mengubah catatan pada ruang yang menjadi tanggung jawabnya,
- * sedangkan koordinator (Kepala TAS / Waka Sarpras / admin) melihat semuanya.
+ * Semua data dibatasi pada baris milik PENGGUNA yang login
+ * (lihat TeknisiBaseController::scopeOwned & ownsRow): teknisi lapangan hanya
+ * melihat & mengubah catatannya sendiri, sedangkan koordinator (Kepala TAS /
+ * Waka Sarpras / admin) melihat semuanya.
  */
 class TeknisiModuleController extends TeknisiBaseController
 {
@@ -531,26 +531,17 @@ class TeknisiModuleController extends TeknisiBaseController
     // ------------------------------------------------------------------
 
     /**
-     * Cakupan baris satu modul lapangan.
-     *
-     * - Punya kolom ruang (`ruangCol`): dibatasi ruang yang PJ-nya akun login.
-     * - Tanpa kolom ruang (mis. log harian, usulan pengadaan): milik akun pembuat.
+     * Cakupan baris satu modul lapangan = PENGGUNA yang login (koordinator:
+     * tanpa batas). Baris cocok bila `petugas_ptk_id`/`user_id` = akun ini.
      */
     private function scopeModul($query, array $spec, array $context, ?string $alias = null): void
     {
-        if (!empty($spec['ruangCol'])) {
-            $this->scopeRuangPj($query, $context, $spec['ruangCol'], $alias, true);
-        } else {
-            $this->scopeOwned($query, $context, $alias);
-        }
+        $this->scopeOwned($query, $context, $alias);
     }
 
     private function bolehUbah(array $spec, object $row, array $context): bool
     {
-        // Modul dengan kolom ruang terikat ruang PJ; sisanya milik akun pembuat.
-        return !empty($spec['ruangCol'])
-            ? $this->ownsRowRuang($row, $context, $spec['ruangCol'])
-            : $this->ownsRow($row, $context);
+        return $this->ownsRow($row, $context);
     }
 
     private function applyFixed($query, array $spec, ?string $alias = null): void
