@@ -195,8 +195,22 @@ class KeamananBukuTamuController extends Controller
         $sekolah = DB::table('sekolah')->first();
         $sekolahMeta = DB::table('sekolah_meta')->first();
         $daftarRuang = DB::table('sarpras_ruang')->select('nama_ruang')->orderBy('nama_ruang')->get();
+        $today = date('Y-m-d');
 
-        return view('keamanan.tamu-mandiri', compact('sekolah', 'sekolahMeta', 'daftarRuang'));
+        $stats = [
+            'hari_ini' => DB::table('keamanan_buku_tamu')->where('tanggal', $today)->count(),
+            'di_lokasi' => DB::table('keamanan_buku_tamu')->where('tanggal', $today)->where('status', 'berada_di_lokasi')->count(),
+            'orang_tua' => DB::table('keamanan_buku_tamu')->where('tanggal', $today)->where('jenis_tamu', 'orang_tua')->count(),
+            'selesai' => DB::table('keamanan_buku_tamu')->where('tanggal', $today)->where('status', 'sudah_keluar')->count(),
+        ];
+
+        $running_info = [
+            'Buku Tamu Digital (e-Tamu): Pengunjung wajib melakukan registrasi mandiri demi keamanan dan ketertiban sekolah.',
+            'Orang tua / wali murid: Masukkan NIK Anda atau NISN anak untuk validasi otomatis data peserta didik.',
+            'Harap melapor kembali ke Pos Satpam sebelum meninggalkan lingkungan sekolah.',
+        ];
+
+        return view('keamanan.tamu-mandiri', compact('sekolah', 'sekolahMeta', 'daftarRuang', 'stats', 'running_info'));
     }
 
     /**

@@ -12,6 +12,23 @@ class ETamuTest extends TestCase
         $response = $this->get(route('tamu.public'));
         $response->assertStatus(200);
         $response->assertSee('Buku Tamu Digital');
+        $response->assertSee('INFO TAMU');
+        $response->assertSee('Alur Pelayanan Tamu Sekolah');
+        $response->assertSee('kpi-grid');
+        $response->assertSee('formPublicTamu');
+        $response->assertSee('tamu-mandiri.js');
+
+        $aliasResponse = $this->get('/buku-tamu/mandiri');
+        $aliasResponse->assertStatus(200);
+    }
+
+    public function test_public_form_renders_for_logged_in_user_without_error(): void
+    {
+        $response = $this->withSession(['user' => ['id' => 1, 'nama' => 'User Satpam']])
+            ->get(route('tamu.public'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Dashboard Pos Satpam');
     }
 
     public function test_api_check_student_by_parent_nik_or_nisn(): void
@@ -69,6 +86,8 @@ class ETamuTest extends TestCase
         $ticketResponse->assertStatus(200);
         $ticketResponse->assertSee('Tamu Percobaan E-Tamu');
         $ticketResponse->assertSee('Siswa Test');
+        $ticketResponse->assertSee('KODE TIKET VISITOR');
+        $ticketResponse->assertSee('#VIS-');
 
         // Clean up
         DB::table('keamanan_buku_tamu')->where('id', $latest->id)->delete();

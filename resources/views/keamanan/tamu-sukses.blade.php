@@ -1,249 +1,117 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tiket Kunjungan Tamu — {{ $sekolah->nama ?? 'SAE' }}</title>
-    <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/components.css') }}">
-    <style>
-        body {
-            background-color: var(--bg-surface, #f8fafc);
-            color: var(--text-color, #1e293b);
-            font-family: var(--font-family, system-ui, -apple-system, sans-serif);
-            margin: 0;
-            padding: var(--space-4, 8px);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        .pass-wrapper {
-            width: 100%;
-            max-width: 520px;
-            margin: var(--space-4, 8px) auto var(--space-8, 16px);
-        }
-        .pass-card {
-            background: #ffffff;
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: var(--radius-2xl, 20px);
-            padding: var(--space-8, 20px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .pass-header-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.12);
-            color: #059669;
-            padding: 6px 14px;
-            border-radius: var(--radius-pill, 999px);
-            font-size: var(--text-xs, 0.75rem);
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        .pass-title {
-            font-size: var(--text-xl, 1.25rem);
-            font-weight: 800;
-            color: var(--text-heading, #0f172a);
-            margin: 0 0 4px;
-        }
-        .pass-subtitle {
-            font-size: var(--text-xs, 0.75rem);
-            color: var(--text-muted, #64748b);
-            margin: 0 0 16px;
-        }
-        .pass-ticket-box {
-            background: rgba(2, 132, 199, 0.04);
-            border: 2px dashed rgba(2, 132, 199, 0.3);
-            border-radius: var(--radius-xl, 16px);
-            padding: 16px;
-            margin-bottom: 16px;
-            text-align: left;
-        }
-        .pass-ticket-code {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px dashed rgba(2, 132, 199, 0.2);
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-        .pass-ticket-code span:first-child {
-            font-size: var(--text-xs, 0.75rem);
-            color: var(--text-muted, #64748b);
-            font-weight: 600;
-        }
-        .pass-ticket-code span:last-child {
-            font-family: monospace;
-            font-size: var(--text-base, 1rem);
-            font-weight: 800;
-            color: var(--primary, #0284c7);
-            letter-spacing: 0.5px;
-        }
-        .pass-detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: var(--text-xs, 0.75rem);
-            gap: 12px;
-        }
-        .pass-detail-label {
-            color: var(--text-muted, #64748b);
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .pass-detail-value {
-            color: var(--text-heading, #0f172a);
-            font-weight: 700;
-            text-align: right;
-            word-break: break-word;
-        }
-        .student-highlight-box {
-            background: #ffffff;
-            border: 1px solid rgba(2, 132, 199, 0.25);
-            border-radius: var(--radius-md, 8px);
-            padding: 10px;
-            margin-top: 10px;
-        }
-        .instruction-box {
-            background: rgba(245, 158, 11, 0.08);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: var(--radius-lg, 12px);
-            padding: 12px 14px;
-            font-size: var(--text-xs, 0.75rem);
-            color: #92400e;
-            text-align: left;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-        }
-        .btn-new-tamu {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: var(--primary, #0284c7);
-            color: #ffffff;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: var(--radius-md, 8px);
-            font-weight: 700;
-            font-size: var(--text-sm, 0.8125rem);
-            width: 100%;
-            box-sizing: border-box;
-            border: none;
-        }
-        .btn-new-tamu:hover {
-            background: #0369a1;
-            color: #ffffff;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
-    <div class="pass-wrapper">
-        <div class="pass-card">
-            <div class="pass-header-badge">
-                <i class="fas fa-check-circle"></i> Kunjungan Tercatat
+@section('title', 'Tiket Kunjungan Tamu (e-Tamu) — ' . ($sekolah->nama ?? 'Sekolah'))
+@section('meta_description', 'Bukti registrasi kunjungan mandiri tamu sekolah dan tiket visitor digital pos keamanan.')
+
+@section('content')
+    <div class="container" style="max-width: 620px; padding-top: 30px; padding-bottom: 50px;">
+        <div class="card-nisn" style="text-align: center;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: var(--radius-full, 999px); font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 12px;">
+                <i class="fas fa-circle-check"></i> Kunjungan Tercatat Berhasil
             </div>
 
-            <h2 class="pass-title">Terima Kasih, {{ $tamu->nama_tamu }}</h2>
-            <p class="pass-subtitle">Data kunjungan Anda telah tersimpan di sistem keamanan {{ $sekolah->nama ?? 'Sekolah' }}.</p>
+            <h1 style="font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 900; color: var(--text-heading); margin: 0 0 6px;">
+                Terima Kasih, {{ $tamu->nama_tamu }}
+            </h1>
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 0 0 20px;">
+                Data kunjungan Anda telah tersimpan secara resmi di sistem keamanan {{ $sekolah->nama ?? 'Sekolah' }}.
+            </p>
 
             {{-- Box Detail Tiket --}}
-            <div class="pass-ticket-box">
-                <div class="pass-ticket-code">
-                    <span>KODE TIKET</span>
-                    <span>#VIS-{{ date('Ymd', strtotime($tamu->tanggal)) }}-{{ str_pad($tamu->id, 4, '0', STR_PAD_LEFT) }}</span>
+            <div style="background: var(--card-bg, #1e293b); border: 2px dashed rgba(14, 165, 233, 0.35); border-radius: var(--radius-xl, 16px); padding: 18px 20px; margin-bottom: 20px; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px dashed var(--border-glass, rgba(255,255,255,0.12)); padding-bottom: 10px; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
+                    <span style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">KODE TIKET VISITOR</span>
+                    <span style="font-family: var(--font-family-mono, monospace); font-size: var(--text-md, 1.05rem); font-weight: 900; color: var(--primary, #0ea5e9); letter-spacing: 0.5px;">
+                        #VIS-{{ date('Ymd', strtotime($tamu->tanggal)) }}-{{ str_pad($tamu->id, 4, '0', STR_PAD_LEFT) }}
+                    </span>
                 </div>
 
-                <div class="pass-detail-row">
-                    <span class="pass-detail-label">Tanggal & Jam:</span>
-                    <span class="pass-detail-value">{{ \Carbon\Carbon::parse($tamu->tanggal)->translatedFormat('d F Y') }} &bull; {{ substr($tamu->jam_masuk, 0, 5) }} WIB</span>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                    <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Tanggal &amp; Waktu Masuk:</span>
+                    <span style="color: var(--text-heading); font-weight: 700; text-align: right;">
+                        {{ \Carbon\Carbon::parse($tamu->tanggal)->translatedFormat('d F Y') }} &bull; {{ substr($tamu->jam_masuk, 0, 5) }} WIB
+                    </span>
                 </div>
 
-                <div class="pass-detail-row">
-                    <span class="pass-detail-label">Kategori Tamu:</span>
-                    <span class="pass-detail-value">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                    <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Kategori Tamu:</span>
+                    <span style="color: var(--text-heading); font-weight: 700; text-align: right;">
                         @if ($tamu->jenis_tamu === 'orang_tua')
-                            Orang Tua / Wali Siswa
+                            <span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">Orang Tua / Wali Siswa</span>
                         @elseif ($tamu->jenis_tamu === 'kedinasan')
-                            Kedinasan / Instansi
+                            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">Kedinasan / Instansi</span>
                         @elseif ($tamu->jenis_tamu === 'alumni')
-                            Alumni
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">Alumni Sekolah</span>
                         @else
-                            Umum / Masyarakat
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">Tamu Umum / Masyarakat</span>
                         @endif
                     </span>
                 </div>
 
-                @if ($tamu->nomor_kontak)
-                    <div class="pass-detail-row">
-                        <span class="pass-detail-label">Nomor Kontak:</span>
-                        <span class="pass-detail-value">{{ $tamu->nomor_kontak }}</span>
+                @if (!empty($tamu->instansi_asal))
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                        <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Instansi Asal:</span>
+                        <span style="color: var(--text-heading); font-weight: 700; text-align: right;">{{ $tamu->instansi_asal }}</span>
                     </div>
                 @endif
 
-                @if ($tamu->nama_siswa)
-                    <div class="student-highlight-box">
-                        <div style="font-size: 11px; font-weight: 700; color: var(--primary, #0284c7); margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                    <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Tujuan Bertemu:</span>
+                    <span style="color: var(--text-heading); font-weight: 700; text-align: right;">{{ $tamu->tujuan_bertemu }}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                    <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Keperluan:</span>
+                    <span style="color: var(--text-heading); font-weight: 700; text-align: right;">{{ $tamu->keperluan }}</span>
+                </div>
+
+                @if (!empty($tamu->nomor_polisi_kendaraan))
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                        <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">No. Kendaraan:</span>
+                        <span style="color: var(--text-heading); font-weight: 700; text-align: right;">{{ $tamu->nomor_polisi_kendaraan }}</span>
+                    </div>
+                @endif
+
+                {{-- Siswa Terkait jika tamu Orang Tua --}}
+                @if ($tamu->jenis_tamu === 'orang_tua' && (!empty($tamu->nama_siswa) || !empty($tamu->peserta_didik_id)))
+                    <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-md, 10px); padding: 10px 12px; margin-top: 10px;">
+                        <div style="font-size: var(--text-xs, 0.72rem); color: var(--primary, #0ea5e9); font-weight: 700; margin-bottom: 2px;">
                             <i class="fas fa-child me-1"></i> Data Siswa Terkait:
                         </div>
-                        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-heading, #0f172a);">
-                            {{ $tamu->nama_siswa }}
+                        <div style="font-weight: 800; font-size: var(--text-base, 0.88rem); color: var(--text-heading);">
+                            {{ $tamu->nama_siswa ?? 'Siswa Terdaftar' }}
                         </div>
-                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b);">
-                            Kelas: <strong>{{ $tamu->rombel_siswa ?: '-' }}</strong>
-                            @if ($tamu->nisn_siswa)
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                            Kelas: <strong>{{ $tamu->rombel_siswa ?? '-' }}</strong>
+                            @if (!empty($tamu->nisn_siswa))
                                 &bull; NISN: {{ $tamu->nisn_siswa }}
                             @endif
                         </div>
                     </div>
                 @endif
-
-                <div class="pass-detail-row" style="margin-top: 10px;">
-                    <span class="pass-detail-label">Bertemu Dengan:</span>
-                    <span class="pass-detail-value">{{ $tamu->tujuan_bertemu }}</span>
-                </div>
-
-                <div class="pass-detail-row">
-                    <span class="pass-detail-label">Keperluan:</span>
-                    <span class="pass-detail-value">{{ $tamu->keperluan }}</span>
-                </div>
-
-                @if ($tamu->nomor_polisi_kendaraan)
-                    <div class="pass-detail-row">
-                        <span class="pass-detail-label">Kendaraan:</span>
-                        <span class="pass-detail-value">{{ $tamu->nomor_polisi_kendaraan }}</span>
-                    </div>
-                @endif
             </div>
 
-            {{-- Instruksi untuk tamu --}}
-            <div class="instruction-box">
-                <i class="fas fa-info-circle" style="font-size: var(--text-lg, 1.1rem); flex-shrink: 0; margin-top: 2px;"></i>
-                <div>
-                    <strong>Langkah Selanjutnya:</strong><br>
-                    1. Tunjukkan layar tiket ini kepada <strong>Petugas Pos Keamanan / Satpam</strong> untuk diverifikasi.<br>
-                    2. Ambil Kartu Tamu / Visitor Badge dari petugas jika disediakan.<br>
-                    3. Sebelum meninggalkan area sekolah, harap melapor kembali ke Pos Keamanan.
+            {{-- Instruksi Pos Satpam --}}
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-lg, 12px); padding: 12px 14px; font-size: var(--text-xs, 0.75rem); color: var(--warning, #f59e0b); text-align: left; margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="fas fa-circle-info" style="font-size: var(--text-md, 1rem); margin-top: 2px; flex-shrink: 0;"></i>
+                <div style="line-height: 1.4;">
+                    <strong>Petunjuk Pos Keamanan:</strong><br>
+                    Tunjukkan tiket digital ini atau sebutkan nama Anda kepada petugas Satpam di pos gerbang untuk mendapatkan <strong>Kartu Visitor Fisik</strong> dan konfirmasi ruang kunjungan.
                 </div>
             </div>
 
-            <a href="{{ route('tamu.public') }}" class="btn-new-tamu">
-                <i class="fas fa-plus"></i> Isi Buku Tamu Lain
-            </a>
+            {{-- Action Buttons --}}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" onclick="window.print()" class="btn btn-outline" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-print"></i> Cetak / Simpan PDF Tiket
+                </button>
+                <a href="{{ route('tamu.public') }}" class="btn btn-primary" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-plus"></i> Isi Kunjungan Tamu Baru
+                </a>
+                <a href="{{ url('/') }}" class="btn btn-outline" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-house"></i> Kembali ke Beranda SAE
+                </a>
+            </div>
         </div>
     </div>
-
-</body>
-</html>
+@endsection

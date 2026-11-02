@@ -47,15 +47,19 @@ final class TeknisiModuleRegistry
     ];
 
     /**
-     * Pengelompokan modul lapangan pada sidebar, mengikuti alur pengisian:
-     * pemeriksaan rutin → tindak lanjut & usulan → mutasi/peminjaman.
+     * Pengelompokan menu Teknisi & IT menurut alur pengisian administrasi
+     * harian: rujukan → rencana → pelaksanaan → perbaikan → inspeksi/tindak
+     * lanjut. Dipakai oleh partial `dash-sidebar-teknisi-menu` dan grid akses
+     * cepat, sehingga seluruh titik pemasangan menu memakai satu urutan.
      *
      * @var array<string, string>
      */
     public const GRUP = [
         'master'    => 'Master & Referensi',
-        'inspeksi'  => 'Inspeksi & Pemeriksaan Rutin',
-        'tindak'    => 'Tindak Lanjut & Usulan',
+        'rencana'   => 'Perencanaan Tugas',
+        'harian'    => 'Pelaksanaan Harian',
+        'perbaikan' => 'Perbaikan & Pemeliharaan',
+        'inspeksi'  => 'Inspeksi & Tindak Lanjut',
     ];
 
     /**
@@ -167,7 +171,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['nomor_usulan', 'UP'],
                 'title'   => 'Usulan Pengadaan Sarana Prasarana',
                 'desc'    => 'Usulan kebutuhan barang dari unit kerja beserta estimasi biaya dan status verifikasi.',
-                'grup'    => 'tindak',
+                'grup'    => 'inspeksi',
                 'icon'    => 'fas fa-cart-plus',
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => 'tanggal',
@@ -201,7 +205,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['nomor', 'AM'],
                 'title'   => 'Mutasi Lokasi Aset',
                 'desc'    => 'Riwayat perpindahan aset antar ruang beserta kondisi dan alasan pemindahan.',
-                'grup'    => 'tindak',
+                'grup'    => 'inspeksi',
                 'icon'    => 'fas fa-arrow-right-arrow-left',
                 'color'   => 'var(--primary, #3b82f6)',
                 'dateCol' => 'tanggal',
@@ -232,7 +236,7 @@ final class TeknisiModuleRegistry
                 'nomor'   => ['nomor_pinjam', 'PR'],
                 'title'   => 'Peminjaman Ruang & Fasilitas',
                 'desc'    => 'Permohonan penggunaan aula, GOR, lapangan, dan ruang rapat beserta persetujuan.',
-                'grup'    => 'tindak',
+                'grup'    => 'inspeksi',
                 'icon'    => 'fas fa-door-open',
                 'color'   => 'var(--success, #10b981)',
                 'dateCol' => 'tanggal',
