@@ -138,6 +138,30 @@ class TeknisiTupoksiTest extends TestCase
         }
     }
 
+    public function test_konfirmasi_status_area_tugas(): void
+    {
+        $session = $this->adminSession();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.area-tugas.store'), $this->payload('area-tugas'))
+            ->assertStatus(200);
+
+        $row = DB::table('teknisi_area_tugas')->orderByDesc('id')->first();
+        $this->assertNotNull($row, 'Baris area tugas tidak masuk.');
+
+        $this->withSession($session)
+            ->putJson(route('dashboard.teknisi.area-tugas.status', $row->id), ['status' => 'selesai'])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $this->assertSame('selesai', DB::table('teknisi_area_tugas')->where('id', $row->id)->value('status'));
+
+        // Status tak dikenal ditolak.
+        $this->withSession($session)
+            ->putJson(route('dashboard.teknisi.area-tugas.status', $row->id), ['status' => 'ngawur'])
+            ->assertStatus(422);
+    }
+
     /**
      * Nama petugas pada berkas impor diabaikan — selalu akun yang mengunggah.
      */

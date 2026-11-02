@@ -384,6 +384,7 @@ return function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
             Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
             Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
+            Route::put('/{id}/status', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'status'])->name('status')->middleware('permission:menu_teknisi,update');
             Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 

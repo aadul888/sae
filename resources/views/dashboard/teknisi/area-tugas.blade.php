@@ -81,6 +81,14 @@
                     <td style="padding:14px 18px; text-align:center;">
                         <div style="display:flex; gap:6px; justify-content:center;">
                             @if ($canUpdate)
+                                <button type="button" class="btn-icon" title="Konfirmasi Status"
+                                    data-teknisi-form="modalStatusAreaTugas"
+                                    data-edit-route="{{ route('dashboard.teknisi.area-tugas.status', $row->id) }}"
+                                    data-title="Konfirmasi Status Jadwal"
+                                    data-field-status="{{ $row->status }}"
+                                    style="background:var(--success,#10b981); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
+                                    <i class="fas fa-check" style="font-size:var(--text-sm);"></i>
+                                </button>
                                 <button type="button" class="btn-icon" title="Ubah"
                                     data-teknisi-form="modalAreaTugas"
                                     data-edit-route="{{ route('dashboard.teknisi.area-tugas.update', $row->id) }}"
@@ -134,6 +142,13 @@
         'modalTitle' => 'Tambah Jadwal Area Tugas',
         'modalAction' => route('dashboard.teknisi.area-tugas.store'),
         'modalBodyView' => 'dashboard.teknisi._partials.form-area-tugas',
+    ])
+
+    @include('dashboard.teknisi._partials.modal', [
+        'modalId' => 'modalStatusAreaTugas',
+        'modalTitle' => 'Konfirmasi Status Jadwal',
+        'modalAction' => '#',
+        'modalBodyView' => 'dashboard.teknisi._partials.form-area-tugas-status',
     ])
 
     @include('dashboard.teknisi._partials.modal-import', [
