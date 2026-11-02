@@ -8,8 +8,10 @@ Route::post('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'subm
 Route::get('/f/{slug}/sukses/{respon}', [\App\Http\Controllers\FormulirController::class, 'successPublic'])->name('formulir.success');
 Route::get('/formulir/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic']);
 
-// SAE e-Tamu — Buku Tamu Mandiri (Scan QR Publik) & Deteksi Orang Tua Siswa
-Route::get('/tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicForm'])->name('tamu.public');
+// SAE e-Tamu — Portal Publik, Scan QR Mandiri & Deteksi Orang Tua Siswa
+Route::get('/tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicIndex'])->name('tamu.public');
+Route::get('/buku-tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicIndex']);
+Route::get('/tamu/mandiri', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicForm'])->name('tamu.form');
 Route::get('/buku-tamu/mandiri', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicForm']);
 Route::post('/tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicSubmit'])->name('tamu.submit');
 Route::get('/tamu/sukses/{id}', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicSuccess'])->name('tamu.success');

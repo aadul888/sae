@@ -70,7 +70,7 @@ class KeamananBukuTamuController extends Controller
         ];
 
         $daftarRuang = DB::table('sarpras_ruang')->select('id', 'kode_ruang', 'nama_ruang', 'gedung')->orderBy('nama_ruang')->get();
-        $publicFormUrl = route('tamu.public');
+        $publicFormUrl = route('tamu.form');
         $qrSvg = QrCodeService::generateSvg($publicFormUrl, 200, 1);
 
         return view('dashboard.keamanan.buku-tamu', compact(
@@ -181,20 +181,19 @@ class KeamananBukuTamuController extends Controller
     {
         $sekolah = DB::table('sekolah')->first();
         $sekolahMeta = DB::table('sekolah_meta')->first();
-        $targetUrl = route('tamu.public');
+        $targetUrl = route('tamu.form');
         $qrSvg = QrCodeService::generateSvg($targetUrl, 280, 1);
 
         return view('dashboard.keamanan.buku-tamu-cetak-qr', compact('sekolah', 'sekolahMeta', 'targetUrl', 'qrSvg'));
     }
 
     /**
-     * Formulir Publik Tamu Mandiri (Akses Scan QR Code)
+     * Halaman Publik e-Tamu (Monitoring Statistik & Daftar Kunjungan Hari Ini + QR Code Mandiri)
      */
-    public function publicForm()
+    public function publicIndex()
     {
         $sekolah = DB::table('sekolah')->first();
         $sekolahMeta = DB::table('sekolah_meta')->first();
-        $daftarRuang = DB::table('sarpras_ruang')->select('nama_ruang')->orderBy('nama_ruang')->get();
         $today = date('Y-m-d');
 
         $stats = [
@@ -205,12 +204,33 @@ class KeamananBukuTamuController extends Controller
         ];
 
         $running_info = [
-            'Buku Tamu Digital (e-Tamu): Pengunjung wajib melakukan registrasi mandiri demi keamanan dan ketertiban sekolah.',
-            'Orang tua / wali murid: Masukkan NIK Anda atau NISN anak untuk validasi otomatis data peserta didik.',
-            'Harap melapor kembali ke Pos Satpam sebelum meninggalkan lingkungan sekolah.',
+            'Portal e-Tamu Pos Gerbang: Tamu umum, instansi, & orang tua murid wajib registrasi mandiri via scan QR Code.',
+            'Layanan buku tamu pos keamanan terhubung langsung dengan sistem otorisasi kartu visitor sekolah.',
+            'Pengunjung diharapkan melapor kembali ke Pos Satpam sebelum meninggalkan lingkungan sekolah.',
         ];
 
-        return view('keamanan.tamu-mandiri', compact('sekolah', 'sekolahMeta', 'daftarRuang', 'stats', 'running_info'));
+        $daftarTamu = DB::table('keamanan_buku_tamu')
+            ->where('tanggal', $today)
+            ->orderBy('jam_masuk', 'desc')
+            ->limit(20)
+            ->get();
+
+        $formUrl = route('tamu.form');
+        $qrSvg = QrCodeService::generateSvg($formUrl, 200, 1);
+
+        return view('keamanan.tamu-publik', compact('sekolah', 'sekolahMeta', 'stats', 'running_info', 'daftarTamu', 'formUrl', 'qrSvg'));
+    }
+
+    /**
+     * Formulir Publik Tamu Mandiri (Akses Scan QR Code / Direct Link)
+     */
+    public function publicForm()
+    {
+        $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = DB::table('sekolah_meta')->first();
+        $daftarRuang = DB::table('sarpras_ruang')->select('nama_ruang')->orderBy('nama_ruang')->get();
+
+        return view('keamanan.tamu-mandiri', compact('sekolah', 'sekolahMeta', 'daftarRuang'));
     }
 
     /**

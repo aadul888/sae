@@ -130,7 +130,7 @@
 
         {{-- ===== Alur & SOP 4 Tahap Perizinan Siswa ===== --}}
         <section id="sop" class="services" style="margin-top: 40px;">
-            <div class="section-head">
+            <div class="section-header">
                 <span class="section-kicker"><i class="fas fa-diagram-project"></i> STANDAR OPERASIONAL PROSEDUR (SOP)</span>
                 <h2 class="section-title">Alur Terpadu 4 Tahap e-Izin</h2>
                 <p class="section-desc">
@@ -138,7 +138,7 @@
                 </p>
             </div>
 
-            <div class="service-grid">
+            <div class="services-grid">
                 {{-- Langkah 1 --}}
                 <div class="service-card">
                     <div>
@@ -222,6 +222,22 @@
         </section>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .service-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0 0 1.25rem 0;
+        }
+        .service-list li {
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    </style>
+@endpush
 
 @section('scripts')
     <script>

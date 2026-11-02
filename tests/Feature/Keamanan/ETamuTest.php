@@ -7,22 +7,35 @@ use Illuminate\Support\Facades\DB;
 
 class ETamuTest extends TestCase
 {
-    public function test_public_form_can_be_accessed(): void
+    public function test_public_portal_and_mandiri_form_can_be_accessed(): void
     {
-        $response = $this->get(route('tamu.public'));
-        $response->assertStatus(200);
-        $response->assertSee('Buku Tamu Digital');
-        $response->assertSee('INFO TAMU');
-        $response->assertSee('Alur Pelayanan Tamu Sekolah');
-        $response->assertSee('kpi-grid');
-        $response->assertSee('formPublicTamu');
-        $response->assertSee('tamu-mandiri.js');
+        // 1. Halaman Publik e-Tamu: Statistik, QR Code & Daftar Tamu Hari Ini
+        $portalResponse = $this->get(route('tamu.public'));
+        $portalResponse->assertStatus(200);
+        $portalResponse->assertSee('Buku Tamu Digital');
+        $portalResponse->assertSee('INFO TAMU');
+        $portalResponse->assertSee('Pindai QR Tamu Mandiri');
+        $portalResponse->assertSee('Daftar Kunjungan Tamu Hari Ini');
+        $portalResponse->assertSee('kpi-grid');
+        $portalResponse->assertSee(route('tamu.form'));
+
+        // 2. Halaman Formulir Tamu Mandiri (Akses Scan QR / Tombol Direct)
+        $formResponse = $this->get(route('tamu.form'));
+        $formResponse->assertStatus(200);
+        $formResponse->assertSee('Formulir Tamu Mandiri');
+        $formResponse->assertSee('formPublicTamu');
+        $formResponse->assertSee('tamu-mandiri.js');
 
         $aliasResponse = $this->get('/buku-tamu/mandiri');
         $aliasResponse->assertStatus(200);
+
+        // 3. Home page has e-tamu service card
+        $homeResponse = $this->get('/');
+        $homeResponse->assertStatus(200);
+        $homeResponse->assertSee('Buku Tamu (e-Tamu)');
     }
 
-    public function test_public_form_renders_for_logged_in_user_without_error(): void
+    public function test_public_portal_renders_for_logged_in_user_without_error(): void
     {
         $response = $this->withSession(['user' => ['id' => 1, 'nama' => 'User Satpam']])
             ->get(route('tamu.public'));

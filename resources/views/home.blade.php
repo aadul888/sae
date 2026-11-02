@@ -162,6 +162,19 @@
                     <span class="service-cta">Buka Layanan <i class="fas fa-chevron-right"></i></span>
                 </a>
 
+                <a href="{{ route('tamu.public') }}" class="service-card" target="_blank">
+                    <div>
+                        <div class="service-icon" style="color:var(--warning, #f59e0b);"><i class="fas fa-clipboard-user"></i></div>
+                        <h3 class="service-title">Buku Tamu (e-Tamu)</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pindai QR Pengisian Mandiri</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Deteksi Siswa untuk Orang Tua</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Tiket Visitor Pos Keamanan</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Isi Buku Tamu <i class="fas fa-chevron-right"></i></span>
+                </a>
+
                 <a href="{{ route('perpustakaan.index') }}" class="service-card" target="_blank">
                     <div>
                         <div class="service-icon" style="color:var(--purple);"><i class="fas fa-book-open"></i></div>
