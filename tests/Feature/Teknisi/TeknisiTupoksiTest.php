@@ -302,7 +302,11 @@ class TeknisiTupoksiTest extends TestCase
             'modul' => 'area-tugas', 'periode' => 'tahun', 'tahun' => 2026, 'mode' => 'lengkap',
         ]));
         $lengkap->assertStatus(200);
-        $lengkap->assertSee('Data ke-', false);
+        // Versi lengkap kini berupa SATU tabel utuh: tanpa paginasi "Data ke-".
+        $lengkap->assertDontSee('Data ke-', false);
+        $lengkap->assertSee('lap-detail', false);
+        // Kolom banyak (>=7) → orientasi default landscape.
+        $lengkap->assertSee('A4 landscape', false);
 
         // Tanda tangan 3 pihak: Teknisi, Kepala TAS, Kepala Sekolah.
         $lengkap->assertSee('Teknisi,', false);

@@ -1,3 +1,12 @@
+@php
+    // Orientasi default: dokumen dengan banyak kolom otomatis mendatar
+    // (landscape) agar tabel lengkap muat; pengguna tetap bisa memilih
+    // portrait lewat bar alat (parameter `orientasi` eksplisit menang).
+    $orientasiDiminta = strtolower((string) request()->query('orientasi', ''));
+    $orientasi = in_array($orientasiDiminta, ['portrait', 'landscape'], true)
+        ? $orientasiDiminta
+        : (count($fieldMap ?? []) >= 7 ? 'landscape' : 'portrait');
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
@@ -52,6 +61,29 @@
             background: #e2e8f0;
             text-align: left;
             font-weight: 700;
+        }
+
+        /* Tabel detail (versi lengkap): kolom banyak, nilai jangan terpotong. */
+        .lap-detail-page {
+            max-width: 1120px;
+        }
+
+        .lap-detail {
+            font-size: 11px;
+        }
+
+        .lap-detail td,
+        .lap-detail th {
+            padding: 5px 7px;
+        }
+
+        .lap-detail thead {
+            display: table-header-group;
+        }
+
+        .lap-detail thead th {
+            text-align: center;
+            white-space: nowrap;
         }
 
         .lap-meta {
@@ -122,14 +154,6 @@
         $tipeAktif = $range['tipe'] ?? 'bulan';
         // Pemilih periode dipindah ke halaman INDEKS (dropdown cetak), jadi
         // halaman cetak ini tidak lagi merender kontrol periode.
-
-        // Paginasi dokumen (di atas kertas, bukan di peramban): maksimal 2
-        // catatan per halaman agar tampilan "seperti biasa" tetap berlaku.
-        $perHalaman   = 2;
-        $totalHalaman = max(1, (int) ceil($items->count() / $perHalaman));
-        $halamanAktif = min(max(1, (int) request()->query('hal', 1)), $totalHalaman);
-        $halamanItems = $items->slice(($halamanAktif - 1) * $perHalaman, $perHalaman)->values();
-        $nomorAwal    = (($halamanAktif - 1) * $perHalaman) + 1;
     @endphp
 
     <div class="no-print-bar">
@@ -158,20 +182,6 @@
                     {{ $orientasi === 'landscape' ? 'selected' : '' }}>Mendatar (Landscape)</option>
             </select>
         </div>
-
-        @if ($mode === 'lengkap' && $totalHalaman > 1)
-            <a href="{{ $cetakUrl($params(['hal' => max(1, $halamanAktif - 1)])) }}"
-                class="btn-action btn-back {{ $halamanAktif <= 1 ? 'disabled' : '' }}" style="{{ $halamanAktif <= 1 ? 'opacity:.45;pointer-events:none;' : '' }}">
-                <i class="fas fa-chevron-left"></i>
-            </a>
-            <span class="btn-action btn-back" style="pointer-events:none;">
-                Hal {{ $halamanAktif }} / {{ $totalHalaman }}
-            </span>
-            <a href="{{ $cetakUrl($params(['hal' => min($totalHalaman, $halamanAktif + 1)])) }}"
-                class="btn-action btn-back {{ $halamanAktif >= $totalHalaman ? 'disabled' : '' }}" style="{{ $halamanAktif >= $totalHalaman ? 'opacity:.45;pointer-events:none;' : '' }}">
-                <i class="fas fa-chevron-right"></i>
-            </a>
-        @endif
 
         <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak
@@ -267,59 +277,68 @@
             @include('dashboard.teknisi.partials.ttd-cetak')
         </div>
     @else
-        @forelse ($halamanItems as $i => $item)
-            <div class="cetak-page lap-page">
-                <div class="watermark-sae">
-                    <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
-                </div>
+        {{-- Versi LENGKAP: satu tabel utuh berisi SELURUH catatan periode ini
+             (tanpa paginasi per-2-catatan). Kolom diambil dari `fieldMap`;
+             nilai tiap baris dari `items[].fields`. Orientasi otomatis
+             landscape bila kolom banyak (lihat blok @php di atas). --}}
+        <div class="cetak-page lap-page lap-detail-page">
+            <div class="watermark-sae">
+                <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
+            </div>
 
-                @include('partials.kop-surat')
+            @include('partials.kop-surat')
 
-                <div class="doc-header">
-                    <div class="doc-title-main">{{ $title }}</div>
-                    <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }}</div>
-                </div>
+            <div class="doc-header">
+                <div class="doc-title-main">{{ $title }}</div>
+                <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }}</div>
+            </div>
 
-                <table class="lap-meta">
+            <table class="lap-meta">
+                <tr>
+                    <td style="width:130px;"><strong>Jenis Periode</strong></td>
+                    <td>: {{ \App\Support\PeriodeLaporan::labelTipe()[$tipeAktif] ?? 'Kustom' }}</td>
+                    <td style="width:130px;"><strong>Jumlah Data</strong></td>
+                    <td>: {{ $items->count() }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Rentang</strong></td>
+                    <td>: {{ $range['singkat'] ?? $range['label'] }}</td>
+                    <td><strong>Versi</strong></td>
+                    <td>: Lengkap</td>
+                </tr>
+            </table>
+
+            <table class="lap-table lap-detail">
+                <thead>
                     <tr>
-                        <td style="width:110px;"><strong>Nomor</strong></td>
-                        <td>: {{ $item->nomor ?: '—' }}</td>
-                        <td style="width:120px;"><strong>Data ke-</strong></td>
-                        <td>: {{ $nomorAwal + $i }} dari {{ $items->count() }}</td>
-                    </tr>
-                </table>
-
-                <table class="lap-table">
-                    <tbody>
-                        @foreach ($item->fields as $f)
-                            <tr>
-                                <td class="lbl">{{ $f['label'] }}</td>
-                                <td>{{ $f['value'] }}</td>
-                            </tr>
+                        <th style="width:34px; text-align:center;">No</th>
+                        @foreach ($fieldMap as [$label])
+                            <th>{{ $label }}</th>
                         @endforeach
-                    </tbody>
-                </table>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($items as $item)
+                        <tr>
+                            <td style="text-align:center;">{{ $loop->iteration }}</td>
+                            @foreach ($item->fields as $f)
+                                <td>{{ $f['value'] }}</td>
+                            @endforeach
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ count($fieldMap) + 1 }}" style="text-align:center; color:#6b7280;">
+                                <em>Tidak ada data pada periode ini.</em>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
 
-                <div class="lap-pageno">
-                    Halaman {{ $halamanAktif }} / {{ $totalHalaman }}
-                    &bull; {{ ($halamanAktif - 1) * $perHalaman + 1 }}–{{ $nomorAwal + $halamanItems->count() - 1 }}
-                    dari {{ $items->count() }} data
-                </div>
+            <div class="lap-pageno">Jumlah {{ $items->count() }} data</div>
 
-                @if ($loop->last)
-                    @include('dashboard.teknisi.partials.ttd-cetak')
-                @endif
-            </div>
-        @empty
-            <div class="cetak-page">
-                @include('partials.kop-surat')
-                <div class="doc-header">
-                    <div class="doc-title-main">{{ $title }}</div>
-                    <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }}</div>
-                </div>
-                <p style="text-align:center; padding: 40px; color:#6b7280;"><em>Tidak ada data pada periode ini.</em></p>
-            </div>
-        @endforelse
+            @include('dashboard.teknisi.partials.ttd-cetak')
+        </div>
     @endif
 
     <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
