@@ -12,8 +12,8 @@
     @endphp
 
     <x-sae.teknisi-header
-        banner-title="Laporan Sarana Kegiatan Rapat"
-        banner-desc="Bukti fisik Indikator #4 — dokumen rekapitulasi dan laporan kelengkapan sarana rapat."
+        banner-title="Persiapan & Sarana Kegiatan Rapat"
+        banner-desc="Bukti fisik Indikator #4 — persiapan kebersihan ruang rapat (tahap & kondisi) serta kelengkapan sarana dari inventaris aset."
         banner-icon="fas fa-clipboard-check"
         banner-color="var(--warning, #f59e0b)"
         :create-route="route('dashboard.teknisi.sarana-rapat.store')"
@@ -46,7 +46,7 @@
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">No</th>
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Nomor & Rapat</th>
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Ruang & Peserta</th>
-                <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Kelengkapan</th>
+                <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase;">Persiapan & Kelengkapan</th>
                 <th style="padding:12px 18px; font-size:var(--text-sm); font-weight:700; color:var(--text-muted); text-transform:uppercase; text-align:center; width:110px;">Aksi</th>
             </tr>
         </thead>
@@ -68,6 +68,9 @@
                     </td>
                     <td style="padding:14px 18px;">
                         <span class="badge" style="background:{{ $sc[0] }}; color:{{ $sc[1] }}; font-size:var(--text-sm); padding:4px 10px;">{{ $kelengkapanList[$row->kelengkapan_sarana] ?? $row->kelengkapan_sarana }}</span>
+                        <div style="font-size:var(--text-xs); color:var(--text-muted); margin-top:4px;">
+                            {{ $tahapList[$row->tahap] ?? $row->tahap }} &bull; {{ $kondisiList[$row->kondisi_ruang] ?? $row->kondisi_ruang }}
+                        </div>
                         @if ($row->catatan_kebutuhan)<div style="font-size:var(--text-xs); color:var(--warning,#f59e0b); margin-top:4px;"><i class="fas fa-circle-exclamation"></i> {{ \Illuminate\Support\Str::limit($row->catatan_kebutuhan, 50) }}</div>@endif
                     </td>
                     <td style="padding:14px 18px; text-align:center;">
@@ -82,6 +85,8 @@
                                     data-field-ruang_nama="{{ $row->ruang_nama }}"
                                     data-field-jumlah_peserta="{{ $row->jumlah_peserta }}"
                                     data-field-kelengkapan_sarana="{{ $row->kelengkapan_sarana }}"
+                                    data-field-tahap="{{ $row->tahap }}"
+                                    data-field-kondisi_ruang="{{ $row->kondisi_ruang }}"
                                     data-field-catatan_kebutuhan="{{ $row->catatan_kebutuhan }}"
                                     data-field-catatan="{{ $row->catatan }}"
                                     style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">

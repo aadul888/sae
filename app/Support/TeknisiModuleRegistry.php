@@ -63,6 +63,19 @@ final class TeknisiModuleRegistry
     ];
 
     /**
+     * Modul inspeksi fasilitas yang disatukan di bawah satu menu bertab.
+     * Kunci = modul registry, nilai = label tab.
+     *
+     * @var array<string, string>
+     */
+    public const INSPEKSI_TABS = [
+        'inspeksi-utilitas' => 'Utilitas & Instalasi',
+        'apar-k3'           => 'APAR & K3',
+        'pest-control'      => 'Pest Control',
+        'higiene-kantin'    => 'Higiene Kantin',
+    ];
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     public static function all(): array
@@ -419,8 +432,10 @@ final class TeknisiModuleRegistry
                  'route' => 'dashboard.sarpras.aset.index', 'params' => [],
                  'can' => ['menu_inventaris', 'menu_sarpras'],
                  'active' => 'dashboard.sarpras.aset*',
-                 'title' => 'Inventaris & aset sarpras sekolah'],
+                 'title' => 'Inventaris & aset sarpras sekolah (sumber sarana kegiatan rapat)'],
                 $modulEntry('area-master', 'Master Area & Zona'),
+                $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
+                $modulEntry('peminjaman-ruang', 'Peminjaman Ruang & Fasilitas'),
             ],
 
             'rencana' => [
@@ -428,25 +443,19 @@ final class TeknisiModuleRegistry
                  'route' => 'dashboard.teknisi.area-tugas.index', 'params' => [],
                  'can' => ['menu_teknisi'],
                  'active' => 'dashboard.teknisi.area-tugas*',
-                 'title' => 'Jadwal pembagian area tugas kebersihan (Tupoksi #1)',
-                 'relation' => ['label' => 'Pelaksanaan: Kebersihan Ruang', 'route' => 'dashboard.teknisi.kebersihan-ruang.index', 'params' => []]],
+                 'title' => 'Jadwal pembagian area tugas kebersihan: harian (pagi/siang/sore), mingguan, bulanan, semester, tahunan'],
             ],
 
             'harian' => [
-                ['label' => 'Kebersihan Ruang', 'icon' => 'fas fa-broom',
-                 'route' => 'dashboard.teknisi.kebersihan-ruang.index', 'params' => [],
-                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.kebersihan-ruang*',
-                 'title' => 'Kebersihan lingkungan & ruang kerja (Tupoksi #2)',
-                 'relation' => ['label' => 'Tindak lanjut: Work Order', 'route' => 'dashboard.teknisi.work-order', 'params' => []]],
-                ['label' => 'Kebersihan Ruang Rapat', 'icon' => 'fas fa-people-roof',
-                 'route' => 'dashboard.teknisi.kebersihan-rapat.index', 'params' => [],
-                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.kebersihan-rapat*',
-                 'title' => 'Kebersihan lingkungan ruang rapat (Tupoksi #3)',
-                 'relation' => ['label' => 'Sarana: Sarana Kegiatan Rapat', 'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => []]],
-                ['label' => 'Sarana Kegiatan Rapat', 'icon' => 'fas fa-chair',
+                ['label' => 'Jurnal Pelaksanaan Tugas', 'icon' => 'fas fa-list-check',
+                 'route' => 'dashboard.teknisi.pelaksanaan-harian.index', 'params' => [],
+                 'can' => ['menu_teknisi'],
+                 'active' => 'dashboard.teknisi.pelaksanaan-harian*',
+                 'title' => 'Konfirmasi rencana jadwal area tugas: sudah / belum dikerjakan'],
+                ['label' => 'Sarana Kegiatan Rapat', 'icon' => 'fas fa-people-roof',
                  'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => [],
                  'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.sarana-rapat*',
-                 'title' => 'Laporan sarana kegiatan rapat (Tupoksi #4)'],
+                 'title' => 'Persiapan kebersihan ruang rapat + sarana dari inventaris aset (Tupoksi #4)'],
             ],
 
             'perbaikan' => [
@@ -458,23 +467,22 @@ final class TeknisiModuleRegistry
                 ['label' => 'Pemeliharaan Preventif', 'icon' => 'fas fa-calendar-check',
                  'route' => 'dashboard.teknisi.pemeliharaan', 'params' => [],
                  'can' => ['menu_teknisi_pemeliharaan', 'menu_teknisi'], 'active' => 'dashboard.teknisi.pemeliharaan*',
-                 'title' => 'Jadwal pemeliharaan berkala',
-                 'relation' => ['label' => 'Tindak lanjut: Work Order', 'route' => 'dashboard.teknisi.work-order', 'params' => []]],
+                 'title' => 'Jadwal pemeliharaan berkala'],
                 ['label' => 'Jurnal Perbaikan Sarpras', 'icon' => 'fas fa-screwdriver-wrench',
                  'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => [],
                  'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.jurnal-perbaikan*',
-                 'title' => 'Pengarsipan & laporan perbaikan sarpras (Tupoksi #5)'],
+                 'title' => 'Rekap otomatis dari Work Order selesai (Tupoksi #5)'],
             ],
 
             'inspeksi' => [
-                $modulEntry('inspeksi-utilitas', 'Inspeksi Utilitas', 'Pengadaan: Usulan Pengadaan'),
-                $modulEntry('apar-k3', 'Inspeksi APAR & K3', 'Pengadaan: Usulan Pengadaan'),
-                $modulEntry('pest-control', 'Pest Control & Fogging'),
-                $modulEntry('higiene-kantin', 'Higiene Sanitasi Kantin'),
-                $modulEntry('pemakaian-bahan', 'Pemakaian Bahan Kebersihan', 'Pengadaan: Usulan Pengadaan'),
-                $modulEntry('usulan-pengadaan'),
-                $modulEntry('aset-mutasi'),
-                $modulEntry('peminjaman-ruang'),
+                // Inspeksi fasilitas disatukan jadi satu menu bertab.
+                ['label' => 'Inspeksi Fasilitas', 'icon' => 'fas fa-magnifying-glass-chart',
+                 'route' => 'dashboard.teknisi.modul.index', 'params' => ['modul' => 'inspeksi-utilitas'],
+                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.modul.*',
+                 'title' => 'Inspeksi utilitas, APAR & K3, pest control, higiene kantin',
+                 'inspeksiTabs' => true],
+                $modulEntry('pemakaian-bahan', 'Pemakaian Bahan Kebersihan'),
+                $modulEntry('usulan-pengadaan', 'Usulan Pengadaan', null),
             ],
         ];
     }

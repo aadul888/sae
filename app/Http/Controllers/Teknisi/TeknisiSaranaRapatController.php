@@ -24,6 +24,22 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         'terverifikasi' => 'Terverifikasi',
     ];
 
+    /** Tahap persiapan kebersihan ruang rapat. */
+    public const TAHAP = [
+        'sebelum_acara' => 'Sebelum Acara',
+        'saat_acara'    => 'Saat Acara',
+        'sesudah_acara' => 'Sesudah Acara',
+    ];
+
+    /** Kondisi ruang rapat saat persiapan. */
+    public const KONDISI = [
+        'sangat_bersih'  => 'Sangat Bersih',
+        'bersih'         => 'Bersih',
+        'cukup'          => 'Cukup Bersih',
+        'kotor'          => 'Perlu Dibersihkan',
+        'perlu_tindakan' => 'Perlu Tindakan',
+    ];
+
     public function index(Request $request)
     {
         [$res, $context] = $this->boot($request);
@@ -72,7 +88,11 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             [
                 'kelengkapanList' => self::KELENGKAPAN,
                 'statusList'      => self::STATUS,
+                'tahapList'       => self::TAHAP,
+                'kondisiList'     => self::KONDISI,
                 'lokasiOptions'   => $this->lokasiOptions($context),
+                // Sarana kegiatan rapat diambil dari inventaris & aset tersedia.
+                'asetOptions'     => \App\Support\TeknisiModuleRegistry::sources()['aset'] ?? [],
             ]
         ));
     }
@@ -92,6 +112,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'tanggal_rapat'      => $data['tanggal_rapat'],
             'nama_rapat'         => trim($data['nama_rapat']),
             'ruang_nama'         => $data['ruang_nama'] ?? null,
+            'tahap'              => $data['tahap'] ?? 'sebelum_acara',
+            'kondisi_ruang'      => $data['kondisi_ruang'] ?? 'bersih',
             'jumlah_peserta'     => $data['jumlah_peserta'] ?? null,
             'daftar_sarana'      => !empty($data['daftar_sarana'])
                 ? json_encode(array_values($data['daftar_sarana']))
@@ -131,6 +153,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'tanggal_rapat'      => $data['tanggal_rapat'],
             'nama_rapat'         => trim($data['nama_rapat']),
             'ruang_nama'         => $data['ruang_nama'] ?? null,
+            'tahap'              => $data['tahap'] ?? $row->tahap ?? 'sebelum_acara',
+            'kondisi_ruang'      => $data['kondisi_ruang'] ?? $row->kondisi_ruang ?? 'bersih',
             'jumlah_peserta'     => $data['jumlah_peserta'] ?? null,
             'daftar_sarana'      => !empty($data['daftar_sarana'])
                 ? json_encode(array_values($data['daftar_sarana']))
@@ -170,6 +194,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'tanggal_rapat'      => 'required|date',
             'nama_rapat'         => 'required|string|max:200',
             'ruang_nama'         => 'nullable|string|max:150',
+            'tahap'              => 'nullable|in:sebelum_acara,saat_acara,sesudah_acara',
+            'kondisi_ruang'      => 'nullable|in:sangat_bersih,bersih,cukup,kotor,perlu_tindakan',
             'jumlah_peserta'     => 'nullable|integer|min:0|max:5000',
             'daftar_sarana'      => 'nullable|array',
             'daftar_sarana.*.nama'    => 'nullable|string|max:150',

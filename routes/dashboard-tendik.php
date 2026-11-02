@@ -384,27 +384,19 @@ return function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
             Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
             Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
-            Route::put('/{id}/status', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'status'])->name('status')->middleware('permission:menu_teknisi,update');
             Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiAreaTugasController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 
-        // Indikator 2 — Kebersihan Lingkungan & Ruang Kerja
-        Route::prefix('kebersihan-ruang')->name('kebersihan-ruang.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRuangController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
-            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRuangController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
-            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRuangController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRuangController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
+        // Pelaksanaan Harian — jurnal konfirmasi rencana jadwal area tugas.
+        Route::prefix('pelaksanaan-harian')->name('pelaksanaan-harian.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiPelaksanaanHarianController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
+            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiPelaksanaanHarianController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
+            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiPelaksanaanHarianController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
+            Route::put('/{id}/status', [\App\Http\Controllers\Teknisi\TeknisiPelaksanaanHarianController::class, 'status'])->name('status')->middleware('permission:menu_teknisi,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiPelaksanaanHarianController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 
-        // Indikator 3 — Kebersihan Lingkungan Ruang Rapat
-        Route::prefix('kebersihan-rapat')->name('kebersihan-rapat.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRapatController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
-            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRapatController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
-            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRapatController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiKebersihanRapatController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
-        });
-
-        // Indikator 4 — Laporan Sarana Kegiatan Rapat
+        // Indikator 4 — Laporan Sarana Kegiatan Rapat (persiapan kebersihan + sarana inventaris)
         Route::prefix('sarana-rapat')->name('sarana-rapat.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiSaranaRapatController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
             Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiSaranaRapatController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
@@ -412,12 +404,10 @@ return function () {
             Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiSaranaRapatController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 
-        // Indikator 5 — Pengarsipan & Laporan Perbaikan Sarana Prasarana
+        // Indikator 5 — Jurnal Perbaikan Sarpras: rekap baca-saja dari Work Order selesai.
         Route::prefix('jurnal-perbaikan')->name('jurnal-perbaikan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
-            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
-            Route::put('/{id}', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'update'])->name('update')->middleware('permission:menu_teknisi,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
+            Route::get('/cetak', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_teknisi,read');
         });
 
         // =====================================================================
@@ -439,7 +429,7 @@ return function () {
         // =====================================================================
         // LAPORAN (CETAK PER HALAMAN) & IMPORT EXCEL — 5 modul TUPOKSI
         // =====================================================================
-        $modulRegex = 'area-tugas|kebersihan-ruang|kebersihan-rapat|sarana-rapat|jurnal-perbaikan';
+        $modulRegex = 'area-tugas|sarana-rapat';
         Route::get('/laporan/{modul}/template', [\App\Http\Controllers\Teknisi\TeknisiTupoksiReportController::class, 'template'])
             ->name('laporan.template')->where('modul', $modulRegex)->middleware('permission:menu_teknisi,read');
         Route::post('/laporan/{modul}/import', [\App\Http\Controllers\Teknisi\TeknisiTupoksiReportController::class, 'import'])

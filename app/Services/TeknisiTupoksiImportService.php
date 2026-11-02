@@ -7,7 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Import & template Excel generik untuk 6 modul TUPOKSI Teknisi (Indikator #1–#5).
+ * Import & template Excel generik untuk modul TUPOKSI Teknisi (Indikator #1 & #4).
  *
  * Satu berkas memuat satu tabel: satu baris = satu catatan. Spesifikasi tiap
  * modul (kolom, tipe, default, contoh) dipusatkan di SPECS sehingga controller
@@ -18,10 +18,7 @@ class TeknisiTupoksiImportService
     /** @var array<int, string> */
     public const MODULES = [
         'area-tugas',
-        'kebersihan-ruang',
-        'kebersihan-rapat',
         'sarana-rapat',
-        'jurnal-perbaikan',
     ];
 
     private const SPECS = [
@@ -54,115 +51,32 @@ class TeknisiTupoksiImportService
                 'sumber_laporan' => '', 'uraian' => 'Menyapu & mengepel ruang', 'catatan' => '', 'status' => 'aktif',
             ],
         ],
-        'kebersihan-ruang' => [
-            'table'      => 'teknisi_kebersihan_ruang',
-            'nomor'      => ['nomor_kegiatan', 'KBN'],
-            'title'      => 'Format Import Kebersihan Lingkungan & Ruang Kerja (Indikator #2)',
-            'sheet'      => 'Kebersihan Ruang',
-            'cetakTitle' => 'REKAP KEBERSIHAN LINGKUNGAN & RUANG KERJA',
-            'columns'    => [
-                'tanggal_kegiatan' => 'date', 'ruang_nama' => 'string', 'kategori_ruang' => 'string',
-                'kondisi' => 'string', 'uraian_kegiatan' => 'text', 'peralatan_digunakan' => 'text',
-                'temuan' => 'text', 'tindak_lanjut' => 'text', 'foto_sebelum' => 'string',
-                'foto_sesudah' => 'string', 'dokumentasi_paths' => 'paths',
-                'petugas_nama' => 'string', 'status' => 'string',
-            ],
-            'required'   => ['ruang_nama'],
-            'defaults'   => ['kategori_ruang' => 'perkantoran', 'kondisi' => 'bersih', 'status' => 'selesai'],
-            'cetak'      => [
-                ['Tanggal', 'tanggal_kegiatan'], ['Ruang', 'ruang_nama'], ['Kategori', 'kategori_ruang'],
-                ['Kondisi', 'kondisi'], ['Uraian', 'uraian_kegiatan'], ['Peralatan', 'peralatan_digunakan'],
-                ['Temuan', 'temuan'], ['Tindak Lanjut', 'tindak_lanjut'], ['Status', 'status'],
-            ],
-            'contoh'     => [
-                'tanggal_kegiatan' => '2026-10-01', 'ruang_nama' => 'Ruang TU', 'kategori_ruang' => 'administrasi',
-                'kondisi' => 'bersih', 'uraian_kegiatan' => 'Menyapu, mengepel, membersihkan meja',
-                'peralatan_digunakan' => 'Sapu, pel, kemoceng', 'temuan' => '-', 'tindak_lanjut' => '-',
-                'foto_sebelum' => '', 'foto_sesudah' => '', 'dokumentasi_paths' => '',
-                'petugas_nama' => 'Budi Santoso', 'status' => 'selesai',
-            ],
-        ],
-        'kebersihan-rapat' => [
-            'table'      => 'teknisi_kebersihan_rapat',
-            'nomor'      => ['nomor_kegiatan', 'KRT'],
-            'title'      => 'Format Import Kebersihan Lingkungan Ruang Rapat (Indikator #3)',
-            'sheet'      => 'Kebersihan Rapat',
-            'cetakTitle' => 'REKAP KEBERSIHAN LINGKUNGAN RUANG RAPAT',
-            'columns'    => [
-                'tanggal_kegiatan' => 'date', 'lokasi' => 'string', 'nama_rapat' => 'string',
-                'area' => 'string', 'tahap' => 'string', 'kondisi' => 'string',
-                'uraian_kegiatan' => 'text', 'peralatan_digunakan' => 'text', 'temuan' => 'text',
-                'tindak_lanjut' => 'text', 'foto_sebelum' => 'string', 'foto_sesudah' => 'string',
-                'dokumentasi_paths' => 'paths', 'petugas_nama' => 'string', 'status' => 'string',
-            ],
-            'required'   => [],
-            'defaults'   => ['lokasi' => 'Ruang Rapat', 'area' => 'ruang_rapat', 'tahap' => 'sebelum_acara', 'kondisi' => 'bersih', 'status' => 'selesai'],
-            'cetak'      => [
-                ['Tanggal', 'tanggal_kegiatan'], ['Lokasi', 'lokasi'], ['Area', 'area'],
-                ['Nama Rapat', 'nama_rapat'], ['Tahap', 'tahap'], ['Kondisi', 'kondisi'],
-                ['Uraian', 'uraian_kegiatan'], ['Temuan', 'temuan'], ['Tindak Lanjut', 'tindak_lanjut'],
-                ['Status', 'status'],
-            ],
-            'contoh'     => [
-                'tanggal_kegiatan' => '2026-10-01', 'lokasi' => 'Ruang Rapat Utama', 'nama_rapat' => 'Rapat Dinas',
-                'area' => 'ruang_rapat', 'tahap' => 'sebelum_acara', 'kondisi' => 'bersih',
-                'uraian_kegiatan' => 'Menyiapkan & membersihkan ruang rapat', 'peralatan_digunakan' => 'Sapu, pel',
-                'temuan' => '-', 'tindak_lanjut' => '-', 'foto_sebelum' => '', 'foto_sesudah' => '',
-                'dokumentasi_paths' => '', 'petugas_nama' => 'Budi Santoso', 'status' => 'selesai',
-            ],
-        ],
         'sarana-rapat' => [
             'table'      => 'teknisi_sarana_rapat',
             'nomor'      => ['nomor_laporan', 'SRP'],
-            'title'      => 'Format Import Laporan Sarana Kegiatan Rapat (Indikator #4)',
+            'title'      => 'Format Import Persiapan & Sarana Kegiatan Rapat (Indikator #4)',
             'sheet'      => 'Sarana Rapat',
-            'cetakTitle' => 'REKAP LAPORAN SARANA KEGIATAN RAPAT',
+            'cetakTitle' => 'REKAP PERSIAPAN & SARANA KEGIATAN RAPAT',
             'columns'    => [
                 'tanggal_rapat' => 'date', 'nama_rapat' => 'string', 'ruang_nama' => 'string',
+                'tahap' => 'string', 'kondisi_ruang' => 'string',
                 'jumlah_peserta' => 'int', 'daftar_sarana' => 'sarana', 'kelengkapan_sarana' => 'string',
                 'catatan_kebutuhan' => 'text', 'catatan' => 'text', 'petugas_nama' => 'string', 'status' => 'string',
             ],
             'required'   => ['nama_rapat'],
-            'defaults'   => ['kelengkapan_sarana' => 'lengkap', 'status' => 'selesai'],
+            'defaults'   => ['tahap' => 'sebelum_acara', 'kondisi_ruang' => 'bersih', 'kelengkapan_sarana' => 'lengkap', 'status' => 'selesai'],
             'cetak'      => [
                 ['Tanggal', 'tanggal_rapat'], ['Nama Rapat', 'nama_rapat'], ['Ruang', 'ruang_nama'],
-                ['Jumlah Peserta', 'jumlah_peserta'], ['Kelengkapan', 'kelengkapan_sarana'],
+                ['Tahap', 'tahap'], ['Kondisi Ruang', 'kondisi_ruang'], ['Jumlah Peserta', 'jumlah_peserta'],
+                ['Kelengkapan', 'kelengkapan_sarana'],
                 ['Daftar Sarana', 'daftar_sarana'], ['Catatan Kebutuhan', 'catatan_kebutuhan'],
                 ['Catatan', 'catatan'], ['Status', 'status'],
             ],
             'contoh'     => [
                 'tanggal_rapat' => '2026-10-01', 'nama_rapat' => 'Rapat Dinas', 'ruang_nama' => 'Ruang Rapat Utama',
+                'tahap' => 'sebelum_acara', 'kondisi_ruang' => 'bersih',
                 'jumlah_peserta' => '25', 'daftar_sarana' => 'Proyektor | 1 | baik', 'kelengkapan_sarana' => 'lengkap',
                 'catatan_kebutuhan' => '-', 'catatan' => '-', 'petugas_nama' => 'Budi Santoso', 'status' => 'selesai',
-            ],
-        ],
-        'jurnal-perbaikan' => [
-            'table'      => 'teknisi_jurnal_perbaikan',
-            'nomor'      => ['nomor_jurnal', 'JRN'],
-            'title'      => 'Format Import Jurnal Perbaikan Sarana Prasarana (Indikator #5)',
-            'sheet'      => 'Jurnal Perbaikan',
-            'cetakTitle' => 'REKAP JURNAL PERBAIKAN SARANA PRASARANA',
-            'columns'    => [
-                'tanggal' => 'date', 'lokasi_unit' => 'string', 'jenis_pekerjaan' => 'string',
-                'kategori_sarana' => 'string', 'uraian_kegiatan' => 'text', 'hasil' => 'text',
-                'kebutuhan_sarana' => 'text', 'kendala' => 'text', 'tindak_lanjut' => 'text',
-                'estimasi_biaya' => 'decimal', 'realisasi_biaya' => 'decimal',
-                'dokumentasi_paths' => 'paths', 'petugas_nama' => 'string', 'status' => 'string',
-            ],
-            'required'   => ['lokasi_unit', 'uraian_kegiatan'],
-            'defaults'   => ['jenis_pekerjaan' => 'perbaikan', 'status' => 'selesai'],
-            'cetak'      => [
-                ['Tanggal', 'tanggal'], ['Lokasi/Unit', 'lokasi_unit'], ['Jenis Pekerjaan', 'jenis_pekerjaan'],
-                ['Kategori Sarana', 'kategori_sarana'], ['Uraian', 'uraian_kegiatan'], ['Hasil', 'hasil'],
-                ['Kebutuhan Sarana', 'kebutuhan_sarana'], ['Kendala', 'kendala'], ['Tindak Lanjut', 'tindak_lanjut'],
-                ['Estimasi Biaya', 'estimasi_biaya'], ['Realisasi Biaya', 'realisasi_biaya'], ['Status', 'status'],
-            ],
-            'contoh'     => [
-                'tanggal' => '2026-10-01', 'lokasi_unit' => 'Lab Komputer 1', 'jenis_pekerjaan' => 'perbaikan',
-                'kategori_sarana' => 'jaringan_it', 'uraian_kegiatan' => 'Ganti kabel LAN rusak',
-                'hasil' => 'Koneksi normal kembali', 'kebutuhan_sarana' => '-', 'kendala' => '-',
-                'tindak_lanjut' => '-', 'estimasi_biaya' => '150000', 'realisasi_biaya' => '150000',
-                'dokumentasi_paths' => '', 'petugas_nama' => 'Budi Santoso', 'status' => 'selesai',
             ],
         ],
     ];

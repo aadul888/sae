@@ -17,10 +17,9 @@ class TeknisiTupoksiTest extends TestCase
     /** @var array<int, string> */
     protected const TABLES = [
         'teknisi_area_tugas',
-        'teknisi_kebersihan_ruang',
-        'teknisi_kebersihan_rapat',
+        'teknisi_pelaksanaan_harian',
         'teknisi_sarana_rapat',
-        'teknisi_jurnal_perbaikan',
+        'teknisi_work_order',
         'teknisi_import_log',
     ];
 
@@ -99,19 +98,16 @@ class TeknisiTupoksiTest extends TestCase
     {
         return match ($route) {
             'area-tugas'        => ['area' => 'Koridor Lantai 1', 'petugas_nama' => 'Teknisi Uji', 'tanggal_mulai' => now()->toDateString()],
-            'kebersihan-ruang'  => ['tanggal_kegiatan' => now()->toDateString(), 'ruang_nama' => 'Lab Komputer 1', 'kondisi' => 'bersih'],
-            'kebersihan-rapat'  => ['tanggal_kegiatan' => now()->toDateString(), 'nama_rapat' => 'Rapat Uji', 'kondisi' => 'bersih'],
             'sarana-rapat'      => ['tanggal_rapat' => now()->toDateString(), 'nama_rapat' => 'Rapat Uji', 'daftar_sarana_text' => 'Proyektor | 1 | baik'],
-            'jurnal-perbaikan'  => ['tanggal' => now()->toDateString(), 'lokasi_unit' => 'Lab TKJ', 'jenis_pekerjaan' => 'perbaikan', 'uraian_kegiatan' => 'Ganti kabel LAN'],
             default             => [],
         };
     }
 
-    public function test_index_5_modul_merespons_200(): void
+    public function test_index_modul_merespons_200(): void
     {
         $session = $this->adminSession();
 
-        foreach (['area-tugas', 'kebersihan-ruang', 'kebersihan-rapat', 'sarana-rapat', 'jurnal-perbaikan'] as $route) {
+        foreach (['area-tugas', 'sarana-rapat', 'pelaksanaan-harian', 'jurnal-perbaikan'] as $route) {
             $this->withSession($session)
                 ->get(route('dashboard.teknisi.' . $route . '.index'))
                 ->assertStatus(200);
@@ -123,7 +119,7 @@ class TeknisiTupoksiTest extends TestCase
         $session = $this->adminSession();
 
         // Store tiap modul tupoksi lalu pastikan baris masuk.
-        foreach (['area-tugas', 'kebersihan-ruang', 'kebersihan-rapat', 'sarana-rapat', 'jurnal-perbaikan'] as $route) {
+        foreach (['area-tugas', 'sarana-rapat'] as $route) {
             $table = 'teknisi_' . str_replace('-', '_', $route);
 
             $this->withSession($session)
@@ -138,7 +134,10 @@ class TeknisiTupoksiTest extends TestCase
         }
     }
 
-    public function test_konfirmasi_status_area_tugas(): void
+    /**
+     * Pelaksanaan harian: konfirmasi rencana area tugas selesai/belum.
+     */
+    public function test_pelaksanaan_harian_konfirmasi_status(): void
     {
         $session = $this->adminSession();
 
@@ -146,20 +145,45 @@ class TeknisiTupoksiTest extends TestCase
             ->postJson(route('dashboard.teknisi.area-tugas.store'), $this->payload('area-tugas'))
             ->assertStatus(200);
 
-        $row = DB::table('teknisi_area_tugas')->orderByDesc('id')->first();
-        $this->assertNotNull($row, 'Baris area tugas tidak masuk.');
+        $rencana = DB::table('teknisi_area_tugas')->orderByDesc('id')->first();
+        $this->assertNotNull($rencana, 'Baris area tugas tidak masuk.');
 
         $this->withSession($session)
-            ->putJson(route('dashboard.teknisi.area-tugas.status', $row->id), ['status' => 'selesai'])
+            ->get(route('dashboard.teknisi.pelaksanaan-harian.index'))
+            ->assertStatus(200);
+
+        // Baris pelaksanaan hari ini ter-generate otomatis dari rencana aktif.
+        $row = DB::table('teknisi_pelaksanaan_harian')
+            ->where('area_tugas_id', $rencana->id)
+            ->where('tanggal', now()->toDateString())
+            ->first();
+        $this->assertNotNull($row, 'Baris pelaksanaan harian tidak ter-generate.');
+        $this->assertSame('belum', $row->status);
+
+        $this->withSession($session)
+            ->putJson(route('dashboard.teknisi.pelaksanaan-harian.status', $row->id), ['status' => 'selesai'])
             ->assertStatus(200)
             ->assertJsonPath('status', 'success');
 
-        $this->assertSame('selesai', DB::table('teknisi_area_tugas')->where('id', $row->id)->value('status'));
+        $this->assertSame('selesai', DB::table('teknisi_pelaksanaan_harian')->where('id', $row->id)->value('status'));
+    }
 
-        // Status tak dikenal ditolak.
+    /** Jurnal Perbaikan = turunan baca-saja dari Work Order selesai. */
+    public function test_jurnal_perbaikan_baca_saja_dari_work_order(): void
+    {
+        $session = $this->adminSession();
+
         $this->withSession($session)
-            ->putJson(route('dashboard.teknisi.area-tugas.status', $row->id), ['status' => 'ngawur'])
-            ->assertStatus(422);
+            ->get(route('dashboard.teknisi.jurnal-perbaikan.index'))
+            ->assertStatus(200);
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.jurnal-perbaikan.cetak'))
+            ->assertStatus(200);
+
+        // Tidak ada lagi route tulis untuk jurnal perbaikan.
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('dashboard.teknisi.jurnal-perbaikan.store'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('dashboard.teknisi.jurnal-perbaikan.update'));
     }
 
     /**
@@ -193,11 +217,8 @@ class TeknisiTupoksiTest extends TestCase
         $session = $this->adminSession();
 
         $spec = [
-            'area-tugas'       => ['area,zona,periode_jadwal,petugas_nama,shift,jenis_tugas,status', 'Koridor Uji,Zona X,harian,Teknisi Uji,pagi,tukang_kebersihan,aktif'],
-            'kebersihan-ruang' => ['tanggal_kegiatan,ruang_nama,kategori_ruang,kondisi,status', '2026-10-01,Ruang Uji,perkantoran,bersih,selesai'],
-            'kebersihan-rapat' => ['tanggal_kegiatan,lokasi,nama_rapat,area,tahap,kondisi,status', '2026-10-01,Ruang Rapat Uji,Rapat Uji,ruang_rapat,sebelum_acara,bersih,selesai'],
-            'sarana-rapat'     => ['tanggal_rapat,nama_rapat,ruang_nama,jumlah_peserta,kelengkapan_sarana,status', '2026-10-01,Rapat Uji,Ruang Uji,20,lengkap,selesai'],
-            'jurnal-perbaikan' => ['tanggal,lokasi_unit,jenis_pekerjaan,uraian_kegiatan,status', '2026-10-01,Lab Uji,perbaikan,Ganti kabel LAN,selesai'],
+            'area-tugas'   => ['area,zona,periode_jadwal,petugas_nama,shift,jenis_tugas,status', 'Koridor Uji,Zona X,harian,Teknisi Uji,pagi,tukang_kebersihan,aktif'],
+            'sarana-rapat' => ['tanggal_rapat,nama_rapat,ruang_nama,tahap,kondisi_ruang,jumlah_peserta,kelengkapan_sarana,status', '2026-10-01,Rapat Uji,Ruang Uji,sebelum_acara,bersih,20,lengkap,selesai'],
         ];
 
         foreach ($spec as $modul => [$header, $row]) {

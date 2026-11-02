@@ -429,8 +429,8 @@ class TeknisiModulLapanganTest extends TestCase
     public function test_bulk_delete_mengenali_semua_modul(): void
     {
         $moduls = array_merge(self::MODULES, [
-            'area-tugas', 'kebersihan-ruang', 'kebersihan-rapat',
-            'sarana-rapat', 'jurnal-perbaikan',
+            'area-tugas', 'pelaksanaan-harian',
+            'sarana-rapat',
             'work-order', 'pemeliharaan',
         ]);
 

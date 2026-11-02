@@ -87,10 +87,10 @@ class TendikDashboardSections
 
         $tupoksiMap = [
             1 => ['label' => 'Jadwal Area Tugas Kebersihan', 'tabel' => 'teknisi_area_tugas'],
-            2 => ['label' => 'Kebersihan Lingkungan & Ruang Kerja', 'tabel' => 'teknisi_kebersihan_ruang'],
-            3 => ['label' => 'Kebersihan Lingkungan Ruang Rapat', 'tabel' => 'teknisi_kebersihan_rapat'],
+            2 => ['label' => 'Pelaksanaan Tugas Kebersihan Harian', 'tabel' => 'teknisi_pelaksanaan_harian'],
+            3 => ['label' => 'Kebersihan & Sarana Ruang Rapat', 'tabel' => 'teknisi_sarana_rapat'],
             4 => ['label' => 'Laporan Sarana Kegiatan Rapat', 'tabel' => 'teknisi_sarana_rapat'],
-            5 => ['label' => 'Pengarsipan & Laporan Perbaikan Sarpras', 'tabel' => 'teknisi_jurnal_perbaikan'],
+            5 => ['label' => 'Jurnal Perbaikan Sarpras (Work Order)', 'tabel' => 'teknisi_work_order'],
         ];
         $tupoksiRekap = [];
         foreach ($tupoksiMap as $no => $meta) {

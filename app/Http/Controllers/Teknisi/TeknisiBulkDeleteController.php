@@ -18,13 +18,11 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
 {
     /** Tabel di luar registry: [nama tabel, kolom penanda ptk (null bila tak ada)]. */
     private const EXTRA = [
-        'area-tugas'       => ['teknisi_area_tugas', 'petugas_ptk_id'],
-        'kebersihan-ruang' => ['teknisi_kebersihan_ruang', 'petugas_ptk_id'],
-        'kebersihan-rapat' => ['teknisi_kebersihan_rapat', 'petugas_ptk_id'],
-        'sarana-rapat'     => ['teknisi_sarana_rapat', 'petugas_ptk_id'],
-        'jurnal-perbaikan' => ['teknisi_jurnal_perbaikan', 'petugas_ptk_id'],
-        'work-order'       => ['teknisi_work_order', 'teknisi_ptk_id'],
-        'pemeliharaan'     => ['teknisi_pemeliharaan', null],
+        'area-tugas'         => ['teknisi_area_tugas', 'petugas_ptk_id'],
+        'pelaksanaan-harian' => ['teknisi_pelaksanaan_harian', 'petugas_ptk_id'],
+        'sarana-rapat'       => ['teknisi_sarana_rapat', 'petugas_ptk_id'],
+        'work-order'         => ['teknisi_work_order', 'teknisi_ptk_id'],
+        'pemeliharaan'       => ['teknisi_pemeliharaan', null],
     ];
 
     public function destroy(Request $request)

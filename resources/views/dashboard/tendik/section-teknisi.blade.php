@@ -89,8 +89,8 @@
     $stat = $teknisiStatistik ?? [];
     $rekapRows = [
         1 => ['label' => 'Area Tugas Kebersihan', 'route' => 'area-tugas', 'icon' => 'fa-clipboard-list', 'color' => '#3b82f6'],
-        2 => ['label' => 'Kebersihan Lingkungan & Ruang', 'route' => 'kebersihan-ruang', 'icon' => 'fa-broom', 'color' => '#10b981'],
-        3 => ['label' => 'Kebersihan Ruang Rapat', 'route' => 'kebersihan-rapat', 'icon' => 'fa-people-roof', 'color' => '#6366f1'],
+        2 => ['label' => 'Pelaksanaan Tugas Harian', 'route' => 'pelaksanaan-harian', 'icon' => 'fa-list-check', 'color' => '#10b981'],
+        3 => ['label' => 'Kebersihan & Sarana Ruang Rapat', 'route' => 'sarana-rapat', 'icon' => 'fa-people-roof', 'color' => '#6366f1'],
         4 => ['label' => 'Laporan Sarana Rapat', 'route' => 'sarana-rapat', 'icon' => 'fa-clipboard-check', 'color' => '#f59e0b'],
         5 => ['label' => 'Jurnal Perbaikan Sarpras', 'route' => 'jurnal-perbaikan', 'icon' => 'fa-screwdriver-wrench', 'color' => '#06b6d4'],
     ];

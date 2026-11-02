@@ -22,9 +22,11 @@ class TeknisiAreaTugasController extends TeknisiBaseController
     ];
 
     public const PERIODE = [
-        'harian'     => 'Harian',
+        'harian'     => 'Harian (Pagi/Siang/Sore)',
         'mingguan'   => 'Mingguan',
         'bulanan'    => 'Bulanan',
+        'semester'   => 'Semester',
+        'tahunan'    => 'Tahunan',
         'insidental' => 'Insidental',
     ];
 
@@ -168,35 +170,6 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         return $this->respond($request, true, 'Jadwal area tugas berhasil diperbarui.');
     }
 
-    /**
-     * Ubah status jadwal saja tanpa mengedit seluruh field (aksi "Konfirmasi").
-     */
-    public function status(Request $request, $id)
-    {
-        [$res, $context] = $this->boot($request);
-        if ($res) return $res;
-
-        $data = $request->validate([
-            'status' => 'required|in:draf,aktif,selesai',
-        ], [
-            'status.required' => 'Status wajib dipilih.',
-            'status.in'       => 'Status tidak dikenal.',
-        ]);
-
-        $row = $this->findRow('teknisi_area_tugas', $id);
-        if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
-        if (!$this->ownsRowRuang($row, $context)) {
-            return $this->respond($request, false, 'Anda hanya dapat mengubah data pada ruang yang menjadi tanggung jawab Anda.', 403);
-        }
-
-        DB::table('teknisi_area_tugas')->where('id', $id)->update([
-            'status'     => $data['status'],
-            'updated_at' => now(),
-        ]);
-
-        return $this->respond($request, true, 'Status jadwal area tugas diperbarui.');
-    }
-
     public function destroy(Request $request, $id)
     {
         [$res, $context] = $this->boot($request);
@@ -219,7 +192,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         return $request->validate([
             'area'            => 'required|string|max:150',
             'zona'            => 'nullable|string|max:80',
-            'periode_jadwal'  => 'nullable|in:harian,mingguan,bulanan,insidental',
+            'periode_jadwal'  => 'nullable|in:harian,mingguan,bulanan,semester,tahunan,insidental',
             'petugas_ptk_id'  => 'nullable|string|max:50',
             'petugas_nama'    => 'nullable|string|max:150',
             'shift'           => 'nullable|in:pagi,siang,sore',
