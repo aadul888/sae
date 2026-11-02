@@ -67,8 +67,11 @@ class LaboranBhpController extends Controller
 
         $query = DB::table('laboran_bahan_alat as lba')
             ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+            ->leftJoin('gtk as pjg', 'lba.penanggung_jawab_ptk_id', '=', 'pjg.ptk_id')
+            ->leftJoin('pengguna as pjp', 'lba.penanggung_jawab_ptk_id', '=', 'pjp.pengguna_id')
             ->where('lba.jenis', 'bahan_habis_pakai')
-            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan');
+            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan',
+                DB::raw('COALESCE(pjg.nama, pjp.nama) as pj_nama'));
 
         LaboranScope::apply($query, 'lba.jurusan_id', $context);
 
@@ -151,6 +154,7 @@ class LaboranBhpController extends Controller
             'canDelete'     => $canDelete,
             'perPage'       => $perPage,
             'context'       => $context,
+            'pjMap'         => \App\Support\PenanggungJawab::namaPerJurusan(),
             'scopeBadge'    => LaboranScope::badge($context),
             'kondisiList'   => self::KONDISI,
             'sumberDanaList' => self::SUMBER_DANA,
@@ -201,8 +205,11 @@ class LaboranBhpController extends Controller
             $kad  = $request->kondisi === 'kedaluwarsa' ? $stokTotal : 0;
         }
 
+        $jurusanId = LaboranScope::jurusanForWrite($request->jurusan_id, $context);
+
         DB::table('laboran_bahan_alat')->insert([
-            'jurusan_id'          => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
+            'jurusan_id'          => $jurusanId,
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($jurusanId),
             'ruang_lab_nama'      => $request->ruang_lab_nama,
             'kode_item'           => $kode,
             'nama_item'           => trim($request->nama_item),
@@ -267,8 +274,11 @@ class LaboranBhpController extends Controller
             $kode = app(LaboranInventarisImportService::class)->generateKodeItem('bahan_habis_pakai');
         }
 
+        $jurusanForWrite = LaboranScope::jurusanForWrite($request->jurusan_id, $context);
+
         DB::table('laboran_bahan_alat')->where('id', $id)->update([
-            'jurusan_id'          => LaboranScope::jurusanForWrite($request->jurusan_id, $context),
+            'jurusan_id'          => $jurusanForWrite,
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($jurusanForWrite),
             'ruang_lab_nama'      => $request->ruang_lab_nama,
             'kode_item'           => $kode,
             'nama_item'           => trim($request->nama_item),
@@ -428,8 +438,11 @@ class LaboranBhpController extends Controller
 
         $query = DB::table('laboran_bahan_alat as lba')
             ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+            ->leftJoin('gtk as pjg', 'lba.penanggung_jawab_ptk_id', '=', 'pjg.ptk_id')
+            ->leftJoin('pengguna as pjp', 'lba.penanggung_jawab_ptk_id', '=', 'pjp.pengguna_id')
             ->where('lba.jenis', 'bahan_habis_pakai')
-            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan');
+            ->select('lba.*', 'jm.nama_jurusan', 'jm.singkatan',
+                DB::raw('COALESCE(pjg.nama, pjp.nama) as pj_nama'));
 
         LaboranScope::apply($query, 'lba.jurusan_id', $context);
 

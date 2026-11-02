@@ -196,22 +196,31 @@ class TeknisiPeminjamanController extends TeknisiBaseController
         $pjIds = $this->ruangMilikPj($context);
         $ruangTerpilih = collect();
         if (!empty($ruangIds)) {
-            $ruangTerpilih = DB::table('sarpras_ruang')->whereIn('id', $ruangIds)->get();
-            foreach ($ruangTerpilih as $r) {
-                if (is_array($pjIds) && !in_array((int) $r->id, $pjIds, true)) {
-                    return $this->respond($request, false, 'Ruang "' . $r->nama_ruang . '" di luar tanggung jawab Anda.', 422);
-                }
+            $ruangTerpilih = DB::table('sarpras_ruang')->whereIn('id', $ruangIds)
+                ->where(function ($q) use ($context) {
+                    if ($this->isKoordinator($context)) return;
+                    $kunci = $this->kunciPj($context);
+                    $q->whereIn('penanggung_jawab_ptk_id', $kunci)
+                      ->orWhereNull('penanggung_jawab_ptk_id');
+                })->get();
+            if ($ruangTerpilih->count() !== count($ruangIds)) {
+                return $this->respond($request, false, 'Ada ruang yang di luar tanggung jawab Anda.', 422);
             }
         }
 
         // Validasi aset + ketersediaan unit.
+        $kunciPj = $this->kunciPj($context);
         $asetItems = collect();
         if (!empty($asetIds)) {
             $asetItems = DB::table('sarpras_aset')->whereIn('id', $asetIds)->get();
             $dipinjamMap = $this->unitDipinjamAset($asetItems->pluck('id')->all());
             $asetJumlahMap = $data['aset_jumlah'] ?? [];
             foreach ($asetItems as $aset) {
-                if (is_array($pjIds) && $aset->ruang_id && !in_array((int) $aset->ruang_id, $pjIds, true)) {
+                $dalamCakupan = $this->isKoordinator($context)
+                    || $aset->penanggung_jawab_ptk_id === null
+                    || in_array((string) $aset->penanggung_jawab_ptk_id, $kunciPj, true)
+                    || (is_array($pjIds) && $aset->ruang_id && in_array((int) $aset->ruang_id, $pjIds, true));
+                if (!$dalamCakupan) {
                     return $this->respond($request, false, 'Aset "' . $aset->nama_barang . '" di luar tanggung jawab Anda.', 422);
                 }
                 if (in_array($aset->status_ketersediaan ?? 'tersedia', ['dipinjam', 'hilang'], true)) {
@@ -464,22 +473,27 @@ class TeknisiPeminjamanController extends TeknisiBaseController
             return $query; // koordinator
         }
 
-        if (empty($pjIds)) {
-            // Teknisi tanpa ruang PJ tidak melihat data apa pun.
+        // Aset yang ikut cakupan: ber-PJ akun login ATAU berada di ruang PJ.
+        $asetPjIds = $this->asetMilikPj($context);
+
+        if (empty($pjIds) && empty($asetPjIds)) {
+            // Teknisi tanpa PJ ruang/aset tidak melihat data apa pun.
             return $query->whereRaw('1 = 0');
         }
 
         $outer = ($alias ? $alias . '.' : 'teknisi_peminjaman.') . 'id';
 
-        return $query->whereExists(function ($sub) use ($pjIds, $outer) {
+        return $query->whereExists(function ($sub) use ($pjIds, $asetPjIds, $outer) {
             $sub->selectRaw('1')
                 ->from('teknisi_peminjaman_item as tpi')
                 ->whereColumn('tpi.peminjaman_id', $outer)
-                ->where(function ($w) use ($pjIds) {
-                    $w->whereIn('tpi.ruang_id', $pjIds)
-                      ->orWhereIn('tpi.aset_id', function ($q) use ($pjIds) {
-                          $q->select('id')->from('sarpras_aset')->whereIn('ruang_id', $pjIds);
-                      });
+                ->where(function ($w) use ($pjIds, $asetPjIds) {
+                    if (!empty($pjIds)) {
+                        $w->whereIn('tpi.ruang_id', $pjIds);
+                    }
+                    if (!empty($asetPjIds)) {
+                        $w->orWhereIn('tpi.aset_id', $asetPjIds);
+                    }
                 });
         });
     }
@@ -541,7 +555,8 @@ class TeknisiPeminjamanController extends TeknisiBaseController
 
         $pjIds = $this->ruangMilikPj($context);
         if (is_array($pjIds)) {
-            $q->whereIn('sa.ruang_id', $pjIds);
+            $asetPjIds = $this->asetMilikPj($context);
+            empty($asetPjIds) ? $q->whereRaw('1 = 0') : $q->whereIn('sa.id', $asetPjIds);
         }
 
         $rows = $q->get();

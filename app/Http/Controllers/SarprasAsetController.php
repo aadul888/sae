@@ -88,7 +88,10 @@ class SarprasAsetController extends Controller
             $query = DB::table('sarpras_aset as sa')
                 ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
                 ->leftJoin('jurusan_meta as jm', 'sa.jurusan_id', '=', 'jm.jurusan_id')
-                ->select('sa.*', 'sr.nama_ruang', 'sr.gedung', 'jm.nama_jurusan', 'jm.singkatan as jurusan_singkatan');
+                ->leftJoin('gtk as pjg', 'sa.penanggung_jawab_ptk_id', '=', 'pjg.ptk_id')
+                ->leftJoin('pengguna as pjp', 'sa.penanggung_jawab_ptk_id', '=', 'pjp.pengguna_id')
+                ->select('sa.*', 'sr.nama_ruang', 'sr.gedung', 'jm.nama_jurusan', 'jm.singkatan as jurusan_singkatan',
+                    DB::raw('COALESCE(pjg.nama, pjp.nama) as pj_nama'));
 
             if ($search !== '') {
                 $query->where(function ($q) use ($search) {
@@ -186,7 +189,7 @@ class SarprasAsetController extends Controller
             'canUpdate',
             'canDelete',
             'perPage'
-        ));
+        ) + ['pjMap' => \App\Support\PenanggungJawab::namaPerJurusan()]);
     }
 
     /**
@@ -340,6 +343,8 @@ class SarprasAsetController extends Controller
             $fotoPath = $request->file('foto')->store('sarpras/aset', 'public');
         }
 
+        $jurusanId = $request->filled('jurusan_id') ? trim($request->jurusan_id) : null;
+
         DB::table('sarpras_aset')->insert([
             'kode_aset'           => $kode,
             'nama_barang'         => trim($request->nama_barang),
@@ -355,7 +360,8 @@ class SarprasAsetController extends Controller
             'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
             'jumlah_rusak_berat'  => $rincian['rusak_berat'],
             'ruang_id'            => $request->ruang_id,
-            'jurusan_id'          => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
+            'jurusan_id'          => $jurusanId,
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($jurusanId),
             'jumlah'              => $jumlah,
             'satuan'              => $request->satuan,
             'status_ketersediaan' => 'tersedia',
@@ -405,6 +411,8 @@ class SarprasAsetController extends Controller
             $tahun = (int) \Carbon\Carbon::parse($tgl)->format('Y');
         }
 
+        $jurusanId = $request->filled('jurusan_id') ? trim($request->jurusan_id) : null;
+
         $data = [
             'kode_aset'           => strtoupper(trim($request->kode_aset)),
             'nama_barang'         => trim($request->nama_barang),
@@ -420,7 +428,8 @@ class SarprasAsetController extends Controller
             'jumlah_rusak_ringan' => $rincian['rusak_ringan'],
             'jumlah_rusak_berat'  => $rincian['rusak_berat'],
             'ruang_id'            => $request->ruang_id,
-            'jurusan_id'          => $request->filled('jurusan_id') ? trim($request->jurusan_id) : null,
+            'jurusan_id'          => $jurusanId,
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($jurusanId),
             'jumlah'              => $jumlah,
             'satuan'              => $request->satuan,
             'status_ketersediaan' => $request->status_ketersediaan,

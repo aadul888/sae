@@ -224,23 +224,83 @@ abstract class TeknisiBaseController extends Controller
      */
     protected function ruangMilikPj(array $context): ?array
     {
+        return $this->idMilikPj('sarpras_ruang', $context);
+    }
+
+    /**
+     * Kunci identitas PJ akun login: `ptk_id` GTK dan/atau `pengguna_id` manual.
+     * `penanggung_jawab_ptk_id` dapat berisi salah satu (pola sarpras_ruang).
+     *
+     * @return array<int, string>
+     */
+    protected function kunciPj(array $context): array
+    {
+        return array_values(array_filter(
+            [$context['ptk_id'] ?? null, $context['user_id'] ?? null],
+            fn ($v) => $v !== null && $v !== ''
+        ));
+    }
+
+    /**
+     * Id baris tabel yang PJ-nya akun login; null bila koordinator (semua).
+     *
+     * Baris ber-PJ NULL (umum) tidak ikut di sini; pemanggil menambahkannya
+     * sebagai tanggung jawab bersama.
+     */
+    protected function idMilikPj(string $table, array $context): ?array
+    {
         if ($this->isKoordinator($context)) {
             return null;
         }
 
-        // PJ di Ruang & Gedung kadang diisi `ptk_id` GTK, kadang `pengguna_id`
-        // (lihat join gtk + pengguna di SarprasRuangController).
-        $kunci = array_values(array_filter(
-            [$context['ptk_id'] ?? null, $context['user_id'] ?? null],
-            fn ($v) => $v !== null && $v !== ''
-        ));
-
-        if (empty($kunci) || !\App\Support\Table::exists('sarpras_ruang')) {
+        $kunci = $this->kunciPj($context);
+        if (empty($kunci) || !\App\Support\Table::exists($table)) {
             return [];
         }
 
-        return DB::table('sarpras_ruang')
-            ->whereIn('penanggung_jawab_ptk_id', $kunci)
+        return DB::table($table)
+            ->where(function ($q) use ($kunci) {
+                $q->whereIn('penanggung_jawab_ptk_id', $kunci)
+                  ->orWhereNull('penanggung_jawab_ptk_id'); // umum = tanggung jawab bersama
+            })
+            ->pluck('id')
+            ->map(fn ($v) => (int) $v)
+            ->all();
+    }
+
+    /**
+     * Id `sarpras_aset` dalam cakupan PJ: ber-PJ akun login, umum (PJ NULL =
+     * milik bersama), atau berlokasi di ruang PJ. Koordinator → seluruh aset.
+     *
+     * @return array<int, int>
+     */
+    protected function asetMilikPj(array $context): array
+    {
+        if (!\App\Support\Table::exists('sarpras_aset')) {
+            return [];
+        }
+
+        if ($this->isKoordinator($context)) {
+            return DB::table('sarpras_aset')->pluck('id')->map(fn ($v) => (int) $v)->all();
+        }
+
+        $kunci = $this->kunciPj($context);
+        $ruangPjIds = $this->ruangMilikPj($context) ?? [];
+
+        if (empty($kunci) && empty($ruangPjIds)) {
+            return [];
+        }
+
+        return DB::table('sarpras_aset')
+            ->where(function ($q) use ($kunci, $ruangPjIds) {
+                $q->whereNull('penanggung_jawab_ptk_id'); // umum = milik bersama
+                if (!empty($kunci)) {
+                    $q->orWhereIn('penanggung_jawab_ptk_id', $kunci);
+                }
+                if (!empty($ruangPjIds)) {
+                    $q->orWhereIn('ruang_id', $ruangPjIds);
+                }
+            })
             ->pluck('id')
             ->map(fn ($v) => (int) $v)
             ->all();

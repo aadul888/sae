@@ -35,6 +35,10 @@
                             <option value="{{ $lab }}"></option>
                         @endforeach
                     </datalist>
+                    <small style="display: block; margin-top: 4px; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                        <i class="fas fa-user-shield"></i> Penanggung jawab:
+                        <strong>{{ ($pjMap[$context['jurusan_id'] ?? ''] ?? null) ?: 'Tanggung jawab bersama (Sarpras / Teknisi & IT)' }}</strong>
+                    </small>
                 </div>
             </div>
 

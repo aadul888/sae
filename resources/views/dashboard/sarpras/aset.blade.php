@@ -346,6 +346,10 @@
                                             </span>
                                         @endif
                                     </div>
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
+                                        <i class="fas fa-user-shield"></i> PJ:
+                                        {{ ($item->pj_nama ?? null) ?: 'Tanggung jawab bersama' }}
+                                    </div>
                                 </td>
                                 <td data-label="Jumlah"
                                     style="padding: 14px 18px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700;">

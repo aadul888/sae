@@ -352,6 +352,7 @@ class LaboranInventarisImportService
             'tanggal_pengadaan'   => $d['tanggal_pengadaan'] ?: $existing->tanggal_pengadaan,
             'tahun_pengadaan'     => $d['tahun_pengadaan'] ?: $existing->tahun_pengadaan,
             'sumber_dana'         => $d['sumber_dana'] ?: ($existing->sumber_dana ?? 'BOS'),
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($existing->jurusan_id ?? null),
             'updated_at'          => now(),
         ]);
     }
@@ -360,6 +361,7 @@ class LaboranInventarisImportService
     {
         DB::table('laboran_bahan_alat')->insert([
             'jurusan_id'          => $jurusanId,
+            'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($jurusanId),
             'ruang_lab_nama'      => $d['ruang_lab_nama'],
             'kode_item'           => $d['kode_item'],
             'nama_item'           => $d['nama_item'],

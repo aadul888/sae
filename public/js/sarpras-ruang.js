@@ -104,40 +104,28 @@ document.addEventListener('DOMContentLoaded', function () {
             const nama = btnDelete.dataset.nama || 'ruang ini';
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-            if (window.Swal) {
-                window.SAE.confirm("Apakah Anda yakin ingin menghapus ${nama}?", "Hapus Ruang?", 'warning', "Ya, Hapus", "Batal").then((res) => {
-                    if (res.isConfirmed) {
-                        fetch(`/dashboard/sarpras/ruang/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(r => r.json())
-                        .then(res => {
-                            if (res.status === 'success') {
-                                Swal.fire('Berhasil!', res.message, 'success').then(() => location.reload());
-                            } else {
-                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
-                            }
-                        })
-                        .catch(() => {
-                            Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
-                        });
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Hapus Ruang?', 'danger', 'Ya, Hapus', 'Batal').then((ok) => {
+                if (!ok) return;
+                fetch(`/dashboard/sarpras/ruang/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
-                });
-            } else {
-                window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then((ok) => {
-                    if (ok) {
-                        fetch(`/dashboard/sarpras/ruang/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                        }).then(() => location.reload());
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        window.SAE.alert(res.message, 'Berhasil', 'success').then(() => location.reload());
+                    } else {
+                        window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
                     }
+                })
+                .catch(() => {
+                    window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error');
                 });
-            }
+            });
         }
     });
 });

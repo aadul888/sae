@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (jRR) jRR.value = data.rr !== undefined ? data.rr : (data.kondisi === 'rusak_ringan' ? jml : 0);
             if (jRB) jRB.value = data.rb !== undefined ? data.rb : (data.kondisi === 'rusak_berat' ? jml : 0);
             syncRincianKondisi();
+            syncAsetPjInfo();
         } else {
             modalTitle.textContent = 'Tambah Aset Sarpras';
             methodInput.value = 'POST';
@@ -77,6 +78,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.openModalAset = (isEdit, data) => openModal(isEdit, data);
     window.closeModalAset = closeModal;
+
+    // PJ otomatis dari jurusan: tampilkan nama Laboran PJ pada info form.
+    const asetPjMap = window.__asetPjMap || {};
+    function syncAsetPjInfo() {
+        const jurusan = document.getElementById('asetJurusan');
+        const info = document.getElementById('asetPjInfo');
+        if (!jurusan || !info) return;
+        info.textContent = jurusan.value
+            ? (asetPjMap[jurusan.value] || 'Laboran jurusan (belum ditetapkan)')
+            : 'Tanggung jawab bersama (Sarpras / Teknisi & IT)';
+    }
+    const asetJurusanEl = document.getElementById('asetJurusan');
+    if (asetJurusanEl) asetJurusanEl.addEventListener('change', syncAsetPjInfo);
 
     const inputJumlah = document.getElementById('asetJumlah');
     const inputTglPerolehan = document.getElementById('asetTanggalPerolehan');
@@ -188,40 +202,28 @@ document.addEventListener('DOMContentLoaded', function () {
             const nama = btnDelete.dataset.nama || 'aset ini';
             const csrfToken = getCsrfToken();
 
-            if (window.Swal) {
-                window.SAE.confirm("Apakah Anda yakin ingin menghapus data ${nama}?", "Hapus Aset?", 'warning', "Ya, Hapus", "Batal").then((res) => {
-                    if (res.isConfirmed) {
-                        fetch(`/dashboard/sarpras/aset/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(r => r.json())
-                        .then(res => {
-                            if (res.status === 'success') {
-                                Swal.fire('Berhasil!', res.message, 'success').then(() => location.reload());
-                            } else {
-                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
-                            }
-                        })
-                        .catch(() => {
-                            Swal.fire('Error', 'Gagal memproses permintaan.', 'error');
-                        });
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Hapus Aset?', 'danger', 'Ya, Hapus', 'Batal').then((ok) => {
+                if (!ok) return;
+                fetch(`/dashboard/sarpras/aset/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
-                });
-            } else {
-                window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${nama}?`, 'Konfirmasi Hapus', 'danger', 'Ya, Hapus').then((ok) => {
-                    if (ok) {
-                        fetch(`/dashboard/sarpras/aset/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                        }).then(() => location.reload());
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        window.SAE.alert(res.message, 'Berhasil', 'success').then(() => location.reload());
+                    } else {
+                        window.SAE.alert(res.message || 'Terjadi kesalahan.', 'Gagal', 'error');
                     }
+                })
+                .catch(() => {
+                    window.SAE.alert('Gagal memproses permintaan.', 'Error', 'error');
                 });
-            }
+            });
         }
     });
 

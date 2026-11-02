@@ -212,6 +212,10 @@
                                     <div style="font-weight: 600; color: var(--text-color);">{{ $item->ruang_lab_nama }}</div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Rak:
                                         {{ $item->lokasi_lemari_rak ?: '-' }}</div>
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
+                                        <i class="fas fa-user-shield"></i> PJ:
+                                        {{ ($item->pj_nama ?? null) ?: 'Tanggung jawab bersama' }}
+                                    </div>
                                 </td>
                                 <td data-label="Stok" style="padding: 14px 18px; text-align: center;">
                                     <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-base, 0.875rem);">

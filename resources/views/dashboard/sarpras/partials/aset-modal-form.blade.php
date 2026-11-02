@@ -194,6 +194,10 @@
                             </option>
                         @endforeach
                     </select>
+                    <small style="display: block; margin-top: 4px; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                        <i class="fas fa-info-circle"></i> Penanggung jawab otomatis:
+                        <strong id="asetPjInfo">—</strong>
+                    </small>
                 </div>
             </div>
 
@@ -237,3 +241,7 @@
         </form>
     </div>
 </div>
+
+<script>
+    window.__asetPjMap = @json($pjMap ?? []);
+</script>

@@ -185,10 +185,11 @@ class TeknisiModuleController extends TeknisiBaseController
         $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
 
         $build = function ($q) use ($context) {
-            // `sarpras_aset` tidak punya kolom user_id → cakupan murni per ruang PJ.
-            $ids = $this->ruangMilikPj($context);
-            if ($ids !== null) {
-                empty($ids) ? $q->whereRaw('1 = 0') : $q->whereIn('a.ruang_id', $ids);
+            // `sarpras_aset` ber-PJ sendiri (kolom penanggung_jawab_ptk_id);
+            // umum (PJ NULL) = milik bersama. Cakupan dari asetMilikPj.
+            if (!$this->isKoordinator($context)) {
+                $ids = $this->asetMilikPj($context);
+                empty($ids) ? $q->whereRaw('1 = 0') : $q->whereIn('a.id', $ids);
             }
 
             return $q;
