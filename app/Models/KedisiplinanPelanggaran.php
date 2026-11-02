@@ -22,12 +22,26 @@ class KedisiplinanPelanggaran extends Model
         'pelapor_nama',
         'foto_bukti',
         'status_tindak_lanjut',
+        'sanggah_status',
+        'sanggah_jenis',
+        'sanggah_keterangan',
+        'sanggah_poin_potong',
+        'sanggah_validator',
+        'sanggah_tanggal',
+        'sanggah_bukti',
     ];
 
     protected $casts = [
-        'tanggal_kejadian' => 'date',
-        'poin' => 'integer',
+        'tanggal_kejadian'    => 'date',
+        'poin'                => 'integer',
+        'sanggah_poin_potong' => 'integer',
+        'sanggah_tanggal'     => 'date',
     ];
+
+    public function getPoinNettoAttribute(): int
+    {
+        return max(0, (int) $this->poin - (int) ($this->sanggah_poin_potong ?? 0));
+    }
 
     public function siswa()
     {

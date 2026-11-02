@@ -309,11 +309,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::prefix('kedisiplinan')->name('kedisiplinan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\KedisiplinanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
             Route::get('/tatib/template', [\App\Http\Controllers\KedisiplinanController::class, 'downloadTemplateTataTertib'])->name('tatib.template')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
+            Route::get('/tatib/next-kode', [\App\Http\Controllers\KedisiplinanController::class, 'getNextKodeTataTertib'])->name('tatib.next_kode')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
             Route::post('/tatib/import', [\App\Http\Controllers\KedisiplinanController::class, 'importTataTertib'])->name('tatib.import')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::post('/tatib', [\App\Http\Controllers\KedisiplinanController::class, 'storeTatib'])->name('tatib.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::put('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'updateTatib'])->name('tatib.update')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
             Route::delete('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyTatib'])->name('tatib.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
             Route::post('/pelanggaran', [\App\Http\Controllers\KedisiplinanController::class, 'storePelanggaran'])->name('pelanggaran.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
+            Route::post('/pelanggaran/{id}/sanggah', [\App\Http\Controllers\KedisiplinanController::class, 'storeSanggah'])->name('pelanggaran.sanggah')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
             Route::delete('/pelanggaran/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyPelanggaran'])->name('pelanggaran.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
             Route::post('/pembinaan', [\App\Http\Controllers\KedisiplinanController::class, 'storePembinaan'])->name('pembinaan.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::post('/panggilan-wali', [\App\Http\Controllers\KedisiplinanController::class, 'storePanggilanWali'])->name('panggilan-wali.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');

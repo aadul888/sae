@@ -275,6 +275,11 @@ return function () {
         Route::post('/insiden', [\App\Http\Controllers\KeamananPatroliController::class, 'storeInsiden'])->name('insiden.store')->middleware('permission:menu_keamanan,create');
         Route::put('/insiden/{id}', [\App\Http\Controllers\KeamananPatroliController::class, 'updateInsiden'])->name('insiden.update')->middleware('permission:menu_keamanan,update');
         Route::delete('/insiden/{id}', [\App\Http\Controllers\KeamananPatroliController::class, 'destroyInsiden'])->name('insiden.destroy')->middleware('permission:menu_keamanan,delete');
+
+        // Pencatatan Pelanggaran Siswa Khusus Pos Satpam / Gerbang
+        Route::get('/pelanggaran', [\App\Http\Controllers\KeamananPelanggaranController::class, 'index'])->name('pelanggaran.index')->middleware('permission:menu_keamanan,read');
+        Route::get('/pelanggaran/search-siswa', [\App\Http\Controllers\KeamananPelanggaranController::class, 'searchSiswa'])->name('pelanggaran.search-siswa')->middleware('permission:menu_keamanan,read');
+        Route::post('/pelanggaran', [\App\Http\Controllers\KeamananPelanggaranController::class, 'store'])->name('pelanggaran.store')->middleware('permission:menu_keamanan,create');
     });
 
     // 4. Fasilitas & Penjaga Sekolah

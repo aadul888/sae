@@ -572,6 +572,41 @@
                         data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="all">
                 </div>
 
+                {{-- Siswa di Luar Saat KBM & Pelanggaran Tata Tertib --}}
+                <div style="margin-bottom: 14px; padding: 12px; background: rgba(239,68,68,0.04); border: 1px dashed rgba(239,68,68,0.3); border-radius: var(--radius-md, 8px);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="font-weight: 700; font-size: 0.8125rem; color: var(--danger); display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-person-walking-arrow-right"></i> Temuan Siswa di Luar saat KBM / Pelanggaran Disiplin
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Sinkron ke Kesiswaan</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Pilih Aturan Tata Tertib</label>
+                            <select name="tata_tertib_id" id="insiden_tatib" class="form-control" style="font-size: 0.8125rem;">
+                                <option value="">-- Bukan Pelanggaran Siswa --</option>
+                                @if (isset($daftarTatib))
+                                    @foreach ($daftarTatib as $tt)
+                                        <option value="{{ $tt->id }}">
+                                            [{{ $tt->kode }}] {{ $tt->nama_aturan }} (+{{ $tt->bobot_poin }} Poin)
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Kategori Insiden</label>
+                            <select name="kategori_insiden" id="insiden_kategori" class="form-control" style="font-size: 0.8125rem;">
+                                <option value="umum">Insiden Lingkungan Umum</option>
+                                <option value="siswa_kbm" selected>Siswa di Luar Saat KBM / Membolos</option>
+                                <option value="keamanan_aset">Keamanan &amp; Aset Gedung</option>
+                                <option value="ketertiban_gerbang">Ketertiban Area Gerbang</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="margin-bottom: 12px;">
                     <label class="form-label">Kronologi Kejadian <span style="color:red;">*</span></label>
                     <textarea name="kronologi" id="insiden_kronologi" class="form-control" rows="3"

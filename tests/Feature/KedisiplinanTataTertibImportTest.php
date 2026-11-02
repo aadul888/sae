@@ -33,7 +33,9 @@ class KedisiplinanTataTertibImportTest extends TestCase
 
     protected function tearDown(): void
     {
-        KedisiplinanTataTertib::whereIn('kode', ['TEST01', 'TEST02', 'TEST03', 'KER01', 'HD01', 'PR02'])->delete();
+        KedisiplinanTataTertib::whereIn('kode', ['TEST01', 'TEST02', 'TEST03', 'KER01', 'HD01', 'PR02'])
+            ->orWhere('nama_aturan', 'like', 'Aturan Uji Otomatis%')
+            ->delete();
         parent::tearDown();
     }
 
@@ -131,5 +133,60 @@ class KedisiplinanTataTertibImportTest extends TestCase
         $response->assertSee('RINGAN');
         $response->assertSee('SEDANG');
         $response->assertSee('BERAT');
+    }
+
+    public function test_get_next_kode_endpoint()
+    {
+        $response = $this->withSession($this->session)
+            ->get(route('dashboard.kesiswaan.kedisiplinan.tatib.next_kode', ['kategori' => 'kerapian']));
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['status', 'kode']);
+        $this->assertStringStartsWith('KER', $response->json('kode'));
+    }
+
+    public function test_store_tatib_generates_kode_automatically()
+    {
+        $response = $this->withSession($this->session)
+            ->post(route('dashboard.kesiswaan.kedisiplinan.tatib.store'), [
+                'kategori'           => 'perilaku',
+                'nama_aturan'        => 'Aturan Uji Otomatis Perilaku',
+                'bobot_poin'         => 12,
+                'sanksi_rekomendasi' => 'Peringatan guru BK',
+            ]);
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertNotEmpty($data['kode']);
+        $this->assertStringStartsWith('PR', $data['kode']);
+        $this->assertEquals('ringan', $data['tingkat']);
+
+        $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
+            'id'          => $data['id'],
+            'nama_aturan' => 'Aturan Uji Otomatis Perilaku',
+            'kode'        => $data['kode'],
+        ]);
+    }
+
+    public function test_import_generates_kode_when_column_empty()
+    {
+        $csvContent = implode("\n", [
+            'kode,tingkat,kategori,nama_aturan,bobot_poin,sanksi_rekomendasi',
+            ',ringan,kerapian,Aturan Uji Otomatis Import Tanpa Kode,5,Teguran lisan',
+        ]);
+
+        $file = UploadedFile::fake()->createWithContent('tatib_nokode.csv', $csvContent);
+
+        $response = $this->withSession($this->session)
+            ->post(route('dashboard.kesiswaan.kedisiplinan.tatib.import'), [
+                'file_excel' => $file,
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['status' => 'success']);
+
+        $saved = KedisiplinanTataTertib::where('nama_aturan', 'Aturan Uji Otomatis Import Tanpa Kode')->first();
+        $this->assertNotNull($saved);
+        $this->assertStringStartsWith('KER', $saved->kode);
     }
 }

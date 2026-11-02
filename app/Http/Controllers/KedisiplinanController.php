@@ -35,7 +35,7 @@ class KedisiplinanController extends Controller
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'delete');
 
-        $activeTab = $request->get('tab', 'riwayat'); // tata_tertib, poin, riwayat, pembinaan, pemanggilan, tindak_lanjut, rekap
+        $activeTab = $request->get('tab', 'rekap'); // rekap, poin, riwayat, tata_tertib, pembinaan, pemanggilan, tindak_lanjut
         $q = trim($request->get('q', ''));
         $kategori = trim($request->get('kategori', ''));
         $tingkat = trim($request->get('tingkat', ''));
@@ -50,16 +50,20 @@ class KedisiplinanController extends Controller
         $totalPembinaan = KedisiplinanPembinaan::count();
         $totalPanggilan = KedisiplinanPemanggilanWali::count();
         $totalPending = KedisiplinanPelanggaran::where('status_tindak_lanjut', 'pending')->count();
+        $totalDisanggah = KedisiplinanPelanggaran::whereNotNull('sanggah_status')->count();
+        $totalPoinDisanggah = (int) KedisiplinanPelanggaran::sum('sanggah_poin_potong');
 
         $stats = [
-            'total_aturan'      => $totalAturan,
-            'total_ringan'      => $totalRingan,
-            'total_sedang'      => $totalSedang,
-            'total_berat'       => $totalBerat,
-            'total_pelanggaran' => $totalPelanggaran,
-            'total_pembinaan'   => $totalPembinaan,
-            'total_panggilan'   => $totalPanggilan,
-            'total_pending'     => $totalPending,
+            'total_aturan'         => $totalAturan,
+            'total_ringan'         => $totalRingan,
+            'total_sedang'         => $totalSedang,
+            'total_berat'          => $totalBerat,
+            'total_pelanggaran'    => $totalPelanggaran,
+            'total_pembinaan'      => $totalPembinaan,
+            'total_panggilan'      => $totalPanggilan,
+            'total_pending'        => $totalPending,
+            'total_disanggah'      => $totalDisanggah,
+            'total_poin_sanggah'   => $totalPoinDisanggah,
         ];
 
         // 2. Tab: Tata Tertib
@@ -118,7 +122,7 @@ class KedisiplinanController extends Controller
         }
         $pemanggilanList = $pemanggilanQuery->paginate($perPage, ['*'], 'pemanggilan_page')->withQueryString();
 
-        // 6. Tab: Rekapitulasi Poin Siswa (Total akumulasi poin per siswa)
+        // 6. Tab: Rekapitulasi Poin Siswa (Total akumulasi poin & kompensasi per siswa)
         $rekapSiswa = DB::table('kedisiplinan_pelanggaran as kp')
             ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
             ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
@@ -128,12 +132,80 @@ class KedisiplinanController extends Controller
                 'pd.nama',
                 'pd.nisn',
                 'rb.nama as rombel_nama',
-                DB::raw('SUM(kp.poin) as total_poin'),
+                DB::raw('SUM(kp.poin) as total_poin_kotor'),
+                DB::raw('SUM(COALESCE(kp.sanggah_poin_potong, 0)) as total_disanggah'),
+                DB::raw('SUM(GREATEST(0, kp.poin - COALESCE(kp.sanggah_poin_potong, 0))) as total_poin'),
                 DB::raw('COUNT(kp.id) as total_kasus')
             )
             ->groupBy('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama')
             ->orderByDesc('total_poin')
             ->limit(100)
+            ->get();
+
+        // 7. Data Chart Informatif Rekapitulasi Kedisiplinan
+        $chartTren = ['labels' => [], 'data' => []];
+        for ($i = 5; $i >= 0; $i--) {
+            $dt = now()->subMonths($i);
+            $monthKey = $dt->format('Y-m');
+            $chartTren['labels'][] = $dt->translatedFormat('M Y');
+            $chartTren['data'][] = DB::table('kedisiplinan_pelanggaran')
+                ->whereRaw("DATE_FORMAT(tanggal_kejadian, '%Y-%m') = ?", [$monthKey])
+                ->count();
+        }
+
+        $chartTingkat = [
+            'labels' => ['Ringan', 'Sedang', 'Berat'],
+            'data'   => [
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.tingkat', 'ringan')->count(),
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.tingkat', 'sedang')->count(),
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.tingkat', 'berat')->count(),
+            ],
+        ];
+
+        $chartKategori = [
+            'labels' => ['Kerapian', 'Kehadiran', 'Perilaku', 'Larangan Berat'],
+            'data'   => [
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.kategori', 'kerapian')->count(),
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.kategori', 'kehadiran')->count(),
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.kategori', 'perilaku')->count(),
+                DB::table('kedisiplinan_pelanggaran as kp')
+                    ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('tt.kategori', 'larangan_berat')->count(),
+            ],
+        ];
+
+        $totalSelesaiBiasa = DB::table('kedisiplinan_pelanggaran')
+            ->where('status_tindak_lanjut', 'selesai')
+            ->whereNull('sanggah_status')
+            ->count();
+        $chartStatus = [
+            'labels' => ['Menunggu (Pending)', 'Dalam Proses', 'Selesai Biasa', 'Disanggah / Bakti Sekolah'],
+            'data'   => [
+                DB::table('kedisiplinan_pelanggaran')->where('status_tindak_lanjut', 'pending')->count(),
+                DB::table('kedisiplinan_pelanggaran')->where('status_tindak_lanjut', 'proses')->count(),
+                $totalSelesaiBiasa,
+                DB::table('kedisiplinan_pelanggaran')->whereNotNull('sanggah_status')->count(),
+            ],
+        ];
+
+        $topAturan = DB::table('kedisiplinan_pelanggaran as kp')
+            ->join('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+            ->select('tt.kode', 'tt.nama_aturan', 'tt.tingkat', DB::raw('COUNT(kp.id) as total_pelanggaran'))
+            ->groupBy('tt.id', 'tt.kode', 'tt.nama_aturan', 'tt.tingkat')
+            ->orderByDesc('total_pelanggaran')
+            ->limit(5)
             ->get();
 
         return view('dashboard.kesiswaan.kedisiplinan', compact(
@@ -149,6 +221,11 @@ class KedisiplinanController extends Controller
             'pembinaanList',
             'pemanggilanList',
             'rekapSiswa',
+            'chartTren',
+            'chartTingkat',
+            'chartKategori',
+            'chartStatus',
+            'topAturan',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -237,19 +314,11 @@ class KedisiplinanController extends Controller
         $updated = 0;
         $skipped = 0;
 
-        $maxId = KedisiplinanTataTertib::max('id') ?? 0;
-        $autoCodeIndex = $maxId + 1;
-
         foreach ($rows as $row) {
             $namaAturan = $this->ambilCell($row, ['nama_aturan', 'uraian', 'aturan', 'nama_pelanggaran', 'pelanggaran', 'deskripsi']);
             if ($namaAturan === '') {
                 $skipped++;
                 continue;
-            }
-
-            $rawKode = $this->ambilCell($row, ['kode', 'kode_aturan', 'kode_tatib', 'no_aturan']);
-            if ($rawKode === '') {
-                $rawKode = 'TT' . str_pad((string)($autoCodeIndex++), 3, '0', STR_PAD_LEFT);
             }
 
             $rawKategori = strtolower($this->ambilCell($row, ['kategori', 'jenis', 'kelompok', 'tipe']));
@@ -261,6 +330,11 @@ class KedisiplinanController extends Controller
                 $kategori = 'larangan_berat';
             } else {
                 $kategori = 'perilaku';
+            }
+
+            $rawKode = $this->ambilCell($row, ['kode', 'kode_aturan', 'kode_tatib', 'no_aturan']);
+            if ($rawKode === '') {
+                $rawKode = KedisiplinanTataTertib::generateKode($kategori);
             }
 
             $rawPoin = $this->ambilCell($row, ['bobot_poin', 'poin', 'bobot', 'skor']);
@@ -402,18 +476,36 @@ class KedisiplinanController extends Controller
     }
 
     /**
+     * Ambil kode aturan berikutnya berdasarkan kategori.
+     */
+    public function getNextKodeTataTertib(Request $request)
+    {
+        $kategori = $request->query('kategori');
+        $kode = KedisiplinanTataTertib::generateKode($kategori);
+
+        return response()->json([
+            'status' => 'success',
+            'kode'   => $kode,
+        ]);
+    }
+
+    /**
      * Simpan Aturan Tata Tertib Baru.
      */
     public function storeTataTertib(Request $request)
     {
         $validated = $request->validate([
-            'kode'               => 'required|string|max:50|unique:kedisiplinan_tata_tertib,kode',
+            'kode'               => 'nullable|string|max:50|unique:kedisiplinan_tata_tertib,kode',
             'tingkat'            => 'nullable|string|in:ringan,sedang,berat',
             'kategori'           => 'required|string|in:kerapian,kehadiran,perilaku,larangan_berat',
             'nama_aturan'        => 'required|string|max:255',
             'bobot_poin'         => 'required|integer|min:1',
             'sanksi_rekomendasi' => 'nullable|string|max:255',
         ]);
+
+        if (empty($validated['kode'])) {
+            $validated['kode'] = KedisiplinanTataTertib::generateKode($validated['kategori'] ?? null);
+        }
 
         if (empty($validated['tingkat'])) {
             $validated['tingkat'] = ($validated['kategori'] === 'larangan_berat' || (int)$validated['bobot_poin'] >= 35)
@@ -486,6 +578,68 @@ class KedisiplinanController extends Controller
     public function storePelanggaran(Request $request)
     {
         return $this->storePoin($request);
+    }
+
+    /**
+     * Sanggah / Kompensasi Pelanggaran Poin Siswa (Bakti Sekolah, Tugas Literasi, dll).
+     */
+    public function storeSanggah(Request $request, $id)
+    {
+        $item = KedisiplinanPelanggaran::with('aturan')->findOrFail($id);
+
+        $validated = $request->validate([
+            'sanggah_jenis'       => 'required|string|in:bakti_sekolah,tugas_literasi,klarifikasi,pembinaan_karakter',
+            'sanggah_keterangan'  => 'required|string|max:1000',
+            'sanggah_poin_potong' => 'nullable|integer|min:0',
+            'sanggah_validator'   => 'nullable|string|max:100',
+            'sanggah_bukti'       => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp,pdf',
+        ]);
+
+        $potong = isset($validated['sanggah_poin_potong']) && $validated['sanggah_poin_potong'] !== ''
+            ? min((int) $item->poin, max(0, (int) $validated['sanggah_poin_potong']))
+            : (int) $item->poin;
+
+        $user = session('user');
+        $validator = !empty($validated['sanggah_validator'])
+            ? $validated['sanggah_validator']
+            : ($user['nama'] ?? 'Tim Kesiswaan / BK');
+
+        $buktiPath = $item->sanggah_bukti;
+        if ($request->hasFile('sanggah_bukti')) {
+            $file = $request->file('sanggah_bukti');
+            $dir = public_path('uploads/kedisiplinan/sanggah');
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+            $filename = 'sanggah_' . $item->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move($dir, $filename);
+            $buktiPath = 'uploads/kedisiplinan/sanggah/' . $filename;
+        }
+
+        $item->update([
+            'status_tindak_lanjut' => 'selesai',
+            'sanggah_status'       => 'selesai',
+            'sanggah_jenis'        => $validated['sanggah_jenis'],
+            'sanggah_keterangan'   => $validated['sanggah_keterangan'],
+            'sanggah_poin_potong'  => $potong,
+            'sanggah_validator'    => $validator,
+            'sanggah_tanggal'      => now(),
+            'sanggah_bukti'        => $buktiPath,
+        ]);
+
+        $labelsJenis = [
+            'bakti_sekolah'      => 'Bakti Lingkungan & Sekolah',
+            'tugas_literasi'     => 'Tugas Akademik & Literasi',
+            'klarifikasi'        => 'Klarifikasi / Pembatalan Sah',
+            'pembinaan_karakter' => 'Pembinaan Karakter',
+        ];
+        $namaJenis = $labelsJenis[$validated['sanggah_jenis']] ?? 'Kompensasi';
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Sanggahan/kompensasi ({$namaJenis}) berhasil disetujui. {$potong} poin telah diputihkan/dikurangi.",
+            'data'    => $item,
+        ]);
     }
 
     /**

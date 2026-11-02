@@ -74,9 +74,15 @@ class KeamananPatroliController extends Controller
             ->orderBy('gedung', 'asc')
             ->orderBy('nama_ruang', 'asc')
             ->get();
+
+        $daftarTatib = DB::table('kedisiplinan_tata_tertib')
+            ->where('is_active', true)
+            ->orderBy('bobot_poin')
+            ->get();
+
         return view('dashboard.keamanan.patroli', compact(
             'patroliList', 'insidenList', 'tab', 'search', 'tanggal', 'perPage',
-            'daftarRuang',
+            'daftarRuang', 'daftarTatib',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }
@@ -137,34 +143,69 @@ class KeamananPatroliController extends Controller
     public function storeInsiden(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required|date',
-            'jam_kejadian' => 'required',
-            'lokasi_kejadian' => 'required|string|max:255',
-            'judul_insiden' => 'required|string|max:255',
-            'kronologi' => 'required|string',
+            'tanggal'          => 'required|date',
+            'jam_kejadian'     => 'required',
+            'lokasi_kejadian'  => 'required|string|max:255',
+            'judul_insiden'    => 'required|string|max:255',
+            'kronologi'        => 'required|string',
+            'kategori_insiden' => 'nullable|string|max:50',
+            'peserta_didik_id' => 'nullable|exists:peserta_didik,peserta_didik_id',
+            'tata_tertib_id'   => 'nullable|exists:kedisiplinan_tata_tertib,id',
         ]);
 
         $user = session('user');
         $ptkId = $user['ptk_id'] ?? null;
         $nomorLaporan = 'INS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
+        $pelanggaranId = null;
+        $kategoriInsiden = $request->kategori_insiden ?: ($request->filled('peserta_didik_id') ? 'siswa_kbm' : 'umum');
+
+        // Jika insiden melibatkan siswa luar saat KBM / tata tertib, otomatis rekam pelanggaran poin
+        if ($request->filled('peserta_didik_id') && $request->filled('tata_tertib_id')) {
+            $tatib = DB::table('kedisiplinan_tata_tertib')->where('id', $request->tata_tertib_id)->first();
+            $namaPelapor = ($user['nama'] ?? 'Petugas Satpam') . ' (Patroli Keamanan)';
+
+            $pelanggaranId = DB::table('kedisiplinan_pelanggaran')->insertGetId([
+                'peserta_didik_id'     => $request->peserta_didik_id,
+                'tata_tertib_id'       => $tatib->id,
+                'tanggal_kejadian'     => $request->tanggal,
+                'tempat_kejadian'      => $request->lokasi_kejadian,
+                'poin'                 => $tatib ? $tatib->bobot_poin : 10,
+                'keterangan'           => 'Temuan Patroli Keamanan: ' . $request->judul_insiden . ' - ' . $request->kronologi,
+                'pelapor_ptk_id'       => $ptkId,
+                'pelapor_nama'         => $namaPelapor,
+                'status_tindak_lanjut' => 'pending',
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
+        }
+
         DB::table('keamanan_insiden')->insert([
-            'nomor_laporan' => $nomorLaporan,
-            'tanggal' => $request->tanggal,
-            'jam_kejadian' => $request->jam_kejadian,
-            'lokasi_kejadian' => $request->lokasi_kejadian,
-            'judul_insiden' => $request->judul_insiden,
-            'kronologi' => $request->kronologi,
-            'pihak_terlibat' => $request->pihak_terlibat,
-            'tingkat_urgensi' => $request->tingkat_urgensi ?? 'sedang',
-            'tindakan_diambil' => $request->tindakan_diambil,
-            'status_penyelesaian' => $request->status_penyelesaian ?? 'dalam_penanganan',
+            'nomor_laporan'         => $nomorLaporan,
+            'tanggal'               => $request->tanggal,
+            'jam_kejadian'          => $request->jam_kejadian,
+            'lokasi_kejadian'       => $request->lokasi_kejadian,
+            'judul_insiden'         => $request->judul_insiden,
+            'kategori_insiden'      => $kategoriInsiden,
+            'kronologi'             => $request->kronologi,
+            'pihak_terlibat'        => $request->pihak_terlibat,
+            'peserta_didik_id'      => $request->peserta_didik_id,
+            'tata_tertib_id'        => $request->tata_tertib_id,
+            'pelanggaran_id'        => $pelanggaranId,
+            'tingkat_urgensi'       => $request->tingkat_urgensi ?? 'sedang',
+            'tindakan_diambil'      => $request->tindakan_diambil,
+            'status_penyelesaian'   => $request->status_penyelesaian ?? 'dalam_penanganan',
             'petugas_satpam_ptk_id' => $ptkId,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at'            => now(),
+            'updated_at'            => now(),
         ]);
 
-        return redirect()->route('dashboard.keamanan.patroli.index', ['tab' => 'insiden'])->with('success', 'Laporan insiden berhasil dicatat (' . $nomorLaporan . ').');
+        $msg = 'Laporan insiden berhasil dicatat (' . $nomorLaporan . ').';
+        if ($pelanggaranId) {
+            $msg .= ' Pelanggaran disiplin siswa telah otomatis diteruskan ke Tim Kesiswaan.';
+        }
+
+        return redirect()->route('dashboard.keamanan.patroli.index', ['tab' => 'insiden'])->with('success', $msg);
     }
 
     public function updateInsiden(Request $request, $id)

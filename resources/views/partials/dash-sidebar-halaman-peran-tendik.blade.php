@@ -388,7 +388,7 @@
             <button type="button" class="dash-nav-nested-toggle">
                 <div class="dash-nav-nested-toggle-main">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
-                    <span class="nav-label">Keamanan &amp; Tamu</span>
+                    <span class="nav-label">Keamanan &amp; Pos Satpam</span>
                 </div>
                 <i class="fas fa-chevron-right nested-arrow-icon"></i>
             </button>
@@ -398,29 +398,25 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                     <span class="nav-label">Dashboard Keamanan</span>
                 </a>
-                <a href="{{ route('dashboard.keamanan.izin.index') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-shield-alt"></i></span>
-                    <span class="nav-label">Verifikasi e-Izin Gerbang</span>
-                </a>
-                <a href="{{ route('dashboard.keamanan.presensi.index') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.presensi*') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-id-card-alt"></i></span>
-                    <span class="nav-label">Monitoring Presensi Siswa</span>
-                </a>
                 <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.buku-tamu*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-open"></i></span>
                     <span class="nav-label">Buku Tamu Pos Depan</span>
                 </a>
+                <a href="{{ route('dashboard.keamanan.izin.index') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-door-open"></i></span>
+                    <span class="nav-label">Verifikasi e-Izin Gerbang</span>
+                </a>
+                <a href="{{ route('dashboard.keamanan.pelanggaran.index') }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.pelanggaran*') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-triangle-exclamation"></i></span>
+                    <span class="nav-label">Pelanggaran Siswa</span>
+                </a>
                 <a href="{{ route('dashboard.keamanan.patroli.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.patroli*') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-shield-virus"></i></span>
+                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-person-walking-dashed-line-arrow-right"></i></span>
                     <span class="nav-label">Patroli &amp; Insiden</span>
-                </a>
-                <a href="{{ route('presensi.scan') }}" target="_blank" class="dash-nav-nested-link">
-                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-qrcode"></i></span>
-                    <span class="nav-label">Pos Scanner RFID</span>
                 </a>
             </div>
         </div>

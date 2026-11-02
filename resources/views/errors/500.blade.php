@@ -43,8 +43,11 @@
                 </button>
 
                 @if (session()->has('user'))
-                    @php $errRole = is_array(session('user')) ? (session('user')['role'] ?? 'admin') : (session('user')->role ?? 'admin'); @endphp
-                    <a href="{{ route('dashboard.' . $errRole) }}" class="btn-err btn-primary">
+                    @php
+                        $errRole = is_array(session('user')) ? (session('user')['role'] ?? 'admin') : (session('user')->role ?? 'admin');
+                        $dashRoute = Route::has('dashboard.' . $errRole) ? 'dashboard.' . $errRole : 'dashboard.tendik';
+                    @endphp
+                    <a href="{{ route($dashRoute) }}" class="btn-err btn-primary">
                         <i class="fas fa-house"></i> Ke Dashboard Saya
                     </a>
                 @else

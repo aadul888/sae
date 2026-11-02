@@ -44,4 +44,38 @@ class KedisiplinanTataTertib extends Model
     {
         return $this->hasMany(KedisiplinanPelanggaran::class, 'tata_tertib_id');
     }
+
+    /**
+     * Buat kode aturan otomatis berdasarkan kategori.
+     * kerapian -> KERxx, kehadiran -> HDxx, perilaku -> PRxx, larangan_berat -> LBxx, default -> TTxx
+     */
+    public static function generateKode(?string $kategori = null): string
+    {
+        $prefix = match (strtolower((string) $kategori)) {
+            'kerapian'       => 'KER',
+            'kehadiran'      => 'HD',
+            'perilaku'       => 'PR',
+            'larangan_berat' => 'LB',
+            default          => 'TT',
+        };
+
+        $existing = static::where('kode', 'like', $prefix . '%')->pluck('kode');
+        $maxNum = 0;
+
+        foreach ($existing as $kode) {
+            if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/i', (string) $kode, $matches)) {
+                $maxNum = max($maxNum, (int) $matches[1]);
+            }
+        }
+
+        $nextNum = $maxNum + 1;
+        $padLength = max(2, strlen((string) $nextNum));
+
+        do {
+            $candidate = $prefix . str_pad((string) $nextNum, $padLength, '0', STR_PAD_LEFT);
+            $nextNum++;
+        } while (static::where('kode', $candidate)->exists());
+
+        return $candidate;
+    }
 }

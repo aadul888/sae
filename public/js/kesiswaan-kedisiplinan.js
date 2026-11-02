@@ -24,8 +24,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2. Tombol Buka Modal
     const btnOpenTataTertib = document.getElementById('btnOpenTataTertibModal');
+    const tatibForm = document.getElementById('formTataTertib');
+    const inputKodeTatib = document.getElementById('inputTatibKode');
+    const selectKategoriTatib = document.getElementById('selectTatibKategori');
+
+    function syncNextKodeTatib(force = false) {
+        if (!inputKodeTatib || !selectKategoriTatib || !tatibForm) return;
+        const nextKodeUrl = tatibForm.getAttribute('data-next-kode-url');
+        if (!nextKodeUrl) return;
+
+        const kategori = selectKategoriTatib.value;
+        fetch(`${nextKodeUrl}?kategori=${encodeURIComponent(kategori)}`, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data?.kode) {
+                inputKodeTatib.placeholder = `Otomatis: ${data.kode}`;
+                if (force || !inputKodeTatib.dataset.userEdited) {
+                    inputKodeTatib.value = data.kode;
+                }
+            }
+        })
+        .catch(() => {});
+    }
+
+    if (inputKodeTatib) {
+        inputKodeTatib.addEventListener('input', () => {
+            inputKodeTatib.dataset.userEdited = inputKodeTatib.value.trim() !== '' ? '1' : '';
+        });
+    }
+
+    if (selectKategoriTatib) {
+        selectKategoriTatib.addEventListener('change', () => {
+            inputKodeTatib.dataset.userEdited = '';
+            syncNextKodeTatib(true);
+        });
+    }
+
     if (btnOpenTataTertib) {
-        btnOpenTataTertib.addEventListener('click', () => openModal('#modalTataTertib'));
+        btnOpenTataTertib.addEventListener('click', () => {
+            openModal('#modalTataTertib');
+            inputKodeTatib.dataset.userEdited = '';
+            syncNextKodeTatib(true);
+        });
     }
 
     const btnOpenImportTatib = document.getElementById('btnOpenImportTatibModal');
@@ -192,4 +234,223 @@ document.addEventListener('DOMContentLoaded', function () {
             applyFilter();
         }
     });
+
+    // 6. Inisialisasi Chart Informatif Rekapitulasi Kedisiplinan
+    const chartDataEl = document.getElementById('kedisiplinanChartData');
+    if (chartDataEl && typeof Chart !== 'undefined') {
+        try {
+            const cData = JSON.parse(chartDataEl.textContent || '{}');
+            if (cData.activeTab === 'rekap') {
+                // Chart 1: Tren Pelanggaran Bulanan
+                const ctxTren = document.getElementById('chartTrenPelanggaran');
+                if (ctxTren && cData.tren) {
+                    new Chart(ctxTren, {
+                        type: 'line',
+                        data: {
+                            labels: cData.tren.labels || [],
+                            datasets: [{
+                                label: 'Kasus Pelanggaran',
+                                data: cData.tren.data || [],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#2563eb'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } }
+                            }
+                        }
+                    });
+                }
+
+                // Chart 2: Tingkat Keparahan (Ringan, Sedang, Berat)
+                const ctxTingkat = document.getElementById('chartTingkatPelanggaran');
+                if (ctxTingkat && cData.tingkat) {
+                    new Chart(ctxTingkat, {
+                        type: 'doughnut',
+                        data: {
+                            labels: cData.tingkat.labels || [],
+                            datasets: [{
+                                data: cData.tingkat.data || [],
+                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                            },
+                            cutout: '62%'
+                        }
+                    });
+                }
+
+                // Chart 3: Kategori Pelanggaran
+                const ctxKategori = document.getElementById('chartKategoriPelanggaran');
+                if (ctxKategori && cData.kategori) {
+                    new Chart(ctxKategori, {
+                        type: 'bar',
+                        data: {
+                            labels: cData.kategori.labels || [],
+                            datasets: [{
+                                label: 'Kasus',
+                                data: cData.kategori.data || [],
+                                backgroundColor: ['#64748b', '#3b82f6', '#f59e0b', '#dc2626'],
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } }
+                            }
+                        }
+                    });
+                }
+
+                // Chart 4: Status Resolusi & Sanggah
+                const ctxStatus = document.getElementById('chartStatusPelanggaran');
+                if (ctxStatus && cData.status) {
+                    new Chart(ctxStatus, {
+                        type: 'doughnut',
+                        data: {
+                            labels: cData.status.labels || [],
+                            datasets: [{
+                                data: cData.status.data || [],
+                                backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                            },
+                            cutout: '62%'
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('Gagal memuat chart kedisiplinan:', e);
+        }
+    }
+
+    // 7. Modal Sanggah & Kompensasi Pelanggaran Poin
+    document.addEventListener('click', function (e) {
+        // Tombol Buka Sanggah
+        const btnSanggah = e.target.closest('.btn-open-sanggah');
+        if (btnSanggah) {
+            e.preventDefault();
+            const id = btnSanggah.getAttribute('data-id');
+            const siswa = btnSanggah.getAttribute('data-siswa') || 'Siswa';
+            const aturan = btnSanggah.getAttribute('data-aturan') || 'Pelanggaran';
+            const poin = parseInt(btnSanggah.getAttribute('data-poin') || '0', 10);
+
+            const form = document.getElementById('formSanggah');
+            if (form) {
+                form.action = `/dashboard/kesiswaan/kedisiplinan/pelanggaran/${id}/sanggah`;
+            }
+
+            const elNama = document.getElementById('sanggahNamaSiswa');
+            if (elNama) elNama.textContent = siswa;
+            const elAturan = document.getElementById('sanggahNamaAturan');
+            if (elAturan) elAturan.textContent = aturan;
+            const elPoinAwal = document.getElementById('sanggahPoinAwal');
+            if (elPoinAwal) elPoinAwal.textContent = `+${poin} Poin`;
+            const inputPotong = document.getElementById('sanggahPoinPotong');
+            if (inputPotong) {
+                inputPotong.value = poin;
+                inputPotong.max = poin;
+            }
+
+            openModal('#modalSanggah');
+            return;
+        }
+
+        // Tombol Detail Sanggah
+        const btnDetail = e.target.closest('.btn-detail-sanggah');
+        if (btnDetail) {
+            e.preventDefault();
+            const jenis = btnDetail.getAttribute('data-sanggah-jenis') || '-';
+            const ket = btnDetail.getAttribute('data-sanggah-ket') || '-';
+            const potong = btnDetail.getAttribute('data-sanggah-potong') || '0';
+            const validator = btnDetail.getAttribute('data-sanggah-validator') || '-';
+            const tgl = btnDetail.getAttribute('data-sanggah-tanggal') || '-';
+            const bukti = btnDetail.getAttribute('data-sanggah-bukti') || '';
+            const siswa = btnDetail.getAttribute('data-siswa') || '-';
+            const aturan = btnDetail.getAttribute('data-aturan') || '-';
+
+            const jenisLabels = {
+                'bakti_sekolah': 'Bakti Lingkungan & Sekolah',
+                'tugas_literasi': 'Tugas Akademik & Literasi',
+                'klarifikasi': 'Klarifikasi / Pembatalan Sah',
+                'pembinaan_karakter': 'Pembiasaan & Pembinaan Karakter'
+            };
+            const labelJenis = jenisLabels[jenis] || jenis;
+
+            let buktiHtml = '';
+            if (bukti) {
+                buktiHtml = `<div style="margin-top: 10px;">
+                    <span style="font-weight: 700; color: var(--text-muted); font-size: 0.75rem;">Lampiran Bukti:</span>
+                    <div style="margin-top: 4px;">
+                        <a href="${bukti}" target="_blank" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-file-image"></i> Buka Berkas Lampiran
+                        </a>
+                    </div>
+                </div>`;
+            }
+
+            const detailBody = document.getElementById('detailSanggahBody');
+            if (detailBody) {
+                detailBody.innerHTML = `
+                    <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                        <div style="font-weight: 800; font-size: 1rem; color: var(--text-color);">${siswa}</div>
+                        <div style="color: var(--text-muted); font-size: 0.8125rem;">${aturan}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Bentuk Kompensasi:</div>
+                            <div style="font-weight: 700; color: #059669;">${labelJenis}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Poin Diputihkan:</div>
+                            <div style="font-weight: 800; color: #059669;">-${potong} Poin</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Tanggal Sanggah:</div>
+                            <div style="color: var(--text-color);">${tgl}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Petugas Pembina:</div>
+                            <div style="color: var(--text-color);">${validator}</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Catatan Pelaksanaan:</div>
+                        <div style="color: var(--text-color); line-height: 1.4;">${ket}</div>
+                    </div>
+                    ${buktiHtml}
+                `;
+            }
+
+            openModal('#modalDetailSanggah');
+        }
+    });
+
+    handleFormSubmit('formSanggah', 'Menyimpan dan memvalidasi sanggahan...');
 });

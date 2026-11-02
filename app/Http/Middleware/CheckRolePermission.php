@@ -56,7 +56,11 @@ class CheckRolePermission
                 ], 403);
             }
 
-            return redirect()->route('dashboard.' . $role)->with('error', "Akses ditolak: Peran atau penugasan Anda tidak memiliki izin untuk {$actionLabel} pada modul tersebut.");
+            $dashRoute = \Illuminate\Support\Facades\Route::has('dashboard.' . $role)
+                ? 'dashboard.' . $role
+                : (in_array($role, ['satpam', 'penjaga']) ? 'dashboard.tendik' : 'login');
+
+            return redirect()->route($dashRoute)->with('error', "Akses ditolak: Peran atau penugasan Anda tidak memiliki izin untuk {$actionLabel} pada modul tersebut.");
         }
 
         return $next($request);
