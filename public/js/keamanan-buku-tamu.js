@@ -7,7 +7,7 @@ window.openModalTamu = function () {
     const methodInput = document.getElementById('tamuMethod');
     if (methodInput) methodInput.value = 'POST';
     form.action = form.dataset.storeUrl || '';
-    if (modalTitle) modalTitle.textContent = 'Catat Tamu Masuk';
+    if (modalTitle) modalTitle.textContent = 'Catat Tamu Masuk (Manual)';
 
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -21,12 +21,114 @@ window.openModalTamu = function () {
     const st = document.getElementById('tamu_status');
     if (st) st.value = 'berada_di_lokasi';
 
+    const jenis = document.getElementById('tamu_jenis');
+    if (jenis) jenis.value = 'umum';
+
+    const pdId = document.getElementById('tamu_pd_id');
+    if (pdId) pdId.value = '';
+
+    const feedback = document.getElementById('manualLookupFeedback');
+    if (feedback) feedback.innerHTML = '';
+
+    window.toggleManualOrtuSection();
+
     modal.style.display = 'flex';
 };
 
 window.closeModalTamu = function () {
     const modal = document.getElementById('modalTamu');
     if (modal) modal.style.display = 'none';
+};
+
+window.openModalQr = function () {
+    const modal = document.getElementById('modalQrCode');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeModalQr = function () {
+    const modal = document.getElementById('modalQrCode');
+    if (modal) modal.style.display = 'none';
+};
+
+window.toggleManualOrtuSection = function () {
+    const jenis = document.getElementById('tamu_jenis');
+    const sectionOrtu = document.getElementById('manualSectionOrtu');
+    if (!jenis || !sectionOrtu) return;
+
+    if (jenis.value === 'orang_tua') {
+        sectionOrtu.style.display = 'block';
+    } else {
+        sectionOrtu.style.display = 'none';
+    }
+};
+
+window.lookupManualStudent = function () {
+    const nikInput = document.getElementById('manual_nik_ortu');
+    const nisnInput = document.getElementById('manual_nisn_siswa');
+    const feedback = document.getElementById('manualLookupFeedback');
+    const btn = document.getElementById('btnManualCekSiswa');
+
+    const nik = nikInput ? nikInput.value.trim() : '';
+    const nisn = nisnInput ? nisnInput.value.trim() : '';
+
+    if (!nik && !nisn) {
+        if (feedback) feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-exclamation-triangle me-1"></i> Masukkan NIK Ortu atau NISN/NIK Siswa.</span>';
+        return;
+    }
+
+    const url = (window.BUKU_TAMU_CONFIG && window.BUKU_TAMU_CONFIG.checkStudentUrl) || '/tamu/api/cek-siswa';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+
+    fetch(`${url}?nik_ortu=${encodeURIComponent(nik)}&nisn_siswa=${encodeURIComponent(nisn)}`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search"></i>';
+        }
+
+        if (data.found && data.students && data.students.length > 0) {
+            const st = data.students[0];
+            const namaSiswaInput = document.getElementById('tamu_nama_siswa');
+            const rombelInput = document.getElementById('tamu_rombel_siswa');
+            const pdIdInput = document.getElementById('tamu_pd_id');
+            const tamuNamaInput = document.getElementById('tamu_nama');
+
+            if (namaSiswaInput) namaSiswaInput.value = st.nama;
+            if (rombelInput) rombelInput.value = st.nama_rombel || '';
+            if (pdIdInput) pdIdInput.value = st.peserta_didik_id || '';
+
+            if (data.suggested_parent_name && tamuNamaInput && !tamuNamaInput.value.trim()) {
+                tamuNamaInput.value = data.suggested_parent_name;
+            }
+
+            if (feedback) {
+                feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Ditemukan: ${st.nama} (${st.nama_rombel || '-'})</span>`;
+            }
+        } else {
+            if (feedback) {
+                feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-times-circle me-1"></i> Data tidak ditemukan di database. Silakan isi nama siswa & rombel manual.</span>';
+            }
+        }
+    })
+    .catch(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search"></i>';
+        }
+        if (feedback) {
+            feedback.innerHTML = '<span style="color:#b91c1c;"><i class="fas fa-exclamation-circle me-1"></i> Gagal memeriksa data siswa.</span>';
+        }
+    });
 };
 
 window.editTamu = function (data) {
@@ -51,6 +153,12 @@ window.editTamu = function (data) {
     setVal('tamu_tanggal', data.tanggal);
     setVal('tamu_jam_masuk', data.jam_masuk ? data.jam_masuk.substring(0, 5) : '');
     setVal('tamu_jam_keluar', data.jam_keluar ? data.jam_keluar.substring(0, 5) : '');
+    setVal('tamu_jenis', data.jenis_tamu || 'umum');
+    setVal('manual_nik_ortu', data.nik_tamu);
+    setVal('manual_nisn_siswa', data.nisn_siswa);
+    setVal('tamu_pd_id', data.peserta_didik_id);
+    setVal('tamu_nama_siswa', data.nama_siswa);
+    setVal('tamu_rombel_siswa', data.rombel_siswa);
     setVal('tamu_nama', data.nama_tamu);
     setVal('tamu_instansi', data.instansi_asal);
     setVal('tamu_kontak', data.nomor_kontak);
@@ -60,17 +168,43 @@ window.editTamu = function (data) {
     setVal('tamu_nopol', data.nomor_polisi_kendaraan);
     setVal('tamu_status', data.status || 'berada_di_lokasi');
 
+    const feedback = document.getElementById('manualLookupFeedback');
+    if (feedback) feedback.innerHTML = '';
+
+    window.toggleManualOrtuSection();
+
     modal.style.display = 'flex';
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('modalTamu');
+    const modalTamu = document.getElementById('modalTamu');
+    const modalQr = document.getElementById('modalQrCode');
 
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) window.closeModalTamu();
+    if (modalTamu) {
+        modalTamu.addEventListener('click', function (e) {
+            if (e.target === modalTamu) window.closeModalTamu();
         });
     }
+
+    if (modalQr) {
+        modalQr.addEventListener('click', function (e) {
+            if (e.target === modalQr) window.closeModalQr();
+        });
+    }
+
+    // Enter key di input NIK / NISN modal satpam
+    const nikInput = document.getElementById('manual_nik_ortu');
+    const nisnInput = document.getElementById('manual_nisn_siswa');
+    [nikInput, nisnInput].forEach(inp => {
+        if (inp) {
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    window.lookupManualStudent();
+                }
+            });
+        }
+    });
 
     // Delete confirmation with SweetAlert2
     document.querySelectorAll('form[data-confirm="delete"]').forEach(function (delForm) {
@@ -78,17 +212,23 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = delForm.dataset.name || 'tamu ini';
             if (typeof Swal !== 'undefined') {
-                window.SAE.confirm("Apakah Anda yakin ingin menghapus catatan tamu \"${name}\"?", "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: `Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ef4444'
+                }).then((result) => {
                     if (result.isConfirmed) {
                         delForm.submit();
                     }
                 });
             } else {
-                window.SAE.confirm(`Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`, "Konfirmasi Hapus", 'danger', "Ya, Hapus!", "Batal").then((ok) => {
-                    if (ok) {
-                        delForm.submit();
-                    }
-                });
+                if (confirm(`Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`)) {
+                    delForm.submit();
+                }
             }
         });
     });

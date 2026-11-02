@@ -845,7 +845,7 @@ select:-webkit-autofill {
     transform: rotate(90deg);
 }
 
-/* Grid Kartu Aplikasi (Ditetapkan 4 Kolom di Desktop, Menyesuaikan ke Bawah) */
+/* Grid Kartu Aplikasi (4 Layanan Utama Sejajar di Desktop) */
 .mega-dropdown-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

@@ -258,6 +258,7 @@ return function () {
 
         // Buku Tamu Pos Keamanan
         Route::get('/buku-tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'index'])->name('buku-tamu.index')->middleware('permission:menu_buku_tamu,read');
+        Route::get('/buku-tamu/cetak-qr', [\App\Http\Controllers\KeamananBukuTamuController::class, 'cetakQr'])->name('buku-tamu.cetak-qr')->middleware('permission:menu_buku_tamu,read');
         Route::post('/buku-tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'store'])->name('buku-tamu.store')->middleware('permission:menu_buku_tamu,create');
         Route::put('/buku-tamu/{id}', [\App\Http\Controllers\KeamananBukuTamuController::class, 'update'])->name('buku-tamu.update')->middleware('permission:menu_buku_tamu,update');
         Route::post('/buku-tamu/{id}/checkout', [\App\Http\Controllers\KeamananBukuTamuController::class, 'checkout'])->name('buku-tamu.checkout')->middleware('permission:menu_buku_tamu,update');

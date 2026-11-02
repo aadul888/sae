@@ -8,6 +8,13 @@ Route::post('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'subm
 Route::get('/f/{slug}/sukses/{respon}', [\App\Http\Controllers\FormulirController::class, 'successPublic'])->name('formulir.success');
 Route::get('/formulir/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic']);
 
+// SAE e-Tamu — Buku Tamu Mandiri (Scan QR Publik) & Deteksi Orang Tua Siswa
+Route::get('/tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicForm'])->name('tamu.public');
+Route::get('/buku-tamu/mandiri', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicForm']);
+Route::post('/tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicSubmit'])->name('tamu.submit');
+Route::get('/tamu/sukses/{id}', [\App\Http\Controllers\KeamananBukuTamuController::class, 'publicSuccess'])->name('tamu.success');
+Route::get('/tamu/api/cek-siswa', [\App\Http\Controllers\KeamananBukuTamuController::class, 'checkStudentApi'])->name('tamu.check-student');
+
 // Terminal Kiosk Presensi Publik (Proteksi Kode Akses & Direct Scan)
 Route::get('/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('scan');
 Route::get('/presensi/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('presensi.scan');
@@ -16,9 +23,15 @@ Route::post('/presensi/scan/unlock', [\App\Http\Controllers\PresensiController::
 Route::get('/presensi/scan/lock', [\App\Http\Controllers\PresensiController::class, 'kioskLock'])->name('presensi.kiosk.lock');
 Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process');
 
-// Terminal Kiosk e-Izin Pos Gerbang Keamanan (Tap RFID, QR & Barcode Digital)
+// SAE e-Izin — Portal Publik & Terminal Kiosk Pos Gerbang Keamanan
+Route::get('/e-izin', [\App\Http\Controllers\EIzinController::class, 'publicIndex'])->name('e-izin.public');
+Route::post('/e-izin/cek-tiket', [\App\Http\Controllers\EIzinController::class, 'publicCekTiket'])->name('e-izin.cek-tiket');
 Route::get('/kiosk/e-izin', [\App\Http\Controllers\EIzinController::class, 'kioskView'])->name('kiosk.e-izin');
 Route::get('/e-izin/kiosk', [\App\Http\Controllers\EIzinController::class, 'kioskView'])->name('e-izin.kiosk');
+Route::get('/kiosk/e-izin/auth', [\App\Http\Controllers\EIzinController::class, 'kioskAuth'])->name('kiosk.e-izin.auth');
+Route::get('/e-izin/kiosk/auth', [\App\Http\Controllers\EIzinController::class, 'kioskAuth'])->name('e-izin.kiosk.auth');
+Route::post('/e-izin/kiosk/unlock', [\App\Http\Controllers\EIzinController::class, 'kioskUnlock'])->name('e-izin.kiosk.unlock');
+Route::get('/e-izin/kiosk/lock', [\App\Http\Controllers\EIzinController::class, 'kioskLock'])->name('e-izin.kiosk.lock');
 Route::post('/e-izin/kiosk/scan', [\App\Http\Controllers\EIzinController::class, 'kioskScan'])->name('e-izin.kiosk.scan');
 Route::get('/e-izin/kiosk/live-log', [\App\Http\Controllers\EIzinController::class, 'kioskLiveLog'])->name('e-izin.kiosk.live-log');
 

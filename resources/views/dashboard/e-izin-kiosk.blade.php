@@ -485,7 +485,7 @@
     <!-- Header Terminal Kiosk -->
     <header class="kiosk-header">
         <div class="kiosk-header-left">
-            <a href="{{ route('dashboard.e-izin.index') }}" class="kiosk-lock-link" title="Kembali ke Dashboard e-Izin"
+            <a href="{{ route('e-izin.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" class="kiosk-lock-link" title="Kunci Terminal &amp; Kembali ke Beranda"
                 style="display: inline-flex; align-items: center; text-decoration: none;">
                 <img src="{{ asset('img/logo-dark.png') }}" alt="SAE Logo" class="kiosk-logo" id="navLogo"
                     onerror="this.src='/img/logo-dark.png';">
@@ -521,8 +521,12 @@
                     <i class="fas fa-moon"></i>
                 </button>
                 <a href="{{ route('dashboard.e-izin.index') }}" class="btn btn-outline btn-kiosk-action"
-                    title="Keluar Terminal (Buka Dashboard)" aria-label="Buka Dashboard">
-                    <i class="fas fa-door-open"></i>
+                    title="Buka Dashboard e-Izin" aria-label="Buka Dashboard">
+                    <i class="fas fa-id-card"></i>
+                </a>
+                <a href="{{ route('e-izin.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action"
+                    title="Kunci Terminal Pos Gerbang (Power Off)" aria-label="Kunci Terminal">
+                    <i class="fas fa-power-off"></i>
                 </a>
             </div>
         </div>
@@ -747,7 +751,7 @@
 
             <button type="button" class="btn btn-primary" id="btnCloseResult"
                 style="width: 100%; height: 40px; border-radius: var(--radius-md, 10px); font-weight: 700;">
-                Selesai / Lanjut Scan Berikutnya (ESC)
+                Lanjut Scan Berikutnya (ESC / Auto Close)
             </button>
         </div>
     </div>
@@ -892,9 +896,13 @@
             });
 
             const hideResult = () => {
-                clearTimeout(autoCloseTimer);
+                if (autoCloseTimer) {
+                    clearTimeout(autoCloseTimer);
+                    autoCloseTimer = null;
+                }
                 resultModal.style.display = 'none';
                 if (inputCode) {
+                    inputCode.disabled = false;
                     inputCode.value = '';
                     inputCode.focus();
                 }
@@ -906,13 +914,16 @@
             });
 
             const showResultCard = (data) => {
-                clearTimeout(autoCloseTimer);
+                if (autoCloseTimer) {
+                    clearTimeout(autoCloseTimer);
+                    autoCloseTimer = null;
+                }
                 const isSuccess = (data.status === 'success');
                 const isWarning = (data.status === 'warning');
 
                 const siswa = data.siswa || {};
                 resFotoSiswa.src = siswa.foto || '/img/avatar-default.png';
-                resNamaSiswa.textContent = siswa.nama || 'Peserta Didik';
+                resNamaSiswa.textContent = siswa.nama || (data.title === 'Identitas Tidak Dikenali' ? 'Kartu / Kode Tidak Terdaftar' : (isSuccess ? 'Peserta Didik' : (data.title || 'Pemeriksaan Gerbang')));
                 resRombelSiswa.textContent = siswa.rombel ? `Kelas ${siswa.rombel}` : '';
                 resNisnSiswa.textContent = siswa.nisn ? `NISN: ${siswa.nisn}` : '';
 
@@ -939,7 +950,8 @@
                     resBadgeStatus.className = 'badge badge-danger';
                     resBadgeStatus.style.background = '#ef4444';
                     resBadgeStatus.style.color = '#ffffff';
-                    resBadgeStatus.innerHTML = '<i class="fas fa-circle-xmark"></i> DITOLAK SESUAI SOP';
+                    const badgeText = (data.title && data.title.length <= 25) ? data.title.toUpperCase() : 'DITOLAK SESUAI SOP';
+                    resBadgeStatus.innerHTML = `<i class="fas fa-circle-xmark"></i> ${badgeText}`;
 
                     playSoundEffect('error');
                     speakAnnouncement(data.title || 'SOP Ditolak');
@@ -950,12 +962,14 @@
 
                 resultModal.style.display = 'flex';
 
-                if (isSuccess) {
-                    autoCloseTimer = setTimeout(() => {
-                        hideResult();
+                // Auto-close modal otomatis untuk semua status (sukses, warning, error, identitas tidak dikenali)
+                const closeDelay = isSuccess ? 4000 : 3500;
+                autoCloseTimer = setTimeout(() => {
+                    hideResult();
+                    if (isSuccess) {
                         refreshLiveFeed();
-                    }, 4500);
-                }
+                    }
+                }, closeDelay);
             };
 
             const processScan = (raw) => {
@@ -1255,12 +1269,12 @@
                                 inversionAttempts: 'dontInvert'
                             });
 
-                            if (qr && qr.data && !isProcessing) {
+                            if (qr && qr.data && !isProcessing && resultModal.style.display !== 'flex') {
                                 processScan(qr.data);
-                                // Jeda 3 detik setelah berhasil membaca QR
+                                // Jeda 3.5 detik setelah berhasil membaca QR agar modal tampil dan auto-close
                                 setTimeout(() => {
                                     if (cameraActive) cameraAnimFrame = requestAnimationFrame(scanVideoFrame);
-                                }, 3000);
+                                }, 3500);
                                 return;
                             }
                         } catch (err) {

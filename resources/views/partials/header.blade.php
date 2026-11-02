@@ -47,7 +47,7 @@
                 </button>
             </div>
 
-            <!-- Grid Kartu Aplikasi (Grid 4x2) -->
+            <!-- Grid Kartu Aplikasi (4 Layanan Publik Utama) -->
             <div class="mega-dropdown-grid">
                 <!-- 1. Presensi Live Scanner (Utama) -->
                 <a href="{{ route('presensi.scan') }}" class="mega-item-card">
@@ -65,30 +65,14 @@
                     </div>
                 </a>
 
-                <!-- 2. Terminal Kiosk e-Izin (Pos Gerbang) -->
-                <a href="{{ route('kiosk.e-izin') }}" class="mega-item-card" target="_blank">
-                    <div class="mega-item-icon" style="background: rgba(14, 165, 233, 0.14); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.25);">
-                        <i class="fas fa-door-open"></i>
-                    </div>
-                    <div class="mega-item-text">
-                        <div class="mega-item-title">
-                            <span>Kiosk e-Izin</span>
-                            <span class="badge-live-dot">KIOSK</span>
-                        </div>
-                        <div class="mega-item-desc">
-                            Verifikasi barcode, QR code &amp; tap kartu RFID izin keluar-masuk gerbang.
-                        </div>
-                    </div>
-                </a>
-
-                <!-- 3. Perpustakaan Digital (Kiosk Katalog Publik) -->
+                <!-- 2. Perpustakaan Digital (Kiosk Katalog Publik) -->
                 <a href="{{ route('perpustakaan.index') }}" class="mega-item-card" target="_blank">
                     <div class="mega-item-icon" style="background: rgba(236, 72, 153, 0.14); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.25);">
                         <i class="fas fa-book-open"></i>
                     </div>
                     <div class="mega-item-text">
                         <div class="mega-item-title">
-                            <span>Perpustakaan</span>
+                            <span>Perpustakaan Digital</span>
                             <span class="badge-live-dot">KIOSK</span>
                         </div>
                         <div class="mega-item-desc">
@@ -97,82 +81,34 @@
                     </div>
                 </a>
 
-                <!-- 4. Portal Orang Tua -->
-                <a href="{{ route('login', ['tab' => 'ortu']) }}" class="mega-item-card">
-                    <div class="mega-item-icon" style="background: rgba(16, 185, 129, 0.14); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.25);">
-                        <i class="fas fa-people-roof"></i>
+                <!-- 3. Terminal Kiosk e-Izin (Pos Gerbang) -->
+                <a href="{{ route('kiosk.e-izin') }}" class="mega-item-card" target="_blank">
+                    <div class="mega-item-icon" style="background: rgba(14, 165, 233, 0.14); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.25);">
+                        <i class="fas fa-door-open"></i>
                     </div>
                     <div class="mega-item-text">
                         <div class="mega-item-title">
-                            <span>Portal Orang Tua</span>
-                            <span class="badge-live-dot">PORTAL</span>
+                            <span>Terminal Kiosk e-Izin</span>
+                            <span class="badge-live-dot">KIOSK</span>
                         </div>
                         <div class="mega-item-desc">
-                            Pantau absensi harian dan status izin anak sekolah secara langsung.
+                            Pos gerbang mandiri verifikasi barcode, QR code &amp; tap kartu RFID izin keluar-masuk.
                         </div>
                     </div>
                 </a>
 
-                <!-- 5. Pengecekan Data Siswa (NISN) -->
-                <a href="{{ url('/#nisn') }}" class="mega-item-card">
-                    <div class="mega-item-icon" style="background: rgba(59, 130, 246, 0.14); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.25);">
-                        <i class="fas fa-id-card-clip"></i>
-                    </div>
-                    <div class="mega-item-text">
-                        <div class="mega-item-title">
-                            <span>Pengecekan NISN</span>
-                            <span class="badge-live-dot">VERIFIKASI</span>
-                        </div>
-                        <div class="mega-item-desc">
-                            Verifikasi keaktifan resmi status peserta didik lewat 10 digit NISN.
-                        </div>
-                    </div>
-                </a>
-
-                <!-- 6. Kelulusan & Legalisir SKL -->
-                <a href="{{ url('/#fitur') }}" class="mega-item-card">
+                <!-- 4. Buku Tamu Digital (e-Tamu Mandiri) -->
+                <a href="{{ route('tamu.public') }}" class="mega-item-card" target="_blank">
                     <div class="mega-item-icon" style="background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.25);">
-                        <i class="fas fa-award"></i>
+                        <i class="fas fa-clipboard-user"></i>
                     </div>
                     <div class="mega-item-text">
                         <div class="mega-item-title">
-                            <span>Kelulusan &amp; SKL</span>
-                            <span class="badge-live-dot">SKL</span>
+                            <span>Buku Tamu (e-Tamu)</span>
+                            <span class="badge-live-dot">MANDIRI</span>
                         </div>
                         <div class="mega-item-desc">
-                            Pengumuman online, unduh SKL bertanda tangan QR &amp; validasi berkas.
-                        </div>
-                    </div>
-                </a>
-
-                <!-- 7. Agenda & Akademik -->
-                <a href="{{ url('/#fitur') }}" class="mega-item-card">
-                    <div class="mega-item-icon" style="background: rgba(139, 92, 246, 0.14); color: var(--purple, #8b5cf6); border: 1px solid rgba(139, 92, 246, 0.25);">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="mega-item-text">
-                        <div class="mega-item-title">
-                            <span>Agenda Akademik</span>
-                            <span class="badge-live-dot">AGENDA</span>
-                        </div>
-                        <div class="mega-item-desc">
-                            Jadwal pelajaran kelas mingguan, kalender kegiatan &amp; event sekolah.
-                        </div>
-                    </div>
-                </a>
-
-                <!-- 8. Masuk Portal SAE -->
-                <a href="{{ route('login') }}" class="mega-item-card">
-                    <div class="mega-item-icon" style="background: rgba(99, 102, 241, 0.14); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.25);">
-                        <i class="fas fa-right-to-bracket"></i>
-                    </div>
-                    <div class="mega-item-text">
-                        <div class="mega-item-title">
-                            <span>Masuk Portal</span>
-                            <span class="badge-live-dot">SSO</span>
-                        </div>
-                        <div class="mega-item-desc">
-                            Akses terpusat untuk Siswa, Guru, Wali Kelas, Satpam, dan Pengurus.
+                            Pencatatan kunjungan mandiri tamu sekolah, foto webcam &amp; deteksi orang tua.
                         </div>
                     </div>
                 </a>

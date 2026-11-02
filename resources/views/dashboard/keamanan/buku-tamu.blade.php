@@ -14,19 +14,29 @@
                 </div>
                 <div>
                     <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                        Buku Tamu Pos Keamanan
+                        Buku Tamu Pos Keamanan (e-Tamu)
                     </h2>
                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                        Pencatatan identitas, tujuan kunjungan, dan pemantauan tamu yang berada di lingkungan sekolah.
+                        Pencatatan tamu mandiri via scan QR Code, deteksi otomatis orang tua siswa, dan input manual satpam.
                     </div>
                 </div>
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="{{ route('dashboard.keamanan.buku-tamu.cetak-qr') }}" target="_blank" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Cetak Standing Poster QR Code e-Tamu" aria-label="Cetak Standing Poster QR Code e-Tamu">
+                    <i class="fas fa-print"></i>
+                </a>
+                <button type="button" class="btn btn-outline" onclick="openModalQr()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Tampilkan QR Code di Layar" aria-label="Tampilkan QR Code di Layar">
+                    <i class="fas fa-qrcode"></i>
+                </button>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" onclick="openModalTamu()"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Catat Tamu Masuk">
+                        title="Catat Tamu Masuk Manual" aria-label="Catat Tamu Masuk Manual">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
@@ -74,9 +84,19 @@
                     <div class="dash-stat-label">Sudah Keluar</div>
                 </div>
             </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value">{{ $stats['mandiri'] }}</div>
+                    <div class="dash-stat-label">e-Tamu Mandiri</div>
+                </div>
+            </div>
         </div>
 
-        {{-- Unified Datatable Keamanan Buku Tamu (Toolbar + Table + Pagination dalam 1 Card Terpadu) --}}
+        {{-- Unified Datatable Keamanan Buku Tamu --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">
             {{-- 1. Toolbar Header (Entries, Filters & Live Search) --}}
             <div class="datatable-toolbar">
@@ -100,7 +120,7 @@
                             <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
                                 style="height: 38px; width: auto; min-width: 140px; padding: 4px 10px;">
 
-                            <select name="status" class="toolbar-filter-select" style="height: 38px; min-width: 150px;">
+                            <select name="status" class="toolbar-filter-select" style="height: 38px; min-width: 130px;">
                                 <option value="">Semua Status</option>
                                 <option value="berada_di_lokasi" {{ $status === 'berada_di_lokasi' ? 'selected' : '' }}>Di
                                     Lokasi
@@ -110,18 +130,26 @@
                                 </option>
                             </select>
 
-                            @if ($search || $status || $tanggal)
+                            <select name="jenis_tamu" class="toolbar-filter-select" style="height: 38px; min-width: 140px;">
+                                <option value="">Semua Kategori</option>
+                                <option value="orang_tua" {{ $jenisTamu === 'orang_tua' ? 'selected' : '' }}>Orang Tua Siswa</option>
+                                <option value="kedinasan" {{ $jenisTamu === 'kedinasan' ? 'selected' : '' }}>Kedinasan</option>
+                                <option value="umum" {{ $jenisTamu === 'umum' ? 'selected' : '' }}>Umum</option>
+                                <option value="alumni" {{ $jenisTamu === 'alumni' ? 'selected' : '' }}>Alumni</option>
+                            </select>
+
+                            @if ($search || $status || $tanggal || $jenisTamu)
                                 <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
-                                    title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                    title="Reset filter" aria-label="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
                             @endif
                         </div>
 
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" name="search" id="searchBukuTamu" value="{{ $search }}"
-                                placeholder="Cari nama tamu, instansi..." autocomplete="off">
+                                placeholder="Cari nama tamu, siswa, nopol..." autocomplete="off">
                             <button type="button" id="clearSearch"
                                 class="clear-search {{ !empty($search) ? 'visible' : '' }}" title="Hapus pencarian">
                                 <i class="fas fa-times"></i>
@@ -141,7 +169,7 @@
                                 Tanggal & Waktu</th>
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Nama Tamu & Instansi</th>
+                                Nama Tamu & Kategori</th>
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Tujuan & Keperluan</th>
@@ -170,7 +198,22 @@
                                     </div>
                                 </td>
                                 <td style="padding: 12px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-heading);">{{ $item->nama_tamu }}
+                                    <div style="font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span>{{ $item->nama_tamu }}</span>
+                                        @if ($item->is_mandiri)
+                                            <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: var(--purple, #8b5cf6); font-size: 10px; padding: 2px 6px;">
+                                                <i class="fas fa-qrcode me-1"></i>Mandiri
+                                            </span>
+                                        @endif
+                                        @if ($item->jenis_tamu === 'orang_tua')
+                                            <span class="badge" style="background: rgba(2, 132, 199, 0.12); color: var(--primary, #0284c7); font-size: 10px; padding: 2px 6px;">
+                                                <i class="fas fa-user-graduate me-1"></i>Orang Tua
+                                            </span>
+                                        @elseif ($item->jenis_tamu === 'kedinasan')
+                                            <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 10px; padding: 2px 6px;">
+                                                <i class="fas fa-building me-1"></i>Dinas
+                                            </span>
+                                        @endif
                                     </div>
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                         {{ $item->instansi_asal ?: 'Umum / Pribadi' }}
@@ -178,6 +221,12 @@
                                             &bull; Telp: {{ $item->nomor_kontak }}
                                         @endif
                                     </div>
+                                    @if ($item->nama_siswa)
+                                        <div style="font-size: 11px; color: var(--primary, #0284c7); margin-top: 3px;">
+                                            <i class="fas fa-child me-1"></i> Siswa: <strong>{{ $item->nama_siswa }}</strong>
+                                            @if ($item->rombel_siswa) ({{ $item->rombel_siswa }}) @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td style="padding: 12px 18px;">
                                     <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">Bertemu:
@@ -259,15 +308,15 @@
             @endif
         </div>
 
-        {{-- Modal Tambah / Edit Tamu --}}
+        {{-- Modal Tambah / Edit Tamu (Input Manual Satpam) --}}
         <div id="modalTamu"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center;">
-            <div class="card" style="width: 100%; max-width: 600px; margin: 20px; max-height: 90vh; overflow-y: auto;">
+            <div class="card" style="width: 100%; max-width: 620px; margin: 20px; max-height: 90vh; overflow-y: auto;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                     <h3 id="modalTamuTitle"
                         style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">
-                        Catat Tamu Masuk
+                        Catat Tamu Masuk (Manual)
                     </h3>
                     <button type="button" onclick="closeModalTamu()"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
@@ -278,6 +327,7 @@
                     data-update-url="{{ url('/dashboard/keamanan/buku-tamu') }}/:id">
                     @csrf
                     <input type="hidden" name="_method" id="tamuMethod" value="POST">
+                    <input type="hidden" name="peserta_didik_id" id="tamu_pd_id" value="">
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
@@ -289,6 +339,51 @@
                             <label class="form-label">Jam Masuk <span style="color:red;">*</span></label>
                             <input type="time" name="jam_masuk" id="tamu_jam_masuk" class="form-control"
                                 value="{{ date('H:i') }}" required>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label">Kategori Tamu <span style="color:red;">*</span></label>
+                        <select name="jenis_tamu" id="tamu_jenis" class="form-control" onchange="toggleManualOrtuSection()">
+                            <option value="umum">Umum / Masyarakat</option>
+                            <option value="orang_tua">Orang Tua / Wali Siswa</option>
+                            <option value="kedinasan">Kedinasan / Instansi</option>
+                            <option value="alumni">Alumni</option>
+                        </select>
+                    </div>
+
+                    {{-- Section Pencarian Cepat Data Siswa untuk Tamu Orang Tua --}}
+                    <div id="manualSectionOrtu" style="display: none; background: rgba(2, 132, 199, 0.05); border: 1px dashed var(--primary, #0284c7); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 700; font-size: 11px; color: var(--primary, #0284c7);">
+                                <i class="fas fa-search me-1"></i> Deteksi Siswa (NIK Ortu atau NISN)
+                            </span>
+                            <span style="font-size: 10px; color: var(--text-muted);">Ketik & klik Cek</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: flex-end;">
+                            <div>
+                                <label style="font-size: 10px; font-weight: 600;">NIK Orang Tua</label>
+                                <input type="text" id="manual_nik_ortu" name="nik_tamu" class="form-control" style="font-size: 12px; height: 34px;" placeholder="16 Digit NIK Ortu">
+                            </div>
+                            <div>
+                                <label style="font-size: 10px; font-weight: 600;">NISN / NIK Siswa</label>
+                                <input type="text" id="manual_nisn_siswa" name="nisn_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="NISN atau NIK Siswa">
+                            </div>
+                            <button type="button" class="btn btn-outline" id="btnManualCekSiswa" onclick="lookupManualStudent()" aria-label="Cek siswa" title="Cek siswa" style="height: 34px; padding: 0 12px; font-size: 12px;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="manualLookupFeedback" style="font-size: 11px; margin-top: 6px;"></div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <div>
+                                <label style="font-size: 10px; font-weight: 600;">Nama Siswa</label>
+                                <input type="text" name="nama_siswa" id="tamu_nama_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Nama Putra/Putri">
+                            </div>
+                            <div>
+                                <label style="font-size: 10px; font-weight: 600;">Kelas / Rombel</label>
+                                <input type="text" name="rombel_siswa" id="tamu_rombel_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Kelas Siswa">
+                            </div>
                         </div>
                     </div>
 
@@ -325,6 +420,12 @@
                                 required data-people-search="{{ route('dashboard.people.search') }}"
                                 data-people-kind="gtk">
                             <datalist id="listTujuanBertemu">
+                                <option value="Kepala Sekolah">Kepala Sekolah</option>
+                                <option value="Wakil Kepala Sekolah">Wakil Kepala Sekolah</option>
+                                <option value="Wali Kelas">Wali Kelas</option>
+                                <option value="Guru Bimbingan Konseling (BK)">Guru Bimbingan Konseling (BK)</option>
+                                <option value="Guru Mata Pelajaran">Guru Mata Pelajaran</option>
+                                <option value="Bagian Tata Usaha (TU)">Bagian Tata Usaha (TU)</option>
                                 @foreach ($daftarRuang as $rng)
                                     <option value="{{ $rng->nama_ruang }}">{{ $rng->nama_ruang }}</option>
                                 @endforeach
@@ -371,10 +472,47 @@
                 </form>
             </div>
         </div>
-    @endsection
 
-    @push('scripts')
-        <script
-            src="{{ asset('js/keamanan-buku-tamu.js') }}?v={{ file_exists(public_path('js/keamanan-buku-tamu.js')) ? filemtime(public_path('js/keamanan-buku-tamu.js')) : time() }}">
-        </script>
-    @endpush
+        {{-- Modal Popup QR Code (Untuk di-scan langsung di layar pos satpam) --}}
+        <div id="modalQrCode"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center;">
+            <div class="card" style="width: 100%; max-width: 440px; margin: 20px; text-align: center; padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                    <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; margin: 0; color: var(--text-heading);">
+                        <i class="fas fa-qrcode text-primary me-1"></i> Scan QR e-Tamu Mandiri
+                    </h3>
+                    <button type="button" onclick="closeModalQr()"
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
+                </div>
+                <div style="background: #ffffff; border: 2px solid var(--primary, #0284c7); border-radius: 16px; padding: 14px; display: inline-block; margin-bottom: 12px;">
+                    {!! $qrSvg !!}
+                </div>
+                <div style="font-size: 11px; font-family: monospace; color: var(--primary, #0284c7); margin-bottom: 8px; word-break: break-all;">
+                    {{ $publicFormUrl }}
+                </div>
+                <p style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin: 0 0 16px;">
+                    Arahkan kamera ponsel tamu ke kode QR di atas untuk mengisi buku tamu mandiri tanpa perlu antre di meja pos.
+                </p>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ $publicFormUrl }}" target="_blank" class="btn btn-outline" style="font-size: var(--text-xs, 0.75rem);">
+                        <i class="fas fa-external-link-alt me-1"></i> Buka Link
+                    </a>
+                    <a href="{{ route('dashboard.keamanan.buku-tamu.cetak-qr') }}" target="_blank" class="btn btn-primary" style="font-size: var(--text-xs, 0.75rem);">
+                        <i class="fas fa-print me-1"></i> Cetak Poster
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        window.BUKU_TAMU_CONFIG = {
+            checkStudentUrl: "{{ route('tamu.check-student') }}"
+        };
+    </script>
+    <script
+        src="{{ asset('js/keamanan-buku-tamu.js') }}?v={{ file_exists(public_path('js/keamanan-buku-tamu.js')) ? filemtime(public_path('js/keamanan-buku-tamu.js')) : time() }}">
+    </script>
+@endpush

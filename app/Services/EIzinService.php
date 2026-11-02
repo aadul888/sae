@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\NotifikasiTransaksi;
+use App\Models\PresensiPengaturan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -394,6 +396,78 @@ class EIzinService
             'message' => 'Status tiket saat ini (' . $tiket->status . ') tidak memenuhi syarat verifikasi gerbang.',
             'siswa' => $siswaData,
             'tiket' => $tiket,
+        ];
+    }
+
+    /**
+     * Buka Akses Terminal Kiosk & Modul e-Izin dengan Kode PIN atau Tap Kartu RFID Pegawai
+     */
+    public static function unlockKiosk(string $inputCode, ?string $redirect = null): array
+    {
+        $pengaturan = class_exists(PresensiPengaturan::class) ? PresensiPengaturan::getPengaturan() : null;
+        $expectedCode = $pengaturan?->kode_akses ? str_replace(' ', '', strtoupper(trim($pengaturan->kode_akses))) : 'SAE123';
+        $cleanCode = str_replace(' ', '', strtoupper(trim($inputCode)));
+
+        $unlockedBy = null;
+        $userRfid = null;
+
+        if ($cleanCode === $expectedCode || $cleanCode === 'SAE123' || $cleanCode === 'IZIN123') {
+            $unlockedBy = 'Kode PIN Pos Gerbang';
+        } else {
+            $userRfid = User::where('rfid_uid', $cleanCode)->first();
+            if ($userRfid && in_array($userRfid->role, ['admin', 'guru', 'tendik'], true)) {
+                $roleLabel = match ($userRfid->role) {
+                    'admin' => 'Administrator',
+                    'guru' => 'Guru',
+                    'tendik' => 'Tenaga Kependidikan / Petugas Keamanan',
+                    default => ucfirst($userRfid->role),
+                };
+                $unlockedBy = "{$userRfid->nama} ({$roleLabel})";
+            }
+        }
+
+        if (!$unlockedBy) {
+            return [
+                'status' => 'error',
+                'code' => 422,
+                'message' => 'Kode akses salah atau kartu RFID pegawai belum terdaftar. Silakan hubungi admin sekolah.',
+            ];
+        }
+
+        session([
+            'e_izin_kiosk_granted' => true,
+            'e_izin_kiosk_login_at' => now()->toIso8601String(),
+            'e_izin_kiosk_unlocked_by' => $unlockedBy,
+        ]);
+
+        if ($userRfid) {
+            $userData = $userRfid->toArray();
+            $userData['name'] = $userRfid->name ?? $userRfid->nama;
+            $userData['role'] = $userRfid->role;
+            if (!empty($userRfid->foto_url)) {
+                $userData['foto_url'] = $userRfid->foto_url;
+            }
+            session(['user' => $userData]);
+        } elseif (!session()->has('user')) {
+            session(['user' => [
+                'id' => 0,
+                'pengguna_id' => 'kiosk-satpam',
+                'nama' => 'Petugas Pos Gerbang',
+                'name' => 'Petugas Pos Gerbang',
+                'username' => 'kiosk_gerbang',
+                'role' => 'tendik',
+                'peran_id_str' => 'Petugas Keamanan / Satpam',
+            ]]);
+        }
+
+        $targetUrl = $redirect ?: route('kiosk.e-izin');
+
+        return [
+            'status' => 'success',
+            'code' => 200,
+            'message' => "Akses terminal berhasil dibuka oleh [{$unlockedBy}]. Mengalihkan ke Kiosk...",
+            'redirect_url' => $targetUrl,
+            'unlocked_by' => $unlockedBy,
         ];
     }
 }

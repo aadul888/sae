@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
+use App\Services\QrCodeService;
 
 class KeamananBukuTamuController extends Controller
 {
@@ -25,6 +26,7 @@ class KeamananBukuTamuController extends Controller
         $search = $request->get('q', $request->get('search', ''));
         $status = $request->get('status', '');
         $tanggal = $request->get('tanggal', '');
+        $jenisTamu = $request->get('jenis_tamu', '');
         $perPage = (int) $request->get('perPage', 15);
         $sort = $request->get('sort', 'id');
         $sortDir = $request->get('sortDir', 'desc');
@@ -39,13 +41,21 @@ class KeamananBukuTamuController extends Controller
             $query->where('status', $status);
         }
 
+        if ($jenisTamu) {
+            $query->where('jenis_tamu', $jenisTamu);
+        }
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_tamu', 'like', "%{$search}%")
                     ->orWhere('instansi_asal', 'like', "%{$search}%")
                     ->orWhere('tujuan_bertemu', 'like', "%{$search}%")
                     ->orWhere('keperluan', 'like', "%{$search}%")
-                    ->orWhere('nomor_kartu_visitor', 'like', "%{$search}%");
+                    ->orWhere('nomor_kartu_visitor', 'like', "%{$search}%")
+                    ->orWhere('nama_siswa', 'like', "%{$search}%")
+                    ->orWhere('rombel_siswa', 'like', "%{$search}%")
+                    ->orWhere('nik_tamu', 'like', "%{$search}%")
+                    ->orWhere('nisn_siswa', 'like', "%{$search}%");
             });
         }
 
@@ -56,13 +66,16 @@ class KeamananBukuTamuController extends Controller
             'hari_ini' => DB::table('keamanan_buku_tamu')->where('tanggal', date('Y-m-d'))->count(),
             'di_lokasi' => DB::table('keamanan_buku_tamu')->where('status', 'berada_di_lokasi')->count(),
             'sudah_keluar' => DB::table('keamanan_buku_tamu')->where('status', 'sudah_keluar')->count(),
+            'mandiri' => DB::table('keamanan_buku_tamu')->where('is_mandiri', 1)->count(),
         ];
 
         $daftarRuang = DB::table('sarpras_ruang')->select('id', 'kode_ruang', 'nama_ruang', 'gedung')->orderBy('nama_ruang')->get();
+        $publicFormUrl = route('tamu.public');
+        $qrSvg = QrCodeService::generateSvg($publicFormUrl, 200, 1);
 
         return view('dashboard.keamanan.buku-tamu', compact(
-            'list', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
-            'daftarRuang',
+            'list', 'search', 'status', 'tanggal', 'jenisTamu', 'perPage', 'sort', 'sortDir',
+            'daftarRuang', 'publicFormUrl', 'qrSvg',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }
@@ -75,6 +88,8 @@ class KeamananBukuTamuController extends Controller
             'keperluan' => 'required|string|max:255',
             'tanggal' => 'required|date',
             'jam_masuk' => 'required',
+            'jenis_tamu' => 'nullable|string|max:50',
+            'nomor_kontak' => 'nullable|string|max:30',
         ]);
 
         $user = session('user');
@@ -85,13 +100,20 @@ class KeamananBukuTamuController extends Controller
             'jam_masuk' => $request->jam_masuk,
             'jam_keluar' => $request->jam_keluar ?: null,
             'nama_tamu' => $request->nama_tamu,
-            'instansi_asal' => $request->instansi_asal,
-            'nomor_kontak' => $request->nomor_kontak,
+            'jenis_tamu' => $request->jenis_tamu ?: 'umum',
+            'nik_tamu' => $request->nik_tamu ?: null,
+            'peserta_didik_id' => $request->peserta_didik_id ?: null,
+            'nisn_siswa' => $request->nisn_siswa ?: null,
+            'nama_siswa' => $request->nama_siswa ?: null,
+            'rombel_siswa' => $request->rombel_siswa ?: null,
+            'instansi_asal' => $request->instansi_asal ?: null,
+            'nomor_kontak' => $request->nomor_kontak ?: null,
             'tujuan_bertemu' => $request->tujuan_bertemu,
             'keperluan' => $request->keperluan,
-            'nomor_kartu_visitor' => $request->nomor_kartu_visitor,
-            'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan,
+            'nomor_kartu_visitor' => $request->nomor_kartu_visitor ?: null,
+            'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
             'petugas_satpam_ptk_id' => $ptkId,
+            'is_mandiri' => 0,
             'status' => $request->status ?? 'berada_di_lokasi',
             'created_at' => now(),
             'updated_at' => now(),
@@ -108,6 +130,7 @@ class KeamananBukuTamuController extends Controller
             'keperluan' => 'required|string|max:255',
             'tanggal' => 'required|date',
             'jam_masuk' => 'required',
+            'jenis_tamu' => 'nullable|string|max:50',
         ]);
 
         DB::table('keamanan_buku_tamu')->where('id', $id)->update([
@@ -115,12 +138,18 @@ class KeamananBukuTamuController extends Controller
             'jam_masuk' => $request->jam_masuk,
             'jam_keluar' => $request->jam_keluar ?: null,
             'nama_tamu' => $request->nama_tamu,
-            'instansi_asal' => $request->instansi_asal,
-            'nomor_kontak' => $request->nomor_kontak,
+            'jenis_tamu' => $request->jenis_tamu ?: 'umum',
+            'nik_tamu' => $request->nik_tamu ?: null,
+            'peserta_didik_id' => $request->peserta_didik_id ?: null,
+            'nisn_siswa' => $request->nisn_siswa ?: null,
+            'nama_siswa' => $request->nama_siswa ?: null,
+            'rombel_siswa' => $request->rombel_siswa ?: null,
+            'instansi_asal' => $request->instansi_asal ?: null,
+            'nomor_kontak' => $request->nomor_kontak ?: null,
             'tujuan_bertemu' => $request->tujuan_bertemu,
             'keperluan' => $request->keperluan,
-            'nomor_kartu_visitor' => $request->nomor_kartu_visitor,
-            'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan,
+            'nomor_kartu_visitor' => $request->nomor_kartu_visitor ?: null,
+            'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
             'status' => $request->status ?? 'berada_di_lokasi',
             'updated_at' => now(),
         ]);
@@ -143,5 +172,169 @@ class KeamananBukuTamuController extends Controller
     {
         DB::table('keamanan_buku_tamu')->where('id', $id)->delete();
         return redirect()->route('dashboard.keamanan.buku-tamu.index')->with('success', 'Data tamu berhasil dihapus.');
+    }
+
+    /**
+     * Cetak Lembar / Standing Poster QR Code e-Tamu
+     */
+    public function cetakQr()
+    {
+        $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = DB::table('sekolah_meta')->first();
+        $targetUrl = route('tamu.public');
+        $qrSvg = QrCodeService::generateSvg($targetUrl, 280, 1);
+
+        return view('dashboard.keamanan.buku-tamu-cetak-qr', compact('sekolah', 'sekolahMeta', 'targetUrl', 'qrSvg'));
+    }
+
+    /**
+     * Formulir Publik Tamu Mandiri (Akses Scan QR Code)
+     */
+    public function publicForm()
+    {
+        $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = DB::table('sekolah_meta')->first();
+        $daftarRuang = DB::table('sarpras_ruang')->select('nama_ruang')->orderBy('nama_ruang')->get();
+
+        return view('keamanan.tamu-mandiri', compact('sekolah', 'sekolahMeta', 'daftarRuang'));
+    }
+
+    /**
+     * Simpan Pengisian Mandiri Tamu
+     */
+    public function publicSubmit(Request $request)
+    {
+        $request->validate([
+            'nama_tamu' => 'required|string|max:255',
+            'jenis_tamu' => 'required|string|max:50',
+            'nomor_kontak' => 'nullable|string|max:30',
+            'tujuan_bertemu' => 'required|string|max:255',
+            'keperluan' => 'required|string|max:255',
+            'instansi_asal' => 'nullable|string|max:255',
+            'nomor_polisi_kendaraan' => 'nullable|string|max:30',
+            'nik_tamu' => 'nullable|string|max:30',
+            'nisn_siswa' => 'nullable|string|max:30',
+            'nama_siswa' => 'nullable|string|max:200',
+            'rombel_siswa' => 'nullable|string|max:100',
+            'peserta_didik_id' => 'nullable|string|max:50',
+        ]);
+
+        $id = DB::table('keamanan_buku_tamu')->insertGetId([
+            'tanggal' => date('Y-m-d'),
+            'jam_masuk' => date('H:i:s'),
+            'jam_keluar' => null,
+            'nama_tamu' => $request->nama_tamu,
+            'jenis_tamu' => $request->jenis_tamu,
+            'nik_tamu' => $request->nik_tamu ?: null,
+            'peserta_didik_id' => $request->peserta_didik_id ?: null,
+            'nisn_siswa' => $request->nisn_siswa ?: null,
+            'nama_siswa' => $request->nama_siswa ?: null,
+            'rombel_siswa' => $request->rombel_siswa ?: null,
+            'instansi_asal' => $request->instansi_asal ?: ($request->jenis_tamu === 'orang_tua' ? 'Orang Tua / Wali Siswa' : null),
+            'nomor_kontak' => $request->nomor_kontak ?: null,
+            'tujuan_bertemu' => $request->tujuan_bertemu,
+            'keperluan' => $request->keperluan,
+            'nomor_kartu_visitor' => null,
+            'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
+            'petugas_satpam_ptk_id' => null,
+            'is_mandiri' => 1,
+            'status' => 'berada_di_lokasi',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('tamu.success', $id);
+    }
+
+    /**
+     * Halaman Sukses & Bukti Tiket Tamu Digital
+     */
+    public function publicSuccess($id)
+    {
+        $tamu = DB::table('keamanan_buku_tamu')->where('id', $id)->first();
+        if (!$tamu) {
+            return redirect()->route('tamu.public')->with('error', 'Catatan kunjungan tidak ditemukan.');
+        }
+
+        $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = DB::table('sekolah_meta')->first();
+
+        return view('keamanan.tamu-sukses', compact('tamu', 'sekolah', 'sekolahMeta'));
+    }
+
+    /**
+     * API Deteksi Otomatis Anak / Siswa via NIK Ortu atau NISN/NIK Siswa
+     */
+    public function checkStudentApi(Request $request)
+    {
+        $nikOrtu = preg_replace('/[^0-9]/', '', (string) $request->get('nik_ortu', ''));
+        $nisnSiswa = preg_replace('/[^0-9]/', '', (string) $request->get('nisn_siswa', ''));
+
+        $students = collect();
+        $suggestedParentName = null;
+        $matchedRole = null;
+
+        // 1. Deteksi melalui NIK Orang Tua
+        if ($nikOrtu !== '') {
+            $identitasRows = DB::table('peserta_didik_identitas')
+                ->where('nik_ayah', $nikOrtu)
+                ->orWhere('nik_ibu', $nikOrtu)
+                ->orWhere('nik_wali', $nikOrtu)
+                ->get();
+
+            if ($identitasRows->isNotEmpty()) {
+                $first = $identitasRows->first();
+                if ($first->nik_ayah === $nikOrtu) {
+                    $suggestedParentName = $first->nama_ayah;
+                    $matchedRole = 'Ayah Kandung';
+                } elseif ($first->nik_ibu === $nikOrtu) {
+                    $suggestedParentName = $first->nama_ibu;
+                    $matchedRole = 'Ibu Kandung';
+                } elseif ($first->nik_wali === $nikOrtu) {
+                    $suggestedParentName = $first->nama_wali;
+                    $matchedRole = 'Wali Siswa';
+                }
+
+                $pdIds = $identitasRows->pluck('peserta_didik_id');
+                $matchedStudents = DB::table('peserta_didik')
+                    ->whereIn('peserta_didik_id', $pdIds)
+                    ->select('peserta_didik_id', 'nama', 'nisn', 'nik', 'nama_rombel', 'nama_ayah', 'nama_ibu', 'nama_wali')
+                    ->get();
+
+                $students = $students->merge($matchedStudents);
+            }
+        }
+
+        // 2. Deteksi melalui NISN atau NIK Siswa
+        if ($nisnSiswa !== '') {
+            $siswaByNisn = DB::table('peserta_didik')
+                ->where(function ($q) use ($nisnSiswa) {
+                    $q->where('nisn', $nisnSiswa)
+                        ->orWhere('nik', $nisnSiswa)
+                        ->orWhere('nipd', $nisnSiswa);
+                })
+                ->select('peserta_didik_id', 'nama', 'nisn', 'nik', 'nama_rombel', 'nama_ayah', 'nama_ibu', 'nama_wali')
+                ->get();
+
+            if ($siswaByNisn->isNotEmpty()) {
+                $students = $students->merge($siswaByNisn);
+                if (!$suggestedParentName) {
+                    $firstPd = $siswaByNisn->first();
+                    $suggestedParentName = $firstPd->nama_ayah ?: ($firstPd->nama_ibu ?: $firstPd->nama_wali);
+                    $matchedRole = $firstPd->nama_ayah ? 'Orang Tua (Ayah)' : ($firstPd->nama_ibu ? 'Orang Tua (Ibu)' : 'Orang Tua / Wali');
+                }
+            }
+        }
+
+        $uniqueStudents = $students->unique('peserta_didik_id')->values();
+
+        return response()->json([
+            'success' => true,
+            'found' => $uniqueStudents->isNotEmpty(),
+            'count' => $uniqueStudents->count(),
+            'suggested_parent_name' => $suggestedParentName,
+            'matched_role' => $matchedRole,
+            'students' => $uniqueStudents,
+        ]);
     }
 }

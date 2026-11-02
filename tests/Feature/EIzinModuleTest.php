@@ -142,23 +142,91 @@ class EIzinModuleTest extends TestCase
         $res->assertJsonValidationErrors(['jenis_izin', 'alasan', 'jam_izin_keluar']);
     }
 
-    public function test_kiosk_view_loads_successfully(): void
+    public function test_guest_is_redirected_to_kiosk_auth(): void
     {
         $res = $this->get(route('kiosk.e-izin'));
+        $res->assertStatus(302);
+        $res->assertRedirect(route('kiosk.e-izin.auth'));
+    }
+
+    public function test_kiosk_auth_page_loads_successfully(): void
+    {
+        $res = $this->get(route('kiosk.e-izin.auth'));
+        $res->assertStatus(200);
+        $res->assertSee('Otorisasi Terminal');
+        $res->assertSee('Pos Gerbang e-Izin');
+        $res->assertSee('inputKodeAkses');
+    }
+
+    public function test_kiosk_unlock_fails_on_invalid_code(): void
+    {
+        $res = $this->postJson(route('e-izin.kiosk.unlock'), ['kode_akses' => 'WRONG-PIN-999']);
+        $res->assertStatus(422);
+        $res->assertJsonFragment(['status' => 'error']);
+    }
+
+    public function test_kiosk_unlock_succeeds_with_pin(): void
+    {
+        $res = $this->postJson(route('e-izin.kiosk.unlock'), ['kode_akses' => 'SAE123']);
+        $res->assertStatus(200);
+        $res->assertJsonFragment(['status' => 'success']);
+        $res->assertSessionHas('e_izin_kiosk_granted', true);
+    }
+
+    public function test_kiosk_unlock_succeeds_with_staff_rfid(): void
+    {
+        // Temukan atau buat staff dengan rfid_uid
+        $staff = \App\Models\User::whereNotNull('rfid_uid')->where('rfid_uid', '!=', '')->first();
+        if (!$staff) {
+            $staff = \App\Models\User::first();
+            if ($staff) {
+                $staff->rfid_uid = 'RFID-STAFF-TEST-9988';
+                $staff->save();
+            }
+        }
+
+        if (!$staff) {
+            $this->markTestSkipped('Tidak ada user staff.');
+        }
+
+        $res = $this->postJson(route('e-izin.kiosk.unlock'), ['kode_akses' => $staff->rfid_uid]);
+        $res->assertStatus(200);
+        $res->assertJsonFragment(['status' => 'success']);
+        $res->assertSessionHas('e_izin_kiosk_granted', true);
+        $res->assertSessionHas('user');
+    }
+
+    public function test_kiosk_lock_clears_session_and_redirects(): void
+    {
+        $res = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->get(route('e-izin.kiosk.lock'));
+
+        $res->assertStatus(302);
+        $res->assertRedirect(route('kiosk.e-izin.auth'));
+        $res->assertSessionMissing('e_izin_kiosk_granted');
+    }
+
+    public function test_kiosk_view_loads_successfully(): void
+    {
+        $res = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->get(route('kiosk.e-izin'));
         $res->assertStatus(200);
         $res->assertSee('Pos Gerbang e-Izin');
         $res->assertSee('KIOSK VERIFIKASI');
         $res->assertSee('kioskActivityChart');
         $res->assertSee('videoPreview');
         $res->assertSee('btnToggleFullscreen');
+        $res->assertSee('btnKioskLock');
 
-        $resAlt = $this->get(route('e-izin.kiosk'));
+        $resAlt = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->get(route('e-izin.kiosk'));
         $resAlt->assertStatus(200);
     }
 
     public function test_kiosk_live_log_returns_json(): void
     {
-        $res = $this->get(route('e-izin.kiosk.live-log'));
+        $res = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->get(route('e-izin.kiosk.live-log'));
         $res->assertStatus(200);
         $res->assertJsonStructure([
             'status',
@@ -169,14 +237,16 @@ class EIzinModuleTest extends TestCase
 
     public function test_kiosk_scan_handles_empty_input(): void
     {
-        $res = $this->postJson(route('e-izin.kiosk.scan'), ['raw_input' => '']);
+        $res = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->postJson(route('e-izin.kiosk.scan'), ['raw_input' => '']);
         $res->assertStatus(422);
         $res->assertJsonFragment(['status' => 'error', 'title' => 'Input Kosong']);
     }
 
     public function test_kiosk_scan_handles_unregistered_code(): void
     {
-        $res = $this->postJson(route('e-izin.kiosk.scan'), ['raw_input' => 'TIDAK-TERDAFTAR-9999']);
+        $res = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->postJson(route('e-izin.kiosk.scan'), ['raw_input' => 'TIDAK-TERDAFTAR-9999']);
         $res->assertStatus(404);
         $res->assertJsonFragment(['status' => 'error', 'title' => 'Identitas Tidak Dikenali']);
     }
@@ -274,7 +344,8 @@ class EIzinModuleTest extends TestCase
         $this->assertSame('disetujui', $tiketAfterPiket->piket_status);
 
         // 6. Security Gerbang verifikasi keluar (Checkout via Kiosk Scan)
-        $resKioskCheckout = $this->postJson(route('e-izin.kiosk.scan'), ['raw_input' => $tiket->nomor_tiket]);
+        $resKioskCheckout = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->postJson(route('e-izin.kiosk.scan'), ['raw_input' => $tiket->nomor_tiket]);
         $resKioskCheckout->assertStatus(200);
         $resKioskCheckout->assertJsonFragment(['action' => 'checkout']);
 
@@ -283,7 +354,8 @@ class EIzinModuleTest extends TestCase
         $this->assertNotNull($tiketAfterCheckout->satpam_checkout_at);
 
         // 7. Security Gerbang verifikasi kembali masuk (Checkin via Kiosk Scan)
-        $resKioskCheckin = $this->postJson(route('e-izin.kiosk.scan'), ['raw_input' => $tiket->nomor_tiket]);
+        $resKioskCheckin = $this->withSession(['e_izin_kiosk_granted' => true])
+            ->postJson(route('e-izin.kiosk.scan'), ['raw_input' => $tiket->nomor_tiket]);
         $resKioskCheckin->assertStatus(200);
         $resKioskCheckin->assertJsonFragment(['action' => 'checkin']);
 
@@ -313,8 +385,79 @@ class EIzinModuleTest extends TestCase
     {
         $res = $this->get('/');
         $res->assertStatus(200);
+        $res->assertSee(route('presensi.scan'), false);
+        $res->assertSee(route('perpustakaan.index'), false);
         $res->assertSee(route('kiosk.e-izin'), false);
+        $res->assertSee(route('tamu.public'), false);
         $res->assertSee('Terminal Kiosk e-Izin');
+        $res->assertSee('Buku Tamu (e-Tamu)');
         $res->assertSee('e-Izin &amp; Pos Gerbang', false);
+    }
+
+    public function test_public_e_izin_portal_page_loads_with_layout_app(): void
+    {
+        $res = $this->get(route('e-izin.public'));
+        $res->assertStatus(200);
+        $res->assertSee('Layanan e-Izin');
+        $res->assertSee('Pos Gerbang Digital');
+        $res->assertSee('Lacak Tiket e-Izin');
+        $res->assertSee('formCekTiket');
+        $res->assertSee('Alur Terpadu 4 Tahap e-Izin');
+        $res->assertSee('e-izin-publik.js');
+    }
+
+    public function test_public_cek_tiket_handles_validation_and_not_found(): void
+    {
+        // 1. Keyword kosong
+        $resEmpty = $this->postJson(route('e-izin.cek-tiket'), ['keyword' => '']);
+        $resEmpty->assertStatus(422);
+        $resEmpty->assertJsonFragment(['status' => 'error']);
+
+        // 2. Keyword tidak ditemukan
+        $resNotFound = $this->postJson(route('e-izin.cek-tiket'), ['keyword' => 'NON-EXISTENT-TIKET-9999']);
+        $resNotFound->assertStatus(404);
+        $resNotFound->assertJsonFragment(['status' => 'error']);
+    }
+
+    public function test_public_cek_tiket_finds_active_ticket(): void
+    {
+        $siswa = \Illuminate\Support\Facades\DB::table('peserta_didik')->first();
+        if (!$siswa) {
+            $this->markTestSkipped('Data peserta didik kosong.');
+        }
+
+        // Buat dummy tiket
+        $nomorTiket = 'IZN-' . date('Ymd') . '-TEST';
+        $id = \Illuminate\Support\Facades\DB::table('peserta_didik_izin_keluar')->insertGetId([
+            'peserta_didik_id' => $siswa->peserta_didik_id,
+            'rombel_id' => $siswa->rombongan_belajar_id,
+            'nomor_tiket' => $nomorTiket,
+            'jenis_izin' => 'keluar_sebentar',
+            'alasan' => 'Uji publik lacak tiket',
+            'tanggal' => date('Y-m-d'),
+            'jam_izin_keluar' => '09:00:00',
+            'jam_rencana_kembali' => '09:30:00',
+            'status' => 'disetujui',
+            'wali_status' => 'disetujui',
+            'piket_status' => 'disetujui',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Cek via nomor tiket
+        $resTiket = $this->postJson(route('e-izin.cek-tiket'), ['keyword' => $nomorTiket]);
+        $resTiket->assertStatus(200);
+        $resTiket->assertJsonFragment(['status' => 'success', 'nomor_tiket' => $nomorTiket]);
+        $this->assertNotEmpty($resTiket->json('qr_svg'));
+
+        // Cek via NISN jika siswa punya NISN
+        if (!empty($siswa->nisn)) {
+            $resNisn = $this->postJson(route('e-izin.cek-tiket'), ['keyword' => $siswa->nisn]);
+            $resNisn->assertStatus(200);
+            $resNisn->assertJsonFragment(['status' => 'success']);
+        }
+
+        // Cleanup
+        \Illuminate\Support\Facades\DB::table('peserta_didik_izin_keluar')->where('id', $id)->delete();
     }
 }

@@ -755,15 +755,94 @@ class EIzinController extends Controller
     }
 
     /**
+     * Otorisasi Keamanan Terminal Kiosk Pos Gerbang (PIN / Tap RFID Pegawai)
+     */
+    public function kioskAuth(Request $request): View|RedirectResponse
+    {
+        if ($this->isKioskAccessAllowed()) {
+            return redirect()->route('kiosk.e-izin');
+        }
+
+        $sekolah = DB::table('sekolah')->first();
+        return view('dashboard.e-izin-kiosk-auth', compact('sekolah'));
+    }
+
+    /**
+     * Endpoint API: Buka Akses Terminal Kiosk & Modul e-Izin (PIN / Tap RFID)
+     */
+    public function kioskUnlock(Request $request): JsonResponse
+    {
+        $request->validate([
+            'kode_akses' => 'required|string|max:64',
+        ]);
+
+        $redirect = $request->input('redirect');
+        $res = EIzinService::unlockKiosk((string) $request->input('kode_akses'), $redirect);
+
+        return response()->json($res, $res['code'] ?? 200);
+    }
+
+    /**
+     * Kunci Kembali Terminal Kiosk Pos Gerbang
+     */
+    public function kioskLock(Request $request): RedirectResponse|JsonResponse
+    {
+        session()->forget(['e_izin_kiosk_granted', 'e_izin_kiosk_login_at', 'e_izin_kiosk_unlocked_by']);
+
+        if (session('user.pengguna_id') === 'kiosk-satpam') {
+            session()->forget('user');
+        }
+        session()->save();
+
+        if ($request->expectsJson() || $request->wantsJson() || $request->isJson() || $request->header('Sec-Fetch-Mode') === 'cors') {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Terminal Kiosk e-Izin telah dikunci.',
+            ]);
+        }
+
+        $redirectTo = $request->query('redirect', route('kiosk.e-izin.auth'));
+        return redirect($redirectTo)->with('info', 'Terminal Kiosk e-Izin telah dikunci.');
+    }
+
+    /**
+     * Cek apakah sesi saat ini diizinkan mengakses Kiosk Terminal
+     */
+    protected function isKioskAccessAllowed(): bool
+    {
+        if (session('e_izin_kiosk_granted') === true) {
+            return true;
+        }
+
+        if (session()->has('user')) {
+            $user = session('user');
+            $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+            if (in_array($role, ['admin', 'guru', 'tendik'], true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Tampilan Terminal Kiosk Pos Gerbang Publik
      */
-    public function kioskView(Request $request): View
+    public function kioskView(Request $request): View|RedirectResponse|\Illuminate\Http\Response
     {
+        if (!$this->isKioskAccessAllowed()) {
+            return redirect()->route('kiosk.e-izin.auth');
+        }
+
         $sekolah = DB::table('sekolah')->first();
         $stats = EIzinService::getKioskStats();
         $liveLogs = EIzinService::getKioskLiveLog(8);
 
-        return view('dashboard.e-izin-kiosk', compact('sekolah', 'stats', 'liveLogs'));
+        return response()
+            ->view('dashboard.e-izin-kiosk', compact('sekolah', 'stats', 'liveLogs'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     /**
@@ -771,6 +850,14 @@ class EIzinController extends Controller
      */
     public function kioskScan(Request $request): JsonResponse
     {
+        if (!$this->isKioskAccessAllowed()) {
+            return response()->json([
+                'status' => 'error',
+                'title' => 'Akses Ditolak',
+                'message' => 'Terminal Kiosk e-Izin belum diotorisasi atau sesi telah berakhir. Silakan otorisasi terlebih dahulu.',
+            ], 403);
+        }
+
         $raw = trim($request->input('raw_input', $request->input('code', '')));
         $result = EIzinService::processKioskScan($raw);
 
@@ -782,10 +869,104 @@ class EIzinController extends Controller
      */
     public function kioskLiveLog(): JsonResponse
     {
+        if (!$this->isKioskAccessAllowed()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sesi Kiosk e-Izin belum diotorisasi.',
+            ], 403);
+        }
+
         return response()->json([
             'status' => 'success',
             'stats' => EIzinService::getKioskStats(),
             'logs' => EIzinService::getKioskLiveLog(8),
+        ]);
+    }
+
+    /**
+     * Halaman Portal Publik e-Izin & Pos Gerbang Sekolah
+     */
+    public function publicIndex(Request $request): View
+    {
+        $sekolah = DB::table('sekolah')->first();
+        $today = date('Y-m-d');
+
+        $stats = [
+            'hari_ini' => DB::table('peserta_didik_izin_keluar')->where('tanggal', $today)->count(),
+            'di_luar' => DB::table('peserta_didik_izin_keluar')->where('tanggal', $today)->where('status', 'keluar')->count(),
+            'disetujui' => DB::table('peserta_didik_izin_keluar')->where('tanggal', $today)->where('status', 'disetujui')->count(),
+            'selesai' => DB::table('peserta_didik_izin_keluar')->where('tanggal', $today)->where('status', 'selesai')->count(),
+        ];
+
+        $running_info = [
+            'Portal e-Izin Resmi: Siswa wajib memiliki tiket digital tervalidasi Wali Kelas & Piket sebelum menuju pos gerbang.',
+            'Layanan presensi gerbang buka selama jam KBM aktif sekolah berlangsung.',
+            'Peserta didik izin keluar wajib lapor kembali ke pos satpam untuk verifikasi checkin.',
+        ];
+
+        return view('e-izin.publik', compact('sekolah', 'stats', 'running_info'));
+    }
+
+    /**
+     * API Publik Pengecekan / Pelacakan Status Tiket e-Izin
+     */
+    public function publicCekTiket(Request $request): JsonResponse
+    {
+        $keyword = trim((string) $request->input('keyword', ''));
+        if (empty($keyword)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Masukkan nomor tiket e-Izin atau NISN siswa.',
+            ], 422);
+        }
+
+        $tiket = DB::table('peserta_didik_izin_keluar as iz')
+            ->leftJoin('peserta_didik as pd', 'iz.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'iz.rombel_id', '=', 'rb.rombongan_belajar_id')
+            ->leftJoin('gtk as wali', 'iz.wali_kelas_ptk_id', '=', 'wali.ptk_id')
+            ->leftJoin('gtk as piket', 'iz.petugas_piket_ptk_id', '=', 'piket.ptk_id')
+            ->select(
+                'iz.*',
+                'pd.nama as nama_siswa',
+                'pd.nisn',
+                'pd.nik',
+                'pd.jenis_kelamin',
+                'rb.nama as nama_rombel',
+                'wali.nama as nama_wali',
+                'piket.nama as nama_piket'
+            )
+            ->where(function ($q) use ($keyword) {
+                $q->where('iz.nomor_tiket', $keyword)
+                    ->orWhere('pd.nisn', $keyword);
+            })
+            ->latest('iz.id')
+            ->first();
+
+        if (!$tiket) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tiket e-Izin tidak ditemukan. Pastikan nomor tiket atau NISN sudah benar.',
+            ], 404);
+        }
+
+        $qrSvg = null;
+        $barcodeSvg = null;
+        try {
+            if (class_exists(QrCodeService::class)) {
+                $qrSvg = QrCodeService::generateSvg($tiket->nomor_tiket, 150, 1);
+            }
+            if (class_exists(BarcodeService::class)) {
+                $barcodeSvg = BarcodeService::generateSvg($tiket->nomor_tiket, 200, 44);
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika library QR/barcode bermasalah
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $tiket,
+            'qr_svg' => $qrSvg,
+            'barcode_svg' => $barcodeSvg,
         ]);
     }
 

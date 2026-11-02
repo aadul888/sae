@@ -78,6 +78,7 @@
     <script src="{{ asset('js/sae.js') }}?v={{ @filemtime(public_path('js/sae.js')) ?: '1' }}"></script>
     <script src="{{ asset('js/pwa.js') }}?v={{ @filemtime(public_path('js/pwa.js')) ?: '1' }}"></script>
     @yield('scripts')
+    @stack('scripts')
 </body>
 
 </html>
