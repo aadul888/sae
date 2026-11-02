@@ -397,12 +397,11 @@ final class TeknisiModuleRegistry
                  'active' => 'dashboard.sarpras.aset*',
                  'title' => 'Inventaris & aset sarpras sekolah (sumber sarana kegiatan rapat)'],
                 $modulEntry('area-master', 'Master Area & Zona'),
-                ['label' => 'Peminjaman Ruang, Alat & Fasilitas', 'icon' => 'fas fa-hand-holding',
+                ['label' => 'Peminjaman', 'icon' => 'fas fa-hand-holding',
                  'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
                  'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
                  'active' => 'dashboard.laboran.peminjaman-alat*',
                  'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset'],
-                $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
             ],
 
             'rencana' => [
@@ -427,6 +426,7 @@ final class TeknisiModuleRegistry
                  'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => [],
                  'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.sarana-rapat*',
                  'title' => 'Persiapan kebersihan ruang rapat + sarana dari inventaris aset (Tupoksi #4)'],
+                $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
             ],
 
             'perbaikan' => [
