@@ -323,6 +323,12 @@ class TeknisiTupoksiTest extends TestCase
             $index->assertSee($label, false);
         }
 
+        // Kontrak dropdown: form cetak harus `data-no-ajax` agar tidak diubah
+        // menjadi refresh tabel oleh dashboard-live-search.js, tombol kirim
+        // berlabel "Cetak", dan membuka tab baru.
+        $index->assertSee('data-no-ajax', false);
+        $index->assertSee('Cetak', false);
+
         foreach (['minggu', 'bulan', 'triwulan', 'semester', 'tahun'] as $tipe) {
             $res = $this->withSession($this->adminSession())
                 ->get(route('dashboard.teknisi.laporan.cetak', [

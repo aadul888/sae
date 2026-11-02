@@ -49,8 +49,10 @@
     </button>
 
     <div id="{{ $uid }}Menu" class="cetak-periode-menu"
-        style="display: none; position: absolute; left: 0; top: calc(100% + 6px); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: min(320px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: min(70vh, 480px); overflow-y: auto; box-sizing: border-box; z-index: 1000; padding: 12px;">
-        <form method="GET" action="{{ $route }}" target="_blank"
+        style="display: none; position: fixed; top: 0; left: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: min(320px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: min(70vh, 480px); overflow-y: auto; box-sizing: border-box; z-index: 99999; padding: 12px;">
+        {{-- data-no-ajax: cegah intersepsi dashboard-live-search.js yang mengubah
+             submit GET menjadi refresh tabel (harus membuka tab cetak). --}}
+        <form method="GET" action="{{ $route }}" target="_blank" data-no-ajax
             class="cetak-periode-form" data-uid="{{ $uid }}"
             style="display: flex; flex-direction: column; gap: 8px; margin: 0;">
             @foreach ($params as $pk => $pv)
@@ -116,7 +118,7 @@
             </span>
 
             <button type="submit" class="btn btn-primary" style="margin-top: 4px;">
-                <i class="fas fa-filter"></i> Terapkan
+                <i class="fas fa-print"></i> Cetak
             </button>
         </form>
     </div>
@@ -172,15 +174,20 @@
                     btn.setAttribute('aria-expanded', open ? 'false' : 'true');
 
                     if (!open) {
-                        // Menu dibuka ke KANAN tombol; bila melewati tepi kanan
-                        // viewport, balik ke jangkar kanan agar tetap terlihat.
-                        menu.style.left = '';
-                        menu.style.right = '';
-                        var r = menu.getBoundingClientRect();
-                        if (r.right > window.innerWidth - 8) {
-                            menu.style.left = 'auto';
-                            menu.style.right = '0';
+                        // Posisi `fixed`: jangkar di bawah tombol, lalu di-clamp
+                        // agar selalu berada di dalam viewport (aman di layar sempit).
+                        var pad = 8;
+                        var b = btn.getBoundingClientRect();
+                        var w = menu.offsetWidth || 320;
+                        var h = menu.offsetHeight || 0;
+                        var left = Math.min(b.left, window.innerWidth - w - pad);
+                        left = Math.max(pad, left);
+                        var top = b.bottom + 6;
+                        if (top + h > window.innerHeight - pad) {
+                            top = Math.max(pad, window.innerHeight - h - pad);
                         }
+                        menu.style.left = left + 'px';
+                        menu.style.top = top + 'px';
                     }
                 });
 

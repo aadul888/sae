@@ -49,6 +49,7 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
     z-index: 999999 !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    flex-wrap: wrap !important;
 }
 
 .no-print-bar a,
@@ -153,6 +154,40 @@ body {
 .select-cetak option {
     background: #0f172a !important;
     color: #f8fafc !important;
+}
+
+/* Bar alat cetak di layar sempit: rapat, boleh membungkus, tidak keluar viewport. */
+@media (max-width: 640px) {
+    .no-print-bar,
+    .print-toolbar,
+    .print-control-bar,
+    .action-toolbar {
+        max-width: calc(100vw - 16px) !important;
+        gap: 6px !important;
+        padding: 6px 10px !important;
+        border-radius: var(--radius-xl, 16px) !important;
+    }
+
+    .no-print-bar a,
+    .no-print-bar button,
+    .print-toolbar a,
+    .print-toolbar button,
+    .btn-action,
+    .btn-print,
+    .btn-back {
+        padding: 6px 10px !important;
+        font-size: var(--text-xs, 0.75rem) !important;
+    }
+
+    .no-print-bar select.select-cetak,
+    .no-print-bar .select-cetak {
+        max-width: 42vw !important;
+        padding: 5px 8px !important;
+    }
+
+    .doc-toolbar-label {
+        display: none;
+    }
 }
 
 /* Screen Margins so document never gets covered by toolbar */
