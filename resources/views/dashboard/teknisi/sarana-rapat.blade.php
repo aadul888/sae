@@ -31,6 +31,10 @@
         :can-delete="$canDelete"
         bulk-modul="sarana-rapat">
 
+        <x-slot:tabnav>
+            @include('dashboard.laboran.partials.peminjaman-tabs')
+        </x-slot:tabnav>
+
         <x-slot:filter>
             <select name="kelengkapan" class="toolbar-filter-select" style="height:38px; min-width:160px;">
                 <option value="">Semua Kelengkapan</option>

@@ -400,8 +400,8 @@ final class TeknisiModuleRegistry
                 ['label' => 'Peminjaman', 'icon' => 'fas fa-hand-holding',
                  'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
                  'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
-                 'active' => 'dashboard.laboran.peminjaman-alat*',
-                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset'],
+                 'active' => ['dashboard.laboran.peminjaman-alat*', 'dashboard.teknisi.sarana-rapat*'],
+                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset + ceklist sarana rapat'],
             ],
 
             'rencana' => [
@@ -422,10 +422,6 @@ final class TeknisiModuleRegistry
                  'can' => ['menu_teknisi'],
                  'active' => 'dashboard.teknisi.pelaksanaan-harian*',
                  'title' => 'Konfirmasi rencana jadwal area tugas: sudah / belum dikerjakan'],
-                ['label' => 'Sarana Kegiatan Rapat', 'icon' => 'fas fa-people-roof',
-                 'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => [],
-                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.sarana-rapat*',
-                 'title' => 'Persiapan kebersihan ruang rapat + sarana dari inventaris aset (Tupoksi #4)'],
                 $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
             ],
 

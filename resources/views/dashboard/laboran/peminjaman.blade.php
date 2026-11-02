@@ -79,6 +79,9 @@
             </div>
         </div>
 
+        {{-- 2b. Tab: Peminjaman ↔ Sarana Kegiatan Rapat (satu halaman). --}}
+        @include('dashboard.laboran.partials.peminjaman-tabs')
+
         {{-- 3. Datatable --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">
             <div class="datatable-toolbar">
