@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const formPublic = document.getElementById('formPublicTamu');
     const btnSubmit = document.getElementById('btnSubmitTamu');
 
-    // 1. Kategori Tamu Toggle
+    const categoryStep = document.getElementById('categoryStep');
+    const categoryWarning = document.getElementById('categoryWarning');
+    const formFields = document.getElementById('formFields');
+    let selectedCategory = null;
+
+    // 1. Kategori Tamu — wajib pilih sebelum isi field lain
     categoryOptions.forEach(opt => {
         opt.addEventListener('click', function () {
             categoryOptions.forEach(o => o.classList.remove('active'));
@@ -23,6 +28,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (radio) radio.checked = true;
 
             const val = this.dataset.type;
+            selectedCategory = val;
+
+            // Tandai langkah 1 selesai + buka field lanjutan
+            if (categoryStep) categoryStep.classList.add('answered');
+            if (categoryWarning) categoryWarning.style.display = 'none';
+            if (formFields) formFields.classList.remove('etamu-fields-locked');
+
             if (val === 'orang_tua') {
                 if (sectionOrangTua) sectionOrangTua.style.display = 'block';
                 if (groupInstansi) groupInstansi.style.display = 'none';
@@ -199,6 +211,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // 3. Form Submission Handling
     if (formPublic) {
         formPublic.addEventListener('submit', function (e) {
+            if (!selectedCategory) {
+                e.preventDefault();
+                if (categoryWarning) categoryWarning.style.display = 'flex';
+                if (categoryStep) {
+                    categoryStep.classList.add('shaking');
+                    setTimeout(() => categoryStep.classList.remove('shaking'), 500);
+                    categoryStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan Kunjungan...';

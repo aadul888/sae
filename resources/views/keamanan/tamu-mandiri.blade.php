@@ -43,35 +43,52 @@
                 @csrf
                 <input type="hidden" name="peserta_didik_id" id="hidden_peserta_didik_id" value="">
 
-                {{-- Pilih Kategori Tamu --}}
-                <div class="input-group">
-                    <label class="input-label">Pilih Kategori Tamu <span style="color:var(--danger, #ef4444);">*</span></label>
-                    <div class="etamu-category-grid">
-                        <label class="category-option active" data-type="orang_tua">
-                            <input type="radio" name="jenis_tamu" value="orang_tua" checked>
+                {{-- Langkah 1: Pilih Kategori Tamu (Wajib Dipilih Lebih Dulu) --}}
+                <div class="category-step" id="categoryStep">
+                    <div class="category-step-head">
+                        <span class="category-step-num">1</span>
+                        <div>
+                            <div class="category-step-title">Pilih Kategori Tamu Anda</div>
+                            <div class="category-step-sub">Wajib dipilih sebelum mengisi data kunjungan</div>
+                        </div>
+                        <span class="category-step-tag">LANGKAH 1</span>
+                    </div>
+
+                    <div class="etamu-category-grid" id="categoryGrid">
+                        <label class="category-option" data-type="orang_tua">
+                            <input type="radio" name="jenis_tamu" value="orang_tua" required>
                             <span class="category-icon text-primary"><i class="fas fa-user-graduate"></i></span>
                             <span class="category-label">Orang Tua / Wali</span>
+                            <span class="category-hint">Wali murid</span>
                         </label>
                         <label class="category-option" data-type="kedinasan">
-                            <input type="radio" name="jenis_tamu" value="kedinasan">
+                            <input type="radio" name="jenis_tamu" value="kedinasan" required>
                             <span class="category-icon text-info"><i class="fas fa-building"></i></span>
                             <span class="category-label">Kedinasan</span>
+                            <span class="category-hint">Instansi / dinas</span>
                         </label>
                         <label class="category-option" data-type="umum">
-                            <input type="radio" name="jenis_tamu" value="umum">
+                            <input type="radio" name="jenis_tamu" value="umum" required>
                             <span class="category-icon text-success"><i class="fas fa-user-group"></i></span>
                             <span class="category-label">Umum</span>
+                            <span class="category-hint">Masyarakat umum</span>
                         </label>
                         <label class="category-option" data-type="alumni">
-                            <input type="radio" name="jenis_tamu" value="alumni">
+                            <input type="radio" name="jenis_tamu" value="alumni" required>
                             <span class="category-icon text-warning"><i class="fas fa-user-tie"></i></span>
                             <span class="category-label">Alumni</span>
+                            <span class="category-hint">Mantan siswa</span>
                         </label>
+                    </div>
+
+                    <div class="category-warning" id="categoryWarning" style="display: none;">
+                        <i class="fas fa-triangle-exclamation"></i> Silakan pilih salah satu kategori tamu terlebih dahulu.
                     </div>
                 </div>
 
+                <div id="formFields" class="etamu-fields-locked">
                 {{-- Section Khusus Tamu Orang Tua (Deteksi Otomatis Siswa) --}}
-                <div id="sectionOrangTua" class="student-lookup-box">
+                <div id="sectionOrangTua" class="student-lookup-box" style="display: none;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
                         <span style="font-weight: 700; font-size: var(--text-xs, 0.75rem); color: var(--primary, #0ea5e9);">
                             <i class="fas fa-id-card me-1"></i> Deteksi Otomatis Siswa
@@ -171,6 +188,7 @@
                     <input type="text" name="nomor_polisi_kendaraan" id="tamu_nopol" class="input-field"
                         placeholder="Contoh: B 1234 ABC / D 5678 XYZ">
                 </div>
+                </div>{{-- /#formFields --}}
 
                 <button type="submit" class="btn btn-primary" id="btnSubmitTamu"
                     style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 0.85rem 1.25rem; font-weight: 700;">
@@ -188,10 +206,67 @@
 
 @push('styles')
     <style>
+        .category-step {
+            border: 2px solid rgba(14, 165, 233, 0.35);
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.10), rgba(14, 165, 233, 0.02));
+            border-radius: var(--radius-xl, 16px);
+            padding: 16px;
+            margin-bottom: 1.25rem;
+            position: relative;
+            box-shadow: 0 6px 24px rgba(14, 165, 233, 0.12);
+        }
+        .category-step.answered {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.1);
+        }
+        .category-step-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .category-step-num {
+            flex: 0 0 auto;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #fff;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+        .category-step-title {
+            font-weight: 800;
+            font-size: var(--text-md, 1rem);
+            color: var(--text-heading);
+            line-height: 1.2;
+        }
+        .category-step-sub {
+            font-size: var(--text-xs, 0.75rem);
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .category-step-tag {
+            margin-left: auto;
+            align-self: flex-start;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #fff;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            padding: 4px 10px;
+            border-radius: var(--radius-full, 999px);
+            white-space: nowrap;
+        }
         .etamu-category-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
         @media (min-width: 520px) {
             .etamu-category-grid {
@@ -200,33 +275,87 @@
         }
         .category-option {
             cursor: pointer;
-            border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.1));
+            border: 2px solid var(--border-glass, rgba(255, 255, 255, 0.14));
             border-radius: var(--radius-lg, 12px);
-            padding: 10px 8px;
+            padding: 14px 10px;
             text-align: center;
-            transition: all 0.2s ease;
-            background: var(--input-bg, rgba(255, 255, 255, 0.04));
+            transition: all 0.18s ease;
+            background: var(--card-bg, rgba(255, 255, 255, 0.05));
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 5px;
+            position: relative;
+        }
+        .category-option:hover {
+            border-color: var(--primary, #0ea5e9);
+            transform: translateY(-2px);
         }
         .category-option input[type="radio"] {
-            display: none;
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
         }
         .category-option.active {
             border-color: var(--primary, #0ea5e9);
-            background: rgba(14, 165, 233, 0.12);
+            background: rgba(14, 165, 233, 0.14);
             color: var(--primary, #0ea5e9);
             font-weight: 700;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(14, 165, 233, 0.25);
+        }
+        .category-option.active::after {
+            content: "\f058";
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome";
+            font-weight: 900;
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 0.95rem;
+            color: var(--primary, #0ea5e9);
         }
         .category-icon {
-            font-size: var(--text-lg, 1.15rem);
+            font-size: 1.5rem;
         }
         .category-label {
-            font-size: var(--text-xs, 0.72rem);
+            font-size: var(--text-xs, 0.78rem);
             line-height: 1.2;
+            font-weight: 700;
+        }
+        .category-hint {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            line-height: 1.1;
+        }
+        .category-warning {
+            margin-top: 12px;
+            font-size: var(--text-xs, 0.78rem);
+            font-weight: 700;
+            color: #b45309;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: var(--radius-md, 10px);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .etamu-fields-locked {
+            opacity: 0.45;
+            pointer-events: none;
+            filter: grayscale(0.3);
+            transition: opacity 0.2s ease;
+        }
+        .category-step.shaking {
+            animation: etamu-shake 0.45s ease;
+        }
+        @keyframes etamu-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
         }
         .student-lookup-box {
             background: rgba(14, 165, 233, 0.05);
