@@ -157,12 +157,97 @@ class TeknisiModulLapanganTest extends TestCase
                 ->assertStatus(200);
 
             $this->withSession($session)
-                ->get(route('dashboard.teknisi.modul.template', ['modul' => $modul]))
-                ->assertStatus(200);
-
-            $this->withSession($session)
                 ->get(route('dashboard.teknisi.modul.cetak', ['modul' => $modul, 'periode' => 'tahun', 'tahun' => 2026]))
                 ->assertStatus(200);
+
+            // Modul inventaris (mutasi aset) tidak punya template impor.
+            if ($modul === 'aset-mutasi') {
+                continue;
+            }
+
+            $this->withSession($session)
+                ->get(route('dashboard.teknisi.modul.template', ['modul' => $modul]))
+                ->assertStatus(200);
+        }
+    }
+
+    /**
+     * Mutasi Lokasi Aset = daftar inventaris aset; hanya boleh memindahkan.
+     * Tambah (store), impor, template, dan hapus tidak tersedia.
+     */
+    public function test_mutasi_aset_ambil_dari_inventaris_dan_hanya_memindahkan(): void
+    {
+        $session = $this->adminSession();
+        $modul = 'aset-mutasi';
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.modul.index', ['modul' => $modul]))
+            ->assertStatus(200);
+
+        // Tambah/impor/template ditolak.
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.modul.store', ['modul' => $modul]), [])
+            ->assertStatus(422);
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.modul.import', ['modul' => $modul]), [
+                'file' => UploadedFile::fake()->createWithContent('m.csv', "aset_id\n1\n"),
+            ])
+            ->assertStatus(422);
+
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.modul.template', ['modul' => $modul]))
+            ->assertStatus(404);
+
+        // Update memindahkan aset ke ruang tujuan.
+        if (!Table::exists('sarpras_ruang') || !Table::exists('sarpras_aset')) {
+            $this->markTestSkipped('Tabel sarpras tidak tersedia.');
+        }
+
+        $ruangA = DB::table('sarpras_ruang')->orderBy('id')->first();
+        $ruangB = DB::table('sarpras_ruang')->where('id', '!=', $ruangA->id ?? 0)->orderBy('id')->first();
+        if (!$ruangA || !$ruangB) {
+            $this->markTestSkipped('Butuh dua ruang berbeda untuk uji pemindahan.');
+        }
+
+        // Aset uji sementara (dibuat sendiri, dihapus lagi di akhir).
+        $namaAset = 'Aset Uji Mutasi ' . uniqid();
+        $asetId = DB::table('sarpras_aset')->insertGetId([
+            'kode_aset'   => 'UJI-' . uniqid(),
+            'nama_barang' => $namaAset,
+            'kondisi'     => 'baik',
+            'jumlah'      => 1,
+            'satuan'      => 'unit',
+            'ruang_id'    => $ruangA->id,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        try {
+            $this->withSession($session)
+                ->putJson(route('dashboard.teknisi.modul.update', ['modul' => $modul, 'id' => $asetId]), [
+                    'ke_ruang_id' => $ruangB->id,
+                    'tanggal'     => now()->toDateString(),
+                    'alasan'      => 'Uji pemindahan',
+                ])
+                ->assertStatus(200)
+                ->assertJsonPath('status', 'success');
+
+            $this->assertSame((int) $ruangB->id, (int) DB::table('sarpras_aset')->where('id', $asetId)->value('ruang_id'), 'Aset harus pindah ke ruang tujuan.');
+
+            $riwayat = DB::table('teknisi_aset_mutasi')->where('aset_id', $asetId)->orderByDesc('id')->first();
+            $this->assertNotNull($riwayat, 'Riwayat mutasi harus tercatat.');
+            $this->assertSame((int) $ruangB->id, (int) $riwayat->ke_ruang_id);
+
+            // Pindah ke ruang yang sama ditolak.
+            $this->withSession($session)
+                ->putJson(route('dashboard.teknisi.modul.update', ['modul' => $modul, 'id' => $asetId]), [
+                    'ke_ruang_id' => $ruangB->id,
+                ])
+                ->assertStatus(422);
+        } finally {
+            DB::table('teknisi_aset_mutasi')->where('aset_id', $asetId)->delete();
+            DB::table('sarpras_aset')->where('id', $asetId)->delete();
         }
     }
 

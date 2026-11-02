@@ -217,7 +217,10 @@ final class TeknisiModuleRegistry
                 'table'   => 'teknisi_aset_mutasi',
                 'nomor'   => ['nomor', 'AM'],
                 'title'   => 'Mutasi Lokasi Aset',
-                'desc'    => 'Riwayat perpindahan aset antar ruang beserta kondisi dan alasan pemindahan.',
+                'desc'    => 'Daftar aset dari Inventaris & Aset. Hanya dapat memindahkan aset antar ruang; riwayat perpindahan tercatat otomatis.',
+                // Modul khusus: daftar diambil dari `sarpras_aset` (inventaris),
+                // hanya aksi pindah (update ruang_id) — tanpa tambah/impor/hapus.
+                'inventaris' => true,
                 'grup'    => 'inspeksi',
                 'icon'    => 'fas fa-arrow-right-arrow-left',
                 'color'   => 'var(--primary, #3b82f6)',

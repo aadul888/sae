@@ -32,6 +32,10 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $spec = TeknisiModuleRegistry::get($modul);
 
+        if (!empty($spec['inventaris'])) {
+            return $this->indexInventaris($request, $modul, $spec, $context);
+        }
+
         $search  = trim((string) $request->query('q', ''));
         $dari    = trim((string) $request->query('dari', ''));
         $sampai  = trim((string) $request->query('sampai', ''));
@@ -103,6 +107,9 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($res) return $res;
 
         $spec = TeknisiModuleRegistry::get($modul);
+        if (!empty($spec['inventaris'])) {
+            return $this->respond($request, false, 'Modul ini hanya untuk memindahkan aset — tambah data tidak tersedia.', 422);
+        }
         $payload = $this->payload($request, $spec, $context);
 
         [$nomorCol, $prefix] = $spec['nomor'];
@@ -121,6 +128,11 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($res) return $res;
 
         $spec = TeknisiModuleRegistry::get($modul);
+
+        if (!empty($spec['inventaris'])) {
+            return $this->updateInventaris($request, $modul, $spec, $context, $id);
+        }
+
         $row = $this->findRow($spec['table'], $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
         if (!$this->bolehUbah($spec, $row, $context)) {
@@ -141,6 +153,9 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($res) return $res;
 
         $spec = TeknisiModuleRegistry::get($modul);
+        if (!empty($spec['inventaris'])) {
+            return $this->respond($request, false, 'Modul ini hanya untuk memindahkan aset — hapus tidak tersedia.', 422);
+        }
         $row = $this->findRow($spec['table'], $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
         if (!$this->bolehUbah($spec, $row, $context)) {
@@ -152,6 +167,136 @@ class TeknisiModuleController extends TeknisiBaseController
         return $this->respond($request, true, $spec['title'] . ' berhasil dihapus.');
     }
 
+    /**
+     * Daftar modul berbasis INVENTARIS (mis. Mutasi Lokasi Aset).
+     *
+     * Baris = aset dari `sarpras_aset` (bukan tabel modul); aset yang ruangnya
+     * menjadi tanggung jawab teknisi (koordinator: semua). Tidak ada tambah/hapus.
+     */
+    private function indexInventaris(Request $request, string $modul, array $spec, array $context)
+    {
+        $search  = trim((string) $request->query('q', ''));
+        $ruang   = trim((string) $request->query('ruang_id', ''));
+        $perPage = (int) $request->query('perPage', $request->query('per_page', 15));
+        $perPage = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
+
+        $build = function ($q) use ($context) {
+            // `sarpras_aset` tidak punya kolom user_id → cakupan murni per ruang PJ.
+            $ids = $this->ruangMilikPj($context);
+            if ($ids !== null) {
+                empty($ids) ? $q->whereRaw('1 = 0') : $q->whereIn('a.ruang_id', $ids);
+            }
+
+            return $q;
+        };
+
+        $query = $build(DB::table('sarpras_aset as a'))
+            ->leftJoin('sarpras_ruang as r', 'a.ruang_id', '=', 'r.id')
+            ->select('a.id', 'a.kode_aset', 'a.nama_barang', 'a.kondisi', 'a.jumlah', 'a.satuan', 'a.ruang_id', 'r.nama_ruang');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('a.nama_barang', 'like', "%{$search}%")
+                  ->orWhere('a.kode_aset', 'like', "%{$search}%")
+                  ->orWhere('r.nama_ruang', 'like', "%{$search}%");
+            });
+        }
+        if ($ruang !== '') {
+            $query->where('a.ruang_id', $ruang);
+        }
+
+        $statBase = $build(DB::table('sarpras_aset as a'));
+        $statTotal  = (clone $statBase)->whereNotNull('a.ruang_id')->count();
+        $statRuang  = (int) $build(DB::table('sarpras_aset as a'))->whereNotNull('a.ruang_id')->distinct()->count('a.ruang_id');
+        $statTanpa  = $build(DB::table('sarpras_aset as a'))->whereNull('a.ruang_id')->count();
+        $statBulan  = DB::table('teknisi_aset_mutasi')->whereYear('tanggal', now()->year)->whereMonth('tanggal', now()->month)->count();
+
+        $statCards = [
+            ['icon' => 'fas fa-boxes-stacked', 'bg' => 'rgba(59,130,246,0.12)', 'color' => 'var(--primary, #3b82f6)', 'value' => number_format($statTotal, 0, ',', '.'), 'label' => 'Total Aset'],
+            ['icon' => 'fas fa-map-location-dot', 'bg' => 'rgba(16,185,129,0.12)', 'color' => 'var(--success, #10b981)', 'value' => number_format($statRuang, 0, ',', '.'), 'label' => 'Ruang Terisi'],
+            ['icon' => 'fas fa-circle-question', 'bg' => 'rgba(245,158,11,0.12)', 'color' => 'var(--warning, #f59e0b)', 'value' => number_format($statTanpa, 0, ',', '.'), 'label' => 'Tanpa Ruang'],
+            ['icon' => 'fas fa-arrow-right-arrow-left', 'bg' => 'rgba(139,92,246,0.12)', 'color' => 'var(--purple, #8b5cf6)', 'value' => number_format($statBulan, 0, ',', '.'), 'label' => 'Mutasi Bulan Ini'],
+        ];
+
+        $list = $query->orderBy('a.nama_barang')->orderBy('a.id')
+            ->paginate($perPage)->withQueryString();
+
+        $sources = TeknisiModuleRegistry::sources();
+
+        return view('dashboard.teknisi.mutasi-aset', array_merge(
+            compact('spec', 'modul', 'list', 'search', 'ruang', 'perPage', 'statCards'),
+            $this->abilities(),
+            [
+                'ruangOptions' => $sources['ruang'] ?? [],
+                'kondisiList'  => TeknisiModuleRegistry::KONDISI,
+                'pjRuang'      => $this->pjNamaPerRuang($list->pluck('ruang_id')->all()),
+            ]
+        ));
+    }
+
+    /**
+     * Pindahkan aset ke ruang lain (satu-satunya aksi modul inventaris).
+     *
+     * Memperbarui `sarpras_aset.ruang_id` (aset benar-benar pindah) SEKALIGUS
+     * mencatat riwayat ke tabel modul (mis. `teknisi_aset_mutasi`).
+     */
+    private function updateInventaris(Request $request, string $modul, array $spec, array $context, $id)
+    {
+        $aset = DB::table('sarpras_aset')->where('id', $id)->first();
+        if (!$aset) {
+            return $this->respond($request, false, 'Aset tidak ditemukan.', 404);
+        }
+
+        $data = $request->validate([
+            'ke_ruang_id' => 'required|integer|exists:sarpras_ruang,id',
+            'tanggal'     => 'nullable|date',
+            'kondisi'     => 'nullable|string|max:40',
+            'alasan'      => 'nullable|string|max:2000',
+            'berita_acara' => 'nullable|string|max:255',
+        ], [
+            'ke_ruang_id.required' => 'Ruang tujuan wajib dipilih.',
+            'ke_ruang_id.exists'   => 'Ruang tujuan tidak dikenal.',
+        ]);
+
+        $keRuangId = (int) $data['ke_ruang_id'];
+        $keNama = DB::table('sarpras_ruang')->where('id', $keRuangId)->value('nama_ruang');
+        $dariNama = $aset->ruang_id ? DB::table('sarpras_ruang')->where('id', $aset->ruang_id)->value('nama_ruang') : null;
+
+        if ((int) $aset->ruang_id === $keRuangId) {
+            return $this->respond($request, false, 'Aset sudah berada di ruang tersebut.', 422);
+        }
+
+        // Riwayat + pemindahan harus satu paket.
+        DB::transaction(function () use ($spec, $context, $aset, $data, $keRuangId, $keNama, $dariNama) {
+            [$nomorCol, $prefix] = $spec['nomor'];
+            DB::table($spec['table'])->insert([
+                $nomorCol       => $this->generateNomor($spec['table'], $nomorCol, $prefix),
+                'tanggal'       => $data['tanggal'] ?? now()->toDateString(),
+                'aset_id'       => $aset->id,
+                'aset_nama'     => $aset->nama_barang,
+                'kode_aset'     => $aset->kode_aset,
+                'dari_ruang_id' => $aset->ruang_id,
+                'dari_ruang'    => $dariNama,
+                'ke_ruang_id'   => $keRuangId,
+                'ke_ruang'      => $keNama,
+                'kondisi'       => $data['kondisi'] ?? $aset->kondisi,
+                'alasan'        => $data['alasan'] ?? null,
+                'berita_acara'  => $data['berita_acara'] ?? null,
+                'status'        => 'selesai',
+                'petugas_ptk_id' => $context['ptk_id'] ?? null,
+                'petugas_nama'   => $context['nama'] ?? null,
+                'user_id'        => $context['user_id'] ?? null,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+
+            DB::table('sarpras_aset')->where('id', $aset->id)
+                ->update(['ruang_id' => $keRuangId, 'updated_at' => now()]);
+        });
+
+        return $this->respond($request, true, $spec['title'] . ': aset berhasil dipindahkan ke ' . ($keNama ?: 'ruang tujuan') . '.');
+    }
+
     /** Unduh template Excel sesuai kolom modul. */
     public function template(Request $request, string $modul)
     {
@@ -159,6 +304,9 @@ class TeknisiModuleController extends TeknisiBaseController
         if ($res) return $res;
 
         $spec = TeknisiModuleRegistry::get($modul);
+        if (!empty($spec['inventaris'])) {
+            abort(404);
+        }
         // Kolom identitas petugas tidak ikut di template: diisi otomatis
         // dari akun yang mengunggah.
         $columns = array_diff_key($spec['columns'], array_flip(self::AUTO_OWNER_COLUMNS));
@@ -197,6 +345,9 @@ class TeknisiModuleController extends TeknisiBaseController
         $request->validate(['file' => 'required|file|max:10240']);
 
         $spec = TeknisiModuleRegistry::get($modul);
+        if (!empty($spec['inventaris'])) {
+            return response()->json(['status' => 'error', 'message' => 'Modul ini hanya untuk memindahkan aset — impor tidak tersedia.'], 422);
+        }
         $file = $request->file('file');
 
         $ext = strtolower($file->getClientOriginalExtension());
@@ -488,23 +639,6 @@ class TeknisiModuleController extends TeknisiBaseController
                     }
                 }
             }
-        }
-
-        // Kolom turunan mutasi aset.
-        if (isset($payload['aset_id']) && $spec['table'] === 'teknisi_aset_mutasi') {
-            $aset = DB::table('sarpras_aset')->where('id', $payload['aset_id'])->first();
-            $payload['aset_nama'] = $aset->nama_barang ?? $payload['aset_nama'] ?? null;
-            $payload['kode_aset'] = $aset->kode_aset ?? null;
-            if (empty($payload['dari_ruang']) && !empty($aset->ruang_id)) {
-                $payload['dari_ruang_id'] = $aset->ruang_id;
-                $payload['dari_ruang'] = DB::table('sarpras_ruang')->where('id', $aset->ruang_id)->value('nama_ruang');
-            }
-        }
-
-        // Mutasi aset juga memindahkan lokasi aset.
-        if ($spec['table'] === 'teknisi_aset_mutasi' && !empty($payload['ke_ruang_id']) && !empty($payload['aset_id'])) {
-            DB::table('sarpras_aset')->where('id', $payload['aset_id'])
-                ->update(['ruang_id' => $payload['ke_ruang_id'], 'updated_at' => now()]);
         }
 
         // Modul `shared` (master bersama, mis. area-master) tidak menyimpan
