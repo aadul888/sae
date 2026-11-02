@@ -216,6 +216,11 @@
                                         <i class="fas fa-user-shield"></i> PJ:
                                         {{ ($item->pj_nama ?? null) ?: 'Tanggung jawab bersama' }}
                                     </div>
+                                    @if (!empty($item->petugas_nama))
+                                        <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 2px; opacity: 0.85;">
+                                            <i class="fas fa-pen-to-square"></i> Diinput: {{ $item->petugas_nama }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td data-label="Stok" style="padding: 14px 18px; text-align: center;">
                                     <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-base, 0.875rem);">

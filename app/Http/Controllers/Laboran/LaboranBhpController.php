@@ -230,7 +230,7 @@ class LaboranBhpController extends Controller
             'sumber_dana'         => $request->input('sumber_dana', 'BOS Reguler') ?: 'BOS Reguler',
             'created_at'          => now(),
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi($context));
 
         $msg = "Bahan habis pakai berhasil ditambahkan. Kode item: {$kode}.";
 
@@ -293,7 +293,7 @@ class LaboranBhpController extends Controller
             'tahun_pengadaan'     => $request->tahun_pengadaan ?: ($request->tanggal_pengadaan ? (int) date('Y', strtotime($request->tanggal_pengadaan)) : null),
             'sumber_dana'         => $request->input('sumber_dana', $row->sumber_dana ?? 'BOS Reguler') ?: 'BOS Reguler',
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi($context));
 
         return response()->json(['status' => 'success', 'message' => 'Bahan habis pakai berhasil diperbarui.']);
     }

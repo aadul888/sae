@@ -127,4 +127,29 @@ class PenanggungJawabTest extends TestCase
 
         $this->assertNull($aset->penanggung_jawab_ptk_id);
     }
+
+    /** Store menandai penginput (jejak audit) dari akun login. */
+    public function test_aset_store_menandai_penginput(): void
+    {
+        $admin = $this->adminSession();
+
+        $res = $this->withSession(['user' => $admin])
+            ->postJson(route('dashboard.sarpras.aset.store'), [
+                'nama_barang' => 'Aset Uji Jejak',
+                'kategori'    => 'Elektronik',
+                'kondisi'     => 'baik',
+                'sumber_dana' => 'BOS',
+                'satuan'      => 'unit',
+                'jumlah'      => 1,
+            ]);
+
+        $res->assertStatus(200)->assertJson(['status' => 'success']);
+
+        $aset = DB::table('sarpras_aset')->where('nama_barang', 'Aset Uji Jejak')->first();
+        $this->assertNotNull($aset);
+        $this->createdAset[] = $aset->id;
+
+        $this->assertSame($admin['nama'], $aset->petugas_nama);
+        $this->assertSame($admin['pengguna_id'], $aset->user_id);
+    }
 }

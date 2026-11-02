@@ -338,7 +338,7 @@ class SarprasAsetImportService
             'satuan'              => $d['satuan'],
             'status_ketersediaan' => $d['status_ketersediaan'],
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi());
     }
 
     protected function simpanBaru(array $d): void
@@ -365,7 +365,7 @@ class SarprasAsetImportService
             'status_ketersediaan' => $d['status_ketersediaan'],
             'created_at'          => now(),
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi());
     }
 
     /**

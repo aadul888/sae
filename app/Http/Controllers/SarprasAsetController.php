@@ -368,7 +368,7 @@ class SarprasAsetController extends Controller
             'foto'                => $fotoPath,
             'created_at'          => now(),
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi());
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['status' => 'success', 'message' => 'Barang aset berhasil ditambahkan.']);
@@ -434,7 +434,7 @@ class SarprasAsetController extends Controller
             'satuan'              => $request->satuan,
             'status_ketersediaan' => $request->status_ketersediaan,
             'updated_at'          => now(),
-        ];
+        ] + \App\Support\Penginput::dariSesi();
 
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('sarpras/aset', 'public');

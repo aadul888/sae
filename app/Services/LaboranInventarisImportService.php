@@ -354,7 +354,7 @@ class LaboranInventarisImportService
             'sumber_dana'         => $d['sumber_dana'] ?: ($existing->sumber_dana ?? 'BOS'),
             'penanggung_jawab_ptk_id' => \App\Support\PenanggungJawab::untukJurusan($existing->jurusan_id ?? null),
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi());
     }
 
     protected function simpanBaru(array $d, ?string $jurusanId): void
@@ -383,7 +383,7 @@ class LaboranInventarisImportService
             'lokasi_lemari_rak'   => $d['lokasi_lemari_rak'] ?: null,
             'created_at'          => now(),
             'updated_at'          => now(),
-        ]);
+        ] + \App\Support\Penginput::dariSesi());
     }
 
     /**
