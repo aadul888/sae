@@ -23,14 +23,30 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline" onclick="openModalCetakKeamanan()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Cetak {{ $tab === 'insiden' ? 'Laporan Insiden' : 'Log Patroli' }} (pilih periode)"
+                    aria-label="Cetak">
+                    <i class="fas fa-print"></i>
+                </button>
                 @if ($canCreate)
                     @if ($tab === 'patroli')
+                        <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Import Log Patroli via Excel" aria-label="Import Log Patroli via Excel">
+                            <i class="fas fa-file-excel text-success"></i>
+                        </button>
                         <button type="button" class="btn btn-primary" onclick="openModalPatroli()"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                             title="Tambah Log Patroli">
                             <i class="fas fa-plus"></i>
                         </button>
                     @else
+                        <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Import Laporan Insiden via Excel" aria-label="Import Laporan Insiden via Excel">
+                            <i class="fas fa-file-excel text-success"></i>
+                        </button>
                         <button type="button" class="btn btn-danger" onclick="openModalInsiden()"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                             title="Laporkan Insiden Khusus Keamanan">
@@ -452,21 +468,18 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 12px;">
+                <div style="margin-bottom: 12px; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <label class="form-label" style="margin: 0;">Rute / Zona Patroli <span
                                 style="color:red;">*</span></label>
                         <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
-                                class="fas fa-building me-1"></i>Master Ruang & Sarpras</span>
+                                class="fas fa-building me-1"></i>Master Ruang &amp; Sarpras</span>
                     </div>
-                    <input list="listRutePatroli" name="rute_zona" id="patroli_rute" class="form-control"
-                        placeholder="Pilih dari daftar Ruang Sarpras atau ketik rute..." required>
-                    <datalist id="listRutePatroli">
-                        @foreach ($daftarRuang as $rng)
-                            <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - Lantai
-                                {{ $rng->lantai }}</option>
-                        @endforeach
-                    </datalist>
+                    <input type="text" name="rute_zona" id="patroli_rute" class="form-control"
+                        placeholder="Ketik nama rute atau pilih ruang..." autocomplete="off" required>
+                    <div id="patroli_rute_results"
+                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 12px;">
@@ -533,7 +546,7 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                    <div>
+                    <div style="position: relative;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <label class="form-label" style="margin: 0;">Lokasi Kejadian <span
@@ -541,14 +554,11 @@
                             <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
                                     class="fas fa-building me-1"></i>Sarpras</span>
                         </div>
-                        <input list="listLokasiInsiden" name="lokasi_kejadian" id="insiden_lokasi" class="form-control"
-                            placeholder="Pilih Ruang/Lokasi atau ketik..." required>
-                        <datalist id="listLokasiInsiden">
-                            @foreach ($daftarRuang as $rng)
-                                <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} -
-                                    Lantai {{ $rng->lantai }}</option>
-                            @endforeach
-                        </datalist>
+                        <input type="text" name="lokasi_kejadian" id="insiden_lokasi" class="form-control"
+                            placeholder="Ketik lokasi atau cari ruang..." autocomplete="off" required>
+                        <div id="insiden_lokasi_results"
+                            style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                        </div>
                     </div>
                     <div>
                         <label class="form-label">Tingkat Urgensi</label>
@@ -573,33 +583,50 @@
                 </div>
 
                 {{-- Siswa di Luar Saat KBM & Pelanggaran Tata Tertib --}}
-                <div style="margin-bottom: 14px; padding: 12px; background: rgba(239,68,68,0.04); border: 1px dashed rgba(239,68,68,0.3); border-radius: var(--radius-md, 8px);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <div style="margin-bottom: 14px; padding: 14px; background: rgba(239,68,68,0.04); border: 1px dashed rgba(239,68,68,0.35); border-radius: var(--radius-md, 8px);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                         <div style="font-weight: 700; font-size: 0.8125rem; color: var(--danger); display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-person-walking-arrow-right"></i> Temuan Siswa di Luar saat KBM / Pelanggaran Disiplin
                         </div>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">Sinkron ke Kesiswaan</span>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Sinkron otomatis ke Kesiswaan</span>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Cari Siswa Terkait (Ketik Nama / NISN)</label>
+                        <input type="search" id="insiden_cari_siswa" class="form-control"
+                            placeholder="Ketik nama siswa atau NISN..." autocomplete="off"
+                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
+                            data-people-target="#insiden_peserta_didik_id">
+                        <input type="hidden" name="peserta_didik_id" id="insiden_peserta_didik_id">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Pilih Aturan Tata Tertib</label>
-                            <select name="tata_tertib_id" id="insiden_tatib" class="form-control" style="font-size: 0.8125rem;">
-                                <option value="">-- Bukan Pelanggaran Siswa --</option>
-                                @if (isset($daftarTatib))
-                                    @foreach ($daftarTatib as $tt)
-                                        <option value="{{ $tt->id }}">
-                                            [{{ $tt->kode }}] {{ $tt->nama_aturan }} (+{{ $tt->bobot_poin }} Poin)
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
+                        <div style="position: relative;">
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Pilih Aturan Tata Tertib (Ketik / Pilih)</label>
+                            <input type="search" id="insiden_tatib_search" class="form-control" style="font-size: 0.8125rem;"
+                                placeholder="Ketik kode atau nama aturan..." autocomplete="off">
+                            <input type="hidden" name="tata_tertib_id" id="insiden_tata_tertib_id">
+
+                            <!-- Dropdown Hasil Pencarian Aturan Insiden -->
+                            <div id="insiden_tatib_results"
+                                style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                            </div>
+
+                            <!-- Badge Aturan Terpilih -->
+                            <div id="insiden_tatib_selected_badge"
+                                style="display: none; margin-top: 6px; padding: 6px 10px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; font-size: 0.75rem; color: var(--danger); font-weight: 700; align-items: center; justify-content: space-between;">
+                                <span id="insiden_tatib_selected_label"></span>
+                                <button type="button" id="insiden_tatib_btn_clear"
+                                    style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.7rem; font-weight: 700;">
+                                    <i class="fas fa-times"></i> Ganti
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Kategori Insiden</label>
                             <select name="kategori_insiden" id="insiden_kategori" class="form-control" style="font-size: 0.8125rem;">
-                                <option value="umum">Insiden Lingkungan Umum</option>
                                 <option value="siswa_kbm" selected>Siswa di Luar Saat KBM / Membolos</option>
+                                <option value="umum">Insiden Lingkungan Umum</option>
                                 <option value="keamanan_aset">Keamanan &amp; Aset Gedung</option>
                                 <option value="ketertiban_gerbang">Ketertiban Area Gerbang</option>
                             </select>
@@ -635,9 +662,35 @@
             </form>
         </div>
     </div>
+
+    {{-- Modal Import: Patroli atau Insiden sesuai tab aktif --}}
+    @if ($tab === 'patroli')
+        @include('dashboard.keamanan.partials.modal-import', [
+            'modulKode' => 'patroli',
+            'modulJudul' => 'Log Patroli',
+            'templateRoute' => route('dashboard.keamanan.patroli.template'),
+            'importRoute' => route('dashboard.keamanan.patroli.import'),
+        ])
+    @else
+        @include('dashboard.keamanan.partials.modal-import', [
+            'modulKode' => 'insiden',
+            'modulJudul' => 'Laporan Insiden',
+            'templateRoute' => route('dashboard.keamanan.insiden.template'),
+            'importRoute' => route('dashboard.keamanan.insiden.import'),
+        ])
+    @endif
+
+    {{-- Modal Cetak periode Patroli / Insiden sesuai tab aktif --}}
+    @include('dashboard.keamanan.partials.modal-cetak', [
+        'cetakRoute' => route($tab === 'insiden' ? 'dashboard.keamanan.insiden.cetak' : 'dashboard.keamanan.patroli.cetak'),
+        'modulJudul' => $tab === 'insiden' ? 'Laporan Insiden' : 'Log Patroli',
+    ])
 @endsection
 
 @push('scripts')
+    <script id="daftarRuangJson" type="application/json">
+        {!! json_encode($daftarRuang ?? []) !!}
+    </script>
     <script
         src="{{ asset('js/keamanan-patroli.js') }}?v={{ file_exists(public_path('js/keamanan-patroli.js')) ? filemtime(public_path('js/keamanan-patroli.js')) : time() }}">
     </script>

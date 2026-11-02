@@ -90,84 +90,123 @@
                 {{-- Section Khusus Tamu Orang Tua (Deteksi Otomatis Siswa) --}}
                 <div id="sectionOrangTua" class="student-lookup-box" style="display: none;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
-                        <span style="font-weight: 700; font-size: var(--text-xs, 0.75rem); color: var(--primary, #0ea5e9);">
+                        <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--primary, #0ea5e9);">
                             <i class="fas fa-id-card me-1"></i> Deteksi Otomatis Siswa
                         </span>
-                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Cari via Nama, NISN/NIK Siswa, atau NIK Anda</span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Ketik nama siswa, NISN, atau NIK untuk memilih</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <label class="input-label" for="input_nisn_siswa">Nama Lengkap / NISN / NIK Siswa</label>
-                            <div style="display: flex; gap: 6px;">
-                                <input type="text" id="input_nisn_siswa" name="nisn_siswa" class="input-field"
-                                    placeholder="Ketik nama atau NISN/NIK..." maxlength="100" autocomplete="off">
-                                <button type="button" id="btnCekSiswa" class="btn btn-primary"
-                                    style="padding: 0 12px; font-size: var(--text-xs, 0.75rem); white-space: nowrap;" title="Cari Siswa">
-                                    <i class="fas fa-search me-1"></i> Cari
-                                </button>
+                    {{-- Search Input with Floating Results Dropdown --}}
+                    <div class="student-search-wrapper" id="studentSearchWrapper">
+                        <label class="input-label" for="input_cari_siswa" style="font-size: 0.75rem;">Cari Data Siswa</label>
+                        <div class="student-search-input-wrap">
+                            <input type="text" id="input_cari_siswa" class="input-field"
+                                placeholder="Ketik nama siswa, NISN, atau NIK..." autocomplete="off">
+                            <span id="studentSearchSpinner" class="student-search-spinner" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </div>
+                        <div id="studentDropdownList" class="student-dropdown-results" style="display: none;"></div>
+                    </div>
+
+                    {{-- Selected Student Card (Shown upon selection) --}}
+                    <div id="studentSelectedBox" style="display: none; margin-top: 8px;">
+                        <div class="student-selected-card">
+                            <div class="student-selected-avatar">
+                                <i class="fas fa-user-graduate"></i>
                             </div>
-                        </div>
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <label class="input-label" for="input_nik_ortu">Atau NIK Orang Tua / Wali</label>
-                            <input type="text" id="input_nik_ortu" name="nik_tamu" class="input-field"
-                                placeholder="16 digit NIK Anda..." maxlength="16" inputmode="numeric" autocomplete="off">
+                            <div class="student-selected-info">
+                                <div class="student-selected-name" id="selectedStudentNama">-</div>
+                                <div class="student-selected-sub" id="selectedStudentDetail">-</div>
+                            </div>
+                            <button type="button" class="btn-clear-student" id="btnClearStudent" title="Ganti Siswa">
+                                <i class="fas fa-times me-1"></i> Ganti
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Container Hasil Deteksi Siswa --}}
-                    <div id="studentDetectionResult" style="display: none; margin-top: 10px;"></div>
+                    {{-- Hidden storage for student data --}}
+                    <input type="hidden" name="nama_siswa" id="hidden_nama_siswa">
+                    <input type="hidden" name="rombel_siswa" id="hidden_rombel_siswa">
+                    <input type="hidden" name="nisn_siswa" id="hidden_nisn_siswa">
+                    <input type="hidden" name="nik_tamu" id="hidden_nik_ortu">
 
-                    {{-- Manual Input Siswa jika belum terdeteksi otomatis --}}
-                    <div id="manualStudentInput" style="display: none; margin-top: 10px; border-top: 1px dashed var(--border-glass, rgba(255,255,255,0.1)); padding-top: 10px;">
-                        <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-bottom: 6px;">
-                            <i class="fas fa-circle-info me-1"></i> Jika belum terdata di sistem, ketik nama siswa dan kelas:
-                        </div>
+                    {{-- Toggle manual input if student is not found --}}
+                    <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: var(--text-2xs, 0.72rem);">
+                        <span id="studentSearchHint" style="color: var(--text-muted);">Pilih salah satu siswa dari daftar hasil pencarian.</span>
+                        <button type="button" id="btnToggleManualStudent" style="background: none; border: none; color: var(--primary, #0ea5e9); cursor: pointer; text-decoration: underline; padding: 0;">
+                            Tidak menemukan siswa? Ketik manual
+                        </button>
+                    </div>
+
+                    <div id="manualStudentInput" style="display: none; margin-top: 8px; border-top: 1px dashed var(--border-glass, rgba(255,255,255,0.12)); padding-top: 8px;">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px;">
-                            <input type="text" name="nama_siswa" id="input_manual_nama_siswa" class="input-field" placeholder="Nama Siswa">
-                            <input type="text" name="rombel_siswa" id="input_manual_rombel_siswa" class="input-field" placeholder="Kelas / Rombel">
+                            <div>
+                                <label class="input-label" style="font-size: 0.72rem;">Nama Siswa</label>
+                                <input type="text" id="input_manual_nama_siswa" class="input-field" placeholder="Ketik nama putra/putri...">
+                            </div>
+                            <div>
+                                <label class="input-label" style="font-size: 0.72rem;">Kelas / Rombel</label>
+                                <input type="text" id="input_manual_rombel_siswa" class="input-field" placeholder="Contoh: X RPL 1...">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Identitas Tamu --}}
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px;">
-                    <div class="input-group">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                    <div>
                         <label class="input-label" for="tamu_nama">Nama Lengkap Tamu <span style="color:var(--danger, #ef4444);">*</span></label>
                         <input type="text" name="nama_tamu" id="tamu_nama" class="input-field"
                             placeholder="Ketik nama lengkap Anda..." required>
                     </div>
-                    <div class="input-group">
+                    <div>
                         <label class="input-label" for="tamu_kontak">Nomor WhatsApp / HP <span style="color:var(--danger, #ef4444);">*</span></label>
                         <input type="tel" name="nomor_kontak" id="tamu_kontak" class="input-field"
                             placeholder="08xxxxxxxxxx" inputmode="tel" required>
                     </div>
                 </div>
 
-                <div class="input-group" id="groupInstansi" style="display: none;">
-                    <label class="input-label" for="tamu_instansi">Instansi / Lembaga Asal</label>
-                    <input type="text" name="instansi_asal" id="tamu_instansi" class="input-field"
-                        placeholder="Contoh: Dinas Pendidikan, PT Mitra, Umum...">
+                {{-- Instansi / Lembaga Asal (Dropdown + Custom) --}}
+                <div id="groupInstansi" style="display: none; margin-top: 12px;">
+                    <label class="input-label" for="tamu_instansi_select">Instansi / Lembaga Asal</label>
+                    <select id="tamu_instansi_select" class="input-field">
+                        <option value="">-- Pilih Instansi / Asal Tamu --</option>
+                        <option value="Dinas Pendidikan">Dinas Pendidikan</option>
+                        <option value="Kementerian Agama">Kementerian Agama</option>
+                        <option value="Pemerintah Daerah / Dinas">Pemerintah Daerah / Dinas</option>
+                        <option value="Perusahaan / Mitra Industri (DUDI)">Perusahaan / Mitra Industri (DUDI)</option>
+                        <option value="Lembaga / Yayasan Pendidikan">Lembaga / Yayasan Pendidikan</option>
+                        <option value="Perguruan Tinggi / Universitas">Perguruan Tinggi / Universitas</option>
+                        <option value="Puskesmas / Layanan Kesehatan">Puskesmas / Layanan Kesehatan</option>
+                        <option value="Kepolisian / Koramil / Aparat">Kepolisian / Koramil / Aparat</option>
+                        <option value="Masyarakat Umum">Masyarakat Umum</option>
+                        <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                    </select>
+                    <div id="wrapInstansiLainnya" style="display: none; margin-top: 6px;">
+                        <input type="text" id="instansi_lainnya_input" class="input-field" placeholder="Ketik nama instansi / lembaga asal...">
+                    </div>
+                    <input type="hidden" name="instansi_asal" id="tamu_instansi">
                 </div>
 
                 {{-- Khusus Tamu Kedinasan: NIP & Jabatan (Opsional) --}}
-                <div id="sectionKedinasanIdentitas" style="display: none; margin-bottom: 10px;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <label class="input-label" for="tamu_nip">NIP (Opsional)</label>
+                <div id="sectionKedinasanIdentitas" style="display: none; margin-top: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="input-label" for="tamu_nip">NIP Pegawai (Opsional)</label>
                             <input type="text" name="nip_tamu" id="tamu_nip" class="input-field"
                                 placeholder="18 digit NIP pegawai..." maxlength="30" inputmode="numeric">
                         </div>
-                        <div class="input-group" style="margin-bottom: 0;">
+                        <div>
                             <label class="input-label" for="tamu_jabatan">Jabatan (Opsional)</label>
                             <input type="text" name="jabatan_tamu" id="tamu_jabatan" class="input-field"
-                                placeholder="Contoh: Pengawas Sekolah, Kasi Kurikulum, Staf...">
+                                placeholder="Contoh: Pengawas Sekolah, Kasi Kurikulum...">
                         </div>
                     </div>
                 </div>
 
                 {{-- Khusus Tamu Kedinasan: Konfirmasi Surat Tugas --}}
-                <div id="sectionKedinasanSurat" class="student-lookup-box" style="display: none; background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.25);">
+                <div id="sectionKedinasanSurat" class="student-lookup-box" style="display: none; background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.25); margin-top: 12px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
                         <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--accent, #06b6d4);">
                             <i class="fas fa-file-lines me-1"></i> Surat Tugas Kedinasan
@@ -175,7 +214,7 @@
                         <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Pilih jika membawa surat tugas resmi</span>
                     </div>
 
-                    <div class="input-group" style="margin-bottom: 10px;">
+                    <div style="margin-bottom: 10px;">
                         <label class="input-label">Apakah Tersedia Surat Tugas?</label>
                         <div style="display: flex; gap: 12px; margin-top: 4px;">
                             <label class="surat-tugas-radio" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs, 0.78rem); font-weight: 600; padding: 6px 14px; border: 1px solid var(--border-glass, rgba(255,255,255,0.15)); border-radius: var(--radius-md, 8px); background: var(--card-bg, rgba(255,255,255,0.03));">
@@ -190,13 +229,13 @@
                     </div>
 
                     <div id="boxDetailSuratTugas" style="display: none; padding-top: 10px; border-top: 1px dashed rgba(6, 182, 212, 0.25);">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                            <div class="input-group" style="margin-bottom: 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
                                 <label class="input-label" for="nomor_surat_tugas">Nomor Surat Tugas <span style="color:var(--danger, #ef4444);">*</span></label>
                                 <input type="text" name="nomor_surat_tugas" id="nomor_surat_tugas" class="input-field"
                                     placeholder="Contoh: 800/123/Disdik/2026">
                             </div>
-                            <div class="input-group" style="margin-bottom: 0;">
+                            <div>
                                 <label class="input-label" for="tanggal_surat_tugas">Tanggal Surat Tugas <span style="color:var(--danger, #ef4444);">*</span></label>
                                 <input type="date" name="tanggal_surat_tugas" id="tanggal_surat_tugas" class="input-field">
                             </div>
@@ -204,40 +243,74 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                    <div class="input-group">
-                        <label class="input-label" for="tamu_tujuan">Tujuan Bertemu <span style="color:var(--danger, #ef4444);">*</span></label>
-                        <input type="text" name="tujuan_bertemu" id="tamu_tujuan" list="listTujuan" class="input-field"
-                            placeholder="Pilih atau ketik tujuan..." required autocomplete="off">
-                        <datalist id="listTujuan">
-                            <option value="Kepala Sekolah">Kepala Sekolah</option>
-                            <option value="Wakil Kepala Sekolah">Wakil Kepala Sekolah</option>
-                            <option value="Wali Kelas">Wali Kelas</option>
-                            <option value="Guru Bimbingan Konseling (BK)">Guru Bimbingan Konseling (BK)</option>
-                            <option value="Guru Mata Pelajaran">Guru Mata Pelajaran</option>
-                            <option value="Bagian Tata Usaha (TU)">Bagian Tata Usaha (TU)</option>
-                            <option value="Staf Keuangan / Administrasi">Staf Keuangan / Administrasi</option>
-                            @foreach ($daftarRuang as $rng)
-                                <option value="{{ $rng->nama_ruang }}">{{ $rng->nama_ruang }}</option>
-                            @endforeach
-                        </datalist>
+                {{-- Data Kunjungan: Dropdown Tujuan Bertemu & Keperluan --}}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                    <div>
+                        <label class="input-label" for="tamu_tujuan_select">Tujuan Bertemu <span style="color:var(--danger, #ef4444);">*</span></label>
+                        <select id="tamu_tujuan_select" class="input-field" required>
+                            <option value="">-- Pilih Tujuan Bertemu --</option>
+                            <optgroup label="Pimpinan & Manajemen">
+                                <option value="Kepala Sekolah">Kepala Sekolah</option>
+                                <option value="Wakil Kepala Sekolah (Kurikulum)">Wakil Kepala Sekolah (Kurikulum)</option>
+                                <option value="Wakil Kepala Sekolah (Kesiswaan)">Wakil Kepala Sekolah (Kesiswaan)</option>
+                                <option value="Wakil Kepala Sekolah (Sarpras)">Wakil Kepala Sekolah (Sarpras)</option>
+                                <option value="Wakil Kepala Sekolah (Humas)">Wakil Kepala Sekolah (Humas)</option>
+                            </optgroup>
+                            <optgroup label="Guru & Bimbingan">
+                                <option value="Wali Kelas">Wali Kelas</option>
+                                <option value="Guru Bimbingan Konseling (BK)">Guru Bimbingan Konseling (BK)</option>
+                                <option value="Guru Mata Pelajaran">Guru Mata Pelajaran</option>
+                            </optgroup>
+                            <optgroup label="Layanan Tata Usaha & Fasilitas">
+                                <option value="Bagian Tata Usaha (TU)">Bagian Tata Usaha (TU)</option>
+                                <option value="Staf Keuangan / Kasir">Staf Keuangan / Kasir</option>
+                                <option value="Petugas Perpustakaan">Petugas Perpustakaan</option>
+                                <option value="Petugas UKS">Petugas UKS</option>
+                                <option value="Pos Satpam / Keamanan">Pos Satpam / Keamanan</option>
+                                @foreach ($daftarRuang as $rng)
+                                    <option value="Ruang {{ $rng->nama_ruang }}">Ruang {{ $rng->nama_ruang }}</option>
+                                @endforeach
+                            </optgroup>
+                            <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                        </select>
+                        <div id="wrapTujuanLainnya" style="display: none; margin-top: 6px;">
+                            <input type="text" id="tujuan_lainnya_input" class="input-field" placeholder="Ketik tujuan bertemu lainnya...">
+                        </div>
+                        <input type="hidden" name="tujuan_bertemu" id="tamu_tujuan" required>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label" for="tamu_keperluan">Keperluan Kunjungan <span style="color:var(--danger, #ef4444);">*</span></label>
-                        <input type="text" name="keperluan" id="tamu_keperluan" list="listKeperluan" class="input-field"
-                            placeholder="Pilih atau ketik keperluan..." required autocomplete="off">
-                        <datalist id="listKeperluan">
-                            <option value="Konsultasi Perkembangan Belajar Siswa">Konsultasi Perkembangan Belajar Siswa</option>
-                            <option value="Mengantar Keperluan / Berkas Siswa">Mengantar Keperluan / Berkas Siswa</option>
-                            <option value="Urusan Administrasi Siswa / Ijazah">Urusan Administrasi Siswa / Ijazah</option>
-                            <option value="Koordinasi Dinas / Undangan">Koordinasi Dinas / Undangan</option>
-                            <option value="Penawaran Kerjasama / Silaturahmi">Penawaran Kerjasama / Silaturahmi</option>
-                            <option value="Pengambilan Rapot / Legalisir">Pengambilan Rapot / Legalisir</option>
-                        </datalist>
+
+                    <div>
+                        <label class="input-label" for="tamu_keperluan_select">Keperluan Kunjungan <span style="color:var(--danger, #ef4444);">*</span></label>
+                        <select id="tamu_keperluan_select" class="input-field" required>
+                            <option value="">-- Pilih Keperluan --</option>
+                            <optgroup label="Urusan Siswa & Akademik">
+                                <option value="Konsultasi Perkembangan Belajar Siswa">Konsultasi Perkembangan Belajar Siswa</option>
+                                <option value="Pengambilan Rapot / Legalisir Ijazah">Pengambilan Rapot / Legalisir Ijazah</option>
+                                <option value="Mengantar Keperluan / Berkas Siswa">Mengantar Keperluan / Berkas Siswa</option>
+                                <option value="Pemanggilan BK / Urusan Disiplin">Pemanggilan BK / Urusan Disiplin</option>
+                                <option value="Pengurusan Mutasi / Pindah Siswa">Pengurusan Mutasi / Pindah Siswa</option>
+                            </optgroup>
+                            <optgroup label="Kedinasan & Kemitraan">
+                                <option value="Koordinasi Dinas / Undangan Resmi">Koordinasi Dinas / Undangan Resmi</option>
+                                <option value="Kunjungan Monev / Pengawasan">Kunjungan Monev / Pengawasan</option>
+                                <option value="Penawaran Kerjasama / Kemitraan">Penawaran Kerjasama / Kemitraan</option>
+                                <option value="Urusan Administrasi / Pembayaran">Urusan Administrasi / Pembayaran</option>
+                                <option value="Penyerahan Dokumen / Berkas Surat">Penyerahan Dokumen / Berkas Surat</option>
+                            </optgroup>
+                            <optgroup label="Umum & Alumni">
+                                <option value="Silaturahmi / Temu Guru">Silaturahmi / Temu Guru</option>
+                                <option value="Urusan Alumni">Urusan Alumni</option>
+                            </optgroup>
+                            <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                        </select>
+                        <div id="wrapKeperluanLainnya" style="display: none; margin-top: 6px;">
+                            <input type="text" id="keperluan_lainnya_input" class="input-field" placeholder="Ketik keperluan kunjungan lainnya...">
+                        </div>
+                        <input type="hidden" name="keperluan" id="tamu_keperluan" required>
                     </div>
                 </div>
 
-                <div class="input-group">
+                <div style="margin-top: 12px;">
                     <label class="input-label" for="tamu_nopol">Nomor Polisi Kendaraan (Opsional)</label>
                     <input type="text" name="nomor_polisi_kendaraan" id="tamu_nopol" class="input-field"
                         placeholder="Contoh: B 1234 ABC / D 5678 XYZ">
@@ -449,6 +522,118 @@
             margin: 0;
             font-size: var(--text-xs, 0.75rem);
             color: var(--text-muted, #94a3b8);
+        }
+        .student-search-wrapper {
+            position: relative;
+            margin-bottom: 6px;
+        }
+        .student-search-input-wrap {
+            position: relative;
+        }
+        .student-search-spinner {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary, #0ea5e9);
+        }
+        .student-dropdown-results {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--card-bg, #1e293b);
+            border: 1.5px solid var(--primary, #0ea5e9);
+            border-radius: var(--radius-lg, 12px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            z-index: 1000;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .student-search-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-glass, rgba(255, 255, 255, 0.08));
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-align: left;
+            width: 100%;
+            display: block;
+            background: none;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            color: inherit;
+        }
+        .student-search-item:last-child {
+            border-bottom: none;
+        }
+        .student-search-item:hover, .student-search-item:focus {
+            background: rgba(14, 165, 233, 0.15);
+            outline: none;
+        }
+        .student-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: var(--text-sm, 0.85rem);
+            color: var(--text-heading, #fff);
+        }
+        .student-item-meta {
+            font-size: var(--text-xs, 0.72rem);
+            color: var(--text-muted, #94a3b8);
+            margin-top: 2px;
+        }
+        .student-selected-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+            border: 1.5px solid rgba(16, 185, 129, 0.4);
+            border-radius: var(--radius-lg, 12px);
+            padding: 10px 14px;
+        }
+        .student-selected-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .student-selected-info {
+            flex: 1;
+        }
+        .student-selected-name {
+            font-weight: 800;
+            font-size: var(--text-sm, 0.875rem);
+            color: var(--text-heading, #fff);
+        }
+        .student-selected-sub {
+            font-size: var(--text-xs, 0.72rem);
+            color: var(--text-muted, #94a3b8);
+        }
+        .btn-clear-student {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s ease;
+        }
+        .btn-clear-student:hover {
+            background: rgba(239, 68, 68, 0.25);
         }
     </style>
 @endsection

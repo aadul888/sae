@@ -5,10 +5,36 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
+use App\Services\KeamananImportService;
 use App\Services\QrCodeService;
 
 class KeamananBukuTamuController extends Controller
 {
+    use \App\Http\Controllers\Concerns\CetakKeamanan;
+
+    /** Unduh template Excel import Buku Tamu. */
+    public function templateExcel(KeamananImportService $service)
+    {
+        $path = $service->generateTemplateFile('tamu');
+
+        return response()->download($path, 'Format_Import_Buku_Tamu.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /** Import Buku Tamu via Excel (.xlsx, .xls, .csv). */
+    public function importExcel(Request $request, KeamananImportService $service)
+    {
+        $request->validate(['file' => 'required|file|max:10240']);
+
+        try {
+            $hasil = $service->import('tamu', $request->file('file'));
+            $pesan = "{$hasil['imported']} baris buku tamu berhasil diimpor" . ($hasil['skipped'] > 0 ? ", {$hasil['skipped']} baris dilewati." : '.');
+
+            return response()->json(['status' => 'success', 'message' => $pesan]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = session('user');
@@ -78,6 +104,54 @@ class KeamananBukuTamuController extends Controller
             'daftarRuang', 'publicFormUrl', 'qrSvg',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
+    }
+
+    /** Halaman cetak Buku Tamu (ikut filter aktif halaman). */
+    public function cetak(Request $request)
+    {
+        $search = $request->get('q', $request->get('search', ''));
+        $status = $request->get('status', '');
+        $tanggal = $request->get('tanggal', '');
+        $jenisTamu = $request->get('jenis_tamu', '');
+        $sort = $request->get('sort', 'id');
+        $sortDir = $request->get('sortDir', 'desc');
+
+        $periode = $this->periodeDariRequest($request);
+
+        $query = DB::table('keamanan_buku_tamu');
+        if ($periode) {
+            $query->whereBetween('tanggal', [$periode['start'], $periode['end']]);
+        } elseif ($tanggal) {
+            $query->where('tanggal', $tanggal);
+        }
+        if ($status) {
+            $query->where('status', $status);
+        }
+        if ($jenisTamu) {
+            $query->where('jenis_tamu', $jenisTamu);
+        }
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_tamu', 'like', "%{$search}%")
+                    ->orWhere('instansi_asal', 'like', "%{$search}%")
+                    ->orWhere('tujuan_bertemu', 'like', "%{$search}%")
+                    ->orWhere('keperluan', 'like', "%{$search}%")
+                    ->orWhere('nomor_kartu_visitor', 'like', "%{$search}%")
+                    ->orWhere('nama_siswa', 'like', "%{$search}%")
+                    ->orWhere('rombel_siswa', 'like', "%{$search}%")
+                    ->orWhere('nik_tamu', 'like', "%{$search}%")
+                    ->orWhere('nisn_siswa', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy($sort, $sortDir)->limit(1000)->get();
+
+        $filterInfo = ($periode ? 'Periode: ' . $periode['label'] : 'Tanggal: ' . ($tanggal ?: 'Semua'))
+            . ' • Status: ' . ($status ? ucfirst(str_replace('_', ' ', $status)) : 'Semua')
+            . ' • Kategori: ' . ($jenisTamu ? ucfirst(str_replace('_', ' ', $jenisTamu)) : 'Semua')
+            . ($search ? " • Pencarian: \"{$search}\"" : '');
+
+        return $this->renderCetak('tamu', 'Laporan Buku Tamu / Kunjungan', $filterInfo, $rows);
     }
 
     public function store(Request $request)
@@ -336,8 +410,11 @@ class KeamananBukuTamuController extends Controller
      */
     public function checkStudentApi(Request $request)
     {
-        $nikOrtu = preg_replace('/[^0-9]/', '', (string) $request->get('nik_ortu', ''));
-        $rawQuery = trim((string) $request->get('nisn_siswa', ''));
+        $rawQuery = trim((string) ($request->get('q') ?? $request->get('nisn_siswa', '')));
+        $nikOrtu = preg_replace('/[^0-9]/', '', (string) ($request->get('nik_ortu') ?? ''));
+        if ($nikOrtu === '' && is_numeric($rawQuery) && strlen($rawQuery) >= 12) {
+            $nikOrtu = $rawQuery;
+        }
         $numericQuery = preg_replace('/[^0-9]/', '', $rawQuery);
 
         $students = collect();
@@ -380,24 +457,24 @@ class KeamananBukuTamuController extends Controller
             $siswaQuery = DB::table('peserta_didik')
                 ->select('peserta_didik_id', 'nama', 'nisn', 'nik', 'nama_rombel', 'nama_ayah', 'nama_ibu', 'nama_wali');
 
-            if ($numericQuery !== '' && strlen($numericQuery) >= 4) {
+            if ($numericQuery !== '' && strlen($numericQuery) >= 3) {
                 $siswaQuery->where(function ($q) use ($numericQuery, $rawQuery) {
-                    $q->where('nisn', $numericQuery)
-                        ->orWhere('nik', $numericQuery)
-                        ->orWhere('nipd', $numericQuery);
-                    if (strlen($rawQuery) >= 3) {
+                    $q->where('nisn', 'like', "%{$numericQuery}%")
+                        ->orWhere('nik', 'like', "%{$numericQuery}%")
+                        ->orWhere('nipd', 'like', "%{$numericQuery}%");
+                    if (strlen($rawQuery) >= 2) {
                         $q->orWhere('nama', 'like', '%' . $rawQuery . '%');
                     }
                 });
-            } elseif (strlen($rawQuery) >= 3) {
-                // Pencarian berdasarkan nama siswa (minimal 3 karakter)
+            } elseif (strlen($rawQuery) >= 2) {
+                // Pencarian berdasarkan nama siswa (minimal 2 karakter)
                 $siswaQuery->where('nama', 'like', '%' . $rawQuery . '%');
             } else {
                 $siswaQuery = null;
             }
 
             if ($siswaQuery) {
-                $siswaResult = $siswaQuery->limit(10)->get();
+                $siswaResult = $siswaQuery->limit(12)->get();
                 if ($siswaResult->isNotEmpty()) {
                     $students = $students->merge($siswaResult);
                     if (!$suggestedParentName) {

@@ -21,16 +21,13 @@ window.openModalTamu = function () {
     const st = document.getElementById('tamu_status');
     if (st) st.value = 'berada_di_lokasi';
 
-    const jenis = document.getElementById('tamu_jenis');
-    if (jenis) jenis.value = 'umum';
+    window.clearManualStudentSelection();
+    window.setManualCategory('orang_tua');
 
-    const pdId = document.getElementById('tamu_pd_id');
-    if (pdId) pdId.value = '';
-
-    const feedback = document.getElementById('manualLookupFeedback');
-    if (feedback) feedback.innerHTML = '';
-
-    window.toggleManualOrtuSection();
+    // Reset dropdowns
+    window.syncDropdownValue('manual_tujuan_select', 'wrapManualTujuanLainnya', 'manual_tujuan_lainnya_input', 'tamu_tujuan', '');
+    window.syncDropdownValue('manual_keperluan_select', 'wrapManualKeperluanLainnya', 'manual_keperluan_lainnya_input', 'tamu_keperluan', '');
+    window.syncDropdownValue('manual_instansi_select', 'wrapManualInstansiLainnya', 'manual_instansi_lainnya_input', 'tamu_instansi', '');
 
     modal.style.display = 'flex';
 };
@@ -50,28 +47,51 @@ window.closeModalQr = function () {
     if (modal) modal.style.display = 'none';
 };
 
-window.toggleManualOrtuSection = function () {
-    const jenis = document.getElementById('tamu_jenis');
+window.setManualCategory = function (val) {
+    const options = document.querySelectorAll('#manualCategoryGrid .category-option');
+    options.forEach(opt => {
+        if (opt.dataset.type === val) {
+            opt.classList.add('active');
+            const radio = opt.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+        } else {
+            opt.classList.remove('active');
+        }
+    });
+
     const sectionOrtu = document.getElementById('manualSectionOrtu');
     const sectionKedinasan = document.getElementById('manualSectionKedinasan');
     const kedinasanId = document.getElementById('manualKedinasanIdentitas');
-    if (!jenis) return;
+    const groupInstansi = document.getElementById('manualGroupInstansi');
+    const hiddenInstansi = document.getElementById('tamu_instansi');
 
-    if (jenis.value === 'orang_tua') {
+    if (val === 'orang_tua') {
         if (sectionOrtu) sectionOrtu.style.display = 'block';
         if (sectionKedinasan) sectionKedinasan.style.display = 'none';
         if (kedinasanId) kedinasanId.style.display = 'none';
+        if (groupInstansi) groupInstansi.style.display = 'none';
+        if (hiddenInstansi) hiddenInstansi.value = 'Orang Tua / Wali Siswa';
         window.toggleManualSuratTugas(false);
-    } else if (jenis.value === 'kedinasan') {
+    } else if (val === 'kedinasan') {
         if (sectionOrtu) sectionOrtu.style.display = 'none';
         if (sectionKedinasan) sectionKedinasan.style.display = 'block';
-        if (kedinasanId) kedinasanId.style.display = 'grid';
+        if (kedinasanId) kedinasanId.style.display = 'block';
+        if (groupInstansi) groupInstansi.style.display = 'block';
+        window.clearManualStudentSelection();
     } else {
         if (sectionOrtu) sectionOrtu.style.display = 'none';
         if (sectionKedinasan) sectionKedinasan.style.display = 'none';
         if (kedinasanId) kedinasanId.style.display = 'none';
+        if (groupInstansi) groupInstansi.style.display = 'block';
         window.toggleManualSuratTugas(false);
+        window.clearManualStudentSelection();
     }
+};
+
+window.toggleManualOrtuSection = function () {
+    const checked = document.querySelector('input[name="jenis_tamu"]:checked');
+    const val = checked ? checked.value : 'orang_tua';
+    window.setManualCategory(val);
 };
 
 window.toggleManualSuratTugas = function (show) {
@@ -92,101 +112,115 @@ window.toggleManualSuratTugas = function (show) {
     }
 };
 
-window.lookupManualStudent = function () {
-    const nikInput = document.getElementById('manual_nik_ortu');
-    const nisnInput = document.getElementById('manual_nisn_siswa');
-    const feedback = document.getElementById('manualLookupFeedback');
-    const btn = document.getElementById('btnManualCekSiswa');
+// Student search & selection in satpam modal
+window.clearManualStudentSelection = function () {
+    const pdId = document.getElementById('tamu_pd_id');
+    const namaSiswa = document.getElementById('tamu_nama_siswa');
+    const rombelSiswa = document.getElementById('tamu_rombel_siswa');
+    const nisnSiswa = document.getElementById('manual_nisn_siswa');
+    const nikOrtu = document.getElementById('manual_nik_ortu');
+    const customNama = document.getElementById('manual_custom_nama_siswa');
+    const customRombel = document.getElementById('manual_custom_rombel_siswa');
+    const searchInput = document.getElementById('manual_cari_siswa');
 
-    const nik = nikInput ? nikInput.value.trim() : '';
-    const nisn = nisnInput ? nisnInput.value.trim() : '';
+    if (pdId) pdId.value = '';
+    if (namaSiswa) namaSiswa.value = '';
+    if (rombelSiswa) rombelSiswa.value = '';
+    if (nisnSiswa) nisnSiswa.value = '';
+    if (nikOrtu) nikOrtu.value = '';
+    if (customNama) customNama.value = '';
+    if (customRombel) customRombel.value = '';
+    if (searchInput) searchInput.value = '';
 
-    if (!nik && !nisn) {
-        if (feedback) feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-exclamation-triangle me-1"></i> Masukkan Nama, NISN/NIK Siswa, atau NIK Ortu.</span>';
+    const selectedBox = document.getElementById('manualStudentSelectedBox');
+    const searchWrap = document.getElementById('manualStudentSearchWrapper');
+    const dropdownList = document.getElementById('manualStudentDropdownList');
+    if (selectedBox) selectedBox.style.display = 'none';
+    if (searchWrap) searchWrap.style.display = 'block';
+    if (dropdownList) {
+        dropdownList.style.display = 'none';
+        dropdownList.innerHTML = '';
+    }
+};
+
+window.selectManualStudent = function (st, matchedRole, suggestedParent) {
+    const pdId = document.getElementById('tamu_pd_id');
+    const namaSiswa = document.getElementById('tamu_nama_siswa');
+    const rombelSiswa = document.getElementById('tamu_rombel_siswa');
+    const nisnSiswa = document.getElementById('manual_nisn_siswa');
+    const nikOrtu = document.getElementById('manual_nik_ortu');
+    const tamuNama = document.getElementById('tamu_nama');
+
+    if (pdId) pdId.value = st.peserta_didik_id || '';
+    if (namaSiswa) namaSiswa.value = st.nama || '';
+    if (rombelSiswa) rombelSiswa.value = st.nama_rombel || '';
+    if (nisnSiswa) nisnSiswa.value = st.nisn || '';
+    if (nikOrtu && st.nik) nikOrtu.value = st.nik;
+
+    if (suggestedParent && tamuNama && !tamuNama.value.trim()) {
+        tamuNama.value = suggestedParent;
+    }
+
+    const selectedBox = document.getElementById('manualStudentSelectedBox');
+    const searchWrap = document.getElementById('manualStudentSearchWrapper');
+    const namaEl = document.getElementById('manualSelectedStudentNama');
+    const detailEl = document.getElementById('manualSelectedStudentDetail');
+    const dropdownList = document.getElementById('manualStudentDropdownList');
+    const manualWrap = document.getElementById('manualStudentInputWrap');
+
+    if (namaEl) namaEl.textContent = st.nama || '-';
+    if (detailEl) {
+        const parts = [];
+        if (st.nama_rombel) parts.push(`Kelas: ${st.nama_rombel}`);
+        if (st.nisn) parts.push(`NISN: ${st.nisn}`);
+        if (matchedRole) parts.push(matchedRole);
+        detailEl.textContent = parts.join(' • ');
+    }
+
+    if (selectedBox) selectedBox.style.display = 'block';
+    if (searchWrap) searchWrap.style.display = 'none';
+    if (manualWrap) manualWrap.style.display = 'none';
+    if (dropdownList) {
+        dropdownList.style.display = 'none';
+        dropdownList.innerHTML = '';
+    }
+};
+
+// Dropdown Helper for sync
+window.syncDropdownValue = function (selectId, wrapId, customInputId, hiddenId, targetValue) {
+    const select = document.getElementById(selectId);
+    const wrap = document.getElementById(wrapId);
+    const customInp = document.getElementById(customInputId);
+    const hidden = document.getElementById(hiddenId);
+    if (!select || !hidden) return;
+
+    if (!targetValue) {
+        select.value = '';
+        if (wrap) wrap.style.display = 'none';
+        if (customInp) customInp.value = '';
+        hidden.value = '';
         return;
     }
 
-    const url = (window.BUKU_TAMU_CONFIG && window.BUKU_TAMU_CONFIG.checkStudentUrl) || '/tamu/api/cek-siswa';
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    // Check if targetValue is in select options
+    let found = false;
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === targetValue) {
+            select.value = targetValue;
+            found = true;
+            break;
+        }
     }
 
-    fetch(`${url}?nik_ortu=${encodeURIComponent(nik)}&nisn_siswa=${encodeURIComponent(nisn)}`, {
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-search"></i>';
-        }
-
-        if (data.found && data.students && data.students.length > 0) {
-            const namaSiswaInput = document.getElementById('tamu_nama_siswa');
-            const rombelInput = document.getElementById('tamu_rombel_siswa');
-            const pdIdInput = document.getElementById('tamu_pd_id');
-            const tamuNamaInput = document.getElementById('tamu_nama');
-
-            if (data.students.length === 1) {
-                const st = data.students[0];
-                if (namaSiswaInput) namaSiswaInput.value = st.nama;
-                if (rombelInput) rombelInput.value = st.nama_rombel || '';
-                if (pdIdInput) pdIdInput.value = st.peserta_didik_id || '';
-
-                if (data.suggested_parent_name && tamuNamaInput && !tamuNamaInput.value.trim()) {
-                    tamuNamaInput.value = data.suggested_parent_name;
-                }
-
-                if (feedback) {
-                    feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Ditemukan: ${st.nama} (${st.nama_rombel || '-'})</span>`;
-                }
-            } else {
-                let picks = data.students.slice(0, 5).map(s => {
-                    return `<button type="button" class="btn btn-sm btn-outline" style="font-size:11px; padding:2px 8px; margin:2px;" onclick="window.pickManualStudent('${encodeURIComponent(s.peserta_didik_id)}', '${encodeURIComponent(s.nama)}', '${encodeURIComponent(s.nama_rombel || '')}')">${s.nama} (${s.nama_rombel || '-'})</button>`;
-                }).join(' ');
-
-                if (feedback) {
-                    feedback.innerHTML = `<div style="color:#047857; font-size:11px; margin-bottom:4px;">Ditemukan ${data.students.length} siswa, klik untuk pilih:</div><div>${picks}</div>`;
-                }
-            }
-        } else {
-            if (feedback) {
-                feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-times-circle me-1"></i> Data tidak ditemukan di database. Silakan isi nama siswa & rombel manual.</span>';
-            }
-        }
-    })
-    .catch(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-search"></i>';
-        }
-        if (feedback) {
-            feedback.innerHTML = '<span style="color:#b91c1c;"><i class="fas fa-exclamation-circle me-1"></i> Gagal memeriksa data siswa.</span>';
-        }
-    });
-};
-
-window.pickManualStudent = function (pdIdEnc, namaEnc, rombelEnc) {
-    const pdId = decodeURIComponent(pdIdEnc);
-    const nama = decodeURIComponent(namaEnc);
-    const rombel = decodeURIComponent(rombelEnc);
-
-    const namaSiswaInput = document.getElementById('tamu_nama_siswa');
-    const rombelInput = document.getElementById('tamu_rombel_siswa');
-    const pdIdInput = document.getElementById('tamu_pd_id');
-    const feedback = document.getElementById('manualLookupFeedback');
-
-    if (namaSiswaInput) namaSiswaInput.value = nama;
-    if (rombelInput) rombelInput.value = rombel;
-    if (pdIdInput) pdIdInput.value = pdId;
-
-    if (feedback) {
-        feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Terpilih: ${nama} (${rombel || '-'})</span>`;
+    if (found) {
+        if (wrap) wrap.style.display = 'none';
+        if (customInp) customInp.value = '';
+        hidden.value = targetValue;
+    } else {
+        select.value = 'Lainnya';
+        if (wrap) wrap.style.display = 'block';
+        if (customInp) customInp.value = targetValue;
+        hidden.value = targetValue;
     }
 };
 
@@ -212,22 +246,33 @@ window.editTamu = function (data) {
     setVal('tamu_tanggal', data.tanggal);
     setVal('tamu_jam_masuk', data.jam_masuk ? data.jam_masuk.substring(0, 5) : '');
     setVal('tamu_jam_keluar', data.jam_keluar ? data.jam_keluar.substring(0, 5) : '');
-    setVal('tamu_jenis', data.jenis_tamu || 'umum');
-    setVal('manual_nik_ortu', data.nik_tamu);
-    setVal('manual_nisn_siswa', data.nisn_siswa);
-    setVal('tamu_pd_id', data.peserta_didik_id);
-    setVal('tamu_nama_siswa', data.nama_siswa);
-    setVal('tamu_rombel_siswa', data.rombel_siswa);
+    window.setManualCategory(data.jenis_tamu || 'umum');
+
+    // Siswa
+    if (data.nama_siswa || data.peserta_didik_id) {
+        window.selectManualStudent({
+            peserta_didik_id: data.peserta_didik_id,
+            nama: data.nama_siswa,
+            nama_rombel: data.rombel_siswa,
+            nisn: data.nisn_siswa,
+            nik: data.nik_tamu
+        });
+    } else {
+        window.clearManualStudentSelection();
+    }
+
     setVal('tamu_nama', data.nama_tamu);
     setVal('manual_nip_tamu', data.nip_tamu);
     setVal('manual_jabatan_tamu', data.jabatan_tamu);
-    setVal('tamu_instansi', data.instansi_asal);
     setVal('tamu_kontak', data.nomor_kontak);
-    setVal('tamu_tujuan', data.tujuan_bertemu);
-    setVal('tamu_keperluan', data.keperluan);
     setVal('tamu_kartu', data.nomor_kartu_visitor);
     setVal('tamu_nopol', data.nomor_polisi_kendaraan);
     setVal('tamu_status', data.status || 'berada_di_lokasi');
+
+    // Dropdowns
+    window.syncDropdownValue('manual_tujuan_select', 'wrapManualTujuanLainnya', 'manual_tujuan_lainnya_input', 'tamu_tujuan', data.tujuan_bertemu || '');
+    window.syncDropdownValue('manual_keperluan_select', 'wrapManualKeperluanLainnya', 'manual_keperluan_lainnya_input', 'tamu_keperluan', data.keperluan || '');
+    window.syncDropdownValue('manual_instansi_select', 'wrapManualInstansiLainnya', 'manual_instansi_lainnya_input', 'tamu_instansi', data.instansi_asal || '');
 
     if (data.ada_surat_tugas) {
         window.toggleManualSuratTugas(true);
@@ -236,11 +281,6 @@ window.editTamu = function (data) {
     } else {
         window.toggleManualSuratTugas(false);
     }
-
-    const feedback = document.getElementById('manualLookupFeedback');
-    if (feedback) feedback.innerHTML = '';
-
-    window.toggleManualOrtuSection();
 
     modal.style.display = 'flex';
 };
@@ -261,19 +301,202 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Enter key di input NIK / NISN modal satpam
-    const nikInput = document.getElementById('manual_nik_ortu');
-    const nisnInput = document.getElementById('manual_nisn_siswa');
-    [nikInput, nisnInput].forEach(inp => {
-        if (inp) {
-            inp.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    window.lookupManualStudent();
+    // Category radio click handler di modal satpam
+    document.querySelectorAll('#manualCategoryGrid .category-option').forEach(opt => {
+        opt.addEventListener('click', function () {
+            const val = this.dataset.type;
+            window.setManualCategory(val);
+        });
+    });
+
+    // Student live search in modal satpam
+    const inputCari = document.getElementById('manual_cari_siswa');
+    const spinner = document.getElementById('manualStudentSearchSpinner');
+    const dropdownList = document.getElementById('manualStudentDropdownList');
+    const searchWrap = document.getElementById('manualStudentSearchWrapper');
+    const btnClear = document.getElementById('manualBtnClearStudent');
+    const btnToggleManual = document.getElementById('btnToggleManualModalStudent');
+    const manualWrap = document.getElementById('manualStudentInputWrap');
+    const customNama = document.getElementById('manual_custom_nama_siswa');
+    const customRombel = document.getElementById('manual_custom_rombel_siswa');
+    const hiddenNama = document.getElementById('tamu_nama_siswa');
+    const hiddenRombel = document.getElementById('tamu_rombel_siswa');
+
+    let searchTimer = null;
+    let abortCtrl = null;
+
+    if (btnClear) {
+        btnClear.addEventListener('click', function () {
+            window.clearManualStudentSelection();
+            if (inputCari) inputCari.focus();
+        });
+    }
+
+    if (btnToggleManual) {
+        btnToggleManual.addEventListener('click', function () {
+            if (!manualWrap) return;
+            const isHidden = manualWrap.style.display === 'none';
+            manualWrap.style.display = isHidden ? 'block' : 'none';
+            if (isHidden && customNama) customNama.focus();
+        });
+    }
+
+    if (customNama) {
+        customNama.addEventListener('input', function () {
+            if (hiddenNama) hiddenNama.value = this.value;
+        });
+    }
+    if (customRombel) {
+        customRombel.addEventListener('input', function () {
+            if (hiddenRombel) hiddenRombel.value = this.value;
+        });
+    }
+
+    if (inputCari) {
+        inputCari.addEventListener('input', function () {
+            const q = this.value.trim();
+            clearTimeout(searchTimer);
+            if (abortCtrl) abortCtrl.abort();
+
+            if (q.length < 2) {
+                if (dropdownList) {
+                    dropdownList.style.display = 'none';
+                    dropdownList.innerHTML = '';
+                }
+                if (spinner) spinner.style.display = 'none';
+                return;
+            }
+
+            if (spinner) spinner.style.display = 'block';
+
+            searchTimer = setTimeout(function () {
+                abortCtrl = new AbortController();
+                const url = (window.BUKU_TAMU_CONFIG && window.BUKU_TAMU_CONFIG.checkStudentUrl) || '/tamu/api/cek-siswa';
+
+                fetch(`${url}?q=${encodeURIComponent(q)}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: abortCtrl.signal
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (spinner) spinner.style.display = 'none';
+                    if (!dropdownList) return;
+
+                    if (data.found && data.students && data.students.length > 0) {
+                        dropdownList.innerHTML = '';
+                        data.students.forEach(st => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'student-search-item';
+                            btn.innerHTML = `
+                                <div class="student-item-main">
+                                    <span>${escapeHtml(st.nama)}</span>
+                                    <span style="font-size: 0.72rem; color: #10b981; font-weight: 600;">${escapeHtml(st.nama_rombel || '-')}</span>
+                                </div>
+                                <div class="student-item-meta">
+                                    NISN: ${escapeHtml(st.nisn || '-')} • ${st.nama_ayah ? 'Ayah: ' + escapeHtml(st.nama_ayah) : (st.nama_ibu ? 'Ibu: ' + escapeHtml(st.nama_ibu) : 'Siswa Aktif')}
+                                </div>
+                            `;
+                            btn.addEventListener('click', function () {
+                                window.selectManualStudent(st, data.matched_role, data.suggested_parent_name);
+                            });
+                            dropdownList.appendChild(btn);
+                        });
+                        dropdownList.style.display = 'block';
+                    } else {
+                        dropdownList.innerHTML = `
+                            <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); text-align: center;">
+                                Tidak ada siswa cocok dengan "<strong>${escapeHtml(q)}</strong>".<br>
+                                <span style="font-size: 0.72rem;">Gunakan tombol ketik manual jika siswa baru.</span>
+                            </div>
+                        `;
+                        dropdownList.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    if (err.name !== 'AbortError') {
+                        if (spinner) spinner.style.display = 'none';
+                        if (dropdownList) dropdownList.style.display = 'none';
+                    }
+                });
+            }, 250);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!searchWrap || !searchWrap.contains(e.target)) {
+                if (dropdownList) dropdownList.style.display = 'none';
+            }
+        });
+    }
+
+    // Modal Dropdowns helper
+    function setupModalDropdown(selectId, wrapId, inputId, hiddenId) {
+        const select = document.getElementById(selectId);
+        const wrap = document.getElementById(wrapId);
+        const input = document.getElementById(inputId);
+        const hidden = document.getElementById(hiddenId);
+        if (!select || !hidden) return;
+
+        select.addEventListener('change', function () {
+            if (this.value === 'Lainnya') {
+                if (wrap) wrap.style.display = 'block';
+                if (input) {
+                    input.required = true;
+                    hidden.value = input.value.trim();
+                    input.focus();
+                }
+            } else {
+                if (wrap) wrap.style.display = 'none';
+                if (input) input.required = false;
+                hidden.value = this.value;
+            }
+        });
+
+        if (input) {
+            input.addEventListener('input', function () {
+                if (select.value === 'Lainnya') {
+                    hidden.value = this.value.trim();
                 }
             });
         }
-    });
+    }
+
+    setupModalDropdown('manual_tujuan_select', 'wrapManualTujuanLainnya', 'manual_tujuan_lainnya_input', 'tamu_tujuan');
+    setupModalDropdown('manual_keperluan_select', 'wrapManualKeperluanLainnya', 'manual_keperluan_lainnya_input', 'tamu_keperluan');
+    setupModalDropdown('manual_instansi_select', 'wrapManualInstansiLainnya', 'manual_instansi_lainnya_input', 'tamu_instansi');
+
+    // Submit handler for form modal satpam
+    const formTamu = document.getElementById('formTamu');
+    if (formTamu) {
+        formTamu.addEventListener('submit', function () {
+            const selTujuan = document.getElementById('manual_tujuan_select');
+            const inpTujuan = document.getElementById('manual_tujuan_lainnya_input');
+            const hidTujuan = document.getElementById('tamu_tujuan');
+            if (selTujuan && hidTujuan) {
+                hidTujuan.value = selTujuan.value === 'Lainnya' && inpTujuan ? inpTujuan.value.trim() : selTujuan.value;
+            }
+
+            const selKep = document.getElementById('manual_keperluan_select');
+            const inpKep = document.getElementById('manual_keperluan_lainnya_input');
+            const hidKep = document.getElementById('tamu_keperluan');
+            if (selKep && hidKep) {
+                hidKep.value = selKep.value === 'Lainnya' && inpKep ? inpKep.value.trim() : selKep.value;
+            }
+
+            const selIns = document.getElementById('manual_instansi_select');
+            const inpIns = document.getElementById('manual_instansi_lainnya_input');
+            const hidIns = document.getElementById('tamu_instansi');
+            const checkedJenis = document.querySelector('input[name="jenis_tamu"]:checked');
+            if (checkedJenis && checkedJenis.value === 'orang_tua') {
+                if (hidIns) hidIns.value = 'Orang Tua / Wali Siswa';
+            } else if (selIns && hidIns) {
+                hidIns.value = selIns.value === 'Lainnya' && inpIns ? inpIns.value.trim() : selIns.value;
+            }
+        });
+    }
 
     // Delete confirmation with SweetAlert2
     document.querySelectorAll('form[data-confirm="delete"]').forEach(function (delForm) {
@@ -295,10 +518,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             } else {
-                if (confirm(`Apakah Anda yakin ingin menghapus catatan tamu "${name}"?`)) {
+                if (confirm(`Hapus catatan tamu "${name}"?`)) {
                     delForm.submit();
                 }
             }
         });
     });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 });

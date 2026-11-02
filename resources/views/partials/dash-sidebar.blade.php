@@ -1190,12 +1190,12 @@
                     <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.keamanan.buku-tamu*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open"></i></span>
-                        <span class="nav-label">Buku Tamu Pos Depan</span>
+                        <span class="nav-label">Buku Tamu</span>
                     </a>
                     <a href="{{ route('dashboard.keamanan.izin.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-door-open"></i></span>
-                        <span class="nav-label">Verifikasi e-Izin Gerbang</span>
+                        <span class="nav-label">Verifikasi e-Izin</span>
                     </a>
                     <a href="{{ route('dashboard.keamanan.pelanggaran.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.keamanan.pelanggaran*') ? 'active' : '' }}">

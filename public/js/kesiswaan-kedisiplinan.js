@@ -235,16 +235,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 6. Inisialisasi Chart Informatif Rekapitulasi Kedisiplinan
-    const chartDataEl = document.getElementById('kedisiplinanChartData');
-    if (chartDataEl && typeof Chart !== 'undefined') {
+    // 6. Inisialisasi Chart Informatif Rekapitulasi Kedisiplinan (Dapat dirender ulang saat tab switch / refreshLiveTable)
+    let kedisiplinanChartInstances = [];
+
+    function renderKedisiplinanCharts() {
+        kedisiplinanChartInstances.forEach(c => {
+            try { c.destroy(); } catch (e) {}
+        });
+        kedisiplinanChartInstances = [];
+
+        const chartDataEl = document.getElementById('kedisiplinanChartData');
+        if (!chartDataEl || typeof Chart === 'undefined') return;
+
         try {
             const cData = JSON.parse(chartDataEl.textContent || '{}');
             if (cData.activeTab === 'rekap') {
                 // Chart 1: Tren Pelanggaran Bulanan
                 const ctxTren = document.getElementById('chartTrenPelanggaran');
                 if (ctxTren && cData.tren) {
-                    new Chart(ctxTren, {
+                    kedisiplinanChartInstances.push(new Chart(ctxTren, {
                         type: 'line',
                         data: {
                             labels: cData.tren.labels || [],
@@ -267,13 +276,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 y: { beginAtZero: true, ticks: { precision: 0 } }
                             }
                         }
-                    });
+                    }));
                 }
 
                 // Chart 2: Tingkat Keparahan (Ringan, Sedang, Berat)
                 const ctxTingkat = document.getElementById('chartTingkatPelanggaran');
                 if (ctxTingkat && cData.tingkat) {
-                    new Chart(ctxTingkat, {
+                    kedisiplinanChartInstances.push(new Chart(ctxTingkat, {
                         type: 'doughnut',
                         data: {
                             labels: cData.tingkat.labels || [],
@@ -292,13 +301,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             cutout: '62%'
                         }
-                    });
+                    }));
                 }
 
                 // Chart 3: Kategori Pelanggaran
                 const ctxKategori = document.getElementById('chartKategoriPelanggaran');
                 if (ctxKategori && cData.kategori) {
-                    new Chart(ctxKategori, {
+                    kedisiplinanChartInstances.push(new Chart(ctxKategori, {
                         type: 'bar',
                         data: {
                             labels: cData.kategori.labels || [],
@@ -317,13 +326,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 y: { beginAtZero: true, ticks: { precision: 0 } }
                             }
                         }
-                    });
+                    }));
                 }
 
                 // Chart 4: Status Resolusi & Sanggah
                 const ctxStatus = document.getElementById('chartStatusPelanggaran');
                 if (ctxStatus && cData.status) {
-                    new Chart(ctxStatus, {
+                    kedisiplinanChartInstances.push(new Chart(ctxStatus, {
                         type: 'doughnut',
                         data: {
                             labels: cData.status.labels || [],
@@ -342,13 +351,58 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             cutout: '62%'
                         }
-                    });
+                    }));
                 }
             }
         } catch (e) {
             console.warn('Gagal memuat chart kedisiplinan:', e);
         }
     }
+
+    renderKedisiplinanCharts();
+    window.addEventListener('sae:tableRefreshed', renderKedisiplinanCharts);
+
+    // 6b. Filter & Pencarian Siswa Terpadu di Modal Pembinaan & Pemanggilan
+    function setupStudentFilter(searchInputId, selectId, detailId) {
+        const searchInput = document.getElementById(searchInputId);
+        const select = document.getElementById(selectId);
+        const detail = detailId ? document.getElementById(detailId) : null;
+        if (!searchInput || !select) return;
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            let firstMatch = null;
+            Array.from(select.options).forEach((opt, idx) => {
+                if (idx === 0) return; // Lewati placeholder
+                const text = (opt.textContent || '').toLowerCase();
+                const nama = (opt.getAttribute('data-nama') || '').toLowerCase();
+                const nisn = (opt.getAttribute('data-nisn') || '').toLowerCase();
+                const matches = !query || text.includes(query) || nama.includes(query) || nisn.includes(query);
+                opt.hidden = !matches;
+                if (matches && !firstMatch) firstMatch = opt;
+            });
+            if (query && firstMatch) {
+                select.value = firstMatch.value;
+                select.dispatchEvent(new Event('change'));
+            }
+        });
+
+        select.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!detail) return;
+            if (opt && opt.value) {
+                const aturan = opt.getAttribute('data-aturan') || '-';
+                const poin = opt.getAttribute('data-poin') || '0';
+                detail.style.display = 'block';
+                detail.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Terpilih: <strong>${opt.textContent.split('•')[0].trim()}</strong> &bull; Aturan: <em>${aturan}</em> (+${poin} Poin)`;
+            } else {
+                detail.style.display = 'none';
+            }
+        });
+    }
+
+    setupStudentFilter('pembinaanSiswaSearch', 'pembinaanSiswaSelect', 'pembinaanSiswaDetail');
+    setupStudentFilter('panggilanSiswaSearch', 'panggilanSiswaSelect', 'panggilanSiswaDetail');
 
     // 7. Modal Sanggah & Kompensasi Pelanggaran Poin
     document.addEventListener('click', function (e) {
@@ -360,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const siswa = btnSanggah.getAttribute('data-siswa') || 'Siswa';
             const aturan = btnSanggah.getAttribute('data-aturan') || 'Pelanggaran';
             const poin = parseInt(btnSanggah.getAttribute('data-poin') || '0', 10);
+            const sanksi = btnSanggah.getAttribute('data-sanksi') || '';
 
             const form = document.getElementById('formSanggah');
             if (form) {
@@ -378,7 +433,115 @@ document.addEventListener('DOMContentLoaded', function () {
                 inputPotong.max = poin;
             }
 
+            // Prefill Rekomendasi Sanksi dari Tata Tertib & Datalist
+            const infoRekomendasi = document.getElementById('sanggahRekomendasiInfo');
+            const textRekomendasi = document.getElementById('sanggahRekomendasiText');
+            const btnGunakan = document.getElementById('btnGunakanRekomendasi');
+            const inputJenis = document.getElementById('sanggahJenisInput');
+
+            if (sanksi && sanksi.trim() !== '' && sanksi !== '-') {
+                if (infoRekomendasi) infoRekomendasi.style.display = 'block';
+                if (textRekomendasi) textRekomendasi.textContent = sanksi;
+                if (inputJenis) inputJenis.value = sanksi;
+                if (btnGunakan) {
+                    btnGunakan.onclick = function () {
+                        if (inputJenis) inputJenis.value = sanksi;
+                    };
+                }
+            } else {
+                if (infoRekomendasi) infoRekomendasi.style.display = 'none';
+                if (inputJenis && !inputJenis.value) {
+                    inputJenis.value = 'Bakti Lingkungan & Sosial Sekolah (Kerja bakti taman, perpustakaan, pilah sampah)';
+                }
+            }
+
             openModal('#modalSanggah');
+            return;
+        }
+
+        // Tombol Verifikasi & Selesaikan Sanggah Poin
+        const btnVerifikasi = e.target.closest('.btn-verifikasi-sanggah');
+        if (btnVerifikasi) {
+            e.preventDefault();
+            const id = btnVerifikasi.getAttribute('data-id');
+            const siswa = btnVerifikasi.getAttribute('data-siswa') || 'Siswa';
+
+            Swal.fire({
+                title: 'Verifikasi Selesai?',
+                text: `Konfirmasi bahwa ${siswa} telah menuntaskan masa pembinaan / kompensasi bakti sekolah? Poin pelanggaran akan diputihkan dan data dipindahkan ke Riwayat Pelanggaran.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-check-circle"></i> Ya, Verifikasi & Selesai',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Menyelesaikan sanggah & memutihkan poin...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    fetch(`/dashboard/kesiswaan/kedisiplinan/pelanggaran/${id}/verifikasi-sanggah`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('Berhasil!', data.message, 'success').then(() => {
+                                if (typeof window.refreshLiveTable === 'function') {
+                                    window.refreshLiveTable(window.location.href);
+                                } else {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire('Gagal!', data.message || 'Terjadi kesalahan.', 'error');
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire('Error!', 'Gagal memproses verifikasi sanggah.', 'error');
+                    });
+                }
+            });
+            return;
+        }
+
+        // Tombol Terbitkan Surat Pemanggilan Ortu Cepat (Dari Tab Poin / Tindak Lanjut)
+        const btnPanggil = e.target.closest('.btn-panggil-ortu-cepat');
+        if (btnPanggil) {
+            e.preventDefault();
+            const siswaId = btnPanggil.getAttribute('data-siswa-id');
+            const siswaNama = btnPanggil.getAttribute('data-siswa-nama');
+            const alasan = btnPanggil.getAttribute('data-alasan');
+
+            const selectSiswa = document.getElementById('panggilanSiswaSelect');
+            if (selectSiswa && siswaId) {
+                let opt = selectSiswa.querySelector(`option[value="${siswaId}"]`);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = siswaId;
+                    opt.textContent = siswaNama;
+                    selectSiswa.appendChild(opt);
+                }
+                selectSiswa.value = siswaId;
+                selectSiswa.dispatchEvent(new Event('change'));
+            }
+
+            const inputAlasan = document.querySelector('#formPanggilan textarea[name="alasan"], #formPanggilan input[name="alasan"]');
+            if (inputAlasan && alasan) {
+                inputAlasan.value = alasan;
+            }
+
+            openModal('#modalPanggilan');
             return;
         }
 
@@ -394,14 +557,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const bukti = btnDetail.getAttribute('data-sanggah-bukti') || '';
             const siswa = btnDetail.getAttribute('data-siswa') || '-';
             const aturan = btnDetail.getAttribute('data-aturan') || '-';
-
-            const jenisLabels = {
-                'bakti_sekolah': 'Bakti Lingkungan & Sekolah',
-                'tugas_literasi': 'Tugas Akademik & Literasi',
-                'klarifikasi': 'Klarifikasi / Pembatalan Sah',
-                'pembinaan_karakter': 'Pembiasaan & Pembinaan Karakter'
-            };
-            const labelJenis = jenisLabels[jenis] || jenis;
 
             let buktiHtml = '';
             if (bukti) {
@@ -425,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Bentuk Kompensasi:</div>
-                            <div style="font-weight: 700; color: #059669;">${labelJenis}</div>
+                            <div style="font-weight: 700; color: #059669;">${jenis}</div>
                         </div>
                         <div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Poin Diputihkan:</div>

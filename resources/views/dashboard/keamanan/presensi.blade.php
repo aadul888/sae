@@ -72,16 +72,6 @@
                     <div class="dash-stat-label">Izin / Sakit / Dispen</div>
                 </div>
             </div>
-
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent, #06b6d4);">
-                    <i class="fas fa-house-user"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['pulang'] }}</div>
-                    <div class="dash-stat-label">Sudah Pulang</div>
-                </div>
-            </div>
         </div>
 
         {{-- Unified Datatable Keamanan Presensi (Toolbar + Table + Pagination dalam 1 Card Terpadu) --}}

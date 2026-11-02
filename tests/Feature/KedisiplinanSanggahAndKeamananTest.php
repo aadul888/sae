@@ -87,6 +87,28 @@ class KedisiplinanSanggahAndKeamananTest extends TestCase
         $response->assertSee('chartStatusPelanggaran');
     }
 
+    public function test_keamanan_cetak_per_modul_routes(): void
+    {
+        $session = ['user' => ['id' => 1, 'role' => 'admin', 'nama' => 'Admin', 'permissions' => [
+            'menu_keamanan' => ['read' => true],
+            'menu_buku_tamu' => ['read' => true],
+        ]]];
+
+        $cases = [
+            'dashboard.keamanan.buku-tamu.cetak' => 'Laporan Buku Tamu',
+            'dashboard.keamanan.izin.cetak' => 'Laporan e-Izin',
+            'dashboard.keamanan.pelanggaran.cetak' => 'Laporan Pelanggaran',
+            'dashboard.keamanan.patroli.cetak' => 'Log Patroli',
+            'dashboard.keamanan.insiden.cetak' => 'Insiden',
+        ];
+
+        foreach ($cases as $routeName => $judul) {
+            $res = $this->withSession($session)->get(route($routeName));
+            $res->assertStatus(200);
+            $res->assertSee($judul, false);
+        }
+    }
+
     public function test_keamanan_pelanggaran_store(): void
     {
         $tatib = KedisiplinanTataTertib::first();

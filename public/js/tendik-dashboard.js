@@ -283,7 +283,7 @@ const payloadEl = document.getElementById('sectionKeamananChartPayload');
                 labels: Object.keys(payload.kategoriTamu),
                 datasets: [{
                     data: Object.values(payload.kategoriTamu),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#0ea5e9'],
                     borderWidth: 2,
                     borderColor: isLight ? '#ffffff' : '#1e293b',
                     hoverOffset: 4
@@ -299,7 +299,69 @@ const payloadEl = document.getElementById('sectionKeamananChartPayload');
         });
     }
 
-    // 2. Chart Patroli Zona (Bar)
+    // 2. Chart Kategori Pelanggaran Siswa (Bar)
+    const ctxPel = document.getElementById('keamananChartPelanggaran')?.getContext('2d');
+    if (ctxPel && payload.kategoriPelanggaran) {
+        new Chart(ctxPel, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(payload.kategoriPelanggaran),
+                datasets: [{
+                    data: Object.values(payload.kategoriPelanggaran),
+                    backgroundColor: ['rgba(239,68,68,0.85)', 'rgba(245,158,11,0.85)', 'rgba(59,130,246,0.85)', 'rgba(139,92,246,0.85)', 'rgba(16,185,129,0.85)'],
+                    borderRadius: 6,
+                    maxBarThickness: 34
+                }]
+            },
+            plugins: [barDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: textMuted,
+                            font: { size: 9 },
+                            callback: function (val, index) {
+                                const lbl = Object.keys(payload.kategoriPelanggaran)[index] || '';
+                                return lbl.length > 14 ? lbl.substring(0, 12) + '...' : lbl;
+                            }
+                        }
+                    },
+                    y: { grid: { color: gridColor }, ticks: { color: textMuted, font: { size: 10 } }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // 3. Chart Jenis e-Izin Keluar (Doughnut)
+    const ctxIzin = document.getElementById('keamananChartIzin')?.getContext('2d');
+    if (ctxIzin && payload.jenisIzin) {
+        new Chart(ctxIzin, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(payload.jenisIzin),
+                datasets: [{
+                    data: Object.values(payload.jenisIzin),
+                    backgroundColor: ['#0ea5e9', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: isLight ? '#ffffff' : '#1e293b',
+                    hoverOffset: 4
+                }]
+            },
+            plugins: [doughnutDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '62%'
+            }
+        });
+    }
+
+    // 4. Chart Patroli Zona (Bar)
     const ctxPat = document.getElementById('keamananChartPatroli')?.getContext('2d');
     if (ctxPat && payload.zonaPatroli) {
         new Chart(ctxPat, {
@@ -332,31 +394,6 @@ const payloadEl = document.getElementById('sectionKeamananChartPayload');
                     },
                     y: { grid: { color: gridColor }, ticks: { color: textMuted, font: { size: 10 } }, beginAtZero: true }
                 }
-            }
-        });
-    }
-
-    // 3. Chart Kondisi Keamanan (Doughnut)
-    const ctxSts = document.getElementById('keamananChartStatus')?.getContext('2d');
-    if (ctxSts && payload.kondisiKeamanan) {
-        new Chart(ctxSts, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(payload.kondisiKeamanan),
-                datasets: [{
-                    data: Object.values(payload.kondisiKeamanan),
-                    backgroundColor: ['#10b981', '#f59e0b'],
-                    borderWidth: 2,
-                    borderColor: isLight ? '#ffffff' : '#1e293b',
-                    hoverOffset: 4
-                }]
-            },
-            plugins: [doughnutDataLabelsPlugin],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                cutout: '62%'
             }
         });
     }

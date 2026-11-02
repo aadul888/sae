@@ -5,9 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
+use App\Services\KeamananImportService;
 
 class KeamananIzinController extends Controller
 {
+    use \App\Http\Controllers\Concerns\CetakKeamanan;
+
+    /** Unduh template Excel import e-Izin. */
+    public function templateExcel(KeamananImportService $service)
+    {
+        $path = $service->generateTemplateFile('izin');
+
+        return response()->download($path, 'Format_Import_e_Izin.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /** Import e-Izin Keluar via Excel. */
+    public function importExcel(Request $request, KeamananImportService $service)
+    {
+        $request->validate(['file' => 'required|file|max:10240']);
+
+        try {
+            $hasil = $service->import('izin', $request->file('file'));
+            $pesan = "{$hasil['imported']} data e-izin berhasil diimpor" . ($hasil['skipped'] > 0 ? ", {$hasil['skipped']} baris dilewati (siswa tidak ditemukan)." : '.');
+
+            return response()->json(['status' => 'success', 'message' => $pesan]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = session('user');
@@ -70,6 +96,48 @@ class KeamananIzinController extends Controller
             'list', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
             'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
+    }
+
+    /** Halaman cetak e-Izin (ikut filter aktif halaman). */
+    public function cetak(Request $request)
+    {
+        $search = $request->get('q', $request->get('search', ''));
+        $status = $request->get('status', '');
+        $tanggal = $request->get('tanggal', '');
+        $sort = $request->get('sort', 'id');
+        $sortDir = $request->get('sortDir', 'desc');
+
+        $query = DB::table('peserta_didik_izin_keluar as iz')
+            ->leftJoin('peserta_didik as pd', 'iz.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'iz.rombel_id', '=', 'rb.rombongan_belajar_id')
+            ->select('iz.*', 'pd.nama as nama_siswa', 'pd.nisn', 'rb.nama as nama_rombel');
+
+        $periode = $this->periodeDariRequest($request);
+
+        if ($periode) {
+            $query->whereBetween('iz.tanggal', [$periode['start'], $periode['end']]);
+        } elseif ($tanggal) {
+            $query->where('iz.tanggal', $tanggal);
+        }
+        if ($status) {
+            $query->where('iz.status', $status);
+        }
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('iz.nomor_tiket', 'like', "%{$search}%")
+                    ->orWhere('pd.nama', 'like', "%{$search}%")
+                    ->orWhere('pd.nisn', 'like', "%{$search}%")
+                    ->orWhere('iz.alasan', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('iz.' . $sort, $sortDir)->limit(1000)->get();
+
+        $filterInfo = ($periode ? 'Periode: ' . $periode['label'] : 'Tanggal: ' . ($tanggal ?: 'Semua'))
+            . ' • Status: ' . ($status ? ucfirst(str_replace('_', ' ', $status)) : 'Semua')
+            . ($search ? " • Pencarian: \"{$search}\"" : '');
+
+        return $this->renderCetak('izin', 'Laporan e-Izin Keluar-Masuk Gerbang', $filterInfo, $rows);
     }
 
     public function verifikasiTiket(Request $request)

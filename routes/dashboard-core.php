@@ -316,6 +316,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::delete('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyTatib'])->name('tatib.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
             Route::post('/pelanggaran', [\App\Http\Controllers\KedisiplinanController::class, 'storePelanggaran'])->name('pelanggaran.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::post('/pelanggaran/{id}/sanggah', [\App\Http\Controllers\KedisiplinanController::class, 'storeSanggah'])->name('pelanggaran.sanggah')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
+            Route::post('/pelanggaran/{id}/verifikasi-sanggah', [\App\Http\Controllers\KedisiplinanController::class, 'verifikasiSanggah'])->name('pelanggaran.verifikasi-sanggah')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
             Route::delete('/pelanggaran/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyPelanggaran'])->name('pelanggaran.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
             Route::post('/pembinaan', [\App\Http\Controllers\KedisiplinanController::class, 'storePembinaan'])->name('pembinaan.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::post('/panggilan-wali', [\App\Http\Controllers\KedisiplinanController::class, 'storePanggilanWali'])->name('panggilan-wali.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');

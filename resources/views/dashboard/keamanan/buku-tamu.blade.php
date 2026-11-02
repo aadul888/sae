@@ -23,17 +23,22 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <a href="{{ route('dashboard.keamanan.buku-tamu.cetak-qr') }}" target="_blank" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Cetak Standing Poster QR Code e-Tamu" aria-label="Cetak Standing Poster QR Code e-Tamu">
-                    <i class="fas fa-print"></i>
-                </a>
                 <button type="button" class="btn btn-outline" onclick="openModalQr()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tampilkan QR Code di Layar" aria-label="Tampilkan QR Code di Layar">
                     <i class="fas fa-qrcode"></i>
                 </button>
                 @if ($canCreate)
+                    <button type="button" class="btn btn-outline" onclick="openModalCetakKeamanan()"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Cetak Buku Tamu (pilih periode)" aria-label="Cetak Buku Tamu">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Import Buku Tamu via Excel" aria-label="Import Buku Tamu via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="openModalTamu()"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                         title="Catat Tamu Masuk Manual" aria-label="Catat Tamu Masuk Manual">
@@ -82,16 +87,6 @@
                 <div class="dash-stat-info">
                     <div class="dash-stat-value">{{ $stats['sudah_keluar'] }}</div>
                     <div class="dash-stat-label">Sudah Keluar</div>
-                </div>
-            </div>
-
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
-                    <i class="fas fa-qrcode"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['mandiri'] }}</div>
-                    <div class="dash-stat-label">e-Tamu Mandiri</div>
                 </div>
             </div>
         </div>
@@ -311,15 +306,18 @@
         {{-- Modal Tambah / Edit Tamu (Input Manual Satpam) --}}
         <div id="modalTamu"
             style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999 !important; justify-content: center; align-items: center;">
-            <div class="card" style="width: 100%; max-width: 620px; margin: 20px; max-height: 90vh; overflow-y: auto;">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
-                    <h3 id="modalTamuTitle"
-                        style="font-size: var(--text-xl, 1.25rem); font-weight: 700; margin: 0; color: var(--text-heading);">
-                        Catat Tamu Masuk (Manual)
-                    </h3>
+            <div class="card" style="width: 100%; max-width: 660px; margin: 20px; max-height: 90vh; overflow-y: auto; padding: 20px; border-radius: var(--radius-xl, 16px);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                    <div>
+                        <h3 id="modalTamuTitle" style="font-size: var(--text-lg, 1.15rem); font-weight: 800; margin: 0; color: var(--text-heading);">
+                            Catat Tamu Masuk (Manual)
+                        </h3>
+                        <p style="margin: 2px 0 0; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                            Pilih kategori dan lengkapi data kunjungan tamu pos keamanan
+                        </p>
+                    </div>
                     <button type="button" onclick="closeModalTamu()"
-                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
 
                 <form id="formTamu" method="POST" action="{{ route('dashboard.keamanan.buku-tamu.store') }}"
@@ -342,159 +340,276 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label">Kategori Tamu <span style="color:red;">*</span></label>
-                        <select name="jenis_tamu" id="tamu_jenis" class="form-control" onchange="toggleManualOrtuSection()">
-                            <option value="umum">Umum / Masyarakat</option>
-                            <option value="orang_tua">Orang Tua / Wali Siswa</option>
-                            <option value="kedinasan">Kedinasan / Instansi</option>
-                            <option value="alumni">Alumni</option>
-                        </select>
+                    {{-- Langkah 1: Kategori Tamu (Kartu Pilihan seperti Formulir Mandiri) --}}
+                    <div class="category-step" id="manualCategoryStep" style="margin-bottom: 12px; padding: 12px;">
+                        <div class="category-step-head" style="margin-bottom: 10px; gap: 8px;">
+                            <span class="category-step-num" style="width: 28px; height: 28px; font-size: 0.85rem;">1</span>
+                            <div>
+                                <div class="category-step-title" style="font-size: 0.875rem;">Pilih Kategori Tamu</div>
+                                <div class="category-step-sub" style="font-size: 0.7rem;">Pilih kategori kunjungan tamu</div>
+                            </div>
+                            <span class="category-step-tag" style="font-size: 0.6rem; padding: 2px 8px;">KATEGORI</span>
+                        </div>
+
+                        <div class="etamu-category-grid" id="manualCategoryGrid" style="gap: 8px;">
+                            <label class="category-option active" data-type="orang_tua" style="padding: 10px 6px;">
+                                <input type="radio" name="jenis_tamu" value="orang_tua" checked>
+                                <span class="category-icon text-primary" style="font-size: 1.25rem;"><i class="fas fa-user-graduate"></i></span>
+                                <span class="category-label" style="font-size: 0.72rem;">Orang Tua / Wali</span>
+                                <span class="category-hint" style="font-size: 0.62rem;">Wali murid</span>
+                            </label>
+                            <label class="category-option" data-type="kedinasan" style="padding: 10px 6px;">
+                                <input type="radio" name="jenis_tamu" value="kedinasan">
+                                <span class="category-icon text-info" style="font-size: 1.25rem;"><i class="fas fa-building"></i></span>
+                                <span class="category-label" style="font-size: 0.72rem;">Kedinasan</span>
+                                <span class="category-hint" style="font-size: 0.62rem;">Instansi / dinas</span>
+                            </label>
+                            <label class="category-option" data-type="umum" style="padding: 10px 6px;">
+                                <input type="radio" name="jenis_tamu" value="umum">
+                                <span class="category-icon text-success" style="font-size: 1.25rem;"><i class="fas fa-user-group"></i></span>
+                                <span class="category-label" style="font-size: 0.72rem;">Umum</span>
+                                <span class="category-hint" style="font-size: 0.62rem;">Masyarakat umum</span>
+                            </label>
+                            <label class="category-option" data-type="alumni" style="padding: 10px 6px;">
+                                <input type="radio" name="jenis_tamu" value="alumni">
+                                <span class="category-icon text-warning" style="font-size: 1.25rem;"><i class="fas fa-user-tie"></i></span>
+                                <span class="category-label" style="font-size: 0.72rem;">Alumni</span>
+                                <span class="category-hint" style="font-size: 0.62rem;">Siswa Lulus</span>
+                            </label>
+                        </div>
                     </div>
 
-                    {{-- Section Pencarian Cepat Data Siswa untuk Tamu Orang Tua --}}
-                    <div id="manualSectionOrtu" style="display: none; background: rgba(2, 132, 199, 0.05); border: 1px dashed var(--primary, #0284c7); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; font-size: 11px; color: var(--primary, #0284c7);">
-                                <i class="fas fa-search me-1"></i> Deteksi Siswa (Nama, NISN, atau NIK)
+                    {{-- Section Khusus Tamu Orang Tua (Deteksi Otomatis Siswa) --}}
+                    <div id="manualSectionOrtu" class="student-lookup-box" style="margin-bottom: 12px; padding: 12px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                            <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--primary, #0ea5e9);">
+                                <i class="fas fa-id-card me-1"></i> Deteksi Otomatis Siswa
                             </span>
-                            <span style="font-size: 10px; color: var(--text-muted);">Ketik nama/NISN & klik Cari</span>
+                            <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Ketik nama siswa, NISN, atau NIK untuk memilih</span>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: flex-end;">
-                            <div>
-                                <label style="font-size: 10px; font-weight: 600;">Nama Lengkap / NISN Siswa</label>
-                                <input type="text" id="manual_nisn_siswa" name="nisn_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Ketik nama atau NISN...">
+
+                        {{-- Search Input with Floating Results Dropdown --}}
+                        <div class="student-search-wrapper" id="manualStudentSearchWrapper" style="position: relative; margin-bottom: 6px;">
+                            <label class="form-label" for="manual_cari_siswa" style="font-size: 0.75rem;">Cari Data Siswa</label>
+                            <div class="student-search-input-wrap" style="position: relative;">
+                                <input type="text" id="manual_cari_siswa" class="form-control"
+                                    placeholder="Ketik nama siswa, NISN, atau NIK..." autocomplete="off">
+                                <span id="manualStudentSearchSpinner" class="student-search-spinner" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--primary, #0ea5e9);">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
                             </div>
-                            <div>
-                                <label style="font-size: 10px; font-weight: 600;">Atau NIK Orang Tua</label>
-                                <input type="text" id="manual_nik_ortu" name="nik_tamu" class="form-control" style="font-size: 12px; height: 34px;" placeholder="16 Digit NIK Ortu">
+                            <div id="manualStudentDropdownList" class="student-dropdown-results" style="display: none;"></div>
+                        </div>
+
+                        {{-- Selected Student Card (Shown upon selection) --}}
+                        <div id="manualStudentSelectedBox" style="display: none; margin-top: 8px;">
+                            <div class="student-selected-card">
+                                <div class="student-selected-avatar">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <div class="student-selected-info">
+                                    <div class="student-selected-name" id="manualSelectedStudentNama">-</div>
+                                    <div class="student-selected-sub" id="manualSelectedStudentDetail">-</div>
+                                </div>
+                                <button type="button" class="btn-clear-student" id="manualBtnClearStudent" title="Ganti Siswa">
+                                    <i class="fas fa-times me-1"></i> Ganti
+                                </button>
                             </div>
-                            <button type="button" class="btn btn-outline" id="btnManualCekSiswa" onclick="lookupManualStudent()" aria-label="Cari siswa" title="Cari siswa" style="height: 34px; padding: 0 12px; font-size: 12px;">
-                                <i class="fas fa-search"></i>
+                        </div>
+
+                        {{-- Hidden storage for student data in satpam form --}}
+                        <input type="hidden" name="nama_siswa" id="tamu_nama_siswa">
+                        <input type="hidden" name="rombel_siswa" id="tamu_rombel_siswa">
+                        <input type="hidden" name="nisn_siswa" id="manual_nisn_siswa">
+                        <input type="hidden" name="nik_tamu" id="manual_nik_ortu">
+
+                        {{-- Toggle manual input if student is not found --}}
+                        <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: var(--text-2xs, 0.72rem);">
+                            <span id="manualStudentSearchHint" style="color: var(--text-muted);">Pilih salah satu siswa dari daftar hasil pencarian.</span>
+                            <button type="button" id="btnToggleManualModalStudent" style="background: none; border: none; color: var(--primary, #0ea5e9); cursor: pointer; text-decoration: underline; padding: 0;">
+                                Tidak menemukan siswa? Ketik manual
                             </button>
                         </div>
-                        <div id="manualLookupFeedback" style="font-size: 11px; margin-top: 6px;"></div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
-                            <div>
-                                <label style="font-size: 10px; font-weight: 600;">Nama Siswa</label>
-                                <input type="text" name="nama_siswa" id="tamu_nama_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Nama Putra/Putri">
-                            </div>
-                            <div>
-                                <label style="font-size: 10px; font-weight: 600;">Kelas / Rombel</label>
-                                <input type="text" name="rombel_siswa" id="tamu_rombel_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Kelas Siswa">
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Section Surat Tugas untuk Tamu Kedinasan --}}
-                    <div id="manualSectionKedinasan" style="display: none; background: rgba(6, 182, 212, 0.05); border: 1px dashed var(--accent, #06b6d4); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; font-size: 11px; color: var(--accent, #06b6d4);">
-                                <i class="fas fa-file-lines me-1"></i> Surat Tugas Kedinasan
-                            </span>
-                            <span style="font-size: 10px; color: var(--text-muted);">Pilih jika membawa surat</span>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Apakah Membawa Surat Tugas?</label>
-                            <div style="display: flex; gap: 14px; font-size: 12px;">
-                                <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                                    <input type="radio" name="ada_surat_tugas" value="1" id="manualRadioSuratYa" onchange="toggleManualSuratTugas(true)">
-                                    <span><i class="fas fa-check text-success me-1"></i> Ya, Ada</span>
-                                </label>
-                                <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                                    <input type="radio" name="ada_surat_tugas" value="0" id="manualRadioSuratTidak" checked onchange="toggleManualSuratTugas(false)">
-                                    <span><i class="fas fa-times text-muted me-1"></i> Tidak Ada</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div id="manualBoxSuratDetail" style="display: none; padding-top: 8px; border-top: 1px dashed rgba(6, 182, 212, 0.3);">
+                        <div id="manualStudentInputWrap" style="display: none; margin-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.1)); padding-top: 8px;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
-                                    <label style="font-size: 10px; font-weight: 600;">Nomor Surat Tugas</label>
-                                    <input type="text" name="nomor_surat_tugas" id="manual_nomor_surat" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Contoh: 800/123/Disdik/2026">
+                                    <label class="form-label" style="font-size: 0.72rem;">Nama Siswa</label>
+                                    <input type="text" id="manual_custom_nama_siswa" class="form-control" placeholder="Nama Putra/Putri">
                                 </div>
                                 <div>
-                                    <label style="font-size: 10px; font-weight: 600;">Tanggal Surat</label>
-                                    <input type="date" name="tanggal_surat_tugas" id="manual_tanggal_surat" class="form-control" style="font-size: 12px; height: 34px;">
+                                    <label class="form-label" style="font-size: 0.72rem;">Kelas / Rombel</label>
+                                    <input type="text" id="manual_custom_rombel_siswa" class="form-control" placeholder="Kelas Siswa">
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label">Nama Tamu <span style="color:red;">*</span></label>
-                        <input type="text" name="nama_tamu" id="tamu_nama" class="form-control"
-                            placeholder="Nama lengkap tamu" required>
-                    </div>
-
-                    {{-- NIP & Jabatan Tamu Kedinasan Satpam --}}
-                    <div id="manualKedinasanIdentitas" style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                        <div>
-                            <label class="form-label">NIP Tamu (Opsional)</label>
-                            <input type="text" name="nip_tamu" id="manual_nip_tamu" class="form-control"
-                                placeholder="18 digit NIP pegawai">
-                        </div>
-                        <div>
-                            <label class="form-label">Jabatan (Opsional)</label>
-                            <input type="text" name="jabatan_tamu" id="manual_jabatan_tamu" class="form-control"
-                                placeholder="Contoh: Pengawas, Kasi Kurikulum">
-                        </div>
-                    </div>
-
+                    {{-- Identitas Tamu --}}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <label class="form-label">Instansi / Lembaga Asal</label>
-                            <input type="text" name="instansi_asal" id="tamu_instansi" class="form-control"
-                                placeholder="Contoh: Dinas Pendidikan, Orang Tua">
+                            <label class="form-label" for="tamu_nama">Nama Lengkap Tamu <span style="color:red;">*</span></label>
+                            <input type="text" name="nama_tamu" id="tamu_nama" class="form-control"
+                                placeholder="Ketik nama lengkap..." required>
                         </div>
                         <div>
-                            <label class="form-label">Nomor Kontak / HP</label>
-                            <input type="text" name="nomor_kontak" id="tamu_kontak" class="form-control"
-                                placeholder="08xxxxxxxx">
+                            <label class="form-label" for="tamu_kontak">Nomor WhatsApp / HP <span style="color:red;">*</span></label>
+                            <input type="tel" name="nomor_kontak" id="tamu_kontak" class="form-control"
+                                placeholder="08xxxxxxxxxx" inputmode="tel" required>
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                        <div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <label class="form-label" style="margin: 0;">Tujuan Bertemu <span
-                                        style="color:red;">*</span></label>
-                                <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"><i
-                                        class="fas fa-user-tie me-1"></i>GTK / Ruang</span>
+                    {{-- Instansi Asal Dropdown + Custom --}}
+                    <div id="manualGroupInstansi" style="margin-bottom: 12px; display: none;">
+                        <label class="form-label" for="manual_instansi_select">Instansi / Lembaga Asal</label>
+                        <select id="manual_instansi_select" class="form-control">
+                            <option value="">-- Pilih Instansi / Asal Tamu --</option>
+                            <option value="Dinas Pendidikan">Dinas Pendidikan</option>
+                            <option value="Kementerian Agama">Kementerian Agama</option>
+                            <option value="Pemerintah Daerah / Dinas">Pemerintah Daerah / Dinas</option>
+                            <option value="Perusahaan / Mitra Industri (DUDI)">Perusahaan / Mitra Industri (DUDI)</option>
+                            <option value="Lembaga / Yayasan Pendidikan">Lembaga / Yayasan Pendidikan</option>
+                            <option value="Perguruan Tinggi / Universitas">Perguruan Tinggi / Universitas</option>
+                            <option value="Puskesmas / Layanan Kesehatan">Puskesmas / Layanan Kesehatan</option>
+                            <option value="Kepolisian / Koramil / Aparat">Kepolisian / Koramil / Aparat</option>
+                            <option value="Masyarakat Umum">Masyarakat Umum</option>
+                            <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                        </select>
+                        <div id="wrapManualInstansiLainnya" style="display: none; margin-top: 6px;">
+                            <input type="text" id="manual_instansi_lainnya_input" class="form-control" placeholder="Ketik nama instansi / lembaga asal...">
+                        </div>
+                        <input type="hidden" name="instansi_asal" id="tamu_instansi">
+                    </div>
+
+                    {{-- Khusus Tamu Kedinasan: NIP & Jabatan (Opsional) --}}
+                    <div id="manualKedinasanIdentitas" style="display: none; margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label class="form-label" for="manual_nip_tamu">NIP (Opsional)</label>
+                                <input type="text" name="nip_tamu" id="manual_nip_tamu" class="form-control"
+                                    placeholder="18 digit NIP..." maxlength="30" inputmode="numeric">
                             </div>
-                            <input type="search" list="listTujuanBertemu" name="tujuan_bertemu" id="tamu_tujuan"
-                                class="form-control" placeholder="Cari GTK/ruang atau ketik..." autocomplete="off"
-                                required data-people-search="{{ route('dashboard.people.search') }}"
-                                data-people-kind="gtk">
-                            <datalist id="listTujuanBertemu">
-                                <option value="Kepala Sekolah">Kepala Sekolah</option>
-                                <option value="Wakil Kepala Sekolah">Wakil Kepala Sekolah</option>
-                                <option value="Wali Kelas">Wali Kelas</option>
-                                <option value="Guru Bimbingan Konseling (BK)">Guru Bimbingan Konseling (BK)</option>
-                                <option value="Guru Mata Pelajaran">Guru Mata Pelajaran</option>
-                                <option value="Bagian Tata Usaha (TU)">Bagian Tata Usaha (TU)</option>
-                                @foreach ($daftarRuang as $rng)
-                                    <option value="{{ $rng->nama_ruang }}">{{ $rng->nama_ruang }}</option>
-                                @endforeach
-                            </datalist>
+                            <div>
+                                <label class="form-label" for="manual_jabatan_tamu">Jabatan (Opsional)</label>
+                                <input type="text" name="jabatan_tamu" id="manual_jabatan_tamu" class="form-control"
+                                    placeholder="Contoh: Pengawas, Kasi Kurikulum...">
+                            </div>
                         </div>
+                    </div>
+
+                    {{-- Khusus Tamu Kedinasan: Konfirmasi Surat Tugas --}}
+                    <div id="manualSectionKedinasan" class="student-lookup-box" style="display: none; background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.25); margin-bottom: 12px; padding: 12px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                            <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--accent, #06b6d4);">
+                                <i class="fas fa-file-lines me-1"></i> Surat Tugas Kedinasan
+                            </span>
+                            <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Pilih jika membawa surat tugas resmi</span>
+                        </div>
+
+                        <div style="margin-bottom: 10px;">
+                            <label class="form-label">Apakah Tersedia Surat Tugas?</label>
+                            <div style="display: flex; gap: 12px; margin-top: 4px;">
+                                <label class="surat-tugas-radio" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs, 0.78rem); font-weight: 600; padding: 6px 14px; border: 1px solid var(--border-glass, rgba(255,255,255,0.15)); border-radius: var(--radius-md, 8px); background: var(--card-bg, rgba(255,255,255,0.03));">
+                                    <input type="radio" name="ada_surat_tugas" value="1" id="manualRadioSuratYa" onchange="toggleManualSuratTugas(true)" style="accent-color: var(--primary, #0ea5e9);">
+                                    <span><i class="fas fa-circle-check text-success me-1"></i> Ya, Ada</span>
+                                </label>
+                                <label class="surat-tugas-radio" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs, 0.78rem); font-weight: 600; padding: 6px 14px; border: 1px solid var(--border-glass, rgba(255,255,255,0.15)); border-radius: var(--radius-md, 8px); background: var(--card-bg, rgba(255,255,255,0.03));">
+                                    <input type="radio" name="ada_surat_tugas" value="0" id="manualRadioSuratTidak" checked onchange="toggleManualSuratTugas(false)" style="accent-color: var(--primary, #0ea5e9);">
+                                    <span><i class="fas fa-circle-xmark text-muted me-1"></i> Tidak Ada</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="manualBoxSuratDetail" style="display: none; padding-top: 10px; border-top: 1px dashed rgba(6, 182, 212, 0.25);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label class="form-label" for="manual_nomor_surat">Nomor Surat Tugas</label>
+                                    <input type="text" name="nomor_surat_tugas" id="manual_nomor_surat" class="form-control"
+                                        placeholder="Contoh: 800/123/Disdik/2026">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="manual_tanggal_surat">Tanggal Surat Tugas</label>
+                                    <input type="date" name="tanggal_surat_tugas" id="manual_tanggal_surat" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Dropdown Tujuan Bertemu & Keperluan --}}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <label class="form-label">Keperluan <span style="color:red;">*</span></label>
-                            <input type="text" name="keperluan" id="tamu_keperluan" class="form-control"
-                                placeholder="Urusan dinas, konsultasi nilai..." required>
+                            <label class="form-label" for="manual_tujuan_select">Tujuan Bertemu <span style="color:red;">*</span></label>
+                            <select id="manual_tujuan_select" class="form-control" required>
+                                <option value="">-- Pilih Tujuan Bertemu --</option>
+                                <optgroup label="Pimpinan & Manajemen">
+                                    <option value="Kepala Sekolah">Kepala Sekolah</option>
+                                    <option value="Wakil Kepala Sekolah (Kurikulum)">Wakil Kepala Sekolah (Kurikulum)</option>
+                                    <option value="Wakil Kepala Sekolah (Kesiswaan)">Wakil Kepala Sekolah (Kesiswaan)</option>
+                                    <option value="Wakil Kepala Sekolah (Sarpras)">Wakil Kepala Sekolah (Sarpras)</option>
+                                    <option value="Wakil Kepala Sekolah (Humas)">Wakil Kepala Sekolah (Humas)</option>
+                                </optgroup>
+                                <optgroup label="Guru & Bimbingan">
+                                    <option value="Wali Kelas">Wali Kelas</option>
+                                    <option value="Guru Bimbingan Konseling (BK)">Guru Bimbingan Konseling (BK)</option>
+                                    <option value="Guru Mata Pelajaran">Guru Mata Pelajaran</option>
+                                </optgroup>
+                                <optgroup label="Layanan Tata Usaha & Fasilitas">
+                                    <option value="Bagian Tata Usaha (TU)">Bagian Tata Usaha (TU)</option>
+                                    <option value="Staf Keuangan / Kasir">Staf Keuangan / Kasir</option>
+                                    <option value="Petugas Perpustakaan">Petugas Perpustakaan</option>
+                                    <option value="Petugas UKS">Petugas UKS</option>
+                                    <option value="Pos Satpam / Keamanan">Pos Satpam / Keamanan</option>
+                                    @foreach ($daftarRuang as $rng)
+                                        <option value="Ruang {{ $rng->nama_ruang }}">Ruang {{ $rng->nama_ruang }}</option>
+                                    @endforeach
+                                </optgroup>
+                                <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                            </select>
+                            <div id="wrapManualTujuanLainnya" style="display: none; margin-top: 6px;">
+                                <input type="text" id="manual_tujuan_lainnya_input" class="form-control" placeholder="Ketik tujuan bertemu lainnya...">
+                            </div>
+                            <input type="hidden" name="tujuan_bertemu" id="tamu_tujuan" required>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="manual_keperluan_select">Keperluan <span style="color:red;">*</span></label>
+                            <select id="manual_keperluan_select" class="form-control" required>
+                                <option value="">-- Pilih Keperluan --</option>
+                                <optgroup label="Urusan Siswa & Akademik">
+                                    <option value="Konsultasi Perkembangan Belajar Siswa">Konsultasi Perkembangan Belajar Siswa</option>
+                                    <option value="Pengambilan Rapot / Legalisir Ijazah">Pengambilan Rapot / Legalisir Ijazah</option>
+                                    <option value="Mengantar Keperluan / Berkas Siswa">Mengantar Keperluan / Berkas Siswa</option>
+                                    <option value="Pemanggilan BK / Urusan Disiplin">Pemanggilan BK / Urusan Disiplin</option>
+                                    <option value="Pengurusan Mutasi / Pindah Siswa">Pengurusan Mutasi / Pindah Siswa</option>
+                                </optgroup>
+                                <optgroup label="Kedinasan & Kemitraan">
+                                    <option value="Koordinasi Dinas / Undangan Resmi">Koordinasi Dinas / Undangan Resmi</option>
+                                    <option value="Kunjungan Monev / Pengawasan">Kunjungan Monev / Pengawasan</option>
+                                    <option value="Penawaran Kerjasama / Kemitraan">Penawaran Kerjasama / Kemitraan</option>
+                                    <option value="Urusan Administrasi / Pembayaran">Urusan Administrasi / Pembayaran</option>
+                                    <option value="Penyerahan Dokumen / Berkas Surat">Penyerahan Dokumen / Berkas Surat</option>
+                                </optgroup>
+                                <optgroup label="Umum & Alumni">
+                                    <option value="Silaturahmi / Temu Guru">Silaturahmi / Temu Guru</option>
+                                    <option value="Urusan Alumni">Urusan Alumni</option>
+                                </optgroup>
+                                <option value="Lainnya">Lainnya (Ketik Manual)</option>
+                            </select>
+                            <div id="wrapManualKeperluanLainnya" style="display: none; margin-top: 6px;">
+                                <input type="text" id="manual_keperluan_lainnya_input" class="form-control" placeholder="Ketik keperluan kunjungan lainnya...">
+                            </div>
+                            <input type="hidden" name="keperluan" id="tamu_keperluan" required>
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <label class="form-label">Nomor Kartu Visitor</label>
+                            <label class="form-label" for="tamu_kartu">Nomor Kartu Visitor (Fisik)</label>
                             <input type="text" name="nomor_kartu_visitor" id="tamu_kartu" class="form-control"
-                                placeholder="Contoh: V-01">
+                                placeholder="Contoh: VIS-01 / V-05">
                         </div>
                         <div>
-                            <label class="form-label">Nomor Polisi Kendaraan</label>
+                            <label class="form-label" for="tamu_nopol">Nomor Polisi Kendaraan (Opsional)</label>
                             <input type="text" name="nomor_polisi_kendaraan" id="tamu_nopol" class="form-control"
                                 placeholder="Contoh: B 1234 ABC">
                         </div>
@@ -502,14 +617,14 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                         <div>
-                            <label class="form-label">Status Kunjungan</label>
+                            <label class="form-label" for="tamu_status">Status Kunjungan</label>
                             <select name="status" id="tamu_status" class="form-control">
                                 <option value="berada_di_lokasi">Berada di Lokasi</option>
                                 <option value="sudah_keluar">Sudah Keluar</option>
                             </select>
                         </div>
                         <div>
-                            <label class="form-label">Jam Keluar</label>
+                            <label class="form-label" for="tamu_jam_keluar">Jam Keluar</label>
                             <input type="time" name="jam_keluar" id="tamu_jam_keluar" class="form-control">
                         </div>
                     </div>
@@ -553,7 +668,277 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Import Buku Tamu via Excel --}}
+    @include('dashboard.keamanan.partials.modal-import', [
+        'modulKode' => 'tamu',
+        'modulJudul' => 'Buku Tamu',
+        'templateRoute' => route('dashboard.keamanan.buku-tamu.template'),
+        'importRoute' => route('dashboard.keamanan.buku-tamu.import'),
+    ])
+
+    {{-- Modal Cetak periode Buku Tamu --}}
+    @include('dashboard.keamanan.partials.modal-cetak', [
+        'cetakRoute' => route('dashboard.keamanan.buku-tamu.cetak'),
+        'modulJudul' => 'Buku Tamu',
+    ])
 @endsection
+
+@push('styles')
+    <style>
+        .category-step {
+            border: 2px solid rgba(14, 165, 233, 0.45);
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.12), rgba(14, 165, 233, 0.03));
+            border-radius: var(--radius-xl, 16px);
+            padding: 16px;
+            margin-bottom: 1.25rem;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
+        }
+        .category-step.answered {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.10), rgba(16, 185, 129, 0.02));
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+        }
+        .category-step-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .category-step-num {
+            flex: 0 0 auto;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+        .category-step-title {
+            font-weight: 800;
+            font-size: var(--text-md, 1rem);
+            color: var(--text-heading);
+            line-height: 1.2;
+        }
+        .category-step-sub {
+            font-size: var(--text-xs, 0.75rem);
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .category-step-tag {
+            margin-left: auto;
+            align-self: flex-start;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #fff;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            padding: 4px 10px;
+            border-radius: var(--radius-full, 999px);
+            white-space: nowrap;
+        }
+        .etamu-category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        @media (min-width: 520px) {
+            .etamu-category-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .category-option {
+            cursor: pointer;
+            border: 2px solid var(--border-glass, rgba(255, 255, 255, 0.12));
+            border-radius: var(--radius-lg, 12px);
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.18s ease;
+            background: var(--card-bg, rgba(255, 255, 255, 0.04));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+            user-select: none;
+        }
+        .category-option:hover {
+            border-color: var(--primary, #0ea5e9);
+            transform: translateY(-2px);
+            background: rgba(14, 165, 233, 0.08);
+        }
+        .category-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+        .category-option.active {
+            border-color: var(--primary, #0ea5e9);
+            background: rgba(14, 165, 233, 0.16);
+            color: var(--primary, #0ea5e9);
+            font-weight: 700;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(14, 165, 233, 0.25);
+        }
+        .category-option.active::after {
+            content: "\f058";
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome";
+            font-weight: 900;
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 0.95rem;
+            color: var(--primary, #0ea5e9);
+        }
+        .category-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        .category-label {
+            font-size: var(--text-xs, 0.8rem);
+            line-height: 1.2;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+        .category-option.active .category-label {
+            color: var(--primary, #0ea5e9);
+        }
+        .category-hint {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            line-height: 1.1;
+        }
+        .student-lookup-box {
+            background: rgba(14, 165, 233, 0.05);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            border-radius: var(--radius-lg, 12px);
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .student-search-wrapper {
+            position: relative;
+            margin-bottom: 6px;
+        }
+        .student-search-input-wrap {
+            position: relative;
+        }
+        .student-search-spinner {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary, #0ea5e9);
+        }
+        .student-dropdown-results {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--card-bg, #1e293b);
+            border: 1.5px solid var(--primary, #0ea5e9);
+            border-radius: var(--radius-lg, 12px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            z-index: 1000;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .student-search-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-glass, rgba(255, 255, 255, 0.08));
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-align: left;
+            width: 100%;
+            display: block;
+            background: none;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            color: inherit;
+        }
+        .student-search-item:last-child {
+            border-bottom: none;
+        }
+        .student-search-item:hover, .student-search-item:focus {
+            background: rgba(14, 165, 233, 0.15);
+            outline: none;
+        }
+        .student-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: var(--text-sm, 0.85rem);
+            color: var(--text-heading, #fff);
+        }
+        .student-item-meta {
+            font-size: var(--text-xs, 0.72rem);
+            color: var(--text-muted, #94a3b8);
+            margin-top: 2px;
+        }
+        .student-selected-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+            border: 1.5px solid rgba(16, 185, 129, 0.4);
+            border-radius: var(--radius-lg, 12px);
+            padding: 10px 14px;
+        }
+        .student-selected-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .student-selected-info {
+            flex: 1;
+        }
+        .student-selected-name {
+            font-weight: 800;
+            font-size: var(--text-sm, 0.875rem);
+            color: var(--text-heading, #fff);
+        }
+        .student-selected-sub {
+            font-size: var(--text-xs, 0.72rem);
+            color: var(--text-muted, #94a3b8);
+        }
+        .btn-clear-student {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s ease;
+        }
+        .btn-clear-student:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>

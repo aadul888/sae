@@ -7,13 +7,13 @@
     <style>
         .kedisiplinan-stat-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr) !important;
+            grid-template-columns: repeat(4, 1fr) !important;
             gap: 14px;
             margin-bottom: 20px;
         }
         @media (max-width: 1200px) {
             .kedisiplinan-stat-grid {
-                grid-template-columns: repeat(3, 1fr) !important;
+                grid-template-columns: repeat(2, 1fr) !important;
             }
         }
         @media (max-width: 640px) {
@@ -186,7 +186,7 @@
         </div>
     </div>
 
-    <!-- 2. Stat Grid Baku SAE (Genap Sejajar Rapi: 6 Kolom Desktop, 3 Kolom Tablet, 2 Kolom Mobile) -->
+    <!-- 2. Stat Grid Baku SAE (4 Kolom Desktop, 2 Kolom Tablet/Mobile) -->
     <div class="dash-stat-grid kedisiplinan-stat-grid">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
@@ -222,24 +222,6 @@
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['total_panggilan'] ?? 0) }}</div>
                 <div class="dash-stat-label">Panggilan Ortu</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
-                <i class="fas fa-hand-holding-hand"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_disanggah'] ?? 0) }}</div>
-                <div class="dash-stat-label">Sanggah Selesai</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(168,85,247,0.12); color: #a855f7;">
-                <i class="fas fa-scale-balanced"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_tindak_lanjut'] ?? 0) }}</div>
-                <div class="dash-stat-label">Eskalasi Tindak Lanjut</div>
             </div>
         </div>
     </div>

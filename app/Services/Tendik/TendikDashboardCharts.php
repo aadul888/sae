@@ -150,10 +150,36 @@ class TendikDashboardCharts
     public static function keamanan(): array
     {
         return [
-            'kategoriTamu'    => self::groupedCount('keamanan_buku_tamu', 'keperluan', 'keperluan', 'Lainnya'),
-            'zonaPatroli'     => self::groupedCount('keamanan_patroli', 'rute_zona', 'zona', 'Lainnya'),
-            'kondisiKeamanan' => self::groupedCount('keamanan_patroli', 'kondisi_lingkungan', 'kondisi', 'lainnya'),
+            'kategoriTamu'        => self::groupedCount('keamanan_buku_tamu', 'jenis_tamu', 'jenis', 'umum'),
+            'kategoriPelanggaran' => self::pelanggaranPerKategori(),
+            'jenisIzin'           => self::groupedCount('peserta_didik_izin_keluar', 'jenis_izin', 'jenis', 'lainnya'),
+            'zonaPatroli'         => self::groupedCount('keamanan_patroli', 'rute_zona', 'zona', 'Lainnya'),
         ];
+    }
+
+    /** Pelanggaran pos keamanan dikelompokkan per kategori tata tertib. */
+    private static function pelanggaranPerKategori(): array
+    {
+        if (!Table::exists('kedisiplinan_pelanggaran')) {
+            return [];
+        }
+
+        $alias = 'kategori';
+        $query = DB::table('kedisiplinan_pelanggaran as p')
+            ->leftJoin('kedisiplinan_tata_tertib as t', 'p.tata_tertib_id', '=', 't.id')
+            ->where(function ($b) {
+                $b->where('p.pelapor_nama', 'like', '%Satpam%')
+                    ->orWhere('p.pelapor_nama', 'like', '%Keamanan%')
+                    ->orWhere('p.tempat_kejadian', 'like', '%Gerbang%')
+                    ->orWhere('p.tempat_kejadian', 'like', '%Pos%')
+                    ->orWhere('p.tempat_kejadian', 'like', '%Luar%');
+            })
+            ->selectRaw("COALESCE(NULLIF(t.kategori, \"\"), 'Lainnya') as `{$alias}`, COUNT(*) as total")
+            ->groupBy($alias)
+            ->orderByDesc('total')
+            ->limit(8);
+
+        return $query->pluck('total', $alias)->map(fn ($v) => (int) $v)->toArray();
     }
 
     public static function penjaga(): array

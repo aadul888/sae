@@ -69,6 +69,14 @@ class ETamuTest extends TestCase
                 'success' => true,
                 'found' => true,
             ]);
+
+            // Cek via query q (live autocomplete search)
+            $qResponse = $this->get(route('tamu.check-student', ['q' => substr($samplePd->nama, 0, 4)]));
+            $qResponse->assertStatus(200);
+            $qResponse->assertJson([
+                'success' => true,
+                'found' => true,
+            ]);
         }
     }
 

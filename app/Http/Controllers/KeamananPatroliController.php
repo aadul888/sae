@@ -5,9 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RolePermission;
+use App\Services\KeamananImportService;
 
 class KeamananPatroliController extends Controller
 {
+    use \App\Http\Controllers\Concerns\CetakKeamanan;
+
+    /** Unduh template Excel import Patroli. */
+    public function templateExcel(KeamananImportService $service)
+    {
+        $path = $service->generateTemplateFile('patroli');
+
+        return response()->download($path, 'Format_Import_Patroli.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /** Import Log Patroli via Excel. */
+    public function importExcel(Request $request, KeamananImportService $service)
+    {
+        $request->validate(['file' => 'required|file|max:10240']);
+
+        try {
+            $hasil = $service->import('patroli', $request->file('file'));
+            $pesan = "{$hasil['imported']} log patroli berhasil diimpor" . ($hasil['skipped'] > 0 ? ", {$hasil['skipped']} baris dilewati." : '.');
+
+            return response()->json(['status' => 'success', 'message' => $pesan]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = session('user');
@@ -87,6 +113,73 @@ class KeamananPatroliController extends Controller
         ));
     }
 
+    /** Halaman cetak Log Patroli (ikut filter aktif halaman). */
+    public function cetak(Request $request)
+    {
+        $search = $request->get('q', $request->get('search', ''));
+        $tanggal = $request->get('tanggal', '');
+
+        $query = DB::table('keamanan_patroli as kp')
+            ->leftJoin('gtk', 'kp.petugas_satpam_ptk_id', '=', 'gtk.ptk_id')
+            ->select('kp.*', 'gtk.nama as nama_petugas');
+
+        $periode = $this->periodeDariRequest($request);
+
+        if ($periode) {
+            $query->whereBetween('kp.tanggal', [$periode['start'], $periode['end']]);
+        } elseif ($tanggal) {
+            $query->where('kp.tanggal', $tanggal);
+        }
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kp.rute_zona', 'like', "%{$search}%")
+                    ->orWhere('kp.catatan_temuan', 'like', "%{$search}%")
+                    ->orWhere('gtk.nama', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('kp.tanggal', 'desc')->orderBy('kp.jam_patroli', 'desc')->limit(1000)->get();
+
+        $filterInfo = ($periode ? 'Periode: ' . $periode['label'] : 'Tanggal: ' . ($tanggal ?: 'Semua'))
+            . ($search ? " • Pencarian: \"{$search}\"" : '');
+
+        return $this->renderCetak('patroli', 'Laporan Log Patroli Keliling', $filterInfo, $rows);
+    }
+
+    /** Halaman cetak Laporan Insiden (ikut filter aktif halaman). */
+    public function cetakInsiden(Request $request)
+    {
+        $search = $request->get('q', $request->get('search', ''));
+        $tanggal = $request->get('tanggal', '');
+
+        $query = DB::table('keamanan_insiden as ki')
+            ->leftJoin('gtk', 'ki.petugas_satpam_ptk_id', '=', 'gtk.ptk_id')
+            ->select('ki.*', 'gtk.nama as nama_petugas');
+
+        $periode = $this->periodeDariRequest($request);
+
+        if ($periode) {
+            $query->whereBetween('ki.tanggal', [$periode['start'], $periode['end']]);
+        } elseif ($tanggal) {
+            $query->where('ki.tanggal', $tanggal);
+        }
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ki.nomor_laporan', 'like', "%{$search}%")
+                    ->orWhere('ki.judul_insiden', 'like', "%{$search}%")
+                    ->orWhere('ki.lokasi_kejadian', 'like', "%{$search}%")
+                    ->orWhere('ki.kronologi', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('ki.tanggal', 'desc')->orderBy('ki.jam_kejadian', 'desc')->limit(1000)->get();
+
+        $filterInfo = ($periode ? 'Periode: ' . $periode['label'] : 'Tanggal: ' . ($tanggal ?: 'Semua'))
+            . ($search ? " • Pencarian: \"{$search}\"" : '');
+
+        return $this->renderCetak('insiden', 'Laporan Insiden / Kejadian Khusus', $filterInfo, $rows);
+    }
+
     public function storePatroli(Request $request)
     {
         $request->validate([
@@ -138,6 +231,29 @@ class KeamananPatroliController extends Controller
     {
         DB::table('keamanan_patroli')->where('id', $id)->delete();
         return redirect()->route('dashboard.keamanan.patroli.index', ['tab' => 'patroli'])->with('success', 'Log patroli berhasil dihapus.');
+    }
+
+    /** Unduh template Excel import Insiden. */
+    public function templateInsiden(KeamananImportService $service)
+    {
+        $path = $service->generateTemplateFile('insiden');
+
+        return response()->download($path, 'Format_Import_Insiden.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /** Import Laporan Insiden via Excel. */
+    public function importInsiden(Request $request, KeamananImportService $service)
+    {
+        $request->validate(['file' => 'required|file|max:10240']);
+
+        try {
+            $hasil = $service->import('insiden', $request->file('file'));
+            $pesan = "{$hasil['imported']} laporan insiden berhasil diimpor" . ($hasil['skipped'] > 0 ? ", {$hasil['skipped']} baris dilewati." : '.');
+
+            return response()->json(['status' => 'success', 'message' => $pesan]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
     }
 
     public function storeInsiden(Request $request)

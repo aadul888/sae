@@ -23,6 +23,18 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline" onclick="openModalCetakKeamanan()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Cetak e-Izin (pilih periode)" aria-label="Cetak e-Izin">
+                    <i class="fas fa-print"></i>
+                </button>
+                @if ($canUpdate)
+                    <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Import e-Izin via Excel" aria-label="Import e-Izin via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
+                    </button>
+                @endif
                 <button type="button" class="btn btn-primary" onclick="openModalScan()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Scan / Input Tiket Izin Keluar">
@@ -70,16 +82,6 @@
                 <div class="dash-stat-info">
                     <div class="dash-stat-value">{{ $stats['kembali'] }}</div>
                     <div class="dash-stat-label">Sudah Kembali</div>
-                </div>
-            </div>
-
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary-light, #6366f1);">
-                    <i class="fas fa-house-user"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['pulang'] }}</div>
-                    <div class="dash-stat-label">Pulang Selesai</div>
                 </div>
             </div>
         </div>
@@ -338,6 +340,20 @@
                 </div>
             </div>
         </div>
+
+        {{-- Modal Import e-Izin via Excel --}}
+        @include('dashboard.keamanan.partials.modal-import', [
+            'modulKode' => 'izin',
+            'modulJudul' => 'e-Izin Gerbang',
+            'templateRoute' => route('dashboard.keamanan.izin.template'),
+            'importRoute' => route('dashboard.keamanan.izin.import'),
+        ])
+
+        {{-- Modal Cetak periode e-Izin --}}
+        @include('dashboard.keamanan.partials.modal-cetak', [
+            'cetakRoute' => route('dashboard.keamanan.izin.cetak'),
+            'modulJudul' => 'e-Izin Gerbang',
+        ])
     @endsection
 
     @push('scripts')

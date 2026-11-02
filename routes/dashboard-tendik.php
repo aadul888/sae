@@ -252,6 +252,9 @@ return function () {
     Route::prefix('keamanan')->name('keamanan.')->group(function () {
         // Verifikasi e-Izin Gerbang Siswa
         Route::get('/izin', [\App\Http\Controllers\KeamananIzinController::class, 'index'])->name('izin.index')->middleware('permission:menu_keamanan|menu_keamanan_izin,read');
+        Route::get('/izin/cetak', [\App\Http\Controllers\KeamananIzinController::class, 'cetak'])->name('izin.cetak')->middleware('permission:menu_keamanan|menu_keamanan_izin,read');
+        Route::get('/izin/template', [\App\Http\Controllers\KeamananIzinController::class, 'templateExcel'])->name('izin.template')->middleware('permission:menu_keamanan|menu_keamanan_izin,read');
+        Route::post('/izin/import', [\App\Http\Controllers\KeamananIzinController::class, 'importExcel'])->name('izin.import')->middleware('permission:menu_keamanan|menu_keamanan_izin,create');
         Route::get('/izin/verifikasi', [\App\Http\Controllers\KeamananIzinController::class, 'verifikasiTiket'])->name('izin.verifikasi');
         Route::post('/izin/checkout/{id}', [\App\Http\Controllers\KeamananIzinController::class, 'checkout'])->name('izin.checkout')->middleware('permission:menu_keamanan|menu_keamanan_izin,update');
         Route::post('/izin/checkin/{id}', [\App\Http\Controllers\KeamananIzinController::class, 'checkin'])->name('izin.checkin')->middleware('permission:menu_keamanan|menu_keamanan_izin,update');
@@ -261,6 +264,9 @@ return function () {
 
         // Buku Tamu Pos Keamanan
         Route::get('/buku-tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'index'])->name('buku-tamu.index')->middleware('permission:menu_buku_tamu,read');
+        Route::get('/buku-tamu/cetak', [\App\Http\Controllers\KeamananBukuTamuController::class, 'cetak'])->name('buku-tamu.cetak')->middleware('permission:menu_buku_tamu,read');
+        Route::get('/buku-tamu/template', [\App\Http\Controllers\KeamananBukuTamuController::class, 'templateExcel'])->name('buku-tamu.template')->middleware('permission:menu_buku_tamu,read');
+        Route::post('/buku-tamu/import', [\App\Http\Controllers\KeamananBukuTamuController::class, 'importExcel'])->name('buku-tamu.import')->middleware('permission:menu_buku_tamu,create');
         Route::get('/buku-tamu/cetak-qr', [\App\Http\Controllers\KeamananBukuTamuController::class, 'cetakQr'])->name('buku-tamu.cetak-qr')->middleware('permission:menu_buku_tamu,read');
         Route::post('/buku-tamu', [\App\Http\Controllers\KeamananBukuTamuController::class, 'store'])->name('buku-tamu.store')->middleware('permission:menu_buku_tamu,create');
         Route::put('/buku-tamu/{id}', [\App\Http\Controllers\KeamananBukuTamuController::class, 'update'])->name('buku-tamu.update')->middleware('permission:menu_buku_tamu,update');
@@ -269,6 +275,12 @@ return function () {
 
         // Patroli & Insiden Keamanan
         Route::get('/patroli', [\App\Http\Controllers\KeamananPatroliController::class, 'index'])->name('patroli.index')->middleware('permission:menu_keamanan|menu_keamanan_patroli,read');
+        Route::get('/patroli/cetak', [\App\Http\Controllers\KeamananPatroliController::class, 'cetak'])->name('patroli.cetak')->middleware('permission:menu_keamanan|menu_keamanan_patroli,read');
+        Route::get('/patroli/template', [\App\Http\Controllers\KeamananPatroliController::class, 'templateExcel'])->name('patroli.template')->middleware('permission:menu_keamanan|menu_keamanan_patroli,read');
+        Route::post('/patroli/import', [\App\Http\Controllers\KeamananPatroliController::class, 'importExcel'])->name('patroli.import')->middleware('permission:menu_keamanan|menu_keamanan_patroli,create');
+        Route::get('/insiden/template', [\App\Http\Controllers\KeamananPatroliController::class, 'templateInsiden'])->name('insiden.template')->middleware('permission:menu_keamanan,read');
+        Route::get('/insiden/cetak', [\App\Http\Controllers\KeamananPatroliController::class, 'cetakInsiden'])->name('insiden.cetak')->middleware('permission:menu_keamanan|menu_keamanan_patroli,read');
+        Route::post('/insiden/import', [\App\Http\Controllers\KeamananPatroliController::class, 'importInsiden'])->name('insiden.import')->middleware('permission:menu_keamanan,create');
         Route::post('/patroli', [\App\Http\Controllers\KeamananPatroliController::class, 'storePatroli'])->name('patroli.store')->middleware('permission:menu_keamanan|menu_keamanan_patroli,create');
         Route::put('/patroli/{id}', [\App\Http\Controllers\KeamananPatroliController::class, 'updatePatroli'])->name('patroli.update')->middleware('permission:menu_keamanan|menu_keamanan_patroli,update');
         Route::delete('/patroli/{id}', [\App\Http\Controllers\KeamananPatroliController::class, 'destroyPatroli'])->name('patroli.destroy')->middleware('permission:menu_keamanan|menu_keamanan_patroli,delete');
@@ -278,7 +290,11 @@ return function () {
 
         // Pencatatan Pelanggaran Siswa Khusus Pos Satpam / Gerbang
         Route::get('/pelanggaran', [\App\Http\Controllers\KeamananPelanggaranController::class, 'index'])->name('pelanggaran.index')->middleware('permission:menu_keamanan,read');
+        Route::get('/pelanggaran/cetak', [\App\Http\Controllers\KeamananPelanggaranController::class, 'cetak'])->name('pelanggaran.cetak')->middleware('permission:menu_keamanan,read');
+        Route::get('/pelanggaran/template', [\App\Http\Controllers\KeamananPelanggaranController::class, 'templateExcel'])->name('pelanggaran.template')->middleware('permission:menu_keamanan,read');
+        Route::post('/pelanggaran/import', [\App\Http\Controllers\KeamananPelanggaranController::class, 'importExcel'])->name('pelanggaran.import')->middleware('permission:menu_keamanan,create');
         Route::get('/pelanggaran/search-siswa', [\App\Http\Controllers\KeamananPelanggaranController::class, 'searchSiswa'])->name('pelanggaran.search-siswa')->middleware('permission:menu_keamanan,read');
+        Route::get('/pelanggaran/search-tatib', [\App\Http\Controllers\KeamananPelanggaranController::class, 'searchTatib'])->name('pelanggaran.search-tatib')->middleware('permission:menu_keamanan,read');
         Route::post('/pelanggaran', [\App\Http\Controllers\KeamananPelanggaranController::class, 'store'])->name('pelanggaran.store')->middleware('permission:menu_keamanan,create');
     });
 

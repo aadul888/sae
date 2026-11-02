@@ -21,7 +21,7 @@
                 <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.buku-tamu*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-open"></i></span>
-                    <span class="nav-label">Buku Tamu Pos Depan</span>
+                    <span class="nav-label">Buku Tamu</span>
                 </a>
             @endif
 
@@ -30,7 +30,7 @@
                 <a href="{{ route('dashboard.e-izin.index', ['tab' => 'security']) }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.e-izin*') || request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-door-open"></i></span>
-                    <span class="nav-label">Verifikasi e-Izin Gerbang</span>
+                    <span class="nav-label">Verifikasi e-Izin</span>
                 </a>
             @endif
 

@@ -2,15 +2,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryOptions = document.querySelectorAll('.category-option');
     const sectionOrangTua = document.getElementById('sectionOrangTua');
     const groupInstansi = document.getElementById('groupInstansi');
-    const inputNikOrtu = document.getElementById('input_nik_ortu');
-    const inputNisnSiswa = document.getElementById('input_nisn_siswa');
-    const btnCekSiswa = document.getElementById('btnCekSiswa');
-    const detectionResult = document.getElementById('studentDetectionResult');
-    const manualStudentInput = document.getElementById('manualStudentInput');
-    const hiddenPdId = document.getElementById('hidden_peserta_didik_id');
-    const manualNamaSiswa = document.getElementById('input_manual_nama_siswa');
-    const manualRombelSiswa = document.getElementById('input_manual_rombel_siswa');
-    const tamuNama = document.getElementById('tamu_nama');
     const formPublic = document.getElementById('formPublicTamu');
     const btnSubmit = document.getElementById('btnSubmitTamu');
 
@@ -19,15 +10,52 @@ document.addEventListener('DOMContentLoaded', function () {
     const formFields = document.getElementById('formFields');
     let selectedCategory = null;
 
+    // Student Search & Selection Elements
+    const inputCariSiswa = document.getElementById('input_cari_siswa');
+    const studentSearchSpinner = document.getElementById('studentSearchSpinner');
+    const studentDropdownList = document.getElementById('studentDropdownList');
+    const studentSelectedBox = document.getElementById('studentSelectedBox');
+    const selectedStudentNama = document.getElementById('selectedStudentNama');
+    const selectedStudentDetail = document.getElementById('selectedStudentDetail');
+    const btnClearStudent = document.getElementById('btnClearStudent');
+    const studentSearchWrapper = document.getElementById('studentSearchWrapper');
+    const btnToggleManualStudent = document.getElementById('btnToggleManualStudent');
+    const manualStudentInput = document.getElementById('manualStudentInput');
+
+    const hiddenPdId = document.getElementById('hidden_peserta_didik_id');
+    const hiddenNamaSiswa = document.getElementById('hidden_nama_siswa');
+    const hiddenRombelSiswa = document.getElementById('hidden_rombel_siswa');
+    const hiddenNisnSiswa = document.getElementById('hidden_nisn_siswa');
+    const hiddenNikOrtu = document.getElementById('hidden_nik_ortu');
+
+    const inputManualNama = document.getElementById('input_manual_nama_siswa');
+    const inputManualRombel = document.getElementById('input_manual_rombel_siswa');
+    const tamuNama = document.getElementById('tamu_nama');
+
+    // Kedinasan elements
     const sectionKedinasanSurat = document.getElementById('sectionKedinasanSurat');
     const sectionKedinasanIdentitas = document.getElementById('sectionKedinasanIdentitas');
-    const inputNipTamu = document.getElementById('tamu_nip');
-    const inputJabatanTamu = document.getElementById('tamu_jabatan');
     const radioSuratYa = document.getElementById('radioSuratYa');
     const radioSuratTidak = document.getElementById('radioSuratTidak');
     const boxDetailSuratTugas = document.getElementById('boxDetailSuratTugas');
     const inputNomorSurat = document.getElementById('nomor_surat_tugas');
     const inputTanggalSurat = document.getElementById('tanggal_surat_tugas');
+
+    // Dropdowns: Instansi, Tujuan, Keperluan
+    const selectInstansi = document.getElementById('tamu_instansi_select');
+    const wrapInstansiLainnya = document.getElementById('wrapInstansiLainnya');
+    const inputInstansiLainnya = document.getElementById('instansi_lainnya_input');
+    const hiddenInstansi = document.getElementById('tamu_instansi');
+
+    const selectTujuan = document.getElementById('tamu_tujuan_select');
+    const wrapTujuanLainnya = document.getElementById('wrapTujuanLainnya');
+    const inputTujuanLainnya = document.getElementById('tujuan_lainnya_input');
+    const hiddenTujuan = document.getElementById('tamu_tujuan');
+
+    const selectKeperluan = document.getElementById('tamu_keperluan_select');
+    const wrapKeperluanLainnya = document.getElementById('wrapKeperluanLainnya');
+    const inputKeperluanLainnya = document.getElementById('keperluan_lainnya_input');
+    const hiddenKeperluan = document.getElementById('tamu_keperluan');
 
     function toggleSuratTugas(show) {
         if (!boxDetailSuratTugas) return;
@@ -68,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const val = this.dataset.type;
             selectedCategory = val;
 
-            // Tandai langkah 1 selesai + buka field lanjutan
             if (categoryStep) categoryStep.classList.add('answered');
             if (categoryWarning) categoryWarning.style.display = 'none';
             if (formFields) formFields.classList.remove('etamu-fields-locked');
@@ -78,190 +105,220 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (groupInstansi) groupInstansi.style.display = 'none';
                 if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'none';
                 if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'none';
+                if (hiddenInstansi) hiddenInstansi.value = 'Orang Tua / Wali Siswa';
                 toggleSuratTugas(false);
             } else if (val === 'kedinasan') {
                 if (sectionOrangTua) sectionOrangTua.style.display = 'none';
                 if (groupInstansi) groupInstansi.style.display = 'block';
                 if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'block';
                 if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'block';
-                if (hiddenPdId) hiddenPdId.value = '';
-                if (manualNamaSiswa) manualNamaSiswa.value = '';
-                if (manualRombelSiswa) manualRombelSiswa.value = '';
+                clearStudentSelection();
             } else {
                 if (sectionOrangTua) sectionOrangTua.style.display = 'none';
                 if (groupInstansi) groupInstansi.style.display = 'block';
                 if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'none';
                 if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'none';
                 toggleSuratTugas(false);
-                if (hiddenPdId) hiddenPdId.value = '';
-                if (manualNamaSiswa) manualNamaSiswa.value = '';
-                if (manualRombelSiswa) manualRombelSiswa.value = '';
+                clearStudentSelection();
             }
         });
     });
 
-    // 2. Deteksi Siswa (AJAX)
-    let searchTimeout = null;
+    // 2. Deteksi Otomatis Siswa: Autocomplete Live Search (Tanpa tombol Cari)
+    let searchTimer = null;
+    let abortCtrl = null;
 
-    function doCheckStudent() {
-        const nik = inputNikOrtu ? inputNikOrtu.value.trim() : '';
-        const nisn = inputNisnSiswa ? inputNisnSiswa.value.trim() : '';
+    function clearStudentSelection() {
+        if (hiddenPdId) hiddenPdId.value = '';
+        if (hiddenNamaSiswa) hiddenNamaSiswa.value = '';
+        if (hiddenRombelSiswa) hiddenRombelSiswa.value = '';
+        if (hiddenNisnSiswa) hiddenNisnSiswa.value = '';
+        if (hiddenNikOrtu) hiddenNikOrtu.value = '';
+        if (inputManualNama) inputManualNama.value = '';
+        if (inputManualRombel) inputManualRombel.value = '';
 
-        if (!nik && !nisn) {
-            if (detectionResult) {
-                detectionResult.style.display = 'none';
-                detectionResult.innerHTML = '';
-            }
-            if (manualStudentInput) manualStudentInput.style.display = 'none';
-            return;
+        if (studentSelectedBox) studentSelectedBox.style.display = 'none';
+        if (studentSearchWrapper) studentSearchWrapper.style.display = 'block';
+        if (inputCariSiswa) inputCariSiswa.value = '';
+        hideStudentDropdown();
+    }
+
+    function hideStudentDropdown() {
+        if (studentDropdownList) {
+            studentDropdownList.style.display = 'none';
+            studentDropdownList.innerHTML = '';
+        }
+    }
+
+    function selectStudent(st, matchedRole, suggestedParent) {
+        if (hiddenPdId) hiddenPdId.value = st.peserta_didik_id || '';
+        if (hiddenNamaSiswa) hiddenNamaSiswa.value = st.nama || '';
+        if (hiddenRombelSiswa) hiddenRombelSiswa.value = st.nama_rombel || '';
+        if (hiddenNisnSiswa) hiddenNisnSiswa.value = st.nisn || '';
+        if (hiddenNikOrtu && st.nik) hiddenNikOrtu.value = st.nik;
+
+        if (inputManualNama) inputManualNama.value = st.nama || '';
+        if (inputManualRombel) inputManualRombel.value = st.nama_rombel || '';
+
+        // Auto-fill nama orang tua jika belum diisi
+        if (suggestedParent && tamuNama && !tamuNama.value.trim()) {
+            tamuNama.value = suggestedParent;
         }
 
-        const url = (window.ETAMU_CONFIG && window.ETAMU_CONFIG.checkStudentUrl) || '/tamu/api/cek-siswa';
-
-        if (btnCekSiswa) {
-            btnCekSiswa.disabled = true;
-            btnCekSiswa.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        // Render card
+        if (selectedStudentNama) selectedStudentNama.textContent = st.nama || '-';
+        if (selectedStudentDetail) {
+            const parts = [];
+            if (st.nama_rombel) parts.push(`Kelas: ${st.nama_rombel}`);
+            if (st.nisn) parts.push(`NISN: ${st.nisn}`);
+            if (matchedRole) parts.push(matchedRole);
+            selectedStudentDetail.textContent = parts.join(' • ');
         }
 
-        fetch(`${url}?nik_ortu=${encodeURIComponent(nik)}&nisn_siswa=${encodeURIComponent(nisn)}`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+        if (studentSelectedBox) studentSelectedBox.style.display = 'block';
+        if (studentSearchWrapper) studentSearchWrapper.style.display = 'none';
+        if (manualStudentInput) manualStudentInput.style.display = 'none';
+        hideStudentDropdown();
+    }
+
+    if (btnClearStudent) {
+        btnClearStudent.addEventListener('click', function () {
+            clearStudentSelection();
+            if (inputCariSiswa) inputCariSiswa.focus();
+        });
+    }
+
+    if (btnToggleManualStudent) {
+        btnToggleManualStudent.addEventListener('click', function () {
+            if (!manualStudentInput) return;
+            const isHidden = manualStudentInput.style.display === 'none';
+            manualStudentInput.style.display = isHidden ? 'block' : 'none';
+            if (isHidden && inputManualNama) inputManualNama.focus();
+        });
+    }
+
+    if (inputManualNama) {
+        inputManualNama.addEventListener('input', function () {
+            if (hiddenNamaSiswa) hiddenNamaSiswa.value = this.value;
+        });
+    }
+    if (inputManualRombel) {
+        inputManualRombel.addEventListener('input', function () {
+            if (hiddenRombelSiswa) hiddenRombelSiswa.value = this.value;
+        });
+    }
+
+    if (inputCariSiswa) {
+        inputCariSiswa.addEventListener('input', function () {
+            const q = this.value.trim();
+            clearTimeout(searchTimer);
+            if (abortCtrl) abortCtrl.abort();
+
+            if (q.length < 2) {
+                hideStudentDropdown();
+                if (studentSearchSpinner) studentSearchSpinner.style.display = 'none';
+                return;
             }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (btnCekSiswa) {
-                btnCekSiswa.disabled = false;
-                btnCekSiswa.innerHTML = '<i class="fas fa-search me-1"></i> Cek';
-            }
 
-            if (!detectionResult) return;
+            if (studentSearchSpinner) studentSearchSpinner.style.display = 'block';
 
-            if (data.found && data.students && data.students.length > 0) {
-                if (manualStudentInput) manualStudentInput.style.display = 'none';
+            searchTimer = setTimeout(function () {
+                abortCtrl = new AbortController();
+                const url = (window.ETAMU_CONFIG && window.ETAMU_CONFIG.checkStudentUrl) || '/tamu/api/cek-siswa';
 
-                // Auto-fill nama orang tua jika masih kosong
-                if (data.suggested_parent_name && tamuNama && !tamuNama.value.trim()) {
-                    tamuNama.value = data.suggested_parent_name;
-                }
+                fetch(`${url}?q=${encodeURIComponent(q)}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: abortCtrl.signal
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (studentSearchSpinner) studentSearchSpinner.style.display = 'none';
+                    if (!studentDropdownList) return;
 
-                if (data.students.length === 1) {
-                    const st = data.students[0];
-                    if (hiddenPdId) hiddenPdId.value = st.peserta_didik_id;
-                    if (manualNamaSiswa) manualNamaSiswa.value = st.nama;
-                    if (manualRombelSiswa) manualRombelSiswa.value = st.nama_rombel;
-
-                    detectionResult.innerHTML = `
-                        <div class="student-result-card" style="border-color: #10b981; background: #ecfdf5;">
-                            <div class="student-result-info">
-                                <h4><i class="fas fa-check-circle text-success me-1"></i> ${escapeHtml(st.nama)}</h4>
-                                <p>Kelas: <strong>${escapeHtml(st.nama_rombel || '-')}</strong> &bull; NISN: ${escapeHtml(st.nisn || '-')}</p>
-                                ${data.matched_role ? `<span style="font-size: 11px; color: #047857;">Terverifikasi sebagai data anak dari ${escapeHtml(data.matched_role)}</span>` : ''}
-                            </div>
-                            <span class="badge" style="background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px;">
-                                Terpilih
-                            </span>
-                        </div>
-                    `;
-                } else {
-                    // Beberapa anak ditemukan
-                    let cardsHtml = `
-                        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-top: 8px;">
-                            Ditemukan ${data.students.length} Siswa Terkait NIK/NISN:
-                        </div>
-                    `;
-                    data.students.forEach((st, idx) => {
-                        const isChecked = idx === 0 ? 'checked' : '';
-                        cardsHtml += `
-                            <label class="student-result-card" style="cursor: pointer; margin-top: 6px;">
-                                <div class="student-result-info">
-                                    <h4>${escapeHtml(st.nama)}</h4>
-                                    <p>Kelas: <strong>${escapeHtml(st.nama_rombel || '-')}</strong> &bull; NISN: ${escapeHtml(st.nisn || '-')}</p>
+                    if (data.found && data.students && data.students.length > 0) {
+                        studentDropdownList.innerHTML = '';
+                        data.students.forEach(st => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'student-search-item';
+                            btn.innerHTML = `
+                                <div class="student-item-main">
+                                    <span>${escapeHtml(st.nama)}</span>
+                                    <span style="font-size: 0.72rem; color: #10b981; font-weight: 600;">${escapeHtml(st.nama_rombel || '-')}</span>
                                 </div>
-                                <input type="radio" name="_pick_student" value="${escapeHtml(st.peserta_didik_id)}"
-                                    data-nama="${escapeHtml(st.nama)}" data-rombel="${escapeHtml(st.nama_rombel || '')}" ${isChecked}
-                                    style="width: 18px; height: 18px; accent-color: var(--primary);">
-                            </label>
-                        `;
-                    });
-                    detectionResult.innerHTML = cardsHtml;
-
-                    // Set default first student
-                    const first = data.students[0];
-                    if (hiddenPdId) hiddenPdId.value = first.peserta_didik_id;
-                    if (manualNamaSiswa) manualNamaSiswa.value = first.nama;
-                    if (manualRombelSiswa) manualRombelSiswa.value = first.nama_rombel;
-
-                    // Listen radio change
-                    detectionResult.querySelectorAll('input[name="_pick_student"]').forEach(r => {
-                        r.addEventListener('change', function () {
-                            if (hiddenPdId) hiddenPdId.value = this.value;
-                            if (manualNamaSiswa) manualNamaSiswa.value = this.dataset.nama;
-                            if (manualRombelSiswa) manualRombelSiswa.value = this.dataset.rombel;
+                                <div class="student-item-meta">
+                                    NISN: ${escapeHtml(st.nisn || '-')} • ${st.nama_ayah ? 'Ayah: ' + escapeHtml(st.nama_ayah) : (st.nama_ibu ? 'Ibu: ' + escapeHtml(st.nama_ibu) : 'Siswa Aktif')}
+                                </div>
+                            `;
+                            btn.addEventListener('click', function () {
+                                selectStudent(st, data.matched_role, data.suggested_parent_name);
+                            });
+                            studentDropdownList.appendChild(btn);
                         });
-                    });
+                        studentDropdownList.style.display = 'block';
+                    } else {
+                        studentDropdownList.innerHTML = `
+                            <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); text-align: center;">
+                                Tidak ditemukan siswa dengan kata kunci "<strong>${escapeHtml(q)}</strong>".<br>
+                                <span style="font-size: 0.72rem;">Gunakan tombol di bawah untuk mengetik manual.</span>
+                            </div>
+                        `;
+                        studentDropdownList.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    if (err.name !== 'AbortError') {
+                        if (studentSearchSpinner) studentSearchSpinner.style.display = 'none';
+                        hideStudentDropdown();
+                    }
+                });
+            }, 250);
+        });
+
+        // Tutup dropdown saat klik di luar
+        document.addEventListener('click', function (e) {
+            if (!studentSearchWrapper || !studentSearchWrapper.contains(e.target)) {
+                hideStudentDropdown();
+            }
+        });
+    }
+
+    // 3. Dropdown Synchronizers
+    function bindDropdownWithCustom(selectEl, wrapEl, customInputEl, hiddenEl) {
+        if (!selectEl) return;
+        const update = () => {
+            if (selectEl.value === 'Lainnya') {
+                if (wrapEl) wrapEl.style.display = 'block';
+                if (customInputEl) {
+                    customInputEl.required = true;
+                    if (hiddenEl) hiddenEl.value = customInputEl.value.trim();
                 }
-                detectionResult.style.display = 'block';
             } else {
-                // Not found
-                if (hiddenPdId) hiddenPdId.value = '';
-                detectionResult.innerHTML = `
-                    <div style="font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 8px;">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Data siswa belum ditemukan otomatis. Anda dapat mengetikkan nama siswa & kelas secara manual pada kolom di bawah.
-                    </div>
-                `;
-                detectionResult.style.display = 'block';
-                if (manualStudentInput) manualStudentInput.style.display = 'block';
+                if (wrapEl) wrapEl.style.display = 'none';
+                if (customInputEl) customInputEl.required = false;
+                if (hiddenEl) hiddenEl.value = selectEl.value;
             }
-        })
-        .catch(() => {
-            if (btnCekSiswa) {
-                btnCekSiswa.disabled = false;
-                btnCekSiswa.innerHTML = '<i class="fas fa-search me-1"></i> Cek';
-            }
-            if (manualStudentInput) manualStudentInput.style.display = 'block';
-        });
+        };
+
+        selectEl.addEventListener('change', update);
+        if (customInputEl) {
+            customInputEl.addEventListener('input', function () {
+                if (selectEl.value === 'Lainnya' && hiddenEl) {
+                    hiddenEl.value = this.value.trim();
+                }
+            });
+        }
+        update();
     }
 
-    if (btnCekSiswa) {
-        btnCekSiswa.addEventListener('click', doCheckStudent);
-    }
+    bindDropdownWithCustom(selectTujuan, wrapTujuanLainnya, inputTujuanLainnya, hiddenTujuan);
+    bindDropdownWithCustom(selectKeperluan, wrapKeperluanLainnya, inputKeperluanLainnya, hiddenKeperluan);
+    bindDropdownWithCustom(selectInstansi, wrapInstansiLainnya, inputInstansiLainnya, hiddenInstansi);
 
-    // Auto trigger saat NIK 16 digit terketik lengkap
-    if (inputNikOrtu) {
-        inputNikOrtu.addEventListener('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            if (this.value.length === 16) {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(doCheckStudent, 400);
-            }
-        });
-        inputNikOrtu.addEventListener('blur', function () {
-            if (this.value.length >= 10) {
-                doCheckStudent();
-            }
-        });
-    }
-
-    if (inputNisnSiswa) {
-        inputNisnSiswa.addEventListener('input', function () {
-            const val = this.value.trim();
-            // Auto search jika >= 3 huruf untuk nama atau >= 8 digit untuk NISN/NIK
-            if (val.length >= 3) {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(doCheckStudent, 500);
-            }
-        });
-        inputNisnSiswa.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                doCheckStudent();
-            }
-        });
-    }
-
-    // 3. Form Submission Handling
+    // 4. Form Submit
     if (formPublic) {
         formPublic.addEventListener('submit', function (e) {
             if (!selectedCategory) {
@@ -274,6 +331,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 return;
             }
+
+            // Sync final values
+            if (selectTujuan && selectTujuan.value === 'Lainnya' && inputTujuanLainnya) {
+                hiddenTujuan.value = inputTujuanLainnya.value.trim();
+            } else if (selectTujuan) {
+                hiddenTujuan.value = selectTujuan.value;
+            }
+
+            if (selectKeperluan && selectKeperluan.value === 'Lainnya' && inputKeperluanLainnya) {
+                hiddenKeperluan.value = inputKeperluanLainnya.value.trim();
+            } else if (selectKeperluan) {
+                hiddenKeperluan.value = selectKeperluan.value;
+            }
+
+            if (selectedCategory !== 'orang_tua') {
+                if (selectInstansi && selectInstansi.value === 'Lainnya' && inputInstansiLainnya) {
+                    hiddenInstansi.value = inputInstansiLainnya.value.trim();
+                } else if (selectInstansi && selectInstansi.value) {
+                    hiddenInstansi.value = selectInstansi.value;
+                }
+            } else {
+                if (hiddenInstansi) hiddenInstansi.value = 'Orang Tua / Wali Siswa';
+            }
+
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan Kunjungan...';

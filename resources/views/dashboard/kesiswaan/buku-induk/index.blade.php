@@ -68,15 +68,6 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary, #6366f1);">
-                <i class="fas fa-id-card"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_lengkap'] ?? 0, 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Identitas (NIK) Terisi</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-graduation-cap"></i>
             </div>

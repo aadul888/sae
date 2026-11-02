@@ -35,11 +35,15 @@ class KedisiplinanController extends Controller
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'delete');
 
-        $activeTab = $request->get('tab', 'rekap'); // rekap, poin, riwayat, tata_tertib, pembinaan, pemanggilan, tindak_lanjut
+        $activeTab = $request->get('tab', 'rekap'); // rekap, tata_tertib, poin, pembinaan, pemanggilan, tindak_lanjut, riwayat
         $q = trim($request->get('q', ''));
         $kategori = trim($request->get('kategori', ''));
         $tingkat = trim($request->get('tingkat', ''));
         $status = trim($request->get('status', ''));
+
+        // Batas Waktu SOP Kedisiplinan: 7x24 Jam (Sanggah) & 2x24 Jam (Kehadiran Wali)
+        $tglBatasSanggah7Hari = now()->subDays(7)->toDateString();
+        $tglBatasHadir2Hari   = now()->subDays(2)->toDateString();
 
         // 1. Statistik Ringkas Kedisiplinan
         $totalAturan = KedisiplinanTataTertib::where('is_active', true)->count();
@@ -49,9 +53,26 @@ class KedisiplinanController extends Controller
         $totalPelanggaran = KedisiplinanPelanggaran::count();
         $totalPembinaan = KedisiplinanPembinaan::count();
         $totalPanggilan = KedisiplinanPemanggilanWali::count();
-        $totalPending = KedisiplinanPelanggaran::where('status_tindak_lanjut', 'pending')->count();
-        $totalDisanggah = KedisiplinanPelanggaran::whereNotNull('sanggah_status')->count();
-        $totalPoinDisanggah = (int) KedisiplinanPelanggaran::sum('sanggah_poin_potong');
+        $totalDisanggah = KedisiplinanPelanggaran::where('sanggah_status', 'selesai')->count();
+        $totalPoinDisanggah = (int) KedisiplinanPelanggaran::where('sanggah_status', 'selesai')->sum('sanggah_poin_potong');
+
+        // Kasus Menunggu / Dalam Proses
+        $totalPending = KedisiplinanPelanggaran::whereIn('status_tindak_lanjut', ['pending', 'proses'])
+            ->where(function ($s) {
+                $s->whereNull('sanggah_status')->orWhere('sanggah_status', 'proses');
+            })->count();
+
+        // Kasus Eskalasi SOP:
+        // A. Siswa tidak menyanggah > 7 hari (7x24 jam)
+        $totalLewatSanggah = KedisiplinanPelanggaran::where('status_tindak_lanjut', 'pending')
+            ->whereNull('sanggah_status')
+            ->whereDate('tanggal_kejadian', '<=', $tglBatasSanggah7Hari)
+            ->count();
+
+        // B. Wali murid tidak hadir setelah 2 hari (2x24 jam)
+        $totalWaliAbsen = KedisiplinanPemanggilanWali::whereIn('status', ['diterbitkan', 'belum_hadir'])
+            ->whereDate('tanggal_hadir', '<=', $tglBatasHadir2Hari)
+            ->count();
 
         $stats = [
             'total_aturan'         => $totalAturan,
@@ -64,6 +85,9 @@ class KedisiplinanController extends Controller
             'total_pending'        => $totalPending,
             'total_disanggah'      => $totalDisanggah,
             'total_poin_sanggah'   => $totalPoinDisanggah,
+            'total_lewat_sanggah'  => $totalLewatSanggah,
+            'total_wali_absen'     => $totalWaliAbsen,
+            'total_tindak_lanjut'  => $totalLewatSanggah + $totalWaliAbsen,
         ];
 
         // 2. Tab: Tata Tertib
@@ -84,25 +108,51 @@ class KedisiplinanController extends Controller
         }
         $tataTertibList = $tataTertibQuery->get();
 
-        // 3. Tab: Riwayat Pelanggaran
-        $riwayatQuery = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
-            ->orderBy('tanggal_kejadian', 'desc');
-        if ($q !== '' && in_array($activeTab, ['poin', 'riwayat'])) {
-            $riwayatQuery->whereHas('siswa', function ($b) use ($q) {
-                $b->where('nama', 'like', "%{$q}%")
-                  ->orWhere('nisn', 'like', "%{$q}%");
-            })->orWhere('keterangan', 'like', "%{$q}%");
-        }
-        if ($status !== '') {
-            $riwayatQuery->where('status_tindak_lanjut', $status);
-        }
-
         $perPageVal = $request->input('perPage', $request->input('per_page', 25));
         $perPage = in_array((int)$perPageVal, [10, 15, 25, 50, 100], true) ? (int)$perPageVal : 25;
 
+        // 3. Tab: Poin & Sanggah Siswa Aktif (Hanya yang berstatus Pending / Proses)
+        $poinQuery = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
+            ->where(function ($w) {
+                $w->whereIn('status_tindak_lanjut', ['pending', 'proses'])
+                  ->where(function ($sub) {
+                      $sub->whereNull('sanggah_status')->orWhere('sanggah_status', 'proses');
+                  });
+            })
+            ->orderBy('tanggal_kejadian', 'desc');
+
+        if ($q !== '' && $activeTab === 'poin') {
+            $poinQuery->where(function ($w) use ($q) {
+                $w->whereHas('siswa', function ($b) use ($q) {
+                    $b->where('nama', 'like', "%{$q}%")
+                      ->orWhere('nisn', 'like', "%{$q}%");
+                })->orWhere('keterangan', 'like', "%{$q}%");
+            });
+        }
+        if ($status !== '' && $activeTab === 'poin') {
+            $poinQuery->where('status_tindak_lanjut', $status);
+        }
+        $poinList = $poinQuery->paginate($perPage, ['*'], 'poin_page')->withQueryString();
+
+        // 4. Tab: Riwayat Pelanggaran (Data yang telah Berhasil Disanggah / Selesai)
+        $riwayatQuery = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
+            ->where(function ($w) {
+                $w->where('status_tindak_lanjut', 'selesai')
+                  ->orWhere('sanggah_status', 'selesai');
+            })
+            ->orderBy('tanggal_kejadian', 'desc');
+
+        if ($q !== '' && $activeTab === 'riwayat') {
+            $riwayatQuery->where(function ($w) use ($q) {
+                $w->whereHas('siswa', function ($b) use ($q) {
+                    $b->where('nama', 'like', "%{$q}%")
+                      ->orWhere('nisn', 'like', "%{$q}%");
+                })->orWhere('keterangan', 'like', "%{$q}%");
+            });
+        }
         $riwayatList = $riwayatQuery->paginate($perPage, ['*'], 'riwayat_page')->withQueryString();
 
-        // 4. Tab: Sesi Pembinaan Konseling
+        // 5. Tab: Sesi Pembinaan Konseling
         $pembinaanQuery = KedisiplinanPembinaan::with(['siswa', 'pelanggaran.aturan', 'guruBk', 'waliKelas'])
             ->orderBy('tanggal_pembinaan', 'desc');
         if ($q !== '' && $activeTab === 'pembinaan') {
@@ -112,7 +162,7 @@ class KedisiplinanController extends Controller
         }
         $pembinaanList = $pembinaanQuery->paginate($perPage, ['*'], 'pembinaan_page')->withQueryString();
 
-        // 5. Tab: Pemanggilan Wali Murid
+        // 6. Tab: Pemanggilan Wali Murid
         $pemanggilanQuery = KedisiplinanPemanggilanWali::with('siswa')
             ->orderBy('tanggal_surat', 'desc');
         if ($q !== '' && $activeTab === 'pemanggilan') {
@@ -121,6 +171,78 @@ class KedisiplinanController extends Controller
             })->orWhere('nomor_surat', 'like', "%{$q}%");
         }
         $pemanggilanList = $pemanggilanQuery->paginate($perPage, ['*'], 'pemanggilan_page')->withQueryString();
+
+        // Antrean Pemanggilan Wali (Pelanggaran belum disanggah > 7 hari yang butuh diterbitkan surat)
+        $antreanPemanggilan = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
+            ->where('status_tindak_lanjut', 'pending')
+            ->whereNull('sanggah_status')
+            ->whereDate('tanggal_kejadian', '<=', $tglBatasSanggah7Hari)
+            ->orderBy('tanggal_kejadian', 'asc')
+            ->limit(30)
+            ->get();
+
+        // 7. Tab: Tindak Lanjut Terpadu (SOP Eskalasi: Tak Disanggah > 7 Hari & Wali Absen > 2 Hari)
+        $kasusLewatSanggah = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
+            ->where('status_tindak_lanjut', 'pending')
+            ->whereNull('sanggah_status')
+            ->whereDate('tanggal_kejadian', '<=', $tglBatasSanggah7Hari)
+            ->orderBy('tanggal_kejadian', 'asc')
+            ->get()
+            ->map(function ($item) {
+                $item->tipe_eskalasi = 'lewat_sanggah';
+                $item->pesan_eskalasi = 'Tidak disanggah > 7x24 jam sejak kejadian. Wajib diterbitkan Surat Pemanggilan Wali.';
+                return $item;
+            });
+
+        $kasusWaliAbsen = KedisiplinanPemanggilanWali::with('siswa')
+            ->whereIn('status', ['diterbitkan', 'belum_hadir'])
+            ->whereDate('tanggal_hadir', '<=', $tglBatasHadir2Hari)
+            ->orderBy('tanggal_hadir', 'asc')
+            ->get()
+            ->map(function ($item) {
+                $item->tipe_eskalasi = 'wali_absen';
+                $item->pesan_eskalasi = 'Wali murid tidak hadir setelah 2x24 jam dari jadwal kehadiran. Butuh Panggilan Ke-2 / Skorsing.';
+                return $item;
+            });
+
+        $kasusProses = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
+            ->where('status_tindak_lanjut', 'proses')
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $item->tipe_eskalasi = 'dalam_proses';
+                $item->pesan_eskalasi = 'Sedang proses pembinaan / pengerjaan bakti kompensasi.';
+                return $item;
+            });
+
+        $tindakLanjutList = [
+            'kasus_lewat_sanggah' => $kasusLewatSanggah,
+            'kasus_wali_absen'    => $kasusWaliAbsen,
+            'kasus_proses'        => $kasusProses,
+        ];
+
+        // Daftar Siswa dari Kasus Poin & Sanggah untuk rujukan form Pembinaan & Pemanggilan
+        $siswaPoinList = DB::table('kedisiplinan_pelanggaran as kp')
+            ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->leftJoin('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+            ->select(
+                'pd.peserta_didik_id',
+                'pd.nama',
+                'pd.nisn',
+                'rb.nama as rombel_nama',
+                'tt.nama_aturan',
+                'kp.id as pelanggaran_id',
+                'kp.poin',
+                'kp.status_tindak_lanjut',
+                'kp.sanggah_status',
+                'kp.tanggal_kejadian'
+            )
+            ->orderBy('kp.tanggal_kejadian', 'desc')
+            ->get()
+            ->unique('peserta_didik_id')
+            ->values();
 
         // 6. Tab: Rekapitulasi Poin Siswa (Total akumulasi poin & kompensasi per siswa)
         $rekapSiswa = DB::table('kedisiplinan_pelanggaran as kp')
@@ -217,9 +339,13 @@ class KedisiplinanController extends Controller
             'status',
             'perPage',
             'tataTertibList',
+            'poinList',
             'riwayatList',
             'pembinaanList',
             'pemanggilanList',
+            'antreanPemanggilan',
+            'tindakLanjutList',
+            'siswaPoinList',
             'rekapSiswa',
             'chartTren',
             'chartTingkat',
@@ -588,11 +714,12 @@ class KedisiplinanController extends Controller
         $item = KedisiplinanPelanggaran::with('aturan')->findOrFail($id);
 
         $validated = $request->validate([
-            'sanggah_jenis'       => 'required|string|in:bakti_sekolah,tugas_literasi,klarifikasi,pembinaan_karakter',
-            'sanggah_keterangan'  => 'required|string|max:1000',
-            'sanggah_poin_potong' => 'nullable|integer|min:0',
-            'sanggah_validator'   => 'nullable|string|max:100',
-            'sanggah_bukti'       => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp,pdf',
+            'sanggah_jenis'        => 'required|string|max:255',
+            'sanggah_keterangan'   => 'required|string|max:1000',
+            'sanggah_poin_potong'  => 'nullable|integer|min:0',
+            'sanggah_validator'    => 'nullable|string|max:100',
+            'sanggah_status_opsi'  => 'nullable|string|in:proses,selesai',
+            'sanggah_bukti'        => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp,pdf',
         ]);
 
         $potong = isset($validated['sanggah_poin_potong']) && $validated['sanggah_poin_potong'] !== ''
@@ -616,9 +743,11 @@ class KedisiplinanController extends Controller
             $buktiPath = 'uploads/kedisiplinan/sanggah/' . $filename;
         }
 
+        $statusSanggah = $request->input('sanggah_status_opsi', 'selesai');
+
         $item->update([
-            'status_tindak_lanjut' => 'selesai',
-            'sanggah_status'       => 'selesai',
+            'status_tindak_lanjut' => $statusSanggah,
+            'sanggah_status'       => $statusSanggah,
             'sanggah_jenis'        => $validated['sanggah_jenis'],
             'sanggah_keterangan'   => $validated['sanggah_keterangan'],
             'sanggah_poin_potong'  => $potong,
@@ -627,17 +756,47 @@ class KedisiplinanController extends Controller
             'sanggah_bukti'        => $buktiPath,
         ]);
 
-        $labelsJenis = [
-            'bakti_sekolah'      => 'Bakti Lingkungan & Sekolah',
-            'tugas_literasi'     => 'Tugas Akademik & Literasi',
-            'klarifikasi'        => 'Klarifikasi / Pembatalan Sah',
-            'pembinaan_karakter' => 'Pembinaan Karakter',
-        ];
-        $namaJenis = $labelsJenis[$validated['sanggah_jenis']] ?? 'Kompensasi';
+        // Otomatis masukkan ke sesi pembinaan konseling
+        KedisiplinanPembinaan::create([
+            'peserta_didik_id'      => $item->peserta_didik_id,
+            'pelanggaran_id'        => $item->id,
+            'tanggal_pembinaan'     => now()->toDateString(),
+            'guru_bk_ptk_id'        => $user['ptk_id'] ?? null,
+            'bentuk_pembinaan'      => 'Sanggah / Kompensasi: ' . $validated['sanggah_jenis'],
+            'hasil_pembinaan'       => $validated['sanggah_keterangan'] . ' (Validator: ' . $validator . ')',
+            'status'                => $statusSanggah,
+        ]);
+
+        $pesan = $statusSanggah === 'selesai'
+            ? "Sanggahan/kompensasi berhasil diselesaikan. {$potong} poin telah diputihkan dan data dipindahkan ke Riwayat Pelanggaran."
+            : "Sanggahan berhasil diajukan dengan status PROSES. Kasus diteruskan ke Sesi Pembinaan/Kompensasi.";
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Sanggahan/kompensasi ({$namaJenis}) berhasil disetujui. {$potong} poin telah diputihkan/dikurangi.",
+            'message' => $pesan,
+            'data'    => $item,
+        ]);
+    }
+
+    /**
+     * Verifikasi & Selesaikan Sanggah Poin (Memutihkan Poin dan Pindah ke Riwayat).
+     */
+    public function verifikasiSanggah(Request $request, $id)
+    {
+        $item = KedisiplinanPelanggaran::findOrFail($id);
+        $item->update([
+            'status_tindak_lanjut' => 'selesai',
+            'sanggah_status'       => 'selesai',
+            'sanggah_tanggal'      => now(),
+        ]);
+
+        KedisiplinanPembinaan::where('pelanggaran_id', $item->id)->update([
+            'status' => 'selesai',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Sanggahan berhasil diverifikasi dan diselesaikan. Poin resmi diputihkan (-{$item->sanggah_poin_potong} poin) dan dipindahkan ke Riwayat Pelanggaran.",
             'data'    => $item,
         ]);
     }

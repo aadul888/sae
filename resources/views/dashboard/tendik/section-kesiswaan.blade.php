@@ -47,55 +47,95 @@
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
 
-<!-- 1. Akses Cepat Menu Kesiswaan (Responsive Grid Seimbang & Genap) -->
+<!-- 1. Akses Cepat Menu Kesiswaan (selaras submenu sidebar) -->
+@php
+    $can = $can ?? fn(string $key) => \App\Models\RolePermission::canAccess(session('user') ?: 'tendik', $key, 'read');
+    $quickItems = [
+        [
+            'label' => 'Peserta Didik',
+            'title' => 'Data Induk & Profil Peserta Didik',
+            'route' => route('dashboard.kesiswaan.peserta-didik.index'),
+            'icon' => 'fa-users',
+            'color' => 'var(--primary, #3b82f6)',
+            'bg' => 'rgba(59, 130, 246, 0.15)',
+            'can' => ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Buku Induk',
+            'title' => 'Pengelolaan Buku Induk Siswa',
+            'route' => route('dashboard.kesiswaan.buku-induk.index'),
+            'icon' => 'fa-address-book',
+            'color' => 'var(--accent, #06b6d4)',
+            'bg' => 'rgba(6, 182, 212, 0.15)',
+            'can' => ['menu_buku_induk', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Administrasi',
+            'title' => 'Buku Klaper, Mutasi & Kelulusan',
+            'route' => route('dashboard.kesiswaan.administrasi.index'),
+            'icon' => 'fa-book-bookmark',
+            'color' => 'var(--warning, #f59e0b)',
+            'bg' => 'rgba(245, 158, 11, 0.15)',
+            'can' => ['menu_kesiswaan_administrasi', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Kedisiplinan',
+            'title' => 'Tata Tertib, Poin & Pembinaan Siswa',
+            'route' => route('dashboard.kesiswaan.kedisiplinan.index'),
+            'icon' => 'fa-shield-halved',
+            'color' => 'var(--danger, #ef4444)',
+            'bg' => 'rgba(239, 68, 68, 0.15)',
+            'can' => ['menu_kesiswaan_kedisiplinan', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Kegiatan Siswa',
+            'title' => 'Organisasi, Ekstrakurikuler & Agenda',
+            'route' => route('dashboard.kesiswaan.kegiatan.index'),
+            'icon' => 'fa-people-group',
+            'color' => 'var(--success, #10b981)',
+            'bg' => 'rgba(16, 185, 129, 0.15)',
+            'can' => ['menu_kesiswaan_kegiatan', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Prestasi',
+            'title' => 'Prestasi Akademik & Nonakademik',
+            'route' => route('dashboard.kesiswaan.prestasi.index'),
+            'icon' => 'fa-trophy',
+            'color' => '#8b5cf6',
+            'bg' => 'rgba(139, 92, 246, 0.15)',
+            'can' => ['menu_kesiswaan_prestasi', 'menu_kesiswaan'],
+        ],
+        [
+            'label' => 'Target Capaian',
+            'title' => 'Target & Capaian Kinerja',
+            'route' => route('dashboard.tendik.target.index', ['bidang' => 'kesiswaan']),
+            'icon' => 'fa-bullseye',
+            'color' => 'var(--primary-light, #6366f1)',
+            'bg' => 'rgba(99, 102, 241, 0.15)',
+            'can' => ['menu_target_capaian'],
+        ],
+        [
+            'label' => 'Laporan Kinerja',
+            'title' => 'Laporan & Rekapitulasi Kinerja',
+            'route' => route('dashboard.tendik.laporan.index', ['bidang' => 'kesiswaan']),
+            'icon' => 'fa-file-invoice',
+            'color' => '#ec4899',
+            'bg' => 'rgba(236, 72, 153, 0.15)',
+            'can' => ['menu_laporan_tendik'],
+        ],
+    ];
+@endphp
 <div class="kepegawaian-quick-grid">
-    <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Pengelolaan Buku Induk Siswa">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-address-book"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Buku Induk</span>
-    </a>
-
-    <a href="{{ route('dashboard.rombel.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Rombongan Belajar">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
-            <i class="fas fa-door-open"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Rombel</span>
-    </a>
-
-    <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Mutasi, Keluar & Alumni">
-        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
-            <i class="fas fa-user-xmark"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Mutasi &amp; Alumni</span>
-    </a>
-
-    <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Kompetensi Keahlian / Jurusan">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-layer-group"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Jurusan</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'kesiswaan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-bullseye"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Target Capaian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'kesiswaan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
-            <i class="fas fa-file-invoice"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
-    </a>
+    @foreach ($quickItems as $item)
+        @continue(!collect($item['can'])->contains(fn ($key) => $can($key)))
+        <a href="{{ $item['route'] }}" class="kepegawaian-quick-btn"
+            style="--quick-color: {{ $item['color'] }};" title="{{ $item['title'] }}">
+            <div class="kepegawaian-quick-icon" style="background: {{ $item['bg'] }}; color: {{ $item['color'] }};">
+                <i class="fas {{ $item['icon'] }}"></i>
+            </div>
+            <span class="kepegawaian-quick-label">{{ $item['label'] }}</span>
+        </a>
+    @endforeach
 </div>
 
 

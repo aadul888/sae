@@ -111,7 +111,7 @@ class TendikDashboardSections
     public static function keamanan(): array
     {
         $today = date('Y-m-d');
-        $stats = ['tamu_hari_ini' => 0, 'tamu_di_lokasi' => 0, 'patroli_hari_ini' => 0, 'insiden_aktif' => 0];
+        $stats = ['tamu_hari_ini' => 0, 'tamu_di_lokasi' => 0, 'patroli_hari_ini' => 0, 'insiden_aktif' => 0, 'pelanggaran_hari_ini' => 0, 'izin_hari_ini' => 0];
         if (Table::exists('keamanan_buku_tamu')) {
             $stats['tamu_hari_ini'] = (int) DB::table('keamanan_buku_tamu')->whereDate('tanggal', $today)->count();
             $stats['tamu_di_lokasi'] = (int) DB::table('keamanan_buku_tamu')->where('status', 'berada_di_lokasi')->count();
@@ -121,6 +121,17 @@ class TendikDashboardSections
         }
         if (Table::exists('keamanan_insiden')) {
             $stats['insiden_aktif'] = (int) DB::table('keamanan_insiden')->where('status_penyelesaian', 'dalam_penanganan')->count();
+        }
+        if (Table::exists('kedisiplinan_pelanggaran')) {
+            $stats['pelanggaran_hari_ini'] = (int) DB::table('kedisiplinan_pelanggaran')
+                ->whereDate('tanggal_kejadian', $today)
+                ->where(function ($b) {
+                    $b->where('pelapor_nama', 'like', '%Satpam%')
+                        ->orWhere('tempat_kejadian', 'like', '%Gerbang%');
+                })->count();
+        }
+        if (Table::exists('peserta_didik_izin_keluar')) {
+            $stats['izin_hari_ini'] = (int) DB::table('peserta_didik_izin_keluar')->where('tanggal', $today)->count();
         }
         return $stats;
     }

@@ -133,6 +133,8 @@ class KedisiplinanTataTertibImportTest extends TestCase
         $response->assertSee('RINGAN');
         $response->assertSee('SEDANG');
         $response->assertSee('BERAT');
+        $response->assertSee('periode-nav-mobile');
+        $response->assertSee('periode-mobile-select');
     }
 
     public function test_get_next_kode_endpoint()

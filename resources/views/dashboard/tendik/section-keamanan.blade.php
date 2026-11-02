@@ -2,7 +2,7 @@
 
 
 
-<!-- 2. Quick Stats Grid Keamanan (Responsive) -->
+<!-- 2. Quick Stats Grid Keamanan (Responsive): Tamu, Pelanggaran, e-Izin, Insiden -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
@@ -15,22 +15,22 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-id-card-clip"></i>
+        <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+            <i class="fas fa-triangle-exclamation"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($keamananStats['tamu_di_lokasi'] ?? 0, 0, ',', '.') }} Orang</div>
-            <div class="dash-stat-label">Tamu di Lokasi</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['pelanggaran_hari_ini'] ?? 0, 0, ',', '.') }} Kasus</div>
+            <div class="dash-stat-label">Pelanggaran Siswa Hari Ini</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-route"></i>
+        <div class="dash-stat-icon" style="background: rgba(14, 165, 233, 0.15); color: var(--info, #0ea5e9);">
+            <i class="fas fa-door-open"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($keamananStats['patroli_hari_ini'] ?? 0, 0, ',', '.') }} Ronda</div>
-            <div class="dash-stat-label">Patroli Hari Ini</div>
+            <div class="dash-stat-value">{{ number_format($keamananStats['izin_hari_ini'] ?? 0, 0, ',', '.') }} Izin</div>
+            <div class="dash-stat-label">e-Izin Gerbang Hari Ini</div>
         </div>
     </div>
 
@@ -40,7 +40,7 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value">{{ number_format($keamananStats['insiden_aktif'] ?? 0, 0, ',', '.') }} Insiden</div>
-            <div class="dash-stat-label">Dalam Penanganan</div>
+            <div class="dash-stat-label">Insiden Dalam Penanganan</div>
         </div>
     </div>
 </div>
@@ -48,10 +48,11 @@
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
 
-<!-- 1. Akses Cepat Menu Keamanan (Responsive Grid Seimbang & Genap) -->
+<!-- 1. Akses Cepat Menu Keamanan — 6 tile: 4 operasional pos + 2 kinerja -->
 <div class="kepegawaian-quick-grid">
+    {{-- Operasional Pos --}}
     <a href="{{ route('dashboard.keamanan.buku-tamu.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Buku Tamu Pos Depan">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Buku Tamu">
         <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-book-open"></i>
         </div>
@@ -59,21 +60,30 @@
     </a>
 
     <a href="{{ route('dashboard.keamanan.patroli.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Patroli & Log Insiden">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Patroli Keliling &amp; Log Insiden">
         <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-shield-virus"></i>
         </div>
         <span class="kepegawaian-quick-label">Patroli</span>
     </a>
 
-    <a href="{{ route('dashboard.presensi.scan') }}" target="_blank"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Pos Scanner RFID">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-qrcode"></i>
+    <a href="{{ route('dashboard.keamanan.izin.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--info, #0ea5e9);" title="Verifikasi e-Izin">
+        <div class="kepegawaian-quick-icon" style="background: rgba(14, 165, 233, 0.15); color: var(--info, #0ea5e9);">
+            <i class="fas fa-door-open"></i>
         </div>
-        <span class="kepegawaian-quick-label">Pos RFID</span>
+        <span class="kepegawaian-quick-label">Verifikasi e-Izin</span>
     </a>
 
+    <a href="{{ route('dashboard.keamanan.pelanggaran.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Pencatatan Pelanggaran Siswa di Pos Satpam">
+        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Pelanggaran Siswa</span>
+    </a>
+
+    {{-- Kinerja & Tupoksi --}}
     <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'keamanan']) }}"
         class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
         <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
@@ -129,7 +139,29 @@
             </div>
         </div>
 
-        <!-- Chart 2: Patroli per Zona (Bar) -->
+        <!-- Chart 2: Kategori Pelanggaran Siswa (Bar) -->
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-triangle-exclamation text-danger"></i> Kategori Pelanggaran Siswa
+            </div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Kerapian, kehadiran, perilaku &amp; larangan berat</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="keamananChartPelanggaran"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: Jenis Izin Keluar (Doughnut) -->
+        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-door-open text-info"></i> Jenis e-Izin Keluar Gerbang
+            </div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Keluar sebentar, pulang cepat &amp; terlambat masuk</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="keamananChartIzin"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 4: Intensitas Patroli per Zona (Bar) -->
         <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
             <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <i class="fas fa-route text-success"></i> Intensitas Patroli per Zona
@@ -137,17 +169,6 @@
             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Gerbang, kelas, lab &amp; pagar keliling</div>
             <div style="height: 180px; position: relative; flex: 1;">
                 <canvas id="keamananChartPatroli"></canvas>
-            </div>
-        </div>
-
-        <!-- Chart 3: Kondisi Keamanan (Doughnut) -->
-        <div style="background: var(--bg-hover); border-radius: var(--radius-lg, 12px); padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
-            <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-shield-virus text-warning"></i> Status Situasi Lingkungan
-            </div>
-            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">Kondusif vs laporan temuan catatan</div>
-            <div style="height: 180px; position: relative; flex: 1;">
-                <canvas id="keamananChartStatus"></canvas>
             </div>
         </div>
     </div>
