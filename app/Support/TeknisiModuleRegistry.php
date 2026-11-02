@@ -243,43 +243,6 @@ final class TeknisiModuleRegistry
                 ],
                 'list' => ['aset_nama', 'dari_ruang', 'ke_ruang', 'kondisi', 'status'],
             ],
-
-            'peminjaman-ruang' => [
-                'table'   => 'sarpras_peminjaman_ruang',
-                'nomor'   => ['nomor_pinjam', 'PR'],
-                'title'   => 'Peminjaman Ruang & Fasilitas',
-                'desc'    => 'Permohonan penggunaan aula, GOR, lapangan, dan ruang rapat beserta persetujuan.',
-                'grup'    => 'inspeksi',
-                'icon'    => 'fas fa-door-open',
-                'color'   => 'var(--success, #10b981)',
-                'dateCol' => 'tanggal',
-                'order'   => ['tanggal', 'desc'],
-                'ruangCol' => 'ruang_id',
-                'nameMap' => ['ruang_id' => 'ruang_nama'],
-                'stats'   => [
-                    ['label' => 'Total Permohonan', 'icon' => 'fas fa-door-open', 'color' => 'var(--success, #10b981)'],
-                    ['label' => 'Diajukan', 'icon' => 'fas fa-paper-plane', 'color' => 'var(--warning, #f59e0b)', 'where' => ['status', 'diajukan']],
-                    ['label' => 'Disetujui', 'icon' => 'fas fa-circle-check', 'color' => 'var(--primary, #3b82f6)', 'where' => ['status', 'disetujui']],
-                    ['label' => 'Selesai', 'icon' => 'fas fa-flag-checkered', 'color' => 'var(--success, #10b981)', 'where' => ['status', 'selesai']],
-                ],
-                'columns' => [
-                    'tanggal'        => ['label' => 'Tanggal Pakai', 'type' => 'date', 'required' => true, 'default' => 'today'],
-                    'ruang_id'       => ['label' => 'Ruang / Fasilitas', 'type' => 'select', 'source' => 'ruang', 'required' => true],
-                    'peminjam_nama'  => ['label' => 'Nama Peminjam', 'type' => 'string', 'required' => true],
-                    'peminjam_tipe'  => ['label' => 'Tipe Peminjam', 'type' => 'select', 'options' => ['internal' => 'Internal Sekolah', 'eksternal' => 'Eksternal'], 'default' => 'internal'],
-                    'instansi'       => ['label' => 'Instansi / Unit', 'type' => 'string'],
-                    'kontak'         => ['label' => 'Kontak', 'type' => 'string'],
-                    'keperluan'      => ['label' => 'Keperluan', 'type' => 'string', 'required' => true],
-                    'jam_mulai'      => ['label' => 'Jam Mulai', 'type' => 'time'],
-                    'jam_selesai'    => ['label' => 'Jam Selesai', 'type' => 'time'],
-                    'jumlah_peserta' => ['label' => 'Jumlah Peserta', 'type' => 'int'],
-                    'sarana_diminta' => ['label' => 'Sarana Diminta', 'type' => 'text', 'wide' => true],
-                    'kondisi_sesudah' => ['label' => 'Kondisi Sesudah', 'type' => 'select', 'options' => self::KONDISI],
-                    'status'         => ['label' => 'Status', 'type' => 'select', 'options' => ['diajukan' => 'Diajukan', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak', 'selesai' => 'Selesai'], 'default' => 'diajukan'],
-                    'catatan'        => ['label' => 'Catatan', 'type' => 'text', 'wide' => true],
-                ],
-                'list' => ['ruang_nama', 'peminjam_nama', 'keperluan', 'tanggal', 'status'],
-            ],
         ];
     }
 
@@ -434,8 +397,12 @@ final class TeknisiModuleRegistry
                  'active' => 'dashboard.sarpras.aset*',
                  'title' => 'Inventaris & aset sarpras sekolah (sumber sarana kegiatan rapat)'],
                 $modulEntry('area-master', 'Master Area & Zona'),
+                ['label' => 'Peminjaman Ruang, Alat & Fasilitas', 'icon' => 'fas fa-hand-holding',
+                 'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
+                 'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
+                 'active' => 'dashboard.laboran.peminjaman-alat*',
+                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset'],
                 $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
-                $modulEntry('peminjaman-ruang', 'Peminjaman Ruang & Fasilitas'),
             ],
 
             'rencana' => [

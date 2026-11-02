@@ -81,6 +81,8 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         $list = $query->orderByDesc('s.tanggal_rapat')->orderByDesc('s.id')
             ->paginate($perPage)->withQueryString();
 
+        $sources = \App\Support\TeknisiModuleRegistry::sources();
+
         return view('dashboard.teknisi.sarana-rapat', array_merge(
             compact('list', 'search', 'lengkapFilter', 'dari', 'sampai', 'perPage',
                 'statTotal', 'statLengkap', 'statKurang'),
@@ -91,8 +93,10 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
                 'tahapList'       => self::TAHAP,
                 'kondisiList'     => self::KONDISI,
                 'lokasiOptions'   => $this->lokasiOptions($context),
-                // Sarana kegiatan rapat diambil dari inventaris & aset tersedia.
-                'asetOptions'     => \App\Support\TeknisiModuleRegistry::sources()['aset'] ?? [],
+                // Ruang diambil dari master Ruang & Gedung; sarana dari
+                // inventaris aset (teknisi cukup menceklist kesiapan).
+                'ruangOptions'    => $sources['ruang'] ?? [],
+                'asetOptions'     => $sources['aset'] ?? [],
             ]
         ));
     }
@@ -103,21 +107,20 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         if ($res) return $res;
 
         $data = $this->validated($request);
-        $ruangId = $this->ruangIdDariNama($data['ruang_nama'] ?? null);
+        $ruangId = $data['ruang_id'] ?? null;
+        $ruangNama = $ruangId ? DB::table('sarpras_ruang')->where('id', $ruangId)->value('nama_ruang') : null;
         $pj = $this->pjUntukRuang($ruangId, $context);
 
-        DB::table('teknisi_sarana_rapat')->insert([
+        $id = DB::table('teknisi_sarana_rapat')->insertGetId([
             'nomor_laporan'      => $this->generateNomor('teknisi_sarana_rapat', 'nomor_laporan', 'SRP'),
             'ruang_id'           => $ruangId,
             'tanggal_rapat'      => $data['tanggal_rapat'],
             'nama_rapat'         => trim($data['nama_rapat']),
-            'ruang_nama'         => $data['ruang_nama'] ?? null,
+            'ruang_nama'         => $ruangNama,
             'tahap'              => $data['tahap'] ?? 'sebelum_acara',
             'kondisi_ruang'      => $data['kondisi_ruang'] ?? 'bersih',
             'jumlah_peserta'     => $data['jumlah_peserta'] ?? null,
-            'daftar_sarana'      => !empty($data['daftar_sarana'])
-                ? json_encode(array_values($data['daftar_sarana']))
-                : $this->parseDaftarSarana($data['daftar_sarana_text'] ?? null),
+            'daftar_sarana'      => $this->daftarSaranaJson($data['siap'] ?? []),
             'kelengkapan_sarana' => $data['kelengkapan_sarana'] ?? 'lengkap',
             'catatan_kebutuhan'  => $data['catatan_kebutuhan'] ?? null,
             'catatan'            => $data['catatan'] ?? null,
@@ -130,7 +133,9 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'updated_at'         => now(),
         ]);
 
-        return $this->respond($request, true, 'Laporan sarana rapat berhasil disimpan.');
+        $this->syncPelaksanaan((int) $id, $data, $ruangId, $ruangNama, $pj, $context);
+
+        return $this->respond($request, true, 'Ceklist persiapan rapat berhasil disimpan.');
     }
 
     public function update(Request $request, $id)
@@ -145,20 +150,19 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         }
 
         $data = $this->validated($request);
-        $ruangId = $this->ruangIdDariNama($data['ruang_nama'] ?? null);
+        $ruangId = $data['ruang_id'] ?? null;
+        $ruangNama = $ruangId ? DB::table('sarpras_ruang')->where('id', $ruangId)->value('nama_ruang') : null;
         $pj = $this->pjUntukRuang($ruangId, $context);
 
         DB::table('teknisi_sarana_rapat')->where('id', $id)->update([
             'ruang_id'           => $ruangId,
             'tanggal_rapat'      => $data['tanggal_rapat'],
             'nama_rapat'         => trim($data['nama_rapat']),
-            'ruang_nama'         => $data['ruang_nama'] ?? null,
+            'ruang_nama'         => $ruangNama,
             'tahap'              => $data['tahap'] ?? $row->tahap ?? 'sebelum_acara',
             'kondisi_ruang'      => $data['kondisi_ruang'] ?? $row->kondisi_ruang ?? 'bersih',
             'jumlah_peserta'     => $data['jumlah_peserta'] ?? null,
-            'daftar_sarana'      => !empty($data['daftar_sarana'])
-                ? json_encode(array_values($data['daftar_sarana']))
-                : ($this->parseDaftarSarana($data['daftar_sarana_text'] ?? null) ?? $row->daftar_sarana),
+            'daftar_sarana'      => $this->daftarSaranaJson($data['siap'] ?? [], $row->daftar_sarana),
             'kelengkapan_sarana' => $data['kelengkapan_sarana'] ?? $row->kelengkapan_sarana,
             'catatan_kebutuhan'  => $data['catatan_kebutuhan'] ?? null,
             'catatan'            => $data['catatan'] ?? null,
@@ -169,7 +173,9 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'updated_at'         => now(),
         ]);
 
-        return $this->respond($request, true, 'Laporan sarana rapat berhasil diperbarui.');
+        $this->syncPelaksanaan((int) $id, $data, $ruangId, $ruangNama, $pj, $context);
+
+        return $this->respond($request, true, 'Ceklist persiapan rapat berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
@@ -184,8 +190,83 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         }
 
         DB::table('teknisi_sarana_rapat')->where('id', $id)->delete();
+        DB::table('teknisi_pelaksanaan_harian')->where('sarana_rapat_id', $id)->delete();
 
-        return $this->respond($request, true, 'Laporan sarana rapat berhasil dihapus.');
+        return $this->respond($request, true, 'Ceklist persiapan rapat berhasil dihapus.');
+    }
+
+    /**
+     * Bangun JSON ceklist kesiapan dari pilihan `siap[]` (format "jenis:id").
+     *
+     * Nama sarana disimpan agar rekap/cetak tidak perlu join ulang.
+     */
+    protected function daftarSaranaJson(array $siap, ?string $existing = null): ?string
+    {
+        $rows = [];
+        foreach ($siap as $val) {
+            $val = trim((string) $val);
+            if ($val === '' || !str_contains($val, ':')) {
+                continue;
+            }
+            [$jenis, $refId] = explode(':', $val, 2);
+            $nama = null;
+            if ($jenis === 'ruang') {
+                $nama = DB::table('sarpras_ruang')->where('id', $refId)->value('nama_ruang');
+            } elseif ($jenis === 'aset') {
+                $nama = DB::table('sarpras_aset')->where('id', $refId)->value('nama_barang');
+            }
+            if ($nama === null) {
+                continue;
+            }
+            $rows[] = ['jenis' => $jenis, 'ref_id' => (int) $refId, 'nama' => $nama, 'jumlah' => 1, 'kondisi' => 'siap'];
+        }
+
+        if (empty($rows)) {
+            return $existing;
+        }
+
+        return json_encode($rows, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Catat ceklist persiapan rapat pada Jurnal Pelaksanaan Tugas.
+     *
+     * Satu baris pelaksanaan per laporan (idempoten via `sarana_rapat_id`),
+     * sehingga persiapan rapat tampil & ikut cakupan PJ ruang di jurnal.
+     */
+    protected function syncPelaksanaan(int $saranaRapatId, array $data, ?int $ruangId, ?string $ruangNama, array $pj, array $context): void
+    {
+        if (!\App\Support\Table::exists('teknisi_pelaksanaan_harian')
+            || !\Illuminate\Support\Facades\Schema::hasColumn('teknisi_pelaksanaan_harian', 'sarana_rapat_id')) {
+            return;
+        }
+
+        $row = DB::table('teknisi_pelaksanaan_harian')->where('sarana_rapat_id', $saranaRapatId)->first();
+
+        $payload = [
+            'ruang_id'       => $ruangId,
+            'tanggal'        => $data['tanggal_rapat'],
+            'shift'          => 'pagi',
+            'area'           => 'Rapat: ' . trim((string) $data['nama_rapat']) . ($ruangNama ? ' — ' . $ruangNama : ''),
+            'periode_jadwal' => 'insidental',
+            'petugas_ptk_id' => $pj['ptk_id'],
+            'petugas_nama'   => $pj['nama'],
+            'updated_at'     => now(),
+        ];
+
+        if ($row) {
+            DB::table('teknisi_pelaksanaan_harian')->where('id', $row->id)->update($payload);
+
+            return;
+        }
+
+        DB::table('teknisi_pelaksanaan_harian')->insert($payload + [
+            'nomor_pelaksanaan' => $this->generateNomor('teknisi_pelaksanaan_harian', 'nomor_pelaksanaan', 'PLK'),
+            'sarana_rapat_id'   => $saranaRapatId,
+            'status'            => 'belum',
+            'user_id'           => $context['user_id'],
+            'created_at'        => now(),
+        ]);
     }
 
     protected function validated(Request $request): array
@@ -193,15 +274,12 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
         return $request->validate([
             'tanggal_rapat'      => 'required|date',
             'nama_rapat'         => 'required|string|max:200',
-            'ruang_nama'         => 'nullable|string|max:150',
+            'ruang_id'           => 'nullable|integer',
             'tahap'              => 'nullable|in:sebelum_acara,saat_acara,sesudah_acara',
             'kondisi_ruang'      => 'nullable|in:sangat_bersih,bersih,cukup,kotor,perlu_tindakan',
             'jumlah_peserta'     => 'nullable|integer|min:0|max:5000',
-            'daftar_sarana'      => 'nullable|array',
-            'daftar_sarana.*.nama'    => 'nullable|string|max:150',
-            'daftar_sarana.*.jumlah'  => 'nullable|integer|min:0',
-            'daftar_sarana.*.kondisi' => 'nullable|string|max:50',
-            'daftar_sarana_text' => 'nullable|string|max:4000',
+            'siap'               => 'nullable|array',
+            'siap.*'             => 'nullable|string|max:60',
             'kelengkapan_sarana' => 'nullable|in:lengkap,kurang,tidak_lengkap',
             'catatan_kebutuhan'  => 'nullable|string|max:2000',
             'catatan'            => 'nullable|string|max:1000',
@@ -211,31 +289,5 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'tanggal_rapat.required' => 'Tanggal rapat wajib diisi.',
             'nama_rapat.required'    => 'Nama rapat wajib diisi.',
         ]);
-    }
-
-    /**
-     * Konversi teks bebas "Nama | Jumlah | Kondisi" (satu per baris) menjadi
-     * JSON daftar sarana. Kosong -> null.
-     */
-    protected function parseDaftarSarana(?string $text): ?string
-    {
-        if (empty(trim((string) $text))) {
-            return null;
-        }
-
-        $rows = [];
-        foreach (preg_split('/\r\n|\r|\n/', $text) as $line) {
-            $line = trim($line);
-            if ($line === '') continue;
-
-            $parts = array_map('trim', explode('|', $line));
-            $rows[] = [
-                'nama'    => $parts[0] ?? '',
-                'jumlah'  => isset($parts[1]) && $parts[1] !== '' ? (int) $parts[1] : 0,
-                'kondisi' => $parts[2] ?? '',
-            ];
-        }
-
-        return empty($rows) ? null : json_encode($rows, JSON_UNESCAPED_UNICODE);
     }
 }

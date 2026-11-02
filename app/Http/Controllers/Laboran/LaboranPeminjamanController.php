@@ -107,6 +107,7 @@ class LaboranPeminjamanController extends LaboranBaseController
                 'scopeBadge'     => LaboranScope::badge($context),
                 'itemOptions'    => $this->itemOptions($context, 'alat', true),
                 'asetOptions'    => $this->asetOptions($context),
+                'ruangOptions'   => $this->ruangOptions(),
                 'lokasiOptions'  => $this->lokasiOptions(),
                 'statusList'     => self::STATUS,
                 'tipeList'       => self::PEMINJAM_TIPE,
@@ -260,6 +261,7 @@ class LaboranPeminjamanController extends LaboranBaseController
                 'tipeList'    => self::PEMINJAM_TIPE,
                 'kondisiList' => self::KONDISI,
                 'itemOptions' => $this->itemOptions($context, 'alat'),
+                'ruangOptions' => $this->ruangOptions(),
             ]
         ));
     }
@@ -288,6 +290,8 @@ class LaboranPeminjamanController extends LaboranBaseController
             'aset_ids.*'              => 'integer',
             'aset_jumlah'             => 'nullable|array',
             'aset_jumlah.*'           => 'integer|min:1',
+            'ruang_ids'               => 'nullable|array',
+            'ruang_ids.*'             => 'integer',
         ], [
             'tanggal_kembali_rencana.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
             'item_jumlah.*.integer' => 'Jumlah alat harus berupa bilangan bulat.',
@@ -324,9 +328,10 @@ class LaboranPeminjamanController extends LaboranBaseController
 
         $labItemIds = $data['item_ids'] ?? [];
         $asetIds    = $data['aset_ids'] ?? [];
+        $ruangIds   = $data['ruang_ids'] ?? [];
 
-        if (empty($labItemIds) && empty($asetIds)) {
-            return $this->respond($request, false, 'Pilih minimal satu alat yang akan dipinjam.', 422);
+        if (empty($labItemIds) && empty($asetIds) && empty($ruangIds)) {
+            return $this->respond($request, false, 'Pilih minimal satu ruang atau alat yang akan dipinjam.', 422);
         }
 
         // Validasi item inventaris lab (hanya alat milik jurusan laboran)
@@ -379,7 +384,13 @@ class LaboranPeminjamanController extends LaboranBaseController
             }
         }
 
-        $totalItem = $labItems->count() + $asetItems->count();
+        $totalItem = $labItems->count() + $asetItems->count() + count(array_unique($ruangIds));
+
+        // Validasi ruang yang dipinjam (peminjaman terpadu mencakup ruang/bangunan).
+        $ruangTerpilih = collect();
+        if (!empty($ruangIds)) {
+            $ruangTerpilih = DB::table('sarpras_ruang')->whereIn('id', $ruangIds)->get();
+        }
 
         $id = DB::table('laboran_peminjaman')->insertGetId([
             'jurusan_id'              => LaboranScope::jurusanForWrite($data['jurusan_id'] ?? null, $context),
@@ -438,7 +449,24 @@ class LaboranPeminjamanController extends LaboranBaseController
             ]);
         }
 
-        return $this->respond($request, true, 'Pengajuan peminjaman alat berhasil dibuat.', 200, [
+        foreach ($ruangTerpilih as $ruang) {
+            DB::table('laboran_peminjaman_item')->insert([
+                'peminjaman_id'  => $id,
+                'item_id'        => null,
+                'sumber'         => 'ruang',
+                'aset_id'        => null,
+                'ruang_id'       => $ruang->id,
+                'nama_item'      => $ruang->nama_ruang,
+                'kode_item'      => $ruang->kode_ruang,
+                'jumlah'         => 1,
+                'satuan'         => 'ruang',
+                'kondisi_pinjam' => $ruang->kondisi ?? 'baik',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+
+        return $this->respond($request, true, 'Pengajuan peminjaman berhasil dibuat.', 200, [
             'redirect' => route('dashboard.laboran.peminjaman-alat.show', $id),
             'id'       => $id,
         ]);
@@ -752,6 +780,21 @@ class LaboranPeminjamanController extends LaboranBaseController
         }
 
         return $rows;
+    }
+
+    /**
+     * Daftar ruang/bangunan master Sarpras untuk pilihan peminjaman terpadu.
+     */
+    protected function ruangOptions()
+    {
+        if (!\App\Support\Table::exists('sarpras_ruang')) {
+            return collect();
+        }
+
+        return DB::table('sarpras_ruang')
+            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'kondisi')
+            ->orderBy('nama_ruang')
+            ->get();
     }
 
     /**

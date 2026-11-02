@@ -168,6 +168,38 @@ class TeknisiTupoksiTest extends TestCase
         $this->assertSame('selesai', DB::table('teknisi_pelaksanaan_harian')->where('id', $row->id)->value('status'));
     }
 
+    /**
+     * Ceklist persiapan rapat otomatis masuk Jurnal Pelaksanaan Tugas.
+     */
+    public function test_sarana_rapat_masuk_jurnal_pelaksanaan(): void
+    {
+        $session = $this->adminSession();
+
+        $nama = 'Rapat Ceklist Uji ' . uniqid();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.sarana-rapat.store'), [
+                'tanggal_rapat' => now()->toDateString(),
+                'nama_rapat'    => $nama,
+                'siap'          => [],
+            ])
+            ->assertStatus(200);
+
+        $sr = DB::table('teknisi_sarana_rapat')->where('nama_rapat', $nama)->first();
+        $this->assertNotNull($sr, 'Ceklist sarana rapat tidak tersimpan.');
+
+        $pel = DB::table('teknisi_pelaksanaan_harian')->where('sarana_rapat_id', $sr->id)->first();
+        $this->assertNotNull($pel, 'Baris pelaksanaan tidak dibuat dari ceklist rapat.');
+        $this->assertSame(now()->toDateString(), (string) $pel->tanggal);
+        $this->assertStringContainsString($nama, $pel->area);
+
+        // Baris muncul di Jurnal Pelaksanaan.
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.pelaksanaan-harian.index'))
+            ->assertStatus(200)
+            ->assertSee($nama, false);
+    }
+
     /** Jurnal Perbaikan = turunan baca-saja dari Work Order selesai. */
     public function test_jurnal_perbaikan_baca_saja_dari_work_order(): void
     {

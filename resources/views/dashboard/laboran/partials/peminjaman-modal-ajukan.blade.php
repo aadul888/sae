@@ -79,6 +79,28 @@
                             Pilih Alat yang Dipinjam <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <div style="max-height: 260px; overflow-y: auto; padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                            {{-- Seksi Ruang/Bangunan (master Ruang & Gedung) --}}
+                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--success, #10b981); text-transform: uppercase; margin-bottom: var(--space-3);">
+                                <i class="fas fa-door-open me-1"></i> Ruang & Bangunan
+                            </div>
+                            @forelse ($ruangOptions as $ro)
+                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color);">
+                                    <input type="checkbox" name="ruang_ids[]" value="{{ $ro->id }}" class="pj-item" style="cursor: pointer;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $ro->nama_ruang }}</div>
+                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                                            {{ $ro->kode_ruang ?: '—' }}
+                                            @if ($ro->gedung) &bull; {{ $ro->gedung }} @endif
+                                            &bull; Kondisi: {{ $ro->kondisi ?: 'baik' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-4) 0;">
+                                    Belum ada ruang pada master Ruang & Gedung.
+                                </p>
+                            @endforelse
+
                             {{-- Seksi Alat Lab (hanya inventaris jurusan laboran) --}}
                             <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--primary); text-transform: uppercase; margin-bottom: var(--space-3);">
                                 <i class="fas fa-flask me-1"></i> Alat Praktik Laboratorium / Bengkel

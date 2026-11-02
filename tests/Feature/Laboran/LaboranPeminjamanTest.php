@@ -330,10 +330,6 @@ class LaboranPeminjamanTest extends LaboranTestCase
         $this->assertEquals(2, (float) $item->jumlah);
     }
 
-    /**
-     * Meminjam sebagian unit aset tidak boleh mengunci seluruh aset; sisa unit
-     * tetap dapat dipinjam sampai unitnya habis.
-     */
     public function test_peminjaman_sebagian_unit_tidak_mengunci_aset(): void
     {
         $asetId = DB::table('sarpras_aset')->insertGetId([
@@ -400,5 +396,38 @@ class LaboranPeminjamanTest extends LaboranTestCase
 
         $res->assertStatus(422);
         $this->assertStringContainsString('melebihi unit tersedia', $res->json('message'));
+    }
+
+    /**
+     * Peminjaman terpadu mencakup RUANG/BANGUNAN: baris item tersimpan dengan
+     * sumber "ruang" dan ruang_id terisi.
+     */
+    public function test_peminjaman_ruang_tersimpan_dengan_sumber_ruang(): void
+    {
+        $ruang = DB::table('sarpras_ruang')->orderBy('id')->first();
+        $this->assertNotNull($ruang, 'Butuh minimal satu ruang master untuk uji.');
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('dashboard.laboran.peminjaman-alat.store'), [
+                'peminjam_tipe'           => 'guru',
+                'peminjam_nama'           => 'Guru Uji Ruang',
+                'keperluan'               => 'Rapat dinas',
+                'tanggal_pinjam'          => now()->toDateString(),
+                'tanggal_kembali_rencana' => now()->addDays(2)->toDateString(),
+                'ruang_ids'               => [$ruang->id],
+            ])
+            ->assertStatus(200);
+
+        $pinjam = DB::table('laboran_peminjaman')->latest('id')->first();
+        $this->assertNotNull($pinjam);
+        $this->assertSame(1, (int) $pinjam->jumlah_item);
+
+        $item = DB::table('laboran_peminjaman_item')->where('peminjaman_id', $pinjam->id)->first();
+        $this->assertNotNull($item);
+        $this->assertSame('ruang', $item->sumber);
+        $this->assertSame((int) $ruang->id, (int) $item->ruang_id);
+        $this->assertNull($item->item_id);
+        $this->assertNull($item->aset_id);
+        $this->assertSame($ruang->nama_ruang, $item->nama_item);
     }
 }

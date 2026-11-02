@@ -29,7 +29,6 @@ class TeknisiModulLapanganTest extends TestCase
         'pemakaian-bahan',
         'usulan-pengadaan',
         'aset-mutasi',
-        'peminjaman-ruang',
     ];
 
     /** @var array<string, array<int, int>> */

@@ -12,8 +12,8 @@
     @endphp
 
     <x-sae.teknisi-header
-        banner-title="Persiapan & Sarana Kegiatan Rapat"
-        banner-desc="Bukti fisik Indikator #4 — persiapan kebersihan ruang rapat (tahap & kondisi) serta kelengkapan sarana dari inventaris aset."
+        banner-title="Ceklist Persiapan Kegiatan Rapat"
+        banner-desc="Bukti fisik Indikator #4 — ceklist kesiapan ruang (Ruang & Gedung) dan sarana/fasilitas (Inventaris & Aset) sebelum rapat. Otomatis masuk Jurnal Pelaksanaan Tugas."
         banner-icon="fas fa-clipboard-check"
         banner-color="var(--warning, #f59e0b)"
         :create-route="route('dashboard.teknisi.sarana-rapat.store')"
@@ -79,16 +79,17 @@
                                 <button type="button" class="btn-icon" title="Ubah"
                                     data-teknisi-form="modalSaranaRapat"
                                     data-edit-route="{{ route('dashboard.teknisi.sarana-rapat.update', $row->id) }}"
-                                    data-title="Ubah Laporan Sarana Rapat"
+                                    data-title="Ubah Ceklist Persiapan Rapat"
                                     data-field-tanggal_rapat="{{ $row->tanggal_rapat }}"
                                     data-field-nama_rapat="{{ $row->nama_rapat }}"
-                                    data-field-ruang_nama="{{ $row->ruang_nama }}"
+                                    data-field-ruang_id="{{ $row->ruang_id }}"
                                     data-field-jumlah_peserta="{{ $row->jumlah_peserta }}"
                                     data-field-kelengkapan_sarana="{{ $row->kelengkapan_sarana }}"
                                     data-field-tahap="{{ $row->tahap }}"
                                     data-field-kondisi_ruang="{{ $row->kondisi_ruang }}"
                                     data-field-catatan_kebutuhan="{{ $row->catatan_kebutuhan }}"
                                     data-field-catatan="{{ $row->catatan }}"
+                                    data-siap='@json(collect(json_decode($row->daftar_sarana ?? "[]", true) ?: [])->map(fn($i) => ($i["jenis"] ?? "") . ":" . ($i["ref_id"] ?? ""))->values())'
                                     style="background:var(--primary); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
                                     <i class="fas fa-pen" style="font-size:var(--text-sm);"></i>
                                 </button>
@@ -122,9 +123,10 @@
 
     @include('dashboard.teknisi._partials.modal', [
         'modalId' => 'modalSaranaRapat',
-        'modalTitle' => 'Tambah Laporan Sarana Rapat',
+        'modalTitle' => 'Tambah Ceklist Persiapan Rapat',
         'modalAction' => route('dashboard.teknisi.sarana-rapat.store'),
         'modalBodyView' => 'dashboard.teknisi._partials.form-sarana-rapat',
+        'row' => null,
     ])
 
     @include('dashboard.teknisi._partials.modal-import', [
@@ -137,4 +139,18 @@
 
 @push('scripts')
     @include('dashboard.teknisi._partials.scripts')
+    <script>
+        // Isi ulang ceklist kesiapan saat modal edit dibuka.
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-teknisi-form="modalSaranaRapat"]');
+            if (!btn) return;
+            var modal = document.getElementById('modalSaranaRapat');
+            if (!modal) return;
+            var siap = [];
+            try { siap = JSON.parse(btn.getAttribute('data-siap') || '[]'); } catch (err) { siap = []; }
+            modal.querySelectorAll('[name="siap[]"]').forEach(function (cb) {
+                cb.checked = siap.indexOf(cb.value) !== -1;
+            });
+        });
+    </script>
 @endpush
