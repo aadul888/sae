@@ -46,12 +46,8 @@ class TeknisiModuleController extends TeknisiBaseController
 
         $query = DB::table($spec['table'] . ' as t')->select('t.*');
         $this->applyFixed($query, $spec, 't');
-        // Master area: pastikan seluruh ruang Sarpras sudah tercermin.
-        if (!empty($spec['autoSync'])) {
-            $this->syncAreaMaster();
-        }
         // Cakupan baris: per ruang PJ bila modul punya kolom ruang, selain itu
-        // per akun pembuat. Modul `shared` (master bersama) tanpa batas.
+        // per akun pembuat.
         $this->scopeModul($query, $spec, $context, 't');
 
         if ($search !== '') {
@@ -394,12 +390,8 @@ class TeknisiModuleController extends TeknisiBaseController
                 continue;
             }
 
-            // Nilai dari ownerColumns() harus menang atas isi berkas. Modul
-            // bersama (area-master) tidak menyimpan jejak pemilik sama sekali.
-            $payload = array_merge($payload, $spec['fixed'] ?? []);
-            if (empty($spec['shared'])) {
-                $payload = array_merge($payload, $this->ownerColumns($context));
-            }
+            // Nilai dari ownerColumns() harus menang atas isi berkas.
+            $payload = array_merge($payload, $spec['fixed'] ?? [], $this->ownerColumns($context));
             $payload[$nomorCol] = $this->generateNomor($spec['table'], $nomorCol, $prefix);
             $payload['created_at'] = now();
             $payload['updated_at'] = now();
@@ -541,37 +533,21 @@ class TeknisiModuleController extends TeknisiBaseController
     /**
      * Cakupan baris satu modul lapangan.
      *
-     * - `shared` (master bersama, mis. area-master): tanpa batas.
      * - Punya kolom ruang (`ruangCol`): dibatasi ruang yang PJ-nya akun login.
      * - Tanpa kolom ruang (mis. log harian, usulan pengadaan): milik akun pembuat.
      */
     private function scopeModul($query, array $spec, array $context, ?string $alias = null): void
     {
-        if (empty($spec['shared'])) {
-            if (!empty($spec['ruangCol'])) {
-                $this->scopeRuangPj($query, $context, $spec['ruangCol'], $alias, true);
-            } else {
-                $this->scopeOwned($query, $context, $alias);
-            }
-        }
-
-        // Modul yang menandai `scopePj` (mis. area-master) hanya menampilkan
-        // baris yang penanggung jawabnya = akun login.
-        if (!empty($spec['scopePj'])) {
-            $this->scopePetugasPj($query, $context, 'petugas_ptk_id', 'petugas_nama', $alias);
+        if (!empty($spec['ruangCol'])) {
+            $this->scopeRuangPj($query, $context, $spec['ruangCol'], $alias, true);
+        } else {
+            $this->scopeOwned($query, $context, $alias);
         }
     }
 
-    /**
-     * Modul `shared` (master bersama, mis. area-master) boleh diubah semua
-     * teknisi; modul dengan kolom ruang terikat ruang PJ; sisanya milik akun.
-     */
     private function bolehUbah(array $spec, object $row, array $context): bool
     {
-        if (!empty($spec['shared'])) {
-            return true;
-        }
-
+        // Modul dengan kolom ruang terikat ruang PJ; sisanya milik akun pembuat.
         return !empty($spec['ruangCol'])
             ? $this->ownsRowRuang($row, $context, $spec['ruangCol'])
             : $this->ownsRow($row, $context);
@@ -644,17 +620,8 @@ class TeknisiModuleController extends TeknisiBaseController
     }
 
     /**
-     * Cerminkan `sarpras_ruang` ke `teknisi_area_master`.
-     *
-     * Logika dipusatkan di {@see \App\Support\TeknisiAreaMirror} agar halaman
-     * area tugas & pemeliharaan memakai cermin yang sama pada request yang sama.
+     * @return array<string, mixed>
      */
-    private function syncAreaMaster(): void
-    {
-        \App\Support\TeknisiAreaMirror::sync();
-    }
-
-    /** @return array<string, mixed> */
     private function payload(Request $request, array $spec, array $context): array
     {
         $payload = [];
@@ -663,12 +630,6 @@ class TeknisiModuleController extends TeknisiBaseController
             $type = $conf['type'] ?? 'string';
 
             if ($type === 'hidden') {
-                continue;
-            }
-
-            // Modul bersama (area-master): Petugas adalah turunan PJ Sarpras,
-            // tidak boleh diisi bebas dari form/impor.
-            if (!empty($spec['shared']) && in_array($col, self::AUTO_OWNER_COLUMNS, true)) {
                 continue;
             }
 
@@ -706,16 +667,6 @@ class TeknisiModuleController extends TeknisiBaseController
                     }
                 }
             }
-        }
-
-        // Modul `shared` (master bersama, mis. area-master) tidak menyimpan
-        // jejak pemilik: kolom Petugas di sana adalah cermin PJ master Sarpras,
-        // bukan akun yang kebetulan menyunting. Tanpa ini, menyimpan/mengimpor
-        // satu baris akan menggeser PJ ruang ke akun penyunting.
-        if (!empty($spec['shared'])) {
-            $payload = array_diff_key($payload, array_flip(self::AUTO_OWNER_COLUMNS), ['user_id' => true]);
-
-            return $payload + ($spec['fixed'] ?? []);
         }
 
         return $payload + ($spec['fixed'] ?? []) + $this->ownerColumns($context);

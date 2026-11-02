@@ -14,23 +14,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class TeknisiModuleRegistry
 {
-    public const KATEGORI_AREA = [
-        'administrasi'   => 'Ruang Administrasi',
-        'perkantoran'    => 'Ruang Perkantoran',
-        'fasilitas_umum' => 'Fasilitas Umum (WC, Jamban, Kantin)',
-        'teras_halaman'  => 'Teras & Halaman',
-        'lapangan'       => 'Lapangan, Gor, Aula',
-        'laboratorium'   => 'Laboratorium & Bengkel',
-        'lainnya'        => 'Lainnya',
-    ];
-
-    public const FREKUENSI = [
-        'harian'     => 'Harian',
-        'mingguan'   => 'Mingguan',
-        'bulanan'    => 'Bulanan',
-        'insidental' => 'Insidental',
-    ];
-
     public const KONDISI = [
         'baik'         => 'Baik',
         'cukup'        => 'Cukup',
@@ -80,45 +63,6 @@ final class TeknisiModuleRegistry
     public static function all(): array
     {
         return [
-            'area-master' => [
-                'table'   => 'teknisi_area_master',
-                'nomor'   => ['kode_area', 'AR'],
-                'title'   => 'Master Area & Zona Kebersihan',
-                'desc'    => 'Daftar baku area/zona kebersihan beserta penanggung jawab. Menjadi rujukan jadwal area tugas dan checklist kebersihan.',
-                'grup'    => 'master',
-                'icon'    => 'fas fa-map-location-dot',
-                'color'   => 'var(--primary, #3b82f6)',
-                'dateCol' => null,
-                'order'   => ['nama_area', 'asc'],
-                'stats'   => [
-                    ['label' => 'Total Area', 'icon' => 'fas fa-map-location-dot', 'color' => 'var(--primary, #3b82f6)'],
-                    ['label' => 'Area Aktif', 'icon' => 'fas fa-circle-check', 'color' => 'var(--success, #10b981)', 'where' => ['status', 'aktif']],
-                    ['label' => 'Fasilitas Umum', 'icon' => 'fas fa-restroom', 'color' => 'var(--warning, #f59e0b)', 'where' => ['kategori', 'fasilitas_umum']],
-                    ['label' => 'Tanpa Petugas', 'icon' => 'fas fa-user-slash', 'color' => 'var(--danger, #ef4444)', 'whereNull' => 'petugas_nama'],
-                ],
-                'columns' => [
-                    'nama_area'    => ['label' => 'Nama Area', 'type' => 'string', 'required' => true, 'list' => 'ruang'],
-                    'zona'         => ['label' => 'Zona / Blok', 'type' => 'string'],
-                    'gedung'       => ['label' => 'Gedung', 'type' => 'string'],
-                    'lantai'       => ['label' => 'Lantai', 'type' => 'string'],
-                    'kategori'     => ['label' => 'Kategori', 'type' => 'select', 'options' => self::KATEGORI_AREA],
-                    'frekuensi'    => ['label' => 'Frekuensi', 'type' => 'select', 'options' => self::FREKUENSI],
-                    'petugas_nama' => ['label' => 'Petugas', 'type' => 'string', 'people' => true, 'derived' => true],
-                    'petugas_ptk_id' => ['label' => 'PTK Petugas', 'type' => 'hidden'],
-                    'status'       => ['label' => 'Status', 'type' => 'select', 'options' => ['aktif' => 'Aktif', 'nonaktif' => 'Nonaktif'], 'default' => 'aktif'],
-                    'keterangan'   => ['label' => 'Keterangan', 'type' => 'text', 'wide' => true],
-                ],
-                'list' => ['nama_area', 'kategori', 'frekuensi', 'petugas_nama', 'status'],
-                // Area Master adalah cermin master Sarpras: barisnya diturunkan
-                // dari `sarpras_ruang` (lihat syncAreaMaster). Tabel ini data
-                // bersama — tidak di-scope per akun, cukup unik per `ruang_id`.
-                'autoSync' => true,
-                'shared'   => true,
-                // Petugas area master = PJ ruang; hanya ruang milik PJ yang login
-                // yang ditampilkan (koordinator melihat semua).
-                'scopePj'  => true,
-            ],
-
             'inspeksi-utilitas' => self::logSpec('inspeksi-utilitas', 'Inspeksi Utilitas & Instalasi', 'fas fa-bolt', 'var(--warning, #f59e0b)', 'Pemeriksaan panel listrik, genset, pompa, tandon, dan meteran air/listrik.', [
                 'kategori' => [
                     'panel_listrik' => 'Panel & Instalasi Listrik',
@@ -151,7 +95,6 @@ final class TeknisiModuleRegistry
                     'area_sampah'    => 'Area Sampah',
                     'lainnya'        => 'Lainnya',
                 ],
-                'area' => true,
             ]),
 
             'higiene-kantin' => self::logSpec('higiene-kantin', 'Higiene Sanitasi Kantin', 'fas fa-utensils', 'var(--success, #10b981)', 'Pemeriksaan kebersihan kantin, kualitas air minum, dan penjamah makanan.', [
@@ -162,7 +105,6 @@ final class TeknisiModuleRegistry
                     'penyajian'         => 'Penyajian & Penyimpanan',
                     'lainnya'           => 'Lainnya',
                 ],
-                'area' => true,
             ]),
 
             'pemakaian-bahan' => self::logSpec('pemakaian-bahan', 'Pemakaian Bahan Kebersihan', 'fas fa-spray-can-sparkles', 'var(--primary, #3b82f6)', 'Pencatatan pemakaian sabun, tissue, pewangi, dan bahan kebersihan lain per area.', [
@@ -260,10 +202,6 @@ final class TeknisiModuleRegistry
             'lokasi'     => ['label' => 'Lokasi', 'type' => 'string', 'list' => 'ruang'],
         ];
 
-        if (!empty($extra['area'])) {
-            $columns['area_id'] = ['label' => 'Area Kebersihan', 'type' => 'select', 'source' => 'area'];
-        }
-
         $columns['kategori'] = ['label' => 'Kategori', 'type' => 'select', 'options' => $extra['kategori']];
 
         if (!empty($extra['bhp'])) {
@@ -304,7 +242,7 @@ final class TeknisiModuleRegistry
             'color'   => $color,
             'dateCol' => 'tanggal',
             'order'   => ['tanggal', 'desc'],
-            'nameMap' => ['area_id' => 'lokasi', 'persediaan_id' => 'subjek'],
+            'nameMap' => ['persediaan_id' => 'subjek'],
             'pelaksana' => !empty($extra['pelaksana']),
             'stats'   => [
                 ['label' => 'Total Catatan', 'icon' => 'fas fa-clipboard-list', 'color' => $color],
@@ -403,7 +341,11 @@ final class TeknisiModuleRegistry
                  'can' => ['menu_inventaris', 'menu_sarpras'],
                  'active' => 'dashboard.sarpras.aset*',
                  'title' => 'Inventaris & aset sarpras sekolah (sumber sarana kegiatan rapat)'],
-                $modulEntry('area-master', 'Master Area & Zona'),
+                ['label' => 'Bahan Habis Pakai', 'icon' => 'fas fa-vials',
+                 'route' => 'dashboard.laboran.bhp.index', 'params' => [],
+                 'can' => ['menu_laboran', 'menu_sarpras', 'menu_teknisi'],
+                 'active' => 'dashboard.laboran.bhp*',
+                 'title' => 'Bahan habis pakai (BHP): stok, pemakaian, dan kedaluwarsa'],
             ],
 
             'rencana' => [
@@ -461,7 +403,7 @@ final class TeknisiModuleRegistry
      */
     public static function sources(): array
     {
-        $out = ['ruang' => [], 'aset' => [], 'persediaan' => [], 'bhp' => [], 'area' => []];
+        $out = ['ruang' => [], 'aset' => [], 'persediaan' => [], 'bhp' => []];
 
         if (Table::exists('sarpras_ruang')) {
             $out['ruang'] = DB::table('sarpras_ruang')
@@ -498,15 +440,6 @@ final class TeknisiModuleRegistry
                 ->orderBy('nama_item')
                 ->get()
                 ->map(fn ($r) => ['id' => $r->id, 'label' => trim($r->nama_item . ($r->satuan ? ' (' . $r->satuan . ')' : ''))])
-                ->all();
-        }
-
-        if (Table::exists('teknisi_area_master')) {
-            $out['area'] = DB::table('teknisi_area_master')
-                ->select('id', 'nama_area as label')
-                ->orderBy('nama_area')
-                ->get()
-                ->map(fn ($r) => ['id' => $r->id, 'label' => (string) $r->label])
                 ->all();
         }
 

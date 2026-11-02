@@ -21,7 +21,6 @@ use Tests\TestCase;
 class TeknisiModulLapanganTest extends TestCase
 {
     protected const MODULES = [
-        'area-master',
         'inspeksi-utilitas',
         'apar-k3',
         'pest-control',
@@ -42,7 +41,7 @@ class TeknisiModulLapanganTest extends TestCase
         parent::setUp();
 
         $tables = array_merge(
-            ['teknisi_area_master', 'teknisi_log_harian', 'teknisi_usulan_pengadaan',
+            ['teknisi_log_harian', 'teknisi_usulan_pengadaan',
              'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
              'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order',
              'teknisi_pelaksanaan_harian'],
@@ -148,7 +147,7 @@ class TeknisiModulLapanganTest extends TestCase
     // Uji
     // ------------------------------------------------------------------
 
-    public function test_sembilan_modul_dapat_dibuka_dicetak_dan_diunduh_template(): void
+    public function test_tujuh_modul_dapat_dibuka_dicetak_dan_diunduh_template(): void
     {
         $session = $this->adminSession();
 
@@ -358,6 +357,25 @@ class TeknisiModulLapanganTest extends TestCase
             ->get(route('dashboard.teknisi.modul.index', ['modul' => 'pemakaian-bahan']))
             ->assertStatus(200)
             ->assertDontSee($judul, false);
+    }
+
+    /**
+     * Menu Teknisi: Master Area & Zona dihapus (ganda dengan Jadwal Area Tugas),
+     * dan Bahan Habis Pakai tampil tepat setelah Inventaris & Aset.
+     */
+    public function test_menu_teknisi_tanpa_master_area_dengan_bhp_setelah_inventaris(): void
+    {
+        $menu = \App\Support\TeknisiModuleRegistry::menu();
+
+        $this->assertArrayNotHasKey('area-master', \App\Support\TeknisiModuleRegistry::all());
+
+        $master = array_column($menu['master'], 'label');
+        $this->assertContains('Inventaris & Aset', $master);
+        $this->assertContains('Bahan Habis Pakai', $master);
+
+        $iAset = array_search('Inventaris & Aset', $master, true);
+        $iBhp  = array_search('Bahan Habis Pakai', $master, true);
+        $this->assertSame($iAset + 1, $iBhp, 'Bahan Habis Pakai harus tepat setelah Inventaris & Aset.');
     }
 
     public function test_modul_tidak_dikenal_ditolak_route(): void

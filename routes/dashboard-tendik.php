@@ -414,7 +414,7 @@ return function () {
         // =====================================================================
         // MODUL TEKNISI LAPANGAN (generik, cakupan PJ ruang)
         // =====================================================================
-        $modulLapangan = 'area-master|inspeksi-utilitas|apar-k3|pest-control|higiene-kantin|pemakaian-bahan'
+        $modulLapangan = 'inspeksi-utilitas|apar-k3|pest-control|higiene-kantin|pemakaian-bahan'
             . '|usulan-pengadaan|aset-mutasi';
 
         Route::prefix('modul/{modul}')->name('modul.')->where(['modul' => $modulLapangan])->group(function () {

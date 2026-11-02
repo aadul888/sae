@@ -911,11 +911,6 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
                     <span class="nav-label">Inventaris &amp; Aset</span>
                 </a>
-                <a href="{{ route('dashboard.sarpras.persediaan.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.persediaan*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-packing"></i></span>
-                    <span class="nav-label">Barang Habis Pakai</span>
-                </a>
                 @if ($can('menu_sarpras') || $can('menu_laboran'))
                     <a href="{{ route('dashboard.laboran.bhp.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}">
@@ -923,6 +918,11 @@
                         <span class="nav-label">Bahan Habis Pakai</span>
                     </a>
                 @endif
+                <a href="{{ route('dashboard.sarpras.persediaan.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.persediaan*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-packing"></i></span>
+                    <span class="nav-label">Barang Habis Pakai</span>
+                </a>
                 <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
