@@ -46,10 +46,14 @@ class LaboranBhpController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $context = LaboranScope::resolve($user);
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete')
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete');
 
         $search        = trim($request->query('q', ''));
         $labFilter     = trim($request->query('lab', ''));

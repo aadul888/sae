@@ -46,6 +46,14 @@
                                 <span class="nav-label">Barang Habis Pakai</span>
                             </a>
                         @endif
+                        @if ($can('menu_sarpras') || $can('menu_laboran'))
+                            <a href="{{ route('dashboard.laboran.bhp.index') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-vials"></i></span>
+                                <span class="nav-label">Bahan Habis Pakai</span>
+                            </a>
+                        @endif
                         @if ($can('menu_sarpras_peminjaman') || $can('menu_sarpras'))
                             <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
                                 class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
