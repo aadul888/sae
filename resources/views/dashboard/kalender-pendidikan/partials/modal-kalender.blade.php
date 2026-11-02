@@ -177,3 +177,7 @@
 
                     <div style="display: flex; justify-content: flex-end;">
                         <button type="button" id="btnTutupView" class="btn btn-outline"
+                            style="padding: 7px 18px; font-size: var(--text-base, 0.875rem);">Tutup</button>
+                    </div>
+                </div>
+            </div>

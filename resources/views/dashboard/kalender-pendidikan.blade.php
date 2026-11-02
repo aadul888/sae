@@ -890,14 +890,11 @@
                     </div>
                 @endif
             </div>
-            <!-- End Tampilan Tabel -->
+        </div>
+        <!-- End Tampilan Tabel -->
 
-            @include('dashboard.kalender-pendidikan.partials.modal-kalender')
-                            style="padding: 7px 18px; font-size: var(--text-base, 0.875rem);">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        @endsection
+        @include('dashboard.kalender-pendidikan.partials.modal-kalender')
+    @endsection
 
         @push('scripts')
             <script
