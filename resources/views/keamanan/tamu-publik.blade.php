@@ -184,6 +184,14 @@
                                                     @if (!empty($item->instansi_asal))
                                                         <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">{{ $item->instansi_asal }}</span>
                                                     @endif
+                                                    @if (!empty($item->jabatan_tamu))
+                                                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">({{ $item->jabatan_tamu }})</span>
+                                                    @endif
+                                                    @if (!empty($item->ada_surat_tugas))
+                                                        <span style="font-size: var(--text-2xs, 0.65rem); background: rgba(16,185,129,0.15); color: var(--success, #10b981); padding: 1px 6px; border-radius: var(--radius-xs, 3px); font-weight: 600;" title="No. {{ $item->nomor_surat_tugas }}">
+                                                            <i class="fas fa-file-circle-check me-1"></i>Surat Tugas
+                                                        </span>
+                                                    @endif
                                                 @elseif ($item->jenis_tamu === 'alumni')
                                                     <span style="font-size: var(--text-2xs, 0.7rem); background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); padding: 1px 7px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                                         Alumni
@@ -305,7 +313,7 @@
     </div>
 @endsection
 
-@push('styles')
+@section('styles')
     <style>
         .service-list {
             list-style: none;
@@ -319,4 +327,4 @@
             gap: 8px;
         }
     </style>
-@endpush
+@endsection

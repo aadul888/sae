@@ -53,12 +53,42 @@ window.closeModalQr = function () {
 window.toggleManualOrtuSection = function () {
     const jenis = document.getElementById('tamu_jenis');
     const sectionOrtu = document.getElementById('manualSectionOrtu');
-    if (!jenis || !sectionOrtu) return;
+    const sectionKedinasan = document.getElementById('manualSectionKedinasan');
+    const kedinasanId = document.getElementById('manualKedinasanIdentitas');
+    if (!jenis) return;
 
     if (jenis.value === 'orang_tua') {
-        sectionOrtu.style.display = 'block';
+        if (sectionOrtu) sectionOrtu.style.display = 'block';
+        if (sectionKedinasan) sectionKedinasan.style.display = 'none';
+        if (kedinasanId) kedinasanId.style.display = 'none';
+        window.toggleManualSuratTugas(false);
+    } else if (jenis.value === 'kedinasan') {
+        if (sectionOrtu) sectionOrtu.style.display = 'none';
+        if (sectionKedinasan) sectionKedinasan.style.display = 'block';
+        if (kedinasanId) kedinasanId.style.display = 'grid';
     } else {
-        sectionOrtu.style.display = 'none';
+        if (sectionOrtu) sectionOrtu.style.display = 'none';
+        if (sectionKedinasan) sectionKedinasan.style.display = 'none';
+        if (kedinasanId) kedinasanId.style.display = 'none';
+        window.toggleManualSuratTugas(false);
+    }
+};
+
+window.toggleManualSuratTugas = function (show) {
+    const box = document.getElementById('manualBoxSuratDetail');
+    const nomorInp = document.getElementById('manual_nomor_surat');
+    const tglInp = document.getElementById('manual_tanggal_surat');
+    const radioYa = document.getElementById('manualRadioSuratYa');
+    const radioTidak = document.getElementById('manualRadioSuratTidak');
+
+    if (show) {
+        if (box) box.style.display = 'block';
+        if (radioYa) radioYa.checked = true;
+    } else {
+        if (box) box.style.display = 'none';
+        if (radioTidak) radioTidak.checked = true;
+        if (nomorInp) nomorInp.value = '';
+        if (tglInp) tglInp.value = '';
     }
 };
 
@@ -72,7 +102,7 @@ window.lookupManualStudent = function () {
     const nisn = nisnInput ? nisnInput.value.trim() : '';
 
     if (!nik && !nisn) {
-        if (feedback) feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-exclamation-triangle me-1"></i> Masukkan NIK Ortu atau NISN/NIK Siswa.</span>';
+        if (feedback) feedback.innerHTML = '<span style="color:#b45309;"><i class="fas fa-exclamation-triangle me-1"></i> Masukkan Nama, NISN/NIK Siswa, atau NIK Ortu.</span>';
         return;
     }
 
@@ -97,22 +127,32 @@ window.lookupManualStudent = function () {
         }
 
         if (data.found && data.students && data.students.length > 0) {
-            const st = data.students[0];
             const namaSiswaInput = document.getElementById('tamu_nama_siswa');
             const rombelInput = document.getElementById('tamu_rombel_siswa');
             const pdIdInput = document.getElementById('tamu_pd_id');
             const tamuNamaInput = document.getElementById('tamu_nama');
 
-            if (namaSiswaInput) namaSiswaInput.value = st.nama;
-            if (rombelInput) rombelInput.value = st.nama_rombel || '';
-            if (pdIdInput) pdIdInput.value = st.peserta_didik_id || '';
+            if (data.students.length === 1) {
+                const st = data.students[0];
+                if (namaSiswaInput) namaSiswaInput.value = st.nama;
+                if (rombelInput) rombelInput.value = st.nama_rombel || '';
+                if (pdIdInput) pdIdInput.value = st.peserta_didik_id || '';
 
-            if (data.suggested_parent_name && tamuNamaInput && !tamuNamaInput.value.trim()) {
-                tamuNamaInput.value = data.suggested_parent_name;
-            }
+                if (data.suggested_parent_name && tamuNamaInput && !tamuNamaInput.value.trim()) {
+                    tamuNamaInput.value = data.suggested_parent_name;
+                }
 
-            if (feedback) {
-                feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Ditemukan: ${st.nama} (${st.nama_rombel || '-'})</span>`;
+                if (feedback) {
+                    feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Ditemukan: ${st.nama} (${st.nama_rombel || '-'})</span>`;
+                }
+            } else {
+                let picks = data.students.slice(0, 5).map(s => {
+                    return `<button type="button" class="btn btn-sm btn-outline" style="font-size:11px; padding:2px 8px; margin:2px;" onclick="window.pickManualStudent('${encodeURIComponent(s.peserta_didik_id)}', '${encodeURIComponent(s.nama)}', '${encodeURIComponent(s.nama_rombel || '')}')">${s.nama} (${s.nama_rombel || '-'})</button>`;
+                }).join(' ');
+
+                if (feedback) {
+                    feedback.innerHTML = `<div style="color:#047857; font-size:11px; margin-bottom:4px;">Ditemukan ${data.students.length} siswa, klik untuk pilih:</div><div>${picks}</div>`;
+                }
             }
         } else {
             if (feedback) {
@@ -129,6 +169,25 @@ window.lookupManualStudent = function () {
             feedback.innerHTML = '<span style="color:#b91c1c;"><i class="fas fa-exclamation-circle me-1"></i> Gagal memeriksa data siswa.</span>';
         }
     });
+};
+
+window.pickManualStudent = function (pdIdEnc, namaEnc, rombelEnc) {
+    const pdId = decodeURIComponent(pdIdEnc);
+    const nama = decodeURIComponent(namaEnc);
+    const rombel = decodeURIComponent(rombelEnc);
+
+    const namaSiswaInput = document.getElementById('tamu_nama_siswa');
+    const rombelInput = document.getElementById('tamu_rombel_siswa');
+    const pdIdInput = document.getElementById('tamu_pd_id');
+    const feedback = document.getElementById('manualLookupFeedback');
+
+    if (namaSiswaInput) namaSiswaInput.value = nama;
+    if (rombelInput) rombelInput.value = rombel;
+    if (pdIdInput) pdIdInput.value = pdId;
+
+    if (feedback) {
+        feedback.innerHTML = `<span style="color:#047857; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Terpilih: ${nama} (${rombel || '-'})</span>`;
+    }
 };
 
 window.editTamu = function (data) {
@@ -160,6 +219,8 @@ window.editTamu = function (data) {
     setVal('tamu_nama_siswa', data.nama_siswa);
     setVal('tamu_rombel_siswa', data.rombel_siswa);
     setVal('tamu_nama', data.nama_tamu);
+    setVal('manual_nip_tamu', data.nip_tamu);
+    setVal('manual_jabatan_tamu', data.jabatan_tamu);
     setVal('tamu_instansi', data.instansi_asal);
     setVal('tamu_kontak', data.nomor_kontak);
     setVal('tamu_tujuan', data.tujuan_bertemu);
@@ -167,6 +228,14 @@ window.editTamu = function (data) {
     setVal('tamu_kartu', data.nomor_kartu_visitor);
     setVal('tamu_nopol', data.nomor_polisi_kendaraan);
     setVal('tamu_status', data.status || 'berada_di_lokasi');
+
+    if (data.ada_surat_tugas) {
+        window.toggleManualSuratTugas(true);
+        setVal('manual_nomor_surat', data.nomor_surat_tugas);
+        setVal('manual_tanggal_surat', data.tanggal_surat_tugas);
+    } else {
+        window.toggleManualSuratTugas(false);
+    }
 
     const feedback = document.getElementById('manualLookupFeedback');
     if (feedback) feedback.innerHTML = '';

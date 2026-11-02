@@ -356,20 +356,20 @@
                     <div id="manualSectionOrtu" style="display: none; background: rgba(2, 132, 199, 0.05); border: 1px dashed var(--primary, #0284c7); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <span style="font-weight: 700; font-size: 11px; color: var(--primary, #0284c7);">
-                                <i class="fas fa-search me-1"></i> Deteksi Siswa (NIK Ortu atau NISN)
+                                <i class="fas fa-search me-1"></i> Deteksi Siswa (Nama, NISN, atau NIK)
                             </span>
-                            <span style="font-size: 10px; color: var(--text-muted);">Ketik & klik Cek</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">Ketik nama/NISN & klik Cari</span>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: flex-end;">
                             <div>
-                                <label style="font-size: 10px; font-weight: 600;">NIK Orang Tua</label>
-                                <input type="text" id="manual_nik_ortu" name="nik_tamu" class="form-control" style="font-size: 12px; height: 34px;" placeholder="16 Digit NIK Ortu">
+                                <label style="font-size: 10px; font-weight: 600;">Nama Lengkap / NISN Siswa</label>
+                                <input type="text" id="manual_nisn_siswa" name="nisn_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Ketik nama atau NISN...">
                             </div>
                             <div>
-                                <label style="font-size: 10px; font-weight: 600;">NISN / NIK Siswa</label>
-                                <input type="text" id="manual_nisn_siswa" name="nisn_siswa" class="form-control" style="font-size: 12px; height: 34px;" placeholder="NISN atau NIK Siswa">
+                                <label style="font-size: 10px; font-weight: 600;">Atau NIK Orang Tua</label>
+                                <input type="text" id="manual_nik_ortu" name="nik_tamu" class="form-control" style="font-size: 12px; height: 34px;" placeholder="16 Digit NIK Ortu">
                             </div>
-                            <button type="button" class="btn btn-outline" id="btnManualCekSiswa" onclick="lookupManualStudent()" aria-label="Cek siswa" title="Cek siswa" style="height: 34px; padding: 0 12px; font-size: 12px;">
+                            <button type="button" class="btn btn-outline" id="btnManualCekSiswa" onclick="lookupManualStudent()" aria-label="Cari siswa" title="Cari siswa" style="height: 34px; padding: 0 12px; font-size: 12px;">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -387,10 +387,59 @@
                         </div>
                     </div>
 
+                    {{-- Section Surat Tugas untuk Tamu Kedinasan --}}
+                    <div id="manualSectionKedinasan" style="display: none; background: rgba(6, 182, 212, 0.05); border: 1px dashed var(--accent, #06b6d4); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 700; font-size: 11px; color: var(--accent, #06b6d4);">
+                                <i class="fas fa-file-lines me-1"></i> Surat Tugas Kedinasan
+                            </span>
+                            <span style="font-size: 10px; color: var(--text-muted);">Pilih jika membawa surat</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px;">Apakah Membawa Surat Tugas?</label>
+                            <div style="display: flex; gap: 14px; font-size: 12px;">
+                                <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <input type="radio" name="ada_surat_tugas" value="1" id="manualRadioSuratYa" onchange="toggleManualSuratTugas(true)">
+                                    <span><i class="fas fa-check text-success me-1"></i> Ya, Ada</span>
+                                </label>
+                                <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <input type="radio" name="ada_surat_tugas" value="0" id="manualRadioSuratTidak" checked onchange="toggleManualSuratTugas(false)">
+                                    <span><i class="fas fa-times text-muted me-1"></i> Tidak Ada</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="manualBoxSuratDetail" style="display: none; padding-top: 8px; border-top: 1px dashed rgba(6, 182, 212, 0.3);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <label style="font-size: 10px; font-weight: 600;">Nomor Surat Tugas</label>
+                                    <input type="text" name="nomor_surat_tugas" id="manual_nomor_surat" class="form-control" style="font-size: 12px; height: 34px;" placeholder="Contoh: 800/123/Disdik/2026">
+                                </div>
+                                <div>
+                                    <label style="font-size: 10px; font-weight: 600;">Tanggal Surat</label>
+                                    <input type="date" name="tanggal_surat_tugas" id="manual_tanggal_surat" class="form-control" style="font-size: 12px; height: 34px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="margin-bottom: 12px;">
                         <label class="form-label">Nama Tamu <span style="color:red;">*</span></label>
                         <input type="text" name="nama_tamu" id="tamu_nama" class="form-control"
                             placeholder="Nama lengkap tamu" required>
+                    </div>
+
+                    {{-- NIP & Jabatan Tamu Kedinasan Satpam --}}
+                    <div id="manualKedinasanIdentitas" style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label class="form-label">NIP Tamu (Opsional)</label>
+                            <input type="text" name="nip_tamu" id="manual_nip_tamu" class="form-control"
+                                placeholder="18 digit NIP pegawai">
+                        </div>
+                        <div>
+                            <label class="form-label">Jabatan (Opsional)</label>
+                            <input type="text" name="jabatan_tamu" id="manual_jabatan_tamu" class="form-control"
+                                placeholder="Contoh: Pengawas, Kasi Kurikulum">
+                        </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">

@@ -25,24 +25,35 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-                <button type="button" class="btn btn-outline" id="btnOpenTataTertibModal" title="Tambah Aturan Tata Tertib"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-book-bookmark text-primary"></i>
-                </button>
-                <button type="button" class="btn btn-primary" id="btnOpenPoinModal" title="Catat Pelanggaran Poin Siswa"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--danger, #ef4444); border-color: var(--danger, #ef4444);">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </button>
-                <button type="button" class="btn btn-outline" id="btnOpenPembinaanModal"
-                    title="Catat Sesi Pembinaan Konseling"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-user-doctor text-success"></i>
-                </button>
-                <button type="button" class="btn btn-outline" id="btnOpenPanggilanModal"
-                    title="Terbitkan Surat Panggilan Wali"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-envelope-open-text text-warning"></i>
-                </button>
+                @if ($activeTab === 'tata_tertib')
+                    <button type="button" class="btn btn-outline" id="btnOpenImportTatibModal" title="Import Aturan Tata Tertib (Excel/CSV)"
+                        style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px);">
+                        <i class="fas fa-file-excel text-success"></i> <span>Import Excel</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnOpenTataTertibModal" title="Tambah Aturan Tata Tertib"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px);">
+                        <i class="fas fa-plus"></i> <span>Tambah Aturan</span>
+                    </button>
+                @else
+                    <button type="button" class="btn btn-outline" id="btnOpenTataTertibModal" title="Tambah Aturan Tata Tertib"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                        <i class="fas fa-book-bookmark text-primary"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnOpenPoinModal" title="Catat Pelanggaran Poin Siswa"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--danger, #ef4444); border-color: var(--danger, #ef4444);">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnOpenPembinaanModal"
+                        title="Catat Sesi Pembinaan Konseling"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                        <i class="fas fa-user-doctor text-success"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnOpenPanggilanModal"
+                        title="Terbitkan Surat Panggilan Wali"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                        <i class="fas fa-envelope-open-text text-warning"></i>
+                    </button>
+                @endif
             @endif
         </div>
     </div>
@@ -150,9 +161,19 @@
                     @if ($activeTab === 'riwayat' || $activeTab === 'poin')
                         <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Status Tindak Lanjut</option>
-                            <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="proses" {{ $status === 'proses' ? 'selected' : '' }}>Proses</option>
-                            <option value="selesai" {{ $status === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <option value="pending" {{ ($status ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="proses" {{ ($status ?? '') === 'proses' ? 'selected' : '' }}>Proses</option>
+                            <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        </select>
+                    @endif
+
+                    @if ($activeTab === 'tata_tertib')
+                        <select id="filterKategori" name="kategori" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Kategori</option>
+                            <option value="kerapian" {{ ($kategori ?? '') === 'kerapian' ? 'selected' : '' }}>Kerapian</option>
+                            <option value="kehadiran" {{ ($kategori ?? '') === 'kehadiran' ? 'selected' : '' }}>Kehadiran</option>
+                            <option value="perilaku" {{ ($kategori ?? '') === 'perilaku' ? 'selected' : '' }}>Perilaku</option>
+                            <option value="larangan_berat" {{ ($kategori ?? '') === 'larangan_berat' ? 'selected' : '' }}>Larangan Berat</option>
                         </select>
                     @endif
 
@@ -238,6 +259,13 @@
                                     <i class="fas fa-folder-open"
                                         style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada aturan tata tertib yang cocok dengan pencarian.
+                                    @if ($canCreate)
+                                        <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: center;">
+                                            <button type="button" class="btn btn-outline" onclick="document.getElementById('btnOpenImportTatibModal')?.click()" style="border-radius: var(--radius-md, 8px);">
+                                                <i class="fas fa-file-excel text-success"></i> Import Excel / CSV
+                                            </button>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @endforelse
@@ -843,6 +871,68 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL 5: IMPORT TATA TERTIB -->
+    @if ($canCreate)
+        <div id="modalImportTataTertib" class="modal-backdrop"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem);">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">Import Aturan Tata Tertib</h3>
+                            <p style="margin: 2px 0 0 0; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Unggah berkas Excel / CSV aturan tata tertib &amp; poin</p>
+                        </div>
+                    </div>
+                    <button type="button" class="close-modal" data-target="#modalImportTataTertib"
+                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;" aria-label="Tutup">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 14px; padding: 12px 14px; border-radius: var(--radius-md, 8px); background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); font-size: var(--text-xs, 0.75rem); color: var(--text-color);">
+                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
+                        <i class="fas fa-circle-info"></i> Format Kolom Excel:
+                    </div>
+                    <div><code>kode</code>, <code>kategori</code>, <code>nama_aturan</code>, <code>bobot_poin</code>, <code>sanksi_rekomendasi</code></div>
+                    <div style="margin-top: 4px; color: var(--text-muted);">Kategori: <em>kerapian</em>, <em>kehadiran</em>, <em>perilaku</em>, <em>larangan_berat</em>. Aturan dengan kode yang sama akan diperbarui otomatis.</div>
+                </div>
+
+                <div style="margin-bottom: 16px; padding: 10px 14px; border-radius: var(--radius-md, 8px); background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div>
+                        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color);">Belum punya format?</div>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Unduh template contoh resmi (.xlsx)</div>
+                    </div>
+                    <a href="{{ route('dashboard.kesiswaan.kedisiplinan.tatib.template') }}" class="btn btn-outline"
+                        style="padding: 6px 12px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 6px; border-color: var(--success, #10b981); color: var(--success, #10b981); text-decoration: none;">
+                        <i class="fas fa-download"></i> Unduh Template
+                    </a>
+                </div>
+
+                <form id="formImportTataTertib" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.tatib.import') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+                            Pilih Berkas Excel / CSV <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" name="file_excel" class="form-control" accept=".xlsx,.xls,.csv,.txt" required
+                            style="width: 100%; border-radius: var(--radius-md, 8px); padding: 8px 12px;">
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" class="btn btn-outline close-modal" data-target="#modalImportTataTertib"
+                            style="border-radius: var(--radius-md, 8px);">Batal</button>
+                        <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-md, 8px); background: var(--success, #10b981); border-color: var(--success, #10b981);">
+                            <i class="fas fa-cloud-arrow-up"></i> Unggah &amp; Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

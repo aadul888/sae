@@ -90,10 +90,16 @@ class KeamananBukuTamuController extends Controller
             'jam_masuk' => 'required',
             'jenis_tamu' => 'nullable|string|max:50',
             'nomor_kontak' => 'nullable|string|max:30',
+            'nip_tamu' => 'nullable|string|max:50',
+            'jabatan_tamu' => 'nullable|string|max:150',
+            'ada_surat_tugas' => 'nullable|in:0,1',
+            'nomor_surat_tugas' => 'nullable|string|max:150',
+            'tanggal_surat_tugas' => 'nullable|date',
         ]);
 
         $user = session('user');
         $ptkId = $user['ptk_id'] ?? null;
+        $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
 
         DB::table('keamanan_buku_tamu')->insert([
             'tanggal' => $request->tanggal,
@@ -102,11 +108,16 @@ class KeamananBukuTamuController extends Controller
             'nama_tamu' => $request->nama_tamu,
             'jenis_tamu' => $request->jenis_tamu ?: 'umum',
             'nik_tamu' => $request->nik_tamu ?: null,
+            'nip_tamu' => $request->nip_tamu ?: null,
+            'jabatan_tamu' => $request->jabatan_tamu ?: null,
             'peserta_didik_id' => $request->peserta_didik_id ?: null,
             'nisn_siswa' => $request->nisn_siswa ?: null,
             'nama_siswa' => $request->nama_siswa ?: null,
             'rombel_siswa' => $request->rombel_siswa ?: null,
             'instansi_asal' => $request->instansi_asal ?: null,
+            'ada_surat_tugas' => $adaSurat ? 1 : 0,
+            'nomor_surat_tugas' => $adaSurat ? ($request->nomor_surat_tugas ?: null) : null,
+            'tanggal_surat_tugas' => $adaSurat ? ($request->tanggal_surat_tugas ?: null) : null,
             'nomor_kontak' => $request->nomor_kontak ?: null,
             'tujuan_bertemu' => $request->tujuan_bertemu,
             'keperluan' => $request->keperluan,
@@ -131,7 +142,14 @@ class KeamananBukuTamuController extends Controller
             'tanggal' => 'required|date',
             'jam_masuk' => 'required',
             'jenis_tamu' => 'nullable|string|max:50',
+            'nip_tamu' => 'nullable|string|max:50',
+            'jabatan_tamu' => 'nullable|string|max:150',
+            'ada_surat_tugas' => 'nullable|in:0,1',
+            'nomor_surat_tugas' => 'nullable|string|max:150',
+            'tanggal_surat_tugas' => 'nullable|date',
         ]);
+
+        $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
 
         DB::table('keamanan_buku_tamu')->where('id', $id)->update([
             'tanggal' => $request->tanggal,
@@ -140,11 +158,16 @@ class KeamananBukuTamuController extends Controller
             'nama_tamu' => $request->nama_tamu,
             'jenis_tamu' => $request->jenis_tamu ?: 'umum',
             'nik_tamu' => $request->nik_tamu ?: null,
+            'nip_tamu' => $request->nip_tamu ?: null,
+            'jabatan_tamu' => $request->jabatan_tamu ?: null,
             'peserta_didik_id' => $request->peserta_didik_id ?: null,
             'nisn_siswa' => $request->nisn_siswa ?: null,
             'nama_siswa' => $request->nama_siswa ?: null,
             'rombel_siswa' => $request->rombel_siswa ?: null,
             'instansi_asal' => $request->instansi_asal ?: null,
+            'ada_surat_tugas' => $adaSurat ? 1 : 0,
+            'nomor_surat_tugas' => $adaSurat ? ($request->nomor_surat_tugas ?: null) : null,
+            'tanggal_surat_tugas' => $adaSurat ? ($request->tanggal_surat_tugas ?: null) : null,
             'nomor_kontak' => $request->nomor_kontak ?: null,
             'tujuan_bertemu' => $request->tujuan_bertemu,
             'keperluan' => $request->keperluan,
@@ -251,7 +274,14 @@ class KeamananBukuTamuController extends Controller
             'nama_siswa' => 'nullable|string|max:200',
             'rombel_siswa' => 'nullable|string|max:100',
             'peserta_didik_id' => 'nullable|string|max:50',
+            'nip_tamu' => 'nullable|string|max:50',
+            'jabatan_tamu' => 'nullable|string|max:150',
+            'ada_surat_tugas' => 'nullable|in:0,1',
+            'nomor_surat_tugas' => 'nullable|required_if:ada_surat_tugas,1|string|max:150',
+            'tanggal_surat_tugas' => 'nullable|required_if:ada_surat_tugas,1|date',
         ]);
+
+        $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
 
         $id = DB::table('keamanan_buku_tamu')->insertGetId([
             'tanggal' => date('Y-m-d'),
@@ -260,11 +290,16 @@ class KeamananBukuTamuController extends Controller
             'nama_tamu' => $request->nama_tamu,
             'jenis_tamu' => $request->jenis_tamu,
             'nik_tamu' => $request->nik_tamu ?: null,
+            'nip_tamu' => $request->nip_tamu ?: null,
+            'jabatan_tamu' => $request->jabatan_tamu ?: null,
             'peserta_didik_id' => $request->peserta_didik_id ?: null,
             'nisn_siswa' => $request->nisn_siswa ?: null,
             'nama_siswa' => $request->nama_siswa ?: null,
             'rombel_siswa' => $request->rombel_siswa ?: null,
             'instansi_asal' => $request->instansi_asal ?: ($request->jenis_tamu === 'orang_tua' ? 'Orang Tua / Wali Siswa' : null),
+            'ada_surat_tugas' => $adaSurat ? 1 : 0,
+            'nomor_surat_tugas' => $adaSurat ? ($request->nomor_surat_tugas ?: null) : null,
+            'tanggal_surat_tugas' => $adaSurat ? ($request->tanggal_surat_tugas ?: null) : null,
             'nomor_kontak' => $request->nomor_kontak ?: null,
             'tujuan_bertemu' => $request->tujuan_bertemu,
             'keperluan' => $request->keperluan,
@@ -302,7 +337,8 @@ class KeamananBukuTamuController extends Controller
     public function checkStudentApi(Request $request)
     {
         $nikOrtu = preg_replace('/[^0-9]/', '', (string) $request->get('nik_ortu', ''));
-        $nisnSiswa = preg_replace('/[^0-9]/', '', (string) $request->get('nisn_siswa', ''));
+        $rawQuery = trim((string) $request->get('nisn_siswa', ''));
+        $numericQuery = preg_replace('/[^0-9]/', '', $rawQuery);
 
         $students = collect();
         $suggestedParentName = null;
@@ -339,23 +375,36 @@ class KeamananBukuTamuController extends Controller
             }
         }
 
-        // 2. Deteksi melalui NISN atau NIK Siswa
-        if ($nisnSiswa !== '') {
-            $siswaByNisn = DB::table('peserta_didik')
-                ->where(function ($q) use ($nisnSiswa) {
-                    $q->where('nisn', $nisnSiswa)
-                        ->orWhere('nik', $nisnSiswa)
-                        ->orWhere('nipd', $nisnSiswa);
-                })
-                ->select('peserta_didik_id', 'nama', 'nisn', 'nik', 'nama_rombel', 'nama_ayah', 'nama_ibu', 'nama_wali')
-                ->get();
+        // 2. Deteksi melalui NISN, NIK, NIPD, atau Nama Siswa
+        if ($rawQuery !== '') {
+            $siswaQuery = DB::table('peserta_didik')
+                ->select('peserta_didik_id', 'nama', 'nisn', 'nik', 'nama_rombel', 'nama_ayah', 'nama_ibu', 'nama_wali');
 
-            if ($siswaByNisn->isNotEmpty()) {
-                $students = $students->merge($siswaByNisn);
-                if (!$suggestedParentName) {
-                    $firstPd = $siswaByNisn->first();
-                    $suggestedParentName = $firstPd->nama_ayah ?: ($firstPd->nama_ibu ?: $firstPd->nama_wali);
-                    $matchedRole = $firstPd->nama_ayah ? 'Orang Tua (Ayah)' : ($firstPd->nama_ibu ? 'Orang Tua (Ibu)' : 'Orang Tua / Wali');
+            if ($numericQuery !== '' && strlen($numericQuery) >= 4) {
+                $siswaQuery->where(function ($q) use ($numericQuery, $rawQuery) {
+                    $q->where('nisn', $numericQuery)
+                        ->orWhere('nik', $numericQuery)
+                        ->orWhere('nipd', $numericQuery);
+                    if (strlen($rawQuery) >= 3) {
+                        $q->orWhere('nama', 'like', '%' . $rawQuery . '%');
+                    }
+                });
+            } elseif (strlen($rawQuery) >= 3) {
+                // Pencarian berdasarkan nama siswa (minimal 3 karakter)
+                $siswaQuery->where('nama', 'like', '%' . $rawQuery . '%');
+            } else {
+                $siswaQuery = null;
+            }
+
+            if ($siswaQuery) {
+                $siswaResult = $siswaQuery->limit(10)->get();
+                if ($siswaResult->isNotEmpty()) {
+                    $students = $students->merge($siswaResult);
+                    if (!$suggestedParentName) {
+                        $firstPd = $siswaResult->first();
+                        $suggestedParentName = $firstPd->nama_ayah ?: ($firstPd->nama_ibu ?: $firstPd->nama_wali);
+                        $matchedRole = $firstPd->nama_ayah ? 'Orang Tua (Ayah)' : ($firstPd->nama_ibu ? 'Orang Tua (Ibu)' : 'Orang Tua / Wali');
+                    }
                 }
             }
         }

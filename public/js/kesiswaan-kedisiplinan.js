@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
         btnOpenTataTertib.addEventListener('click', () => openModal('#modalTataTertib'));
     }
 
+    const btnOpenImportTatib = document.getElementById('btnOpenImportTatibModal');
+    if (btnOpenImportTatib) {
+        btnOpenImportTatib.addEventListener('click', () => openModal('#modalImportTataTertib'));
+    }
+
     const btnOpenPoin = document.getElementById('btnOpenPoinModal');
     if (btnOpenPoin) {
         btnOpenPoin.addEventListener('click', () => openModal('#modalPoin'));
@@ -87,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4. Inisialisasi Handlers Form
     handleFormSubmit('formTataTertib', 'Menyimpan aturan tata tertib...');
+    handleFormSubmit('formImportTataTertib', 'Mengimpor aturan tata tertib...');
     handleFormSubmit('formPoin', 'Mencatat pelanggaran poin siswa...');
     handleFormSubmit('formPembinaan', 'Menyimpan sesi pembinaan konseling...');
 
@@ -112,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearBtn = document.getElementById("clearSearch");
     const perPageSelect = document.getElementById("perPageSelect");
     const filterStatus = document.getElementById("filterStatus");
+    const filterKategori = document.getElementById("filterKategori");
 
     function applyFilter(overrideParams = {}) {
         if (typeof window.collectDatatableUrl === "function") {
@@ -144,6 +151,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        if (filterKategori) {
+            if (filterKategori.value) {
+                url.searchParams.set("kategori", filterKategori.value);
+            } else {
+                url.searchParams.delete("kategori");
+            }
+        }
+
         url.searchParams.delete("riwayat_page");
         url.searchParams.delete("pembinaan_page");
         url.searchParams.delete("pemanggilan_page");
@@ -161,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!e.target || e.target.tagName !== "SELECT") return;
         if (
             e.target.closest("#tableDataContainer, .datatable-toolbar, .dash-table-toolbar, .card") &&
-            (e.target.id === "filterStatus" || e.target.id === "perPageSelect")
+            (e.target.id === "filterStatus" || e.target.id === "filterKategori" || e.target.id === "perPageSelect")
         ) {
             e.preventDefault();
             e.stopPropagation();

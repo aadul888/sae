@@ -185,7 +185,7 @@ document.addEventListener("click", async function (e) {
     const konfirmasi = window.Swal
         ? await Swal.fire({
               title: "Buat Akun Login?",
-              html: `Akun login akan dibuat untuk <strong>${nama}</strong>.<br><small>Username otomatis dari NIP/NIK/email, password awal dibuat acak.</small>`,
+              html: `Akun login akan dibuat untuk <strong>${nama}</strong>.<br><small>Username otomatis dari email, password awal tanggal lahir (TTTTBBHH).</small>`,
               icon: "question",
               showCancelButton: true,
               confirmButtonText: "Ya, Buat Akun",

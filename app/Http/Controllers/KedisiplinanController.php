@@ -9,6 +9,8 @@ use App\Models\KedisiplinanTataTertib;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
 use App\Services\QrCodeService;
+use App\Services\SimpleXlsxExporter;
+use App\Services\SimpleXlsxReader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
@@ -56,8 +58,13 @@ class KedisiplinanController extends Controller
         // 2. Tab: Tata Tertib
         $tataTertibQuery = KedisiplinanTataTertib::orderBy('kategori')->orderBy('kode');
         if ($q !== '' && $activeTab === 'tata_tertib') {
-            $tataTertibQuery->where('nama_aturan', 'like', "%{$q}%")
-                ->orWhere('kode', 'like', "%{$q}%");
+            $tataTertibQuery->where(function ($w) use ($q) {
+                $w->where('nama_aturan', 'like', "%{$q}%")
+                  ->orWhere('kode', 'like', "%{$q}%");
+            });
+        }
+        if ($kategori !== '' && $activeTab === 'tata_tertib') {
+            $tataTertibQuery->where('kategori', $kategori);
         }
         $tataTertibList = $tataTertibQuery->get();
 
@@ -137,6 +144,222 @@ class KedisiplinanController extends Controller
     }
 
     /**
+     * Unduh Template Excel untuk Import Tata Tertib.
+     */
+    public function downloadTemplateTataTertib()
+    {
+        $tempPath = tempnam(sys_get_temp_dir(), 'tpl_tatib_') . '.xlsx';
+
+        $headers = [
+            'kode',
+            'kategori',
+            'nama_aturan',
+            'bobot_poin',
+            'sanksi_rekomendasi',
+        ];
+
+        $sampleRows = [
+            ['KER01', 'kerapian', 'Tidak memakai seragam lengkap sesuai ketentuan hari', 5, 'Teguran lisan & pembinaan'],
+            ['KER02', 'kerapian', 'Rambut gondrong/tidak rapi atau diwarnai bagi siswa putra', 10, 'Teguran & pemotongan mandiri'],
+            ['HD01', 'kehadiran', 'Terlambat masuk sekolah lebih dari 15 menit', 5, 'Piket & tugas literasi'],
+            ['HD02', 'kehadiran', 'Meninggalkan jam pelajaran atau sekolah tanpa izin (membolos)', 20, 'Pemanggilan konseling BK & orang tua'],
+            ['PR01', 'perilaku', 'Menggunakan gawai/ponsel saat KBM tanpa izin guru', 10, 'Penyitaan sementara oleh wali kelas/BK'],
+            ['LB01', 'larangan_berat', 'Merokok atau membawa rokok/vape di lingkungan sekolah', 50, 'Surat peringatan 1 & pemanggilan orang tua'],
+            ['LB02', 'larangan_berat', 'Terlibat perkelahian, tawuran, atau tindak kekerasan fisik', 100, 'Surat peringatan keras & skorsing'],
+        ];
+
+        SimpleXlsxExporter::export($tempPath, [
+            'title'    => 'TEMPLATE IMPORT ATURAN TATA TERTIB & POIN SISWA',
+            'subtitle' => 'SISTEM ADMINISTRASI ELEKTRONIK (SAE)',
+        ], $headers, $sampleRows, [
+            'sheetName' => 'Tata Tertib',
+            'headerBg'  => '#1E3A8A',
+        ]);
+
+        return response()->download($tempPath, 'Template_Import_Tata_Tertib_SAE.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import Data Aturan Tata Tertib dari Excel/CSV.
+     */
+    public function importTataTertib(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|file|max:20480',
+        ], [
+            'file_excel.required' => 'Berkas Excel / CSV wajib diunggah.',
+            'file_excel.max'      => 'Ukuran berkas maksimal 20 MB.',
+        ]);
+
+        $file = $request->file('file_excel');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Format berkas tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.',
+            ], 422);
+        }
+
+        try {
+            $rows = SimpleXlsxReader::readFile($file->getRealPath());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal membaca berkas: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Berkas kosong atau tidak ada baris data yang terdeteksi.',
+            ], 422);
+        }
+
+        $imported = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        $maxId = KedisiplinanTataTertib::max('id') ?? 0;
+        $autoCodeIndex = $maxId + 1;
+
+        foreach ($rows as $row) {
+            $namaAturan = $this->ambilCell($row, ['nama_aturan', 'uraian', 'aturan', 'nama_pelanggaran', 'pelanggaran', 'deskripsi']);
+            if ($namaAturan === '') {
+                $skipped++;
+                continue;
+            }
+
+            $rawKode = $this->ambilCell($row, ['kode', 'kode_aturan', 'kode_tatib', 'no_aturan']);
+            if ($rawKode === '') {
+                $rawKode = 'TT' . str_pad((string)($autoCodeIndex++), 3, '0', STR_PAD_LEFT);
+            }
+
+            $rawKategori = strtolower($this->ambilCell($row, ['kategori', 'jenis', 'kelompok', 'tipe']));
+            if (str_contains($rawKategori, 'rapi')) {
+                $kategori = 'kerapian';
+            } elseif (str_contains($rawKategori, 'hadir') || str_contains($rawKategori, 'bolos') || str_contains($rawKategori, 'lambat')) {
+                $kategori = 'kehadiran';
+            } elseif (str_contains($rawKategori, 'berat')) {
+                $kategori = 'larangan_berat';
+            } else {
+                $kategori = 'perilaku';
+            }
+
+            $rawPoin = $this->ambilCell($row, ['bobot_poin', 'poin', 'bobot', 'skor']);
+            $bobotPoin = is_numeric($rawPoin) ? max(1, (int)$rawPoin) : 5;
+
+            $sanksi = $this->ambilCell($row, ['sanksi_rekomendasi', 'sanksi', 'rekomendasi_sanksi', 'tindakan']);
+
+            $existing = KedisiplinanTataTertib::where('kode', $rawKode)->first();
+            if ($existing) {
+                $existing->update([
+                    'kategori'           => $kategori,
+                    'nama_aturan'        => $namaAturan,
+                    'bobot_poin'         => $bobotPoin,
+                    'sanksi_rekomendasi' => $sanksi ?: null,
+                    'is_active'          => true,
+                ]);
+                $updated++;
+            } else {
+                KedisiplinanTataTertib::create([
+                    'kode'               => $rawKode,
+                    'kategori'           => $kategori,
+                    'nama_aturan'        => $namaAturan,
+                    'bobot_poin'         => $bobotPoin,
+                    'sanksi_rekomendasi' => $sanksi ?: null,
+                    'is_active'          => true,
+                ]);
+                $imported++;
+            }
+        }
+
+        $total = $imported + $updated;
+        if ($total === 0) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Tidak ada baris tata tertib valid yang berhasil diimpor.',
+            ], 422);
+        }
+
+        $message = "Import selesai: {$imported} aturan baru ditambahkan, {$updated} aturan diperbarui.";
+        if ($skipped > 0) {
+            $message .= " ({$skipped} baris kosong dilewati).";
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => $message,
+            'count'   => $total,
+        ]);
+    }
+
+    /**
+     * Helper ekstrak nilai sel dari baris impor secara fleksibel.
+     */
+    private function ambilCell(array $row, array $keys): string
+    {
+        foreach ($keys as $k) {
+            $clean = preg_replace('/_+/', '_', trim(preg_replace('/[^a-z0-9_]/', '_', preg_replace('/\s+/', '_', strtolower($k))), '_'));
+            foreach ([$k, $clean] as $key) {
+                if (isset($row[$key]) && trim((string)$row[$key]) !== '') {
+                    return trim((string)$row[$key]);
+                }
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Simpan Aturan Tata Tertib Baru (alias storeTatib).
+     */
+    public function storeTatib(Request $request)
+    {
+        return $this->storeTataTertib($request);
+    }
+
+    /**
+     * Update Aturan Tata Tertib.
+     */
+    public function updateTatib(Request $request, $id)
+    {
+        $item = KedisiplinanTataTertib::findOrFail($id);
+
+        $validated = $request->validate([
+            'kode'               => 'required|string|max:50|unique:kedisiplinan_tata_tertib,kode,' . $item->id,
+            'kategori'           => 'required|string|in:kerapian,kehadiran,perilaku,larangan_berat',
+            'nama_aturan'        => 'required|string|max:255',
+            'bobot_poin'         => 'required|integer|min:1',
+            'sanksi_rekomendasi' => 'nullable|string|max:255',
+        ]);
+
+        $item->update($validated);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Aturan tata tertib {$item->kode} berhasil diperbarui.",
+            'data'    => $item,
+        ]);
+    }
+
+    /**
+     * Hapus Aturan Tata Tertib.
+     */
+    public function destroyTatib($id)
+    {
+        $item = KedisiplinanTataTertib::findOrFail($id);
+        $kode = $item->kode;
+        $item->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Aturan tata tertib {$kode} berhasil dihapus.",
+        ]);
+    }
+
+    /**
      * Simpan Aturan Tata Tertib Baru.
      */
     public function storeTataTertib(Request $request)
@@ -205,6 +428,47 @@ class KedisiplinanController extends Controller
             'status' => 'success',
             'message' => "Pelanggaran siswa {$siswa->nama} ({$aturan->bobot_poin} poin) berhasil dicatat.",
             'data' => $pelanggaran,
+        ]);
+    }
+
+    /**
+     * Alias untuk storePoin.
+     */
+    public function storePelanggaran(Request $request)
+    {
+        return $this->storePoin($request);
+    }
+
+    /**
+     * Hapus Catatan Pelanggaran Siswa.
+     */
+    public function destroyPelanggaran($id)
+    {
+        $pelanggaran = KedisiplinanPelanggaran::findOrFail($id);
+        $pelanggaran->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Catatan pelanggaran berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Update Status Tindak Lanjut.
+     */
+    public function updateTindakLanjut(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status_tindak_lanjut' => 'required|string|in:pending,proses,selesai',
+        ]);
+
+        $pelanggaran = KedisiplinanPelanggaran::findOrFail($id);
+        $pelanggaran->update($validated);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Status tindak lanjut pelanggaran berhasil diperbarui.',
+            'data'    => $pelanggaran,
         ]);
     }
 

@@ -101,6 +101,38 @@ class ETamuTest extends TestCase
         $ticketResponse->assertSee('Siswa Test');
         $ticketResponse->assertSee('KODE TIKET VISITOR');
         $ticketResponse->assertSee('#VIS-');
+    }
+
+    public function test_kedinasan_guest_with_surat_tugas_can_submit(): void
+    {
+        $payload = [
+            'nama_tamu' => 'Bapak Pengawas Disdik',
+            'jenis_tamu' => 'kedinasan',
+            'instansi_asal' => 'Dinas Pendidikan',
+            'nip_tamu' => '198001012005011001',
+            'jabatan_tamu' => 'Pengawas Sekolah Madya',
+            'ada_surat_tugas' => '1',
+            'nomor_surat_tugas' => '800/123/DISDIK/2026',
+            'tanggal_surat_tugas' => '2026-11-02',
+            'nomor_kontak' => '081234567890',
+            'tujuan_bertemu' => 'Kepala Sekolah',
+            'keperluan' => 'Monev Kelembagaan',
+        ];
+
+        $response = $this->post(route('tamu.submit'), $payload);
+        $latest = DB::table('keamanan_buku_tamu')->where('nama_tamu', 'Bapak Pengawas Disdik')->latest('id')->first();
+        $this->assertNotNull($latest);
+        $this->assertEquals(1, $latest->ada_surat_tugas);
+        $this->assertEquals('800/123/DISDIK/2026', $latest->nomor_surat_tugas);
+        $this->assertEquals('198001012005011001', $latest->nip_tamu);
+        $this->assertEquals('Pengawas Sekolah Madya', $latest->jabatan_tamu);
+
+        $ticketResponse = $this->get(route('tamu.success', $latest->id));
+        $ticketResponse->assertStatus(200);
+        $ticketResponse->assertSee('800/123/DISDIK/2026');
+        $ticketResponse->assertSee('Surat Tugas:');
+        $ticketResponse->assertSee('Pengawas Sekolah Madya');
+        $ticketResponse->assertSee('198001012005011001');
 
         // Clean up
         DB::table('keamanan_buku_tamu')->where('id', $latest->id)->delete();

@@ -453,14 +453,14 @@ class GtkNonAsnController extends Controller
     {
         $peran = $this->peranUntuk($row);
 
-        // Username: NIP → NIK → email → turunan nama
-        $kandidat = array_filter([
-            trim((string) ($row->nip ?? '')),
-            trim((string) ($row->nik ?? '')),
-            trim((string) ($row->email ?? '')),
-        ]);
-
-        $dasar = $kandidat[0] ?? Str::slug($row->nama, '.') ?: 'nonasn';
+        // Username: email (utama) → NIP → NIK → turunan nama
+        $email = strtolower(trim((string) ($row->email ?? '')));
+        $dasar = ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL))
+            ? $email
+            : (array_values(array_filter([
+                trim((string) ($row->nip ?? '')),
+                trim((string) ($row->nik ?? '')),
+            ]))[0] ?? (Str::slug($row->nama, '.') ?: 'nonasn'));
 
         $username = $dasar;
         $i = 1;
@@ -469,7 +469,9 @@ class GtkNonAsnController extends Controller
             $i++;
         }
 
-        $passwordAwal = Str::password(10, symbols: false);
+        // Password awal: tanggal lahir TTTTBBHH (contoh 1990-02-18 → 19900218)
+        $passwordAwal = self::passwordDariTanggalLahir($row->tanggal_lahir ?? null)
+            ?? Str::password(10, symbols: false);
 
         $penggunaId = (string) Str::uuid();
 
@@ -550,5 +552,37 @@ class GtkNonAsnController extends Controller
     private function nullkan(string $nilai): ?string
     {
         return $nilai === '' ? null : $nilai;
+    }
+
+    /**
+     * Bentuk password awal dari tanggal lahir dengan format TTTTBBHH (YYYYMMDD).
+     *
+     * Contoh: 1990-02-18 → 19900218. Mengembalikan null bila tanggal tak valid.
+     */
+    public static function passwordDariTanggalLahir(mixed $nilai): ?string
+    {
+        $s = trim((string) $nilai);
+        if ($s === '') {
+            return null;
+        }
+
+        // Serial date Excel.
+        if (is_numeric($s) && (float) $s > 20000 && (float) $s < 80000) {
+            $s = gmdate('Y-m-d', (int) (((float) $s - 25569) * 86400));
+        }
+
+        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})/', $s, $m)) {
+            $y = (int) $m[1]; $mo = (int) $m[2]; $d = (int) $m[3];
+        } elseif (preg_match('/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/', $s, $m)) {
+            $y = (int) $m[3]; $mo = (int) $m[2]; $d = (int) $m[1];
+        } else {
+            return null;
+        }
+
+        if (!checkdate($mo, $d, $y)) {
+            return null;
+        }
+
+        return sprintf('%04d%02d%02d', $y, $mo, $d);
     }
 }

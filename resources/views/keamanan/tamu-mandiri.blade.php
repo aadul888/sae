@@ -77,7 +77,7 @@
                             <input type="radio" name="jenis_tamu" value="alumni" required>
                             <span class="category-icon text-warning"><i class="fas fa-user-tie"></i></span>
                             <span class="category-label">Alumni</span>
-                            <span class="category-hint">Mantan siswa</span>
+                            <span class="category-hint">Siswa Lulus</span>
                         </label>
                     </div>
 
@@ -93,25 +93,25 @@
                         <span style="font-weight: 700; font-size: var(--text-xs, 0.75rem); color: var(--primary, #0ea5e9);">
                             <i class="fas fa-id-card me-1"></i> Deteksi Otomatis Siswa
                         </span>
-                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Masukkan NIK Anda atau NISN Siswa</span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Cari via Nama, NISN/NIK Siswa, atau NIK Anda</span>
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
                         <div class="input-group" style="margin-bottom: 0;">
-                            <label class="input-label" for="input_nik_ortu">NIK Orang Tua / Wali</label>
-                            <input type="text" id="input_nik_ortu" name="nik_tamu" class="input-field"
-                                placeholder="16 digit NIK Anda..." maxlength="16" inputmode="numeric" autocomplete="off">
-                        </div>
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <label class="input-label" for="input_nisn_siswa">Atau NISN / NIK Siswa</label>
+                            <label class="input-label" for="input_nisn_siswa">Nama Lengkap / NISN / NIK Siswa</label>
                             <div style="display: flex; gap: 6px;">
                                 <input type="text" id="input_nisn_siswa" name="nisn_siswa" class="input-field"
-                                    placeholder="NISN / NIK siswa..." maxlength="16" inputmode="numeric" autocomplete="off">
+                                    placeholder="Ketik nama atau NISN/NIK..." maxlength="100" autocomplete="off">
                                 <button type="button" id="btnCekSiswa" class="btn btn-primary"
-                                    style="padding: 0 12px; font-size: var(--text-xs, 0.75rem); white-space: nowrap;" title="Cek Otomatis">
-                                    <i class="fas fa-search me-1"></i> Cek
+                                    style="padding: 0 12px; font-size: var(--text-xs, 0.75rem); white-space: nowrap;" title="Cari Siswa">
+                                    <i class="fas fa-search me-1"></i> Cari
                                 </button>
                             </div>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label" for="input_nik_ortu">Atau NIK Orang Tua / Wali</label>
+                            <input type="text" id="input_nik_ortu" name="nik_tamu" class="input-field"
+                                placeholder="16 digit NIK Anda..." maxlength="16" inputmode="numeric" autocomplete="off">
                         </div>
                     </div>
 
@@ -148,6 +148,60 @@
                     <label class="input-label" for="tamu_instansi">Instansi / Lembaga Asal</label>
                     <input type="text" name="instansi_asal" id="tamu_instansi" class="input-field"
                         placeholder="Contoh: Dinas Pendidikan, PT Mitra, Umum...">
+                </div>
+
+                {{-- Khusus Tamu Kedinasan: NIP & Jabatan (Opsional) --}}
+                <div id="sectionKedinasanIdentitas" style="display: none; margin-bottom: 10px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label" for="tamu_nip">NIP (Opsional)</label>
+                            <input type="text" name="nip_tamu" id="tamu_nip" class="input-field"
+                                placeholder="18 digit NIP pegawai..." maxlength="30" inputmode="numeric">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label class="input-label" for="tamu_jabatan">Jabatan (Opsional)</label>
+                            <input type="text" name="jabatan_tamu" id="tamu_jabatan" class="input-field"
+                                placeholder="Contoh: Pengawas Sekolah, Kasi Kurikulum, Staf...">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Khusus Tamu Kedinasan: Konfirmasi Surat Tugas --}}
+                <div id="sectionKedinasanSurat" class="student-lookup-box" style="display: none; background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.25);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                        <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--accent, #06b6d4);">
+                            <i class="fas fa-file-lines me-1"></i> Surat Tugas Kedinasan
+                        </span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Pilih jika membawa surat tugas resmi</span>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <label class="input-label">Apakah Tersedia Surat Tugas?</label>
+                        <div style="display: flex; gap: 12px; margin-top: 4px;">
+                            <label class="surat-tugas-radio" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs, 0.78rem); font-weight: 600; padding: 6px 14px; border: 1px solid var(--border-glass, rgba(255,255,255,0.15)); border-radius: var(--radius-md, 8px); background: var(--card-bg, rgba(255,255,255,0.03));">
+                                <input type="radio" name="ada_surat_tugas" value="1" id="radioSuratYa" style="accent-color: var(--primary, #0ea5e9);">
+                                <span><i class="fas fa-circle-check text-success me-1"></i> Ya, Ada</span>
+                            </label>
+                            <label class="surat-tugas-radio" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs, 0.78rem); font-weight: 600; padding: 6px 14px; border: 1px solid var(--border-glass, rgba(255,255,255,0.15)); border-radius: var(--radius-md, 8px); background: var(--card-bg, rgba(255,255,255,0.03));">
+                                <input type="radio" name="ada_surat_tugas" value="0" id="radioSuratTidak" checked style="accent-color: var(--primary, #0ea5e9);">
+                                <span><i class="fas fa-circle-xmark text-muted me-1"></i> Tidak Ada</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="boxDetailSuratTugas" style="display: none; padding-top: 10px; border-top: 1px dashed rgba(6, 182, 212, 0.25);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label class="input-label" for="nomor_surat_tugas">Nomor Surat Tugas <span style="color:var(--danger, #ef4444);">*</span></label>
+                                <input type="text" name="nomor_surat_tugas" id="nomor_surat_tugas" class="input-field"
+                                    placeholder="Contoh: 800/123/Disdik/2026">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label class="input-label" for="tanggal_surat_tugas">Tanggal Surat Tugas <span style="color:var(--danger, #ef4444);">*</span></label>
+                                <input type="date" name="tanggal_surat_tugas" id="tanggal_surat_tugas" class="input-field">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
@@ -204,21 +258,21 @@
     </div>
 @endsection
 
-@push('styles')
+@section('styles')
     <style>
         .category-step {
-            border: 2px solid rgba(14, 165, 233, 0.35);
-            background: linear-gradient(180deg, rgba(14, 165, 233, 0.10), rgba(14, 165, 233, 0.02));
+            border: 2px solid rgba(14, 165, 233, 0.45);
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.12), rgba(14, 165, 233, 0.03));
             border-radius: var(--radius-xl, 16px);
             padding: 16px;
             margin-bottom: 1.25rem;
             position: relative;
-            box-shadow: 0 6px 24px rgba(14, 165, 233, 0.12);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
         }
         .category-step.answered {
-            border-color: rgba(16, 185, 129, 0.4);
-            background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
-            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.10), rgba(16, 185, 129, 0.02));
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
         }
         .category-step-head {
             display: flex;
@@ -228,14 +282,14 @@
         }
         .category-step-num {
             flex: 0 0 auto;
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.05rem;
+            font-size: var(--text-md, 1rem);
             color: #fff;
             background: linear-gradient(135deg, #0ea5e9, #06b6d4);
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
@@ -254,7 +308,7 @@
         .category-step-tag {
             margin-left: auto;
             align-self: flex-start;
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.65rem);
             font-weight: 800;
             letter-spacing: 0.06em;
             color: #fff;
@@ -275,31 +329,35 @@
         }
         .category-option {
             cursor: pointer;
-            border: 2px solid var(--border-glass, rgba(255, 255, 255, 0.14));
+            border: 2px solid var(--border-glass, rgba(255, 255, 255, 0.12));
             border-radius: var(--radius-lg, 12px);
             padding: 14px 10px;
             text-align: center;
             transition: all 0.18s ease;
-            background: var(--card-bg, rgba(255, 255, 255, 0.05));
+            background: var(--card-bg, rgba(255, 255, 255, 0.04));
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
             position: relative;
+            user-select: none;
         }
         .category-option:hover {
             border-color: var(--primary, #0ea5e9);
             transform: translateY(-2px);
+            background: rgba(14, 165, 233, 0.08);
         }
         .category-option input[type="radio"] {
             position: absolute;
             opacity: 0;
+            width: 0;
+            height: 0;
             pointer-events: none;
         }
         .category-option.active {
             border-color: var(--primary, #0ea5e9);
-            background: rgba(14, 165, 233, 0.14);
+            background: rgba(14, 165, 233, 0.16);
             color: var(--primary, #0ea5e9);
             font-weight: 700;
             transform: translateY(-2px);
@@ -312,19 +370,25 @@
             position: absolute;
             top: 6px;
             right: 8px;
-            font-size: 0.95rem;
+            font-size: var(--text-md, 0.95rem);
             color: var(--primary, #0ea5e9);
         }
         .category-icon {
-            font-size: 1.5rem;
+            font-size: var(--text-2xl, 1.6rem);
+            line-height: 1;
+            margin-bottom: 2px;
         }
         .category-label {
-            font-size: var(--text-xs, 0.78rem);
+            font-size: var(--text-xs, 0.8rem);
             line-height: 1.2;
             font-weight: 700;
+            color: var(--text-heading);
+        }
+        .category-option.active .category-label {
+            color: var(--primary, #0ea5e9);
         }
         .category-hint {
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.68rem);
             color: var(--text-muted);
             line-height: 1.1;
         }
@@ -387,7 +451,7 @@
             color: var(--text-muted, #94a3b8);
         }
     </style>
-@endpush
+@endsection
 
 @section('scripts')
     <script>

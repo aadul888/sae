@@ -414,9 +414,9 @@ class TeknisiModulLapanganTest extends TestCase
         $this->assertNotNull($pel, 'Pemakaian bahan harus tercatat di Jurnal Pelaksanaan.');
         $this->assertStringContainsString($subjek, $pel->area);
 
-        // Tampil di jurnal pelaksanaan.
+        // Tampil di jurnal pelaksanaan (cari agar tak bergantung paginasi).
         $this->withSession($session)
-            ->get(route('dashboard.teknisi.pelaksanaan-harian.index'))
+            ->get(route('dashboard.teknisi.pelaksanaan-harian.index', ['q' => $subjek]))
             ->assertStatus(200)
             ->assertSee($subjek, false);
 

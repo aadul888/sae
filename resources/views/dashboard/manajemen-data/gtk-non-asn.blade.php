@@ -604,7 +604,8 @@
                             style="display: flex; align-items: center; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); cursor: pointer;">
                             <input type="checkbox" name="buat_akun" value="1" checked
                                 style="width: 16px; height: 16px; accent-color: var(--primary);">
-                            <span>Buatkan <strong>akun login</strong> otomatis untuk setiap data yang diimpor</span>
+                            <span>Buatkan <strong>akun login</strong> otomatis untuk setiap data yang diimpor
+                                <br><small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Username = email, password awal = tanggal lahir (TTTTBBHH, mis. 1990-02-18 → 19900218).</small></span>
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 10px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); cursor: pointer;">

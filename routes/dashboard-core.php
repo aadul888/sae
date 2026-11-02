@@ -308,6 +308,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // 3. Kluster Kedisiplinan (Tata Tertib, Poin, Riwayat, Pembinaan, Pemanggilan Wali, Tindak Lanjut, Rekap)
         Route::prefix('kedisiplinan')->name('kedisiplinan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\KedisiplinanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
+            Route::get('/tatib/template', [\App\Http\Controllers\KedisiplinanController::class, 'downloadTemplateTataTertib'])->name('tatib.template')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
+            Route::post('/tatib/import', [\App\Http\Controllers\KedisiplinanController::class, 'importTataTertib'])->name('tatib.import')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::post('/tatib', [\App\Http\Controllers\KedisiplinanController::class, 'storeTatib'])->name('tatib.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
             Route::put('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'updateTatib'])->name('tatib.update')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
             Route::delete('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyTatib'])->name('tatib.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');

@@ -19,6 +19,44 @@ document.addEventListener('DOMContentLoaded', function () {
     const formFields = document.getElementById('formFields');
     let selectedCategory = null;
 
+    const sectionKedinasanSurat = document.getElementById('sectionKedinasanSurat');
+    const sectionKedinasanIdentitas = document.getElementById('sectionKedinasanIdentitas');
+    const inputNipTamu = document.getElementById('tamu_nip');
+    const inputJabatanTamu = document.getElementById('tamu_jabatan');
+    const radioSuratYa = document.getElementById('radioSuratYa');
+    const radioSuratTidak = document.getElementById('radioSuratTidak');
+    const boxDetailSuratTugas = document.getElementById('boxDetailSuratTugas');
+    const inputNomorSurat = document.getElementById('nomor_surat_tugas');
+    const inputTanggalSurat = document.getElementById('tanggal_surat_tugas');
+
+    function toggleSuratTugas(show) {
+        if (!boxDetailSuratTugas) return;
+        if (show) {
+            boxDetailSuratTugas.style.display = 'block';
+            if (inputNomorSurat) inputNomorSurat.required = true;
+            if (inputTanggalSurat) inputTanggalSurat.required = true;
+        } else {
+            boxDetailSuratTugas.style.display = 'none';
+            if (inputNomorSurat) {
+                inputNomorSurat.required = false;
+                inputNomorSurat.value = '';
+            }
+            if (inputTanggalSurat) {
+                inputTanggalSurat.required = false;
+                inputTanggalSurat.value = '';
+            }
+        }
+    }
+
+    if (radioSuratYa && radioSuratTidak) {
+        radioSuratYa.addEventListener('change', function () {
+            if (this.checked) toggleSuratTugas(true);
+        });
+        radioSuratTidak.addEventListener('change', function () {
+            if (this.checked) toggleSuratTugas(false);
+        });
+    }
+
     // 1. Kategori Tamu — wajib pilih sebelum isi field lain
     categoryOptions.forEach(opt => {
         opt.addEventListener('click', function () {
@@ -38,9 +76,23 @@ document.addEventListener('DOMContentLoaded', function () {
             if (val === 'orang_tua') {
                 if (sectionOrangTua) sectionOrangTua.style.display = 'block';
                 if (groupInstansi) groupInstansi.style.display = 'none';
+                if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'none';
+                if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'none';
+                toggleSuratTugas(false);
+            } else if (val === 'kedinasan') {
+                if (sectionOrangTua) sectionOrangTua.style.display = 'none';
+                if (groupInstansi) groupInstansi.style.display = 'block';
+                if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'block';
+                if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'block';
+                if (hiddenPdId) hiddenPdId.value = '';
+                if (manualNamaSiswa) manualNamaSiswa.value = '';
+                if (manualRombelSiswa) manualRombelSiswa.value = '';
             } else {
                 if (sectionOrangTua) sectionOrangTua.style.display = 'none';
                 if (groupInstansi) groupInstansi.style.display = 'block';
+                if (sectionKedinasanSurat) sectionKedinasanSurat.style.display = 'none';
+                if (sectionKedinasanIdentitas) sectionKedinasanIdentitas.style.display = 'none';
+                toggleSuratTugas(false);
                 if (hiddenPdId) hiddenPdId.value = '';
                 if (manualNamaSiswa) manualNamaSiswa.value = '';
                 if (manualRombelSiswa) manualRombelSiswa.value = '';
@@ -194,8 +246,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (inputNisnSiswa) {
         inputNisnSiswa.addEventListener('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            if (this.value.length >= 10) {
+            const val = this.value.trim();
+            // Auto search jika >= 3 huruf untuk nama atau >= 8 digit untuk NISN/NIK
+            if (val.length >= 3) {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(doCheckStudent, 500);
             }

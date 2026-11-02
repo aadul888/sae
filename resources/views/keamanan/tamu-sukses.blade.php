@@ -55,6 +55,30 @@
                     </div>
                 @endif
 
+                @if (!empty($tamu->nip_tamu) || !empty($tamu->jabatan_tamu))
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                        <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">NIP &amp; Jabatan:</span>
+                        <span style="color: var(--text-heading); font-weight: 700; text-align: right;">
+                            {{ $tamu->jabatan_tamu ?: '-' }}
+                            @if (!empty($tamu->nip_tamu))
+                                <br><small style="color: var(--text-muted); font-family: var(--font-family-mono, monospace);">NIP: {{ $tamu->nip_tamu }}</small>
+                            @endif
+                        </span>
+                    </div>
+                @endif
+
+                @if (!empty($tamu->ada_surat_tugas))
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
+                        <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Surat Tugas:</span>
+                        <span style="color: var(--text-heading); font-weight: 700; text-align: right;">
+                            No. {{ $tamu->nomor_surat_tugas }}
+                            @if (!empty($tamu->tanggal_surat_tugas))
+                                <br><small style="color: var(--text-muted); font-weight: normal;">(Tgl: {{ \Carbon\Carbon::parse($tamu->tanggal_surat_tugas)->translatedFormat('d M Y') }})</small>
+                            @endif
+                        </span>
+                    </div>
+                @endif
+
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm, 0.8rem); gap: 12px;">
                     <span style="color: var(--text-muted); font-weight: 600; flex-shrink: 0;">Tujuan Bertemu:</span>
                     <span style="color: var(--text-heading); font-weight: 700; text-align: right;">{{ $tamu->tujuan_bertemu }}</span>

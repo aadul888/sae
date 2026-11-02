@@ -193,9 +193,9 @@ class TeknisiTupoksiTest extends TestCase
         $this->assertSame(now()->toDateString(), (string) $pel->tanggal);
         $this->assertStringContainsString($nama, $pel->area);
 
-        // Baris muncul di Jurnal Pelaksanaan.
+        // Baris muncul di Jurnal Pelaksanaan (cari agar tak bergantung paginasi).
         $this->withSession($session)
-            ->get(route('dashboard.teknisi.pelaksanaan-harian.index'))
+            ->get(route('dashboard.teknisi.pelaksanaan-harian.index', ['q' => $nama]))
             ->assertStatus(200)
             ->assertSee($nama, false);
     }
