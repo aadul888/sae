@@ -159,6 +159,11 @@ abstract class TeknisiBaseController extends Controller
             if ($ptkId && $ptkColumn) {
                 $q->orWhere($p . $ptkColumn, $ptkId);
             }
+            // PJ ruang manual disimpan sebagai `pengguna_id` di kolom petugas;
+            // cocokkan juga agar teknisi tanpa `ptk_id` tetap melihat barisnya.
+            if ($userId && $ptkColumn) {
+                $q->orWhere($p . $ptkColumn, $userId);
+            }
             if ($nameColumn && $nama !== '') {
                 $q->orWhereRaw('LOWER(' . $p . $nameColumn . ') = ?', [mb_strtolower($nama)]);
             }
@@ -183,6 +188,11 @@ abstract class TeknisiBaseController extends Controller
         }
 
         if ($ptkId && $ptkColumn && (string) ($row->{$ptkColumn} ?? '') === (string) $ptkId) {
+            return true;
+        }
+
+        // PJ ruang manual disimpan sebagai `pengguna_id` di kolom petugas.
+        if ($userId && $ptkColumn && (string) ($row->{$ptkColumn} ?? '') === (string) $userId) {
             return true;
         }
 

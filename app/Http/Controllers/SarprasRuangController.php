@@ -211,6 +211,9 @@ class SarprasRuangController extends Controller
             'updated_at' => now(),
         ]);
 
+        \App\Support\TeknisiRuangSync::syncArea();
+        \App\Support\TeknisiRuangSync::syncPemeliharaan();
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['status' => 'success', 'message' => 'Ruang berhasil ditambahkan.']);
         }
@@ -254,6 +257,9 @@ class SarprasRuangController extends Controller
             'updated_at' => now(),
         ]);
 
+        \App\Support\TeknisiRuangSync::syncArea();
+        \App\Support\TeknisiRuangSync::syncPemeliharaan();
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['status' => 'success', 'message' => 'Data ruang berhasil diperbarui.']);
         }
@@ -273,6 +279,9 @@ class SarprasRuangController extends Controller
         }
 
         DB::table('sarpras_ruang')->where('id', $id)->delete();
+
+        \App\Support\TeknisiRuangSync::syncArea();
+        \App\Support\TeknisiRuangSync::syncPemeliharaan();
 
         return response()->json(['status' => 'success', 'message' => 'Ruang berhasil dihapus.']);
     }

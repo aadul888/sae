@@ -47,6 +47,9 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
+        // Jadwal area tugas = cermin ruang ber-PJ di Sarpras (satu baris/ruang).
+        \App\Support\TeknisiRuangSync::syncArea();
+
         $search       = trim((string) $request->query('q', ''));
         $jenisFilter  = trim((string) $request->query('jenis', ''));
         $statusFilter = trim((string) $request->query('status', ''));

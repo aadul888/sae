@@ -647,6 +647,74 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
+     * PJ ruang di Sarpras > Ruang & Gedung jadi baris jadwal Teknisi.
+     *
+     * Sinkron membuat satu baris Jadwal Area Tugas & Pemeliharaan per ruang
+     * ber-PJ dengan petugas = PJ, dan teknisi (via `petugas_ptk_id`) melihatnya.
+     */
+    public function test_pj_ruang_sarpras_jadi_baris_jadwal_teknisi(): void
+    {
+        if (!Table::exists('sarpras_ruang')) {
+            $this->markTestSkipped('Tabel sarpras_ruang tidak tersedia.');
+        }
+
+        $a = $this->teknisiSession(0);
+        $ptk = (string) $a['user']['ptk_id'];
+
+        $kode = 'UJI-SYNC-' . uniqid();
+        $ruangId = DB::table('sarpras_ruang')->insertGetId([
+            'kode_ruang'              => $kode,
+            'nama_ruang'              => 'Ruang Sync Uji ' . uniqid(),
+            'gedung'                  => 'Gedung Uji',
+            'penanggung_jawab_ptk_id' => $ptk,
+            'kondisi'                 => 'baik',
+            'created_at'              => now(),
+            'updated_at'              => now(),
+        ]);
+
+        try {
+            \App\Support\TeknisiRuangSync::syncArea();
+            \App\Support\TeknisiRuangSync::syncPemeliharaan();
+
+            $at = DB::table('teknisi_area_tugas')->where('ruang_id', $ruangId)->first();
+            $this->assertNotNull($at, 'Area tugas cermin ruang PJ harus dibuat.');
+            $this->assertSame($ptk, (string) $at->petugas_ptk_id);
+
+            $pm = DB::table('teknisi_pemeliharaan')->where('ruang_id', $ruangId)->first();
+            $this->assertNotNull($pm, 'Pemeliharaan cermin ruang PJ harus dibuat.');
+            $this->assertSame((string) $a['user']['nama'], (string) $pm->penanggung_jawab);
+
+            // Idempoten: sinkron ulang tak menggandakan baris.
+            \App\Support\TeknisiRuangSync::syncArea();
+            \App\Support\TeknisiRuangSync::syncPemeliharaan();
+            $this->assertSame(1, DB::table('teknisi_area_tugas')->where('ruang_id', $ruangId)->count());
+            $this->assertSame(1, DB::table('teknisi_pemeliharaan')->where('ruang_id', $ruangId)->count());
+
+            // Teknisi PJ melihat barisnya di halaman.
+            $this->withSession($a)
+                ->get(route('dashboard.teknisi.area-tugas.index'))
+                ->assertStatus(200)
+                ->assertSee($at->area, false);
+
+            // Ganti PJ ke teknisi lain → petugas bergeser.
+            $b = $this->teknisiSession(1);
+            DB::table('sarpras_ruang')->where('id', $ruangId)
+                ->update(['penanggung_jawab_ptk_id' => (string) $b['user']['ptk_id']]);
+            \App\Support\TeknisiRuangSync::syncArea();
+
+            $this->assertSame(
+                (string) $b['user']['ptk_id'],
+                (string) DB::table('teknisi_area_tugas')->where('ruang_id', $ruangId)->value('petugas_ptk_id'),
+                'Pergantian PJ harus menggeser petugas baris cermin.'
+            );
+        } finally {
+            DB::table('teknisi_area_tugas')->where('ruang_id', $ruangId)->delete();
+            DB::table('teknisi_pemeliharaan')->where('ruang_id', $ruangId)->delete();
+            DB::table('sarpras_ruang')->where('id', $ruangId)->delete();
+        }
+    }
+
+    /**
      * Regresi: cakupan berdasar PENGGUNA login, bukan PJ ruang.
      *
      * Baris yang `petugas_ptk_id`-nya milik pengguna login WAJIB muncul walau

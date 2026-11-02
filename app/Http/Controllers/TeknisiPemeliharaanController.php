@@ -40,6 +40,9 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
+        // Jadwal pemeliharaan = cermin ruang ber-PJ di Sarpras (satu baris/ruang).
+        \App\Support\TeknisiRuangSync::syncPemeliharaan();
+
         $q = $request->input('q');
         $kategori = $request->input('kategori');
         $status = $request->input('status');
