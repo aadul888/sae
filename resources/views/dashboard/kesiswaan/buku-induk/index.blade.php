@@ -25,14 +25,14 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.kesiswaan.buku-induk.cetak-rekap', request()->only(['rombel_id', 'tahun_masuk', 'status'])) }}"
                 target="_blank" class="btn btn-outline" title="Cetak Register Rekap Buku Induk"
-                style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-print"></i> <span class="d-none d-sm-inline">Cetak Register</span>
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                <i class="fas fa-print"></i>
             </a>
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnSyncBukuInduk"
                     title="Sinkronkan Seluruh Siswa ke Buku Induk & Buku Klaper"
-                    style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-rotate"></i> <span>Sinkronisasi</span>
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                    <i class="fas fa-rotate"></i>
                 </button>
             @endif
         </div>
