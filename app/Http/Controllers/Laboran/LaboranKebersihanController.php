@@ -6,6 +6,7 @@ use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Services\LaboranKebersihanImportService;
 use App\Support\LaboranScope;
+use App\Support\PeriodeLaporan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -203,10 +204,22 @@ class LaboranKebersihanController extends LaboranBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        // Cetak per bulan: `bulan` (YYYY-MM) → rentang 1..akhir bulan.
-        // Bila tidak dikirim, fallback ke `dari`/`sampai` atau bulan berjalan.
+        // Pemilih periode di halaman indeks: `periode` (+bulan/tahun/…).
+        // Bila tidak dikirim, jatuh ke `bulan` (YYYY-MM) lalu `dari`/`sampai`.
         $bulan = trim((string) $request->query('bulan', ''));
-        if (preg_match('#^\d{4}-\d{2}$#', $bulan)) {
+        if ($request->filled('periode')) {
+            $range = PeriodeLaporan::resolve(
+                (string) $request->query('periode'),
+                (int) $request->query('bulan', date('n')),
+                (int) $request->query('tahun', date('Y')),
+                (int) $request->query('triwulan', (int) ceil(date('n') / 3)),
+                (string) $request->query('semester', date('n') >= 7 ? '1' : '2'),
+                (string) $request->query('tahun_ajaran', ''),
+                $request->query('tanggal')
+            );
+            $dari   = $range['start'];
+            $sampai = $range['end'];
+        } elseif (preg_match('#^\d{4}-\d{2}$#', $bulan)) {
             $acuan  = Carbon::createFromFormat('Y-m-d', $bulan . '-01')->startOfMonth();
             $dari   = $acuan->toDateString();
             $sampai = $acuan->copy()->endOfMonth()->toDateString();

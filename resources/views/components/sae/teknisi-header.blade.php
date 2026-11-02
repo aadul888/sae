@@ -16,6 +16,9 @@
     'canImport' => false,
     'canDelete' => false,
     'bulkModul' => null,
+    'cetakPeriode' => false,
+    'cetakParams' => [],
+    'cetakTipe' => ['minggu', 'bulan', 'triwulan', 'semester', 'tahun'],
 ])
 
 @php
@@ -45,10 +48,15 @@
 
         <div class="dash-banner-actions dash-banner-access">
             @if ($cetakRoute)
-                <a href="{{ $cetakRoute }}" target="_blank" class="btn btn-outline"
-                    title="Cetak Dokumen" aria-label="Cetak Dokumen">
-                    <i class="fas fa-print"></i>
-                </a>
+                @if ($cetakPeriode)
+                    <x-sae.cetak-periode :route="$cetakRoute" :params="$cetakParams" :tipe="$cetakTipe"
+                        judul="Cetak Dokumen (pilih periode)" />
+                @else
+                    <a href="{{ $cetakRoute }}" target="_blank" class="btn btn-outline"
+                        title="Cetak Dokumen" aria-label="Cetak Dokumen">
+                        <i class="fas fa-print"></i>
+                    </a>
+                @endif
             @endif
             @if ($createRoute && $canCreate)
                 <button type="button" class="btn btn-primary" data-modal-open="{{ $modalId }}"

@@ -92,27 +92,6 @@
         .lap-rekap td.num {
             text-align: right;
         }
-
-        .bar-field {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .bar-field select,
-        .bar-field input {
-            height: 30px;
-            border-radius: var(--radius-md, 8px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 0 6px;
-            font-size: var(--text-xs, 0.75rem);
-        }
-
-        .bar-field select option {
-            color: #0f172a;
-        }
     </style>
 </head>
 
@@ -141,10 +120,8 @@
         ], $detail, $override);
 
         $tipeAktif = $range['tipe'] ?? 'bulan';
-        // Bila dokumen dibuka lewat tautan lama (dari/sampai → tipe "kustom"),
-        // pemilih periode jatuh ke "Bulanan" agar bar alat tetap konsisten.
-        $tipeForm  = array_key_exists($tipeAktif, \App\Support\PeriodeLaporan::labelTipe()) ? $tipeAktif : 'bulan';
-        $tahunOpsi = range((int) date('Y') - 3, (int) date('Y') + 2);
+        // Pemilih periode dipindah ke halaman INDEKS (dropdown cetak), jadi
+        // halaman cetak ini tidak lagi merender kontrol periode.
 
         // Paginasi dokumen (di atas kertas, bukan di peramban): maksimal 2
         // catatan per halaman agar tampilan "seperti biasa" tetap berlaku.
@@ -199,81 +176,6 @@
         <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak
         </button>
-    </div>
-
-    {{-- Pemilih periode (bukan bagian dokumen tercetak) --}}
-    <div class="no-print-bar" style="top: 62px !important;">
-        <form method="GET" action="{{ $cetakUrl() }}"
-            style="display: inline-flex; align-items: center; gap: 8px; margin: 0; flex-wrap: wrap;">
-            <input type="hidden" name="mode" value="{{ $mode }}">
-            <input type="hidden" name="orientasi" value="{{ $orientasi }}">
-
-            <span class="bar-field">
-                <label for="selPeriode" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Periode</label>
-                <select name="periode" id="selPeriode" onchange="saeTogglePeriode()">
-                    @foreach (\App\Support\PeriodeLaporan::labelTipe() as $tipe => $labelTipe)
-                        <option value="{{ $tipe }}" {{ $tipeForm === $tipe ? 'selected' : '' }}>
-                            {{ $labelTipe }}
-                        </option>
-                    @endforeach
-                </select>
-            </span>
-
-            <span class="bar-field" data-p="minggu">
-                <label for="inTanggal" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Tgl acuan</label>
-                <input type="date" name="tanggal" id="inTanggal"
-                    value="{{ request()->query('tanggal', now()->toDateString()) }}">
-            </span>
-
-            <span class="bar-field" data-p="bulan triwulan tahun">
-                <label for="inBulan" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Bulan</label>
-                <select name="bulan" id="inBulan">
-                    @foreach (range(1, 12) as $m)
-                        <option value="{{ $m }}" {{ (int) request()->query('bulan', date('n')) === $m ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
-                        </option>
-                    @endforeach
-                </select>
-            </span>
-
-            <span class="bar-field" data-p="triwulan">
-                <label for="inTW" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Triwulan</label>
-                <select name="triwulan" id="inTW">
-                    @foreach ([1 => 'I (Jan-Mar)', 2 => 'II (Apr-Jun)', 3 => 'III (Jul-Sep)', 4 => 'IV (Okt-Des)'] as $tw => $twl)
-                        <option value="{{ $tw }}" {{ (int) request()->query('triwulan', (int) ceil(date('n') / 3)) === $tw ? 'selected' : '' }}>
-                            {{ $twl }}
-                        </option>
-                    @endforeach
-                </select>
-            </span>
-
-            <span class="bar-field" data-p="semester">
-                <label for="inSem" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Semester</label>
-                <select name="semester" id="inSem">
-                    <option value="1" {{ request()->query('semester', date('n') >= 7 ? '1' : '2') === '1' ? 'selected' : '' }}>Ganjil (Jul-Des)</option>
-                    <option value="2" {{ request()->query('semester', date('n') >= 7 ? '1' : '2') === '2' ? 'selected' : '' }}>Genap (Jan-Jun)</option>
-                </select>
-            </span>
-
-            <span class="bar-field" data-p="bulan triwulan semester tahun">
-                <label for="inTahun" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">Tahun</label>
-                <select name="tahun" id="inTahun">
-                    @foreach ($tahunOpsi as $y)
-                        <option value="{{ $y }}" {{ (int) request()->query('tahun', date('Y')) === $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endforeach
-                </select>
-            </span>
-
-            <span class="bar-field" data-p="semester">
-                <label for="inTA" style="color:#e2e8f0; font-size:var(--text-xs,0.75rem);">TA</label>
-                <input type="text" name="tahun_ajaran" id="inTA" placeholder="2026/2027" style="width:96px;"
-                    value="{{ request()->query('tahun_ajaran', '') }}">
-            </span>
-
-            <button type="submit" class="btn-action btn-print">
-                <i class="fas fa-filter"></i> Terapkan
-            </button>
-        </form>
     </div>
 
     @if ($mode === 'ringkasan')
@@ -419,19 +321,6 @@
             </div>
         @endforelse
     @endif
-
-    <script>
-        function saeTogglePeriode() {
-            var sel = document.getElementById('selPeriode');
-            if (!sel) return;
-            var tipe = sel.value;
-            document.querySelectorAll('.bar-field[data-p]').forEach(function (el) {
-                var list = (el.getAttribute('data-p') || '').split(/\s+/);
-                el.style.display = list.indexOf(tipe) !== -1 ? 'inline-flex' : 'none';
-            });
-        }
-        saeTogglePeriode();
-    </script>
 
     <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>

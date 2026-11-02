@@ -11,6 +11,8 @@
         :create-route="route('dashboard.teknisi.modul.store', ['modul' => $modul])"
         :filter-route="route('dashboard.teknisi.modul.index', ['modul' => $modul])"
         :cetak-route="route('dashboard.teknisi.modul.cetak', ['modul' => $modul])"
+        :cetak-periode="true"
+        :cetak-params="['modul' => $modul]"
         import-modal-id="modalImportTeknisi"
         modal-id="modalModul"
         :stat-cards="$statCards"

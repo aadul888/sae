@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Laboran;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Support\LaboranScope;
+use App\Support\PeriodeLaporan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -220,8 +221,24 @@ class LaboranJurnalController extends LaboranBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        $dari   = (string) $request->query('dari', now()->startOfMonth()->toDateString());
-        $sampai = (string) $request->query('sampai', now()->endOfMonth()->toDateString());
+        // Pemilih periode di halaman indeks: `periode` (+bulan/tahun/…).
+        // Bila tidak dikirim, jatuh ke `dari`/`sampai` atau bulan berjalan.
+        if ($request->filled('periode')) {
+            $range = PeriodeLaporan::resolve(
+                (string) $request->query('periode'),
+                (int) $request->query('bulan', date('n')),
+                (int) $request->query('tahun', date('Y')),
+                (int) $request->query('triwulan', (int) ceil(date('n') / 3)),
+                (string) $request->query('semester', date('n') >= 7 ? '1' : '2'),
+                (string) $request->query('tahun_ajaran', ''),
+                $request->query('tanggal')
+            );
+            $dari   = $range['start'];
+            $sampai = $range['end'];
+        } else {
+            $dari   = (string) $request->query('dari', now()->startOfMonth()->toDateString());
+            $sampai = (string) $request->query('sampai', now()->endOfMonth()->toDateString());
+        }
 
         $query = DB::table('laboran_jurnal')
             ->whereBetween('tanggal', [$dari, $sampai]);

@@ -23,10 +23,9 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
-                <a href="{{ route('dashboard.laboran.jurnal.cetak', ['dari' => $dari, 'sampai' => $sampai]) }}" target="_blank" class="btn btn-outline"
-                    title="Cetak Jurnal Kegiatan" aria-label="Cetak Jurnal Kegiatan">
-                    <i class="fas fa-print"></i>
-                </a>
+                <x-sae.cetak-periode :route="route('dashboard.laboran.jurnal.cetak')"
+                    :params="array_filter(['kategori' => $kategoriFilter])"
+                    judul="Cetak Jurnal Kegiatan (pilih periode)" />
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenJurnal"
                         title="Catat Kegiatan Baru" aria-label="Catat Kegiatan Baru">

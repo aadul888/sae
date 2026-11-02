@@ -26,10 +26,8 @@
             </div>
 
             <div class="dash-banner-actions dash-banner-access">
-                <a href="{{ route('dashboard.teknisi.work-order.cetak') }}" target="_blank" class="btn btn-outline"
-                    title="Cetak Laporan Work Order">
-                    <i class="fas fa-print"></i>
-                </a>
+                <x-sae.cetak-periode :route="route('dashboard.teknisi.work-order.cetak')"
+                    judul="Cetak Laporan Work Order (pilih periode)" />
                 <button type="button" class="btn btn-outline" data-modal-open="modalImportWO"
                     title="Import Excel">
                     <i class="fas fa-file-excel text-success"></i>

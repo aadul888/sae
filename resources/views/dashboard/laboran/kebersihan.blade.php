@@ -23,10 +23,9 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
-                <a href="{{ route('dashboard.laboran.kebersihan.cetak', ['dari' => $dari, 'sampai' => $sampai]) }}" target="_blank" class="btn btn-outline"
-                    title="Cetak Dokumentasi" aria-label="Cetak Dokumentasi">
-                    <i class="fas fa-print"></i>
-                </a>
+                <x-sae.cetak-periode :route="route('dashboard.laboran.kebersihan.cetak')"
+                    tipe="bulan|triwulan|semester|tahun"
+                    judul="Cetak Dokumentasi (pilih periode)" />
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnOpenImportKebersihan"
                         title="Import Kegiatan via Excel" aria-label="Import Kegiatan via Excel">

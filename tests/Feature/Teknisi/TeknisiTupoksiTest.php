@@ -310,17 +310,25 @@ class TeknisiTupoksiTest extends TestCase
         $lengkap->assertSee('Kepala Satuan Pendidikan,', false);
     }
 
-    /** Bar alat memuat kelima pilihan periode + tautan lama (dari/sampai) tetap hidup. */
+    /**
+     * Pemilih periode hidup di halaman INDEKS (dropdown cetak), bukan lagi di
+     * halaman cetak. Halaman cetak tetap melayani seluruh nilai `periode`.
+     */
     public function test_cetak_laporan_area_tugas_memuat_pemilih_periode(): void
     {
-        $res = $this->withSession($this->adminSession())
-            ->get(route('dashboard.teknisi.laporan.cetak', [
-                'modul' => 'area-tugas', 'periode' => 'minggu', 'tanggal' => '2026-11-16',
-            ]));
-
-        $res->assertStatus(200);
+        $index = $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.area-tugas.index'));
+        $index->assertStatus(200);
         foreach (['Mingguan', 'Bulanan', 'Triwulan', 'Semester', 'Tahunan'] as $label) {
-            $res->assertSee($label, false);
+            $index->assertSee($label, false);
+        }
+
+        foreach (['minggu', 'bulan', 'triwulan', 'semester', 'tahun'] as $tipe) {
+            $res = $this->withSession($this->adminSession())
+                ->get(route('dashboard.teknisi.laporan.cetak', [
+                    'modul' => 'area-tugas', 'periode' => $tipe, 'bulan' => 11, 'tahun' => 2026,
+                ]));
+            $res->assertStatus(200);
         }
 
         $lama = $this->withSession($this->adminSession())

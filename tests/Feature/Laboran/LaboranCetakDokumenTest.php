@@ -622,11 +622,11 @@ class LaboranCetakDokumenTest extends LaboranTestCase
 
         $res->assertStatus(200);
         $res->assertSee('01 FEBRUARI 2026 S.D. 28 FEBRUARI 2026', false);
-        $res->assertSee('saePilihBulan', false);
+        $res->assertDontSee('saePilihBulan', false);
 
-        // Tanpa `bulan`, pemilih tetap tampil (bulan berjalan).
-        $this->withSession($session)->get(route('dashboard.laboran.kebersihan.cetak'))
-            ->assertStatus(200)
-            ->assertSee('saePilihBulan', false);
+        // Parameter `periode` (dari dropdown halaman indeks) juga diterima.
+        $this->withSession($session)->get(route('dashboard.laboran.kebersihan.cetak', [
+            'periode' => 'bulan', 'bulan' => 2, 'tahun' => 2026,
+        ]))->assertStatus(200);
     }
 }
