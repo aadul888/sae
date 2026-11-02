@@ -92,6 +92,9 @@ class SuratKeluarService
 
         $status     = $request->get('status', '');
         $kodeIndeks = $request->get('kode_indeks', '');
+        $bulan      = $request->get('bulan', '');
+        $tglMulai   = $request->get('tanggal_mulai', '');
+        $tglSelesai = $request->get('tanggal_selesai', '');
         $sort       = $request->get('sort', 'tanggal_surat');
         $sortDir    = strtolower($request->get('sort_dir', $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
@@ -107,6 +110,7 @@ class SuratKeluarService
                       ->orWhere('template_type', 'like', "%{$q}%");
                 });
             }
+            self::applyPeriodeFilter($tmplQuery, $bulan, $tglMulai, $tglSelesai);
             $items = $tmplQuery->orderBy('tanggal_surat', 'desc')->orderByDesc('id')->paginate($perPage)->withQueryString();
         } else {
             $query = Persuratan::where('jenis_surat', 'keluar')
@@ -129,6 +133,8 @@ class SuratKeluarService
             if ($kodeIndeks !== '') {
                 $query->where('kode_indeks', $kodeIndeks);
             }
+
+            self::applyPeriodeFilter($query, $bulan, $tglMulai, $tglSelesai);
 
             $allowedSorts = ['nomor_surat', 'tanggal_surat', 'status', 'created_at', 'tujuan_penerima'];
             if (in_array($sort, $allowedSorts)) {
@@ -160,6 +166,9 @@ class SuratKeluarService
             'tab',
             'status',
             'kodeIndeks',
+            'bulan',
+            'tglMulai',
+            'tglSelesai',
             'sort',
             'sortDir',
             'perPage',
@@ -170,6 +179,22 @@ class SuratKeluarService
             'suggestedTemplateNumber',
             'templatePresets'
         );
+    }
+
+    /**
+     * Terapkan filter bulan (1-12) dan rentang tanggal surat pada query builder.
+     */
+    private static function applyPeriodeFilter($query, ?string $bulan, ?string $tglMulai, ?string $tglSelesai): void
+    {
+        if (!empty($bulan) && $bulan !== 'semua') {
+            $query->whereMonth('tanggal_surat', (int) $bulan);
+        }
+        if (!empty($tglMulai)) {
+            $query->whereDate('tanggal_surat', '>=', $tglMulai);
+        }
+        if (!empty($tglSelesai)) {
+            $query->whereDate('tanggal_surat', '<=', $tglSelesai);
+        }
     }
 
     /**

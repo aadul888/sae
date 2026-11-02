@@ -208,6 +208,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/persuratan/masuk/{id}/disposisi', [\App\Http\Controllers\SuratMasukController::class, 'disposisi'])->name('persuratan.masuk.disposisi')->middleware('permission:menu_surat_masuk,update')->whereNumber('id');
     Route::get('/persuratan/masuk/{id}/disposisi/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakDisposisi'])->name('persuratan.masuk.disposisi.cetak')->middleware('permission:menu_surat_masuk,read')->whereNumber('id');
     Route::get('/persuratan/masuk/agenda/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakAgenda'])->name('persuratan.masuk.agenda.cetak')->middleware('permission:menu_surat_masuk,read');
+    Route::get('/persuratan/masuk/template', [\App\Http\Controllers\SuratMasukController::class, 'templateImport'])->name('persuratan.masuk.template')->middleware('permission:menu_surat_masuk,read');
+    Route::post('/persuratan/masuk/import', [\App\Http\Controllers\SuratMasukController::class, 'importExcel'])->name('persuratan.masuk.import')->middleware('permission:menu_surat_masuk,create');
 
     // 2. Surat Keluar & Surat Keterangan Siswa
     Route::get('/persuratan/keluar', [\App\Http\Controllers\SuratKeluarController::class, 'index'])->name('persuratan.keluar.index')->middleware('permission:menu_surat_keluar,read');
@@ -230,6 +232,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Tab Template Surat Keluar (Autocrat-Style)
     Route::get('/persuratan/keluar/template', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template']));
+    Route::get('/persuratan/keluar/import/template', [\App\Http\Controllers\SuratKeluarController::class, 'templateImport'])->name('persuratan.keluar.import.template')->middleware('permission:menu_surat_keluar,read');
+    Route::post('/persuratan/keluar/import', [\App\Http\Controllers\SuratKeluarController::class, 'importExcel'])->name('persuratan.keluar.import')->middleware('permission:menu_surat_keluar,create');
     Route::post('/persuratan/keluar/template', [\App\Http\Controllers\SuratKeluarController::class, 'storeTemplate'])->name('persuratan.keluar.template.store')->middleware('permission:menu_surat_keluar,create');
     Route::delete('/persuratan/keluar/template/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteTemplate'])->name('persuratan.keluar.template.delete')->middleware('permission:menu_surat_keluar,delete')->whereNumber('id');
     Route::get('/persuratan/keluar/template/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakTemplate'])->name('persuratan.keluar.template.cetak')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');

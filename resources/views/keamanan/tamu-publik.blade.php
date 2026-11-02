@@ -136,7 +136,7 @@
 
                 @if ($daftarTamu->isEmpty())
                     <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
-                        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--input-bg, rgba(255,255,255,0.05)); display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); margin-bottom: 10px;">
+                        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--input-bg, rgba(255,255,255,0.05)); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); color: var(--text-muted); margin-bottom: 10px;">
                             <i class="fas fa-clipboard-check"></i>
                         </div>
                         <div style="font-weight: 700; font-size: var(--text-sm, 0.875rem); color: var(--text-heading); margin-bottom: 4px;">
@@ -169,33 +169,33 @@
                                             </div>
                                             <div style="margin-top: 3px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                                 @if ($item->jenis_tamu === 'orang_tua')
-                                                    <span style="font-size: 0.7rem; background: rgba(14,165,233,0.15); color: #0ea5e9; padding: 1px 7px; border-radius: 4px; font-weight: 600;">
+                                                    <span style="font-size: var(--text-2xs, 0.7rem); background: rgba(14,165,233,0.15); color: #0ea5e9; padding: 1px 7px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                                         Orang Tua
                                                     </span>
                                                     @if (!empty($item->nama_siswa))
-                                                        <span style="font-size: 0.7rem; color: var(--text-muted);">
+                                                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">
                                                             (Wali dari: {{ $item->nama_siswa }})
                                                         </span>
                                                     @endif
                                                 @elseif ($item->jenis_tamu === 'kedinasan')
-                                                    <span style="font-size: 0.7rem; background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4); padding: 1px 7px; border-radius: 4px; font-weight: 600;">
+                                                    <span style="font-size: var(--text-2xs, 0.7rem); background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4); padding: 1px 7px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                                         Kedinasan
                                                     </span>
                                                     @if (!empty($item->instansi_asal))
-                                                        <span style="font-size: 0.7rem; color: var(--text-muted);">{{ $item->instansi_asal }}</span>
+                                                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">{{ $item->instansi_asal }}</span>
                                                     @endif
                                                 @elseif ($item->jenis_tamu === 'alumni')
-                                                    <span style="font-size: 0.7rem; background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); padding: 1px 7px; border-radius: 4px; font-weight: 600;">
+                                                    <span style="font-size: var(--text-2xs, 0.7rem); background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); padding: 1px 7px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                                         Alumni
                                                     </span>
                                                 @else
-                                                    <span style="font-size: 0.7rem; background: rgba(16,185,129,0.15); color: var(--success, #10b981); padding: 1px 7px; border-radius: 4px; font-weight: 600;">
+                                                    <span style="font-size: var(--text-2xs, 0.7rem); background: rgba(16,185,129,0.15); color: var(--success, #10b981); padding: 1px 7px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                                         Umum
                                                     </span>
                                                 @endif
 
                                                 @if ($item->is_mandiri)
-                                                    <span style="font-size: 0.65rem; color: var(--text-muted); background: var(--input-bg, rgba(255,255,255,0.06)); padding: 1px 5px; border-radius: 3px;">
+                                                    <span style="font-size: var(--text-2xs, 0.65rem); color: var(--text-muted); background: var(--input-bg, rgba(255,255,255,0.06)); padding: 1px 5px; border-radius: var(--radius-xs, 3px);">
                                                         <i class="fas fa-qrcode me-1"></i>Mandiri
                                                     </span>
                                                 @endif
@@ -205,21 +205,21 @@
                                             <div style="font-weight: 600; color: var(--text-heading);">
                                                 {{ $item->tujuan_bertemu }}
                                             </div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 {{ $item->keperluan }}
                                             </div>
                                         </td>
                                         <td style="padding: 12px; text-align: center; white-space: nowrap;">
                                             @if ($item->status === 'berada_di_lokasi')
-                                                <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.25); padding: 3px 10px; border-radius: var(--radius-full, 999px); font-size: 0.72rem; font-weight: 700;">
+                                                <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.25); padding: 3px 10px; border-radius: var(--radius-full, 999px); font-size: var(--text-xs, 0.72rem); font-weight: 700;">
                                                     <i class="fas fa-street-view"></i> Di Lokasi
                                                 </span>
                                             @else
-                                                <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.12); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.25); padding: 3px 10px; border-radius: var(--radius-full, 999px); font-size: 0.72rem; font-weight: 700;">
+                                                <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.12); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.25); padding: 3px 10px; border-radius: var(--radius-full, 999px); font-size: var(--text-xs, 0.72rem); font-weight: 700;">
                                                     <i class="fas fa-check"></i> Sudah Keluar
                                                 </span>
                                                 @if (!empty($item->jam_keluar))
-                                                    <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">
+                                                    <div style="font-size: var(--text-2xs, 0.68rem); color: var(--text-muted); margin-top: 2px;">
                                                         {{ substr($item->jam_keluar, 0, 5) }} WIB
                                                     </div>
                                                 @endif

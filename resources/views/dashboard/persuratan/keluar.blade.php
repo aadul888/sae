@@ -71,6 +71,11 @@
                         </a>
                     @else
                         {{-- Tab Surat Keluar (mengkoordinir semua jenis surat keluar) --}}
+                        <button type="button" class="btn btn-outline" id="btnOpenImportKeluar"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(16,185,129,0.4);"
+                            title="Import Surat Keluar via Excel">
+                            <i class="fas fa-file-excel text-success"></i>
+                        </button>
                         <button type="button" class="btn btn-outline" id="btnOpenModalSpt"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(37,99,235,0.4); color: var(--primary-hover, #2563eb);"
                             title="Terbitkan Surat Perintah Tugas (SPT)">
@@ -304,7 +309,29 @@
                             </select>
                         @endif
 
-                        @if (!empty($q) || !empty($status) || !empty($kodeIndeks))
+                        <select id="filterBulan" name="bulan" class="toolbar-filter-select"
+                            style="height: 38px; min-width: 120px;" title="Filter Bulan Surat">
+                            <option value="">Semua Bulan</option>
+                            @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
+                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>
+                                    {{ $mName }}</option>
+                            @endforeach
+                        </select>
+
+                        <div
+                            style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                            <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
+                                title="Rentang Tanggal Surat"></i>
+                            <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
+                                value="{{ $tglMulai ?? '' }}" title="Tanggal Mulai"
+                                style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
+                            <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">s.d.</span>
+                            <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
+                                value="{{ $tglSelesai ?? '' }}" title="Tanggal Selesai"
+                                style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
+                        </div>
+
+                        @if (!empty($q) || !empty($status) || !empty($kodeIndeks) || !empty($bulan) || !empty($tglMulai) || !empty($tglSelesai))
                             <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
                                 class="btn btn-outline btn-reset-filter"
                                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -746,6 +773,13 @@
         </div>
 
         @include('dashboard.persuratan.partials.modal-surat-keluar')
+
+        @include('dashboard.persuratan.partials.modal-import-persuratan', [
+            'importJenis' => 'keluar',
+            'importStoreUrl' => route('dashboard.persuratan.keluar.import'),
+            'importTemplateUrl' => route('dashboard.persuratan.keluar.import.template'),
+            'importKolom' => ['nomor_surat', 'kode_indeks', 'tujuan_penerima', 'perihal', 'tanggal_surat', 'status', 'keterangan'],
+        ])
     @endsection
 
     @push('scripts')
@@ -830,5 +864,8 @@
         </script>
         <script
             src="{{ asset('js/persuratan-keluar.js') }}?v={{ file_exists(public_path('js/persuratan-keluar.js')) ? filemtime(public_path('js/persuratan-keluar.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/persuratan-import.js') }}?v={{ file_exists(public_path('js/persuratan-import.js')) ? filemtime(public_path('js/persuratan-import.js')) : time() }}">
         </script>
     @endpush

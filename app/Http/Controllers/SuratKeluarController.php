@@ -19,6 +19,7 @@ use App\Services\SuratKeteranganService;
 use App\Services\SuratSptService;
 use App\Services\SuratTemplateService;
 use App\Services\SuratAgendaEkspedisiService;
+use App\Services\PersuratanImportService;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class SuratKeluarController extends Controller
@@ -476,5 +477,51 @@ class SuratKeluarController extends Controller
         $data = SuratAgendaEkspedisiService::buildEkspedisiData($request, $id);
 
         return view('dashboard.persuratan.cetak-ekspedisi', $data);
+    }
+
+    /**
+     * Unduh template import Surat Keluar.
+     */
+    public function templateImport(PersuratanImportService $service)
+    {
+        $path = $service->generateTemplateFile('keluar');
+
+        return response()->download($path, 'Format_Import_Surat_Keluar.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import Surat Keluar dari Excel/CSV.
+     */
+    public function importExcel(Request $request, PersuratanImportService $service)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'create')) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak berwenang mengimpor data.'], 403);
+        }
+
+        $request->validate([
+            'file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt'],
+        ], [
+            'file_excel.required' => 'Berkas Excel wajib dipilih.',
+            'file_excel.mimes'    => 'Format tidak didukung. Gunakan Excel (.xlsx/.xls) atau CSV.',
+        ]);
+
+        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Petugas')) : ($user->nama ?? ($user->name ?? 'Petugas'));
+
+        try {
+            $hasil = $service->import($request->file('file_excel'), 'keluar', $userName);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Import selesai: {$hasil['imported']} surat keluar ditambahkan, {$hasil['updated']} diperbarui, {$hasil['skipped']} dilewati.",
+            'summary' => $hasil,
+        ]);
     }
 }

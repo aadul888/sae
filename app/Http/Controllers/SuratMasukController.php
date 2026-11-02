@@ -10,6 +10,7 @@ use App\Models\RolePermission;
 use App\Models\Persuratan;
 use App\Models\PersuratanDisposisi;
 use App\Services\PersuratanHddService;
+use App\Services\PersuratanImportService;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class SuratMasukController extends Controller
@@ -47,6 +48,9 @@ class SuratMasukController extends Controller
         $q          = trim($request->get('q', ''));
         $status     = $request->get('status', '');
         $filterPtk  = $request->get('ptk_id', '');
+        $bulan      = $request->get('bulan', '');
+        $tglMulai   = $request->get('tanggal_mulai', '');
+        $tglSelesai = $request->get('tanggal_selesai', '');
         $sort       = $request->get('sort', 'tanggal_surat');
         $sortDir    = strtolower($request->get('sort_dir', $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
@@ -73,6 +77,17 @@ class SuratMasukController extends Controller
             $query->whereHas('disposisi', function ($b) use ($filterPtk) {
                 $b->where('ptk_id_tujuan', $filterPtk);
             });
+        }
+
+        // Filter bulan (1-12) dan rentang tanggal surat.
+        if ($bulan !== '' && $bulan !== 'semua') {
+            $query->whereMonth('tanggal_surat', (int) $bulan);
+        }
+        if ($tglMulai !== '') {
+            $query->whereDate('tanggal_surat', '>=', $tglMulai);
+        }
+        if ($tglSelesai !== '') {
+            $query->whereDate('tanggal_surat', '<=', $tglSelesai);
         }
 
         $allowedSorts = ['nomor_surat', 'tanggal_surat', 'tanggal_diterima', 'status', 'created_at', 'pengirim_asal'];
@@ -102,6 +117,9 @@ class SuratMasukController extends Controller
             'q',
             'status',
             'filterPtk',
+            'bulan',
+            'tglMulai',
+            'tglSelesai',
             'sort',
             'sortDir',
             'perPage',
@@ -397,5 +415,51 @@ class SuratMasukController extends Controller
         }
 
         return PersuratanHddService::downloadFile($surat->file_path, $surat->file_name_original);
+    }
+
+    /**
+     * Unduh template import Surat Masuk.
+     */
+    public function templateImport(PersuratanImportService $service)
+    {
+        $path = $service->generateTemplateFile('masuk');
+
+        return response()->download($path, 'Format_Import_Surat_Masuk.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import Surat Masuk dari Excel/CSV.
+     */
+    public function importExcel(Request $request, PersuratanImportService $service)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_masuk', 'create')) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak berwenang mengimpor data.'], 403);
+        }
+
+        $request->validate([
+            'file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt'],
+        ], [
+            'file_excel.required' => 'Berkas Excel wajib dipilih.',
+            'file_excel.mimes'    => 'Format tidak didukung. Gunakan Excel (.xlsx/.xls) atau CSV.',
+        ]);
+
+        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Petugas')) : ($user->nama ?? ($user->name ?? 'Petugas'));
+
+        try {
+            $hasil = $service->import($request->file('file_excel'), 'masuk', $userName);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Import selesai: {$hasil['imported']} surat masuk ditambahkan, {$hasil['updated']} diperbarui, {$hasil['skipped']} dilewati.",
+            'summary' => $hasil,
+        ]);
     }
 }
