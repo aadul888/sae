@@ -67,15 +67,16 @@ return function () {
         Route::post('/inventaris/bulk-delete', [\App\Http\Controllers\LaboranInventarisController::class, 'destroyBulk'])->name('inventaris.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris,delete');
 
         // Bahan Habis Pakai (BHP) — modul terpisah, jenis=bahan_habis_pakai.
-        // Dapat diakses Laboran maupun pengelola Sarpras (menu_sarpras).
-        Route::get('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'index'])->name('bhp.index')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,read');
-        Route::get('/bhp/cetak', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'cetak'])->name('bhp.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,read');
-        Route::get('/bhp/template', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'templateExcel'])->name('bhp.template')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,read');
-        Route::post('/bhp/import', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'importExcel'])->name('bhp.import')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,create');
-        Route::post('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'store'])->name('bhp.store')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,create');
-        Route::put('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'update'])->name('bhp.update')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,update');
-        Route::delete('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroy'])->name('bhp.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,delete');
-        Route::post('/bhp/bulk-delete', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroyBulk'])->name('bhp.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras,delete');
+        // Dapat diakses Laboran, pengelola Sarpras (menu_sarpras), dan Teknisi
+        // (menu_teknisi) dengan hak penuh; sidebar Teknisi menautkan ke sini.
+        Route::get('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'index'])->name('bhp.index')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,read');
+        Route::get('/bhp/cetak', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'cetak'])->name('bhp.cetak')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,read');
+        Route::get('/bhp/template', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'templateExcel'])->name('bhp.template')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,read');
+        Route::post('/bhp/import', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'importExcel'])->name('bhp.import')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,create');
+        Route::post('/bhp', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'store'])->name('bhp.store')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,create');
+        Route::put('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'update'])->name('bhp.update')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,update');
+        Route::delete('/bhp/{id}', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroy'])->name('bhp.destroy')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,delete');
+        Route::post('/bhp/bulk-delete', [\App\Http\Controllers\Laboran\LaboranBhpController::class, 'destroyBulk'])->name('bhp.bulk-delete')->middleware('permission:menu_laboran|menu_laboran_inventaris|menu_sarpras|menu_teknisi,delete');
 
         // Jadwal & Penggunaan Lab / Bengkel / Lahan / Lapangan Praktik
         Route::get('/jadwal', [\App\Http\Controllers\LaboranJadwalController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_laboran|menu_laboran_inventaris,read');
@@ -190,17 +191,18 @@ return function () {
         });
 
         // 7. Peminjaman Alat Khusus Jurusan / Laboran
+        //    Terbuka juga untuk Teknisi & pengelola Sarpras (sidebar Pelaksanaan).
         Route::prefix('peminjaman-alat')->name('peminjaman-alat.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');
-            Route::get('/template', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'templateExcel'])->name('template')->middleware('permission:menu_laboran|menu_laboran_peminjaman,read');
-            Route::post('/import', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'importExcel'])->name('import')->middleware('permission:menu_laboran|menu_laboran_peminjaman,create');
-            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_laboran,create');
-            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran,read');
-            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'show'])->name('show')->middleware('permission:menu_laboran,read');
-            Route::put('/{id}/status', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'updateStatus'])->name('status')->middleware('permission:menu_laboran,update');
-            Route::post('/{id}/kembalikan', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->name('kembalikan')->middleware('permission:menu_laboran,update');
-            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran,delete');
-            Route::post('/tandai-terlambat', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'tandaiTerlambat'])->name('tandai-terlambat')->middleware('permission:menu_laboran,update');
+            Route::get('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'index'])->name('index')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,read');
+            Route::get('/template', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'templateExcel'])->name('template')->middleware('permission:menu_laboran|menu_laboran_peminjaman|menu_teknisi|menu_sarpras,read');
+            Route::post('/import', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'importExcel'])->name('import')->middleware('permission:menu_laboran|menu_laboran_peminjaman|menu_teknisi|menu_sarpras,create');
+            Route::post('/', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,create');
+            Route::get('/cetak', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'cetak'])->name('cetak')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,read');
+            Route::get('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'show'])->name('show')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,read');
+            Route::put('/{id}/status', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'updateStatus'])->name('status')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,update');
+            Route::post('/{id}/kembalikan', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'kembalikan'])->name('kembalikan')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'destroy'])->name('destroy')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,delete');
+            Route::post('/tandai-terlambat', [\App\Http\Controllers\Laboran\LaboranPeminjamanController::class, 'tandaiTerlambat'])->name('tandai-terlambat')->middleware('permission:menu_laboran|menu_teknisi|menu_sarpras,update');
         });
 
         // 8. Laporan Lengkap Penggunaan & Kerusakan Alat

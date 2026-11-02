@@ -47,13 +47,17 @@ class LaboranBhpController extends Controller
         $context = LaboranScope::resolve($user);
 
         $canCreate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create')
-            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create');
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create')
+            || RolePermission::canAccess($user ?: $role, 'menu_teknisi', 'create');
         $canRead   = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read')
-            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read');
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_teknisi', 'read');
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update')
-            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update');
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_teknisi', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete')
-            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete');
+            || RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete')
+            || RolePermission::canAccess($user ?: $role, 'menu_teknisi', 'delete');
 
         $search        = trim($request->query('q', ''));
         $labFilter     = trim($request->query('lab', ''));

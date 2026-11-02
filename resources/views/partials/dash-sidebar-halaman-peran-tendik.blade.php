@@ -280,12 +280,12 @@
                 <a href="{{ route('dashboard.laboran.inventaris.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.inventaris*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-vials"></i></span>
+                    <span class="nav-label">Alat &amp; Bahan Lab</span>
+                </a>
                 <a href="{{ route('dashboard.laboran.bhp.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-vials"></i></span>
                     <span class="nav-label">Bahan Habis Pakai</span>
-                </a>
-                    <span class="nav-label">Alat &amp; Bahan Lab</span>
                 </a>
                 <a href="{{ route('dashboard.laboran.jadwal.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}">

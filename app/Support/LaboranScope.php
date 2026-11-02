@@ -58,9 +58,11 @@ final class LaboranScope
 
         $isAdmin = $role === 'admin';
 
-        // Pengelola Sarpras (menu_sarpras) berbagi modul Bahan Habis Pakai
-        // dengan Laboran: cakupan data tidak dibatasi jurusan.
+        // Pengelola Sarpras (menu_sarpras) dan Teknisi (menu_teknisi) berbagi
+        // modul Bahan Habis Pakai & Peminjaman dengan Laboran: cakupan data
+        // tidak dibatasi jurusan.
         $isSarpras = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_sarpras');
+        $isTeknisi = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_teknisi');
 
         $duties = collect();
         if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
@@ -106,8 +108,8 @@ final class LaboranScope
 
         $jurusanId = $jurusanIds[0] ?? null;
 
-        // Superadmin & Kepala Lab tidak dibatasi jurusan
-        $unrestricted = $isAdmin || $isKepalaLab || $isSarpras;
+        // Superadmin, Kepala Lab, Sarpras & Teknisi tidak dibatasi jurusan
+        $unrestricted = $isAdmin || $isKepalaLab || $isSarpras || $isTeknisi;
 
         // Fallback permisif: penugasan laboran belum punya jurusan
         if (!$unrestricted && $isLaboran && empty($jurusanIds)) {

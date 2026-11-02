@@ -40,6 +40,25 @@ class LaboranPeminjamanController extends LaboranBaseController
         'hilang'       => 'Hilang',
     ];
 
+    /**
+     * Hak CRUD gabungan: modul ini dipakai Laboran, Teknisi, dan pengelola
+     * Sarpras. Satu kunci yang diizinkan sudah cukup untuk menampilkan aksi,
+     * selaras dengan middleware rute (menu_laboran|menu_teknisi|menu_sarpras).
+     */
+    protected function abilities(?string $key = null): array
+    {
+        $any = fn (string $aksi) => $this->can($aksi, 'menu_laboran')
+            || $this->can($aksi, 'menu_teknisi')
+            || $this->can($aksi, 'menu_sarpras');
+
+        return [
+            'canCreate' => $any('create'),
+            'canRead'   => $any('read'),
+            'canUpdate' => $any('update'),
+            'canDelete' => $any('delete'),
+        ];
+    }
+
     public function index(Request $request)
     {
         [$res, $context] = $this->boot($request);
