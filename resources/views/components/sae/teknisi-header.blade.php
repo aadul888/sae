@@ -23,6 +23,16 @@
 
 @php
     $perPage = $perPage ?: 15;
+
+    // Tautan tindak lanjut antar menu Teknisi (bila halaman ini punya relasi),
+    // otomatis dari TeknisiModuleRegistry::relationFor — tanpa menyunting view.
+    $teknisiRelation = $teknisiRelation ?? null;
+    if ($teknisiRelation === null && str_contains((string) request()->route()->getName(), 'teknisi')) {
+        $teknisiRelation = \App\Support\TeknisiModuleRegistry::relationFor(
+            request()->route()->getName(),
+            request()->route('modul')
+        );
+    }
 @endphp
 
 @include('dashboard.laboran.partials.header-actions')
@@ -47,6 +57,12 @@
         </div>
 
         <div class="dash-banner-actions dash-banner-access">
+            @if ($teknisiRelation)
+                <a href="{{ route($teknisiRelation['route'], $teknisiRelation['params'] ?? []) }}"
+                    class="btn btn-outline" title="Lanjut ke menu terkait">
+                    <i class="fas fa-arrow-right-long me-1"></i>{{ $teknisiRelation['label'] }}
+                </a>
+            @endif
             @if ($cetakRoute)
                 @if ($cetakPeriode)
                     <x-sae.cetak-periode :route="$cetakRoute" :params="$cetakParams" :tipe="$cetakTipe"

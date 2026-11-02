@@ -352,6 +352,134 @@ final class TeknisiModuleRegistry
     }
 
     /**
+     * Tautan "tindak lanjut" untuk menu yang sedang dibuka, bila ada.
+     *
+     * Dipakai header tiap halaman modul agar alur administrasi terasa
+     * tersambung tanpa menyunting tiap view. Cocokkan berdasarkan nama route
+     * (atau `modul` untuk modul generik).
+     *
+     * @return array{label:string,route:string,params:array}|null
+     */
+    public static function relationFor(?string $routeName, ?string $modul = null): ?array
+    {
+        if (!$routeName) {
+            return null;
+        }
+
+        foreach (self::menu() as $items) {
+            foreach ($items as $item) {
+                if (empty($item['relation'])) {
+                    continue;
+                }
+                $cocok = $routeName === $item['route']
+                    && (($item['params']['modul'] ?? null) === $modul);
+                if ($cocok) {
+                    return $item['relation'];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Menu Teknisi & IT lengkap & terurut per alur — sumber tunggal untuk
+     * sidebar (3 varian) dan grid akses cepat, agar tak ada duplikasi manual.
+     *
+     * Setiap entri: ['label', 'icon', 'route', 'params', 'can', 'title',
+     * 'active' (pola routeIs), 'relation' (label tautan tindak lanjut)].
+     * `can` berupa daftar kunci izin: kosong = selalu tampil; salah satu
+     * terpenuhi = tampil.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    public static function menu(): array
+    {
+        // Modul generik (registry) dipetakan ke entrinya.
+        $modulEntry = fn (string $key, string $label = null, string $relation = null) => [
+            'label'    => $label ?? (self::all()[$key]['title'] ?? $key),
+            'icon'     => self::all()[$key]['icon'] ?? 'fas fa-circle',
+            'route'    => 'dashboard.teknisi.modul.index',
+            'params'   => ['modul' => $key],
+            'can'      => ['menu_teknisi'],
+            'active'   => 'dashboard.teknisi.modul.*',
+            'relation' => $relation
+                ? ['label' => $relation, 'route' => 'dashboard.teknisi.modul.index', 'params' => ['modul' => 'usulan-pengadaan']]
+                : null,
+        ];
+
+        return [
+            'master' => [
+                ['label' => 'Ruang & Gedung', 'icon' => 'fas fa-door-open',
+                 'route' => 'dashboard.sarpras.ruang.index', 'params' => [],
+                 'can' => ['menu_sarpras_ruang', 'menu_sarpras', 'menu_teknisi'],
+                 'active' => 'dashboard.sarpras.ruang*',
+                 'title' => 'Master pemetaan tanggung jawab ruang & gedung (diinput Administrasi Sarpras)'],
+                ['label' => 'Inventaris & Aset', 'icon' => 'fas fa-boxes-stacked',
+                 'route' => 'dashboard.sarpras.aset.index', 'params' => [],
+                 'can' => ['menu_inventaris', 'menu_sarpras'],
+                 'active' => 'dashboard.sarpras.aset*',
+                 'title' => 'Inventaris & aset sarpras sekolah'],
+                $modulEntry('area-master', 'Master Area & Zona'),
+            ],
+
+            'rencana' => [
+                ['label' => 'Jadwal Area Tugas', 'icon' => 'fas fa-clipboard-list',
+                 'route' => 'dashboard.teknisi.area-tugas.index', 'params' => [],
+                 'can' => ['menu_teknisi'],
+                 'active' => 'dashboard.teknisi.area-tugas*',
+                 'title' => 'Jadwal pembagian area tugas kebersihan (Tupoksi #1)',
+                 'relation' => ['label' => 'Pelaksanaan: Kebersihan Ruang', 'route' => 'dashboard.teknisi.kebersihan-ruang.index', 'params' => []]],
+            ],
+
+            'harian' => [
+                ['label' => 'Kebersihan Ruang', 'icon' => 'fas fa-broom',
+                 'route' => 'dashboard.teknisi.kebersihan-ruang.index', 'params' => [],
+                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.kebersihan-ruang*',
+                 'title' => 'Kebersihan lingkungan & ruang kerja (Tupoksi #2)',
+                 'relation' => ['label' => 'Tindak lanjut: Work Order', 'route' => 'dashboard.teknisi.work-order', 'params' => []]],
+                ['label' => 'Kebersihan Ruang Rapat', 'icon' => 'fas fa-people-roof',
+                 'route' => 'dashboard.teknisi.kebersihan-rapat.index', 'params' => [],
+                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.kebersihan-rapat*',
+                 'title' => 'Kebersihan lingkungan ruang rapat (Tupoksi #3)',
+                 'relation' => ['label' => 'Sarana: Sarana Kegiatan Rapat', 'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => []]],
+                ['label' => 'Sarana Kegiatan Rapat', 'icon' => 'fas fa-chair',
+                 'route' => 'dashboard.teknisi.sarana-rapat.index', 'params' => [],
+                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.sarana-rapat*',
+                 'title' => 'Laporan sarana kegiatan rapat (Tupoksi #4)'],
+            ],
+
+            'perbaikan' => [
+                ['label' => 'Work Order & Perbaikan', 'icon' => 'fas fa-wrench',
+                 'route' => 'dashboard.teknisi.work-order', 'params' => [],
+                 'can' => ['menu_teknisi_wo', 'menu_teknisi'], 'active' => 'dashboard.teknisi.work-order*',
+                 'title' => 'Tiket perbaikan bangunan, listrik, air, AC, IT, kebersihan',
+                 'relation' => ['label' => 'Arsip: Jurnal Perbaikan', 'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => []]],
+                ['label' => 'Pemeliharaan Preventif', 'icon' => 'fas fa-calendar-check',
+                 'route' => 'dashboard.teknisi.pemeliharaan', 'params' => [],
+                 'can' => ['menu_teknisi_pemeliharaan', 'menu_teknisi'], 'active' => 'dashboard.teknisi.pemeliharaan*',
+                 'title' => 'Jadwal pemeliharaan berkala',
+                 'relation' => ['label' => 'Tindak lanjut: Work Order', 'route' => 'dashboard.teknisi.work-order', 'params' => []]],
+                ['label' => 'Jurnal Perbaikan Sarpras', 'icon' => 'fas fa-screwdriver-wrench',
+                 'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => [],
+                 'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.jurnal-perbaikan*',
+                 'title' => 'Pengarsipan & laporan perbaikan sarpras (Tupoksi #5)'],
+            ],
+
+            'inspeksi' => [
+                $modulEntry('inspeksi-utilitas', 'Inspeksi Utilitas', 'Pengadaan: Usulan Pengadaan'),
+                $modulEntry('apar-k3', 'Inspeksi APAR & K3', 'Pengadaan: Usulan Pengadaan'),
+                $modulEntry('pest-control', 'Pest Control & Fogging'),
+                $modulEntry('higiene-kantin', 'Higiene Sanitasi Kantin'),
+                $modulEntry('pemakaian-bahan', 'Pemakaian Bahan Kebersihan', 'Pengadaan: Usulan Pengadaan'),
+                $modulEntry('usulan-pengadaan'),
+                $modulEntry('aset-mutasi'),
+                $modulEntry('peminjaman-ruang'),
+            ],
+        ];
+    }
+
+    /**
      * Opsi dropdown dinamis untuk sumber data master.
      *
      * @return array<string, array<int, array{id:string|int, label:string}>>
