@@ -57,8 +57,7 @@ final class TeknisiModuleRegistry
     public const GRUP = [
         'master'    => 'Master & Referensi',
         'rencana'   => 'Perencanaan Tugas',
-        'harian'    => 'Pelaksanaan Harian',
-        'perbaikan' => 'Perbaikan & Pemeliharaan',
+        'harian'    => 'Pelaksanaan',
         'inspeksi'  => 'Inspeksi & Tindak Lanjut',
     ];
 
@@ -176,7 +175,9 @@ final class TeknisiModuleRegistry
                     'lainnya'       => 'Lainnya',
                 ],
                 'jumlah' => true,
-                'persediaan' => true,
+                'bhp' => true,
+                // Pemakaian bahan dicatat juga ke Jurnal Pelaksanaan Tugas.
+                'pelaksana' => true,
             ]),
 
             'usulan-pengadaan' => [
@@ -265,8 +266,10 @@ final class TeknisiModuleRegistry
 
         $columns['kategori'] = ['label' => 'Kategori', 'type' => 'select', 'options' => $extra['kategori']];
 
-        if (!empty($extra['persediaan'])) {
-            $columns['persediaan_id'] = ['label' => 'Barang Persediaan', 'type' => 'select', 'source' => 'persediaan'];
+        if (!empty($extra['bhp'])) {
+            // Item diambil dari menu Bahan Habis Pakai (laboran_bahan_alat),
+            // bukan dari Persediaan Sarpras.
+            $columns['persediaan_id'] = ['label' => 'Bahan Habis Pakai (BHP)', 'type' => 'select', 'source' => 'bhp'];
         }
 
         $columns['subjek'] = ['label' => 'Subjek / Nama Alat', 'type' => 'string', 'required' => true];
@@ -302,6 +305,7 @@ final class TeknisiModuleRegistry
             'dateCol' => 'tanggal',
             'order'   => ['tanggal', 'desc'],
             'nameMap' => ['area_id' => 'lokasi', 'persediaan_id' => 'subjek'],
+            'pelaksana' => !empty($extra['pelaksana']),
             'stats'   => [
                 ['label' => 'Total Catatan', 'icon' => 'fas fa-clipboard-list', 'color' => $color],
                 ['label' => 'Bulan Ini', 'icon' => 'fas fa-calendar-days', 'color' => 'var(--success, #10b981)', 'month' => 'tanggal'],
@@ -400,11 +404,6 @@ final class TeknisiModuleRegistry
                  'active' => 'dashboard.sarpras.aset*',
                  'title' => 'Inventaris & aset sarpras sekolah (sumber sarana kegiatan rapat)'],
                 $modulEntry('area-master', 'Master Area & Zona'),
-                ['label' => 'Peminjaman', 'icon' => 'fas fa-hand-holding',
-                 'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
-                 'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
-                 'active' => ['dashboard.laboran.peminjaman-alat*', 'dashboard.teknisi.sarana-rapat*'],
-                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset + ceklist sarana rapat'],
             ],
 
             'rencana' => [
@@ -417,27 +416,29 @@ final class TeknisiModuleRegistry
                  'route' => 'dashboard.teknisi.pemeliharaan', 'params' => [],
                  'can' => ['menu_teknisi_pemeliharaan', 'menu_teknisi'], 'active' => 'dashboard.teknisi.pemeliharaan*',
                  'title' => 'Perencanaan jadwal pemeliharaan berkala (preventif) sarana & prasarana'],
-            ],
-
-            'harian' => [
-                ['label' => 'Jurnal Pelaksanaan Tugas', 'icon' => 'fas fa-list-check',
-                 'route' => 'dashboard.teknisi.pelaksanaan-harian.index', 'params' => [],
-                 'can' => ['menu_teknisi'],
-                 'active' => 'dashboard.teknisi.pelaksanaan-harian*',
-                 'title' => 'Konfirmasi rencana jadwal area tugas: sudah / belum dikerjakan'],
-                $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
-            ],
-
-            'perbaikan' => [
                 ['label' => 'Work Order & Perbaikan', 'icon' => 'fas fa-wrench',
                  'route' => 'dashboard.teknisi.work-order', 'params' => [],
                  'can' => ['menu_teknisi_wo', 'menu_teknisi'], 'active' => 'dashboard.teknisi.work-order*',
                  'title' => 'Tiket perbaikan bangunan, listrik, air, AC, IT, kebersihan',
                  'relation' => ['label' => 'Arsip: Jurnal Perbaikan', 'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => []]],
+            ],
+
+            'harian' => [
+                ['label' => 'Peminjaman', 'icon' => 'fas fa-hand-holding',
+                 'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
+                 'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
+                 'active' => ['dashboard.laboran.peminjaman-alat*', 'dashboard.teknisi.sarana-rapat*'],
+                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset + ceklist sarana rapat'],
+                ['label' => 'Jurnal Pelaksanaan Tugas', 'icon' => 'fas fa-list-check',
+                 'route' => 'dashboard.teknisi.pelaksanaan-harian.index', 'params' => [],
+                 'can' => ['menu_teknisi'],
+                 'active' => 'dashboard.teknisi.pelaksanaan-harian*',
+                 'title' => 'Konfirmasi rencana jadwal area tugas: sudah / belum dikerjakan'],
                 ['label' => 'Jurnal Perbaikan Sarpras', 'icon' => 'fas fa-screwdriver-wrench',
                  'route' => 'dashboard.teknisi.jurnal-perbaikan.index', 'params' => [],
                  'can' => ['menu_teknisi'], 'active' => 'dashboard.teknisi.jurnal-perbaikan*',
                  'title' => 'Jurnal Perbaikan Sarpras (tindak lanjut Work Order / tiket perbaikan)'],
+                $modulEntry('aset-mutasi', 'Mutasi Lokasi Aset'),
             ],
 
             'inspeksi' => [
@@ -460,7 +461,7 @@ final class TeknisiModuleRegistry
      */
     public static function sources(): array
     {
-        $out = ['ruang' => [], 'aset' => [], 'persediaan' => [], 'area' => []];
+        $out = ['ruang' => [], 'aset' => [], 'persediaan' => [], 'bhp' => [], 'area' => []];
 
         if (Table::exists('sarpras_ruang')) {
             $out['ruang'] = DB::table('sarpras_ruang')
@@ -486,6 +487,17 @@ final class TeknisiModuleRegistry
                 ->orderBy('nama_barang')
                 ->get()
                 ->map(fn ($r) => ['id' => $r->id, 'label' => trim($r->nama_barang . ' (' . $r->satuan . ')')])
+                ->all();
+        }
+
+        if (Table::exists('laboran_bahan_alat')) {
+            // Bahan Habis Pakai — sumber item pemakaian bahan kebersihan.
+            $out['bhp'] = DB::table('laboran_bahan_alat')
+                ->where('jenis', 'bahan_habis_pakai')
+                ->select('id', 'nama_item', 'satuan')
+                ->orderBy('nama_item')
+                ->get()
+                ->map(fn ($r) => ['id' => $r->id, 'label' => trim($r->nama_item . ($r->satuan ? ' (' . $r->satuan . ')' : ''))])
                 ->all();
         }
 

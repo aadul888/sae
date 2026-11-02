@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Teknisi;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
 use App\Support\PeriodeLaporan;
+use App\Support\Table;
 use App\Support\TeknisiModuleRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Controller generik modul TEKNISI LAPANGAN.
@@ -117,7 +119,8 @@ class TeknisiModuleController extends TeknisiBaseController
         $payload['created_at'] = now();
         $payload['updated_at'] = now();
 
-        DB::table($spec['table'])->insert($payload);
+        $logId = DB::table($spec['table'])->insertGetId($payload);
+        $this->syncPelaksana($spec, (int) $logId, $context);
 
         return $this->respond($request, true, $spec['title'] . ' berhasil disimpan.');
     }
@@ -143,6 +146,7 @@ class TeknisiModuleController extends TeknisiBaseController
         $payload['updated_at'] = now();
 
         DB::table($spec['table'])->where('id', $id)->update($payload);
+        $this->syncPelaksana($spec, (int) $id, $context);
 
         return $this->respond($request, true, $spec['title'] . ' berhasil diperbarui.');
     }
@@ -163,6 +167,10 @@ class TeknisiModuleController extends TeknisiBaseController
         }
 
         DB::table($spec['table'])->where('id', $id)->delete();
+        if (!empty($spec['pelaksana']) && Table::exists('teknisi_pelaksanaan_harian')
+            && Schema::hasColumn('teknisi_pelaksanaan_harian', 'log_harian_id')) {
+            DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $id)->delete();
+        }
 
         return $this->respond($request, true, $spec['title'] . ' berhasil dihapus.');
     }
@@ -396,7 +404,8 @@ class TeknisiModuleController extends TeknisiBaseController
             $payload['created_at'] = now();
             $payload['updated_at'] = now();
 
-            DB::table($spec['table'])->insert($payload);
+            $logId = DB::table($spec['table'])->insertGetId($payload);
+            $this->syncPelaksana($spec, (int) $logId, $context);
             $imported++;
         }
 
@@ -574,6 +583,64 @@ class TeknisiModuleController extends TeknisiBaseController
         foreach (($spec['fixed'] ?? []) as $col => $val) {
             $query->where($p . $col, $val);
         }
+    }
+
+    /**
+     * Cerminkan baris modul log (mis. Pemakaian Bahan Kebersihan) ke Jurnal
+     * Pelaksanaan Tugas.
+     *
+     * Satu baris pelaksanaan per catatan log (idempoten via `log_harian_id`),
+     * sehingga pemakaian bahan tampil & ikut cakupan PJ ruang di jurnal.
+     */
+    private function syncPelaksana(array $spec, int $logId, array $context): void
+    {
+        if (empty($spec['pelaksana'])
+            || !Table::exists('teknisi_pelaksanaan_harian')
+            || !Schema::hasColumn('teknisi_pelaksanaan_harian', 'log_harian_id')) {
+            return;
+        }
+
+        $log = DB::table($spec['table'])->where('id', $logId)->first();
+        if (!$log) {
+            return;
+        }
+
+        $ruangId = isset($log->lokasi)
+            ? $this->ruangIdDariNama($log->lokasi)
+            : null;
+        $subjek = trim((string) ($log->subjek ?? ''));
+        $jumlah = $log->jumlah ?? null;
+        $satuan = trim((string) ($log->satuan ?? ''));
+        $area = 'Pemakaian bahan: ' . ($subjek !== '' ? $subjek : 'bahan kebersihan');
+        if ($jumlah !== null && (int) $jumlah > 0) {
+            $area .= ' ' . (int) $jumlah . ($satuan !== '' ? ' ' . $satuan : '');
+        }
+
+        $payload = [
+            'ruang_id'       => $ruangId,
+            'tanggal'        => $log->tanggal ?? now()->toDateString(),
+            'shift'          => 'pagi',
+            'area'           => $area,
+            'periode_jadwal' => 'insidental',
+            'petugas_ptk_id' => $log->petugas_ptk_id ?? ($context['ptk_id'] ?? null),
+            'petugas_nama'   => $log->petugas_nama ?? ($context['nama'] ?? null),
+            'updated_at'     => now(),
+        ];
+
+        $row = DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $logId)->first();
+        if ($row) {
+            DB::table('teknisi_pelaksanaan_harian')->where('id', $row->id)->update($payload);
+
+            return;
+        }
+
+        DB::table('teknisi_pelaksanaan_harian')->insert($payload + [
+            'nomor_pelaksanaan' => $this->generateNomor('teknisi_pelaksanaan_harian', 'nomor_pelaksanaan', 'PLK'),
+            'log_harian_id'     => $logId,
+            'status'            => 'belum',
+            'user_id'           => $context['user_id'] ?? null,
+            'created_at'        => now(),
+        ]);
     }
 
     /**

@@ -44,7 +44,8 @@ class TeknisiModulLapanganTest extends TestCase
         $tables = array_merge(
             ['teknisi_area_master', 'teknisi_log_harian', 'teknisi_usulan_pengadaan',
              'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
-             'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order'],
+             'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order',
+             'teknisi_pelaksanaan_harian'],
             ['teknisi_area_tugas']
         );
 
@@ -364,6 +365,61 @@ class TeknisiModulLapanganTest extends TestCase
         $this->withSession($this->adminSession())
             ->get('/dashboard/teknisi/modul/modul-ngawur')
             ->assertStatus(404);
+    }
+
+    /**
+     * Pemakaian bahan kebersihan: item dari menu BHP, dan tiap pemakaian
+     * tercatat sebagai baris di Jurnal Pelaksanaan Tugas (idempoten).
+     */
+    public function test_pemakaian_bahan_masuk_jurnal_pelaksanaan(): void
+    {
+        $session = $this->adminSession();
+
+        $subjek = 'Sabun Pelaksanaan ' . uniqid();
+
+        $this->withSession($session)
+            ->postJson(route('dashboard.teknisi.modul.store', ['modul' => 'pemakaian-bahan']), [
+                'tanggal'  => now()->toDateString(),
+                'kategori' => 'sabun',
+                'subjek'   => $subjek,
+                'jumlah'   => 3,
+                'satuan'   => 'botol',
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $log = DB::table('teknisi_log_harian')->where('subjek', $subjek)->where('modul', 'pemakaian-bahan')->first();
+        $this->assertNotNull($log, 'Catatan pemakaian bahan tidak masuk.');
+
+        $pel = DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->first();
+        $this->assertNotNull($pel, 'Pemakaian bahan harus tercatat di Jurnal Pelaksanaan.');
+        $this->assertStringContainsString($subjek, $pel->area);
+
+        // Tampil di jurnal pelaksanaan.
+        $this->withSession($session)
+            ->get(route('dashboard.teknisi.pelaksanaan-harian.index'))
+            ->assertStatus(200)
+            ->assertSee($subjek, false);
+
+        // Ubah pemakaian → baris pelaksanaan ikut diperbarui (tidak dobel).
+        $this->withSession($session)
+            ->putJson(route('dashboard.teknisi.modul.update', ['modul' => 'pemakaian-bahan', 'id' => $log->id]), [
+                'tanggal'  => now()->toDateString(),
+                'kategori' => 'sabun',
+                'subjek'   => $subjek . ' (revisi)',
+                'jumlah'   => 5,
+                'satuan'   => 'botol',
+            ])
+            ->assertStatus(200);
+
+        $this->assertSame(1, DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->count());
+        $this->assertStringContainsString($subjek . ' (revisi)', DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->value('area'));
+
+        // Hapus pemakaian → baris pelaksanaan ikut terhapus.
+        $this->withSession($session)
+            ->deleteJson(route('dashboard.teknisi.modul.destroy', ['modul' => 'pemakaian-bahan', 'id' => $log->id]))
+            ->assertStatus(200);
+        $this->assertSame(0, DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->count());
     }
 
     /**

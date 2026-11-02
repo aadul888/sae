@@ -43,12 +43,24 @@ class TeknisiBulkDeleteController extends TeknisiBaseController
 
         $rows = DB::table($table)->whereIn('id', array_values(array_unique($data['ids'])))->get();
 
+        // Modul Pemakaian Bahan juga mencerminkan barisnya di Jurnal Pelaksanaan;
+        // hapus cermin itu saat catatan sumbernya dihapus.
+        $spec = in_array($data['modul'], TeknisiModuleRegistry::keys(), true)
+            ? TeknisiModuleRegistry::get($data['modul'])
+            : null;
+        $mirror = !empty($spec['pelaksana'])
+            && Table::exists('teknisi_pelaksanaan_harian')
+            && \Illuminate\Support\Facades\Schema::hasColumn('teknisi_pelaksanaan_harian', 'log_harian_id');
+
         $deleted = 0;
         foreach ($rows as $row) {
             if (!$this->ownsRow($row, $context, $ptkColumn)) {
                 continue;
             }
             DB::table($table)->where('id', $row->id)->delete();
+            if ($mirror) {
+                DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $row->id)->delete();
+            }
             $deleted++;
         }
 
