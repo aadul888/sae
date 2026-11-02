@@ -150,4 +150,44 @@ class GtkGelarPersistenceTest extends TestCase
         // Card hanya tampil bila pengguna berhak mengubah gelar.
         $this->assertStringContainsString("can_edit_gelar", $view);
     }
+
+    /**
+     * Seluruh dokumen cetak Laboran & Teknisi harus menampilkan nama
+     * penanda tangan BER-GELAR. Resolusi dipusatkan agar tidak tersebar.
+     */
+    public function test_laboran_dokumen_service_melengkapi_gelar_penanda_tangan(): void
+    {
+        $src = file_get_contents(app_path('Services/LaboranDokumenService.php'));
+
+        $this->assertStringContainsString('function berGelar', $src);
+        $this->assertStringContainsString('namaLengkapPtk', $src);
+        // Kepala Sekolah & pejabat tugas tambahan harus dilewatkan gelar.
+        $this->assertStringContainsString('return $this->berGelar($rows->first());', $src);
+        $this->assertStringContainsString('$this->berGelar($cocok)', $src);
+        $this->assertStringContainsString('function petugasTendik', $src);
+    }
+
+    public function test_teknisi_ttd_memakai_petugas_tendik_ber_gelar(): void
+    {
+        foreach ([
+            'Http/Controllers/TeknisiWorkOrderController.php',
+            'Http/Controllers/Teknisi/TeknisiModuleController.php',
+            'Http/Controllers/Teknisi/TeknisiTupoksiReportController.php',
+        ] as $rel) {
+            $src = file_get_contents(app_path($rel));
+            $this->assertStringContainsString(
+                'petugasTendik',
+                $src,
+                "Dokumen cetak {$rel} harus memakai petugasTendik (ber-gelar)."
+            );
+        }
+    }
+
+    public function test_berita_acara_kerusakan_melengkapi_gelar_pelapor(): void
+    {
+        $view = file_get_contents(resource_path('views/dashboard/laboran/kerusakan-cetak.blade.php'));
+
+        $this->assertStringContainsString('namaLengkapPtk', $view);
+        $this->assertStringContainsString('pelapor_ptk_id', $view);
+    }
 }

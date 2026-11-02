@@ -135,6 +135,11 @@ final class PermissionDictionary
                     'icon' => 'fa-calendar-days',
                     'roles' => ['admin'],
                 ],
+                'menu_e_izin' => [
+                    'label' => 'e-Izin Keluar-Masuk & Pulang',
+                    'icon' => 'fa-file-signature',
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                ],
             ],
 
             'Administrasi Guru' => [
@@ -540,11 +545,6 @@ final class PermissionDictionary
                 'menu_piket_izin' => [
                     'label' => 'Piket: e-Izin Keluar Masuk Siswa',
                     'icon' => 'fa-ticket-alt',
-                    'roles' => ['tugas_tambahan'],
-                ],
-                'menu_e_izin' => [
-                    'label' => 'Piket: Modul e-Izin Siswa',
-                    'icon' => 'fa-file-signature',
                     'roles' => ['tugas_tambahan'],
                 ],
                 'menu_piket_jurnal' => [

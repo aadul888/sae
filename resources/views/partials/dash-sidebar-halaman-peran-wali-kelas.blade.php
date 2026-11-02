@@ -50,5 +50,10 @@
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-check"></i></span>
             <span class="nav-label">Validasi Data</span>
         </a>
+        <a href="{{ route('dashboard.e-izin.index', ['tab' => 'wali']) }}"
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+            <span class="nav-label">e-Izin Siswa</span>
+        </a>
     </div>
 </div>

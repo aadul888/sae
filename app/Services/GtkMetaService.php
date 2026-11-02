@@ -64,6 +64,23 @@ class GtkMetaService
     }
 
     /**
+     * Nama lengkap ber-gelar untuk satu PTK (mis. "Drs. Budi Santoso, M.Pd.").
+     *
+     * Dipakai blok tanda tangan dokumen cetak; bila PTK/gelar tidak ada,
+     * mengembalikan `$nama` apa adanya.
+     */
+    public function namaLengkapPtk(?string $nama, string|int|null $ptkId): ?string
+    {
+        if (empty($ptkId)) {
+            return $nama;
+        }
+
+        $g = $this->gelar($ptkId);
+
+        return self::namaLengkap($nama, $g['gelar_depan'], $g['gelar_belakang']);
+    }
+
+    /**
      * Susun nama lengkap dengan gelar, mis. "Drs. Budi Santoso, M.Pd.".
      */
     public static function namaLengkap(?string $nama, ?string $gelarDepan, ?string $gelarBelakang): string

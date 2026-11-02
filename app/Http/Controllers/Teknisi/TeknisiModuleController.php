@@ -367,15 +367,8 @@ class TeknisiModuleController extends TeknisiBaseController
     {
         $dokumen = app(\App\Services\LaboranDokumenService::class);
 
-        $petugas = ['nama' => $context['nama'] ?? '', 'nip' => null];
-
-        $ptkId = $context['ptk_id'] ?? null;
-        if ($ptkId && \App\Support\Table::exists('gtk')) {
-            $petugas['nip'] = DB::table('gtk')->where('ptk_id', $ptkId)->value('nip') ?: null;
-        }
-
         return [
-            'petugas'       => $petugas,
+            'petugas'       => $dokumen->petugasTendik($context),
             'kepalaTas'     => $dokumen->jabatan('KEPALA_TAS'),
             'kepalaSekolah' => $dokumen->kepalaSekolah(),
         ];

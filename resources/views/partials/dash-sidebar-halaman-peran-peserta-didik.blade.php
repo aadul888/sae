@@ -43,6 +43,11 @@
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
             <span class="nav-label">Surat Izin &amp; Sakit</span>
         </a>
+        <a href="{{ route('dashboard.e-izin.index', ['tab' => 'saya']) }}"
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+            <span class="nav-label">e-Izin (Keluar &amp; Pulang)</span>
+        </a>
         <a href="{{ route('dashboard.peserta-didik.presensi.index') }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.presensi*') || request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>

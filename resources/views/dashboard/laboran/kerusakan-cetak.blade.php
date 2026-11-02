@@ -209,8 +209,11 @@
                 'Menyetujui,<br>Kepala Satuan Pendidikan,',
             ];
             // Pelapor pada berita acara adalah pihak yang menandatangani kolom pertama.
+            // Nama dilengkapi gelar (bila ada) dari `pelapor_ptk_id`.
             if (!empty($ba->pelapor_nama)) {
-                $petugas = array_merge($petugas ?? [], ['nama' => $ba->pelapor_nama]);
+                $namaPelapor = app(\App\Services\GtkMetaService::class)
+                    ->namaLengkapPtk($ba->pelapor_nama, $ba->pelapor_ptk_id ?? null);
+                $petugas = array_merge($petugas ?? [], ['nama' => $namaPelapor]);
             }
         @endphp
         @include('dashboard.laboran.partials.ttd-cetak')

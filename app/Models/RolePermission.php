@@ -408,7 +408,6 @@ class RolePermission extends Model
             'menu_piket',
             'menu_berkas_peserta_didik',
             'menu_perubahan_data',
-            'menu_e_izin',
         ];
 
         foreach ($dutyPrefixes as $prefix) {

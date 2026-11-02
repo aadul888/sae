@@ -1357,8 +1357,8 @@
                     </a>
                 @endif
                 @if ($can('menu_e_izin') || $can('menu_piket'))
-                    <a href="{{ route('dashboard.piket.izin.index') }}"
-                        class="dash-nav-sublink {{ request()->routeIs('dashboard.piket.izin*') ? 'active' : '' }}">
+                    <a href="{{ route('dashboard.e-izin.index', ['tab' => 'piket']) }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') || request()->routeIs('dashboard.piket.izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-ticket-alt"></i></span>
                         <span class="nav-label">e-Izin Keluar Masuk Siswa</span>
                     </a>
@@ -1431,6 +1431,14 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
                         <span class="nav-label">Surat Izin &amp; Sakit</span>
+                    </a>
+                @endif
+
+                @if ($can('menu_e_izin') || $role === 'peserta_didik')
+                    <a href="{{ route('dashboard.e-izin.index', ['tab' => 'saya']) }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                        <span class="nav-label">e-Izin Keluar &amp; Pulang</span>
                     </a>
                 @endif
 
@@ -1573,6 +1581,14 @@
                         <span class="nav-label">Validasi Data</span>
                     </a>
                 @endif
+
+                @if ($can('menu_e_izin') || $can('menu_wali_kelas'))
+                    <a href="{{ route('dashboard.e-izin.index', ['tab' => 'wali']) }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                        <span class="nav-label">e-Izin Siswa</span>
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -1583,6 +1599,7 @@
 
         @php
             $isLayananDigitalActive =
+                request()->routeIs('dashboard.e-izin.*') ||
                 request()->routeIs('dashboard.formulir.*') ||
                 request()->routeIs('dashboard.formulir') ||
                 request()->routeIs('dashboard.pengumuman.*') ||
@@ -1658,6 +1675,14 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.pip.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
                         <span class="nav-label">Usulan &amp; Riwayat PIP</span>
+                    </a>
+                @endif
+
+                @if ($role === 'admin' || $canRole('menu_e_izin') || $can('menu_e_izin'))
+                    <a href="{{ route('dashboard.e-izin.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                        <span class="nav-label">e-Izin Siswa</span>
                     </a>
                 @endif
             </div>

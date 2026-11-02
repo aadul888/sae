@@ -76,8 +76,7 @@ class LaboranDokumenService
      *   kepalaSekolah:?object, kepalaLab:?object, kaprog:?object, petugas:array
      * }
      */
-    public function pejabat(array $context, ?string $jurusanId = null): array
-    {
+    public function pejabat(array $context, ?string $jurusanId = null): array    {
         $jurusanId = $jurusanId ?: ($context['jurusan_id'] ?? null);
 
         return [
@@ -97,12 +96,28 @@ class LaboranDokumenService
             return null;
         }
 
-        return DB::table('gtk')
+        return $this->berGelar(DB::table('gtk')
             ->where(function ($q) {
                 $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
                   ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
             })
-            ->first(['ptk_id', 'nama', 'nip', 'nuptk']);
+            ->first(['ptk_id', 'nama', 'nip', 'nuptk']));
+    }
+
+    /**
+     * Lengkapi `nama` pejabat dengan gelar dari `gtk_meta` bila tersedia.
+     *
+     * Seluruh dokumen cetak Tendik/Laboran memakai titik ini agar nama pada
+     * blok tanda tangan konsisten ber-gelar (mis. "Drs. Budi, M.Pd.").
+     */
+    protected function berGelar(?object $pejabat): ?object
+    {
+        if ($pejabat && !empty($pejabat->nama)) {
+            $pejabat->nama = app(GtkMetaService::class)
+                ->namaLengkapPtk($pejabat->nama, $pejabat->ptk_id ?? null);
+        }
+
+        return $pejabat;
     }
 
     /**
@@ -139,12 +154,12 @@ class LaboranDokumenService
             return null;
         }
 
-        return DB::table('gtk')
+        return $this->berGelar(DB::table('gtk')
             ->where(function ($q) use ($frasa) {
                 $q->where('jenis_ptk_id_str', 'like', "%{$frasa}%")
                   ->orWhere('jabatan_ptk_id_str', 'like', "%{$frasa}%");
             })
-            ->first(['ptk_id', 'nama', 'nip', 'nuptk']);
+            ->first(['ptk_id', 'nama', 'nip', 'nuptk']));
     }
 
     /**
@@ -242,7 +257,7 @@ class LaboranDokumenService
         }
 
         if (!$jurusanId) {
-            return $rows->first();
+            return $this->berGelar($rows->first());
         }
 
         $cocok = $rows->first(fn ($r) => $this->jurusanCocok($r->jurusan_id, $jurusanId));
@@ -254,7 +269,7 @@ class LaboranDokumenService
 
         // Penugasan milik jurusan LAIN tidak boleh dipakai: dokumen resmi tidak
         // boleh mencantumkan nama pejabat dari program keahlian yang berbeda.
-        return $cocok;
+        return $cocok ? $this->berGelar($cocok) : null;
     }
 
     /**
@@ -324,7 +339,10 @@ class LaboranDokumenService
         }
 
         return [
-            'nama'   => ($context['nama'] ?? '') ?: 'Petugas Laboran',
+            'nama'   => app(GtkMetaService::class)->namaLengkapPtk(
+                ($context['nama'] ?? '') ?: 'Petugas Laboran',
+                $ptkId
+            ),
             'nip'    => $nip,
             'ptk_id' => $ptkId,
         ];
@@ -333,6 +351,29 @@ class LaboranDokumenService
     // =========================================================================
     // 2. BUNDEL DATA VIEW CETAK
     // =========================================================================
+
+    /**
+     * Identitas petugas Tendik (Teknisi/IT) untuk blok tanda tangan dokumen.
+     *
+     * Nama dilengkapi gelar dari `gtk_meta` bila tersedia; NIP diambil dari
+     * `gtk`. Dipakai modul Teknisi agar tidak menduplikasi resolusi ini.
+     *
+     * @return array{nama:string, nip:?string}
+     */
+    public function petugasTendik(array $context): array
+    {
+        $ptkId = $context['ptk_id'] ?? null;
+        $nip   = null;
+
+        if ($ptkId && Table::exists('gtk')) {
+            $nip = DB::table('gtk')->where('ptk_id', $ptkId)->value('nip') ?: null;
+        }
+
+        $nama = app(GtkMetaService::class)
+            ->namaLengkapPtk($context['nama'] ?? '', $ptkId);
+
+        return ['nama' => $nama, 'nip' => $nip];
+    }
 
     /**
      * Bundel data standar untuk seluruh view `*-cetak` Laboran.

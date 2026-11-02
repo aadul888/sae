@@ -83,6 +83,24 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'uploadFoto'])->name('profile.foto.upload');
     Route::delete('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'deleteFoto'])->name('profile.foto.delete');
 
+    // Modul e-Izin Siswa Terpadu (Alur: Siswa -> Wali Kelas -> Guru Piket -> Security)
+    Route::prefix('e-izin')->name('e-izin.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\EIzinController::class, 'index'])->name('index')->middleware('permission:menu_e_izin,read');
+        Route::post('/', [\App\Http\Controllers\EIzinController::class, 'store'])->name('store')->middleware('permission:menu_e_izin,create');
+        Route::get('/search-siswa', [\App\Http\Controllers\EIzinController::class, 'searchSiswa'])->name('search-siswa');
+        Route::get('/scan-tiket', [\App\Http\Controllers\EIzinController::class, 'scanTiket'])->name('scan-tiket');
+        Route::get('/{id}', [\App\Http\Controllers\EIzinController::class, 'show'])->name('show');
+        Route::get('/{id}/cetak', [\App\Http\Controllers\EIzinController::class, 'cetakSlip'])->name('cetak');
+        Route::post('/{id}/approve-wali', [\App\Http\Controllers\EIzinController::class, 'approveWali'])->name('approve-wali');
+        Route::post('/{id}/reject-wali', [\App\Http\Controllers\EIzinController::class, 'rejectWali'])->name('reject-wali');
+        Route::post('/{id}/approve-piket', [\App\Http\Controllers\EIzinController::class, 'approvePiket'])->name('approve-piket');
+        Route::post('/{id}/reject-piket', [\App\Http\Controllers\EIzinController::class, 'rejectPiket'])->name('reject-piket');
+        Route::post('/{id}/checkout-security', [\App\Http\Controllers\EIzinController::class, 'checkoutSecurity'])->name('checkout-security');
+        Route::post('/{id}/checkin-security', [\App\Http\Controllers\EIzinController::class, 'checkinSecurity'])->name('checkin-security');
+        Route::post('/{id}/batalkan', [\App\Http\Controllers\EIzinController::class, 'batalkan'])->name('batalkan');
+        Route::delete('/{id}', [\App\Http\Controllers\EIzinController::class, 'destroy'])->name('destroy')->middleware('permission:menu_e_izin,delete');
+    });
+
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik')->middleware('permission:menu_dapodik');
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey')->middleware('permission:fitur_dapodik_sync');

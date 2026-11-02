@@ -14,9 +14,9 @@
                 <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                 <span class="nav-label">Dashboard Keamanan</span>
             </a>
-            @if ($can('menu_keamanan_izin') || $can('menu_keamanan'))
-                <a href="{{ route('dashboard.keamanan.izin.index') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
+            @if ($can('menu_keamanan_izin') || $can('menu_keamanan') || $can('menu_e_izin'))
+                <a href="{{ route('dashboard.e-izin.index', ['tab' => 'security']) }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.e-izin*') || request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-shield-alt"></i></span>
                     <span class="nav-label">Verifikasi e-Izin Gerbang</span>
                 </a>
