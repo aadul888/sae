@@ -128,7 +128,8 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     public function test_lahan_mengizinkan_dua_sesi_pada_jam_sama(): void
     {
         $rombel = $this->kelasReguler();
-        $tanggal = now()->addDays(20)->toDateString();
+        // 2026-11-17 = Selasa: hindari Upacara (Senin) & Pembiasaan (Jumat).
+        $tanggal = '2026-11-17';
 
         $guruA = DB::table('gtk')->value('ptk_id');
         $guruB = DB::table('gtk')->skip(1)->value('ptk_id');
@@ -162,7 +163,8 @@ class LaboranJadwalLanjutanTest extends LaboranTestCase
     public function test_lab_boleh_dipakai_dua_guru_berbeda_pada_jam_sama(): void
     {
         $rombel = $this->kelasReguler();
-        $tanggal = now()->addDays(21)->toDateString();
+        // 2026-11-18 = Rabu. Hindari jam rutin pagi.
+        $tanggal = '2026-11-18';
 
         $base = [
             'ruang_lab_nama' => 'Lab Komputer 1',

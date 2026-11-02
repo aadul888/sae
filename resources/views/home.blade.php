@@ -41,6 +41,10 @@
                         style="display: inline-flex; align-items: center; gap: 8px;" target="_blank">
                         <i class="fas fa-book-open text-accent"></i> Perpustakaan Digital
                     </a>
+                    <a href="{{ route('kiosk.e-izin') }}" class="btn btn-outline"
+                        style="display: inline-flex; align-items: center; gap: 8px;" target="_blank">
+                        <i class="fas fa-door-open text-primary"></i> Kiosk e-Izin
+                    </a>
                     <a href="{{ route('login', ['tab' => 'ortu']) }}" class="btn btn-outline"
                         style="display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-people-roof text-success"></i> Portal Orang Tua
@@ -144,6 +148,32 @@
                     </div>
                     <span class="service-cta">Akses Presensi <i class="fas fa-chevron-right"></i></span>
                 </div>
+
+                <a href="{{ route('kiosk.e-izin') }}" class="service-card" target="_blank">
+                    <div>
+                        <div class="service-icon" style="color:var(--accent);"><i class="fas fa-door-open"></i></div>
+                        <h3 class="service-title">e-Izin &amp; Pos Gerbang</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pengajuan Izin Siswa Mandiri</li>
+                            <li><i class="fas fa-check text-success me-2"></i> SOP Persetujuan Wali &amp; Piket</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Scan Barcode &amp; RFID Gerbang</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Terminal Kiosk <i class="fas fa-chevron-right"></i></span>
+                </a>
+
+                <a href="{{ route('perpustakaan.index') }}" class="service-card" target="_blank">
+                    <div>
+                        <div class="service-icon" style="color:var(--purple);"><i class="fas fa-book-open"></i></div>
+                        <h3 class="service-title">Perpustakaan Digital</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Katalog Buku &amp; E-Book Publik</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Kiosk Kunjungan Kartu Anggota</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Peminjaman Mandiri Berbasis QR</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Buka Perpustakaan <i class="fas fa-chevron-right"></i></span>
+                </a>
 
                 <div class="service-card">
                     <div>

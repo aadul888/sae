@@ -673,7 +673,7 @@ class DashboardController extends Controller
                     'kategori'      => 'e-Izin Gerbang',
                     'kategori_icon' => 'fa-ticket-alt text-warning',
                     'judul'         => 'e-Izin Keluar: ' . $iz->alasan,
-                    'deskripsi'     => 'Tiket: ' . $iz->nomor_tiket . ' &bull; Tujuan: ' . ($iz->tujuan_lokasi ?: '-') . ($iz->jam_keluar_aktual ? ' &bull; Keluar: ' . substr($iz->jam_keluar_aktual, 0, 5) : ''),
+                    'deskripsi'     => 'Tiket: ' . ($iz->nomor_tiket ?? '-') . ' &bull; Keperluan: ' . ($iz->alasan ?? '-') . (!empty($iz->satpam_checkout_at) ? ' &bull; Keluar: ' . \Carbon\Carbon::parse($iz->satpam_checkout_at)->format('H:i') : ''),
                     'status'        => $statusIzinStr,
                     'badge_bg'      => 'rgba(245,158,11,0.15)',
                     'badge_color'   => '#f59e0b',

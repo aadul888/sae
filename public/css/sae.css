@@ -845,11 +845,11 @@ select:-webkit-autofill {
     transform: rotate(90deg);
 }
 
-/* Grid Kartu Aplikasi */
+/* Grid Kartu Aplikasi (Ditetapkan 4 Kolom di Desktop, Menyesuaikan ke Bawah) */
 .mega-dropdown-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 400px));
-    gap: 14px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
 }
 
 .mega-item-card {
@@ -919,7 +919,7 @@ select:-webkit-autofill {
 }
 
 /* Responsif Mobile & Tablet */
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .mega-dropdown-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1143,9 +1143,21 @@ select:-webkit-autofill {
 }
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
     margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+@media (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
 }
 .service-card {
     background: var(--bg-card);

@@ -22,6 +22,12 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: var(--space-2, 8px); align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('kiosk.e-izin') }}" target="_blank" class="btn btn-outline"
+                style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); padding: 0;"
+                title="Buka Terminal Kiosk Gerbang" aria-label="Buka Terminal Kiosk Gerbang">
+                <i class="fas fa-desktop text-primary"></i>
+            </a>
+
             @if ($isSecurity || $isGuruPiket || $isSuperAdmin)
                 <button type="button" class="btn btn-outline" id="btnOpenScanModal"
                     style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); padding: 0;"
@@ -481,10 +487,16 @@
                                         </button>
                                     @endif
 
+                                    <!-- Tiket / Slip Digital Siswa (Modal Pass & Barcode) -->
+                                    <button type="button" class="btn-icon btn-slip-digital" data-id="{{ $row->id }}"
+                                        title="Buka Tiket / Slip Digital (Pass & Barcode)" aria-label="Tiket Digital" style="color: #6366f1;">
+                                        <i class="fas fa-ticket-simple"></i>
+                                    </button>
+
                                     <!-- Cetak Slip Izin (Jika sudah disetujui piket / keluar) -->
                                     @if (in_array($row->status, ['menunggu_satpam', 'di_luar', 'kembali', 'pulang_selesai']))
                                         <a href="{{ route('dashboard.e-izin.cetak', $row->id) }}" target="_blank" class="btn-icon"
-                                            title="Cetak Slip e-Izin" aria-label="Cetak Slip e-Izin" style="color: var(--text-color);">
+                                            title="Cetak Slip e-Izin Fisik" aria-label="Cetak Slip e-Izin Fisik" style="color: var(--text-color);">
                                             <i class="fas fa-print"></i>
                                         </a>
                                     @endif
@@ -543,7 +555,7 @@
             <h3 style="font-size: var(--text-md, 1.05rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: var(--space-2, 8px);">
                 <i class="fas fa-file-signature text-primary"></i> Ajukan e-Izin Keluar/Pulang
             </h3>
-            <button type="button" class="btn-close-modal" data-target="modalAjukanIzin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
+            <button type="button" class="btn-close-modal" aria-label="Tutup" title="Tutup" data-target="modalAjukanIzin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -596,9 +608,9 @@
 
                 <div id="wrapRencanaKembali">
                     <label for="inputJamRencanaKembali" style="display: block; font-weight: 700; font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">
-                        Rencana Kembali
+                        Rencana Kembali <span style="font-size: var(--text-xs, 0.7rem); color: var(--text-muted); font-weight: 400;">(Default 10 Menit)</span>
                     </label>
-                    <input type="time" id="inputJamRencanaKembali" name="jam_rencana_kembali" class="form-control"
+                    <input type="time" id="inputJamRencanaKembali" name="jam_rencana_kembali" value="{{ date('H:i', strtotime('+10 minutes')) }}" class="form-control"
                         style="width: 100%; height: 38px; border-radius: var(--radius-md, 8px);">
                 </div>
             </div>
@@ -635,7 +647,7 @@
             <h3 id="approvalModalTitle" style="font-size: var(--text-md, 1.05rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: var(--space-2, 8px);">
                 <i class="fas fa-check-circle text-primary"></i> Konfirmasi Tindakan
             </h3>
-            <button type="button" class="btn-close-modal" data-target="modalApprovalAction" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
+            <button type="button" class="btn-close-modal" aria-label="Tutup" title="Tutup" data-target="modalApprovalAction" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -678,7 +690,7 @@
             <h3 style="font-size: var(--text-md, 1.05rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: var(--space-2, 8px);">
                 <i class="fas fa-ticket text-primary"></i> Detail e-Izin Siswa
             </h3>
-            <button type="button" class="btn-close-modal" data-target="modalDetailIzin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
+            <button type="button" class="btn-close-modal" aria-label="Tutup" title="Tutup" data-target="modalDetailIzin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -701,7 +713,7 @@
             <h3 style="font-size: var(--text-md, 1.05rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: var(--space-2, 8px);">
                 <i class="fas fa-shield-halved text-primary"></i> Pos Verifikasi Gerbang Satpam
             </h3>
-            <button type="button" class="btn-close-modal" data-target="modalSecurityGate" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
+            <button type="button" class="btn-close-modal" aria-label="Tutup" title="Tutup" data-target="modalSecurityGate" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -729,6 +741,30 @@
                 style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.875rem);">
                 Tutup
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- 10. MODAL 5: Tiket / Slip Digital Siswa (Pass & Barcode)      -->
+<!-- ============================================================== -->
+<div id="modalSlipDigital" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="card" style="max-width: 440px; width: 92%; margin: 0; border-radius: var(--radius-xl, 14px); padding: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #ffffff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-ticket text-primary" style="font-size: var(--text-lg, 1.15rem);"></i>
+                <span style="font-weight: 800; font-size: var(--text-md, 0.95rem); letter-spacing: 0.5px;">TIKET PASS DIGITAL e-IZIN</span>
+            </div>
+            <button type="button" class="btn-close-modal" aria-label="Tutup" title="Tutup" data-target="modalSlipDigital" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: var(--text-lg, 1.15rem); padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="slipDigitalContent" style="padding: 16px; max-height: 82vh; overflow-y: auto;">
+            <div style="text-align: center; padding: 24px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size: var(--text-2xl, 1.5rem);"></i>
+                <div style="margin-top: 8px;">Menyiapkan tiket digital...</div>
+            </div>
         </div>
     </div>
 </div>

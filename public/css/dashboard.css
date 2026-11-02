@@ -5652,7 +5652,7 @@ input:disabled + .slider-toggle-crud {
         font-size: var(--text-sm, 0.8125rem);
     }
     .kepegawaian-quick-label {
-        font-size: 0.6875rem;
+        font-size: var(--text-2xs, 0.6875rem);
         line-height: 1.15;
     }
 }
@@ -6434,7 +6434,7 @@ input:disabled + .slider-toggle-crud {
     color: var(--text-muted);
     background: var(--bg-hover);
     border: 1px solid var(--border-color);
-    border-radius: 999px;
+    border-radius: var(--radius-pill, 999px);
     padding: 1px 8px;
     text-transform: none;
 }

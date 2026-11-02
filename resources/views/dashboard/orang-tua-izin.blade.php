@@ -173,20 +173,20 @@
                                     </span>
                                 </td>
                                 <td data-label="Jam Rencana" style="text-align: center; font-size: var(--text-sm, 0.8125rem);">
-                                    {{ substr($iz->jam_keluar_rencana ?? '', 0, 5) }} -
-                                    {{ substr($iz->jam_kembali_rencana ?? '', 0, 5) ?: 'Selesai' }}
+                                    {{ substr($iz->jam_izin_keluar ?? ($iz->jam_keluar_rencana ?? ''), 0, 5) }} -
+                                    {{ substr($iz->jam_rencana_kembali ?? ($iz->jam_kembali_rencana ?? ''), 0, 5) ?: 'Selesai' }}
                                 </td>
                                 <td data-label="Aktual Gerbang"
                                     style="text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                                     Keluar:
-                                    {{ $iz->jam_keluar_aktual ? substr($iz->jam_keluar_aktual, 0, 5) . ' WIB' : '--:--' }}<br>
+                                    {{ !empty($iz->satpam_checkout_at) ? \Carbon\Carbon::parse($iz->satpam_checkout_at)->format('H:i') . ' WIB' : '--:--' }}<br>
                                     Kembali:
-                                    {{ $iz->jam_kembali_aktual ? substr($iz->jam_kembali_aktual, 0, 5) . ' WIB' : '--:--' }}
+                                    {{ !empty($iz->jam_kembali_aktual) ? substr($iz->jam_kembali_aktual, 0, 5) . ' WIB' : (!empty($iz->satpam_checkin_at) ? \Carbon\Carbon::parse($iz->satpam_checkin_at)->format('H:i') . ' WIB' : '--:--') }}
                                 </td>
-                                <td data-label="Alasan &amp; Tujuan" style="font-size: var(--text-sm, 0.8125rem);">
+                                <td data-label="Alasan &amp; Keperluan" style="font-size: var(--text-sm, 0.8125rem);">
                                     <div style="font-weight: 700; color: var(--text-color);">{{ $iz->alasan }}</div>
-                                    <div style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Tujuan:
-                                        {{ $iz->tujuan_lokasi ?: '-' }}</div>
+                                    <div style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Tiket:
+                                        {{ $iz->nomor_tiket ?? '-' }}</div>
                                 </td>
                                 <td data-label="Status" style="text-align: center;">
                                     <span class="badge"

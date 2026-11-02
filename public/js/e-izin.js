@@ -10,12 +10,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalApproval = document.getElementById('modalApprovalAction');
     const modalDetail = document.getElementById('modalDetailIzin');
     const modalSecurity = document.getElementById('modalSecurityGate');
+    const modalSlipDigital = document.getElementById('modalSlipDigital');
 
     const btnOpenAjukan = document.getElementById('btnOpenAjukanModal');
     const btnOpenScan = document.getElementById('btnOpenScanModal');
     const inputJenisIzin = document.getElementById('inputJenisIzin');
+    const inputJamKeluar = document.getElementById('inputJamKeluar');
+    const inputJamRencanaKembali = document.getElementById('inputJamRencanaKembali');
     const wrapRencanaKembali = document.getElementById('wrapRencanaKembali');
     const selectSiswaModal = document.getElementById('selectSiswaModal');
+
+    // Helper: Hitung default rencana kembali +10 menit
+    const updateDefaultRencanaKembali = () => {
+        if (!inputJamKeluar || !inputJamRencanaKembali) return;
+        if (inputJenisIzin && inputJenisIzin.value === 'pulang_cepat') return;
+        const val = inputJamKeluar.value;
+        if (!val) return;
+        const parts = val.split(':');
+        if (parts.length >= 2) {
+            const date = new Date();
+            date.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10) + 10, 0, 0);
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            inputJamRencanaKembali.value = `${hh}:${mm}`;
+        }
+    };
+
+    if (inputJamKeluar) {
+        inputJamKeluar.addEventListener('change', updateDefaultRencanaKembali);
+        inputJamKeluar.addEventListener('input', updateDefaultRencanaKembali);
+    }
 
     // Helper: Tampilkan Modal
     const openModal = (modal) => {
@@ -42,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Tutup saat klik backdrop
-    [modalAjukan, modalApproval, modalDetail, modalSecurity].forEach((m) => {
+    [modalAjukan, modalApproval, modalDetail, modalSecurity, modalSlipDigital].forEach((m) => {
         if (!m) return;
         m.addEventListener('click', (e) => {
             if (e.target === m) closeModal(m);
@@ -72,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 wrapRencanaKembali.style.display = 'none';
             } else {
                 wrapRencanaKembali.style.display = 'block';
+                updateDefaultRencanaKembali();
             }
         });
     }
@@ -82,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('formAjukanEIzin');
             if (form) form.reset();
             if (wrapRencanaKembali) wrapRencanaKembali.style.display = 'block';
+            updateDefaultRencanaKembali();
             openModal(modalAjukan);
 
             // Load daftar siswa jika belum ada dan elemen dropdown tersedia
@@ -431,6 +457,129 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                     } else {
                         content.innerHTML = '<div style="color: var(--danger); text-align: center;">Gagal memuat rincian tiket.</div>';
+                    }
+                })
+                .catch((err) => {
+                    content.innerHTML = `<div style="color: var(--danger); text-align: center;">Error: ${err.message}</div>`;
+                });
+            return;
+        }
+
+        // 9. Buka Modal Slip / Tiket Digital Siswa
+        const btnSlipDigital = e.target.closest('.btn-slip-digital');
+        if (btnSlipDigital) {
+            const id = btnSlipDigital.getAttribute('data-id');
+            const content = document.getElementById('slipDigitalContent');
+            if (content) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 24px; color: var(--text-muted);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                        <div style="margin-top: 8px;">Menyiapkan tiket digital...</div>
+                    </div>`;
+            }
+            openModal(modalSlipDigital);
+
+            fetch(`/dashboard/e-izin/${id}`, {
+                headers: { 'Accept': 'application/json' }
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    if (res.status === 'success' && res.data) {
+                        const d = res.data;
+                        const statusColors = {
+                            'menunggu_wali': '#f59e0b',
+                            'menunggu_piket': '#6366f1',
+                            'menunggu_satpam': '#0ea5e9',
+                            'di_luar': '#ea580c',
+                            'kembali': '#10b981',
+                            'pulang_selesai': '#10b981',
+                            'ditolak_wali': '#ef4444',
+                            'ditolak_piket': '#ef4444',
+                            'dibatalkan': '#64748b'
+                        };
+                        const statusLabels = {
+                            'menunggu_wali': 'Menunggu Wali Kelas',
+                            'menunggu_piket': 'Menunggu Guru Piket',
+                            'menunggu_satpam': 'Disetujui Piket (Siap Gerbang)',
+                            'di_luar': 'Sedang di Luar Kampus',
+                            'kembali': 'Selesai (Kembali)',
+                            'pulang_selesai': 'Selesai Pulang',
+                            'ditolak_wali': 'Ditolak Wali Kelas',
+                            'ditolak_piket': 'Ditolak Guru Piket',
+                            'dibatalkan': 'Dibatalkan'
+                        };
+                        const color = statusColors[d.status] || '#64748b';
+                        const label = statusLabels[d.status] || d.status;
+
+                        content.innerHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                                <div style="display: flex; align-items: center; gap: 12px; width: 100%; background: var(--bg-hover, rgba(0,0,0,0.03)); padding: 12px; border-radius: var(--radius-lg, 10px);">
+                                    <img src="${d.foto_url || '/img/avatar-default.png'}" alt="${d.nama_siswa}"
+                                        style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); flex-shrink: 0;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 800; font-size: 1rem; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${d.nama_siswa}
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                            ${d.nama_rombel || 'Kelas'} &bull; NISN: ${d.nisn || '-'}
+                                        </div>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: #fff; background: ${color};">
+                                                ${label}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 12px; background: #ffffff; border: 1px dashed var(--border-color); border-radius: 10px; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                                    ${res.qr_svg ? `<div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;">${res.qr_svg}</div>` : ''}
+                                    ${res.barcode_svg ? `<div style="width: 180px; height: 38px; overflow: hidden; display: flex; align-items: center; justify-content: center;">${res.barcode_svg}</div>` : ''}
+                                    <div style="font-family: monospace; font-weight: 800; font-size: 0.95rem; color: #0f172a; letter-spacing: 0.5px;">
+                                        ${d.nomor_tiket}
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: #64748b; text-align: center;">
+                                        Tunjukkan QR / Barcode ini saat melintas di Pos Gerbang
+                                    </div>
+                                </div>
+
+                                <div style="width: 100%; font-size: 0.8125rem; display: flex; flex-direction: column; gap: 6px; background: rgba(59,130,246,0.04); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.15);">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: var(--text-muted);">Jenis Izin:</span>
+                                        <span style="font-weight: 700;">${d.jenis_izin === 'pulang_cepat' ? 'Pulang Cepat' : 'Keluar-Masuk Sementara'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: var(--text-muted);">Jam Keluar:</span>
+                                        <span style="font-weight: 700;">${d.jam_izin_keluar ? d.jam_izin_keluar.substring(0, 5) : '-'} WIB</span>
+                                    </div>
+                                    ${d.jenis_izin === 'keluar_sebentar' ? `
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-muted);">Rencana Kembali:</span>
+                                            <span style="font-weight: 700; color: #2563eb;">${d.jam_rencana_kembali ? d.jam_rencana_kembali.substring(0, 5) + ' WIB' : '10 Menit'}</span>
+                                        </div>
+                                    ` : ''}
+                                    <div style="border-top: 1px dashed var(--border-color); padding-top: 6px; margin-top: 2px;">
+                                        <span style="color: var(--text-muted); font-size: 0.72rem; display: block;">Alasan / Keperluan:</span>
+                                        <span style="font-style: italic; font-weight: 600;">&ldquo;${d.alasan}&rdquo;</span>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 8px; width: 100%;">
+                                    <a href="/dashboard/e-izin/${d.id}/cetak" target="_blank" class="btn btn-outline"
+                                        style="flex: 1; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; font-size: 0.8125rem;">
+                                        <i class="fas fa-print"></i> Cetak Fisik
+                                    </a>
+                                    <button type="button" class="btn btn-primary btn-close-modal" data-target="modalSlipDigital"
+                                        style="flex: 1; height: 38px; border-radius: 8px; font-size: 0.8125rem;">
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        content.querySelectorAll('.btn-close-modal').forEach((btn) => {
+                            btn.addEventListener('click', () => closeModal(modalSlipDigital));
+                        });
+                    } else {
+                        content.innerHTML = '<div style="color: var(--danger); text-align: center;">Gagal memuat tiket digital.</div>';
                     }
                 })
                 .catch((err) => {

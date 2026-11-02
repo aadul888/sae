@@ -16,6 +16,12 @@ Route::post('/presensi/scan/unlock', [\App\Http\Controllers\PresensiController::
 Route::get('/presensi/scan/lock', [\App\Http\Controllers\PresensiController::class, 'kioskLock'])->name('presensi.kiosk.lock');
 Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process');
 
+// Terminal Kiosk e-Izin Pos Gerbang Keamanan (Tap RFID, QR & Barcode Digital)
+Route::get('/kiosk/e-izin', [\App\Http\Controllers\EIzinController::class, 'kioskView'])->name('kiosk.e-izin');
+Route::get('/e-izin/kiosk', [\App\Http\Controllers\EIzinController::class, 'kioskView'])->name('e-izin.kiosk');
+Route::post('/e-izin/kiosk/scan', [\App\Http\Controllers\EIzinController::class, 'kioskScan'])->name('e-izin.kiosk.scan');
+Route::get('/e-izin/kiosk/live-log', [\App\Http\Controllers\EIzinController::class, 'kioskLiveLog'])->name('e-izin.kiosk.live-log');
+
 // Auth Routes (Multi-User)
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login'])->name('login.post');

@@ -7,6 +7,9 @@ use App\Models\NotifikasiTransaksi;
 use App\Models\PesertaDidik;
 use App\Models\PesertaDidikIzinKeluar;
 use App\Models\RolePermission;
+use App\Services\BarcodeService;
+use App\Services\EIzinService;
+use App\Services\QrCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -244,13 +247,20 @@ class EIzinController extends Controller
             $piketApprovedAt = now();
         }
 
+        // Waktu default rencana kembali: 10 menit jika izin keluar sebentar
+        $jamKeluar = $validated['jam_izin_keluar'];
+        $jamKembali = ($validated['jenis_izin'] === 'keluar_sebentar') ? ($validated['jam_rencana_kembali'] ?? null) : null;
+        if ($validated['jenis_izin'] === 'keluar_sebentar' && empty($jamKembali)) {
+            $jamKembali = date('H:i:s', strtotime($jamKeluar . ' +10 minutes'));
+        }
+
         $nomorTiket = PesertaDidikIzinKeluar::generateNomorTiket();
         $namaCreator = is_array($user) ? ($user['nama'] ?? 'Pengguna') : ($user->nama ?? 'Pengguna');
 
         $recordId = DB::transaction(function () use (
             $nomorTiket, $siswa, $validated, $initialStatus,
             $waliPtkId, $waliStatus, $piketPtkId, $piketStatus,
-            $piketApprovedAt, $namaCreator, $isStudent
+            $piketApprovedAt, $namaCreator, $isStudent, $jamKeluar, $jamKembali
         ) {
             return DB::table('peserta_didik_izin_keluar')->insertGetId([
                 'nomor_tiket' => $nomorTiket,
@@ -259,8 +269,8 @@ class EIzinController extends Controller
                 'tanggal' => date('Y-m-d'),
                 'jenis_izin' => $validated['jenis_izin'],
                 'alasan' => $validated['alasan'],
-                'jam_izin_keluar' => $validated['jam_izin_keluar'],
-                'jam_rencana_kembali' => ($validated['jenis_izin'] === 'keluar_sebentar') ? ($validated['jam_rencana_kembali'] ?? null) : null,
+                'jam_izin_keluar' => $jamKeluar,
+                'jam_rencana_kembali' => $jamKembali,
                 'status' => $initialStatus,
                 'wali_kelas_ptk_id' => $waliPtkId,
                 'wali_status' => $waliStatus,
@@ -316,6 +326,10 @@ class EIzinController extends Controller
             return $this->errorResponse($request, 'Data e-Izin tidak ditemukan.');
         }
 
+        if ($tiket->status !== 'menunggu_wali') {
+            return $this->errorResponse($request, 'Pengajuan tiket tidak dalam status menunggu persetujuan Wali Kelas.');
+        }
+
         $catatan = trim($request->input('catatan', 'Disetujui oleh Wali Kelas'));
 
         DB::transaction(function () use ($id, $ptkId, $catatan) {
@@ -363,6 +377,10 @@ class EIzinController extends Controller
             return $this->errorResponse($request, 'Data e-Izin tidak ditemukan.');
         }
 
+        if ($tiket->status !== 'menunggu_wali') {
+            return $this->errorResponse($request, 'Pengajuan tiket tidak dalam status menunggu persetujuan Wali Kelas.');
+        }
+
         $catatan = trim($request->input('catatan', 'Pengajuan izin ditolak oleh Wali Kelas.'));
 
         DB::transaction(function () use ($id, $ptkId, $catatan) {
@@ -395,6 +413,14 @@ class EIzinController extends Controller
         $tiket = DB::table('peserta_didik_izin_keluar')->where('id', $id)->first();
         if (!$tiket) {
             return $this->errorResponse($request, 'Data e-Izin tidak ditemukan.');
+        }
+
+        if ($tiket->wali_status !== 'disetujui') {
+            return $this->errorResponse($request, 'Sesuai SOP, izin harus disetujui oleh Wali Kelas terlebih dahulu sebelum diverifikasi oleh Guru Piket.');
+        }
+
+        if ($tiket->status !== 'menunggu_piket') {
+            return $this->errorResponse($request, 'Pengajuan tiket tidak dalam status menunggu persetujuan Guru Piket.');
         }
 
         $catatan = trim($request->input('catatan', 'Disetujui oleh Guru Piket'));
@@ -443,6 +469,10 @@ class EIzinController extends Controller
             return $this->errorResponse($request, 'Data e-Izin tidak ditemukan.');
         }
 
+        if ($tiket->status !== 'menunggu_piket') {
+            return $this->errorResponse($request, 'Pengajuan tiket tidak dalam status menunggu persetujuan Guru Piket.');
+        }
+
         $catatan = trim($request->input('catatan', 'Pengajuan izin ditolak oleh Guru Piket.'));
 
         DB::transaction(function () use ($id, $ptkId, $catatan) {
@@ -475,6 +505,10 @@ class EIzinController extends Controller
         $tiket = DB::table('peserta_didik_izin_keluar')->where('id', $id)->first();
         if (!$tiket) {
             return $this->errorResponse($request, 'Data tiket tidak ditemukan.');
+        }
+
+        if ($tiket->wali_status !== 'disetujui' || $tiket->piket_status !== 'disetujui' || $tiket->status !== 'menunggu_satpam') {
+            return $this->errorResponse($request, 'Sesuai SOP Gerbang, izin harus sudah disetujui lengkap oleh Wali Kelas dan Guru Piket sebelum verifikasi keluar.');
         }
 
         $newStatus = ($tiket->jenis_izin === 'pulang_cepat') ? 'pulang_selesai' : 'di_luar';
@@ -522,6 +556,10 @@ class EIzinController extends Controller
         $tiket = DB::table('peserta_didik_izin_keluar')->where('id', $id)->first();
         if (!$tiket) {
             return $this->errorResponse($request, 'Data tiket tidak ditemukan.');
+        }
+
+        if ($tiket->status !== 'di_luar') {
+            return $this->errorResponse($request, 'Sesuai SOP Gerbang, hanya siswa dengan status di luar yang dapat diverifikasi kembali masuk.');
         }
 
         $catatan = $request->input('catatan_satpam', $tiket->catatan_satpam);
@@ -627,64 +665,43 @@ class EIzinController extends Controller
     }
 
     /**
-     * Detail Tiket e-Izin (JSON)
+     * Detail Tiket e-Izin (JSON) & Pass Digital
      */
     public function show(int|string $id): JsonResponse
     {
-        $tiket = DB::table('peserta_didik_izin_keluar as iz')
-            ->leftJoin('peserta_didik as pd', 'iz.peserta_didik_id', '=', 'pd.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'iz.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->leftJoin('gtk as wali', 'iz.wali_kelas_ptk_id', '=', 'wali.ptk_id')
-            ->leftJoin('gtk as piket', 'iz.petugas_piket_ptk_id', '=', 'piket.ptk_id')
-            ->select(
-                'iz.*',
-                'pd.nama as nama_siswa',
-                'pd.nisn',
-                'rb.nama as nama_rombel',
-                'wali.nama as nama_wali',
-                'piket.nama as nama_piket'
-            )
-            ->where('iz.id', $id)
-            ->first();
+        $tiket = EIzinService::getTicketDetails($id);
 
         if (!$tiket) {
             return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
         }
 
+        $qrSvg = QrCodeService::generateSvg($tiket->nomor_tiket, 160, 1);
+        $barcodeSvg = BarcodeService::generateCode128Svg($tiket->nomor_tiket, 40, 2);
+
         return response()->json([
             'status' => 'success',
             'data' => $tiket,
+            'qr_svg' => $qrSvg,
+            'barcode_svg' => $barcodeSvg,
         ]);
     }
 
     /**
-     * Cetak Slip Tiket e-Izin Keluar
+     * Cetak Slip Tiket e-Izin Keluar Tanpa Kop Surat
      */
     public function cetakSlip(int|string $id): View|RedirectResponse
     {
-        $tiket = DB::table('peserta_didik_izin_keluar as iz')
-            ->leftJoin('peserta_didik as pd', 'iz.peserta_didik_id', '=', 'pd.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'iz.rombel_id', '=', 'rb.rombongan_belajar_id')
-            ->leftJoin('gtk as wali', 'iz.wali_kelas_ptk_id', '=', 'wali.ptk_id')
-            ->leftJoin('gtk as piket', 'iz.petugas_piket_ptk_id', '=', 'piket.ptk_id')
-            ->select(
-                'iz.*',
-                'pd.nama as nama_siswa',
-                'pd.nisn',
-                'rb.nama as nama_rombel',
-                'wali.nama as nama_wali',
-                'piket.nama as nama_piket'
-            )
-            ->where('iz.id', $id)
-            ->first();
+        $tiket = EIzinService::getTicketDetails($id);
 
         if (!$tiket) {
             return redirect()->back()->with('error', 'Data tiket e-Izin tidak ditemukan.');
         }
 
         $sekolah = DB::table('sekolah')->first();
+        $qrSvg = QrCodeService::generateSvg($tiket->nomor_tiket, 130, 1);
+        $barcodeSvg = BarcodeService::generateCode128Svg($tiket->nomor_tiket, 42, 2);
 
-        return view('dashboard.e-izin-slip', compact('tiket', 'sekolah'));
+        return view('dashboard.e-izin-slip', compact('tiket', 'sekolah', 'qrSvg', 'barcodeSvg'));
     }
 
     /**
@@ -735,6 +752,41 @@ class EIzinController extends Controller
         }
 
         return redirect()->back()->with('success', 'Data e-Izin berhasil dihapus.');
+    }
+
+    /**
+     * Tampilan Terminal Kiosk Pos Gerbang Publik
+     */
+    public function kioskView(Request $request): View
+    {
+        $sekolah = DB::table('sekolah')->first();
+        $stats = EIzinService::getKioskStats();
+        $liveLogs = EIzinService::getKioskLiveLog(8);
+
+        return view('dashboard.e-izin-kiosk', compact('sekolah', 'stats', 'liveLogs'));
+    }
+
+    /**
+     * Endpoint Pemrosesan Scan Kiosk (RFID / QR / Barcode)
+     */
+    public function kioskScan(Request $request): JsonResponse
+    {
+        $raw = trim($request->input('raw_input', $request->input('code', '')));
+        $result = EIzinService::processKioskScan($raw);
+
+        return response()->json($result, $result['code'] ?? 200);
+    }
+
+    /**
+     * Endpoint API Live Log Aktivitas Terminal Kiosk
+     */
+    public function kioskLiveLog(): JsonResponse
+    {
+        return response()->json([
+            'status' => 'success',
+            'stats' => EIzinService::getKioskStats(),
+            'logs' => EIzinService::getKioskLiveLog(8),
+        ]);
     }
 
     /**
