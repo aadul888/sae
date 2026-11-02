@@ -367,10 +367,10 @@ final class TeknisiModuleRegistry
 
             'harian' => [
                 ['label' => 'Peminjaman', 'icon' => 'fas fa-hand-holding',
-                 'route' => 'dashboard.laboran.peminjaman-alat.index', 'params' => [],
-                 'can' => ['menu_teknisi', 'menu_sarpras', 'menu_laboran'],
-                 'active' => ['dashboard.laboran.peminjaman-alat*', 'dashboard.teknisi.sarana-rapat*'],
-                 'title' => 'Peminjaman terpadu: ruang/bangunan, alat, fasilitas & inventaris aset + ceklist sarana rapat'],
+                 'route' => 'dashboard.teknisi.peminjaman.index', 'params' => [],
+                 'can' => ['menu_teknisi'],
+                 'active' => ['dashboard.teknisi.peminjaman*', 'dashboard.teknisi.sarana-rapat*'],
+                 'title' => 'Peminjaman ruang/bangunan & inventaris aset Sarpras (cakupan PJ ruang) + ceklist sarana rapat'],
                 ['label' => 'Jurnal Pelaksanaan Tugas', 'icon' => 'fas fa-list-check',
                  'route' => 'dashboard.teknisi.pelaksanaan-harian.index', 'params' => [],
                  'can' => ['menu_teknisi'],

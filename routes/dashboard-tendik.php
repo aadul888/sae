@@ -407,6 +407,18 @@ return function () {
             Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiSaranaRapatController::class, 'destroy'])->name('destroy')->middleware('permission:menu_teknisi,delete');
         });
 
+        // Peminjaman TEKNISI/SARPRAS — halaman sendiri (ruang + aset sarpras),
+        // terpisah dari peminjaman jurusan/Laboran. Cakupan ikut PJ ruang.
+        Route::prefix('peminjaman')->name('peminjaman.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');
+            Route::post('/', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'store'])->name('store')->middleware('permission:menu_teknisi,create');
+            Route::get('/{id}', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'show'])->name('show')->whereNumber('id')->middleware('permission:menu_teknisi,read');
+            Route::put('/{id}/status', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'updateStatus'])->name('status')->whereNumber('id')->middleware('permission:menu_teknisi,update');
+            Route::post('/{id}/kembalikan', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'kembalikan'])->name('kembalikan')->whereNumber('id')->middleware('permission:menu_teknisi,update');
+            Route::post('/tandai-terlambat', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'tandaiTerlambat'])->name('tandai-terlambat')->middleware('permission:menu_teknisi,update');
+            Route::delete('/{id}', [\App\Http\Controllers\Teknisi\TeknisiPeminjamanController::class, 'destroy'])->name('destroy')->whereNumber('id')->middleware('permission:menu_teknisi,delete');
+        });
+
         // Indikator 5 — Jurnal Perbaikan Sarpras: rekap baca-saja dari Work Order selesai.
         Route::prefix('jurnal-perbaikan')->name('jurnal-perbaikan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Teknisi\TeknisiJurnalPerbaikanController::class, 'index'])->name('index')->middleware('permission:menu_teknisi,read');

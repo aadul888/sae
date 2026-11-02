@@ -44,7 +44,8 @@ class TeknisiModulLapanganTest extends TestCase
             ['teknisi_log_harian', 'teknisi_usulan_pengadaan',
              'teknisi_aset_mutasi', 'sarpras_peminjaman_ruang',
              'teknisi_import_log', 'teknisi_pemeliharaan', 'teknisi_work_order',
-             'teknisi_pelaksanaan_harian'],
+             'teknisi_pelaksanaan_harian',
+             'teknisi_peminjaman', 'teknisi_peminjaman_item'],
             ['teknisi_area_tugas']
         );
 
@@ -788,5 +789,67 @@ class TeknisiModulLapanganTest extends TestCase
             ->assertStatus(200)
             ->assertSee($areaA, false)
             ->assertSee($areaB, false);
+    }
+
+    /**
+     * Peminjaman Teknisi = halaman sendiri (ruang + aset sarpras), cakupan PJ ruang.
+     *
+     * Teknisi PJ ruang melihat peminjaman atas ruang/aset yang di-PJ-kannya;
+     * teknisi lain tidak. Koordinator (admin) melihat semua.
+     */
+    public function test_peminjaman_teknisi_cakupan_pj_ruang(): void
+    {
+        if (!Table::exists('sarpras_ruang') || !Table::exists('sarpras_aset')) {
+            $this->markTestSkipped('Tabel sarpras tidak tersedia.');
+        }
+
+        $a = $this->teknisiSession(0);
+        $b = $this->teknisiSession(1);
+
+        $ruangId = DB::table('sarpras_ruang')->insertGetId([
+            'kode_ruang'              => 'UJI-PJM-' . uniqid(),
+            'nama_ruang'              => 'Ruang Pjm Uji ' . uniqid(),
+            'penanggung_jawab_ptk_id' => (string) $a['user']['ptk_id'],
+            'kondisi'                 => 'baik',
+            'created_at'              => now(),
+            'updated_at'              => now(),
+        ]);
+
+        $this->withSession($a)
+            ->postJson(route('dashboard.teknisi.peminjaman.store'), [
+                'peminjam_tipe'           => 'tendik',
+                'peminjam_nama'           => 'Peminjam Uji Pjm',
+                'keperluan'               => 'Uji cakupan peminjaman teknisi',
+                'tanggal_pinjam'          => now()->toDateString(),
+                'tanggal_kembali_rencana' => now()->addDays(2)->toDateString(),
+                'ruang_ids'               => [$ruangId],
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $row = DB::table('teknisi_peminjaman')->where('keperluan', 'Uji cakupan peminjaman teknisi')->first();
+        $this->assertNotNull($row, 'Peminjaman teknisi harus tersimpan di tabel sendiri.');
+
+        // A (PJ ruang) melihat.
+        $this->withSession($a)
+            ->get(route('dashboard.teknisi.peminjaman.index'))
+            ->assertStatus(200)
+            ->assertSee($row->nomor_pinjam, false);
+
+        // B (bukan PJ) tidak melihat.
+        $this->withSession($b)
+            ->get(route('dashboard.teknisi.peminjaman.index'))
+            ->assertStatus(200)
+            ->assertDontSee($row->nomor_pinjam, false);
+
+        // Koordinator melihat.
+        $this->withSession($this->adminSession())
+            ->get(route('dashboard.teknisi.peminjaman.index'))
+            ->assertStatus(200)
+            ->assertSee($row->nomor_pinjam, false);
+
+        DB::table('teknisi_peminjaman_item')->where('peminjaman_id', $row->id)->delete();
+        DB::table('teknisi_peminjaman')->where('id', $row->id)->delete();
+        DB::table('sarpras_ruang')->where('id', $ruangId)->delete();
     }
 }
