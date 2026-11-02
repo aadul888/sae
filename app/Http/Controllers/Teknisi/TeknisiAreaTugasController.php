@@ -45,10 +45,11 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        $search      = trim((string) $request->query('q', ''));
-        $jenisFilter = trim((string) $request->query('jenis', ''));
-        $perPage     = (int) $request->query('perPage', $request->query('per_page', 15));
-        $perPage     = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
+        $search       = trim((string) $request->query('q', ''));
+        $jenisFilter  = trim((string) $request->query('jenis', ''));
+        $statusFilter = trim((string) $request->query('status', ''));
+        $perPage      = (int) $request->query('perPage', $request->query('per_page', 15));
+        $perPage      = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
 
         // Cakupan = ruang yang PJ-nya akun login (dibaca live dari Ruang &
         // Gedung). Baris lama tanpa ruang tetap tampil bagi pembuatnya.
@@ -64,6 +65,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             });
         }
         if ($jenisFilter !== '') $query->where('a.jenis_tugas', $jenisFilter);
+        if ($statusFilter !== '') $query->where('a.status', $statusFilter);
 
         $statBase = DB::table('teknisi_area_tugas');
         $this->scopeRuangPj($statBase, $context, 'ruang_id', null, true);
@@ -81,7 +83,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         $pjRuang = $this->pjNamaPerRuang($list->pluck('ruang_id')->all());
 
         return view('dashboard.teknisi.area-tugas', array_merge(
-            compact('list', 'search', 'jenisFilter', 'perPage', 'pjRuang',
+            compact('list', 'search', 'jenisFilter', 'statusFilter', 'perPage', 'pjRuang',
                 'statTotal', 'statAktif', 'statSampah', 'statLaporan'),
             $this->abilities(),
             [

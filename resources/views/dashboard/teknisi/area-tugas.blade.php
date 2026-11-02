@@ -39,6 +39,12 @@
                     <option value="{{ $k }}" {{ $jenisFilter === $k ? 'selected' : '' }}>{{ $v }}</option>
                 @endforeach
             </select>
+            <select name="status" class="toolbar-filter-select" style="height:38px; min-width:150px;">
+                <option value="">Semua Status</option>
+                @foreach ($statusList as $k => $v)
+                    <option value="{{ $k }}" {{ $statusFilter === $k ? 'selected' : '' }}>{{ $v }}</option>
+                @endforeach
+            </select>
         </x-slot:filter>
 
         <thead>
