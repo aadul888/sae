@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearBtn = document.getElementById("clearSearch");
     const perPageSelect = document.getElementById("perPageSelect");
     const filterStatus = document.getElementById("filterStatus");
+    const filterTingkat = document.getElementById("filterTingkat");
     const filterKategori = document.getElementById("filterKategori");
 
     function applyFilter(overrideParams = {}) {
@@ -151,6 +152,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        if (filterTingkat) {
+            if (filterTingkat.value) {
+                url.searchParams.set("tingkat", filterTingkat.value);
+            } else {
+                url.searchParams.delete("tingkat");
+            }
+        }
+
         if (filterKategori) {
             if (filterKategori.value) {
                 url.searchParams.set("kategori", filterKategori.value);
@@ -176,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!e.target || e.target.tagName !== "SELECT") return;
         if (
             e.target.closest("#tableDataContainer, .datatable-toolbar, .dash-table-toolbar, .card") &&
-            (e.target.id === "filterStatus" || e.target.id === "filterKategori" || e.target.id === "perPageSelect")
+            (e.target.id === "filterStatus" || e.target.id === "filterTingkat" || e.target.id === "filterKategori" || e.target.id === "perPageSelect")
         ) {
             e.preventDefault();
             e.stopPropagation();

@@ -33,11 +33,11 @@ class KedisiplinanTataTertibImportTest extends TestCase
 
     protected function tearDown(): void
     {
-        KedisiplinanTataTertib::whereIn('kode', ['TEST01', 'TEST02', 'KER01', 'HD01'])->delete();
+        KedisiplinanTataTertib::whereIn('kode', ['TEST01', 'TEST02', 'TEST03', 'KER01', 'HD01', 'PR02'])->delete();
         parent::tearDown();
     }
 
-    public function test_template_roundtrip_import()
+    public function test_template_roundtrip_import_with_tingkat()
     {
         // 1. Download template file
         $response = $this->withSession($this->session)
@@ -60,19 +60,35 @@ class KedisiplinanTataTertibImportTest extends TestCase
 
         $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
             'kode' => 'KER01',
+            'tingkat' => 'ringan',
             'kategori' => 'kerapian',
             'bobot_poin' => 5,
+        ]);
+
+        $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
+            'kode' => 'HD02',
+            'tingkat' => 'sedang',
+            'kategori' => 'kehadiran',
+            'bobot_poin' => 20,
+        ]);
+
+        $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
+            'kode' => 'LB01',
+            'tingkat' => 'berat',
+            'kategori' => 'larangan_berat',
+            'bobot_poin' => 50,
         ]);
 
         @unlink($tempPath);
     }
 
-    public function test_can_import_tata_tertib_from_csv()
+    public function test_can_import_tata_tertib_with_explicit_tingkat()
     {
         $csvContent = implode("\n", [
-            'kode,kategori,nama_aturan,bobot_poin,sanksi_rekomendasi',
-            'TEST01,kerapian,Aturan Uji Kerapian,5,Teguran lisan',
-            'TEST02,larangan_berat,Aturan Uji Pelanggaran Berat,75,Panggilan orang tua',
+            'kode,tingkat,kategori,nama_aturan,bobot_poin,sanksi_rekomendasi',
+            'TEST01,ringan,kerapian,Aturan Uji Kerapian Ringan,5,Teguran lisan',
+            'TEST02,sedang,perilaku,Aturan Uji Perilaku Sedang,25,Panggilan orang tua',
+            'TEST03,berat,larangan_berat,Aturan Uji Pelanggaran Berat,80,Skorsing',
         ]);
 
         $file = UploadedFile::fake()->createWithContent('tatib.csv', $csvContent);
@@ -89,18 +105,21 @@ class KedisiplinanTataTertibImportTest extends TestCase
 
         $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
             'kode' => 'TEST01',
-            'kategori' => 'kerapian',
-            'bobot_poin' => 5,
+            'tingkat' => 'ringan',
         ]);
 
         $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
             'kode' => 'TEST02',
-            'kategori' => 'larangan_berat',
-            'bobot_poin' => 75,
+            'tingkat' => 'sedang',
+        ]);
+
+        $this->assertDatabaseHas('kedisiplinan_tata_tertib', [
+            'kode' => 'TEST03',
+            'tingkat' => 'berat',
         ]);
     }
 
-    public function test_view_tata_tertib_tab_shows_import_button()
+    public function test_view_tata_tertib_tab_shows_tingkat_badges_and_filter()
     {
         $response = $this->withSession($this->session)
             ->get(route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'tata_tertib']));
@@ -108,5 +127,9 @@ class KedisiplinanTataTertibImportTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('btnOpenImportTatibModal');
         $response->assertSee('modalImportTataTertib');
+        $response->assertSee('filterTingkat');
+        $response->assertSee('RINGAN');
+        $response->assertSee('SEDANG');
+        $response->assertSee('BERAT');
     }
 }

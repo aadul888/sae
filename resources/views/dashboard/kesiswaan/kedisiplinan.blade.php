@@ -67,6 +67,13 @@
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['total_aturan'] ?? 0) }}</div>
                 <div class="dash-stat-label">Aturan Tata Tertib</div>
+                <div style="display: flex; gap: 6px; font-size: 0.6875rem; font-weight: 700; margin-top: 4px;">
+                    <span style="color: #059669;">{{ $stats['total_ringan'] ?? 0 }} Ringan</span>
+                    <span style="color: var(--text-muted);">&bull;</span>
+                    <span style="color: #d97706;">{{ $stats['total_sedang'] ?? 0 }} Sedang</span>
+                    <span style="color: var(--text-muted);">&bull;</span>
+                    <span style="color: #dc2626;">{{ $stats['total_berat'] ?? 0 }} Berat</span>
+                </div>
             </div>
         </div>
         <div class="dash-stat-card">
@@ -168,6 +175,13 @@
                     @endif
 
                     @if ($activeTab === 'tata_tertib')
+                        <select id="filterTingkat" name="tingkat" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Tingkat (Ringan / Sedang / Berat)</option>
+                            <option value="ringan" {{ ($tingkat ?? '') === 'ringan' ? 'selected' : '' }}>Ringan</option>
+                            <option value="sedang" {{ ($tingkat ?? '') === 'sedang' ? 'selected' : '' }}>Sedang</option>
+                            <option value="berat" {{ ($tingkat ?? '') === 'berat' ? 'selected' : '' }}>Berat</option>
+                        </select>
+
                         <select id="filterKategori" name="kategori" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Kategori</option>
                             <option value="kerapian" {{ ($kategori ?? '') === 'kerapian' ? 'selected' : '' }}>Kerapian</option>
@@ -177,7 +191,7 @@
                         </select>
                     @endif
 
-                    @if (!empty($q) || !empty($status) || !empty($kategori))
+                    @if (!empty($q) || !empty($status) || !empty($kategori) || !empty($tingkat))
                         <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => $activeTab]) }}"
                             class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -208,10 +222,13 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px;">
                                 Kode</th>
                             <th
-                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
+                                Tingkat</th>
+                            <th
+                                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
                                 Kategori</th>
                             <th
                                 style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -226,10 +243,36 @@
                     </thead>
                     <tbody>
                         @forelse ($tataTertibList as $item)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
+                            @php
+                                $tingkat = $item->tingkat;
+                                $tingkatStyle = match ($tingkat) {
+                                    'ringan' => 'background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);',
+                                    'sedang' => 'background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25);',
+                                    'berat'  => 'background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25);',
+                                    default  => 'background: rgba(100, 116, 139, 0.12); color: #475569; border: 1px solid rgba(100, 116, 139, 0.25);',
+                                };
+                                $tingkatIcon = match ($tingkat) {
+                                    'ringan' => 'fa-circle-check',
+                                    'sedang' => 'fa-triangle-exclamation',
+                                    'berat'  => 'fa-circle-radiation',
+                                    default  => 'fa-circle',
+                                };
+                                $borderAccent = match ($tingkat) {
+                                    'ringan' => 'border-left: 3px solid #10b981;',
+                                    'sedang' => 'border-left: 3px solid #f59e0b;',
+                                    'berat'  => 'border-left: 3px solid #ef4444;',
+                                    default  => '',
+                                };
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border-color); {{ $borderAccent }}">
                                 <td
                                     style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: var(--primary);">
                                     {{ $item->kode }}</td>
+                                <td style="padding: 12px 16px; text-align: center;">
+                                    <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
+                                        <i class="fas {{ $tingkatIcon }}"></i> {{ $tingkat }}
+                                    </span>
+                                </td>
                                 <td style="padding: 12px 16px;">
                                     @php
                                         $katColor = match ($item->kategori) {
@@ -246,7 +289,7 @@
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->nama_aturan }}</td>
                                 <td
-                                    style="padding: 12px 16px; text-align: center; font-weight: 800; color: var(--danger, #ef4444); font-size: var(--text-lg, 1.125rem);">
+                                    style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: var(--text-lg, 1.125rem); {{ $tingkat === 'berat' ? 'color: var(--danger, #ef4444);' : ($tingkat === 'sedang' ? 'color: var(--warning, #f59e0b);' : 'color: var(--success, #10b981);') }}">
                                     +{{ $item->bobot_poin }}
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
@@ -254,7 +297,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5"
+                                <td colspan="6"
                                     style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
                                         style="font-size: var(--text-3xl, 1.875rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
@@ -574,13 +617,23 @@
             <form id="formTataTertib" method="POST"
                 action="{{ route('dashboard.kesiswaan.kedisiplinan.tatib.store') }}">
                 @csrf
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
                         <label
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kode
                             Aturan <span class="text-danger">*</span></label>
                         <input type="text" name="kode" class="form-control" placeholder="Contoh: TT17" required
                             style="width: 100%; border-radius: var(--radius-md, 8px);">
+                    </div>
+                    <div class="form-group">
+                        <label
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Tingkat
+                            <span class="text-danger">*</span></label>
+                        <select name="tingkat" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
+                            <option value="ringan">Ringan</option>
+                            <option value="sedang">Sedang</option>
+                            <option value="berat">Berat</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label
@@ -659,7 +712,7 @@
                     <select name="tata_tertib_id" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
                         <option value="">-- Pilih Jenis Pelanggaran --</option>
                         @foreach ($tataTertibList as $tt)
-                            <option value="{{ $tt->id }}">[{{ $tt->kode }}] {{ $tt->nama_aturan }}
+                            <option value="{{ $tt->id }}">[{{ strtoupper($tt->tingkat) }}] [{{ $tt->kode }}] {{ $tt->nama_aturan }}
                                 (+{{ $tt->bobot_poin }} Poin)
                             </option>
                         @endforeach
@@ -897,8 +950,8 @@
                     <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
                         <i class="fas fa-circle-info"></i> Format Kolom Excel:
                     </div>
-                    <div><code>kode</code>, <code>kategori</code>, <code>nama_aturan</code>, <code>bobot_poin</code>, <code>sanksi_rekomendasi</code></div>
-                    <div style="margin-top: 4px; color: var(--text-muted);">Kategori: <em>kerapian</em>, <em>kehadiran</em>, <em>perilaku</em>, <em>larangan_berat</em>. Aturan dengan kode yang sama akan diperbarui otomatis.</div>
+                    <div><code>kode</code>, <code>tingkat</code>, <code>kategori</code>, <code>nama_aturan</code>, <code>bobot_poin</code>, <code>sanksi_rekomendasi</code></div>
+                    <div style="margin-top: 4px; color: var(--text-muted);">Tingkat: <em>ringan</em>, <em>sedang</em>, <em>berat</em> (otomatis terdeteksi jika kosong). Kategori: <em>kerapian</em>, <em>kehadiran</em>, <em>perilaku</em>, <em>larangan_berat</em>. Aturan dengan kode yang sama akan diperbarui otomatis.</div>
                 </div>
 
                 <div style="margin-bottom: 16px; padding: 10px 14px; border-radius: var(--radius-md, 8px); background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 10px;">

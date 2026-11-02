@@ -38,10 +38,14 @@ class KedisiplinanController extends Controller
         $activeTab = $request->get('tab', 'riwayat'); // tata_tertib, poin, riwayat, pembinaan, pemanggilan, tindak_lanjut, rekap
         $q = trim($request->get('q', ''));
         $kategori = trim($request->get('kategori', ''));
+        $tingkat = trim($request->get('tingkat', ''));
         $status = trim($request->get('status', ''));
 
         // 1. Statistik Ringkas Kedisiplinan
         $totalAturan = KedisiplinanTataTertib::where('is_active', true)->count();
+        $totalRingan = KedisiplinanTataTertib::where('tingkat', 'ringan')->count();
+        $totalSedang = KedisiplinanTataTertib::where('tingkat', 'sedang')->count();
+        $totalBerat  = KedisiplinanTataTertib::where('tingkat', 'berat')->count();
         $totalPelanggaran = KedisiplinanPelanggaran::count();
         $totalPembinaan = KedisiplinanPembinaan::count();
         $totalPanggilan = KedisiplinanPemanggilanWali::count();
@@ -49,6 +53,9 @@ class KedisiplinanController extends Controller
 
         $stats = [
             'total_aturan'      => $totalAturan,
+            'total_ringan'      => $totalRingan,
+            'total_sedang'      => $totalSedang,
+            'total_berat'       => $totalBerat,
             'total_pelanggaran' => $totalPelanggaran,
             'total_pembinaan'   => $totalPembinaan,
             'total_panggilan'   => $totalPanggilan,
@@ -56,7 +63,9 @@ class KedisiplinanController extends Controller
         ];
 
         // 2. Tab: Tata Tertib
-        $tataTertibQuery = KedisiplinanTataTertib::orderBy('kategori')->orderBy('kode');
+        $tataTertibQuery = KedisiplinanTataTertib::orderByRaw("FIELD(tingkat, 'ringan', 'sedang', 'berat')")
+            ->orderBy('kategori')
+            ->orderBy('kode');
         if ($q !== '' && $activeTab === 'tata_tertib') {
             $tataTertibQuery->where(function ($w) use ($q) {
                 $w->where('nama_aturan', 'like', "%{$q}%")
@@ -65,6 +74,9 @@ class KedisiplinanController extends Controller
         }
         if ($kategori !== '' && $activeTab === 'tata_tertib') {
             $tataTertibQuery->where('kategori', $kategori);
+        }
+        if ($tingkat !== '' && $activeTab === 'tata_tertib') {
+            $tataTertibQuery->where('tingkat', $tingkat);
         }
         $tataTertibList = $tataTertibQuery->get();
 
@@ -129,6 +141,7 @@ class KedisiplinanController extends Controller
             'activeTab',
             'q',
             'kategori',
+            'tingkat',
             'status',
             'perPage',
             'tataTertibList',
@@ -152,6 +165,7 @@ class KedisiplinanController extends Controller
 
         $headers = [
             'kode',
+            'tingkat',
             'kategori',
             'nama_aturan',
             'bobot_poin',
@@ -159,18 +173,19 @@ class KedisiplinanController extends Controller
         ];
 
         $sampleRows = [
-            ['KER01', 'kerapian', 'Tidak memakai seragam lengkap sesuai ketentuan hari', 5, 'Teguran lisan & pembinaan'],
-            ['KER02', 'kerapian', 'Rambut gondrong/tidak rapi atau diwarnai bagi siswa putra', 10, 'Teguran & pemotongan mandiri'],
-            ['HD01', 'kehadiran', 'Terlambat masuk sekolah lebih dari 15 menit', 5, 'Piket & tugas literasi'],
-            ['HD02', 'kehadiran', 'Meninggalkan jam pelajaran atau sekolah tanpa izin (membolos)', 20, 'Pemanggilan konseling BK & orang tua'],
-            ['PR01', 'perilaku', 'Menggunakan gawai/ponsel saat KBM tanpa izin guru', 10, 'Penyitaan sementara oleh wali kelas/BK'],
-            ['LB01', 'larangan_berat', 'Merokok atau membawa rokok/vape di lingkungan sekolah', 50, 'Surat peringatan 1 & pemanggilan orang tua'],
-            ['LB02', 'larangan_berat', 'Terlibat perkelahian, tawuran, atau tindak kekerasan fisik', 100, 'Surat peringatan keras & skorsing'],
+            ['KER01', 'ringan', 'kerapian', 'Tidak memakai seragam lengkap sesuai ketentuan hari', 5, 'Teguran lisan & pembinaan'],
+            ['KER02', 'ringan', 'kerapian', 'Rambut gondrong/tidak rapi atau diwarnai bagi siswa putra', 10, 'Teguran & pemotongan mandiri'],
+            ['HD01', 'ringan', 'kehadiran', 'Terlambat masuk sekolah lebih dari 15 menit', 5, 'Piket & tugas literasi'],
+            ['HD02', 'sedang', 'kehadiran', 'Meninggalkan jam pelajaran atau sekolah tanpa izin (membolos)', 20, 'Pemanggilan konseling BK & orang tua'],
+            ['PR01', 'ringan', 'perilaku', 'Menggunakan gawai/ponsel saat KBM tanpa izin guru', 10, 'Penyitaan sementara oleh wali kelas/BK'],
+            ['PR02', 'sedang', 'perilaku', 'Membawa/bermain game judi online atau kartu di lingkungan sekolah', 30, 'Penyitaan & surat peringatan'],
+            ['LB01', 'berat', 'larangan_berat', 'Merokok atau membawa rokok/vape di lingkungan sekolah', 50, 'Surat peringatan 1 & pemanggilan orang tua'],
+            ['LB02', 'berat', 'larangan_berat', 'Terlibat perkelahian, tawuran, atau tindak kekerasan fisik', 100, 'Surat peringatan keras & skorsing'],
         ];
 
         SimpleXlsxExporter::export($tempPath, [
             'title'    => 'TEMPLATE IMPORT ATURAN TATA TERTIB & POIN SISWA',
-            'subtitle' => 'SISTEM ADMINISTRASI ELEKTRONIK (SAE)',
+            'subtitle' => 'KLASIFIKASI: RINGAN, SEDANG, BERAT — SISTEM ADMINISTRASI ELEKTRONIK (SAE)',
         ], $headers, $sampleRows, [
             'sheetName' => 'Tata Tertib',
             'headerBg'  => '#1E3A8A',
@@ -251,11 +266,30 @@ class KedisiplinanController extends Controller
             $rawPoin = $this->ambilCell($row, ['bobot_poin', 'poin', 'bobot', 'skor']);
             $bobotPoin = is_numeric($rawPoin) ? max(1, (int)$rawPoin) : 5;
 
+            // Klasifikasi tingkat keparahan: ringan, sedang, berat
+            $rawTingkat = strtolower($this->ambilCell($row, ['tingkat', 'tingkat_pelanggaran', 'level', 'derajat', 'keparahan']));
+            if (str_contains($rawTingkat, 'berat')) {
+                $tingkat = 'berat';
+            } elseif (str_contains($rawTingkat, 'sedang')) {
+                $tingkat = 'sedang';
+            } elseif (str_contains($rawTingkat, 'ringan')) {
+                $tingkat = 'ringan';
+            } else {
+                if ($kategori === 'larangan_berat' || $bobotPoin >= 35) {
+                    $tingkat = 'berat';
+                } elseif ($bobotPoin >= 15) {
+                    $tingkat = 'sedang';
+                } else {
+                    $tingkat = 'ringan';
+                }
+            }
+
             $sanksi = $this->ambilCell($row, ['sanksi_rekomendasi', 'sanksi', 'rekomendasi_sanksi', 'tindakan']);
 
             $existing = KedisiplinanTataTertib::where('kode', $rawKode)->first();
             if ($existing) {
                 $existing->update([
+                    'tingkat'            => $tingkat,
                     'kategori'           => $kategori,
                     'nama_aturan'        => $namaAturan,
                     'bobot_poin'         => $bobotPoin,
@@ -266,6 +300,7 @@ class KedisiplinanController extends Controller
             } else {
                 KedisiplinanTataTertib::create([
                     'kode'               => $rawKode,
+                    'tingkat'            => $tingkat,
                     'kategori'           => $kategori,
                     'nama_aturan'        => $namaAturan,
                     'bobot_poin'         => $bobotPoin,
@@ -329,11 +364,18 @@ class KedisiplinanController extends Controller
 
         $validated = $request->validate([
             'kode'               => 'required|string|max:50|unique:kedisiplinan_tata_tertib,kode,' . $item->id,
+            'tingkat'            => 'nullable|string|in:ringan,sedang,berat',
             'kategori'           => 'required|string|in:kerapian,kehadiran,perilaku,larangan_berat',
             'nama_aturan'        => 'required|string|max:255',
             'bobot_poin'         => 'required|integer|min:1',
             'sanksi_rekomendasi' => 'nullable|string|max:255',
         ]);
+
+        if (empty($validated['tingkat'])) {
+            $validated['tingkat'] = ($validated['kategori'] === 'larangan_berat' || (int)$validated['bobot_poin'] >= 35)
+                ? 'berat'
+                : ((int)$validated['bobot_poin'] >= 15 ? 'sedang' : 'ringan');
+        }
 
         $item->update($validated);
 
@@ -366,17 +408,24 @@ class KedisiplinanController extends Controller
     {
         $validated = $request->validate([
             'kode'               => 'required|string|max:50|unique:kedisiplinan_tata_tertib,kode',
+            'tingkat'            => 'nullable|string|in:ringan,sedang,berat',
             'kategori'           => 'required|string|in:kerapian,kehadiran,perilaku,larangan_berat',
             'nama_aturan'        => 'required|string|max:255',
             'bobot_poin'         => 'required|integer|min:1',
             'sanksi_rekomendasi' => 'nullable|string|max:255',
         ]);
 
+        if (empty($validated['tingkat'])) {
+            $validated['tingkat'] = ($validated['kategori'] === 'larangan_berat' || (int)$validated['bobot_poin'] >= 35)
+                ? 'berat'
+                : ((int)$validated['bobot_poin'] >= 15 ? 'sedang' : 'ringan');
+        }
+
         $item = KedisiplinanTataTertib::create($validated);
 
         return response()->json([
             'status' => 'success',
-            'message' => "Aturan tata tertib {$item->kode} berhasil ditambahkan.",
+            'message' => "Aturan tata tertib {$item->kode} ({$item->tingkat}) berhasil ditambahkan.",
             'data' => $item,
         ]);
     }

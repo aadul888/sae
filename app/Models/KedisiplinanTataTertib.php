@@ -13,6 +13,7 @@ class KedisiplinanTataTertib extends Model
 
     protected $fillable = [
         'kode',
+        'tingkat',
         'kategori',
         'nama_aturan',
         'bobot_poin',
@@ -24,6 +25,20 @@ class KedisiplinanTataTertib extends Model
         'is_active' => 'boolean',
         'bobot_poin' => 'integer',
     ];
+
+    public function getTingkatAttribute($val): string
+    {
+        if (!empty($val)) {
+            return strtolower($val);
+        }
+        if ($this->kategori === 'larangan_berat' || (int) $this->bobot_poin >= 35) {
+            return 'berat';
+        }
+        if ((int) $this->bobot_poin >= 15) {
+            return 'sedang';
+        }
+        return 'ringan';
+    }
 
     public function pelanggaran()
     {
