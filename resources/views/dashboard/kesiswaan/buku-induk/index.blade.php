@@ -18,6 +18,9 @@
                 </h2>
                 <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Register induk siswa: identitas pokok, data orang tua/wali, domisili, dan status kependidikan.
+                    <span style="display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; padding: 2px 9px; border-radius: 999px; background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); font-weight: 700; font-size: var(--text-xs, 0.75rem);">
+                        <i class="fas fa-calendar-days"></i> T.A. {{ $tahunAjaranTerpilih ?? '-' }}
+                    </span>
                 </p>
             </div>
         </div>
@@ -113,7 +116,7 @@
                         <option value="aktif" {{ ($akademik ?? 'aktif') === 'aktif' ? 'selected' : '' }}>Siswa Aktif
                             (Kelas XII)</option>
                         <option value="alumni" {{ ($akademik ?? '') === 'alumni' ? 'selected' : '' }}>Alumni
-                            (Tahun Lalu)</option>
+                            {{ ($tahunAjaranTerpilih ?? null) !== ($tahunAjaranAktif ?? null) ? ($tahunAjaranTerpilih ?? 'Tahun Lalu') : '(Tahun Lalu)' }}</option>
                     </select>
 
                     <select name="status" id="filterStatusKlaper" class="toolbar-filter-select"

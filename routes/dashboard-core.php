@@ -297,11 +297,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'matriks'])->name('nilai.matriks')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::put('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveNilai'])->name('nilai.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
 
-            // Tab 3 — Maping Mata Pelajaran (pemetaan mapel per semester)
+            // Tab 3 — Maping Mata Pelajaran (pemetaan mapel per jurusan + PKL)
             Route::get('/mapel', [\App\Http\Controllers\BukuIndukNilaiController::class, 'mapingMapel'])->name('mapel.index')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::post('/mapel', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveMapingMapel'])->name('mapel.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
-            Route::get('/mapel/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplateMapel'])->name('mapel.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
-            Route::post('/mapel/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importMapelSemester'])->name('mapel.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+
+            // Tab 4 — Input Nilai per kelas & semester (+ impor per kelas)
+            Route::get('/input-nilai', [\App\Http\Controllers\BukuIndukNilaiController::class, 'inputNilai'])->name('input-nilai')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/input-nilai', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveInputNilai'])->name('input-nilai.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::get('/input-nilai/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplateNilai'])->name('input-nilai.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/input-nilai/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importNilaiKelas'])->name('input-nilai.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
 
             // Cetak lembar Buku Induk format A3
             Route::get('/cetak-buku-induk/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'cetakBukuInduk'])->name('cetak-buku-induk')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
@@ -546,6 +550,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');
     Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download')->middleware('permission:menu_maintenance,read');
+    Route::get('/maintenance/download/sql', [\App\Http\Controllers\MaintenanceController::class, 'downloadSql'])->name('maintenance.download.sql')->middleware('permission:menu_maintenance,read');
+    Route::get('/maintenance/download/assets', [\App\Http\Controllers\MaintenanceController::class, 'downloadAssets'])->name('maintenance.download.assets')->middleware('permission:menu_maintenance,read');
+    Route::post('/maintenance/restore', [\App\Http\Controllers\MaintenanceController::class, 'restore'])->name('maintenance.restore')->middleware('permission:menu_maintenance,update');
     Route::post('/maintenance/clean', [\App\Http\Controllers\MaintenanceController::class, 'cleanOldData'])->name('maintenance.clean')->middleware('permission:menu_maintenance,delete');
 
     // Modul Wali Kelas (Peserta Didik Aktif & Tidak Aktif Terisolasi Per Kelas Binaan)

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\File;
 use ZipArchive;
 
 use App\Services\BackupService;
+use App\Services\RestoreService;
 
 
 use App\Support\Table;
@@ -57,40 +58,116 @@ class MaintenanceController extends Controller
             'foto_count' => $fotoCount,
         ];
 
-        return view('dashboard.maintenance', compact('settings', 'hasActiveData', 'isArchiveRequired', 'lastSync', 'archiveDownloadedAt', 'syncAllowed', 'counts'));
+        $tab = in_array(request('tab'), ['backup', 'restore'], true) ? request('tab') : 'backup';
+
+        return view('dashboard.maintenance', compact('settings', 'hasActiveData', 'isArchiveRequired', 'lastSync', 'archiveDownloadedAt', 'syncAllowed', 'counts', 'tab'));
     }
 
     public function downloadArchive()
     {
-        $user = session('user');
-        if (!$user) return redirect()->route('login');
-
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') {
-            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
-        }
-
-        $adminName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'Admin')) : ($user->nama ?? ($user->username ?? 'Admin'));
+        if ($res = $this->checkAdmin()) return $res;
 
         try {
-            $backupService = new BackupService();
-            $result = $backupService->createComprehensiveBackup($adminName);
-
-            // Tandai di database bahwa arsip telah diunduh dan izin sinkronisasi dibuka
-            DB::table('settings')->where('id', 1)->update([
-                'archive_downloaded_at' => now(),
-                'archive_file_name' => $result['filename'],
-                'sync_allowed' => true,
-                'updated_at' => now(),
-            ]);
+            $result = (new BackupService())->createComprehensiveBackup($this->adminName());
+            $this->markArchiveDownloaded($result['filename']);
 
             return response()->download($result['zip_path'], $result['filename'], [
                 'Content-Type' => 'application/zip',
-                'Content-Disposition' => 'attachment; filename="' . $result['filename'] . '"',
             ])->deleteFileAfterSend(true);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with('error', 'Gagal memproses paket arsip: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Unduh dump SQL LENGKAP (seluruh tabel database) saja, tanpa aset/CSV.
+     */
+    public function downloadSql()
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        try {
+            $result = (new BackupService())->createSqlBackup($this->adminName());
+            $this->markArchiveDownloaded($result['filename']);
+
+            return response()->download($result['path'], $result['filename'], [
+                'Content-Type' => 'application/sql',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal membuat dump SQL: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Unduh arsip ZIP berisi HANYA berkas aset yang diunggah (foto, logo, dokumen).
+     */
+    public function downloadAssets()
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        try {
+            $result = (new BackupService())->createMediaBackup();
+
+            return response()->download($result['path'], $result['filename'], [
+                'Content-Type' => 'application/zip',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal mengarsipkan berkas aset: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Pulihkan database dari unggahan .sql atau .zip paket arsip SAE.
+     */
+    public function restore(Request $request)
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        $request->validate([
+            'restore_file' => 'required|file|max:512000',
+        ], [
+            'restore_file.required' => 'Pilih berkas arsip (.sql / .zip) yang akan dipulihkan.',
+        ]);
+
+        $file = $request->file('restore_file');
+        $ext = strtolower((string) $file->getClientOriginalExtension());
+        if (!in_array($ext, ['sql', 'zip', 'txt'], true)) {
+            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])
+                ->with('error', 'Format berkas tidak didukung. Gunakan .sql atau .zip hasil arsip SAE.');
+        }
+
+        try {
+            $result = (new RestoreService())->restore($file);
+
+            $msg = 'Restore database berhasil dari "' . $result['filename'] . '" (' . number_format($result['tables']) . ' tabel).';
+            if (!empty($result['snapshot'])) {
+                $msg .= ' Salinan pengaman sebelum restore tersimpan sebagai ' . $result['snapshot'] . '.';
+            }
+
+            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('success', $msg);
+        } catch (\Throwable $e) {
+            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])
+                ->with('error', 'Gagal memulihkan database: ' . $e->getMessage());
+        }
+    }
+
+    private function adminName(): string
+    {
+        $user = session('user');
+
+        return is_array($user)
+            ? ($user['nama'] ?? ($user['username'] ?? 'Admin'))
+            : ($user->nama ?? ($user->username ?? 'Admin'));
+    }
+
+    private function markArchiveDownloaded(string $filename): void
+    {
+        DB::table('settings')->where('id', 1)->update([
+            'archive_downloaded_at' => now(),
+            'archive_file_name'     => $filename,
+            'sync_allowed'          => true,
+            'updated_at'            => now(),
+        ]);
     }
 
     /**
@@ -169,13 +246,10 @@ class MaintenanceController extends Controller
                 DB::table('sessions')->where('last_activity', '<', time() - (86400 * 7))->delete();
             }
 
-            // Bersihkan file sementara di storage/app/archives
+            // Bersihkan file sementara di storage/app/archives (termasuk subfolder build)
             $tempDir = storage_path('app/archives');
             if (File::isDirectory($tempDir)) {
-                $files = File::files($tempDir);
-                foreach ($files as $f) {
-                    @unlink($f->getRealPath());
-                }
+                File::cleanDirectory($tempDir);
             }
 
             // Bersihkan file sesi file driver yang kadaluarsa (> 7 hari)

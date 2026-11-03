@@ -60,8 +60,8 @@
                 <div>
                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">Format Excel
                         Baku Dapodik</div>
-                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Unduh contoh template jika ingin
-                        menyusun data secara manual</div>
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Unduh contoh template untuk
+                        melihat susunan kolom yang diterima</div>
                 </div>
                 <a href="{{ $templateUrl }}" class="btn btn-outline"
                     style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px; border-color: var(--success, #10b981); color: var(--success, #10b981); text-decoration: none; white-space: nowrap;">

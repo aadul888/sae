@@ -22,6 +22,17 @@
             gap: 10px;
         }
         .bi-col-head { display: flex; align-items: center; justify-content: space-between; font-weight: 800; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); }
+        .bi-mapel-col-locked {
+            border: 1px dashed rgba(13,148,136,0.5);
+            border-radius: var(--radius-lg, 12px);
+            padding: 12px;
+            background: rgba(13,148,136,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 360px;
+        }
+        .bi-mapel-col-locked .bi-sel-item { background: rgba(13,148,136,0.1); border-color: rgba(13,148,136,0.3); }
         .bi-count {
             font-size: var(--text-2xs, 0.6875rem); font-weight: 700; color: var(--text-muted);
             background: rgba(0,0,0,0.05); border-radius: 999px; padding: 2px 8px;
@@ -82,6 +93,32 @@
             border: 1px solid rgba(99,102,241,0.2);
             border-radius: var(--radius-md, 8px);
             padding: 8px 10px;
+        }
+        .bi-pkl-toggle { display: flex; align-items: center; gap: 7px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); cursor: pointer; white-space: nowrap; }
+        .bi-pkl-per-sem {
+            display: flex; align-items: flex-start; gap: 8px; white-space: normal; font-weight: 600;
+            margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px);
+            background: rgba(13,148,136,0.06); border: 1px solid rgba(13,148,136,0.2); line-height: 1.5;
+        }
+        .bi-pkl-per-sem input { margin-top: 2px; }
+        .bi-nilai-scroll { overflow-x: auto; border: 1px solid var(--border-color, #e5e7eb); border-radius: var(--radius-md, 8px); }
+        .bi-nilai-table { border-collapse: collapse; width: 100%; }
+        .bi-nilai-table th, .bi-nilai-table td { border-bottom: 1px solid var(--border-color, #f1f2f4); padding: 5px 6px; text-align: left; font-size: var(--text-xs, 0.75rem); white-space: nowrap; }
+        .bi-nilai-table thead th {
+            position: sticky; top: 0; z-index: 1; background: var(--bg-hover, #f9fafb);
+            font-weight: 700; color: var(--text-color); vertical-align: bottom;
+        }
+        .bi-nilai-nama { font-weight: 600; color: var(--text-color); }
+        .bi-nilai-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+        .bi-nilai-input {
+            width: 72px; min-height: 30px; padding: 4px 6px; text-align: center;
+            border: 1px solid var(--border-color, #e5e7eb); border-radius: var(--radius-sm, 6px);
+            background: var(--bg-card, #fff); color: var(--text-color); font-size: var(--text-xs, 0.75rem);
+        }
+        .bi-nilai-input:focus { outline: none; border-color: var(--primary, #3b82f6); }
+        .bi-singkatan-item {
+            flex: 0 0 64px; width: 64px; min-height: 24px; padding: 2px 6px; text-align: center;
+            font-size: var(--text-2xs, 0.6875rem); font-weight: 700; letter-spacing: .02em;
         }
     </style>
 @endpush

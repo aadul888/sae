@@ -12,13 +12,13 @@ use App\Models\RolePermission;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Models\TendikAktivitas;
+use App\Services\BukuIndukNilaiService;
 use App\Services\QrCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\KelasAkhirScope;
 use App\Support\Table;
-
 class BukuIndukController extends Controller
 {
     use ChecksAuthenticatedSession;
@@ -46,7 +46,15 @@ class BukuIndukController extends Controller
         $kelengkapan = $request->input('kelengkapan', 'all'); // lengkap, belum_lengkap, all
         $perPageVal  = $request->input('perPage', $request->input('per_page', 25));
         $perPage     = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 25;
-        $akademik    = $request->input('akademik') === 'alumni' ? 'alumni' : 'aktif';
+        $akademik    = $request->input('akademik') === 'alumni' ? 'alumni' : ($request->input('akademik') === 'aktif' ? 'aktif' : null);
+
+        // Tahun ajaran dari Pengaturan Buku Induk menentukan cohort yang tampil:
+        // tahun ajaran aktif → kelas akhir (XII) sekarang; tahun ajaran lampau → Alumni tahun itu.
+        $tahunAjaranAktif   = BukuIndukNilaiService::tahunAjaranAktif();
+        $tahunAjaranTerpilih = (string) (BukuIndukNilaiService::pengaturan()->tahun_ajaran ?? '') ?: $tahunAjaranAktif;
+        if ($akademik === null) {
+            $akademik = $tahunAjaranTerpilih === $tahunAjaranAktif ? 'aktif' : 'alumni';
+        }
 
         // Sorting
         $sort    = $request->input('sort', 'nama');
@@ -211,6 +219,10 @@ class BukuIndukController extends Controller
                         ->orWhere('alasan_keluar', 'like', '%Lulus%')
                         ->orWhere('alasan_keluar', 'like', '%Tamat%');
                 })
+                // Tahun ajaran lampau: batasi ke lulusan tahun ajaran itu.
+                ->when($tahunAjaranTerpilih !== $tahunAjaranAktif, function ($b) use ($tahunAjaranTerpilih) {
+                    $b->where('tahun_lulus', $tahunAjaranTerpilih);
+                })
                 ->when($q !== '', function ($b) use ($q) {
                     $b->where(function ($w) use ($q) {
                         $w->where('nama', 'like', "%{$q}%")
@@ -278,7 +290,9 @@ class BukuIndukController extends Controller
             'canCreate',
             'canRead',
             'canUpdate',
-            'canDelete'
+            'canDelete',
+            'tahunAjaranTerpilih',
+            'tahunAjaranAktif'
         ));
     }
 

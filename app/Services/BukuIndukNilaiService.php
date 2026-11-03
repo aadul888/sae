@@ -55,6 +55,12 @@ class BukuIndukNilaiService
         'Mata Pelajaran Pilihan',
     ];
 
+    /** Mapel khusus Pelaksanaan PKL — hanya butuh satu nilai per tingkat. */
+    public const MAPEL_PKL = 'Praktik Kerja Lapangan';
+
+    /** Rentang semester sah per tingkat: X 1–2, XI 3–4, XII 5–6. */
+    private const TINGKAT_SEMESTER = ['10' => [1, 2], '11' => [3, 4], '12' => [5, 6]];
+
     /**
      * Referensi mata pelajaran default yang diambil dari tabel `pembelajaran`
      * (data pembelajaran Dapodik). Mapel berstatus "Wajib" masuk kelompok umum,
@@ -109,6 +115,25 @@ class BukuIndukNilaiService
         $y = (int) $now->format('Y');
 
         return $now->month >= 7 ? "{$y}/" . ($y + 1) : ($y - 1) . "/{$y}";
+    }
+
+    /**
+     * Daftar pilihan tahun ajaran untuk dropdown (beberapa tahun ke belakang + 1 ke depan).
+     *
+     * @return array<int,string>
+     */
+    public static function tahunAjaranList(int $back = 5, int $forward = 1): array
+    {
+        $now = now();
+        $y = (int) $now->format('Y');
+        $start = $now->month >= 7 ? $y : $y - 1; // tahun awal tahun ajaran aktif
+
+        $out = [];
+        for ($i = $start + $forward; $i >= $start - $back; $i--) {
+            $out[] = "{$i}/" . ($i + 1);
+        }
+
+        return $out;
     }
 
     /**
@@ -175,6 +200,10 @@ class BukuIndukNilaiService
                 'mapel_umum' => $defUmum,
                 'mapel_kejuruan' => $defKejuruan,
                 'mapel_semester' => null,
+                'pkl_tingkat' => null,
+                'pkl_semester' => null,
+                'mapel_jurusan' => null,
+                'mapel_singkatan' => null,
             ];
         }
 
@@ -291,24 +320,237 @@ class BukuIndukNilaiService
         return $out;
     }
 
-    /** Peta nama mapel => kelompok dari seluruh pemetaan semester (dipakai saat simpan nilai). */
-    public static function kelompokMapel(): array
+    /** Cache singkatan mapel per request. */
+    private static ?array $cacheSingkatan = null;
+
+    /** Peta singkatan mapel {nama_mapel: singkatan}. */
+    public static function singkatanMap(): array
     {
-        $map = [];
-        foreach (self::mapelPerSemester() as $lst) {
-            foreach (['umum', 'kejuruan'] as $grup) {
-                foreach ($lst[$grup] as $nama) {
-                    $map[$nama] = $map[$nama] ?? $grup;
+        if (self::$cacheSingkatan !== null) {
+            return self::$cacheSingkatan;
+        }
+
+        $raw = self::pengaturan()->mapel_singkatan ?? null;
+        $arr = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
+        $out = [];
+        if (is_array($arr)) {
+            foreach ($arr as $nama => $sing) {
+                $nama = trim((string) $nama);
+                $sing = trim((string) $sing);
+                if ($nama !== '' && $sing !== '') {
+                    $out[$nama] = $sing;
                 }
             }
         }
-        foreach (self::mapelList() as $grup => $list) {
-            foreach ($list as $nama) {
-                $map[$nama] = $map[$nama] ?? $grup;
+
+        return self::$cacheSingkatan = $out;
+    }
+
+    /** Singkatan satu mapel; kosong bila belum diatur (pakai nama lengkap). */
+    public static function singkatan(string $nama): string
+    {
+        return self::singkatanMap()[$nama] ?? '';
+    }
+
+    /** Simpan peta singkatan mapel (entri kosong dihapus). */
+    public static function saveSingkatan(array $map): bool
+    {
+        if (!Table::exists('buku_induk_pengaturan')) {
+            return false;
+        }
+
+        $clean = [];
+        foreach ($map as $nama => $sing) {
+            $nama = trim((string) $nama);
+            $sing = trim((string) $sing);
+            if ($nama !== '' && $sing !== '') {
+                $clean[$nama] = $sing;
             }
         }
 
-        return $map;
+        $p = self::pengaturan();
+        DB::table('buku_induk_pengaturan')->where('id', $p->id)->update([
+            'mapel_singkatan' => json_encode($clean),
+            'updated_at' => now(),
+        ]);
+        self::$cacheSingkatan = $clean;
+
+        return true;
+    }
+
+    /** Kata sambung yang tidak dijadikan inisial singkatan. */
+    private const KATA_ABAI = ['dan', 'atau', 'serta', 'di', 'ke', 'dari', 'yang', 'untuk', 'pada', 'dengan', 'the', 'of', 'and'];
+
+    /**
+     * Singkatan otomatis dari nama mapel.
+     *
+     * Multi-kata → inisial tiap kata (kata sambung dibuang); satu kata → huruf
+     * konsonan unik. Contoh: "Matematika" → "MTK",
+     * "Pendidikan Agama Islam dan Budi Pekerti" → "PAIBP".
+     */
+    public static function singkatanOtomatis(string $nama): string
+    {
+        $bersih = preg_replace('/[^A-Za-z0-9]+/', ' ', $nama) ?? '';
+        $kata = array_values(array_filter(preg_split('/\s+/', trim($bersih)) ?: [], fn ($k) => $k !== ''));
+        $kata = array_values(array_filter($kata, fn ($k) => !in_array(strtolower($k), self::KATA_ABAI, true)));
+
+        if (!$kata) {
+            return '';
+        }
+
+        if (count($kata) > 1) {
+            $sing = '';
+            foreach ($kata as $k) {
+                $sing .= strtoupper(substr($k, 0, 1));
+            }
+
+            return substr($sing, 0, 12);
+        }
+
+        $satu = $kata[0];
+        if (strlen($satu) <= 4) {
+            return strtoupper($satu);
+        }
+
+        $sing = '';
+        foreach (str_split(strtolower($satu)) as $h) {
+            if (preg_match('/[a-z]/', $h) && preg_match('/[aeiou]/', $h)) {
+                continue;
+            }
+            $up = strtoupper($h);
+            if (strpos($sing, $up) === false) {
+                $sing .= $up;
+            }
+            if (strlen($sing) >= 6) {
+                break;
+            }
+        }
+
+        return $sing !== '' ? $sing : strtoupper(substr($satu, 0, 3));
+    }
+
+    /**
+     * Peta singkatan efektif (tersimpan bila ada, jika tidak dihitung otomatis).
+     *
+     * @param  array<int,string>  $namaList
+     * @return array<string,string>
+     */
+    public static function singkatanEfektif(array $namaList): array
+    {
+        $stored = self::singkatanMap();
+        $out = [];
+        foreach ($namaList as $nama) {
+            $nama = trim((string) $nama);
+            if ($nama === '') {
+                continue;
+            }
+            $out[$nama] = $stored[$nama] ?? self::singkatanOtomatis($nama);
+        }
+
+        return $out;
+    }
+
+    /** JSON pelaksanaan PKL per semester (daftar semester, urut). */
+    private static function pklJson(): array
+    {
+        $out = [];
+        $baca = function ($raw) {
+            $arr = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
+            return is_array($arr) ? $arr : [];
+        };
+
+        foreach ($baca(self::pengaturan()->pkl_semester ?? null) as $s) {
+            $s = (int) $s;
+            if ($s >= 1 && $s <= 6) {
+                $out[$s] = $s;
+            }
+        }
+        // Cadangan data lama ({tingkat: semester}).
+        if (!$out) {
+            foreach ($baca(self::pengaturan()->pkl_tingkat ?? null) as $s) {
+                $s = (int) $s;
+                if ($s >= 1 && $s <= 6) {
+                    $out[$s] = $s;
+                }
+            }
+        }
+
+        ksort($out);
+
+        return array_values($out);
+    }
+
+    /** Cache pilihan PKL per request. */
+    private static ?array $cachePklSemester = null;
+
+    /**
+     * Semester yang melaksanakan PKL.
+     *
+     * @return array<int,int> daftar semester 1..6 (urut)
+     */
+    public static function pklSemester(): array
+    {
+        if (self::$cachePklSemester !== null) {
+            return self::$cachePklSemester;
+        }
+
+        return self::$cachePklSemester = self::pklJson();
+    }
+
+    /** Apakah semester ini melaksanakan PKL (semester terkunci: hanya mapel PKL). */
+    public static function semesterPkl(int $semester): bool
+    {
+        return in_array($semester, self::pklSemester(), true);
+    }
+
+    /** Simpan pilihan Pelaksanaan PKL (daftar semester). */
+    public static function savePklSemester(array $semesters): bool
+    {
+        if (!Table::exists('buku_induk_pengaturan')) {
+            return false;
+        }
+
+        $clean = [];
+        foreach ($semesters as $s) {
+            $s = (int) $s;
+            if ($s >= 1 && $s <= 6) {
+                $clean[$s] = $s;
+            }
+        }
+        ksort($clean);
+        $clean = array_values($clean);
+
+        $p = self::pengaturan();
+        DB::table('buku_induk_pengaturan')->where('id', $p->id)->update([
+            'pkl_semester' => json_encode($clean),
+            'updated_at' => now(),
+        ]);
+        self::$cachePklSemester = $clean;
+
+        return true;
+    }
+
+    /**
+     * Ringkasan PKL per tingkat (turunan dari pilihan per semester).
+     *
+     * @return array<string,int|null> kunci '10'/'11'/'12', nilai semester 1..6 atau null.
+     */
+    public static function pklTingkat(): array
+    {
+        $sem = self::pklSemester();
+        $out = [];
+        foreach (self::TINGKAT_SEMESTER as $tingkat => $range) {
+            $found = null;
+            foreach ($range as $s) {
+                if (in_array($s, $sem, true)) {
+                    $found = $s;
+                    break;
+                }
+            }
+            $out[$tingkat] = $found;
+        }
+
+        return $out;
     }
 
     /** Simpan pemetaan mapel satu semester (menandai semester sebagai sudah dipetakan). */
@@ -334,90 +576,43 @@ class BukuIndukNilaiService
     }
 
     /**
-     * Impor pemetaan mapel PER SEMESTER dari Excel/CSV.
-     *
-     * Kolom: `Semester`, `Kelompok` (opsional: umum/kejuruan), `Nama Mata Pelajaran`.
-     * Baris ditambahkan ke semester terkait (menandai semester itu sudah dipetakan)
-     * atau menggantinya bila `$replace` true.
-     *
-     * @return array{imported:int, skipped:int, errors:array<int,string>, semesters:array<int,int>}
-     */
-    public static function importMapelSemesterRows(array $rows, ?int $forcedSemester = null, bool $replace = true): array
-    {
-        $imported = 0;
-        $skipped = 0;
-        $errors = [];
-        $lists = self::mapelPerSemester();
-        $acc = []; // hasil berkas: sem => ['umum'=>[], 'kejuruan'=>[]]
-
-        $get = function (array $row, array $keys, int $fallback) {
-            foreach ($keys as $k) {
-                if (isset($row[$k]) && trim((string) $row[$k]) !== '') {
-                    return trim((string) $row[$k]);
-                }
-            }
-            $vals = array_values($row);
-            return isset($vals[$fallback]) ? trim((string) $vals[$fallback]) : '';
-        };
-
-        foreach ($rows as $idx => $row) {
-            $rowNum = $idx + 2;
-
-            $semRaw = $forcedSemester ?: (int) preg_replace('/[^0-9]/', '', $get($row, ['semester', 'smt', 'sem'], 0));
-            $sem = (int) $semRaw;
-            if ($sem < 1 || $sem > 6) {
-                $skipped++;
-                $errors[] = "Baris {$rowNum}: semester tidak valid.";
-                continue;
-            }
-
-            $nama = $get($row, ['nama_mata_pelajaran', 'mata_pelajaran', 'nama mapel', 'mapel', 'nama'], -1);
-            if ($nama === '') {
-                $skipped++;
-                $errors[] = "Baris {$rowNum}: nama mata pelajaran kosong.";
-                continue;
-            }
-
-            $kelompokRaw = strtolower($get($row, ['kelompok', 'group', 'kategori'], -1));
-            $kelompok = str_contains($kelompokRaw, 'kejuruan') ? 'kejuruan' : 'umum';
-
-            $acc[$sem] = $acc[$sem] ?? ['umum' => [], 'kejuruan' => []];
-            if (!in_array($nama, $acc[$sem][$kelompok], true)) {
-                $acc[$sem][$kelompok][] = $nama;
-                $imported++;
-            } else {
-                $skipped++;
-            }
-        }
-
-        foreach ($acc as $sem => $lst) {
-            $out = $replace
-                ? $lst
-                : [
-                    'umum' => array_values(array_unique(array_merge($lists[$sem]['umum'], $lst['umum']))),
-                    'kejuruan' => array_values(array_unique(array_merge($lists[$sem]['kejuruan'], $lst['kejuruan']))),
-                ];
-            self::saveMapelSemester((int) $sem, $out['umum'], $out['kejuruan']);
-        }
-
-        return [
-            'imported' => $imported,
-            'skipped' => $skipped,
-            'errors' => array_slice($errors, 0, 10),
-            'semesters' => array_map('intval', array_keys($acc)),
-        ];
-    }
-
-    /**
      * Matriks nilai satu siswa untuk lembar cetak / modal atur nilai.
      *
      * @param  string  $akademik  'aktif' (tampilkan semua 6 semester + dummy) atau
      *                            'alumni' (hanya semester kelas akhir 5–6, tanpa dummy).
-     * @return array<int, array{nama:string, kelompok:string, nilai:array<int,float|null>, akhir:float|null}>
+     * @return array<int, array{nama:string, kelompok:string, nilai:array<int,float|null>, akhir:float|null, editable?:array<int,int>}>
      */
     public static function matriks($pesertaDidikId, string $akademik = 'aktif'): array
     {
-        $perSemester = self::mapelPerSemester();
+        $pd = self::findPesertaDidik($pesertaDidikId);
+        $kunciJurusan = BukuIndukJurusanService::kunciJurusan($pd);
+        $perSemester = BukuIndukJurusanService::mapelPerSemesterJurusan($kunciJurusan);
+        $isAlumni = ($akademik === 'alumni');
+        $semesters = $isAlumni ? [5, 6] : [1, 2, 3, 4, 5, 6];
+
+        // Pelaksanaan PKL tingkat siswa ini: mapel PKL dipindah ke semester
+        // pelaksanaannya, dan semester itu DIKUNCI — hanya nilai PKL yang bisa diisi.
+        $tingkat = (string) ($pd->tingkat_pendidikan_id ?? $pd->tingkat_pendidikan_terakhir ?? '');
+        $pklSem = $tingkat !== '' ? (self::pklTingkat()[$tingkat] ?? null) : null;
+        $terkunci = [];
+        $editableKhusus = [];
+        if ($pklSem !== null) {
+            $terkunci[$pklSem] = true;
+            foreach (range(1, 6) as $s) {
+                foreach (['umum', 'kejuruan'] as $grup) {
+                    $perSemester[$s][$grup] = array_values(array_filter(
+                        $perSemester[$s][$grup],
+                        fn ($n) => $n !== self::MAPEL_PKL
+                    ));
+                }
+            }
+            $lst = $perSemester[$pklSem]['kejuruan'];
+            if (!in_array(self::MAPEL_PKL, $lst, true)) {
+                $lst[] = self::MAPEL_PKL;
+            }
+            $perSemester[$pklSem]['kejuruan'] = $lst;
+            $editableKhusus[self::MAPEL_PKL] = [$pklSem];
+        }
 
         // nilai tersimpan: [nama_mapel][semester] => nilai
         $tersimpan = [];
@@ -429,9 +624,6 @@ class BukuIndukNilaiService
                 $tersimpan[$r->nama_mata_pelajaran][(int) $r->semester] = (float) $r->nilai;
             }
         }
-
-        $isAlumni = ($akademik === 'alumni');
-        $semesters = $isAlumni ? [5, 6] : [1, 2, 3, 4, 5, 6];
 
         // Urutan baris: kemunculan pertama sebuah mapel per kelompok (semester 1..6),
         // sehingga mapel yang hanya diajarkan di semester tertentu tetap tampil.
@@ -448,21 +640,41 @@ class BukuIndukNilaiService
 
         $hasil = [];
         foreach ($urutan as $nama => $kelompok) {
+            $editableSem = [];
             $nilai = [];
             foreach ($semesters as $sem) {
-                // Kosong bila mapel tidak diajarkan pada semester itu.
+                // Kosong bila mapel tidak diajarkan ATAU semester dikunci PKL.
                 $diajarkan = in_array($nama, $perSemester[$sem][$kelompok] ?? [], true);
-                $nilai[$sem] = $diajarkan
+                $boleh = $diajarkan && !isset($terkunci[$sem]);
+                if ($boleh) {
+                    $editableSem[] = $sem;
+                }
+                $nilai[$sem] = $boleh
                     ? ($tersimpan[$nama][$sem] ?? ($isAlumni ? null : self::dummy($pesertaDidikId, $nama, $sem)))
                     : null;
             }
-            $terisi = array_filter($nilai, fn ($v) => $v !== null);
-            $hasil[] = [
+
+            // Mapel PKL: hanya semester pelaksanaan tingkat siswa yang boleh diisi.
+            if (isset($editableKhusus[$nama])) {
+                $editableSem = array_values(array_intersect($editableKhusus[$nama], $semesters));
+                foreach ($nilai as $sem => $v) {
+                    if (!in_array($sem, $editableSem, true)) {
+                        $nilai[$sem] = null;
+                    }
+                }
+            }
+
+            $baris = [
                 'nama' => $nama,
                 'kelompok' => $kelompok,
                 'nilai' => $nilai,
-                'akhir' => $terisi ? round(array_sum($terisi) / count($terisi), 2) : null,
+                'editable' => $editableSem,
+                'akhir' => null,
             ];
+
+            $terisi = array_filter($nilai, fn ($v) => $v !== null);
+            $baris['akhir'] = $terisi ? round(array_sum($terisi) / count($terisi), 2) : null;
+            $hasil[] = $baris;
         }
 
         return $hasil;

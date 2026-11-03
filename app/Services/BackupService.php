@@ -77,6 +77,81 @@ class BackupService
     }
 
     /**
+     * Identitas sekolah (NPSN, nama) untuk penamaan berkas arsip.
+     *
+     * @return array{0:string,1:string} [$npsn, $namaSekolah]
+     */
+    private function schoolIdentity(): array
+    {
+        $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
+
+        return [
+            (string) ($sekolah->npsn ?? 'Data'),
+            (string) ($sekolah->nama ?? 'Satuan Pendidikan'),
+        ];
+    }
+
+    /**
+     * Hasilkan file dump SQL LENGKAP saja (semua tabel) tanpa aset/CSV/JSON.
+     *
+     * @return array ['path' => string, 'filename' => string]
+     */
+    public function createSqlBackup(string $adminName = 'Admin'): array
+    {
+        [$npsn, $namaSekolah] = $this->schoolIdentity();
+
+        $tempBase = storage_path('app/archives');
+        if (!File::isDirectory($tempBase)) {
+            File::makeDirectory($tempBase, 0755, true, true);
+        }
+
+        $slug = preg_replace('/[^A-Za-z0-9_\-]/', '', $npsn);
+        $filename = 'SAE_Database_' . $slug . '_' . now()->format('Ymd_His') . '.sql';
+
+        $workDir = $tempBase . '/sql_' . uniqid();
+        File::makeDirectory($workDir, 0755, true, true);
+
+        $this->generateSqlDump($workDir, $namaSekolah, $npsn, $adminName);
+
+        $target = $tempBase . '/' . $filename;
+        File::move($workDir . '/database_sae_lengkap.sql', $target);
+        File::deleteDirectory($workDir);
+
+        return ['path' => $target, 'filename' => $filename];
+    }
+
+    /**
+     * Hasilkan arsip ZIP berisi HANYA berkas aset/media yang diunggah
+     * (foto peserta didik, foto GTK, logo/kop sekolah, logo jurusan, dokumen).
+     *
+     * @return array ['path' => string, 'filename' => string, 'counts' => array]
+     */
+    public function createMediaBackup(): array
+    {
+        [$npsn] = $this->schoolIdentity();
+
+        $tempBase = storage_path('app/archives');
+        if (!File::isDirectory($tempBase)) {
+            File::makeDirectory($tempBase, 0755, true, true);
+        }
+
+        $slug = preg_replace('/[^A-Za-z0-9_\-]/', '', $npsn);
+        $filename = 'SAE_Berkas_Aset_' . $slug . '_' . now()->format('Ymd_His') . '.zip';
+
+        $workDir = $tempBase . '/media_' . uniqid();
+        $mediaDir = $workDir . '/03_BERKAS_MEDIA';
+        File::makeDirectory($mediaDir, 0755, true, true);
+
+        $counts = $this->copyMediaFiles($mediaDir);
+
+        $zipPath = $tempBase . '/' . $filename;
+        $this->compressFolderToZip($workDir, $zipPath);
+        File::deleteDirectory($workDir);
+
+        return ['path' => $zipPath, 'filename' => $filename, 'counts' => $counts];
+    }
+
+    /**
      * Menghasilkan Dump Database SQL standar MySQL murni (CREATE TABLE + INSERT INTO).
      */
     private function generateSqlDump(string $outputDir, string $namaSekolah, string $npsn, string $adminName): void
@@ -131,7 +206,9 @@ class BackupService
                 $cols = DB::getSchemaBuilder()->getColumnListing($table);
                 $colNamesEscaped = '`' . implode('`, `', $cols) . '`';
 
-                DB::table($table)->orderBy($cols[0])->chunk(250, function ($rows) use ($handleFull, $table, $cols, $colNamesEscaped, $pdo) {
+                // chunkById memakai kolom pertama (umumnya PRIMARY KEY) sebagai kursor,
+                // menghindari risiko baris terlewat/duplikat akibat offset pagination.
+                DB::table($table)->chunkById(250, function ($rows) use ($handleFull, $table, $cols, $colNamesEscaped, $pdo) {
                     $insertSql = "INSERT INTO `{$table}` ({$colNamesEscaped}) VALUES\n";
                     $valueRows = [];
 
@@ -152,7 +229,7 @@ class BackupService
 
                     $insertSql .= implode(",\n", $valueRows) . ";\n";
                     fwrite($handleFull, $insertSql);
-                });
+                }, $cols[0]);
 
                 fwrite($handleFull, "/*!40000 ALTER TABLE `{$table}` ENABLE KEYS */;\n");
                 fwrite($handleFull, "UNLOCK TABLES;\n\n");
@@ -297,7 +374,9 @@ class BackupService
 
             $no = 1;
             $hasGtkMeta = Table::exists('gtk_meta');
-            $gtkQuery = DB::table('gtk');
+            // select('gtk.*') wajib: addSelect() pada query tanpa select eksplisit akan
+            // MENGGANTI "*" sehingga kolom asli (nuptk, nip, dst) hilang.
+            $gtkQuery = DB::table('gtk')->select('gtk.*');
 
             if ($hasGtkMeta) {
                 $gtkQuery->addSelect([

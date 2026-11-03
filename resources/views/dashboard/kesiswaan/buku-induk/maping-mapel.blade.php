@@ -17,7 +17,8 @@
                     Maping Mata Pelajaran
                 </h2>
                 <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                    Tetapkan mata pelajaran <strong>per semester</strong> — semester tanpa mapel boleh dikosongkan.
+                    Tetapkan mata pelajaran <strong>per jurusan &amp; per semester</strong> — nama mapel generik
+                    (Dasar Dasar Keahlian / Konsentrasi Keahlian) tampil sebagai nama jurusan yang jelas.
                 </p>
             </div>
         </div>
@@ -26,53 +27,46 @@
     {{-- 2. Tab Navigasi --}}
     @include('dashboard.kesiswaan.buku-induk.partials.tabs', ['activeTab' => 'mapel'])
 
-    {{-- 3. Import Pemetaan per Semester --}}
-    @if ($can['create'])
-        <div class="card" style="padding: 18px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div
-                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
-                        <i class="fas fa-file-excel"></i>
-                    </div>
-                    <div>
-                        <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-md, 1rem);">Import Mapel per Semester</div>
-                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Format: Semester, Kelompok (umum/kejuruan), Nama Mata Pelajaran</div>
-                    </div>
-                </div>
-                <a href="{{ route('dashboard.kesiswaan.buku-induk.mapel.template') }}" class="btn btn-outline"
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); text-decoration: none; border-color: var(--success, #10b981); color: var(--success, #10b981);">
-                    <i class="fas fa-download"></i> Unduh Template Excel
-                </a>
+    {{-- 3. Pemilih Jurusan --}}
+    @php
+        $jurusanTerpilih = $jurusanTerpilih ?? '_global';
+        $labelJurusan = $jurusanTerpilih === '_global'
+            ? 'Default (semua jurusan)'
+            : \App\Services\BukuIndukJurusanService::label($jurusanMeta ?? []);
+    @endphp
+    <div class="card" style="padding: 16px 18px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <i class="fas fa-graduation-cap" style="color: #0d9488;"></i>
+                <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color);">Jurusan</span>
             </div>
-
-            <div
-                style="margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); font-size: var(--text-xs, 0.75rem); line-height: 1.5; color: var(--text-color);">
-                <i class="fas fa-info-circle" style="color: var(--primary, #3b82f6);"></i>
-                Satu berkas untuk <strong>satu semester</strong>. Daftar mapel semester itu akan <strong>diganti</strong> dengan isi berkas — cocok untuk semester yang hanya mengajarkan sebagian mapel.
-            </div>
-
-            <form id="formMapelImport" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.import') }}" method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                <div class="bi-import-row">
-                    <select name="semester" class="bi-input bi-file-sm" required>
-                        @foreach (range(1, 6) as $sem)
-                            <option value="{{ $sem }}">Semester {{ $sem }}</option>
-                        @endforeach
-                    </select>
-                    <input type="file" name="file_excel" accept=".xlsx,.xls,.csv,.txt" class="bi-file-input" required>
-                    <button type="submit" id="btnImportMapel" class="btn btn-primary"
-                        style="padding: 9px 22px; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-                        <i class="fas fa-cloud-arrow-up"></i> Import Mapel
-                    </button>
-                </div>
-                <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 6px;">Mendukung .xlsx, .xls, .csv (maks 20 MB).</div>
+            <form method="GET" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
+                style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <select name="jurusan" class="bi-input" style="min-width: 300px;" onchange="this.form.submit()">
+                    <option value="_global" {{ $jurusanTerpilih === '_global' ? 'selected' : '' }}>&mdash; Default (semua jurusan) &mdash;</option>
+                    @foreach ($jurusanList as $kunci => $jr)
+                        <option value="{{ $kunci }}" {{ (string) $jurusanTerpilih === (string) $kunci ? 'selected' : '' }}>
+                            {{ \App\Services\BukuIndukJurusanService::label($jr) }}
+                        </option>
+                    @endforeach
+                </select>
+                <noscript><button type="submit" class="btn btn-outline">Tampilkan</button></noscript>
             </form>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); flex: 1; min-width: 220px;">
+                Setiap jurusan punya susunan mapel sendiri. Jurusan yang belum dipetakan memakai daftar <strong>Default</strong>.
+            </div>
         </div>
-    @endif
+    </div>
 
     {{-- 4. Pemetaan per Semester --}}
+    @php
+        $tingkatLabel = ['10' => 'X', '11' => 'XI', '12' => 'XII'];
+        $semPkl = [];
+        foreach (($pklSemester ?? []) as $s) {
+            $s = (int) $s;
+            $semPkl[$s] = $tingkatLabel[(string) (10 + intdiv($s - 1, 2))] ?? '';
+        }
+    @endphp
     <div class="card" style="padding: 18px;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
             <div
@@ -80,7 +74,7 @@
                 <i class="fas fa-list-check"></i>
             </div>
             <div>
-                <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-md, 1rem);">Pemetaan Mata Pelajaran per Semester</div>
+                <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-md, 1rem);">Pemetaan Mata Pelajaran — {{ $labelJurusan }}</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                     Ambil dari referensi <strong>pembelajaran</strong> Dapodik atau tambah manual. Gunakan panah untuk mengatur urutan.
                 </div>
@@ -89,18 +83,50 @@
 
         <form id="formPengaturan" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.save') }}" method="POST">
             @csrf
+            <input type="hidden" name="jurusan" value="{{ $jurusanTerpilih }}">
+            <input type="hidden" name="pkl_ada" value="1">
 
             <div class="bi-sem-tabs">
                 @foreach (range(1, 6) as $sem)
                     <button type="button" class="bi-sem-tab {{ $sem === 1 ? 'active' : '' }}" data-sem="{{ $sem }}">
                         Semester {{ $sem }}
-                        <span class="bi-sem-badge">{{ count($perSemester[$sem]['umum']) + count($perSemester[$sem]['kejuruan']) }}</span>
+                        <span class="bi-sem-badge">{{ isset($semPkl[$sem]) ? 'PKL' : (count($perSemester[$sem]['umum']) + count($perSemester[$sem]['kejuruan'])) }}</span>
                     </button>
                 @endforeach
             </div>
 
             @foreach (range(1, 6) as $sem)
                 <div class="bi-sem-panel {{ $sem === 1 ? 'active' : '' }}" data-sem="{{ $sem }}">
+                    <label class="bi-pkl-toggle bi-pkl-per-sem">
+                        <input type="checkbox" name="pkl_semester[]" value="{{ $sem }}"
+                            {{ in_array($sem, $pklSemester ?? [], true) ? 'checked' : '' }}>
+                        <span>Semester {{ $sem }} melaksanakan <strong>PKL</strong> — semua mapel ditutup, hanya
+                            <strong>Praktik Kerja Lapangan</strong> yang bisa dinilai</span>
+                    </label>
+
+                    @if (isset($semPkl[$sem]))
+                        <div class="bi-sem-note" style="margin-bottom: 12px;">
+                            <i class="fas fa-lock"></i> Semester {{ $sem }} dipakai untuk <strong>PKL kelas {{ $semPkl[$sem] }}</strong> — terkunci.
+                            Semua mapel ditutup; hanya mapel <strong>Praktik Kerja Lapangan</strong> yang bisa dinilai.
+                        </div>
+                        <div class="bi-mapel-grid">
+                            <div class="bi-mapel-col-locked">
+                                <div class="bi-col-head">
+                                    <span><i class="fas fa-briefcase" style="color: #0d9488;"></i> Mapel Kejuruan — Sem {{ $sem }}</span>
+                                    <span class="bi-count">1</span>
+                                </div>
+                                <div class="bi-selected">
+                                    <div class="bi-sel-item">
+                                        <span class="bi-sel-idx">1</span>
+                                        <input type="text" class="bi-input bi-singkatan-item" maxlength="20"
+                                            name="singkatan[Praktik Kerja Lapangan]" title="Singkatan kolom di Input Nilai"
+                                            value="{{ $singkatan['Praktik Kerja Lapangan'] ?? 'PKL' }}">
+                                        <span class="bi-sel-name">Praktik Kerja Lapangan</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
                     @if (!($terpetakan[$sem] ?? false))
                         <div class="bi-sem-note" style="margin-bottom: 12px;">
                             <i class="fas fa-circle-info"></i> Semester {{ $sem }} belum dipetakan — masih memakai daftar mapel global. Simpan untuk menandai semester ini.
@@ -136,6 +162,7 @@
                             </div>
                         @endforeach
                     </div>
+                    @endif
                 </div>
             @endforeach
 
@@ -152,6 +179,8 @@
 
     {{-- Data referensi mapel dari tabel pembelajaran (untuk JS) --}}
     <script type="application/json" id="biRefData">@json($referensi)</script>
+    {{-- Singkatan mapel per nama (untuk prefill input di daftar mapel) --}}
+    <script type="application/json" id="biSingkatanData">@json($singkatan ?? [])</script>
 @endsection
 
 @include('dashboard.kesiswaan.buku-induk.partials.buku-induk-style')

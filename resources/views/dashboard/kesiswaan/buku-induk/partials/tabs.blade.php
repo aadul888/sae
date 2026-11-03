@@ -8,11 +8,15 @@
         </a>
         <a href="{{ route('dashboard.kesiswaan.buku-induk.import-nilai') }}"
             class="periode-nav-tab {{ $activeTab === 'nilai' ? 'active' : '' }}">
-            <i class="fas fa-file-import"></i> Import Nilai &amp; Pengaturan
+            <i class="fas fa-sliders"></i> Pengaturan
         </a>
         <a href="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
             class="periode-nav-tab {{ $activeTab === 'mapel' ? 'active' : '' }}">
             <i class="fas fa-diagram-project"></i> Maping Mata Pelajaran
+        </a>
+        <a href="{{ route('dashboard.kesiswaan.buku-induk.input-nilai') }}"
+            class="periode-nav-tab {{ $activeTab === 'input_nilai' ? 'active' : '' }}">
+            <i class="fas fa-pen-to-square"></i> Input Nilai
         </a>
     </div>
 </div>

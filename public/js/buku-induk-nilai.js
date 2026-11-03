@@ -58,20 +58,103 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ==================== Import Mapel per Semester ==================== */
-    const formMapelImport = document.getElementById('formMapelImport');
-    if (formMapelImport) {
-        formMapelImport.addEventListener('submit', async function (e) {
+    /* ================== Pelaksanaan PKL per semester ==================
+     * Checkbox `pkl_semester[]` langsung terkirim bersama form; tidak ada
+     * logika tambahan di sisi klien.
+     */
+
+    /* ============ Singkatan mapel (judul kolom ringkas Input Nilai) ============ */
+    let singkatanData = {};
+    const singkatanEl = document.getElementById('biSingkatanData');
+    if (singkatanEl) {
+        try { singkatanData = JSON.parse(singkatanEl.textContent) || {}; } catch (e) { /* abaikan */ }
+    }
+
+    const KATA_ABAI = ['dan', 'atau', 'serta', 'di', 'ke', 'dari', 'yang', 'untuk', 'pada', 'dengan', 'the', 'of', 'and'];
+
+    function autoSingkatan(name) {
+        const kata = String(name || '')
+            .replace(/[^A-Za-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean)
+            .filter(function (k) { return KATA_ABAI.indexOf(k.toLowerCase()) === -1; });
+        if (!kata.length) return '';
+        if (kata.length > 1) {
+            return kata.map(function (k) { return k[0].toUpperCase(); }).join('').slice(0, 12);
+        }
+        const s = kata[0];
+        if (s.length <= 4) return s.toUpperCase();
+        let out = '';
+        for (const ch of s.toLowerCase()) {
+            if ('aeiou'.indexOf(ch) !== -1) continue;
+            const up = ch.toUpperCase();
+            if (out.indexOf(up) === -1) out += up;
+            if (out.length >= 6) break;
+        }
+        return out || s.slice(0, 3).toUpperCase();
+    }
+
+    function singkatanValue(name) {
+        const v = singkatanData[name];
+        return v !== undefined && v !== null && v !== '' ? v : autoSingkatan(name);
+    }
+
+    // Sinkronkan input singkatan dengan nama mapel sama di semua panel.
+    document.addEventListener('input', function (e) {
+        const inp = e.target.closest ? e.target.closest('.bi-singkatan-item') : null;
+        if (!inp || !inp.name) return;
+        document.querySelectorAll('.bi-singkatan-item').forEach(function (o) {
+            if (o !== inp && o.name === inp.name) o.value = inp.value;
+        });
+    });
+
+    /* ==================== Input Nilai per Kelas & Semester ==================== */
+    const formInputNilai = document.getElementById('formInputNilai');
+    if (formInputNilai) {
+        formInputNilai.querySelectorAll('.bi-nilai-input').forEach(function (inp) {
+            inp.addEventListener('blur', function () { inp.value = inp.value.replace(',', '.').trim(); });
+        });
+
+        formInputNilai.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const btn = document.getElementById('btnImportMapel');
+            const btn = formInputNilai.querySelector('button[type="submit"]');
+            const info = document.getElementById('inputNilaiInfo');
+            const original = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; }
+
+            try {
+                const res = await fetch(formInputNilai.action, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(formInputNilai),
+                });
+                const json = await res.json();
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+
+                if (res.ok && json.status === 'success') {
+                    if (info) info.textContent = json.message;
+                    Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1600, showConfirmButton: false });
+                } else {
+                    Swal.fire('Gagal', json.message || 'Gagal menyimpan nilai.', 'error');
+                }
+            } catch (err) {
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+                Swal.fire('Kesalahan Jaringan', 'Tidak dapat menghubungi server.', 'error');
+            }
+        });
+    }
+
+    const formInputImport = document.getElementById('formInputImport');
+    if (formInputImport) {
+        formInputImport.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnInputImport');
             const original = btn ? btn.innerHTML : '';
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengimpor...'; }
 
             try {
-                const res = await fetch(formMapelImport.action, {
+                const res = await fetch(formInputImport.action, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: new FormData(formMapelImport),
+                    body: new FormData(formInputImport),
                 });
                 const json = await res.json();
                 if (btn) { btn.disabled = false; btn.innerHTML = original; }
@@ -81,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (json.errors && json.errors.length) msg += '<br><small>' + json.errors.slice(0, 3).join('<br>') + '</small>';
                     Swal.fire({ icon: 'success', title: 'Import Berhasil', html: msg }).then(() => location.reload());
                 } else {
-                    Swal.fire('Gagal', json.message || 'Import mapel gagal.', 'error');
+                    Swal.fire('Gagal', json.message || 'Import nilai gagal.', 'error');
                 }
             } catch (err) {
                 if (btn) { btn.disabled = false; btn.innerHTML = original; }
@@ -122,6 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
         reindex(col);
         updateCount(col);
         syncTextarea(col);
+        // Perbarui daftar referensi: mapel yang sudah ditambahkan disembunyikan.
+        renderRef(col, col.dataset.refFilter || '');
     }
 
     function buildSelItem(name) {
@@ -129,6 +214,8 @@ document.addEventListener('DOMContentLoaded', function () {
         div.className = 'bi-sel-item';
         div.innerHTML =
             '<span class="bi-sel-idx"></span>' +
+            '<input type="text" class="bi-input bi-singkatan-item" maxlength="20" title="Singkatan kolom di Input Nilai" ' +
+            'name="singkatan[' + esc(name) + ']" value="' + esc(singkatanValue(name)) + '">' +
             '<span class="bi-sel-name">' + esc(name) + '</span>' +
             '<span class="bi-sel-actions">' +
             '<button type="button" class="bi-up" title="Naikkan"><i class="fas fa-arrow-up"></i></button>' +
@@ -167,13 +254,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderRef(col, filter) {
         const key = col.getAttribute('data-kelompok');
+        col.dataset.refFilter = filter || '';
         const list = (refData[key] || []).filter(function (n) {
+            if (hasName(col, n)) return false; // sudah ditambahkan → hilang dari referensi
             return !filter || n.toLowerCase().indexOf(filter.toLowerCase()) !== -1;
         });
         const box = col.querySelector('[data-ref]');
         if (!box) return;
         if (!list.length) {
-            box.innerHTML = '<div class="bi-ref-empty">Tidak ada mapel referensi yang cocok.</div>';
+            box.innerHTML = '<div class="bi-ref-empty">' + ((refData[key] || []).length ? 'Semua mapel referensi sudah ditambahkan.' : 'Tidak ada mapel referensi yang cocok.') + '</div>';
             return;
         }
         box.innerHTML = list.map(function (n) {
@@ -273,7 +362,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (btn) { btn.disabled = false; btn.innerHTML = original; }
 
                 if (res.ok && json.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1500, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1500, showConfirmButton: false })
+                        .then(function () { location.reload(); });
                 } else {
                     Swal.fire('Gagal', json.message || 'Pengaturan gagal disimpan.', 'error');
                 }
@@ -340,8 +430,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 : '<span class="badge" style="font-size:9px;background:rgba(16,185,129,0.15);color:#10b981;padding:1px 6px;border-radius:6px;margin-left:6px;">Umum</span>';
             html += '<tr style="border-bottom:1px solid var(--border-color);">';
             html += '<td style="padding:6px 10px;font-weight:600;">' + esc(row.nama) + badge + '</td>';
+            const editable = Array.isArray(row.editable) ? row.editable : null;
             semesters.forEach(function (s) {
                 const val = row.nilai ? row.nilai[s] : null;
+                // Baris dengan `editable` (mis. PKL) hanya boleh diisi pada semester pelaksanaannya.
+                if (editable && editable.indexOf(s) === -1) {
+                    html += '<td style="padding:4px 4px;text-align:center;color:var(--text-muted,#9ca3af);">&mdash;</td>';
+                    return;
+                }
                 html += '<td style="padding:4px 4px;text-align:center;">'
                     + '<input type="text" inputmode="decimal" class="nilai-input" data-mapel="' + esc(row.nama) + '" data-sem="' + s + '"'
                     + ' value="' + fmtVal(val) + '" placeholder="—"'
