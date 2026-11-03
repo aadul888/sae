@@ -1,8 +1,10 @@
 /**
  * Maintenance Dashboard - Frontend JS
- * Tab Backup/Restore, konfirmasi pemulihan, dan pembersihan sistem.
+ * Tab Backup/Restore, proses backup & restore via AJAX + SweetAlert + auto refresh.
  */
 document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
     // =========================================================================
     // 1. Tab Switcher: Cadangkan (Backup) vs Pemulihan (Restore)
     // =========================================================================
@@ -31,8 +33,70 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    function startDownload(url) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => a.remove(), 1000);
+    }
+
     // =========================================================================
-    // 2. Form Restore: tampilkan nama berkas + konfirmasi sebelum unggah
+    // 2. Tombol Backup: buat paket via AJAX, lalu unduh + SweetAlert + refresh
+    // =========================================================================
+    const backupUrl = document.getElementById("tab-backup")?.dataset.backupUrl;
+    const backupButtons = document.querySelectorAll(".js-backup-btn");
+
+    backupButtons.forEach((btn) => {
+        btn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            if (!backupUrl || this.dataset.busy === "1") return;
+
+            const original = this.innerHTML;
+            this.dataset.busy = "1";
+            this.style.pointerEvents = "none";
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan...';
+
+            try {
+                const res = await fetch(backupUrl, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ type: this.dataset.backupType || "full" }),
+                });
+
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || data.status !== "success") {
+                    throw new Error((data && data.message) || "Gagal membuat paket arsip.");
+                }
+
+                startDownload(data.download_url);
+
+                window.SAE.alert(
+                    `${data.message}<br><br><small style="color:#6b7280;">Berkas: <b>${data.filename}</b></small>`,
+                    "Backup Berhasil",
+                    "success"
+                ).then(function () {
+                    window.location.reload();
+                });
+            } catch (error) {
+                if (window.SAE && typeof window.SAE.alert === "function") {
+                    window.SAE.alert(error.message || "Gagal memproses paket arsip.", "Backup Gagal", "error");
+                }
+            } finally {
+                this.dataset.busy = "";
+                this.style.pointerEvents = "";
+                this.innerHTML = original;
+            }
+        });
+    });
+
+    // =========================================================================
+    // 3. Form Restore: unggah via AJAX + SweetAlert + auto refresh
     // =========================================================================
     const formRestore = document.getElementById("formRestoreData");
     const restoreInput = document.getElementById("restoreFileInput");
@@ -49,8 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (formRestore) {
         formRestore.addEventListener("submit", async function (e) {
-            if (formRestore.dataset.confirmed === "1") return;
             e.preventDefault();
+
             if (!restoreInput || !restoreInput.files.length) {
                 if (window.SAE && typeof window.SAE.toast === "function") {
                     window.SAE.toast("Pilih berkas .sql atau .zip terlebih dahulu.", "warning");
@@ -67,18 +131,51 @@ document.addEventListener("DOMContentLoaded", function () {
             );
             if (!ok) return;
 
-            formRestore.dataset.confirmed = "1";
             const btn = formRestore.querySelector("button[type='submit']");
+            const original = btn ? btn.innerHTML : "";
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memulihkan...';
             }
-            formRestore.submit();
+
+            try {
+                const res = await fetch(formRestore.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "Accept": "application/json",
+                    },
+                    body: new FormData(formRestore),
+                });
+
+                const data = await res.json().catch(() => null);
+
+                if (!res.ok || !data || data.status !== "success") {
+                    let msg = (data && data.message) || "Gagal memulihkan database.";
+                    if (data && data.errors) {
+                        msg = Object.values(data.errors).flat().join(" ");
+                    }
+                    throw new Error(msg);
+                }
+
+                window.SAE.alert(data.message, "Restore Berhasil", "success").then(function () {
+                    window.location.reload();
+                });
+            } catch (error) {
+                if (window.SAE && typeof window.SAE.alert === "function") {
+                    window.SAE.alert(error.message || "Gagal memulihkan database.", "Restore Gagal", "error");
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                }
+            }
         });
     }
 
     // =========================================================================
-    // 3. Form Pembersihan Sistem
+    // 4. Form Pembersihan Sistem
     // =========================================================================
     const formClean = document.getElementById("formCleanData");
     if (!formClean) return;
@@ -105,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
             const res = await fetch(formClean.action, {
                 method: "POST",
                 headers: {

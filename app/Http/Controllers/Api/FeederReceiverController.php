@@ -768,13 +768,14 @@ class FeederReceiverController extends Controller
         // Backup existing live Dapodik pengguna ke tabel backup_pengguna
         $this->archiveTable('pengguna', 'backup_pengguna');
 
-        // Ambil akun staf / guru / admin yang sudah ada
+        // Ambil akun staf / guru / admin yang sudah ada.
+        // Akun manual/seed TETAP dimuat: bila `pengguna_id` sudah ada, insert baru
+        // akan menabrak PRIMARY (mis. akun Operator Sekolah ber-ptk_id NULL yang
+        // dulu dicap `manual` oleh migrasi sumber_data). Proteksi akun manual
+        // hanya lewat pencocokan username (lihat bawah).
         $existingStaff = DB::table('pengguna')
-            ->where(function ($q) {
-                $q->whereNull('peserta_didik_id')->where('peran_id_str', '!=', 'Peserta Didik');
-            })
-            // Akun manual/seed tidak ikut jadi sasaran sinkronisasi Dapodik.
-            ->where(fn ($q) => $q->whereNull('sumber_data')->orWhereNotIn('sumber_data', ['manual', 'seed']))
+            ->where(fn ($q) => $q->whereNull('peserta_didik_id')->orWhere('peserta_didik_id', ''))
+            ->where(fn ($q) => $q->whereNull('peran_id_str')->orWhere('peran_id_str', '!=', 'Peserta Didik'))
             ->get();
 
         $existingStaffById = [];
@@ -783,13 +784,18 @@ class FeederReceiverController extends Controller
             $existingStaffById[$st->pengguna_id] = $st;
             // Akun input manual (tidak pernah datang dari Dapodik → `raw_data`
             // kosong) TIDAK boleh jadi sasaran timpaan. Lihat pencocokan di bawah.
-            if (!empty($st->username) && !empty($st->raw_data)) {
+            $isManual = in_array($st->sumber_data ?? '', ['manual', 'seed'], true);
+            if (!$isManual && !empty($st->username) && !empty($st->raw_data)) {
                 $existingStaffByUsername[$st->username] = $st;
             }
         }
 
         $batchNewPengguna = [];
-        $seenUsernames = [];
+        // `username` juga UNIQUE: akun baru tidak boleh memakai username yang sudah terpakai.
+        $seenUsernames = array_fill_keys(
+            DB::table('pengguna')->whereNotNull('username')->pluck('username')->all(),
+            true
+        );
 
         foreach ($data as $u) {
             if (empty($u['pengguna_id'])) {

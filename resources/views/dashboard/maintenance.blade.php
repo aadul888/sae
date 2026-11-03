@@ -76,7 +76,7 @@
     </div>
 
     <!-- ============================ TAB 1: BACKUP ============================ -->
-    <div id="tab-backup" class="dash-tab-pane" style="{{ $activeTab === 'backup' ? 'display: block;' : 'display: none;' }}">
+    <div id="tab-backup" class="dash-tab-pane" data-backup-url="{{ route('dashboard.maintenance.backup') }}" style="{{ $activeTab === 'backup' ? 'display: block;' : 'display: none;' }}">
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px;">
 
@@ -142,18 +142,18 @@
                 </div>
             </div>
 
-            <a href="{{ route('dashboard.maintenance.download') }}" class="btn btn-primary"
+            <a href="{{ route('dashboard.maintenance.download') }}" class="btn btn-primary js-backup-btn" data-backup-type="full"
                 style="padding: 12px 24px; font-weight: 700; border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <i class="fas fa-file-zipper"></i> Unduh Paket Arsip Lengkap (.ZIP) &amp; Buka Kunci Feeder
             </a>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px;">
-                <a href="{{ route('dashboard.maintenance.download.sql') }}" class="btn btn-outline"
+                <a href="{{ route('dashboard.maintenance.download.sql') }}" class="btn btn-outline js-backup-btn" data-backup-type="sql"
                     style="padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color);"
                     title="Unduh berkas .sql berisi seluruh tabel database">
                     <i class="fas fa-database text-primary"></i> Unduh SQL Saja (.sql)
                 </a>
-                <a href="{{ route('dashboard.maintenance.download.assets') }}" class="btn btn-outline"
+                <a href="{{ route('dashboard.maintenance.download.assets') }}" class="btn btn-outline js-backup-btn" data-backup-type="assets"
                     style="padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color);"
                     title="Unduh berkas aset/media (foto, logo, stempel, dokumen)">
                     <i class="fas fa-images text-info"></i> Unduh Berkas Aset (.zip)

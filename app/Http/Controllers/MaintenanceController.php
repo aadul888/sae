@@ -117,6 +117,65 @@ class MaintenanceController extends Controller
     }
 
     /**
+     * Buat paket arsip via AJAX untuk tab Backup (full / sql / assets).
+     * Mengembalikan JSON berisi URL unduhan sementara; berkas di-stream oleh fetchFile().
+     */
+    public function backup(Request $request)
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        $type = (string) $request->input('type', 'full');
+
+        try {
+            $service = new BackupService();
+
+            if ($type === 'sql') {
+                $result = $service->createSqlBackup($this->adminName());
+                $this->markArchiveDownloaded($result['filename']);
+                $message = 'Dump SQL lengkap (seluruh tabel) berhasil dibuat.';
+            } elseif ($type === 'assets') {
+                $result = $service->createMediaBackup();
+                $message = 'Arsip berkas aset (foto, logo, dokumen) berhasil dibuat.';
+            } else {
+                $result = $service->createComprehensiveBackup($this->adminName());
+                $this->markArchiveDownloaded($result['filename']);
+                $message = 'Paket arsip lengkap (SQL, CSV, aset, JSON) berhasil dibuat & kunci feeder dibuka.';
+            }
+
+            return response()->json([
+                'status'       => 'success',
+                'message'      => $message,
+                'filename'     => $result['filename'],
+                'download_url' => route('dashboard.maintenance.fetch', ['filename' => $result['filename']]),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal memproses paket arsip: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Stream berkas arsip yang sudah dibuat di storage/app/archives lalu hapus setelah dikirim.
+     */
+    public function fetchFile(string $filename)
+    {
+        if ($res = $this->checkAdmin()) return $res;
+
+        $safe = basename($filename);
+        $path = storage_path('app/archives/' . $safe);
+
+        if (!File::exists($path)) {
+            abort(404, 'Berkas arsip tidak ditemukan atau sudah diunduh.');
+        }
+
+        return response()->download($path, $safe, [
+            'Content-Type' => str_ends_with($safe, '.sql') ? 'application/sql' : 'application/zip',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
      * Pulihkan database dari unggahan .sql atau .zip paket arsip SAE.
      */
     public function restore(Request $request)
@@ -132,8 +191,11 @@ class MaintenanceController extends Controller
         $file = $request->file('restore_file');
         $ext = strtolower((string) $file->getClientOriginalExtension());
         if (!in_array($ext, ['sql', 'zip', 'txt'], true)) {
-            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])
-                ->with('error', 'Format berkas tidak didukung. Gunakan .sql atau .zip hasil arsip SAE.');
+            $msg = 'Format berkas tidak didukung. Gunakan .sql atau .zip hasil arsip SAE.';
+
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => $msg], 422)
+                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('error', $msg);
         }
 
         try {
@@ -144,10 +206,15 @@ class MaintenanceController extends Controller
                 $msg .= ' Salinan pengaman sebelum restore tersimpan sebagai ' . $result['snapshot'] . '.';
             }
 
-            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('success', $msg);
+            return $request->expectsJson()
+                ? response()->json(['status' => 'success', 'message' => $msg])
+                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('success', $msg);
         } catch (\Throwable $e) {
-            return redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])
-                ->with('error', 'Gagal memulihkan database: ' . $e->getMessage());
+            $msg = 'Gagal memulihkan database: ' . $e->getMessage();
+
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => $msg], 500)
+                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('error', $msg);
         }
     }
 

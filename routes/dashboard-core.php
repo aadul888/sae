@@ -552,6 +552,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download')->middleware('permission:menu_maintenance,read');
     Route::get('/maintenance/download/sql', [\App\Http\Controllers\MaintenanceController::class, 'downloadSql'])->name('maintenance.download.sql')->middleware('permission:menu_maintenance,read');
     Route::get('/maintenance/download/assets', [\App\Http\Controllers\MaintenanceController::class, 'downloadAssets'])->name('maintenance.download.assets')->middleware('permission:menu_maintenance,read');
+    Route::post('/maintenance/backup', [\App\Http\Controllers\MaintenanceController::class, 'backup'])->name('maintenance.backup')->middleware('permission:menu_maintenance,read');
+    Route::get('/maintenance/fetch/{filename}', [\App\Http\Controllers\MaintenanceController::class, 'fetchFile'])->name('maintenance.fetch')->middleware('permission:menu_maintenance,read');
     Route::post('/maintenance/restore', [\App\Http\Controllers\MaintenanceController::class, 'restore'])->name('maintenance.restore')->middleware('permission:menu_maintenance,update');
     Route::post('/maintenance/clean', [\App\Http\Controllers\MaintenanceController::class, 'cleanOldData'])->name('maintenance.clean')->middleware('permission:menu_maintenance,delete');
 
