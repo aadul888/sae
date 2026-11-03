@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Tarik E-Book Kemendikbud & Vokasi')
+@section('title', 'Tarik E-Book Gratis & Terbuka')
 
 @section('content')
     <div class="dash-content-inner">
@@ -8,15 +8,15 @@
             style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
             <div style="display:flex;align-items:center;gap:14px;">
                 <div
-                    style="width:48px;height:48px;border-radius:var(--radius-lg,12px);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-2xl,1.5rem);flex-shrink:0;">
+                    style="width:48px;height:48px;border-radius:var(--radius-lg);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-2xl);flex-shrink:0;">
                     <i class="fas fa-cloud-arrow-down"></i>
                 </div>
                 <div>
-                    <h2 style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);margin:0;">
-                        Tarik E-Book Kemendikbud &amp; Kejuruan SMK
+                    <h2 style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);margin:0;">
+                        Tarik E-Book Gratis &amp; Terbuka
                     </h2>
-                    <div style="font-size:var(--text-sm,0.8125rem);color:var(--text-muted);margin-top:2px;">
-                        Integrasi repositori resmi SIBI, Buku Teks Kurikulum Merdeka, dan modul kejuruan vokasi SMK bebas royalti.
+                    <div style="font-size:var(--text-sm);color:var(--text-muted);margin-top:2px;">
+                        Integrasi repositori resmi bebas royalti Kemendikbudristek, Ditjen Vokasi SMK, Kemenag RI, Badan Bahasa GLN, Perpusnas, dan BSE.
                     </div>
                 </div>
             </div>
@@ -40,48 +40,48 @@
 
         {{-- Statistik Ringkas --}}
         <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;">
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg,12px);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md,8px);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl,1.25rem);">
+            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
                 <div>
-                    <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);font-weight:700;text-transform:uppercase;">E-Book di Katalog</div>
-                    <div style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);">{{ number_format($totalEbookKatalog, 0, ',', '.') }} Judul</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">E-Book di Katalog</div>
+                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ number_format($totalEbookKatalog, 0, ',', '.') }} Judul</div>
                 </div>
             </div>
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg,12px);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md,8px);background:rgba(16,185,129,0.12);color:var(--success,#10b981);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl,1.25rem);">
+            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(16,185,129,0.12);color:var(--success,#10b981);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
                     <i class="fas fa-eye"></i>
                 </div>
                 <div>
-                    <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Total Dibaca Siswa/Guru</div>
-                    <div style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);">{{ number_format($totalDibaca, 0, ',', '.') }} Kali</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Total Dibaca Siswa/Guru</div>
+                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ number_format($totalDibaca, 0, ',', '.') }} Kali</div>
                 </div>
             </div>
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg,12px);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md,8px);background:rgba(245,158,11,0.12);color:var(--warning,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl,1.25rem);">
+            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(245,158,11,0.12);color:var(--warning,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div>
-                    <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Tersedia di Repositori</div>
-                    <div style="font-size:var(--text-xl,1.25rem);font-weight:800;color:var(--text-color);">{{ count($items) }} Judul Siap Tarik</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Tersedia di Repositori</div>
+                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ count($items) }} Judul Siap Tarik</div>
                 </div>
             </div>
         </div>
 
         {{-- Filter & Pencarian --}}
-        <div class="card" style="padding:16px 20px;margin-bottom:20px;border-radius:var(--radius-lg,12px);">
+        <div class="card" style="padding:16px 20px;margin-bottom:20px;border-radius:var(--radius-lg);">
             <form method="GET" action="{{ route('dashboard.perpustakaan.ebook.index') }}"
                 style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end;">
                 <div>
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
                         Kata Kunci Pencarian:
                     </label>
                     <input type="text" name="q" value="{{ $q }}" class="form-control"
                         placeholder="Judul, mapel, jurusan, penulis..." style="width:100%;">
                 </div>
                 <div>
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
                         Tingkat / Kelas:
                     </label>
                     <select name="kelas" class="form-control" style="width:100%;">
@@ -92,7 +92,7 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
                         Kategori / Bidang:
                     </label>
                     <select name="kategori" class="form-control" style="width:100%;">
@@ -103,13 +103,14 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
                         Sumber Repositori:
                     </label>
                     <select name="sumber" class="form-control" style="width:100%;">
-                        <option value="">Semua Sumber</option>
-                        <option value="sibi" {{ $sumber === 'sibi' ? 'selected' : '' }}>SIBI Kemendikbud (Buku Teks)</option>
-                        <option value="ditjen_smk" {{ $sumber === 'ditjen_smk' ? 'selected' : '' }}>Ditjen SMK (Modul Vokasi)</option>
+                        <option value="">Semua Sumber Terbuka</option>
+                        @foreach ($daftarSumber as $key => $lbl)
+                            <option value="{{ $key }}" {{ $sumber === $key ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div style="display:flex;gap:8px;">
@@ -130,11 +131,11 @@
             @csrf
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-sm,0.84rem);cursor:pointer;user-select:none;">
+                    <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-sm);cursor:pointer;user-select:none;">
                         <input type="checkbox" id="checkAllEbook" onchange="togglePilihSemua(this)">
                         <strong>Pilih Semua Belum Terdaftar</strong>
                     </label>
-                    <span id="labelTerpilih" style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);display:none;"></span>
+                    <span id="labelTerpilih" style="font-size:var(--text-xs);color:var(--text-muted);display:none;"></span>
                 </div>
                 <button type="submit" id="btnTarikTerpilih" class="btn btn-success" disabled
                     style="display:inline-flex;align-items:center;gap:6px;">
@@ -147,9 +148,19 @@
                 @forelse ($items as $item)
                     @php
                         $sudahAda = $item['sudah_ada'] ?? false;
+                        $sumberKey = $item['sumber_ebook'] ?? '';
+                        $badgeClass = match($sumberKey) {
+                            'sibi' => 'badge-primary',
+                            'ditjen_smk' => 'badge-info',
+                            'kemenag' => 'badge-success',
+                            'badan_bahasa' => 'badge-warning',
+                            'perpusnas' => 'badge-purple',
+                            'bse' => 'badge-outline',
+                            default => 'badge-secondary',
+                        };
                     @endphp
                     <div class="card"
-                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg,12px);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:16px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};">
+                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:16px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};">
                         <div>
                             {{-- Header Card --}}
                             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
@@ -158,39 +169,39 @@
                                         <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
                                             class="check-ebook" onchange="hitungTerpilih()">
                                     @else
-                                        <span style="color:var(--success,#10b981);font-size:var(--text-md,1rem);"><i class="fas fa-circle-check"></i></span>
+                                        <span style="color:var(--success,#10b981);font-size:var(--text-md);"><i class="fas fa-circle-check"></i></span>
                                     @endif
-                                    <span class="badge {{ ($item['sumber_ebook'] ?? '') === 'sibi' ? 'badge-primary' : 'badge-info' }}"
-                                        style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:2px 8px;">
-                                        {{ ($item['sumber_ebook'] ?? '') === 'sibi' ? 'SIBI Kemendikbud' : 'Ditjen Vokasi SMK' }}
+                                    <span class="badge {{ $badgeClass }}"
+                                        style="font-size:var(--text-2xs);font-weight:700;padding:2px 8px;">
+                                        {{ \App\Services\PerpustakaanEbookService::labelSumber($sumberKey) }}
                                     </span>
                                 </div>
-                                <span class="badge badge-outline" style="font-size:var(--text-2xs,0.6875rem);padding:2px 7px;">
+                                <span class="badge badge-outline" style="font-size:var(--text-2xs);padding:2px 7px;">
                                     Kelas {{ $item['kelas'] ?? 'Umum' }}
                                 </span>
                             </div>
 
                             {{-- Judul & Penulis --}}
-                            <h4 style="margin:0 0 6px;font-size:var(--text-sm,0.92rem);font-weight:800;color:var(--text-color);line-height:1.35;">
+                            <h4 style="margin:0 0 6px;font-size:var(--text-sm);font-weight:800;color:var(--text-color);line-height:1.35;">
                                 {{ $item['judul'] }}
                             </h4>
-                            <div style="font-size:var(--text-xs,0.75rem);color:var(--text-muted);margin-bottom:8px;">
-                                <i class="fas fa-user-pen me-1"></i> {{ $item['penulis'] ?: 'Kemendikbudristek' }} &bull;
+                            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:8px;">
+                                <i class="fas fa-user-pen me-1"></i> {{ $item['penulis'] ?: 'Penyusun Resmi' }} &bull;
                                 <span>{{ $item['tahun_terbit'] ?? '-' }}</span>
                             </div>
 
                             {{-- Tag Kategori & Jurusan --}}
                             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
-                                <span style="font-size:var(--text-2xs,0.6875rem);padding:2px 7px;border-radius:var(--radius-pill,999px);background:rgba(59,130,246,0.08);color:var(--primary);font-weight:700;">
+                                <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(59,130,246,0.08);color:var(--primary);font-weight:700;">
                                     <i class="fas fa-tag"></i> {{ $item['kategori'] ?? 'Pelajaran' }}
                                 </span>
                                 @if (!empty($item['jurusan']) && $item['jurusan'] !== 'Umum')
-                                    <span style="font-size:var(--text-2xs,0.6875rem);padding:2px 7px;border-radius:var(--radius-pill,999px);background:rgba(139,92,246,0.08);color:var(--purple,#8b5cf6);font-weight:700;">
+                                    <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(139,92,246,0.08);color:var(--purple,#8b5cf6);font-weight:700;">
                                         <i class="fas fa-graduation-cap"></i> {{ $item['jurusan'] }}
                                     </span>
                                 @endif
                                 @if (!empty($item['klasifikasi_ddc']))
-                                    <span style="font-size:var(--text-2xs,0.6875rem);padding:2px 7px;border-radius:var(--radius-pill,999px);background:rgba(100,116,139,0.08);color:var(--text-muted);">
+                                    <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(100,116,139,0.08);color:var(--text-muted);">
                                         DDC {{ $item['klasifikasi_ddc'] }}
                                     </span>
                                 @endif
@@ -198,7 +209,7 @@
 
                             {{-- Sinopsis singkat --}}
                             @if (!empty($item['sinopsis']))
-                                <p style="font-size:var(--text-xs,0.76rem);color:var(--text-muted);margin:0 0 12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+                                <p style="font-size:var(--text-xs);color:var(--text-muted);margin:0 0 12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
                                     {{ $item['sinopsis'] }}
                                 </p>
                             @endif
@@ -208,20 +219,20 @@
                         <div style="border-top:1px solid var(--border-color);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
                             @if (!empty($item['tautan_baca']))
                                 <a href="{{ $item['tautan_baca'] }}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-outline" style="font-size:var(--text-xs,0.75rem);padding:5px 10px;display:inline-flex;align-items:center;gap:5px;">
-                                    <i class="fas fa-arrow-up-right-from-square"></i> Baca Online
+                                    class="btn btn-outline" style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:5px;">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> Baca Daring
                                 </a>
                             @else
                                 <span></span>
                             @endif
 
                             @if ($sudahAda)
-                                <span style="font-size:var(--text-xs,0.75rem);font-weight:700;color:var(--success,#10b981);display:inline-flex;align-items:center;gap:4px;">
+                                <span style="font-size:var(--text-xs);font-weight:700;color:var(--success,#10b981);display:inline-flex;align-items:center;gap:4px;">
                                     <i class="fas fa-check-double"></i> Ada di Katalog
                                 </span>
                             @else
                                 <button type="button" class="btn btn-primary" onclick="tarikSatu('{{ $item['kode_buku'] }}')"
-                                    style="font-size:var(--text-xs,0.75rem);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
+                                    style="font-size:var(--text-xs);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
                                     <i class="fas fa-plus"></i> Tarik
                                 </button>
                             @endif
@@ -229,7 +240,7 @@
                     </div>
                 @empty
                     <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);">
-                        <i class="fas fa-book-open" style="font-size:var(--text-3xl,2rem);opacity:0.4;margin-bottom:10px;display:block;"></i>
+                        <i class="fas fa-book-open" style="font-size:var(--text-3xl);opacity:0.4;margin-bottom:10px;display:block;"></i>
                         <div>Tidak ada e-book yang cocok dengan filter pencarian.</div>
                     </div>
                 @endforelse
@@ -247,9 +258,9 @@
     <div id="modalEbookManual"
         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
         <div class="card"
-            style="width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:24px;border-radius:var(--radius-lg,12px);">
+            style="width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:24px;border-radius:var(--radius-lg);">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <h3 style="margin:0;font-size:var(--text-md,1.1rem);font-weight:800;color:var(--text-color);">
+                <h3 style="margin:0;font-size:var(--text-md);font-weight:800;color:var(--text-color);">
                     <i class="fas fa-file-circle-plus text-primary me-2"></i>Tambah E-Book Mandiri
                 </h3>
                 <button type="button" class="btn-icon" onclick="closeModalEbookManual()" style="color:var(--text-muted);"><i class="fas fa-xmark"></i></button>
@@ -258,24 +269,24 @@
             <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.manual') }}" enctype="multipart/form-data">
                 @csrf
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
                         Judul E-Book <span style="color:var(--danger,#ef4444);">*</span>
                     </label>
                     <input type="text" name="judul" class="form-control" required placeholder="Contoh: Modul Praktikum Perakitan Komputer">
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                     <div>
-                        <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Penulis / Penyusun</label>
+                        <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Penulis / Penyusun</label>
                         <input type="text" name="penulis" class="form-control" placeholder="Nama Guru / Tim MGMP">
                     </div>
                     <div>
-                        <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Penerbit / Sumber</label>
+                        <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Penerbit / Sumber</label>
                         <input type="text" name="penerbit" class="form-control" placeholder="Internal Sekolah">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                     <div>
-                        <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Kategori <span style="color:var(--danger,#ef4444);">*</span></label>
+                        <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Kategori <span style="color:var(--danger,#ef4444);">*</span></label>
                         <select name="kategori" class="form-control" required>
                             @foreach ($daftarKategori as $kat)
                                 <option value="{{ $kat }}">{{ $kat }}</option>
@@ -283,7 +294,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Tingkat / Kelas</label>
+                        <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Tingkat / Kelas</label>
                         <select name="kelas" class="form-control">
                             <option value="Semua Kelas">Semua Kelas</option>
                             <option value="10">Kelas 10 (Fase E)</option>
@@ -293,24 +304,24 @@
                     </div>
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Jurusan / Program Keahlian</label>
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Jurusan / Program Keahlian</label>
                     <input type="text" name="jurusan" class="form-control" placeholder="Contoh: TJKT, Otomotif, Akuntansi, Umum">
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
                         Tautan Baca Online (URL)
                     </label>
                     <input type="url" name="tautan_baca" class="form-control" placeholder="https://drive.google.com/... atau tautan PDF eksternal">
-                    <span style="font-size:var(--text-2xs,0.6875rem);color:var(--text-muted);">Gunakan tautan resmi online jika file di-host di luar.</span>
+                    <span style="font-size:var(--text-2xs);color:var(--text-muted);">Gunakan tautan resmi online jika file di-host di luar.</span>
                 </div>
                 <div style="margin-bottom:14px;">
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
                         Atau Unggah Berkas PDF (Maks. 20 MB)
                     </label>
                     <input type="file" name="file_pdf" class="form-control" accept="application/pdf">
                 </div>
                 <div style="margin-bottom:16px;">
-                    <label style="display:block;font-size:var(--text-xs,0.75rem);font-weight:700;margin-bottom:4px;">Sinopsis / Deskripsi Singkat</label>
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Sinopsis / Deskripsi Singkat</label>
                     <textarea name="sinopsis" rows="3" class="form-control" placeholder="Ringkasan materi atau tujuan modul e-book ini..."></textarea>
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:8px;">

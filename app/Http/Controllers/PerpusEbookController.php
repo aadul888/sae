@@ -47,6 +47,7 @@ class PerpusEbookController extends Controller
         ]);
 
         $daftarKategori = PerpustakaanEbookService::daftarKategori();
+        $daftarSumber = PerpustakaanEbookService::daftarSumber();
 
         // Statistik Koleksi E-Book di Perpustakaan
         $totalEbookKatalog = Table::exists('perpus_koleksi_buku')
@@ -58,7 +59,7 @@ class PerpusEbookController extends Controller
             : 0;
 
         return view('dashboard.perpus.ebook-tarik', compact(
-            'items', 'q', 'kelas', 'kategori', 'sumber', 'daftarKategori',
+            'items', 'q', 'kelas', 'kategori', 'sumber', 'daftarKategori', 'daftarSumber',
             'totalEbookKatalog', 'totalDibaca'
         ));
     }
@@ -76,7 +77,7 @@ class PerpusEbookController extends Controller
         $item = $katalog->get($kodeBuku);
 
         if (!$item) {
-            return redirect()->back()->with('error', 'E-Book tidak ditemukan dalam master data Kemendikbud.');
+            return redirect()->back()->with('error', 'E-Book tidak ditemukan dalam master repositori terbuka.');
         }
 
         $id = PerpustakaanEbookService::imporKeKatalog($item);

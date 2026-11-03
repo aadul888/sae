@@ -14,7 +14,7 @@
         ],
         [
             'kunci' => 'ebook',
-            'label' => 'Tarik E-Book Kemendikbud',
+            'label' => 'Tarik E-Book Gratis',
             'icon' => 'fas fa-cloud-arrow-down',
             'url' => route('dashboard.perpustakaan.ebook.index'),
         ],

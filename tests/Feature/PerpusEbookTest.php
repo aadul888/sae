@@ -29,22 +29,23 @@ class PerpusEbookTest extends TestCase
         ]];
     }
 
-    public function test_katalog_master_memuat_ebook_resmi_kemendikbud_dan_vokasi(): void
+    public function test_katalog_master_memuat_ebook_resmi_dari_berbagai_sumber_terbuka(): void
     {
         $master = PerpustakaanEbookService::katalogMaster();
 
         $this->assertNotEmpty($master);
-        $this->assertGreaterThanOrEqual(10, count($master));
+        $this->assertGreaterThanOrEqual(25, count($master));
 
-        $itemPertama = $master[0];
-        $this->assertArrayHasKey('kode_buku', $itemPertama);
-        $this->assertArrayHasKey('judul', $itemPertama);
-        $this->assertArrayHasKey('tautan_baca', $itemPertama);
-        $this->assertArrayHasKey('sumber_ebook', $itemPertama);
-        $this->assertArrayHasKey('jurusan', $itemPertama);
+        $sumberList = array_unique(array_column($master, 'sumber_ebook'));
+        $this->assertContains('sibi', $sumberList);
+        $this->assertContains('ditjen_smk', $sumberList);
+        $this->assertContains('kemenag', $sumberList);
+        $this->assertContains('badan_bahasa', $sumberList);
+        $this->assertContains('perpusnas', $sumberList);
+        $this->assertContains('bse', $sumberList);
     }
 
-    public function test_pencarian_master_ebook_menyaring_berdasarkan_keyword(): void
+    public function test_pencarian_master_ebook_menyaring_berdasarkan_keyword_dan_sumber(): void
     {
         $hasilMatematika = PerpustakaanEbookService::cari(['q' => 'Matematika']);
         $this->assertNotEmpty($hasilMatematika);
@@ -52,8 +53,17 @@ class PerpusEbookTest extends TestCase
             $this->assertStringContainsStringIgnoringCase('Matematika', $item['judul']);
         }
 
-        $hasilSmk = PerpustakaanEbookService::cari(['q' => 'Jaringan']);
-        $this->assertNotEmpty($hasilSmk);
+        $hasilKemenag = PerpustakaanEbookService::cari(['sumber' => 'kemenag']);
+        $this->assertNotEmpty($hasilKemenag);
+        foreach ($hasilKemenag as $item) {
+            $this->assertSame('kemenag', $item['sumber_ebook']);
+        }
+
+        $hasilBadanBahasa = PerpustakaanEbookService::cari(['sumber' => 'badan_bahasa']);
+        $this->assertNotEmpty($hasilBadanBahasa);
+        foreach ($hasilBadanBahasa as $item) {
+            $this->assertSame('badan_bahasa', $item['sumber_ebook']);
+        }
     }
 
     public function test_impor_satu_ebook_ke_katalog_berhasil_dan_idempoten(): void
@@ -107,9 +117,9 @@ class PerpusEbookTest extends TestCase
             ->get(route('dashboard.perpustakaan.ebook.index'));
 
         $res->assertOk();
-        $res->assertSee('Tarik E-Book Kemendikbud &amp; Kejuruan SMK', false);
+        $res->assertSee('Tarik E-Book Gratis &amp; Terbuka', false);
         $res->assertSee('Daftar Katalog');
-        $res->assertSee('Tarik E-Book Kemendikbud');
+        $res->assertSee('Tarik E-Book Gratis');
     }
 
     public function test_aksi_tarik_satu_dari_dashboard(): void
