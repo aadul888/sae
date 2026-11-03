@@ -5,7 +5,9 @@
 
 @section('content')
     @php
-        $isPdf = \Illuminate\Support\Str::endsWith(\Illuminate\Support\Str::lower((string) $urlBaca), ['.pdf']) || !empty($buku->file_ebook);
+        $isExternal = \Illuminate\Support\Str::startsWith((string) $urlBaca, ['http://', 'https://'])
+            && !\Illuminate\Support\Str::contains((string) $urlBaca, request()->getHost());
+        $isLocalPdf = !$isExternal && (!empty($buku->file_ebook) || \Illuminate\Support\Str::endsWith(\Illuminate\Support\Str::lower((string) $urlBaca), ['.pdf']));
         $theme = \App\Services\PerpustakaanEbookService::coverTheme($buku->kategori ?? '', $buku->judul ?? '');
         $sumberLabel = \App\Services\PerpustakaanEbookService::labelSumber($buku->sumber_ebook ?? 'sibi');
     @endphp
@@ -36,13 +38,13 @@
                 @endif
                 <a href="{{ $urlBaca }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
                     style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 14px;">
-                    <i class="fas fa-arrow-up-right-from-square"></i> Buka Layar Penuh
+                    <i class="fas fa-arrow-up-right-from-square"></i> Buka di Tab Baru
                 </a>
             </div>
         </div>
 
-        @if ($isPdf)
-            {{-- Frame Pembaca Langsung Dokumen PDF --}}
+        @if ($isLocalPdf)
+            {{-- Frame Pembaca PDF Berkas Internal Sekolah --}}
             <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);overflow:hidden;position:relative;height:78vh;min-height:540px;">
                 <iframe src="{{ $urlBaca }}"
                     style="width:100%;height:100%;border:none;"
@@ -51,11 +53,11 @@
                 </iframe>
             </div>
         @else
-            {{-- Stasiun Baca Digital untuk Repositori Resmi Terbuka --}}
+            {{-- Stasiun Baca Digital untuk Repositori Resmi Terbuka (Tanpa Embed Frame Rusak) --}}
             <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);padding:clamp(1.5rem, 3vw, 2.5rem);margin-bottom:1rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;align-items:center;">
                 {{-- Mockup Sampul Buku Digital --}}
                 <div style="max-width:320px;margin:0 auto;width:100%;">
-                    <div style="height:260px;background:{{ $theme['gradient'] }};border-radius:var(--radius-lg);padding:20px 22px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 6px 0 0 rgba(255,255,255,0.25), 0 8px 24px rgba(0,0,0,0.15);color:#fff;">
+                    <div style="height:280px;background:{{ $theme['gradient'] }};border-radius:var(--radius-lg);padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 6px 0 0 rgba(255,255,255,0.25), 0 8px 24px rgba(0,0,0,0.15);color:#fff;">
                         <i class="fas {{ $theme['icon'] }}" style="position:absolute;right:-15px;bottom:-15px;font-size:var(--text-6xl);opacity:0.2;pointer-events:none;"></i>
 
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
@@ -108,35 +110,25 @@
                         </p>
                     @endif
 
-                    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:18px;">
+                    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:20px;">
                         <div style="font-size:var(--text-xs);font-weight:700;color:var(--primary);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-info-circle"></i> Catatan Pembacaan Daring
+                            <i class="fas fa-shield-halved"></i> Akses Membaca Terproteksi
                         </div>
-                        <div style="font-size:var(--text-2xs);color:var(--text-muted);line-height:1.5;">
-                            Portal repositori resmi <strong>{{ $sumberLabel }}</strong> memberlakukan kebijakan keamanan frame peramban (SAMEORIGIN). E-book dibuka langsung di portal resmi untuk kenyamanan membaca terbaik, dan poin literasi Anda tetap tercatat otomatis.
+                        <div style="font-size:var(--text-xs);color:var(--text-muted);line-height:1.5;">
+                            Portal <strong>{{ $sumberLabel }}</strong> membatasi pembacaan di dalam bingkai pihak ketiga (kebijakan keamanan peramban SAMEORIGIN). Untuk mengakses seluruh bab, buku audio, dan lembar kerja, dokumen dibuka langsung pada portal resmi.
                         </div>
                     </div>
 
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <a href="{{ $urlBaca }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
-                            style="font-size:var(--text-sm);font-weight:700;padding:10px 20px;display:inline-flex;align-items:center;gap:8px;">
-                            <i class="fas fa-book-open-reader"></i> Buka E-Book di Tab Baru
+                    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;">
+                        <a href="{{ $urlBaca }}" id="btnBukaPortal" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
+                            style="font-size:var(--text-base);font-weight:800;padding:12px 24px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(59,130,246,0.35);">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Buka &amp; Baca E-Book di Portal Resmi
                         </a>
-                        <button type="button" class="btn btn-outline" onclick="toggleEmbed()"
-                            style="font-size:var(--text-xs);padding:10px 14px;display:inline-flex;align-items:center;gap:6px;">
-                            <i class="fas fa-display"></i> Coba Pratinjau Frame
-                        </button>
+                        <div id="notifAutoOpen" style="font-size:var(--text-2xs);color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-circle-notch fa-spin text-primary"></i> Membuka dokumen di tab baru secara otomatis...
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {{-- Kolaps Pratinjau Frame (Opsional) --}}
-            <div id="embedContainer" style="display:none;margin-bottom:1rem;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);overflow:hidden;height:70vh;min-height:500px;">
-                <iframe src="{{ $urlBaca }}"
-                    style="width:100%;height:100%;border:none;"
-                    allow="fullscreen"
-                    title="Pratinjau E-Book: {{ $buku->judul }}">
-                </iframe>
             </div>
         @endif
 
@@ -146,14 +138,32 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function toggleEmbed() {
-                var el = document.getElementById('embedContainer');
-                if (el) {
-                    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
-                }
-            }
-        </script>
-    @endpush
+    @if (!$isLocalPdf)
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var btn = document.getElementById('btnBukaPortal');
+                    var notif = document.getElementById('notifAutoOpen');
+                    if (btn) {
+                        try {
+                            var win = window.open(btn.href, '_blank');
+                            if (!win || win.closed || typeof win.closed === 'undefined') {
+                                if (notif) {
+                                    notif.innerHTML = '<i class="fas fa-hand-pointer text-warning"></i> Peramban memblokir popup otomatis. Silakan klik tombol biru di atas.';
+                                }
+                            } else {
+                                if (notif) {
+                                    notif.innerHTML = '<i class="fas fa-circle-check text-success"></i> Dokumen telah dibuka di tab baru. Halaman ini mencatat poin literasi Anda.';
+                                }
+                            }
+                        } catch (e) {
+                            if (notif) {
+                                notif.innerHTML = '<i class="fas fa-hand-pointer text-warning"></i> Silakan klik tombol di atas untuk mulai membaca.';
+                            }
+                        }
+                    }
+                });
+            </script>
+        @endpush
+    @endif
 @endsection

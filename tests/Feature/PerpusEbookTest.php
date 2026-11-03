@@ -253,7 +253,7 @@ class PerpusEbookTest extends TestCase
                 'updated_at'         => now(),
             ]);
 
-            $res = $this->get(route('perpustakaan.katalog', ['format' => 'ebook']));
+            $res = $this->get(route('perpustakaan.katalog', ['format' => 'ebook', 'q' => 'Digital Test']));
             $res->assertOk();
             $res->assertSee('E-Book Khusus Filter Digital Test');
             $res->assertSee('E-BOOK');
