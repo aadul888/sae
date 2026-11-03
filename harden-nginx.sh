@@ -117,11 +117,12 @@ fi
 #   argv[1] = path vhost, argv[2] = 1 bila dry-run, argv[3] = socket paksa (opsi)
 # =============================================================================
 run_transformer() {
-php - "$1" "$2" "${3:-}" <<'PHPEOF'
+php - "$1" "$2" "${3:-}" "${DOMAIN}" <<'PHPEOF'
 <?php
 $path   = $argv[1];
 $dry    = ($argv[2] ?? '0') === '1';
 $forced = $argv[3] ?? '';
+$domain = $argv[4] ?? '';
 
 $src = file_get_contents($path);
 if ($src === false) { fwrite(STDERR, "Tidak bisa membaca {$path}\n"); exit(1); }
@@ -157,9 +158,7 @@ function stripBlocks(string $s, string $headerRegex): string
     return $s;
 }
 
-/** Hapus blok penjaga lama (idempotensi). */
-$src = preg_replace('/[ \t]*' . preg_quote($MARK_START, '/') . '.*?' . preg_quote($MARK_END, '/') . '[^\n]*\n/s', '', $src, -1, $nMark);
-$removedMarker = $nMark > 0;
+/** Blok penjaga lama dihapus BELAKANGAN (setelah handler diselamatkan agar tidak hilang). */
 
 // ---- 1. Sumber handler PHP -------------------------------------------------
 $handlerBlock = null;   // blok location (lengkap dengan tanda kurung)
@@ -175,8 +174,15 @@ if (preg_match('/([ \t]*location\s*=\s*\/index\.php\s*\{)/', $src, $m, PREG_OFFS
 }
 
 // (b) Blok dari `include enable-php-XX.conf;` — ambil lalu retarget ke /index.php.
-if ($handlerBlock === null && preg_match('/^[ \t]*include\s+([^\s;]+enable-php[^\s;]*)\s*;[ \t]*$/mi', $src, $m)) {
-    $inc     = trim($m[1], "\"'");
+// Semua include handler PHP dicatat untuk dibersihkan belakangan.
+$phpIncludes = [];
+if (preg_match_all('/^[ \t]*include\s+([^\s;]+)\s*;[ \t]*$/mi', $src, $mAll)) {
+    foreach ($mAll[1] as $kandidat) {
+        if (stripos($kandidat, 'php') !== false) { $phpIncludes[] = trim($kandidat, "\"'"); }
+    }
+}
+$inc = $phpIncludes[0] ?? '';
+if ($handlerBlock === null && $inc !== '') {
     $incPath = $inc[0] === '/'
         ? $inc
         : rtrim(dirname($path), '/') . '/' . $inc;          // relatif vhost
@@ -223,33 +229,61 @@ if ($handlerBlock === null) {
         : "handler dibuat baru (socket default) — VERIFIKASI fastcgi_pass!";
 }
 
-// ---- 2. Bersihkan: include enable-php, dan semua location .php (termasuk yang di atas) ----
+// ---- 2. Bersihkan: blok penjaga lama, include enable-php, dan semua location .php ----
+$src = preg_replace('/[ \t]*' . preg_quote($MARK_START, '/') . '.*?' . preg_quote($MARK_END, '/') . '[^\n]*\n/s', '', $src, -1, $nMark);
+$removedMarker = $nMark > 0;
 $src = preg_replace('/^[ \t]*include\s+[^\s;]*enable-php[^\s;]*\s*;[ \t]*\n/mi', '', $src);
+foreach ($phpIncludes as $incHapus) {
+    $src = preg_replace('/^[ \t]*include\s+' . preg_quote($incHapus, '/') . '\s*;[ \t]*\n/mi', '', $src);
+}
 $src = stripBlocks($src, '/[ \t]*location\s*=\s*\/index\.php\s*\{/');
 $src = stripBlocks($src, '/[ \t]*location\s+[^\n{]*\\\.php[^\n{]*\{/i');
 
 // ---- 3. Blok penjaga -------------------------------------------------------
+// Rapikan indentasi blok handler: tiap baris di-trim lalu diberi indent 8 spasi.
+$lines = preg_split('/\r?\n/', trim($handlerBlock));
+$handlerBlock = implode("\n", array_map(static fn ($l) => '        ' . trim($l), $lines));
+
 $indent = '    ';
 $guard = "{$indent}{$MARK_START}\n"
     . "{$indent}autoindex off;\n"
-    . "{$indent}{$handlerBlock}\n"
+    . "{$handlerBlock}\n"
     . "{$indent}# Semua .php lain (termasuk di folder unggahan) tidak dieksekusi.\n"
     . "{$indent}location ~ \.php\$ { deny all; return 403; }\n"
     . "{$indent}location ~ ^/(app|bootstrap|config|database|resources|tests|vendor)/ { deny all; return 404; }\n"
     . "{$indent}location ~ ^/storage/(logs|framework|app/private|app/archives)/ { deny all; return 404; }\n"
     . "{$indent}{$MARK_END}\n";
 
-// ---- 4. Sisipkan ke setiap `server { ... }` yang punya `root` --------------
-$out = '';
-$pos = 0; $injected = 0;
+// ---- 4. Sisipkan ke `server { ... }` yang ber-root dan cocok domain --------
+$domainRe = $domain !== '' ? '/\b' . preg_quote($domain, '/') . '\b/i' : null;
+
+$slots = [];
+$pos = 0;
 while (preg_match('/\bserver\s*\{/', $src, $m, PREG_OFFSET_CAPTURE, $pos)) {
     $blk = braceBlock($src, $m[0][1]);
     if ($blk === null) { break; }
     [$a, $b] = $blk;
-    $body = substr($src, $a, $b - $a + 1);
-    $out .= substr($src, $pos, $a - $pos);
+    $slots[] = [$a, $b, substr($src, $a, $b - $a + 1)];
+    $pos = $b + 1;
+}
 
-    if (preg_match('/^[ \t]*root\s+/mi', $body) && !preg_match('/\bupstream\b/', $body)) {
+$hasRootFn = static fn (string $body): bool =>
+    preg_match('/^[ \t]*root\s+/mi', $body) === 1 && preg_match('/\bupstream\b/', $body) !== 1;
+$nameOkFn = static function (string $body) use ($domainRe): bool {
+    if ($domainRe === null) { return true; }
+    return preg_match('/^[ \t]*server_name\s+([^;]+);/mi', $body, $sn) === 1 && preg_match($domainRe, $sn[1]) === 1;
+};
+
+$adaCocok = false;
+foreach ($slots as [$a, $b, $body]) {
+    if ($hasRootFn($body) && $nameOkFn($body)) { $adaCocok = true; break; }
+}
+$fallback = !$adaCocok;   // server_name tak ketemu → sisipkan ke semua blok ber-root
+
+$out = ''; $pos = 0; $injected = 0;
+foreach ($slots as [$a, $b, $body]) {
+    $out .= substr($src, $pos, $a - $pos);
+    if ($hasRootFn($body) && ($fallback || $nameOkFn($body))) {
         $out .= substr($body, 0, -1) . "\n" . $guard . "}\n";
         $injected++;
     } else {
@@ -258,6 +292,10 @@ while (preg_match('/\bserver\s*\{/', $src, $m, PREG_OFFSET_CAPTURE, $pos)) {
     $pos = $b + 1;
 }
 $out .= substr($src, $pos);
+
+if ($fallback && $injected > 0) {
+    fwrite(STDERR, "PERINGATAN: server_name '{$domain}' tidak ditemukan; penjaga disisipkan ke {$injected} blok server ber-root. Periksa hasilnya.\n");
+}
 
 if ($injected === 0) {
     fwrite(STDERR, "Tidak menemukan blok 'server { ... }' dengan direktif 'root' di {$path}\n");

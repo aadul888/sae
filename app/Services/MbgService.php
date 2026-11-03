@@ -6,38 +6,19 @@ use App\Models\Gtk;
 use App\Models\PesertaDidik;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
-use Symfony\Component\Process\Process;
+use ZipArchive;
 
 /**
- * Service khusus penarikan dan ekspor Data Kebutuhan MBG (Makan Bergizi Gratis).
- * Menghasilkan data multi-sheet sesuai format resmi Satuan Pelayanan MBG.
+ * Service penarikan dan ekspor Data Kebutuhan MBG (Makan Bergizi Gratis).
+ * 100% Native PHP ZipArchive OpenXML - zero external dependency.
  */
 class MbgService
 {
-    /**
-     * Peta nama orang tua GTK dari acuan template (jika ada).
-     */
     private static ?array $gtkParentCache = null;
 
     /**
-     * Cari lokasi eksekusi Python yang valid di sistem.
+     * Ambil pemetaan nama orang tua GTK dari file cache JSON lokal.
      */
-    public static function getPythonBinary(): string
-    {
-        $candidates = [
-            'C:\\laragon\\bin\\python\\python-3.13\\python.exe',
-            'C:\\Program Files\\PyManager\\python.exe',
-        ];
-
-        foreach ($candidates as $bin) {
-            if (file_exists($bin)) {
-                return $bin;
-            }
-        }
-
-        return 'python';
-    }
-
     public static function getGtkParentMap(): array
     {
         if (self::$gtkParentCache !== null) {
@@ -216,11 +197,140 @@ class MbgService
     }
 
     /**
-     * Hasilkan file Excel (.xlsx) resmi MBG berisi seluruh sheet.
-     * Mengembalikan path berkas sementara.
+     * Konversi tanggal 'Y-m-d' ke serial number Excel.
+     */
+    private static function dateToExcelSerial(?string $dateStr): ?int
+    {
+        if (empty($dateStr)) {
+            return null;
+        }
+
+        try {
+            $c = Carbon::parse($dateStr);
+            $base = Carbon::create(1899, 12, 30, 0, 0, 0);
+
+            return (int) $base->diffInDays($c, false);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Escape teks XML agar aman ditulis ke OpenXML.
+     */
+    private static function escapeXml(string $str): string
+    {
+        return htmlspecialchars($str, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+
+    /**
+     * Buat XML baris data untuk satu sheet.
+     */
+    private static function buildSheetXml(string $originalXml, array $rows): string
+    {
+        // 1. Ambil baris 1 s.d 3 (Header, Subheader, dan Contoh)
+        $posRow4 = strpos($originalXml, '<row r="4"');
+        if ($posRow4 === false) {
+            $posEndData = strpos($originalXml, '</sheetData>');
+            $headerPart = substr($originalXml, 0, $posEndData);
+        } else {
+            $headerPart = substr($originalXml, 0, $posRow4);
+        }
+
+        // 2. Generate baris data mulai dari baris 4
+        $curRow = 4;
+        $dataXml = '';
+
+        foreach ($rows as $item) {
+            $dataXml .= '<row r="' . $curRow . '" spans="1:8" x14ac:dyDescent="0.25">';
+
+            // Col 1 (A): NISN
+            $nisn = trim((string) ($item['nisn'] ?? ''));
+            if ($nisn !== '') {
+                $dataXml .= '<c r="A' . $curRow . '" s="4" t="inlineStr"><is><t>' . self::escapeXml($nisn) . '</t></is></c>';
+            } else {
+                $dataXml .= '<c r="A' . $curRow . '" s="4"/>';
+            }
+
+            // Col 2 (B): NIK
+            $nik = trim((string) ($item['nik'] ?? ''));
+            if ($nik !== '') {
+                $dataXml .= '<c r="B' . $curRow . '" s="4" t="inlineStr"><is><t>' . self::escapeXml($nik) . '</t></is></c>';
+            } else {
+                $dataXml .= '<c r="B' . $curRow . '" s="4"/>';
+            }
+
+            // Col 3 (C): Nama Penerima
+            $nama = trim((string) ($item['nama'] ?? ''));
+            $dataXml .= '<c r="C' . $curRow . '" s="12" t="inlineStr"><is><t>' . self::escapeXml($nama) . '</t></is></c>';
+
+            // Col 4 (D): Tanggal Lahir (Excel serial date atau inlineStr)
+            $serialDate = self::dateToExcelSerial($item['tanggal_lahir_raw'] ?? null);
+            if ($serialDate !== null) {
+                $dataXml .= '<c r="D' . $curRow . '" s="5"><v>' . $serialDate . '</v></c>';
+            } else {
+                $tgl = trim((string) ($item['tanggal_lahir'] ?? ''));
+                $dataXml .= '<c r="D' . $curRow . '" s="5" t="inlineStr"><is><t>' . self::escapeXml($tgl) . '</t></is></c>';
+            }
+
+            // Col 5 (E): Jenis Kelamin ID (392 / 64)
+            $jkId = (int) ($item['jenis_kelamin_id'] ?? 392);
+            $dataXml .= '<c r="E' . $curRow . '" s="12"><v>' . $jkId . '</v></c>';
+
+            // Col 6 (F): Nama Orang Tua
+            $ortu = trim((string) ($item['nama_orang_tua'] ?? '-'));
+            $dataXml .= '<c r="F' . $curRow . '" s="12" t="inlineStr"><is><t>' . self::escapeXml($ortu ?: '-') . '</t></is></c>';
+
+            // Col 7 (G): Posisi ID (1, 2, 3)
+            $posisi = (int) ($item['posisi'] ?? 1);
+            $dataXml .= '<c r="G' . $curRow . '" s="12"><v>' . $posisi . '</v></c>';
+
+            // Col 8 (H): Status Menerima (boolean true = 1)
+            $dataXml .= '<c r="H' . $curRow . '" s="12" t="b"><v>1</v></c>';
+
+            $dataXml .= '</row>';
+            $curRow++;
+        }
+
+        // Baris kosong sebelum catatan
+        $curRow++;
+
+        // 3. Catatan kaki (menggunakan style dan shared strings bawaan template)
+        $r_c1 = $curRow++;
+        $r_c2 = $curRow++;
+        $r_c3 = $curRow++;
+        $r_c4 = $curRow++;
+        $r_c5 = $curRow++;
+        $r_c6 = $curRow++;
+        $r_c7 = $curRow++;
+        $r_c8 = $curRow++;
+
+        $notesXml = '<row r="' . $r_c1 . '" spans="1:8" x14ac:dyDescent="0.25"><c r="A' . $r_c1 . '" s="2" t="s"><v>16</v></c></row>'
+            . '<row r="' . $r_c2 . '" spans="1:8" x14ac:dyDescent="0.25"><c r="A' . $r_c2 . '" s="9" t="s"><v>17</v></c></row>'
+            . '<row r="' . $r_c3 . '" spans="1:8" x14ac:dyDescent="0.25"><c r="A' . $r_c3 . '" t="s"><v>18</v></c></row>'
+            . '<row r="' . $r_c4 . '" spans="1:8" x14ac:dyDescent="0.25"><c r="A' . $r_c4 . '" t="s"><v>19</v></c></row>'
+            . '<row r="' . $r_c5 . '" spans="1:8" x14ac:dyDescent="0.25"><c r="A' . $r_c5 . '" t="s"><v>20</v></c></row>'
+            . '<row r="' . $r_c6 . '" spans="1:1" x14ac:dyDescent="0.25"><c r="A' . $r_c6 . '" t="s"><v>21</v></c></row>'
+            . '<row r="' . $r_c7 . '" spans="1:1" x14ac:dyDescent="0.25"><c r="A' . $r_c7 . '" t="s"><v>22</v></c></row>'
+            . '<row r="' . $r_c8 . '" spans="1:1" x14ac:dyDescent="0.25"><c r="A' . $r_c8 . '" t="s"><v>23</v></c></row>';
+
+        // 4. Update dimension ref (A1:H{maxRow})
+        $finalXml = $headerPart . $dataXml . $notesXml . '</sheetData><pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
+        $finalXml = preg_replace('/<dimension ref="[^"]+"/', '<dimension ref="A1:H' . $r_c8 . '"', $finalXml, 1);
+
+        return $finalXml;
+    }
+
+    /**
+     * Hasilkan file Excel (.xlsx) resmi MBG berisi seluruh 6 sheet via native ZipArchive OpenXML.
      */
     public static function exportExcel(): string
     {
+        $templatePath = storage_path('app/templates/template_mbg.xlsx');
+        if (! file_exists($templatePath)) {
+            throw new \RuntimeException('Berkas template MBG tidak ditemukan di server.');
+        }
+
         $parentMap = self::getGtkParentMap();
 
         // 1. Data GTK
@@ -230,9 +340,10 @@ class MbgService
             $nik = trim((string) $item->nik);
 
             return [
-                'nisn' => null,
+                'nisn' => '',
                 'nik' => $nik,
                 'nama' => $item->nama,
+                'tanggal_lahir_raw' => $item->tanggal_lahir,
                 'tanggal_lahir' => $item->tanggal_lahir ? Carbon::parse($item->tanggal_lahir)->format('d-m-Y') : '',
                 'jenis_kelamin_id' => $item->jenis_kelamin === 'L' ? 392 : 64,
                 'nama_orang_tua' => $parentMap[$nik] ?? '-',
@@ -253,6 +364,7 @@ class MbgService
                         'nisn' => (string) ($item->nisn ?? ''),
                         'nik' => (string) ($item->nik ?? ''),
                         'nama' => (string) ($item->nama ?? ''),
+                        'tanggal_lahir_raw' => $item->tanggal_lahir,
                         'tanggal_lahir' => $item->tanggal_lahir ? Carbon::parse($item->tanggal_lahir)->format('d-m-Y') : '',
                         'jenis_kelamin_id' => $item->jenis_kelamin === 'L' ? 392 : 64,
                         'nama_orang_tua' => (string) $ortu,
@@ -262,32 +374,34 @@ class MbgService
                 })->values()->toArray();
         };
 
-        $payload = [
-            'guru_tendik' => $gtkRows,
-            'kelas_10' => $fetchSiswa('10'),
-            'kelas_11' => $fetchSiswa('11'),
-            'kelas_12' => $fetchSiswa('12'),
+        $sheetDataMap = [
+            'xl/worksheets/sheet1.xml' => $gtkRows,
+            'xl/worksheets/sheet2.xml' => $fetchSiswa('10'),
+            'xl/worksheets/sheet3.xml' => $fetchSiswa('11'),
+            'xl/worksheets/sheet4.xml' => $fetchSiswa('12'),
         ];
 
-        $tempJson = tempnam(sys_get_temp_dir(), 'mbg_json_').'.json';
-        file_put_contents($tempJson, json_encode($payload, JSON_UNESCAPED_UNICODE));
-
-        $tempExcel = tempnam(sys_get_temp_dir(), 'mbg_export_').'.xlsx';
-        $scriptPath = base_path('app/Scripts/generate_mbg_excel.py');
-        $templatePath = storage_path('app/templates/template_mbg.xlsx');
-        $pythonBin = self::getPythonBinary();
-
-        $process = new Process([$pythonBin, $scriptPath, $tempJson, $tempExcel, $templatePath]);
-        $process->setTimeout(180);
-        $process->run();
-
-        if (file_exists($tempJson)) {
-            @unlink($tempJson);
+        // 3. Salin template ke berkas temporer
+        $tempExcel = tempnam(sys_get_temp_dir(), 'mbg_out_') . '.xlsx';
+        if (! copy($templatePath, $tempExcel)) {
+            throw new \RuntimeException('Gagal menyalin template MBG ke berkas sementara.');
         }
 
-        if (! $process->isSuccessful() || ! file_exists($tempExcel)) {
-            throw new \RuntimeException('Gagal mengekspor berkas Excel MBG: '.$process->getErrorOutput());
+        $zip = new ZipArchive();
+        if ($zip->open($tempExcel) !== true) {
+            throw new \RuntimeException('Gagal membuka paket OpenXML template MBG.');
         }
+
+        foreach ($sheetDataMap as $entryName => $rows) {
+            $origXml = $zip->getFromName($entryName);
+            if ($origXml !== false) {
+                $newXml = self::buildSheetXml($origXml, $rows);
+                $zip->deleteName($entryName);
+                $zip->addFromString($entryName, $newXml);
+            }
+        }
+
+        $zip->close();
 
         return $tempExcel;
     }
