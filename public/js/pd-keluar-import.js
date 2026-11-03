@@ -43,11 +43,11 @@ window.handleImportExcelSubmit = async function (e) {
 
     const progress = document.getElementById("importExcelProgress");
     const btnSubmit = document.getElementById("btnSubmitImportExcel");
-    const btnText = document.getElementById("btnSubmitImportExcelText");
+    const btnIcon = document.getElementById("btnSubmitImportExcelIcon");
 
     if (progress) progress.style.display = "block";
     if (btnSubmit) btnSubmit.disabled = true;
-    if (btnText) btnText.textContent = "Mengimpor Data...";
+    if (btnIcon) btnIcon.className = "fas fa-spinner fa-spin";
 
     const formData = new FormData(form);
 
@@ -135,7 +135,7 @@ window.handleImportExcelSubmit = async function (e) {
     } finally {
         if (progress) progress.style.display = "none";
         if (btnSubmit) btnSubmit.disabled = false;
-        if (btnText) btnText.textContent = "Import Sekarang";
+        if (btnIcon) btnIcon.className = "fas fa-cloud-arrow-up";
     }
 };
 

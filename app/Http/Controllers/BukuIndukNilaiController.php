@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Buku Induk — Tab "Import Nilai & Pengaturan" dan "Buku Induk" (kelas XII).
+ * Buku Induk — Tab "Buku Induk", "Import Nilai & Pengaturan", dan "Maping Mata Pelajaran".
  */
 class BukuIndukNilaiController extends Controller
 {
@@ -36,27 +36,26 @@ class BukuIndukNilaiController extends Controller
         return ['create' => $ok('create'), 'read' => $ok('read'), 'update' => $ok('update'), 'delete' => $ok('delete')];
     }
 
-    /** TAB 2 — Import Nilai & Pengaturan (susun mata pelajaran) Buku Induk. */
+    /** TAB 2 — Import Nilai & Pengaturan (tahun ajaran & penandatangan) Buku Induk. */
     public function index(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
         $pengaturan = BukuIndukNilaiService::pengaturan();
         $mapel = BukuIndukNilaiService::mapelList();
-        $referensi = BukuIndukNilaiService::referensiMapel();
         $form = BukuIndukNilaiService::pengaturanForm();
 
         $stats = [
             'total_mapel' => count($mapel['umum']) + count($mapel['kejuruan']),
             'mapel_umum' => count($mapel['umum']),
             'mapel_kejuruan' => count($mapel['kejuruan']),
-            'total_referensi' => count($referensi['umum']) + count($referensi['kejuruan']),
+            'total_referensi' => count(BukuIndukNilaiService::referensiMapel()['umum']) + count(BukuIndukNilaiService::referensiMapel()['kejuruan']),
         ];
 
         $can = $this->perms();
 
         return view('dashboard.kesiswaan.buku-induk.import-nilai', compact(
-            'stats', 'pengaturan', 'mapel', 'referensi', 'form', 'can'
+            'stats', 'pengaturan', 'form', 'can'
         ));
     }
 
@@ -108,13 +107,7 @@ class BukuIndukNilaiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Format nilai tidak valid.'], 422);
         }
 
-        $mapelList = BukuIndukNilaiService::mapelList();
-        $kelompokMap = [];
-        foreach (['umum', 'kejuruan'] as $grup) {
-            foreach ($mapelList[$grup] as $nama) {
-                $kelompokMap[$nama] = $grup;
-            }
-        }
+        $kelompokMap = BukuIndukNilaiService::kelompokMapel();
 
         DB::transaction(function () use ($data, $id, $akademik, $kelompokMap) {
             foreach ($data as $mapel => $semesters) {
@@ -230,14 +223,7 @@ class BukuIndukNilaiController extends Controller
             'nip_kepala_sekolah' => 'nullable|string|max:30',
             'nama_petugas' => 'nullable|string|max:150',
             'nip_petugas' => 'nullable|string|max:30',
-            'mapel_umum' => 'nullable|string',
-            'mapel_kejuruan' => 'nullable|string',
         ]);
-
-        $toJson = function ($val) {
-            $arr = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $val)), fn ($v) => $v !== ''));
-            return json_encode($arr);
-        };
 
         $payload = [
             'tahun_ajaran' => $validated['tahun_ajaran'] ?? null,
@@ -245,8 +231,6 @@ class BukuIndukNilaiController extends Controller
             'nip_kepala_sekolah' => $validated['nip_kepala_sekolah'] ?? null,
             'nama_petugas' => $validated['nama_petugas'] ?? null,
             'nip_petugas' => $validated['nip_petugas'] ?? null,
-            'mapel_umum' => $toJson($validated['mapel_umum'] ?? ''),
-            'mapel_kejuruan' => $toJson($validated['mapel_kejuruan'] ?? ''),
             'updated_at' => now(),
         ];
 
@@ -259,6 +243,132 @@ class BukuIndukNilaiController extends Controller
         }
 
         return response()->json(['status' => 'success', 'message' => 'Pengaturan buku induk berhasil disimpan.']);
+    }
+
+    /** TAB 3 — Maping Mata Pelajaran: pemetaan mapel PER SEMESTER. */
+    public function mapingMapel()
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        return view('dashboard.kesiswaan.buku-induk.maping-mapel', [
+            'perSemester' => BukuIndukNilaiService::mapelPerSemester(),
+            'terpetakan' => BukuIndukNilaiService::mapelSemesterTerpetakan(),
+            'referensi' => BukuIndukNilaiService::referensiMapel(),
+            'can' => $this->perms(),
+        ]);
+    }
+
+    /** Simpan pemetaan mapel per semester (semua semester yang dikirim dari form). */
+    public function saveMapingMapel(Request $request): JsonResponse
+    {
+        if ($res = $this->checkAuth()) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
+        }
+
+        if (!$this->perms()['update']) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $mapel = $request->input('mapel', []);
+        if (!is_array($mapel)) {
+            return response()->json(['status' => 'error', 'message' => 'Format pemetaan tidak valid.'], 422);
+        }
+
+        $pecah = function ($val) {
+            return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $val)), fn ($v) => $v !== ''));
+        };
+
+        $jumlah = 0;
+        foreach ($mapel as $semester => $grup) {
+            $semester = (int) $semester;
+            if ($semester < 1 || $semester > 6 || !is_array($grup)) {
+                continue;
+            }
+            BukuIndukNilaiService::saveMapelSemester(
+                $semester,
+                $pecah($grup['umum'] ?? ''),
+                $pecah($grup['kejuruan'] ?? '')
+            );
+            $jumlah++;
+        }
+
+        if ($jumlah === 0) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada semester yang dikirim.'], 422);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Pemetaan mata pelajaran tersimpan untuk {$jumlah} semester.",
+        ]);
+    }
+
+    /** Unduh template Excel impor pemetaan mapel per semester. */
+    public function downloadTemplateMapel(): BinaryFileResponse
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'tpl_mapel_') . '.xlsx';
+
+        $headers = ['Semester', 'Kelompok', 'Nama Mata Pelajaran'];
+        $sample = [
+            ['1', 'umum', 'Pendidikan Agama Islam dan Budi Pekerti'],
+            ['1', 'umum', 'Pendidikan Pancasila'],
+            ['1', 'kejuruan', 'Matematika'],
+            ['2', 'umum', 'Bahasa Indonesia'],
+            ['5', 'kejuruan', 'Praktik Kerja Lapangan'],
+        ];
+
+        SimpleXlsxExporter::export($tempPath, [], $headers, $sample, [
+            'sheetName' => 'Maping Mapel',
+            'rawTable' => true,
+            'headerBg' => '#0F766E',
+        ]);
+
+        return response()->download($tempPath, 'Template_Maping_Mata_Pelajaran.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /** Impor pemetaan mapel untuk SATU semester (menimpa daftar semester itu). */
+    public function importMapelSemester(Request $request): JsonResponse
+    {
+        if ($res = $this->checkAuth()) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
+        }
+
+        if (!$this->perms()['create']) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'semester' => ['required', 'integer', 'between:1,6'],
+            'file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt'],
+        ]);
+
+        try {
+            $rows = SimpleXlsxReader::readFile($request->file('file_excel')->getRealPath());
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal membaca berkas: ' . $e->getMessage()], 422);
+        }
+
+        if (empty($rows)) {
+            return response()->json(['status' => 'error', 'message' => 'Berkas kosong atau tidak terdeteksi.'], 422);
+        }
+
+        $result = BukuIndukNilaiService::importMapelSemesterRows($rows, (int) $validated['semester']);
+
+        if ($result['imported'] === 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tidak ada mapel yang berhasil diimpor. ' . implode(' ', $result['errors']),
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Import selesai: {$result['imported']} mapel tersimpan untuk Semester {$validated['semester']}.",
+            'errors' => $result['errors'],
+        ]);
     }
 
     /** Cetak lembar Buku Induk resmi format A3 landscape (kelas XII). */

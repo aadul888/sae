@@ -297,6 +297,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'matriks'])->name('nilai.matriks')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::put('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveNilai'])->name('nilai.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
 
+            // Tab 3 — Maping Mata Pelajaran (pemetaan mapel per semester)
+            Route::get('/mapel', [\App\Http\Controllers\BukuIndukNilaiController::class, 'mapingMapel'])->name('mapel.index')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/mapel', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveMapingMapel'])->name('mapel.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::get('/mapel/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplateMapel'])->name('mapel.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/mapel/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importMapelSemester'])->name('mapel.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+
             // Cetak lembar Buku Induk format A3
             Route::get('/cetak-buku-induk/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'cetakBukuInduk'])->name('cetak-buku-induk')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
 

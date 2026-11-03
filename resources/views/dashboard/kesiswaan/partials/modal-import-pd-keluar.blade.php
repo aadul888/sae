@@ -22,11 +22,18 @@
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="closeImportExcelModal()"
-                style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px;"
-                title="Tutup">
-                <i class="fas fa-times"></i>
-            </button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="submit" form="formImportExcel" id="btnSubmitImportExcel" class="btn btn-primary"
+                    title="Import Sekarang" aria-label="Import Sekarang"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                    <i class="fas fa-cloud-arrow-up" id="btnSubmitImportExcelIcon"></i>
+                </button>
+                <button type="button" onclick="closeImportExcelModal()"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl, 1.25rem); padding: 4px; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;"
+                    title="Tutup" aria-label="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
 
         <form id="formImportExcel" action="{{ $importAction }}" method="POST" enctype="multipart/form-data"
@@ -82,19 +89,6 @@
                 <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
             </div>
 
-            {{-- Footer Buttons --}}
-            <div
-                style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                <button type="button" onclick="closeImportExcelModal()" class="btn btn-outline"
-                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
-                    Batal
-                </button>
-                <button type="submit" id="btnSubmitImportExcel" class="btn btn-primary"
-                    style="padding: 8px 22px; font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-cloud-arrow-up"></i>
-                    <span id="btnSubmitImportExcelText">Import Sekarang</span>
-                </button>
-            </div>
         </form>
     </div>
 </div>

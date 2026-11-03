@@ -44,6 +44,52 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* ================== Tab Semester (Maping Mata Pelajaran) ================== */
+    const semTabs = document.querySelectorAll('.bi-sem-tab');
+    if (semTabs.length) {
+        semTabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                const sem = tab.getAttribute('data-sem');
+                semTabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
+                document.querySelectorAll('.bi-sem-panel').forEach(function (p) {
+                    p.classList.toggle('active', p.getAttribute('data-sem') === sem);
+                });
+            });
+        });
+    }
+
+    /* ==================== Import Mapel per Semester ==================== */
+    const formMapelImport = document.getElementById('formMapelImport');
+    if (formMapelImport) {
+        formMapelImport.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnImportMapel');
+            const original = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengimpor...'; }
+
+            try {
+                const res = await fetch(formMapelImport.action, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(formMapelImport),
+                });
+                const json = await res.json();
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+
+                if (res.ok && json.status === 'success') {
+                    let msg = json.message;
+                    if (json.errors && json.errors.length) msg += '<br><small>' + json.errors.slice(0, 3).join('<br>') + '</small>';
+                    Swal.fire({ icon: 'success', title: 'Import Berhasil', html: msg }).then(() => location.reload());
+                } else {
+                    Swal.fire('Gagal', json.message || 'Import mapel gagal.', 'error');
+                }
+            } catch (err) {
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+                Swal.fire('Kesalahan Jaringan', 'Tidak dapat menghubungi server.', 'error');
+            }
+        });
+    }
+
     /* ====================== Penyusun Mata Pelajaran ====================== */
     let refData = { umum: [], kejuruan: [] };
     const refEl = document.getElementById('biRefData');

@@ -24,9 +24,10 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            @if ($canCreate)
+            {{-- Hanya tampil saat tab "Usulan Perubahan" yang terbuka. --}}
+            @if ($canCreate && $activeTab === 'usulan')
                 <button type="button" class="btn btn-primary" id="btnOpenUsulanModal"
-                    title="Ajukan Usulan Perubahan Data Siswa"
+                    title="Ajukan Usulan Perubahan Data Siswa" aria-label="Ajukan Usulan Perubahan Data Siswa"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-file-pen"></i>
                 </button>
@@ -416,11 +417,6 @@
                                 aria-label="Import Data Alumni dari Dapodik"
                                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                                 <i class="fas fa-file-import"></i>
-                            </button>
-                            <button type="button" id="btnTambahAlumni" class="btn btn-primary"
-                                title="Tambah Data Alumni (Input Manual)" aria-label="Tambah Data Alumni"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                                <i class="fas fa-plus"></i>
                             </button>
                         @endif
                     @endif

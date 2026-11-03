@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Logika nilai & daftar mata pelajaran Buku Induk.
  *
- * Satu sumber kebenaran untuk daftar mapel dan matriks nilai 6 semester
- * (Kelas X: 1-2, XI: 3-4, XII: 5-6). Dipakai oleh tab buku induk,
- * impor nilai, dan lembar cetak A3.
+ * Satu sumber kebenaran untuk pemetaan mapel (per semester, dengan daftar global
+ * sebagai cadangan) dan matriks nilai 6 semester (Kelas X: 1-2, XI: 3-4, XII: 5-6).
+ * Dipakai oleh tab buku induk, maping mapel, impor nilai, dan lembar cetak A3.
  */
 class BukuIndukNilaiService
 {
@@ -174,6 +174,7 @@ class BukuIndukNilaiService
                 'nip_petugas' => $petugas['nip'],
                 'mapel_umum' => $defUmum,
                 'mapel_kejuruan' => $defKejuruan,
+                'mapel_semester' => null,
             ];
         }
 
@@ -237,6 +238,176 @@ class BukuIndukNilaiService
         ];
     }
 
+    /** JSON pemetaan mapel per semester yang tersimpan (mentah). */
+    private static function mapelSemesterJson(): array
+    {
+        $raw = self::pengaturan()->mapel_semester ?? null;
+        $arr = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
+
+        return is_array($arr) ? $arr : [];
+    }
+
+    /** Bersihkan daftar nama mapel dari input form/import. */
+    private static function bersihMapel($v): array
+    {
+        $arr = is_array($v) ? $v : [];
+        return array_values(array_filter(array_map(fn ($x) => trim((string) $x), $arr), fn ($x) => $x !== ''));
+    }
+
+    /**
+     * Pemetaan mapel PER SEMESTER.
+     *
+     * Semester yang belum pernah dipetakan memakai daftar mapel global; semester
+     * yang sudah dipetakan tetapi daftarnya kosong berarti tidak ada mapel diajarkan
+     * (mis. semester ganjil tanpa mapel tertentu).
+     *
+     * @return array<int, array{umum: array<int,string>, kejuruan: array<int,string>}>
+     */
+    public static function mapelPerSemester(): array
+    {
+        $global = self::mapelList();
+        $stored = self::mapelSemesterJson();
+
+        $out = [];
+        foreach (range(1, 6) as $sem) {
+            $key = (string) $sem;
+            $out[$sem] = array_key_exists($key, $stored)
+                ? ['umum' => self::bersihMapel($stored[$key]['umum'] ?? []), 'kejuruan' => self::bersihMapel($stored[$key]['kejuruan'] ?? [])]
+                : ['umum' => $global['umum'], 'kejuruan' => $global['kejuruan']];
+        }
+
+        return $out;
+    }
+
+    /** Semester yang sudah dipetakan eksplisit (mempunyai kunci di JSON). */
+    public static function mapelSemesterTerpetakan(): array
+    {
+        $stored = self::mapelSemesterJson();
+        $out = [];
+        foreach (range(1, 6) as $sem) {
+            $out[$sem] = array_key_exists((string) $sem, $stored);
+        }
+
+        return $out;
+    }
+
+    /** Peta nama mapel => kelompok dari seluruh pemetaan semester (dipakai saat simpan nilai). */
+    public static function kelompokMapel(): array
+    {
+        $map = [];
+        foreach (self::mapelPerSemester() as $lst) {
+            foreach (['umum', 'kejuruan'] as $grup) {
+                foreach ($lst[$grup] as $nama) {
+                    $map[$nama] = $map[$nama] ?? $grup;
+                }
+            }
+        }
+        foreach (self::mapelList() as $grup => $list) {
+            foreach ($list as $nama) {
+                $map[$nama] = $map[$nama] ?? $grup;
+            }
+        }
+
+        return $map;
+    }
+
+    /** Simpan pemetaan mapel satu semester (menandai semester sebagai sudah dipetakan). */
+    public static function saveMapelSemester(int $semester, array $umum, array $kejuruan): bool
+    {
+        if ($semester < 1 || $semester > 6 || !Table::exists('buku_induk_pengaturan')) {
+            return false;
+        }
+
+        $stored = self::mapelSemesterJson();
+        $stored[(string) $semester] = [
+            'umum' => self::bersihMapel($umum),
+            'kejuruan' => self::bersihMapel($kejuruan),
+        ];
+
+        $p = self::pengaturan();
+        DB::table('buku_induk_pengaturan')->where('id', $p->id)->update([
+            'mapel_semester' => json_encode($stored),
+            'updated_at' => now(),
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Impor pemetaan mapel PER SEMESTER dari Excel/CSV.
+     *
+     * Kolom: `Semester`, `Kelompok` (opsional: umum/kejuruan), `Nama Mata Pelajaran`.
+     * Baris ditambahkan ke semester terkait (menandai semester itu sudah dipetakan)
+     * atau menggantinya bila `$replace` true.
+     *
+     * @return array{imported:int, skipped:int, errors:array<int,string>, semesters:array<int,int>}
+     */
+    public static function importMapelSemesterRows(array $rows, ?int $forcedSemester = null, bool $replace = true): array
+    {
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $lists = self::mapelPerSemester();
+        $acc = []; // hasil berkas: sem => ['umum'=>[], 'kejuruan'=>[]]
+
+        $get = function (array $row, array $keys, int $fallback) {
+            foreach ($keys as $k) {
+                if (isset($row[$k]) && trim((string) $row[$k]) !== '') {
+                    return trim((string) $row[$k]);
+                }
+            }
+            $vals = array_values($row);
+            return isset($vals[$fallback]) ? trim((string) $vals[$fallback]) : '';
+        };
+
+        foreach ($rows as $idx => $row) {
+            $rowNum = $idx + 2;
+
+            $semRaw = $forcedSemester ?: (int) preg_replace('/[^0-9]/', '', $get($row, ['semester', 'smt', 'sem'], 0));
+            $sem = (int) $semRaw;
+            if ($sem < 1 || $sem > 6) {
+                $skipped++;
+                $errors[] = "Baris {$rowNum}: semester tidak valid.";
+                continue;
+            }
+
+            $nama = $get($row, ['nama_mata_pelajaran', 'mata_pelajaran', 'nama mapel', 'mapel', 'nama'], -1);
+            if ($nama === '') {
+                $skipped++;
+                $errors[] = "Baris {$rowNum}: nama mata pelajaran kosong.";
+                continue;
+            }
+
+            $kelompokRaw = strtolower($get($row, ['kelompok', 'group', 'kategori'], -1));
+            $kelompok = str_contains($kelompokRaw, 'kejuruan') ? 'kejuruan' : 'umum';
+
+            $acc[$sem] = $acc[$sem] ?? ['umum' => [], 'kejuruan' => []];
+            if (!in_array($nama, $acc[$sem][$kelompok], true)) {
+                $acc[$sem][$kelompok][] = $nama;
+                $imported++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        foreach ($acc as $sem => $lst) {
+            $out = $replace
+                ? $lst
+                : [
+                    'umum' => array_values(array_unique(array_merge($lists[$sem]['umum'], $lst['umum']))),
+                    'kejuruan' => array_values(array_unique(array_merge($lists[$sem]['kejuruan'], $lst['kejuruan']))),
+                ];
+            self::saveMapelSemester((int) $sem, $out['umum'], $out['kejuruan']);
+        }
+
+        return [
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => array_slice($errors, 0, 10),
+            'semesters' => array_map('intval', array_keys($acc)),
+        ];
+    }
+
     /**
      * Matriks nilai satu siswa untuk lembar cetak / modal atur nilai.
      *
@@ -246,7 +417,7 @@ class BukuIndukNilaiService
      */
     public static function matriks($pesertaDidikId, string $akademik = 'aktif'): array
     {
-        $mapel = self::mapelList();
+        $perSemester = self::mapelPerSemester();
 
         // nilai tersimpan: [nama_mapel][semester] => nilai
         $tersimpan = [];
@@ -262,22 +433,36 @@ class BukuIndukNilaiService
         $isAlumni = ($akademik === 'alumni');
         $semesters = $isAlumni ? [5, 6] : [1, 2, 3, 4, 5, 6];
 
-        $hasil = [];
+        // Urutan baris: kemunculan pertama sebuah mapel per kelompok (semester 1..6),
+        // sehingga mapel yang hanya diajarkan di semester tertentu tetap tampil.
+        $urutan = [];
         foreach (['umum', 'kejuruan'] as $kelompok) {
-            foreach ($mapel[$kelompok] as $nama) {
-                $nilai = [];
-                foreach ($semesters as $sem) {
-                    $nilai[$sem] = $tersimpan[$nama][$sem]
-                        ?? ($isAlumni ? null : self::dummy($pesertaDidikId, $nama, $sem));
+            foreach ($semesters as $sem) {
+                foreach ($perSemester[$sem][$kelompok] as $nama) {
+                    if (!isset($urutan[$nama])) {
+                        $urutan[$nama] = $kelompok;
+                    }
                 }
-                $terisi = array_filter($nilai, fn ($v) => $v !== null);
-                $hasil[] = [
-                    'nama' => $nama,
-                    'kelompok' => $kelompok,
-                    'nilai' => $nilai,
-                    'akhir' => $terisi ? round(array_sum($terisi) / count($terisi), 2) : null,
-                ];
             }
+        }
+
+        $hasil = [];
+        foreach ($urutan as $nama => $kelompok) {
+            $nilai = [];
+            foreach ($semesters as $sem) {
+                // Kosong bila mapel tidak diajarkan pada semester itu.
+                $diajarkan = in_array($nama, $perSemester[$sem][$kelompok] ?? [], true);
+                $nilai[$sem] = $diajarkan
+                    ? ($tersimpan[$nama][$sem] ?? ($isAlumni ? null : self::dummy($pesertaDidikId, $nama, $sem)))
+                    : null;
+            }
+            $terisi = array_filter($nilai, fn ($v) => $v !== null);
+            $hasil[] = [
+                'nama' => $nama,
+                'kelompok' => $kelompok,
+                'nilai' => $nilai,
+                'akhir' => $terisi ? round(array_sum($terisi) / count($terisi), 2) : null,
+            ];
         }
 
         return $hasil;

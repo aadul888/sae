@@ -10,5 +10,9 @@
             class="periode-nav-tab {{ $activeTab === 'nilai' ? 'active' : '' }}">
             <i class="fas fa-file-import"></i> Import Nilai &amp; Pengaturan
         </a>
+        <a href="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
+            class="periode-nav-tab {{ $activeTab === 'mapel' ? 'active' : '' }}">
+            <i class="fas fa-diagram-project"></i> Maping Mata Pelajaran
+        </a>
     </div>
 </div>

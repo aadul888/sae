@@ -124,19 +124,11 @@ document.addEventListener('DOMContentLoaded', function () {
         formAlumni.setAttribute('action', alumniStoreUrl);
         const method = document.getElementById('alumniMethod');
         if (method) method.value = 'POST';
-        document.getElementById('modalAlumniTitle').textContent = 'Tambah Data Alumni';
-        document.getElementById('modalAlumniSubtitle').textContent = 'Input manual data alumni tahun sebelumnya.';
+        document.getElementById('modalAlumniTitle').textContent = 'Ubah Data Alumni';
+        document.getElementById('modalAlumniSubtitle').textContent = 'Perbarui identitas alumni.';
     }
 
     document.addEventListener('click', function (e) {
-        const btnTambah = e.target.closest('#btnTambahAlumni');
-        if (btnTambah) {
-            e.preventDefault();
-            resetAlumniForm();
-            openModal('#modalAlumni');
-            return;
-        }
-
         const btnEdit = e.target.closest('.btn-edit-alumni');
         if (btnEdit) {
             e.preventDefault();

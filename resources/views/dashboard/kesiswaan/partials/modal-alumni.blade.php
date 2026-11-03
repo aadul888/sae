@@ -13,11 +13,11 @@
                 <div>
                     <h3 id="modalAlumniTitle"
                         style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                        Tambah Data Alumni
+                        Ubah Data Alumni
                     </h3>
                     <div id="modalAlumniSubtitle"
                         style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                        Format 43 kolom Dapodik Peserta Didik Keluar.
+                        Perbarui identitas alumni (format 43 kolom Dapodik Peserta Didik Keluar).
                     </div>
                 </div>
             </div>
