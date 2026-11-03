@@ -30,10 +30,10 @@
                     <span>Coba Muat Ulang</span>
                 </button>
 
-                <a href="{{ route('presensi.scan') }}" class="btn"
+                <a href="{{ url('/') }}" class="btn"
                     style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); padding: 0.75rem 1.25rem; font-size: var(--text-base, 0.875rem); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-qrcode"></i>
-                    <span>Buka Terminal Presensi</span>
+                    <i class="fas fa-house"></i>
+                    <span>Kembali ke Beranda</span>
                 </a>
             </div>
 

@@ -14,7 +14,7 @@ use App\Support\Table;
 
 class UpdateService
 {
-    const CURRENT_VERSION = '1.0.4';
+    const CURRENT_VERSION = '1.0.5';
     const GITHUB_REPO = 'aadul888/sae';
 
     /**
