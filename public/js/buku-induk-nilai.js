@@ -400,13 +400,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderSelected(col, data[key] || []);
             });
 
-            Swal.fire({
+            // Simpan otomatis lalu muat ulang agar hasil salin langsung tampil dari server
+            // (per jurusan terpilih), bukan hanya di DOM.
+            const form = document.getElementById('formPengaturan');
+            const simpanBtn = form ? form.querySelector('button[type="submit"]') : null;
+
+            await Swal.fire({
                 icon: 'success',
                 title: 'Mapel disalin',
-                text: total + ' mapel dari semester ' + sumber + ' diterapkan ke semester ' + sem + '. Simpan untuk menerapkan.',
-                timer: 2000,
+                text: total + ' mapel dari semester ' + sumber + ' diterapkan ke semester ' + sem +
+                    (simpanBtn ? '. Menyimpan & memuat ulang…' : '. Klik Simpan untuk menerapkan.'),
+                timer: simpanBtn ? 1500 : 2500,
                 showConfirmButton: false,
             });
+
+            if (simpanBtn) {
+                simpanBtn.click(); // handler submit akan menyimpan lalu reload halaman
+            }
         });
     });
 
@@ -418,6 +428,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Pastikan textarea tersinkron sebelum submit
             cols.forEach(syncTextarea);
+
+            // Hanya semester yang sedang aktif/disimpan yang dikirim
+            // (kolom semester lain dinonaktifkan → tidak ikut ter-submit).
+            const activeSem = document.querySelector('.bi-sem-panel.active');
+            const semAktif = activeSem ? activeSem.getAttribute('data-sem') : null;
+            cols.forEach(function (col) {
+                const ta = col.querySelector('.bi-hidden-mapel');
+                if (ta) ta.disabled = semAktif !== null && col.getAttribute('data-semester') !== semAktif;
+            });
 
             const btn = formSet.querySelector('button[type="submit"]');
             const original = btn ? btn.innerHTML : '';
@@ -437,10 +456,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1500, showConfirmButton: false })
                         .then(function () { location.reload(); });
                 } else {
+                    cols.forEach(function (col) {
+                        const ta = col.querySelector('.bi-hidden-mapel');
+                        if (ta) ta.disabled = false;
+                    });
                     Swal.fire('Gagal', json.message || 'Pengaturan gagal disimpan.', 'error');
                 }
             } catch (err) {
                 if (btn) { btn.disabled = false; btn.innerHTML = original; }
+                cols.forEach(function (col) {
+                    const ta = col.querySelector('.bi-hidden-mapel');
+                    if (ta) ta.disabled = false;
+                });
                 Swal.fire('Kesalahan Jaringan', 'Tidak dapat menghubungi server.', 'error');
             }
         });
