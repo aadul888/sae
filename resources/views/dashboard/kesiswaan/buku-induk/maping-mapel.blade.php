@@ -147,7 +147,7 @@
                         <button type="button" class="btn btn-outline bi-copy-btn" data-sem="{{ $sem }}">
                             <i class="fas fa-copy"></i> Salin
                         </button>
-                        <span style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">Mapel yang sudah ada tidak digandakan.</span>
+                        <span style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">Urutan &amp; pilihan mapel disamakan dengan semester sumber.</span>
                     </div>
 
                     <div class="bi-mapel-grid">

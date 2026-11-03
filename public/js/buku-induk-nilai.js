@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.querySelectorAll('.bi-copy-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', async function () {
             const sem = parseInt(btn.dataset.sem, 10);
             const row = btn.closest('.bi-copy-row');
             const sel = row ? row.querySelector('.bi-copy-select') : null;
@@ -358,25 +358,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const panel = btn.closest('.bi-sem-panel');
             const data = perSemester[sumber] || {};
-            let jumlah = 0;
+            const total = ['umum', 'kejuruan']
+                .reduce(function (n, key) { return n + ((data[key] || []).length); }, 0);
+
+            const konfirmasi = await Swal.fire({
+                icon: 'question',
+                title: 'Salin mapel semester ' + sumber + '?',
+                html: 'Urutan dan pilihan mapel semester <strong>' + sem + '</strong> akan <strong>disamakan</strong> dengan semester ' + sumber +
+                    (total ? '' : ' (semester sumber belum punya mapel).'),
+                showCancelButton: true,
+                confirmButtonText: 'Salin',
+                cancelButtonText: 'Batal',
+            });
+            if (!konfirmasi.isConfirmed) return;
+
             ['umum', 'kejuruan'].forEach(function (key) {
                 const col = panel ? panel.querySelector('.bi-mapel-col[data-kelompok="' + key + '"]') : null;
                 if (!col) return;
-                (data[key] || []).forEach(function (nama) {
-                    if (!hasName(col, nama)) {
-                        addName(col, nama);
-                        jumlah++;
-                    }
-                });
+                // Ganti seluruh daftar: urutan & pilihan persis seperti semester sumber.
+                renderSelected(col, data[key] || []);
             });
 
             Swal.fire({
-                icon: jumlah ? 'success' : 'info',
-                title: jumlah ? 'Mapel disalin' : 'Tidak ada yang baru',
-                text: jumlah
-                    ? jumlah + ' mapel ditambahkan dari semester ' + sumber + '. Simpan untuk menerapkan.'
-                    : 'Semua mapel semester ' + sumber + ' sudah ada di semester ' + sem + '.',
-                timer: jumlah ? 1800 : 2500,
+                icon: 'success',
+                title: 'Mapel disalin',
+                text: total + ' mapel dari semester ' + sumber + ' diterapkan ke semester ' + sem + '. Simpan untuk menerapkan.',
+                timer: 2000,
                 showConfirmButton: false,
             });
         });
