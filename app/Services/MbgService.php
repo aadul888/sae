@@ -17,6 +17,19 @@ class MbgService
     private static ?array $gtkParentCache = null;
 
     /**
+     * Cari jalur file template MBG (resources/templates atau storage/app/templates).
+     */
+    public static function getTemplatePath(): string
+    {
+        $resPath = resource_path('templates/template_mbg.xlsx');
+        if (file_exists($resPath)) {
+            return $resPath;
+        }
+
+        return storage_path('app/templates/template_mbg.xlsx');
+    }
+
+    /**
      * Ambil pemetaan nama orang tua GTK dari file cache JSON lokal.
      */
     public static function getGtkParentMap(): array
@@ -26,12 +39,18 @@ class MbgService
         }
 
         $map = [];
-        $mapFile = storage_path('app/templates/gtk_parents_map.json');
+        $candidates = [
+            resource_path('templates/gtk_parents_map.json'),
+            storage_path('app/templates/gtk_parents_map.json'),
+        ];
 
-        if (file_exists($mapFile)) {
-            $decoded = json_decode((string) file_get_contents($mapFile), true);
-            if (is_array($decoded)) {
-                $map = $decoded;
+        foreach ($candidates as $mapFile) {
+            if (file_exists($mapFile)) {
+                $decoded = json_decode((string) file_get_contents($mapFile), true);
+                if (is_array($decoded)) {
+                    $map = $decoded;
+                    break;
+                }
             }
         }
 
@@ -326,9 +345,9 @@ class MbgService
      */
     public static function exportExcel(): string
     {
-        $templatePath = storage_path('app/templates/template_mbg.xlsx');
+        $templatePath = self::getTemplatePath();
         if (! file_exists($templatePath)) {
-            throw new \RuntimeException('Berkas template MBG tidak ditemukan di server.');
+            throw new \RuntimeException('Berkas template MBG tidak ditemukan di server: ' . $templatePath);
         }
 
         $parentMap = self::getGtkParentMap();

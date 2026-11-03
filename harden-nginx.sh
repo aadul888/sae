@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# SAE — Hardening vhost Nginx: eksekusi PHP hanya untuk /index.php
+# SAE - Hardening vhost Nginx: eksekusi PHP hanya untuk /index.php
 # -----------------------------------------------------------------------------
 # Masalah yang diperbaiki:
 #   Konfigurasi bawaan aaPanel memuat `include enable-php-XX.conf;` yang berisi
@@ -113,11 +113,12 @@ if [ -z "${NGINX_BIN}" ]; then
 fi
 
 # =============================================================================
-# Transformer (PHP) — dipanggil per berkas vhost.
+# Transformer (PHP) - dipanggil per berkas vhost.
 #   argv[1] = path vhost, argv[2] = 1 bila dry-run, argv[3] = socket paksa (opsi)
 # =============================================================================
 run_transformer() {
-php - "$1" "$2" "${3:-}" "${DOMAIN}" <<'PHPEOF'
+TRANSFORMER_PHP=$(mktemp 2>/dev/null || echo "${TMPDIR:-/tmp}/sae-harden-$$.php")
+cat > "${TRANSFORMER_PHP}" <<'PHPEOF'
 <?php
 $path   = $argv[1];
 $dry    = ($argv[2] ?? '0') === '1';
@@ -127,7 +128,7 @@ $domain = $argv[4] ?? '';
 $src = file_get_contents($path);
 if ($src === false) { fwrite(STDERR, "Tidak bisa membaca {$path}\n"); exit(1); }
 
-$MARK_START = '# >>> SAE php-guard (dikelola harden-nginx.sh — jangan diubah manual)';
+$MARK_START = '# >>> SAE php-guard (dikelola harden-nginx.sh - jangan diubah manual)';
 $MARK_END   = '# <<< SAE php-guard';
 
 /** Cari blok `... { ... }` dengan pencocokan kurung (mengabaikan $ dalam string). */
@@ -164,7 +165,7 @@ function stripBlocks(string $s, string $headerRegex): string
 $handlerBlock = null;   // blok location (lengkap dengan tanda kurung)
 $sourceNote   = '';
 
-// (a) Blok `location = /index.php` yang sudah ada — pertahankan apa adanya.
+// (a) Blok `location = /index.php` yang sudah ada - pertahankan apa adanya.
 if (preg_match('/([ \t]*location\s*=\s*\/index\.php\s*\{)/', $src, $m, PREG_OFFSET_CAPTURE)) {
     $blk = braceBlock($src, $m[1][1]);
     if ($blk !== null) {
@@ -173,7 +174,7 @@ if (preg_match('/([ \t]*location\s*=\s*\/index\.php\s*\{)/', $src, $m, PREG_OFFS
     }
 }
 
-// (b) Blok dari `include enable-php-XX.conf;` — ambil lalu retarget ke /index.php.
+// (b) Blok dari `include enable-php-XX.conf;` - ambil lalu retarget ke /index.php.
 // Semua include handler PHP dicatat untuk dibersihkan belakangan.
 $phpIncludes = [];
 if (preg_match_all('/^[ \t]*include\s+([^\s;]+)\s*;[ \t]*$/mi', $src, $mAll)) {
@@ -226,7 +227,7 @@ if ($handlerBlock === null) {
         . "    }";
     $sourceNote = $forced !== ''
         ? "handler dibuat baru memakai --socket {$forced}"
-        : "handler dibuat baru (socket default) — VERIFIKASI fastcgi_pass!";
+        : "handler dibuat baru (socket default) - VERIFIKASI fastcgi_pass!";
 }
 
 // ---- 2. Bersihkan: blok penjaga lama, include enable-php, dan semua location .php ----
@@ -321,6 +322,10 @@ rename($tmp, $path);
 echo "diubah={$injected} marker_lama=" . ($removedMarker ? 'ya' : 'tidak') . " | {$sourceNote}\n";
 exit(0);
 PHPEOF
+php "${TRANSFORMER_PHP}" "$1" "$2" "${3:-}" "${DOMAIN}"
+RC=$?
+rm -f "${TRANSFORMER_PHP}"
+return ${RC}
 }
 
 # =============================================================================
@@ -337,7 +342,7 @@ for VHOST in ${CANDIDATES//$'\n'/ }; do
 
     if [ "${DRY}" = "1" ]; then
         run_transformer "${VHOST}" 1 "${SOCKET}"
-        ok "Dry-run selesai — tidak ada berkas diubah."
+        ok "Dry-run selesai - tidak ada berkas diubah."
         continue
     fi
 
@@ -360,7 +365,7 @@ for VHOST in ${CANDIDATES//$'\n'/ }; do
         if ${NGINX_BIN} -t 2>&1 | sed 's/^/     /'; then
             ok "nginx -t lolos"
         else
-            fail "nginx -t GAGAL — memulihkan dari backup."
+            fail "nginx -t GAGAL - memulihkan dari backup."
             cp -p "${BAK}" "${VHOST}"
             fail "vhost dipulihkan. Kirim pesan galat di atas untuk diperbaiki."
             exit 1
@@ -404,9 +409,9 @@ if [ -d "${APPDIR}/public/uploads" ] || mkdir -p "${APPDIR}/public/uploads" 2>/d
         BODY=$(curl -s -H "Host: ${DOMAIN}" "http://127.0.0.1/uploads/__sae_probe.php" 2>/dev/null | head -c 40)
         rm -f "${PROBE}"
         if [ "${KODE}" = "403" ] || [ "${KODE}" = "404" ] || [ "${KODE}" = "000" ]; then
-            ok "probe .php di folder unggahan ditolak (HTTP ${KODE}) — aman"
+            ok "probe .php di folder unggahan ditolak (HTTP ${KODE}) - aman"
         elif echo "${BODY}" | grep -q 'RCE-'; then
-            fail "probe .php DIEKSEKUSI (HTTP ${KODE}). Hardening belum berlaku — cek urutan location/panel."
+            fail "probe .php DIEKSEKUSI (HTTP ${KODE}). Hardening belum berlaku - cek urutan location/panel."
         else
             warn "probe .php HTTP ${KODE} (bukan 403/404, tapi tidak dieksekusi). Periksa manual."
         fi
