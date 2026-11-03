@@ -6,7 +6,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 use App\Models\RolePermission;
 use App\Services\MbgService;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Controller untuk penarikan dan ekspor Data Kebutuhan MBG (Makan Bergizi Gratis).
@@ -62,7 +62,7 @@ class KebutuhanMbgController extends Controller
     /**
      * Unduh file Excel multi-sheet resmi Data Kebutuhan MBG.
      */
-    public function export(Request $request): BinaryFileResponse
+    public function export(Request $request)
     {
         if ($res = $this->checkAuth()) {
             return $res;
@@ -75,11 +75,17 @@ class KebutuhanMbgController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk menarik data MBG.');
         }
 
-        $filePath = MbgService::exportExcel();
-        $fileName = 'Data_Kebutuhan_MBG_SMK_NEGERI_1_PAGELARAN_'.date('Ymd_His').'.xlsx';
+        try {
+            $filePath = MbgService::exportExcel();
+            $fileName = 'Data_Kebutuhan_MBG_SMK_NEGERI_1_PAGELARAN_'.date('Ymd_His').'.xlsx';
 
-        return response()->download($filePath, $fileName, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ])->deleteFileAfterSend(true);
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            Log::error('MBG Export Error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return redirect()->route('dashboard.kebutuhan-mbg.index')->with('error', 'Gagal menarik data MBG: '.$e->getMessage());
+        }
     }
 }

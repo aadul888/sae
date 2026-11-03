@@ -19,6 +19,25 @@ class MbgService
      */
     private static ?array $gtkParentCache = null;
 
+    /**
+     * Cari lokasi eksekusi Python yang valid di sistem.
+     */
+    public static function getPythonBinary(): string
+    {
+        $candidates = [
+            'C:\\laragon\\bin\\python\\python-3.13\\python.exe',
+            'C:\\Program Files\\PyManager\\python.exe',
+        ];
+
+        foreach ($candidates as $bin) {
+            if (file_exists($bin)) {
+                return $bin;
+            }
+        }
+
+        return 'python';
+    }
+
     public static function getGtkParentMap(): array
     {
         if (self::$gtkParentCache !== null) {
@@ -26,16 +45,12 @@ class MbgService
         }
 
         $map = [];
-        $templatePath = storage_path('app/templates/template_mbg.xlsx');
+        $mapFile = storage_path('app/templates/gtk_parents_map.json');
 
-        if (file_exists($templatePath)) {
-            $cmd = 'python -c "import openpyxl, json; wb = openpyxl.load_workbook(r\''.addslashes($templatePath).'\', data_only=True); ws = wb[\'Guru dan Tendik\']; res = {}; [res.update({str(ws.cell(r,2).value).strip(): str(ws.cell(r,6).value or \'-\').strip()}) for r in range(4, ws.max_row+1) if ws.cell(r,2).value]; print(json.dumps(res))"';
-            $output = shell_exec($cmd);
-            if ($output) {
-                $decoded = json_decode($output, true);
-                if (is_array($decoded)) {
-                    $map = $decoded;
-                }
+        if (file_exists($mapFile)) {
+            $decoded = json_decode((string) file_get_contents($mapFile), true);
+            if (is_array($decoded)) {
+                $map = $decoded;
             }
         }
 
@@ -260,9 +275,10 @@ class MbgService
         $tempExcel = tempnam(sys_get_temp_dir(), 'mbg_export_').'.xlsx';
         $scriptPath = base_path('app/Scripts/generate_mbg_excel.py');
         $templatePath = storage_path('app/templates/template_mbg.xlsx');
+        $pythonBin = self::getPythonBinary();
 
-        $process = new Process(['python', $scriptPath, $tempJson, $tempExcel, $templatePath]);
-        $process->setTimeout(120);
+        $process = new Process([$pythonBin, $scriptPath, $tempJson, $tempExcel, $templatePath]);
+        $process->setTimeout(180);
         $process->run();
 
         if (file_exists($tempJson)) {
