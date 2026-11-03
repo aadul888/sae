@@ -345,6 +345,23 @@ document.addEventListener('DOMContentLoaded', function () {
         try { perSemester = JSON.parse(perSemEl.textContent) || {}; } catch (e) { /* abaikan */ }
     }
 
+    /** Baca daftar mapel panel semester (dari DOM, urut seperti tampil). */
+    function bacaMapelPanel(semester) {
+        const panel = document.querySelector('.bi-sem-panel[data-sem="' + semester + '"]');
+        const out = { umum: [], kejuruan: [] };
+        if (!panel) return out;
+        const terkunci = panel.querySelector('.bi-mapel-col-locked');
+        if (terkunci) {
+            out.kejuruan = Array.from(terkunci.querySelectorAll('.bi-sel-name')).map(function (n) { return n.textContent; });
+            return out;
+        }
+        ['umum', 'kejuruan'].forEach(function (key) {
+            const col = panel.querySelector('.bi-mapel-col[data-kelompok="' + key + '"]');
+            if (col) out[key] = Array.from(col.querySelectorAll('.bi-sel-item .bi-sel-name')).map(function (n) { return n.textContent; });
+        });
+        return out;
+    }
+
     document.querySelectorAll('.bi-copy-btn').forEach(function (btn) {
         btn.addEventListener('click', async function () {
             const sem = parseInt(btn.dataset.sem, 10);
@@ -357,9 +374,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const panel = btn.closest('.bi-sem-panel');
-            const data = perSemester[sumber] || {};
-            const total = ['umum', 'kejuruan']
-                .reduce(function (n, key) { return n + ((data[key] || []).length); }, 0);
+            // Sumber dibaca dari panel semester asal (termasuk perubahan yang belum disimpan),
+            // bukan dari data server yang bisa sudah basi.
+            let data = bacaMapelPanel(sumber);
+            if (!data.umum.length && !data.kejuruan.length) {
+                data = perSemester[sumber] || data;
+            }
+            const total = data.umum.length + data.kejuruan.length;
 
             const konfirmasi = await Swal.fire({
                 icon: 'question',
