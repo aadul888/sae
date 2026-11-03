@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class DapodikController extends Controller
 {
@@ -39,12 +38,10 @@ class DapodikController extends Controller
         $hasActiveData = ($totalPesertaDidik > 0 || $totalGtk > 0 || $totalRombel > 0);
         $syncAllowed = $hasActiveData ? (bool)($setting->sync_allowed ?? false) : true;
         $archiveDownloadedAt = $setting->archive_downloaded_at ?? null;
-        $feederFile = public_path('downloads/SAE-Feeder-Setup.zip');
-        $feederDownload = File::exists($feederFile) ? [
-            'url' => asset('downloads/SAE-Feeder-Setup.zip'),
-            'size' => File::size($feederFile),
-            'updated_at' => File::lastModified($feederFile),
-        ] : null;
+        // Installer diambil dari repo feeder resmi, bukan file lokal di server.
+        $feederDownload = [
+            'url' => 'https://github.com/aadul888/sae-feeder',
+        ];
 
         return view('dashboard.tarik-data', compact(
             'sekolah',

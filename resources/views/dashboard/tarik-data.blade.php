@@ -15,13 +15,11 @@
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            @if ($feederDownload)
-                <a href="{{ $feederDownload['url'] }}" class="btn btn-primary" download
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
-                    title="Unduh SAE-Feeder">
-                    <i class="fas fa-download"></i>
-                </a>
-            @endif
+            <a href="{{ $feederDownload['url'] }}" target="_blank" rel="noopener" class="btn btn-primary"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                title="Unduh SAE-Feeder (GitHub)">
+                <i class="fas fa-download"></i>
+            </a>
             <a href="#feeder-guide" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Panduan Penggunaan Feeder">
@@ -175,35 +173,24 @@
                 </h3>
             </div>
 
-            @if ($feederDownload)
-                <div
-                    style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.22); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
-                                <i class="fas fa-shield-halved" style="color: var(--success, #10b981);"></i> Installer resmi dari server
-                                SAE
-                            </div>
-                            <div>
-                                Ukuran: <b>{{ number_format($feederDownload['size'] / 1024 / 1024, 1) }} MB</b> ·
-                                Diperbarui:
-                                <b>{{ \Carbon\Carbon::createFromTimestamp($feederDownload['updated_at'])->format('d M Y, H:i') }}
-                                    WIB</b>
-                            </div>
+            <div
+                style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.22); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
+                            <i class="fas fa-shield-halved" style="color: var(--success, #10b981);"></i> Repo resmi
+                            SAE-Feeder
                         </div>
-                        <a href="{{ $feederDownload['url'] }}" class="btn btn-primary btn-sm" download
-                            style="white-space: nowrap; font-size: var(--text-sm, 0.8125rem); padding: 7px 14px;">
-                            <i class="fas fa-download me-1"></i> Klik Unduh SAE-Feeder
-                        </a>
+                        <div>
+                            Sumber unduhan: <b>github.com/aadul888/sae-feeder</b>
+                        </div>
                     </div>
+                    <a href="{{ $feederDownload['url'] }}" target="_blank" rel="noopener" class="btn btn-primary btn-sm"
+                        style="white-space: nowrap; font-size: var(--text-sm, 0.8125rem); padding: 7px 14px;">
+                        <i class="fas fa-download me-1"></i> Klik Unduh SAE-Feeder
+                    </a>
                 </div>
-            @else
-                <div
-                    style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); color: var(--warning, #f59e0b);">
-                    <i class="fas fa-triangle-exclamation me-1"></i> File installer SAE-Feeder belum tersedia di server.
-                </div>
-            @endif
+            </div>
 
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: var(--text-base, 0.875rem);">
                 <div style="display: flex; gap: 12px; align-items: flex-start;">
@@ -214,8 +201,9 @@
                         <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Klik Unduh SAE-Feeder
                         </div>
                         <div style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); line-height: 1.4;">
-                            Unduh installer resmi dari tombol <b>Klik Unduh SAE-Feeder</b> di atas, lalu salin file ke
-                            komputer server yang terpasang Dapodik lokal.
+                            Unduh SAE-Feeder dari repo <b>github.com/aadul888/sae-feeder</b> lewat tombol <b>Klik Unduh
+                                SAE-Feeder</b> di atas, lalu salin hasil unduhan ke komputer server yang terpasang Dapodik
+                            lokal.
                         </div>
                     </div>
                 </div>
@@ -228,8 +216,8 @@
                         <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Instal dan Buka
                             Aplikasi SAE Feeder</div>
                         <div style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); line-height: 1.4;">
-                            Ekstrak/instal paket <code style="color: var(--primary);">SAE-Feeder-Setup.zip</code>, lalu
-                            jalankan SAE Feeder. Jendela antarmuka SAE Feeder akan terbuka di browser Anda.
+                            Ikuti petunjuk instalasi di halaman repo, lalu jalankan SAE Feeder. Jendela antarmuka SAE
+                            Feeder akan terbuka di browser Anda.
                         </div>
                     </div>
                 </div>
