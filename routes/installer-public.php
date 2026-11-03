@@ -11,6 +11,7 @@ Route::match(['get', 'post'], '/install/finish', [InstallController::class, 'fin
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/tentang', [HomeController::class, 'about'])->name('about');
 Route::get('/offline', function () {
     return response()->view('offline');
 })->name('pwa.offline');

@@ -1,6 +1,7 @@
 <footer class="dash-footer">
     <div>
-        &copy; {{ date('Y') }} <strong>Sistem Aplikasi Edukasi (SAE)</strong>. Hak Cipta Dilindungi.
+        &copy; {{ date('Y') }} <strong>Sistem Aplikasi Edukasi (SAE)</strong>. Hak Cipta Dilindungi. &bull;
+        <a href="{{ route('about') }}" class="nav-link" style="display: inline;">Tentang Aplikasi</a>
     </div>
     <div>
         <span>v{{ $appVersion ?? '1.0.1' }}</span> &bull;

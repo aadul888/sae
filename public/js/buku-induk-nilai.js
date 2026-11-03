@@ -338,6 +338,50 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    /* ================== Salin mapel dari semester lain ================== */
+    let perSemester = {};
+    const perSemEl = document.getElementById('biPerSemesterData');
+    if (perSemEl) {
+        try { perSemester = JSON.parse(perSemEl.textContent) || {}; } catch (e) { /* abaikan */ }
+    }
+
+    document.querySelectorAll('.bi-copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const sem = parseInt(btn.dataset.sem, 10);
+            const row = btn.closest('.bi-copy-row');
+            const sel = row ? row.querySelector('.bi-copy-select') : null;
+            const sumber = sel ? parseInt(sel.value, 10) : NaN;
+            if (!sumber) {
+                Swal.fire('Pilih semester', 'Tentukan semester sumber yang ingin disalin.', 'info');
+                return;
+            }
+
+            const panel = btn.closest('.bi-sem-panel');
+            const data = perSemester[sumber] || {};
+            let jumlah = 0;
+            ['umum', 'kejuruan'].forEach(function (key) {
+                const col = panel ? panel.querySelector('.bi-mapel-col[data-kelompok="' + key + '"]') : null;
+                if (!col) return;
+                (data[key] || []).forEach(function (nama) {
+                    if (!hasName(col, nama)) {
+                        addName(col, nama);
+                        jumlah++;
+                    }
+                });
+            });
+
+            Swal.fire({
+                icon: jumlah ? 'success' : 'info',
+                title: jumlah ? 'Mapel disalin' : 'Tidak ada yang baru',
+                text: jumlah
+                    ? jumlah + ' mapel ditambahkan dari semester ' + sumber + '. Simpan untuk menerapkan.'
+                    : 'Semua mapel semester ' + sumber + ' sudah ada di semester ' + sem + '.',
+                timer: jumlah ? 1800 : 2500,
+                showConfirmButton: false,
+            });
+        });
+    });
+
     /* ============================ Simpan Pengaturan ============================ */
     const formSet = document.getElementById('formPengaturan');
     if (formSet) {

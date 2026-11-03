@@ -95,6 +95,12 @@
             padding: 8px 10px;
         }
         .bi-pkl-toggle { display: flex; align-items: center; gap: 7px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); cursor: pointer; white-space: nowrap; }
+        .bi-copy-row {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            margin-bottom: 12px; padding: 8px 12px; border-radius: var(--radius-md, 8px);
+            background: rgba(67,56,202,0.05); border: 1px solid rgba(67,56,202,0.18);
+            font-size: var(--text-xs, 0.75rem); color: var(--text-muted);
+        }
         .bi-pkl-per-sem {
             display: flex; align-items: flex-start; gap: 8px; white-space: normal; font-weight: 600;
             margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px);

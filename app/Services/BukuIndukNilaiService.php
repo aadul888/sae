@@ -78,27 +78,47 @@ class BukuIndukNilaiService
         $rows = DB::table('pembelajaran')
             ->whereNotNull('nama_mata_pelajaran')
             ->where('nama_mata_pelajaran', '!=', '')
-            ->select('nama_mata_pelajaran', 'status_di_kurikulum_str')
+            ->select('mata_pelajaran_id', 'nama_mata_pelajaran', 'status_di_kurikulum_str')
             ->get();
 
-        $umum = [];
-        $kejuruan = [];
+        // Kelompokkan per KODE mapel: satu kode = satu entri referensi (cegah ganda).
+        // Beberapa baris pembelajaran bisa memakai nama berbeda untuk kode yang sama
+        // (mis. "PKL MTK", "PKL KK", ... untuk kode PKL).
+        $perKode = [];
         foreach ($rows as $r) {
             $nama = trim((string) $r->nama_mata_pelajaran);
             if ($nama === '') {
                 continue;
             }
-            $status = (string) ($r->status_di_kurikulum_str ?? '');
-            $isUmum = stripos($status, 'Wajib') !== false;
-            if ($isUmum) {
-                if (!in_array($nama, $umum, true)) {
-                    $umum[] = $nama;
-                }
-            } elseif (!in_array($nama, $kejuruan, true)) {
+            $kode = trim((string) ($r->mata_pelajaran_id ?? ''));
+            if ($kode === '') {
+                $kode = 'nama:' . mb_strtolower($nama);
+            }
+            $wajib = stripos((string) ($r->status_di_kurikulum_str ?? ''), 'Wajib') !== false;
+
+            if (!isset($perKode[$kode])) {
+                $perKode[$kode] = ['nama' => [], 'wajib' => false];
+            }
+            $perKode[$kode]['nama'][$nama] = ($perKode[$kode]['nama'][$nama] ?? 0) + 1;
+            $perKode[$kode]['wajib'] = $perKode[$kode]['wajib'] || $wajib;
+        }
+
+        $umum = [];
+        $kejuruan = [];
+        foreach ($perKode as $data) {
+            $nama = self::namaKanoniMapel($data['nama']);
+            if ($nama === '') {
+                continue;
+            }
+            if ($data['wajib']) {
+                $umum[] = $nama;
+            } else {
                 $kejuruan[] = $nama;
             }
         }
 
+        $umum = array_values(array_unique($umum));
+        $kejuruan = array_values(array_unique($kejuruan));
         sort($umum, SORT_NATURAL | SORT_FLAG_CASE);
         sort($kejuruan, SORT_NATURAL | SORT_FLAG_CASE);
 
@@ -106,6 +126,35 @@ class BukuIndukNilaiService
             'umum' => $umum ?: self::MAPEL_UMUM,
             'kejuruan' => $kejuruan ?: self::MAPEL_KEJURUAN,
         ];
+    }
+
+    /**
+     * Nama kanonis satu kode mapel dari beberapa varian nama pembelajaran.
+     *
+     * Prioritas: nama yang ada di daftar bawaan (Kemdikbud), lalu nama
+     * terpopuler, lalu nama terpanjang bila jumlah kemunculannya sama.
+     *
+     * @param  array<string,int>  $hitung  {nama: jumlah kemunculan}
+     */
+    private static function namaKanoniMapel(array $hitung): string
+    {
+        $baku = array_merge(self::MAPEL_UMUM, self::MAPEL_KEJURUAN);
+        foreach ($hitung as $nama => $n) {
+            if (in_array($nama, $baku, true)) {
+                return $nama;
+            }
+        }
+
+        arsort($hitung);
+        $teratas = (int) reset($hitung);
+        $nama = (string) array_key_first($hitung);
+        foreach ($hitung as $kandidat => $n) {
+            if ($n === $teratas && mb_strlen((string) $kandidat) > mb_strlen($nama)) {
+                $nama = (string) $kandidat;
+            }
+        }
+
+        return $nama;
     }
 
     /** Tahun ajaran aktif (pergantian tahun ajaran setiap Juli). */

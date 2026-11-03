@@ -1703,6 +1703,12 @@
                 <span class="nav-label">Update Sistem</span>
             </a>
         @endif
+
+        <a href="{{ route('about') }}"
+            class="dash-nav-link {{ request()->routeIs('about') ? 'active' : '' }}">
+            <span class="nav-icon"><i class="fas fa-fw fa-circle-info"></i></span>
+            <span class="nav-label">Tentang Aplikasi</span>
+        </a>
     @endif
     </div>
 

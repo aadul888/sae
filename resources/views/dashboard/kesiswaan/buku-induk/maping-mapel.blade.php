@@ -133,6 +133,23 @@
                         </div>
                     @endif
 
+                    <div class="bi-copy-row">
+                        <i class="fas fa-clone" style="color: #4338ca;"></i>
+                        <span>Salin mapel dari semester:</span>
+                        <select class="bi-input bi-copy-select" style="min-width: 170px;">
+                            <option value="">&mdash; pilih semester &mdash;</option>
+                            @foreach (range(1, 6) as $sumber)
+                                @if ($sumber !== $sem)
+                                    <option value="{{ $sumber }}">Semester {{ $sumber }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <button type="button" class="btn btn-outline bi-copy-btn" data-sem="{{ $sem }}">
+                            <i class="fas fa-copy"></i> Salin
+                        </button>
+                        <span style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);">Mapel yang sudah ada tidak digandakan.</span>
+                    </div>
+
                     <div class="bi-mapel-grid">
                         @foreach (['umum' => ['label' => 'Mapel Umum', 'color' => '#10b981'], 'kejuruan' => ['label' => 'Mapel Kejuruan', 'color' => '#f59e0b']] as $key => $meta)
                             <div class="bi-mapel-col" data-kelompok="{{ $key }}" data-semester="{{ $sem }}">
@@ -181,6 +198,8 @@
     <script type="application/json" id="biRefData">@json($referensi)</script>
     {{-- Singkatan mapel per nama (untuk prefill input di daftar mapel) --}}
     <script type="application/json" id="biSingkatanData">@json($singkatan ?? [])</script>
+    {{-- Mapel per semester (untuk tombol salin mapel antar semester) --}}
+    <script type="application/json" id="biPerSemesterData">@json($perSemester ?? [])</script>
 @endsection
 
 @include('dashboard.kesiswaan.buku-induk.partials.buku-induk-style')

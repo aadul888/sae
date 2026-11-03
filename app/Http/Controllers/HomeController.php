@@ -165,6 +165,17 @@ class HomeController extends Controller
         return view('home', compact('stats', 'running_info', 'major_data', 'chart_detail'));
     }
 
+    public function about()
+    {
+        $sekolah = Table::exists('sekolah')
+            ? DB::table('sekolah')
+                ->select('nama', 'npsn', 'alamat_jalan', 'kecamatan', 'kabupaten_kota', 'provinsi', 'email', 'website', 'nomor_telepon')
+                ->first()
+            : null;
+
+        return view('tentang', compact('sekolah'));
+    }
+
     public function checkNisn(Request $request)
     {
         $nisn = trim($request->input('nisn', ''));
