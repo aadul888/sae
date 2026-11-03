@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use App\Services\SarprasAsetImportService;
 use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\Request;
@@ -340,7 +341,12 @@ class SarprasAsetController extends Controller
 
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('sarpras/aset', 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('foto'),
+                storage_path('app/public/sarpras/aset'),
+                'aset'
+            );
+            $fotoPath = 'sarpras/aset/' . $hasil['filename'];
         }
 
         $jurusanId = $request->filled('jurusan_id') ? trim($request->jurusan_id) : null;
@@ -437,7 +443,12 @@ class SarprasAsetController extends Controller
         ] + \App\Support\Penginput::dariSesi();
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('sarpras/aset', 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('foto'),
+                storage_path('app/public/sarpras/aset'),
+                'aset'
+            );
+            $data['foto'] = 'sarpras/aset/' . $hasil['filename'];
         }
 
         DB::table('sarpras_aset')->where('id', $id)->update($data);

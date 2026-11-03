@@ -6,6 +6,7 @@ use App\Models\KedisiplinanPelanggaran;
 use App\Models\KedisiplinanTataTertib;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use App\Services\KeamananImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -253,14 +254,12 @@ class KeamananPelanggaranController extends Controller
 
         $fotoPath = null;
         if ($request->hasFile('foto_bukti')) {
-            $file = $request->file('foto_bukti');
-            $dir = public_path('uploads/keamanan/pelanggaran');
-            if (!file_exists($dir)) {
-                @mkdir($dir, 0755, true);
-            }
-            $filename = 'satpam_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move($dir, $filename);
-            $fotoPath = 'uploads/keamanan/pelanggaran/' . $filename;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('foto_bukti'),
+                public_path('uploads/keamanan/pelanggaran'),
+                'satpam'
+            );
+            $fotoPath = 'uploads/keamanan/pelanggaran/' . $hasil['filename'];
         }
 
         $totalPoin = 0;

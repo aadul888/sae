@@ -147,6 +147,260 @@ class ImageOptimizerService
     }
 
     /**
+     * Optimasi & simpan unggahan apa pun (gambar dikompres, dokumen apa adanya).
+     *
+     * Gambar → resize proporsional ke $maxDimension lalu encode ulang:
+     *   - punya transparansi → PNG level 9
+     *   - foto tanpa transparansi → WebP q{$quality} (fallback JPEG)
+     * Dokumen (pdf/doc/xls/...) → disimpan tanpa diubah.
+     *
+     * Nama file = prefix + hash isi (12 hex) sehingga unggahan identik tidak menumpuk.
+     *
+     * @param string $targetDir Direktori tujuan ABSOLUT (public_path(...) atau storage_path('app/public/...')).
+     */
+    public function optimizeAndSaveImage(
+        UploadedFile $file,
+        string $targetDir,
+        ?string $namePrefix = null,
+        int $maxDimension = 1600,
+        int $quality = 80
+    ): array {
+        $originalSize = (int) $file->getSize();
+        $binary = (string) @file_get_contents($file->getRealPath());
+        $encoded = $this->encodeImageBinary($binary, $maxDimension, $quality);
+
+        if ($encoded === null) {
+            // Bukan gambar → simpan apa adanya dengan nama aman.
+            $extension = strtolower((string) $file->getClientOriginalExtension());
+            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'bin';
+
+            return $this->persistBinary($binary, $extension, 0, 0, $targetDir, $namePrefix, $originalSize);
+        }
+
+        return $this->persistBinary(
+            $encoded['binary'],
+            $encoded['ext'],
+            $encoded['width'],
+            $encoded['height'],
+            $targetDir,
+            $namePrefix,
+            $originalSize
+        );
+    }
+
+    /**
+     * Sama seperti optimizeAndSaveImage() tetapi menerima data biner gambar mentah
+     * (mis. snapshot webcam base64). Melempar RuntimeException bila bukan gambar valid.
+     */
+    public function optimizeAndSaveBinary(
+        string $binary,
+        string $targetDir,
+        ?string $namePrefix = null,
+        int $maxDimension = 1600,
+        int $quality = 80
+    ): array {
+        $encoded = $this->encodeImageBinary($binary, $maxDimension, $quality);
+        if ($encoded === null) {
+            throw new RuntimeException('Data gambar tidak valid atau rusak.');
+        }
+
+        return $this->persistBinary(
+            $encoded['binary'],
+            $encoded['ext'],
+            $encoded['width'],
+            $encoded['height'],
+            $targetDir,
+            $namePrefix,
+            strlen($binary)
+        );
+    }
+
+    /**
+     * @return array{filename:string,path:string,full_path:string,url:string,size:int,original_size:int,width:int,height:int,savings_percent:float,format:string}
+     */
+    private function persistBinary(
+        string $binary,
+        string $extension,
+        int $width,
+        int $height,
+        string $targetDir,
+        ?string $namePrefix,
+        int $originalSize
+    ): array {
+        $dir = $this->ensureDirectory($targetDir);
+        $filename = $this->buildFilename($namePrefix, $binary, $extension);
+        $fullPath = $dir . DIRECTORY_SEPARATOR . $filename;
+
+        if (file_put_contents($fullPath, $binary) === false) {
+            throw new RuntimeException('Gagal menyimpan berkas unggahan ke penyimpanan sistem.');
+        }
+
+        clearstatcache(true, $fullPath);
+        $finalSize = (int) (filesize($fullPath) ?: 0);
+
+        return [
+            'filename' => $filename,
+            'path' => $fullPath,
+            'full_path' => $fullPath,
+            'url' => $this->publicUrlFor($fullPath),
+            'size' => $finalSize,
+            'original_size' => $originalSize,
+            'width' => $width,
+            'height' => $height,
+            'savings_percent' => $originalSize > 0 ? max(0.0, round((($originalSize - $finalSize) / $originalSize) * 100, 1)) : 0.0,
+            'format' => $extension,
+        ];
+    }
+
+    /**
+     * Encode ulang gambar menjadi biner optimal, atau null bila bukan gambar.
+     *
+     * @return array{binary:string,ext:string,width:int,height:int}|null
+     */
+    private function encodeImageBinary(string $binary, int $maxDimension, int $quality): ?array
+    {
+        if ($binary === '' || !function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
+        $source = @imagecreatefromstring($binary);
+        if (!$source) {
+            return null;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+
+        // Gambar palette (PNG-8/GIF) → truecolor agar resize & deteksi alpha benar.
+        if (!imageistruecolor($source) && function_exists('imagepalettetotruecolor')) {
+            imagepalettetotruecolor($source);
+        }
+
+        $hasAlpha = $this->imageUsesAlpha($source, $width, $height);
+
+        if ($maxDimension > 0 && ($width > $maxDimension || $height > $maxDimension)) {
+            $ratio = min($maxDimension / $width, $maxDimension / $height);
+            $newWidth = max(1, (int) round($width * $ratio));
+            $newHeight = max(1, (int) round($height * $ratio));
+
+            $destination = imagecreatetruecolor($newWidth, $newHeight);
+            if ($hasAlpha) {
+                imagealphablending($destination, false);
+                imagesavealpha($destination, true);
+                imagefilledrectangle($destination, 0, 0, $newWidth, $newHeight, imagecolorallocatealpha($destination, 0, 0, 0, 127));
+            }
+
+            imagecopyresampled($destination, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($source);
+            $source = $destination;
+            $width = $newWidth;
+            $height = $newHeight;
+        } elseif ($hasAlpha) {
+            imagealphablending($source, false);
+            imagesavealpha($source, true);
+        }
+
+        $encoded = $this->encodeGdImage($source, $hasAlpha, $quality);
+        imagedestroy($source);
+
+        if ($encoded === null) {
+            return null;
+        }
+
+        return ['binary' => $encoded['binary'], 'ext' => $encoded['ext'], 'width' => $width, 'height' => $height];
+    }
+
+    /**
+     * Keluarkan biner dari GdImage ke berkas sementara agar tidak menyentuh output buffer.
+     *
+     * @return array{binary:string,ext:string}|null
+     */
+    private function encodeGdImage(\GdImage $image, bool $hasAlpha, int $quality): ?array
+    {
+        $targets = $hasAlpha
+            ? [['png', 'imagepng', 9], ['webp', 'imagewebp', $quality], ['jpg', 'imagejpeg', $quality]]
+            : [['webp', 'imagewebp', $quality], ['jpg', 'imagejpeg', $quality], ['png', 'imagepng', 9]];
+
+        foreach ($targets as [$ext, $fn, $arg]) {
+            if (!function_exists($fn)) {
+                continue;
+            }
+
+            $tmp = tempnam(sys_get_temp_dir(), 'sae_img_');
+            if ($tmp === false) {
+                return null;
+            }
+
+            $ok = ($ext === 'png') ? @imagepng($image, $tmp, $arg) : @$fn($image, $tmp, $arg);
+            $binary = $ok ? (string) @file_get_contents($tmp) : '';
+            @unlink($tmp);
+
+            if ($ok && $binary !== '') {
+                return ['binary' => $binary, 'ext' => $ext];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Deteksi transparansi dengan sampling grid (gambar sudah truecolor).
+     */
+    private function imageUsesAlpha(\GdImage $image, int $width, int $height): bool
+    {
+        $stepX = max(1, intdiv($width, 128));
+        $stepY = max(1, intdiv($height, 128));
+
+        for ($y = 0; $y < $height; $y += $stepY) {
+            for ($x = 0; $x < $width; $x += $stepX) {
+                $alpha = (imagecolorat($image, $x, $y) >> 24) & 0x7F;
+                if ($alpha > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function buildFilename(?string $prefix, string $binary, string $extension): string
+    {
+        $base = Str::slug($prefix ?: 'file', '_') ?: 'file';
+
+        return $base . '_' . substr(sha1($binary), 0, 12) . '.' . $extension;
+    }
+
+    private function ensureDirectory(string $directory): string
+    {
+        $directory = rtrim($directory, '/\\');
+        if (!File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true, true);
+        }
+
+        return $directory;
+    }
+
+    /**
+     * URL publik untuk berkas, baik di public/ maupun storage/app/public/.
+     */
+    private function publicUrlFor(string $fullPath): string
+    {
+        $normalized = str_replace('\\', '/', $fullPath);
+        $publicRoot = str_replace('\\', '/', public_path());
+        $storageRoot = str_replace('\\', '/', storage_path('app/public'));
+
+        if (str_starts_with($normalized, $publicRoot . '/')) {
+            return asset(substr($normalized, strlen($publicRoot) + 1));
+        }
+
+        if (str_starts_with($normalized, $storageRoot . '/')) {
+            return asset('storage/' . substr($normalized, strlen($storageRoot) + 1));
+        }
+
+        return $normalized;
+    }
+
+    /**
      * Validasi ketat bahwa file adalah PNG yang sah
      */
     public function validatePng(UploadedFile $file): void

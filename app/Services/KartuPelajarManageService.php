@@ -6,6 +6,7 @@ use App\Models\KartuPelajarPembayaran;
 use App\Models\KartuPelajarPengaturan;
 use App\Models\KartuPelajarPengeluaran;
 use App\Models\KartuPelajarRequest;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -798,9 +799,12 @@ class KartuPelajarManageService
                 if ($settings->qris_image_path && Storage::disk('public')->exists($settings->qris_image_path)) {
                     Storage::disk('public')->delete($settings->qris_image_path);
                 }
-                $ext = $request->file('qris_image')->getClientOriginalExtension();
-                $path = $request->file('qris_image')->storeAs('qris_kartu', 'qris_pembayaran_' . time() . '.' . $ext, 'public');
-                $settings->qris_image_path = $path;
+                $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                    $request->file('qris_image'),
+                    storage_path('app/public/qris_kartu'),
+                    'qris_pembayaran'
+                );
+                $settings->qris_image_path = 'qris_kartu/' . $hasil['filename'];
             } elseif ($request->boolean('hapus_qris')) {
                 if ($settings->qris_image_path && Storage::disk('public')->exists($settings->qris_image_path)) {
                     Storage::disk('public')->delete($settings->qris_image_path);

@@ -7,6 +7,7 @@ use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -198,9 +199,13 @@ class BerkasPesertaDidikController extends Controller
         }
 
         // Simpan file ke direktori khusus per siswa di storage/app/public/berkas_siswa/{pd_id}
-        $fileName = $jenisBerkas . '_' . time() . '.pdf';
         $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
-        $savedPath = $file->storeAs($directory, $fileName, 'public');
+        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+            $file,
+            storage_path('app/public/' . $directory),
+            $jenisBerkas
+        );
+        $savedPath = $directory . '/' . $hasil['filename'];
 
         // Simpan atau perbarui record di tabel `peserta_didik_berkas`
         // Status di-reset ke 'menunggu', catatan penolakan dibersihkan
@@ -213,7 +218,7 @@ class BerkasPesertaDidikController extends Controller
                 'nama_berkas' => $namaBerkas,
                 'file_path' => $savedPath,
                 'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
+                'file_size' => $hasil['size'],
                 'mime_type' => 'application/pdf',
                 'status' => 'menunggu',
                 'catatan_penolakan' => null,

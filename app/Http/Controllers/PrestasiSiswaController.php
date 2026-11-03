@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\KesiswaanPrestasi;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
@@ -142,10 +143,12 @@ class PrestasiSiswaController extends Controller
 
         $filePath = null;
         if ($request->hasFile('sertifikat_file')) {
-            $file = $request->file('sertifikat_file');
-            $fileName = 'prestasi_' . time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/prestasi'), $fileName);
-            $filePath = '/uploads/prestasi/' . $fileName;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('sertifikat_file'),
+                public_path('uploads/prestasi'),
+                'prestasi'
+            );
+            $filePath = '/uploads/prestasi/' . $hasil['filename'];
         }
 
         $prestasi = KesiswaanPrestasi::create([

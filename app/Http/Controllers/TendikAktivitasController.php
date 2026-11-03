@@ -6,6 +6,7 @@ use App\Models\RolePermission;
 use App\Models\TendikAktivitas;
 use App\Models\TendikIndikatorKinerja;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -269,7 +270,12 @@ class TendikAktivitasController extends Controller
 
         $lampiranPath = null;
         if ($request->hasFile('lampiran')) {
-            $lampiranPath = $request->file('lampiran')->store('tendik/aktivitas', 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('lampiran'),
+                storage_path('app/public/tendik/aktivitas'),
+                'lampiran'
+            );
+            $lampiranPath = 'tendik/aktivitas/' . $hasil['filename'];
         }
 
         $indikatorId = $validated['indikator_id'] ?? null;
@@ -348,7 +354,12 @@ class TendikAktivitasController extends Controller
             if ($aktivitas->lampiran_path && Storage::disk('public')->exists($aktivitas->lampiran_path)) {
                 Storage::disk('public')->delete($aktivitas->lampiran_path);
             }
-            $aktivitas->lampiran_path = $request->file('lampiran')->store('tendik/aktivitas', 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('lampiran'),
+                storage_path('app/public/tendik/aktivitas'),
+                'lampiran'
+            );
+            $aktivitas->lampiran_path = 'tendik/aktivitas/' . $hasil['filename'];
         }
 
         $indikatorId = $validated['indikator_id'] ?? $aktivitas->indikator_id;

@@ -8,6 +8,7 @@ use App\Models\RolePermission;
 use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -828,9 +829,12 @@ class FormulirController extends Controller
                             continue;
                         }
 
-                        $filename = 'form_' . $formulir->id . '_' . Str::random(12) . '.' . $ext;
-                        $path = $file->storeAs('formulir_uploads', $filename, 'public');
-                        $jawaban[$fieldId] = asset('storage/' . $path);
+                        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                            $file,
+                            storage_path('app/public/formulir_uploads'),
+                            'form_' . $formulir->id
+                        );
+                        $jawaban[$fieldId] = asset('storage/formulir_uploads/' . $hasil['filename']);
                     }
                 } elseif ($required) {
                     $errors[$fieldId] = "Berkas pada \"{$label}\" wajib diunggah.";

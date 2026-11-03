@@ -9,6 +9,7 @@ use App\Models\KegiatanOrganisasi;
 use App\Models\KegiatanOrganisasiAnggota;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
@@ -123,10 +124,12 @@ class KegiatanSiswaController extends Controller
 
         $filePath = null;
         if ($request->hasFile('logo_path')) {
-            $file = $request->file('logo_path');
-            $fileName = 'org_' . time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/organisasi'), $fileName);
-            $filePath = '/uploads/organisasi/' . $fileName;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('logo_path'),
+                public_path('uploads/organisasi'),
+                'org'
+            );
+            $filePath = '/uploads/organisasi/' . $hasil['filename'];
         }
 
         $org = KegiatanOrganisasi::create([

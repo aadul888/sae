@@ -9,6 +9,7 @@ use App\Models\KartuPelajarRequest;
 use App\Models\PesertaDidikMeta;
 use App\Models\SekolahMeta;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +29,12 @@ class KartuPelajarKeuanganService
         $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
         $buktiPath = null;
         if ($request->hasFile('bukti_nota')) {
-            $ext = $request->file('bukti_nota')->getClientOriginalExtension();
-            $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('bukti_nota'),
+                storage_path('app/public/pengeluaran_kartu'),
+                'nota'
+            );
+            $buktiPath = 'pengeluaran_kartu/' . $hasil['filename'];
         }
 
         $jumlah = max(1, (int) ($request->jumlah ?: 1));
@@ -73,8 +78,12 @@ class KartuPelajarKeuanganService
             if ($buktiPath && Storage::disk('public')->exists($buktiPath)) {
                 Storage::disk('public')->delete($buktiPath);
             }
-            $ext = $request->file('bukti_nota')->getClientOriginalExtension();
-            $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('bukti_nota'),
+                storage_path('app/public/pengeluaran_kartu'),
+                'nota'
+            );
+            $buktiPath = 'pengeluaran_kartu/' . $hasil['filename'];
         }
 
         $jumlah = max(1, (int) ($request->jumlah ?: 1));

@@ -7,6 +7,7 @@ use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikMeta;
 use App\Models\SiswaUsulanPerubahan;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -32,10 +33,12 @@ class KesiswaanUsulanService
 
         $filePath = null;
         if ($request->hasFile('berkas_bukti')) {
-            $file = $request->file('berkas_bukti');
-            $fileName = 'usulan_' . time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/usulan_siswa'), $fileName);
-            $filePath = '/uploads/usulan_siswa/' . $fileName;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('berkas_bukti'),
+                public_path('uploads/usulan_siswa'),
+                'usulan'
+            );
+            $filePath = '/uploads/usulan_siswa/' . $hasil['filename'];
         }
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Pengguna') : ($user->nama ?? 'Pengguna');

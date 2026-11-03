@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -118,16 +119,15 @@ class PersuratanHddService
         }
 
         $originalName = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension() ?: 'pdf';
-        $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
         $prefix = match ($type) {
             'keluar' => 'SK',
             'keterangan' => 'SKET',
             default => 'SM',
         };
 
-        $newFileName = sprintf('%s_%s_%s.%s', $prefix, date('Ymd_His'), substr($safeName, 0, 30), $extension);
-        $file->move($targetDir, $newFileName);
+        // Nama file = prefix + hash isi (aman & anti-duplikat); gambar ikut dikompres.
+        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage($file, $targetDir, $prefix);
+        $newFileName = $hasil['filename'];
 
         $relativePath = $subfolderName . '/' . $year . '/' . $newFileName;
         $fullPath = $targetDir . DIRECTORY_SEPARATOR . $newFileName;

@@ -10,6 +10,7 @@ use App\Models\PresensiMapel;
 use App\Models\PresensiPengaturan;
 use App\Models\RolePermission;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use App\Services\PresensiKelasService;
 use App\Services\PresensiKioskService;
 use App\Services\QrCodeService;
@@ -598,10 +599,12 @@ class PresensiController extends Controller
 
         $path = null;
         if ($request->hasFile('lampiran')) {
-            $file = $request->file('lampiran');
-            $ext = $file->getClientOriginalExtension();
-            $fileName = 'izin_' . ($siswa->nisn ?: $siswa->peserta_didik_id) . '_' . date('Ymd_His') . '.' . $ext;
-            $path = $file->storeAs('presensi/surat', $fileName, 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('lampiran'),
+                storage_path('app/public/presensi/surat'),
+                'izin_' . ($siswa->nisn ?: $siswa->peserta_didik_id)
+            );
+            $path = 'presensi/surat/' . $hasil['filename'];
         }
 
         $izin = PresensiIzin::create([

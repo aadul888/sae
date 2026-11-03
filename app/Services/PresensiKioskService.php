@@ -8,6 +8,7 @@ use App\Models\PesertaDidikMeta;
 use App\Models\PresensiHarian;
 use App\Models\PresensiPengaturan;
 use App\Models\User;
+use App\Services\ImageOptimizerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -135,27 +136,25 @@ class PresensiKioskService
      */
     public static function saveSnapshotImage(string $base64Data, string $identifier, Carbon $now): string
     {
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
-            $data = substr($base64Data, strpos($base64Data, ',') + 1);
-            $type = strtolower($type[1]);
-            if (!in_array($type, ['jpg', 'jpeg', 'png', 'webp'])) {
-                $type = 'jpg';
-            }
-            $data = base64_decode($data);
-            if ($data === false) {
-                throw new \Exception('Gagal mendecode base64 image');
-            }
-        } else {
+        if (!preg_match('/^data:image\/\w+;base64,/', $base64Data)) {
             throw new \Exception('Data URI tidak valid');
         }
 
+        $data = base64_decode(substr($base64Data, strpos($base64Data, ',') + 1));
+        if ($data === false) {
+            throw new \Exception('Gagal mendecode base64 image');
+        }
+
         $folder = 'presensi/foto/' . $now->format('Y-m');
-        $fileName = 'snap_' . $identifier . '_' . $now->format('Ymd_His') . '_' . Str::random(4) . '.' . $type;
-        $fullPath = $folder . '/' . $fileName;
+        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveBinary(
+            $data,
+            storage_path('app/public/' . $folder),
+            'snap_' . $identifier . '_' . $now->format('Ymd_His') . '_' . Str::random(4),
+            1600,
+            80
+        );
 
-        Storage::disk('public')->put($fullPath, $data);
-
-        return $fullPath;
+        return $folder . '/' . $hasil['filename'];
     }
 
     /**

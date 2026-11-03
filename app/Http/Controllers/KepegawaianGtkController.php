@@ -8,6 +8,7 @@ use App\Models\GtkKgbTracker;
 use App\Models\GtkCutiIzin;
 use App\Models\Sekolah;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -182,9 +183,12 @@ class KepegawaianGtkController extends Controller
             'keterangan' => 'nullable|string|max:500',
         ]);
 
-        $file = $request->file('file_berkas');
-        $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        $filePath = $file->storeAs('gtk_berkas', $fileName, 'public');
+        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+            $request->file('file_berkas'),
+            storage_path('app/public/gtk_berkas'),
+            'berkas'
+        );
+        $filePath = 'gtk_berkas/' . $hasil['filename'];
 
         GtkBerkas::create([
             'ptk_id' => $request->ptk_id,
@@ -276,9 +280,12 @@ class KepegawaianGtkController extends Controller
 
         $filePath = null;
         if ($request->hasFile('surat_pendukung')) {
-            $file = $request->file('surat_pendukung');
-            $fileName = time() . '_cuti_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-            $filePath = $file->storeAs('gtk_cuti', $fileName, 'public');
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('surat_pendukung'),
+                storage_path('app/public/gtk_cuti'),
+                'surat_cuti'
+            );
+            $filePath = 'gtk_cuti/' . $hasil['filename'];
         }
 
         // Hitung durasi hari

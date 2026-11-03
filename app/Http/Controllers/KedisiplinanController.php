@@ -8,6 +8,7 @@ use App\Models\KedisiplinanPemanggilanWali;
 use App\Models\KedisiplinanTataTertib;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
+use App\Services\ImageOptimizerService;
 use App\Services\QrCodeService;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
@@ -669,10 +670,12 @@ class KedisiplinanController extends Controller
 
         $filePath = null;
         if ($request->hasFile('foto_bukti')) {
-            $file = $request->file('foto_bukti');
-            $fileName = 'pelanggaran_' . time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/kedisiplinan'), $fileName);
-            $filePath = '/uploads/kedisiplinan/' . $fileName;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('foto_bukti'),
+                public_path('uploads/kedisiplinan'),
+                'pelanggaran'
+            );
+            $filePath = '/uploads/kedisiplinan/' . $hasil['filename'];
         }
 
         $pelaporNama = is_array($user) ? ($user['nama'] ?? 'Guru/Staf') : ($user->nama ?? 'Guru/Staf');
@@ -733,14 +736,12 @@ class KedisiplinanController extends Controller
 
         $buktiPath = $item->sanggah_bukti;
         if ($request->hasFile('sanggah_bukti')) {
-            $file = $request->file('sanggah_bukti');
-            $dir = public_path('uploads/kedisiplinan/sanggah');
-            if (!file_exists($dir)) {
-                @mkdir($dir, 0755, true);
-            }
-            $filename = 'sanggah_' . $item->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move($dir, $filename);
-            $buktiPath = 'uploads/kedisiplinan/sanggah/' . $filename;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('sanggah_bukti'),
+                public_path('uploads/kedisiplinan/sanggah'),
+                'sanggah_' . $item->id
+            );
+            $buktiPath = 'uploads/kedisiplinan/sanggah/' . $hasil['filename'];
         }
 
         $statusSanggah = $request->input('sanggah_status_opsi', 'selesai');
@@ -853,10 +854,12 @@ class KedisiplinanController extends Controller
 
         $filePath = null;
         if ($request->hasFile('surat_perjanjian_file')) {
-            $file = $request->file('surat_perjanjian_file');
-            $fileName = 'perjanjian_' . time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/kedisiplinan'), $fileName);
-            $filePath = '/uploads/kedisiplinan/' . $fileName;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $request->file('surat_perjanjian_file'),
+                public_path('uploads/kedisiplinan'),
+                'perjanjian'
+            );
+            $filePath = '/uploads/kedisiplinan/' . $hasil['filename'];
         }
 
         $pembinaan = KedisiplinanPembinaan::create([

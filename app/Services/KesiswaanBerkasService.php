@@ -6,6 +6,7 @@ use App\Models\AdminAktivitas;
 use App\Models\KesiswaanBerkasVerifikasi;
 use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
+use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -204,10 +205,13 @@ class KesiswaanBerkasService
             Storage::disk('public')->delete($existing->file_path);
         }
 
-        $extension = strtolower($file->getClientOriginalExtension());
-        $fileName = $jenisBerkas . '_' . time() . '.' . $extension;
         $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
-        $savedPath = $file->storeAs($directory, $fileName, 'public');
+        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+            $file,
+            storage_path('app/public/' . $directory),
+            $jenisBerkas
+        );
+        $savedPath = $directory . '/' . $hasil['filename'];
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
 
@@ -220,7 +224,7 @@ class KesiswaanBerkasService
                 'nama_berkas' => $namaBerkas,
                 'file_path' => $savedPath,
                 'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
+                'file_size' => $hasil['size'],
                 'mime_type' => $file->getMimeType(),
                 'status' => 'valid',
                 'catatan_penolakan' => null,
