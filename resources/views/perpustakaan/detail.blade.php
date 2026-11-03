@@ -35,14 +35,42 @@
                 <div
                     style="min-height:320px;display:grid;place-items:center;
                            background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(6,182,212,.12));">
+                    @php
+                        $theme = \App\Services\PerpustakaanEbookService::coverTheme($buku->kategori ?? '', $buku->judul ?? '');
+                    @endphp
                     @if (!empty($buku->cover_buku))
                         <img src="{{ asset('storage/' . ltrim($buku->cover_buku, '/')) }}"
                             alt="Cover {{ $buku->judul }}" style="width:100%;height:100%;object-fit:cover;">
                     @else
-                        <div style="text-align:center;padding:2rem;">
-                            <i class="fas fa-book" style="font-size:var(--text-6xl,4rem);color:var(--primary);opacity:.35;"></i>
-                            <div style="font-size:var(--text-xs,.75rem);color:var(--text-muted);margin-top:12px;">
-                                Cover belum tersedia
+                        <div style="width:100%;height:100%;min-height:340px;padding:24px 20px;display:flex;flex-direction:column;justify-content:space-between;background:{{ $theme['gradient'] }};box-shadow:inset 7px 0 0 rgba(255,255,255,0.25);position:relative;overflow:hidden;color:#fff;">
+                            <i class="fas {{ $theme['icon'] }}" style="position:absolute;right:-18px;bottom:-20px;font-size:var(--text-6xl);opacity:0.2;pointer-events:none;"></i>
+
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
+                                <span style="font-size:var(--text-2xs);font-weight:800;letter-spacing:0.04em;background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);padding:3px 10px;border-radius:var(--radius-pill);">
+                                    <i class="fas {{ $isEbook ? 'fa-bolt text-warning' : 'fa-book' }} me-1"></i>{{ $isEbook ? 'E-BOOK DIGITAL' : 'BUKU FISIK' }}
+                                </span>
+                                @if (!empty($buku->kelas))
+                                    <span style="font-size:var(--text-2xs);font-weight:700;background:rgba(255,255,255,0.92);color:#0f172a;padding:3px 10px;border-radius:var(--radius-pill);">
+                                        Kelas {{ $buku->kelas }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div style="text-align:center;padding:1.5rem 0;position:relative;z-index:2;">
+                                <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:var(--radius-lg);background:rgba(255,255,255,0.2);backdrop-filter:blur(6px);display:grid;place-items:center;font-size:var(--text-2xl);box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+                                    <i class="fas {{ $theme['icon'] }}"></i>
+                                </div>
+                                <div style="font-size:var(--text-2xs);text-transform:uppercase;letter-spacing:0.06em;opacity:0.9;font-weight:700;margin-bottom:6px;">
+                                    {{ $theme['label'] }}
+                                </div>
+                                <h2 style="font-size:var(--text-base);font-weight:800;line-height:1.35;margin:0;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.3);">
+                                    {{ $buku->judul }}
+                                </h2>
+                            </div>
+
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--text-2xs);opacity:0.85;border-top:1px solid rgba(255,255,255,0.2);padding-top:10px;position:relative;z-index:2;">
+                                <span>{{ \Illuminate\Support\Str::limit($buku->penulis ?: 'Koleksi Perpustakaan', 28) }}</span>
+                                <span>{{ $buku->tahun_terbit ?? '-' }}</span>
                             </div>
                         </div>
                     @endif

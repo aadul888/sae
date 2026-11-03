@@ -302,57 +302,93 @@
                     <div style="color:var(--text-muted);">Belum ada koleksi yang cocok dengan pencarian Anda.</div>
                 </div>
             @else
-                <div class="services-grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));">
+                <div class="services-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">
                     @foreach ($buku as $b)
                         @php
                             $tersedia = (int) ($b->eksemplar_tersedia ?? 0);
                             $isEb = ($b->format ?? 'fisik') === 'ebook' || !empty($b->tautan_baca) || !empty($b->file_ebook);
+                            $theme = \App\Services\PerpustakaanEbookService::coverTheme($b->kategori ?? '', $b->judul ?? '');
+                            $hasCover = !empty($b->cover_buku);
                         @endphp
-                        <div class="service-card" style="gap:10px;">
-                            <div>
-                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                                    <h3 class="service-title" style="flex:1;">{{ $b->judul }}</h3>
-                                    <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
-                                        @if ($isEb)
-                                            <span
-                                                style="font-size:var(--text-2xs);font-weight:700;padding:3px 8px;border-radius:var(--radius-pill);background:rgba(59,130,246,.15);color:var(--primary);white-space:nowrap;">
-                                                <i class="fas fa-bolt me-1"></i>E-Book
-                                            </span>
-                                        @endif
-                                        <span
-                                            style="font-size:var(--text-2xs);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill);background:rgba(100,116,139,.1);color:var(--text-muted);white-space:nowrap;">{{ $b->kategori ?: 'Umum' }}</span>
+                        <div class="service-card" style="padding:0;overflow:hidden;gap:0;">
+                            {{-- Cover / Thumbnail Buku --}}
+                            <div style="height:148px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:12px 14px;background:{{ $hasCover ? 'var(--bg-card)' : $theme['gradient'] }};box-shadow:inset 5px 0 0 rgba(255,255,255,0.22);color:#fff;">
+                                @if ($hasCover)
+                                    <img src="{{ asset('storage/' . ltrim($b->cover_buku, '/')) }}" alt="Cover {{ $b->judul }}"
+                                        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+                                    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 100%);"></div>
+                                @else
+                                    <i class="fas {{ $theme['icon'] }}"
+                                        style="position:absolute;right:-10px;bottom:-12px;font-size:var(--text-5xl);opacity:0.2;pointer-events:none;"></i>
+                                @endif
+
+                                {{-- Badges Atas --}}
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
+                                    @if ($isEb)
+                                        <span style="font-size:var(--text-2xs);font-weight:800;letter-spacing:0.04em;background:rgba(59,130,246,0.92);color:#fff;padding:3px 8px;border-radius:var(--radius-pill);box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                            <i class="fas fa-bolt me-1 text-warning"></i>E-BOOK
+                                        </span>
+                                        <span style="font-size:var(--text-2xs);font-weight:700;background:rgba(16,185,129,0.92);color:#fff;padding:3px 9px;border-radius:var(--radius-pill);box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                            Akses Daring
+                                        </span>
+                                    @else
+                                        <span style="font-size:var(--text-2xs);font-weight:800;letter-spacing:0.04em;background:rgba(100,116,139,0.9);color:#fff;padding:3px 8px;border-radius:var(--radius-pill);box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                            <i class="fas fa-book me-1"></i>FISIK
+                                        </span>
+                                        <span style="font-size:var(--text-2xs);font-weight:700;background:{{ $tersedia > 0 ? 'rgba(16,185,129,0.92)' : 'rgba(239,68,68,0.92)' }};color:#fff;padding:3px 9px;border-radius:var(--radius-pill);box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                            {{ $tersedia > 0 ? $tersedia . ' Eks' : 'Habis' }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                {{-- Label Kategori di bawah cover --}}
+                                <div style="position:relative;z-index:2;">
+                                    <div style="font-size:var(--text-2xs);text-transform:uppercase;letter-spacing:0.05em;opacity:0.92;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.4);">
+                                        <i class="fas {{ $theme['icon'] }} me-1"></i>{{ $b->kategori ?: 'Buku Pelajaran' }}
                                     </div>
                                 </div>
-                                <ul class="service-list" style="margin-top:8px;">
-                                    <li><i class="fas fa-user-pen text-primary me-2"></i>
-                                        {{ $b->penulis ?: 'Tanpa Penulis' }}</li>
-                                    <li><i class="fas fa-building text-accent me-2"></i>
-                                        {{ $b->penerbit ?: '-' }}{{ $b->tahun_terbit ? ' (' . $b->tahun_terbit . ')' : '' }}
-                                    </li>
-                                    <li>
-                                        @if ($isEb)
-                                            <i class="fas fa-infinity text-success me-2"></i> Akses Terbuka (Digital)
-                                        @elseif ($tersedia > 0)
-                                            <i class="fas fa-circle-check text-success me-2"></i> Tersedia
-                                            {{ $tersedia }} eksemplar
-                                        @else
-                                            <i class="fas fa-circle-xmark text-danger me-2"></i> Sedang habis dipinjam
-                                        @endif
-                                    </li>
-                                </ul>
-                                <div style="margin-top:12px;display:flex;gap:6px;">
+                            </div>
+
+                            {{-- Isi Kartu --}}
+                            <div style="padding:1.1rem 1.25rem 1.25rem;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div>
+                                    <h3 class="service-title" style="font-size:var(--text-base);line-height:1.35;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em;">
+                                        {{ $b->judul }}
+                                    </h3>
+                                    <ul class="service-list" style="margin-top:8px;">
+                                        <li>
+                                            <i class="fas fa-user-pen text-primary me-2"></i>
+                                            {{ \Illuminate\Support\Str::limit($b->penulis ?: 'Tanpa Penulis', 32) }}
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-building text-accent me-2"></i>
+                                            {{ \Illuminate\Support\Str::limit($b->penerbit ?: '-', 26) }}{{ $b->tahun_terbit ? ' (' . $b->tahun_terbit . ')' : '' }}
+                                        </li>
+                                        <li>
+                                            @if ($isEb)
+                                                <i class="fas fa-infinity text-success me-2"></i> Bebas Dibaca Kapan Saja
+                                            @elseif ($tersedia > 0)
+                                                <i class="fas fa-circle-check text-success me-2"></i> Tersedia di rak perpustakaan
+                                            @else
+                                                <i class="fas fa-circle-xmark text-danger me-2"></i> Sedang dipinjam pemustaka
+                                            @endif
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div style="margin-top:14px;display:flex;gap:6px;">
                                     @if ($isEb)
                                         <a href="{{ route('perpustakaan.buku.baca', $b->id) }}" class="btn btn-primary"
-                                            style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:6px 10px;">
+                                            style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:7px 10px;">
                                             <i class="fas fa-book-open-reader"></i> Baca Online
                                         </a>
                                         <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
-                                            style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;font-size:var(--text-xs);" title="Detail Buku">
+                                            style="display:inline-flex;align-items:center;justify-content:center;padding:7px 11px;font-size:var(--text-xs);" title="Detail Buku">
                                             <i class="fas fa-circle-info"></i>
                                         </a>
                                     @else
                                         <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
-                                            style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:6px 10px;">
+                                            style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:7px 10px;">
                                             <i class="fas fa-circle-info"></i> Detail Buku
                                         </a>
                                     @endif

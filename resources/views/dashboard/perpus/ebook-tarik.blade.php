@@ -149,6 +149,8 @@
                     @php
                         $sudahAda = $item['sudah_ada'] ?? false;
                         $sumberKey = $item['sumber_ebook'] ?? '';
+                        $theme = \App\Services\PerpustakaanEbookService::coverTheme($item['kategori'] ?? '', $item['judul'] ?? '');
+                        $labelSumber = \App\Services\PerpustakaanEbookService::labelSumber($sumberKey);
                         $badgeClass = match($sumberKey) {
                             'sibi' => 'badge-primary',
                             'ditjen_smk' => 'badge-info',
@@ -160,25 +162,54 @@
                         };
                     @endphp
                     <div class="card"
-                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:16px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};">
+                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:14px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};">
                         <div>
-                            {{-- Header Card --}}
-                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
-                                <div style="display:flex;align-items:center;gap:8px;">
-                                    @if (!$sudahAda)
-                                        <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
-                                            class="check-ebook" onchange="hitungTerpilih()">
-                                    @else
-                                        <span style="color:var(--success,#10b981);font-size:var(--text-md);"><i class="fas fa-circle-check"></i></span>
-                                    @endif
-                                    <span class="badge {{ $badgeClass }}"
-                                        style="font-size:var(--text-2xs);font-weight:700;padding:2px 8px;">
-                                        {{ \App\Services\PerpustakaanEbookService::labelSumber($sumberKey) }}
+                            {{-- Cover / Thumbnail Buku --}}
+                            <div style="height:115px;background:{{ $theme['gradient'] }};border-radius:var(--radius-md);margin-bottom:12px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 4px 0 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.08);color:#fff;">
+                                {{-- Background watermark icon --}}
+                                <i class="fas {{ $theme['icon'] }}" style="position:absolute;right:-10px;bottom:-10px;font-size:var(--text-5xl);opacity:0.18;pointer-events:none;"></i>
+
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        @if (!$sudahAda)
+                                            <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
+                                                class="check-ebook" onchange="hitungTerpilih()"
+                                                style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
+                                        @else
+                                            <span style="background:rgba(255,255,255,0.95);color:#059669;font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);font-weight:800;display:inline-flex;align-items:center;gap:3px;">
+                                                <i class="fas fa-circle-check"></i> Siap
+                                            </span>
+                                        @endif
+                                        <span style="font-size:var(--text-2xs);font-weight:800;letter-spacing:0.04em;background:rgba(0,0,0,0.35);backdrop-filter:blur(4px);padding:2px 7px;border-radius:var(--radius-pill);color:#fff;">
+                                            <i class="fas fa-bolt me-1 text-warning"></i>E-BOOK
+                                        </span>
+                                    </div>
+                                    <span style="font-size:var(--text-2xs);font-weight:700;background:rgba(255,255,255,0.92);color:#0f172a;padding:2px 8px;border-radius:var(--radius-pill);">
+                                        Kelas {{ $item['kelas'] ?? 'Umum' }}
                                     </span>
                                 </div>
-                                <span class="badge badge-outline" style="font-size:var(--text-2xs);padding:2px 7px;">
-                                    Kelas {{ $item['kelas'] ?? 'Umum' }}
+
+                                <div style="position:relative;z-index:2;">
+                                    <div style="font-size:var(--text-2xs);text-transform:uppercase;letter-spacing:0.05em;opacity:0.85;font-weight:700;">
+                                        <i class="fas {{ $theme['icon'] }} me-1"></i>{{ $theme['label'] }}
+                                    </div>
+                                    <div style="font-size:var(--text-xs);font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,0.3);">
+                                        {{ $item['judul'] }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Sub-Header: Badge Sumber & DDC --}}
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                                <span class="badge {{ $badgeClass }}"
+                                    style="font-size:var(--text-2xs);font-weight:700;padding:2px 8px;">
+                                    {{ $labelSumber }}
                                 </span>
+                                @if (!empty($item['klasifikasi_ddc']))
+                                    <span style="font-size:var(--text-2xs);color:var(--text-muted);">
+                                        DDC {{ $item['klasifikasi_ddc'] }}
+                                    </span>
+                                @endif
                             </div>
 
                             {{-- Judul & Penulis --}}
@@ -198,11 +229,6 @@
                                 @if (!empty($item['jurusan']) && $item['jurusan'] !== 'Umum')
                                     <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(139,92,246,0.08);color:var(--purple,#8b5cf6);font-weight:700;">
                                         <i class="fas fa-graduation-cap"></i> {{ $item['jurusan'] }}
-                                    </span>
-                                @endif
-                                @if (!empty($item['klasifikasi_ddc']))
-                                    <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(100,116,139,0.08);color:var(--text-muted);">
-                                        DDC {{ $item['klasifikasi_ddc'] }}
                                     </span>
                                 @endif
                             </div>

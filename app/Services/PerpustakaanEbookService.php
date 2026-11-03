@@ -207,7 +207,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Jaringan Komputer dan Telekomunikasi',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+teknik+jaringan+komputer',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+jaringan+komputer',
                 'sinopsis'        => 'Buku kejuruan dasar TJKT/TKJ: Proses bisnis bidang teknik jaringan komputer, wawasan perkembangan teknologi 5G/IoT, profesi teknisi jaringan, K3LH industri telekomunikasi, dan dasar perakitan serta konfigurasi LAN.',
             ],
             [
@@ -223,7 +223,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Pengembangan Perangkat Lunak dan Gim',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+pengembangan+perangkat+lunak+gim',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+pengembangan+perangkat+lunak+gim',
                 'sinopsis'        => 'Dasar pemrograman kejuruan RPL: Proses bisnis industri software, SDLC (System Development Life Cycle), Git version control, logika algoritma, dasar HTML/CSS/JavaScript, dan dasar pemrograman berorientasi objek (OOP).',
             ],
             [
@@ -239,7 +239,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Otomotif',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+teknik+otomotif',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+otomotif',
                 'sinopsis'        => 'Buku kejuruan dasar otomotif: Proses bisnis bengkel otomotif, perkembangan teknologi mobil listrik (EV), K3LH bengkel, penggunaan alat ukur vernier caliper/micrometer, dan prinsip kerja motor 2 langkah & 4 langkah.',
             ],
             [
@@ -255,7 +255,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Mesin',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+teknik+mesin',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+mesin',
                 'sinopsis'        => 'Materi dasar teknik permesinan: Gambar teknik manufaktur, proses pemotongan logam, kerja bangku, prinsip pengoperasian mesin bubut dan frais, serta standar keselamatan kerja industri manufaktur.',
             ],
             [
@@ -271,7 +271,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Ketenagalistrikan',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+ketenagalistrikan+elektronika',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+ketenagalistrikan+elektronika',
                 'sinopsis'        => 'Pengenalan hukum Ohm dan Kirchhoff, instalasi penerangan gedung, komponen elektronika pasif dan aktif, sensor, aktuator, dan standar keselamatan instalasi listrik tegangan rendah.',
             ],
             [
@@ -287,7 +287,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Akuntansi dan Keuangan Lembaga',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+akuntansi+keuangan+lembaga',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+akuntansi+keuangan+lembaga',
                 'sinopsis'        => 'Membahas siklus akuntansi perusahaan jasa dan dagang, persamaan dasar akuntansi, jurnal umum, buku besar, neraca saldo, jurnal penyesuaian, dan etika profesi teknisi akuntansi yunior.',
             ],
             [
@@ -303,7 +303,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Manajemen Perkantoran dan Layanan Bisnis',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+manajemen+perkantoran+bisnis',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+manajemen+perkantoran+bisnis',
                 'sinopsis'        => 'Konsep kantor modern digital, otomasi tata kelola perkantoran, penanganan surat/dokumen elektronik, layanan prima (service excellence), komunikasi telepon bisnis, dan etika humas.',
             ],
             [
@@ -319,7 +319,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Desain Komunikasi Visual',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+desain+komunikasi+visual',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+desain+komunikasi+visual',
                 'sinopsis'        => 'Prinsip desain grafis: Nirmana dwimatra dan trimatra, tipografi, teori warna, fotografi dasar, ilustrasi digital berbasis vektor dan raster, serta hak cipta karya visual.',
             ],
             [
@@ -335,7 +335,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Pemasaran dan Bisnis Digital',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=dasar+pemasaran+bisnis+digital',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+pemasaran+bisnis+digital',
                 'sinopsis'        => 'Ekosistem e-commerce dan marketplace, digital marketing via social media, copywriting produk, riset kata kunci, visual merchandising toko fisik dan virtual, serta pembayaran nontunai QRIS.',
             ],
             [
@@ -351,7 +351,7 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Semua Jurusan SMK',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=produk+kreatif+kewirausahaan+smk',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=produk+kreatif+kewirausahaan+smk',
                 'sinopsis'        => 'Buku wajib seluruh siswa SMK: Sikap wirausaha, analisis peluang usaha, Hak Atas Kekayaan Intelektual (HAKI), prototyping produk barang/jasa, pengujian mutu, perhitungan BEP & laba, serta pemasaran online.',
             ],
             [
@@ -367,7 +367,7 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Teknik Jaringan Komputer dan Telekomunikasi',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=administrasi+infrastruktur+jaringan',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=administrasi+infrastruktur+jaringan',
                 'sinopsis'        => 'Konfigurasi VLAN (Virtual LAN), Inter-VLAN routing, Routing Statis dan Dinamis (RIP/OSPF), Access Control List (ACL), Mikrotik RouterOS, dan manajemen bandwidth Simple Queue.',
             ],
             [
@@ -383,7 +383,7 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Pengembangan Perangkat Lunak dan Gim',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=pemrograman+web+perangkat+bergerak',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=pemrograman+web+perangkat+bergerak',
                 'sinopsis'        => 'Pemrograman web modern: Front-end responsif dengan CSS Flexbox & Grid, integrasi backend PHP MySQL PDO, implementasi RESTful API, dan dasar framework mobile web.',
             ],
             [
@@ -399,7 +399,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Semua Jurusan SMK',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=panduan+pkl+smk',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=panduan+pkl+smk',
                 'sinopsis'        => 'Pedoman resmi pelaksanaan PKL sesuai Kurikulum Merdeka (durasi minimal 6 bulan): Persiapan mental, etika kerja di industri, pengisian jurnal harian, supervisi pembimbing, dan penyusunan laporan uji sertifikasi kejuruan.',
             ],
             [
@@ -415,7 +415,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Semua Jurusan SMK',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=k3lh+industri+vokasi',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=k3lh+industri+vokasi',
                 'sinopsis'        => 'Standar wajib keamanan kerja bengkel & lab sekolah: Penggunaan APD (Alat Pelindung Diri), penanganan bahaya kebakaran (APAR), ergonomi kerja komputer, P3K kecelakaan kerja, dan manajemen limbah B3 bengkel praktik.',
             ],
             [
@@ -431,7 +431,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Semua Jurusan SMK',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=budaya+kerja+5r+vokasi',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=budaya+kerja+5r+vokasi',
                 'sinopsis'        => 'Panduan praktis pembiasaan budaya kerja standar industri Jepang (5S: Seiri, Seiton, Seiso, Seiketsu, Shitsuke / 5R: Ringkas, Rapi, Resik, Rawat, Rajin) di lingkungan lab, workshop, dan kehidupan sehari-hari siswa SMK.',
             ],
 
@@ -551,7 +551,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'badan_bahasa',
-                'tautan_baca'     => 'https://budi.kemdikbud.go.id/buku/cerita-rakyat-nusantara',
+                'tautan_baca'     => 'https://badanbahasa.kemendikdasmen.go.id/produk',
                 'sinopsis'        => 'Koleksi cerita rakyat terkurasi dari Sabang sampai Merauke sarat pesan budi pekerti, keberanian, kejujuran, dan kecintaan pada tanah air untuk pengayaan literasi membaca mandiri.',
             ],
             [
@@ -567,7 +567,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'badan_bahasa',
-                'tautan_baca'     => 'https://budi.kemdikbud.go.id/buku/literasi-digital-aman',
+                'tautan_baca'     => 'https://badanbahasa.kemendikdasmen.go.id/produk',
                 'sinopsis'        => 'Komik visual edukatif tentang etika bermedia sosial, bahaya jejak digital, pencegahan cyberbullying, verifikasi berita bohong (anti-hoaks), dan perlindungan privasi data pribadi siswa.',
             ],
             [
@@ -583,7 +583,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'badan_bahasa',
-                'tautan_baca'     => 'https://budi.kemdikbud.go.id/buku/kiat-menulis-esai-remaja',
+                'tautan_baca'     => 'https://badanbahasa.kemendikdasmen.go.id/produk',
                 'sinopsis'        => 'Panduan sistematis bagi pelajar yang ingin mengasah keterampilan menulis: Menentukan ide pokok, teknik outline, memilih diksi ilmiah populer, menyusun argumen, hingga kiat lolos lomba esai nasional.',
             ],
             [
@@ -599,7 +599,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'badan_bahasa',
-                'tautan_baca'     => 'https://gln.kemdikbud.go.id/glnsite/buku-literasi-finansial-remaja',
+                'tautan_baca'     => 'https://badanbahasa.kemendikdasmen.go.id/produk',
                 'sinopsis'        => 'Buku saku literasi keuangan praktis untuk pelajar: Membedakan kebutuhan vs keinginan, teknik menabung darurat, investasi leher ke atas, waspada pinjaman online ilegal, dan memulai usaha mikro kreatif.',
             ],
             [
@@ -615,7 +615,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Semua Jurusan SMK',
                 'sumber_ebook'    => 'badan_bahasa',
-                'tautan_baca'     => 'https://gln.kemdikbud.go.id/glnsite/merajut-mimpi-vokasi',
+                'tautan_baca'     => 'https://badanbahasa.kemendikdasmen.go.id/produk',
                 'sinopsis'        => 'Antologi biografi inspiratif 12 alumni SMK yang berhasil menjadi wirausahawan mandiri, teknisi ahli bersertifikasi internasional, dan perintis teknologi tepat guna di daerah.',
             ],
 
@@ -635,7 +635,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'perpusnas',
-                'tautan_baca'     => 'https://khazanah.perpusnas.go.id/search?q=sejarah+maritim+nusantara',
+                'tautan_baca'     => 'https://onesearch.id/Search/Results?lookfor=sejarah+maritim+nusantara',
                 'sinopsis'        => 'Referensi sejarah komprehensif mengenai kejayaan pelayaran bahari nusantara, jaringan pelabuhan kuno, teknologi perahu tradisional, serta dampak rute rempah terhadap perekonomian dunia.',
             ],
             [
@@ -651,7 +651,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Informatika & TIK',
                 'sumber_ebook'    => 'perpusnas',
-                'tautan_baca'     => 'https://khazanah.perpusnas.go.id/search?q=kamus+istilah+teknologi+informasi',
+                'tautan_baca'     => 'https://onesearch.id/Search/Results?lookfor=kamus+istilah+teknologi+informasi',
                 'sinopsis'        => 'Kamus referensi lebih dari 2.500 istilah mutakhir dalam ranah cloud computing, machine learning, generative AI, cybersecurity, IoT, dan protokol jaringan komunikasi komputer.',
             ],
             [
@@ -667,7 +667,7 @@ class PerpustakaanEbookService
                 'kelas'           => 'Semua Kelas',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'perpusnas',
-                'tautan_baca'     => 'https://khazanah.perpusnas.go.id/search?q=panduan+riset+literasi+informasi',
+                'tautan_baca'     => 'https://onesearch.id/Search/Results?lookfor=panduan+riset+literasi+informasi',
                 'sinopsis'        => 'Pedoman mencari referensi kredibel dari pangkalan data jurnal ilmiah terbuka (Indonesia OneSearch, DOAJ, Garuda), etika sitasi ilmiah, pencegahan plagiasi, dan penyusunan daftar pustaka standar APA.',
             ],
 
@@ -687,7 +687,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknologi dan Rekayasa',
                 'sumber_ebook'    => 'bse',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=fisika+terapan+smk',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=fisika+terapan+smk',
                 'sinopsis'        => 'Fisika kontekstual untuk siswa teknik: Besaran dan satuan teknik, kinematika gerak mesin, gaya gesek bengkel, elastisitas bahan logam, termodinamika mesin kalor, dan fluida mekanika perpipaan.',
             ],
             [
@@ -703,7 +703,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknologi dan Rekayasa',
                 'sumber_ebook'    => 'bse',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=kimia+terapan+smk',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=kimia+terapan+smk',
                 'sinopsis'        => 'Aplikasi ilmu kimia dalam bidang industri: Struktur atom, ikatan kimia material, reaksi redoks pencegahan karat logam, asam basa industri, larutan elektrolit baterai, dan polimer sintetik.',
             ],
             [
@@ -719,7 +719,7 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Kesehatan dan Agribisnis',
                 'sumber_ebook'    => 'bse',
-                'tautan_baca'     => 'https://repositori.kemdikbud.go.id/search?q=biologi+terapan+smk',
+                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=biologi+terapan+smk',
                 'sinopsis'        => 'Biologi terapan praktis: Struktur sel tumbuhan dan hewan, mikroorganisme pengurai limbah, bioteknologi fermentasi pangan, ekosistem budidaya, dan keselamatan kerja laboratorium biologi.',
             ],
         ];
@@ -991,6 +991,128 @@ class PerpustakaanEbookService
             'Literasi & Cerita Remaja',
             'Referensi & Ensiklopedia',
             'Panduan & K3LH',
+        ];
+    }
+
+    /**
+     * Tema visual sampul digital otomatis (gradient, icon, label)
+     * berbasis kategori dan judul buku.
+     *
+     * @return array{gradient:string, icon:string, label:string}
+     */
+    public static function coverTheme(?string $kategori, ?string $judul = ''): array
+    {
+        $kat = Str::lower((string) $kategori);
+        $jud = Str::lower((string) $judul);
+
+        if (Str::contains($kat, ['agama', 'islam', 'akidah', 'fiqih', 'ski'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #065f46, #10b981)',
+                'icon'     => 'fa-book-quran',
+                'label'    => 'Agama & Budi Pekerti',
+            ];
+        }
+
+        if (Str::contains($kat, ['informatika', 'tik', 'perangkat lunak', 'jaringan', 'komputer'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #1e3a8a, #0284c7)',
+                'icon'     => 'fa-laptop-code',
+                'label'    => 'TIK & Komputasi',
+            ];
+        }
+
+        if (Str::contains($kat, ['otomotif', 'tkro', 'tbsm'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #0f766e, #0d9488)',
+                'icon'     => 'fa-car-side',
+                'label'    => 'Teknik Otomotif',
+            ];
+        }
+
+        if (Str::contains($kat, ['mesin', 'manufaktur', 'permesinan'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #334155, #64748b)',
+                'icon'     => 'fa-gears',
+                'label'    => 'Teknik Mesin',
+            ];
+        }
+
+        if (Str::contains($kat, ['bisnis', 'akuntansi', 'keuangan', 'manajemen', 'pemasaran'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #581c87, #8b5cf6)',
+                'icon'     => 'fa-chart-pie',
+                'label'    => 'Bisnis & Manajemen',
+            ];
+        }
+
+        if (Str::contains($kat, ['sains', 'fisika', 'kimia', 'biologi', 'ipas'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #0369a1, #06b6d4)',
+                'icon'     => 'fa-atom',
+                'label'    => 'Sains & Terapan',
+            ];
+        }
+
+        if (Str::contains($kat, ['literasi', 'cerita', 'esai', 'antologi'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #9a3412, #f59e0b)',
+                'icon'     => 'fa-book-open',
+                'label'    => 'Literasi Remaja',
+            ];
+        }
+
+        if (Str::contains($kat, ['referensi', 'ensiklopedia', 'kamus'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #312e81, #6366f1)',
+                'icon'     => 'fa-compass',
+                'label'    => 'Khazanah Referensi',
+            ];
+        }
+
+        if (Str::contains($kat, ['panduan', 'k3lh', 'budaya kerja'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #831843, #ec4899)',
+                'icon'     => 'fa-shield-halved',
+                'label'    => 'Panduan & K3LH',
+            ];
+        }
+
+        if (Str::contains($jud, ['matematika'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #1e40af, #2563eb)',
+                'icon'     => 'fa-calculator',
+                'label'    => 'Matematika',
+            ];
+        }
+
+        if (Str::contains($jud, ['inggris', 'english'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+                'icon'     => 'fa-language',
+                'label'    => 'Bahasa Inggris',
+            ];
+        }
+
+        if (Str::contains($jud, ['indonesia'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #991b1b, #ef4444)',
+                'icon'     => 'fa-book',
+                'label'    => 'Bahasa Indonesia',
+            ];
+        }
+
+        if (Str::contains($jud, ['pancasila', 'sejarah'])) {
+            return [
+                'gradient' => 'linear-gradient(135deg, #854d0e, #eab308)',
+                'icon'     => 'fa-landmark',
+                'label'    => 'Sosial & Kebangsaan',
+            ];
+        }
+
+        return [
+            'gradient' => 'linear-gradient(135deg, #1e40af, #3b82f6)',
+            'icon'     => 'fa-book-bookmark',
+            'label'    => $kategori ?: 'Buku Pelajaran',
         ];
     }
 }

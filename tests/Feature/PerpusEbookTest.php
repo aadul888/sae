@@ -262,4 +262,30 @@ class PerpusEbookTest extends TestCase
             DB::rollBack();
         }
     }
+
+    public function test_cover_theme_menghasilkan_gradient_dan_ikon_sesuai_kategori(): void
+    {
+        $themeAgama = PerpustakaanEbookService::coverTheme('Pendidikan Agama');
+        $this->assertStringContainsString('#065f46', $themeAgama['gradient']);
+        $this->assertSame('fa-book-quran', $themeAgama['icon']);
+
+        $themeTik = PerpustakaanEbookService::coverTheme('Informatika & TIK');
+        $this->assertStringContainsString('#1e3a8a', $themeTik['gradient']);
+        $this->assertSame('fa-laptop-code', $themeTik['icon']);
+
+        $themeOtomotif = PerpustakaanEbookService::coverTheme('Teknik Otomotif');
+        $this->assertSame('fa-car-side', $themeOtomotif['icon']);
+    }
+
+    public function test_katalog_master_tidak_memuat_host_mati(): void
+    {
+        $master = PerpustakaanEbookService::katalogMaster();
+        foreach ($master as $item) {
+            $url = $item['tautan_baca'] ?? '';
+            $this->assertStringNotContainsString('repositori.kemdikbud.go.id', $url);
+            $this->assertStringNotContainsString('budi.kemdikbud.go.id', $url);
+            $this->assertStringNotContainsString('gln.kemdikbud.go.id', $url);
+            $this->assertStringNotContainsString('khazanah.perpusnas.go.id', $url);
+        }
+    }
 }
