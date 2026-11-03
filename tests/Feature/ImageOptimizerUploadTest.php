@@ -137,4 +137,83 @@ class ImageOptimizerUploadTest extends TestCase
         $this->assertSame($pertama['filename'], $kedua['filename']);
         $this->assertCount(1, glob($this->dir . '/dok_*'));
     }
+
+    public function test_ekstensi_eksekutabel_ditolak(): void
+    {
+        foreach (['evil.php', 'evil.phtml', 'evil.phar', 'evil.exe', 'evil.html', 'evil.svg'] as $nama) {
+            try {
+                $this->service()->optimizeAndSaveImage(
+                    UploadedFile::fake()->createWithContent($nama, 'bukan gambar'),
+                    $this->dir,
+                    'jahat'
+                );
+                $this->fail("Berkas {$nama} seharusnya ditolak.");
+            } catch (\InvalidArgumentException $e) {
+                $this->assertNotEmpty($e->getMessage());
+            }
+        }
+
+        $this->assertCount(0, glob($this->dir . '/*') ?: []);
+    }
+
+    public function test_berkas_dokumen_berisi_kode_php_ditolak(): void
+    {
+        $polyglot = "%PDF-1.4\n1 0 obj\n<?php system(\$_GET['c']); ?>\n%%EOF";
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->service()->optimizeAndSaveImage(
+            UploadedFile::fake()->createWithContent('laporan.pdf', $polyglot),
+            $this->dir,
+            'polyglot'
+        );
+    }
+
+    public function test_dokumen_tanpa_ekstensi_ditolak(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->service()->optimizeAndSaveImage(
+            UploadedFile::fake()->createWithContent('tanpa-ekstensi', 'isi'),
+            $this->dir,
+            'kosong'
+        );
+    }
+
+    public function test_mime_hasil_kompresi_akurat(): void
+    {
+        $foto = imagecreatetruecolor(200, 150);
+        imagefilledrectangle($foto, 0, 0, 199, 149, imagecolorallocate($foto, 40, 90, 200));
+        ob_start();
+        imagejpeg($foto);
+        $jpeg = (string) ob_get_clean();
+        imagedestroy($foto);
+
+        $hasil = $this->service()->optimizeAndSaveBinary($jpeg, $this->dir, 'mime');
+
+        $this->assertSame('image/webp', $hasil['mime']);
+    }
+
+    public function test_penjaga_htaccess_dibuat_di_direktori_publik(): void
+    {
+        $target = public_path('uploads/__guard_test_' . uniqid());
+
+        try {
+            $foto = imagecreatetruecolor(60, 60);
+            ob_start();
+            imagejpeg($foto);
+            $jpeg = (string) ob_get_clean();
+            imagedestroy($foto);
+
+            $this->service()->optimizeAndSaveBinary($jpeg, $target, 'bukti');
+
+            $this->assertFileExists($target . '/.htaccess');
+            $this->assertStringContainsString('Require all denied', (string) file_get_contents($target . '/.htaccess'));
+        } finally {
+            foreach (glob($target . '/*') ?: [] as $file) {
+                @unlink($file);
+            }
+            @rmdir($target);
+        }
+    }
 }

@@ -527,6 +527,8 @@ class BackupService
             'sekolah' => 0,
             'jurusan' => 0,
             'dokumen' => 0,
+            'berkas_storage' => 0,
+            'uploads_public' => 0,
         ];
 
         // 1. Foto Peserta Didik
@@ -589,7 +591,85 @@ class BackupService
             }
         }
 
+        // 5. Sisa berkas media di storage/app/public (berkas siswa, GTK, presensi, sarpras, dll.)
+        $counts['berkas_storage'] = $this->copyRemainingStorageFiles($outputDir, [
+            'assets/peserta-didik/foto',
+            'assets/gtk/foto',
+            'assets/sekolah',
+            'assets/jurusan',
+            'dokumen',
+        ]);
+
+        // 6. Unggahan di public/uploads (bukan bagian dari storage:link)
+        $counts['uploads_public'] = $this->copyPublicUploads($outputDir);
+
         return $counts;
+    }
+
+    /**
+     * Salin sisa berkas storage/app/public yang belum tercakup blok khusus di atas
+     * (berkas siswa, GTK, presensi, sarpras, kartu pelajar, formulir, tendik, ...).
+     * Struktur folder relatif dipertahankan supaya mudah dikembalikan.
+     */
+    private function copyRemainingStorageFiles(string $outputDir, array $sudahDicakup): int
+    {
+        $root = storage_path('app/public');
+        if (!File::isDirectory($root)) {
+            return 0;
+        }
+
+        $target = $outputDir . '/berkas_storage';
+        $jumlah = 0;
+
+        foreach (File::allFiles($root) as $file) {
+            $rel = str_replace('\\', '/', $file->getRelativePathname());
+            $tercakup = false;
+            foreach ($sudahDicakup as $prefix) {
+                if ($rel === $prefix || str_starts_with($rel, $prefix . '/')) {
+                    $tercakup = true;
+                    break;
+                }
+            }
+            if ($tercakup) {
+                continue;
+            }
+
+            $sub = dirname($rel);
+            if ($sub !== '.') {
+                File::makeDirectory($target . '/' . $sub, 0755, true, true);
+            }
+            File::copy($file->getRealPath(), $target . '/' . $rel);
+            $jumlah++;
+        }
+
+        return $jumlah;
+    }
+
+    /**
+     * public/uploads bukan symlink storage dan tidak terlintasi storage:link,
+     * jadi disalin eksplisit agar ikut ter-backup.
+     */
+    private function copyPublicUploads(string $outputDir): int
+    {
+        $root = public_path('uploads');
+        if (!File::isDirectory($root)) {
+            return 0;
+        }
+
+        $target = $outputDir . '/uploads_public';
+        $jumlah = 0;
+
+        foreach (File::allFiles($root) as $file) {
+            $rel = str_replace('\\', '/', $file->getRelativePathname());
+            $sub = dirname($rel);
+            if ($sub !== '.') {
+                File::makeDirectory($target . '/' . $sub, 0755, true, true);
+            }
+            File::copy($file->getRealPath(), $target . '/' . $rel);
+            $jumlah++;
+        }
+
+        return $jumlah;
     }
 
     /**
@@ -668,8 +748,13 @@ class BackupService
             . "[3] 03_BERKAS_MEDIA/\n"
             . "    Menyimpan seluruh aset fisik asli:\n"
             . "    - foto_peserta_didik/ : Pasfoto siswa aktif dan alumni untuk kartu pelajar.\n"
+            . "    - foto_gtk/ : Pasfoto guru dan tenaga kependidikan.\n"
             . "    - sekolah/ : Logo sekolah, stempel digital, dan kop surat resmi.\n"
-            . "    - logo_jurusan/ : Logo kompetensi/program keahlian SMK.\n\n"
+            . "    - logo_jurusan/ : Logo kompetensi/program keahlian SMK.\n"
+            . "    - dokumen_berkas/ : Dokumen pada storage/app/public/dokumen (jika ada).\n"
+            . "    - berkas_storage/ : Berkas lain di storage/app/public (berkas siswa, GTK,\n"
+            . "      presensi, sarpras, kartu pelajar, formulir, tendik, dll.).\n"
+            . "    - uploads_public/ : Berkas di public/uploads (bukti/disiplin/prestasi/usulan).\n\n"
             . "[4] 04_RAW_JSON_BACKUP/\n"
             . "    Berisi data mentah JSON per tabel dan manifest.json untuk keperluan otomasi\n"
             . "    atau integrasi antar-sistem developer.\n\n"

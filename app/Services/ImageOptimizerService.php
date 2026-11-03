@@ -16,12 +16,37 @@ class ImageOptimizerService
     public const ASSET_DIR_JURUSAN = 'assets/jurusan';
     public const ASSET_DIR_SEKOLAH = 'assets/sekolah';
     public const ASSET_DIR_FOTO_PESERTA_DIDIK = 'assets/peserta-didik/foto';
-    public const ASSET_DIR_BERKAS_PESERTA_DIDIK = 'assets/peserta-didik/berkas';
     public const ASSET_DIR_FOTO_GTK = 'assets/gtk/foto';
 
     // Alias kompatibilitas
     public const ASSET_DIR_FOTO_SISWA = self::ASSET_DIR_FOTO_PESERTA_DIDIK;
-    public const ASSET_DIR_BERKAS_SISWA = self::ASSET_DIR_BERKAS_PESERTA_DIDIK;
+
+    /**
+     * Ekstensi dokumen yang boleh disimpan apa adanya. Daftar tertutup:
+     * apa pun di luar ini (php, phar, phtml, html, svg, exe, js, ...) ditolak.
+     */
+    private const ALLOWED_DOCUMENT_EXTENSIONS = [
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'xml', 'zip',
+    ];
+
+    /**
+     * MIME yang tidak pernah boleh lolos (skrip / binary executable).
+     */
+    private const BLOCKED_MIME_TYPES = [
+        'application/x-php',
+        'application/x-httpd-php',
+        'text/x-php',
+        'application/x-phar',
+        'application/x-dosexec',
+        'application/x-executable',
+        'application/x-msdownload',
+        'application/x-sharedlib',
+        'application/x-sh',
+        'text/x-shellscript',
+        'text/x-python',
+        'text/x-perl',
+        'application/x-mach-binary',
+    ];
 
     /**
      * Batas resolusi maksimal standar untuk logo / kartu pelajar (1000px)
@@ -170,9 +195,10 @@ class ImageOptimizerService
         $encoded = $this->encodeImageBinary($binary, $maxDimension, $quality);
 
         if ($encoded === null) {
-            // Bukan gambar → simpan apa adanya dengan nama aman.
+            // Bukan gambar → validasi ketat lalu simpan apa adanya.
             $extension = strtolower((string) $file->getClientOriginalExtension());
-            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'bin';
+            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: '';
+            $this->assertSafeDocument($binary, $extension);
 
             return $this->persistBinary($binary, $extension, 0, 0, $targetDir, $namePrefix, $originalSize);
         }
@@ -243,6 +269,7 @@ class ImageOptimizerService
             'path' => $fullPath,
             'full_path' => $fullPath,
             'url' => $this->publicUrlFor($fullPath),
+            'mime' => $this->detectMimeFromFile($fullPath, $extension),
             'size' => $finalSize,
             'original_size' => $originalSize,
             'width' => $width,
@@ -250,6 +277,61 @@ class ImageOptimizerService
             'savings_percent' => $originalSize > 0 ? max(0.0, round((($originalSize - $finalSize) / $originalSize) * 100, 1)) : 0.0,
             'format' => $extension,
         ];
+    }
+
+    /**
+     * Tolak unggahan dokumen yang berbahaya: ekstensi di luar daftar, MIME
+     * eksekutabel, atau berkas yang menyisipkan kode skrip (polyglot).
+     */
+    private function assertSafeDocument(string $binary, string $extension): void
+    {
+        $label = $extension !== '' ? ".{$extension}" : '(tanpa ekstensi)';
+
+        if (!in_array($extension, self::ALLOWED_DOCUMENT_EXTENSIONS, true)) {
+            throw new InvalidArgumentException("Jenis berkas tidak diizinkan: {$label}.");
+        }
+
+        // PDF/gambar polyglot + PHP: payload kode di dalam berkas dokumen yang sah.
+        if (preg_match('/<\?(php|=)|<%\s/i', $binary) || str_starts_with($binary, "#!\x2f") || str_starts_with($binary, "\x7FELF") || str_starts_with($binary, 'MZ')) {
+            throw new InvalidArgumentException('Berkas ditolak karena memuat kode yang dapat dieksekusi.');
+        }
+
+        $mime = $this->detectMimeFromBuffer($binary);
+        if ($mime !== '' && in_array($mime, self::BLOCKED_MIME_TYPES, true)) {
+            throw new InvalidArgumentException("Tipe berkas tidak diizinkan ({$mime}).");
+        }
+    }
+
+    /**
+     * MIME dari isi biner (finfo), kosong bila finfo tidak tersedia.
+     */
+    private function detectMimeFromBuffer(string $binary): string
+    {
+        if (!class_exists('finfo')) {
+            return '';
+        }
+
+        return (string) (new \finfo(FILEINFO_MIME_TYPE))->buffer($binary);
+    }
+
+    /**
+     * MIME sebenarnya dari berkas tersimpan; dipakai agar DB tidak mencatat MIME lama
+     * setelah gambar dikonversi (mis. PNG → WebP).
+     */
+    private function detectMimeFromFile(string $fullPath, string $extension): string
+    {
+        $mime = $this->detectMimeFromBuffer((string) @file_get_contents($fullPath));
+        if ($mime !== '') {
+            return $mime;
+        }
+
+        return match ($extension) {
+            'webp' => 'image/webp',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'pdf' => 'application/pdf',
+            default => 'application/octet-stream',
+        };
     }
 
     /**
@@ -377,7 +459,50 @@ class ImageOptimizerService
             File::makeDirectory($directory, 0755, true, true);
         }
 
+        $this->writePublicGuard($directory);
+
         return $directory;
+    }
+
+    /**
+     * Direktori di bawah public/ (mis. public/uploads) tidak warisan aturan Laravel,
+     * jadi tiap direktori unggahan diberi penjaga: berkas tidak boleh dieksekusi.
+     * Catatan: ini khusus Apache. Untuk nginx, set `location ~ \.php$` di server block.
+     */
+    private function writePublicGuard(string $directory): void
+    {
+        $publicRoot = rtrim(str_replace('\\', '/', public_path()), '/');
+        $normalized = str_replace('\\', '/', $directory);
+
+        if (!str_starts_with($normalized, $publicRoot . '/')) {
+            return;
+        }
+
+        $guard = $directory . DIRECTORY_SEPARATOR . '.htaccess';
+        if (File::exists($guard)) {
+            return;
+        }
+
+        File::put($guard, <<<'HTACCESS'
+        # Dibuat otomatis oleh ImageOptimizerService.
+        # Direktori unggahan hanya boleh menyajikan data, bukan menjalankan skrip.
+        <FilesMatch "(?i)\.(php[0-9]?|phtml|phar|pl|py|rb|cgi|sh|asp|aspx|jsp|exe|dll|bat|cmd|htaccess)$">
+            <IfModule mod_authz_core.c>
+                Require all denied
+            </IfModule>
+            <IfModule !mod_authz_core.c>
+                Order allow,deny
+                Deny from all
+            </IfModule>
+        </FilesMatch>
+
+        <IfModule mod_php.c>
+            php_flag engine off
+        </IfModule>
+        <IfModule mod_php7.c>
+            php_flag engine off
+        </IfModule>
+        HTACCESS);
     }
 
     /**

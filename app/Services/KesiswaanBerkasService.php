@@ -225,7 +225,7 @@ class KesiswaanBerkasService
                 'file_path' => $savedPath,
                 'file_name' => $file->getClientOriginalName(),
                 'file_size' => $hasil['size'],
-                'mime_type' => $file->getMimeType(),
+                'mime_type' => $hasil['mime'],
                 'status' => 'valid',
                 'catatan_penolakan' => null,
                 'rekomendasi_penolakan' => null,

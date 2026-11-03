@@ -3,6 +3,8 @@
 /public/build
 /public/hot
 /public/storage
+# Berkas unggahan aplikasi (runtime, bukan kode).
+/public/uploads
 /storage/*.key
 /vendor
 

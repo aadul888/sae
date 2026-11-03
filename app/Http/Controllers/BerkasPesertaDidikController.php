@@ -219,7 +219,7 @@ class BerkasPesertaDidikController extends Controller
                 'file_path' => $savedPath,
                 'file_name' => $file->getClientOriginalName(),
                 'file_size' => $hasil['size'],
-                'mime_type' => 'application/pdf',
+                'mime_type' => $hasil['mime'],
                 'status' => 'menunggu',
                 'catatan_penolakan' => null,
                 'rekomendasi_penolakan' => null,
