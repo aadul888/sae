@@ -272,6 +272,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,read');
             Route::post('/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,update');
             Route::post('/berkas-upload/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'uploadBerkasTendik'])->name('berkas.upload-tendik')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,update');
+
+            // Input manual & import data alumni tahun sebelumnya (tidak menunggu tarikan Dapodik)
+            Route::post('/alumni/import-excel', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'importExcel'])->name('alumni.import-excel')->middleware('permission:menu_kesiswaan_peserta_didik|menu_peserta_didik_tidak_aktif|menu_kesiswaan,create');
+            Route::get('/alumni/download-template', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'downloadTemplate'])->name('alumni.download-template')->middleware('permission:menu_kesiswaan_peserta_didik|menu_peserta_didik_tidak_aktif|menu_kesiswaan,read');
+            Route::post('/alumni', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'storeAlumni'])->name('alumni.store')->middleware('permission:menu_kesiswaan_peserta_didik|menu_peserta_didik_tidak_aktif|menu_kesiswaan,create');
+            Route::get('/alumni/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'showAlumni'])->name('alumni.show')->middleware('permission:menu_kesiswaan_peserta_didik|menu_peserta_didik_tidak_aktif|menu_kesiswaan,read');
+            Route::put('/alumni/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateAlumni'])->name('alumni.update')->middleware('permission:menu_kesiswaan_peserta_didik|menu_peserta_didik_tidak_aktif|menu_kesiswaan,update');
+
             Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 
@@ -280,6 +288,18 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/', [\App\Http\Controllers\BukuIndukController::class, 'index'])->name('index')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::get('/cetak-rekap', [\App\Http\Controllers\BukuIndukController::class, 'cetakRekap'])->name('cetak-rekap')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::post('/sync', [\App\Http\Controllers\BukuIndukController::class, 'syncBukuInduk'])->name('sync')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+
+            // Tab 2 — Import Nilai & Pengaturan
+            Route::get('/import-nilai', [\App\Http\Controllers\BukuIndukNilaiController::class, 'index'])->name('import-nilai')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::get('/nilai/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplate'])->name('nilai.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/nilai/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importNilai'])->name('nilai.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+            Route::post('/pengaturan', [\App\Http\Controllers\BukuIndukNilaiController::class, 'savePengaturan'])->name('pengaturan.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::get('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'matriks'])->name('nilai.matriks')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::put('/nilai/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveNilai'])->name('nilai.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+
+            // Cetak lembar Buku Induk format A3
+            Route::get('/cetak-buku-induk/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'cetakBukuInduk'])->name('cetak-buku-induk')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+
             Route::get('/{id}', [\App\Http\Controllers\BukuIndukController::class, 'show'])->name('show')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::put('/{id}', [\App\Http\Controllers\BukuIndukController::class, 'update'])->name('update')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
             Route::get('/{id}/cetak', [\App\Http\Controllers\BukuIndukController::class, 'cetak'])->name('cetak')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');

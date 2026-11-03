@@ -409,6 +409,20 @@
                         <input type="text" id="filterTahunLulus" name="tahun_lulus" value="{{ $tahunLulus }}"
                             placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
                             style="width: 170px; height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        @if ($canCreate)
+                            <button type="button" id="btnImportAlumni" class="btn btn-outline"
+                                onclick="openImportExcelModal()"
+                                title="Import Excel Dapodik Peserta Didik Keluar / Alumni"
+                                aria-label="Import Data Alumni dari Dapodik"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                                <i class="fas fa-file-import"></i>
+                            </button>
+                            <button type="button" id="btnTambahAlumni" class="btn btn-primary"
+                                title="Tambah Data Alumni (Input Manual)" aria-label="Tambah Data Alumni"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        @endif
                     @endif
 
                     @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($status) || !empty($tahunLulus))

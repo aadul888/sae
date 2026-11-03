@@ -16,6 +16,7 @@ use App\Services\QrCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\KelasAkhirScope;
 use App\Support\Table;
 
 class BukuIndukController extends Controller
@@ -45,6 +46,7 @@ class BukuIndukController extends Controller
         $kelengkapan = $request->input('kelengkapan', 'all'); // lengkap, belum_lengkap, all
         $perPageVal  = $request->input('perPage', $request->input('per_page', 25));
         $perPage     = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 25;
+        $akademik    = $request->input('akademik') === 'alumni' ? 'alumni' : 'aktif';
 
         // Sorting
         $sort    = $request->input('sort', 'nama');
@@ -54,16 +56,31 @@ class BukuIndukController extends Controller
             $sort = 'nama';
         }
 
-        // Statistik Ringkasan Buku Induk
-        $totalSiswa = DB::table('peserta_didik')->count();
-        $totalLulus = DB::table('kesiswaan_buku_klaper')->where('status_klaper', 'lulus')->count();
-        $totalMutasi = DB::table('kesiswaan_buku_klaper')->whereIn('status_klaper', ['mutasi_keluar', 'do'])->count();
+        // Statistik Ringkasan Buku Induk — hanya kelas akhir (tingkat XII)
+        $totalSiswa = KelasAkhirScope::apply(DB::table('peserta_didik as pd'), 'pd', null)->count();
+        $totalLulus = KelasAkhirScope::apply(
+            DB::table('kesiswaan_buku_klaper as kbk')
+                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
+            'pd',
+            null
+        )->where('kbk.status_klaper', 'lulus')->count();
+        $totalMutasi = KelasAkhirScope::apply(
+            DB::table('kesiswaan_buku_klaper as kbk')
+                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
+            'pd',
+            null
+        )->whereIn('kbk.status_klaper', ['mutasi_keluar', 'do'])->count();
         $totalKeluarKlaper = $totalLulus + $totalMutasi;
         // ponytail: status aktif = total siswa dikurangi yang berstatus keluar pada buku klaper.
         $totalAktif = max(0, $totalSiswa - $totalKeluarKlaper);
-        $totalIdentitasTerisi = DB::table('peserta_didik_identitas')
-            ->whereNotNull('nik')
-            ->where('nik', '!=', '')
+        $totalIdentitasTerisi = KelasAkhirScope::apply(
+            DB::table('peserta_didik_identitas as pdi')
+                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id'),
+            'pd',
+            null
+        )
+            ->whereNotNull('pdi.nik')
+            ->where('pdi.nik', '!=', '')
             ->count();
 
         $stats = [
@@ -109,6 +126,9 @@ class BukuIndukController extends Controller
                 'pdi.status_konfirmasi',
                 'pdi.dikonfirmasi_pada',
             ]);
+
+        // Hanya kelas akhir (tingkat XII)
+        KelasAkhirScope::apply($query);
 
         // Filter Status Keaktifan / Klaper
         if ($status !== '' && $status !== 'all') {
@@ -183,18 +203,57 @@ class BukuIndukController extends Controller
             $item->foto_url = $metaMap->get($item->peserta_didik_id)?->foto_url;
         }
 
+        // Mode alumni: arsip lulusan tahun sebelumnya (nilai semester 5–6 tetap bisa diisi/dicetak).
+        if ($akademik === 'alumni') {
+            $items = DB::table('peserta_didik_tidak_aktif')
+                ->where(function ($b) {
+                    $b->where('status_keluar', 'Alumni')
+                        ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                        ->orWhere('alasan_keluar', 'like', '%Tamat%');
+                })
+                ->when($q !== '', function ($b) use ($q) {
+                    $b->where(function ($w) use ($q) {
+                        $w->where('nama', 'like', "%{$q}%")
+                            ->orWhere('nisn', 'like', "%{$q}%")
+                            ->orWhere('nipd', 'like', "%{$q}%");
+                    });
+                })
+                ->select(
+                    'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin',
+                    'tempat_lahir', 'nama_ayah', 'nama_ibu', 'nama_wali',
+                    'nama_rombel_terakhir', 'tahun_lulus', 'foto_path'
+                )
+                ->selectRaw("NULL as no_kk, NULL as nomor_induk, 'lulus' as status_klaper, NULL as tahun_masuk")
+                ->orderBy('nama', $sortDir)
+                ->paginate($perPage)
+                ->withQueryString();
+
+            foreach ($items as $item) {
+                $item->rombel_nama = $item->nama_rombel_terakhir;
+                $item->foto_url = !empty($item->foto_path)
+                    ? asset('storage/' . ltrim($item->foto_path, '/'))
+                    : null;
+            }
+        }
+
         // Master List untuk Filter Dropdown
         $rombelList = \App\Support\RombelScope::query()
+            ->whereIn('tingkat_pendidikan_id', KelasAkhirScope::TINGKAT)
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
             ->orderBy('tingkat_pendidikan_id')
             ->orderBy('nama')
             ->get();
 
-        $tahunMasukList = DB::table('kesiswaan_buku_klaper')
-            ->whereNotNull('tahun_masuk')
-            ->select('tahun_masuk')
+        $tahunMasukList = KelasAkhirScope::apply(
+            DB::table('kesiswaan_buku_klaper as kbk')
+                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
+            'pd',
+            null
+        )
+            ->whereNotNull('kbk.tahun_masuk')
+            ->select('kbk.tahun_masuk')
             ->distinct()
-            ->orderBy('tahun_masuk', 'desc')
+            ->orderBy('kbk.tahun_masuk', 'desc')
             ->pluck('tahun_masuk');
 
         if ($tahunMasukList->isEmpty()) {
@@ -211,6 +270,7 @@ class BukuIndukController extends Controller
             'status',
             'kelengkapan',
             'perPage',
+            'akademik',
             'sort',
             'sortDir',
             'rombelList',
@@ -600,6 +660,9 @@ class BukuIndukController extends Controller
                 'kbk.status_klaper',
                 'pdi.sekolah_asal',
             ]);
+
+        // Hanya kelas akhir (tingkat XII)
+        KelasAkhirScope::apply($query);
 
         if (!empty($rombelId)) {
             $query->where('pd.rombongan_belajar_id', $rombelId);

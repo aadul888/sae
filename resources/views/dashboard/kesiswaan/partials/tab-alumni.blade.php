@@ -21,6 +21,9 @@
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                 Keterangan</th>
+                            <th
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                Buku Induk</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,10 +119,33 @@
                                     data-label="Keterangan">
                                     {{ $item->alasan_keluar ?: 'Alumni / Tamat Belajar' }}
                                 </td>
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Buku Induk">
+                                    <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                        @if ($canUpdate)
+                                            <button type="button" class="btn-icon btn-edit-alumni"
+                                                data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                                title="Ubah Data Alumni"
+                                                style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary, #6366f1); border: 1px solid rgba(99,102,241,0.25); cursor: pointer;">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        @endif
+                                        <button type="button" class="btn-icon btn-atur-nilai"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            data-akademik="alumni" title="Atur Nilai Buku Induk"
+                                            style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.25); cursor: pointer;">
+                                            <i class="fas fa-table-list"></i>
+                                        </button>
+                                        <a href="{{ route('dashboard.kesiswaan.buku-induk.cetak-buku-induk', $item->peserta_didik_id) }}"
+                                            target="_blank" class="btn-icon" title="Cetak Buku Induk A3"
+                                            style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6); border: 1px solid rgba(139,92,246,0.25);">
+                                            <i class="fas fa-file-lines"></i>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6"
+                                <td colspan="7"
                                     style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                     <i class="fas fa-graduation-cap mb-2"
                                         style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
@@ -136,3 +162,23 @@
                     @include('partials.datatable-pagination', ['paginator' => $alumniList])
                 </div>
             @endif
+
+            {{-- Modal Atur Nilai + skrip (untuk input nilai & cetak buku induk alumni) --}}
+            @include('dashboard.kesiswaan.partials.modal-nilai')
+            {{-- Modal input manual / edit data alumni --}}
+            @include('dashboard.kesiswaan.partials.modal-alumni')
+            {{-- Modal import Excel format Dapodik 43 kolom --}}
+            @if ($canCreate)
+                @include('dashboard.kesiswaan.partials.modal-import-pd-keluar', [
+                    'importAction' => route('dashboard.kesiswaan.peserta-didik.alumni.import-excel'),
+                    'templateUrl' => route('dashboard.kesiswaan.peserta-didik.alumni.download-template'),
+                ])
+            @endif
+            @push('scripts')
+                <script
+                    src="{{ asset('js/buku-induk-nilai.js') }}?v={{ file_exists(public_path('js/buku-induk-nilai.js')) ? filemtime(public_path('js/buku-induk-nilai.js')) : time() }}">
+                </script>
+                <script
+                    src="{{ asset('js/pd-keluar-import.js') }}?v={{ file_exists(public_path('js/pd-keluar-import.js')) ? filemtime(public_path('js/pd-keluar-import.js')) : time() }}">
+                </script>
+            @endpush

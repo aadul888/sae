@@ -63,6 +63,175 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 2b. Input Manual / Edit Data Alumni (tab Alumni)
+    const formAlumni = document.getElementById('formAlumni');
+    const alumniStoreUrl = formAlumni ? formAlumni.getAttribute('action') : '';
+
+    const alumniFields = {
+        alNama: 'nama',
+        alNisn: 'nisn',
+        alNipd: 'nipd',
+        alNik: 'nik',
+        alJenisKelamin: 'jenis_kelamin',
+        alTempatLahir: 'tempat_lahir',
+        alTanggalLahir: 'tanggal_lahir',
+        alAgama: 'agama_id_str',
+        alKebutuhanKhusus: 'kebutuhan_khusus',
+        alRombel: 'nama_rombel_terakhir',
+        alTahunLulus: 'tahun_lulus',
+        alAlasanKeluar: 'alasan_keluar',
+        alTanggalKeluar: 'tanggal_keluar',
+        alAlamat: 'alamat_jalan',
+        alRt: 'rt',
+        alRw: 'rw',
+        alDusun: 'dusun',
+        alKelurahan: 'kelurahan',
+        alKecamatan: 'kecamatan',
+        alKodePos: 'kode_pos',
+        alJenisTinggal: 'jenis_tinggal',
+        alAlatTransportasi: 'alat_transportasi',
+        alTeleponRumah: 'nomor_telepon_rumah',
+        alNoHp: 'nomor_telepon_seluler',
+        alEmail: 'email',
+        alSkhun: 'skhun',
+        alPenerimaKps: 'penerima_kps',
+        alNoKps: 'no_kps',
+        alNamaAyah: 'nama_ayah',
+        alTahunLahirAyah: 'tahun_lahir_ayah',
+        alPendidikanAyah: 'jenjang_pendidikan_ayah',
+        alPekerjaanAyah: 'pekerjaan_ayah',
+        alPenghasilanAyah: 'penghasilan_ayah',
+        alKhususAyah: 'kebutuhan_khusus_ayah',
+        alNamaIbu: 'nama_ibu',
+        alTahunLahirIbu: 'tahun_lahir_ibu',
+        alPendidikanIbu: 'jenjang_pendidikan_ibu',
+        alPekerjaanIbu: 'pekerjaan_ibu',
+        alPenghasilanIbu: 'penghasilan_ibu',
+        alKhususIbu: 'kebutuhan_khusus_ibu',
+        alNamaWali: 'nama_wali',
+        alTahunLahirWali: 'tahun_lahir_wali',
+        alPendidikanWali: 'jenjang_pendidikan_wali',
+        alPekerjaanWali: 'pekerjaan_wali',
+        alPenghasilanWali: 'penghasilan_wali',
+    };
+
+    // Field tanggal yang perlu dipotong ke format Y-m-d saat prefill.
+    const alumniDateFields = ['alTanggalLahir', 'alTanggalKeluar'];
+
+    function resetAlumniForm() {
+        if (!formAlumni) return;
+        formAlumni.reset();
+        formAlumni.setAttribute('action', alumniStoreUrl);
+        const method = document.getElementById('alumniMethod');
+        if (method) method.value = 'POST';
+        document.getElementById('modalAlumniTitle').textContent = 'Tambah Data Alumni';
+        document.getElementById('modalAlumniSubtitle').textContent = 'Input manual data alumni tahun sebelumnya.';
+    }
+
+    document.addEventListener('click', function (e) {
+        const btnTambah = e.target.closest('#btnTambahAlumni');
+        if (btnTambah) {
+            e.preventDefault();
+            resetAlumniForm();
+            openModal('#modalAlumni');
+            return;
+        }
+
+        const btnEdit = e.target.closest('.btn-edit-alumni');
+        if (btnEdit) {
+            e.preventDefault();
+            const id = btnEdit.getAttribute('data-id');
+            if (!id) return;
+
+            resetAlumniForm();
+            openModal('#modalAlumni');
+            document.getElementById('modalAlumniTitle').textContent = 'Ubah Data Alumni';
+            document.getElementById('modalAlumniSubtitle').textContent = 'Memuat data alumni...';
+
+            fetch(`${alumniStoreUrl}/${encodeURIComponent(id)}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(res => res.json())
+                .then(json => {
+                    if (json.status !== 'success' || !json.data) {
+                        Swal.fire('Gagal', json.message || 'Data alumni tidak ditemukan.', 'error');
+                        closeModal('#modalAlumni');
+                        return;
+                    }
+
+                    const row = json.data;
+                    Object.keys(alumniFields).forEach(fieldId => {
+                        const el = document.getElementById(fieldId);
+                        if (!el) return;
+                        let val = row[alumniFields[fieldId]] ?? '';
+                        if (alumniDateFields.includes(fieldId) && val) val = String(val).slice(0, 10);
+                        el.value = val;
+                    });
+
+                    formAlumni.setAttribute('action', `${alumniStoreUrl}/${encodeURIComponent(id)}`);
+                    document.getElementById('alumniMethod').value = 'PUT';
+                    document.getElementById('alumniPesertaDidikId').value = id;
+                    document.getElementById('modalAlumniSubtitle').textContent = 'Perbarui identitas alumni.';
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'Gagal memuat data alumni.', 'error');
+                    closeModal('#modalAlumni');
+                });
+        }
+    });
+
+    if (formAlumni) {
+        formAlumni.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnSimpanAlumni');
+            const original = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+            }
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: new FormData(this)
+            })
+                .then(async res => {
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const firstError = json.errors ? Object.values(json.errors)[0]?.[0] : null;
+                        throw new Error(firstError || json.message || 'Gagal menyimpan data alumni.');
+                    }
+                    return json;
+                })
+                .then(json => {
+                    if (json.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: json.message,
+                            timer: 1600,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Gagal!', json.message || 'Terjadi kesalahan.', 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Gagal!', err.message, 'error');
+                })
+                .finally(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = original;
+                    }
+                });
+        });
+    }
+
     // 3. Validasi Berkas Digital PDF Siswa (Modal 3)
     let berkasStatusChanged = false;
 

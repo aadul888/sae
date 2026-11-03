@@ -87,6 +87,9 @@
         </div>
     </div>
 
+    {{-- Tab Navigasi Buku Induk --}}
+    @include('dashboard.kesiswaan.buku-induk.partials.tabs', ['activeTab' => 'peserta'])
+
     {{-- 4. Unified Datatable Card (mengacu datatable global SAE) --}}
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <div class="datatable-toolbar">
@@ -103,6 +106,15 @@
                         </select>
                         <span>entri</span>
                     </div>
+
+                    <select name="akademik" id="filterAkademikBukuInduk" class="toolbar-filter-select"
+                        onchange="this.form.submit()"
+                        style="height: 38px; min-width: 150px;">
+                        <option value="aktif" {{ ($akademik ?? 'aktif') === 'aktif' ? 'selected' : '' }}>Siswa Aktif
+                            (Kelas XII)</option>
+                        <option value="alumni" {{ ($akademik ?? '') === 'alumni' ? 'selected' : '' }}>Alumni
+                            (Tahun Lalu)</option>
+                    </select>
 
                     <select name="status" id="filterStatusKlaper" class="toolbar-filter-select"
                         style="height: 38px; min-width: 150px;">
@@ -329,6 +341,14 @@
                             <td data-label="Aksi" style="padding: 12px 16px; text-align: center;">
                                 <div class="table-actions"
                                     style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                    <button type="button" class="btn-icon btn-atur-nilai"
+                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                        data-akademik="{{ $akademik ?? 'aktif' }}"
+                                        title="Atur Nilai Buku Induk"
+                                        style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.25); cursor: pointer;">
+                                        <i class="fas fa-table-list"></i>
+                                    </button>
+                                    @if (($akademik ?? 'aktif') !== 'alumni')
                                     <button type="button" class="btn-icon btn-detail-buku-induk"
                                         data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                         title="Buka Formulir Buku Induk"
@@ -339,6 +359,12 @@
                                         target="_blank" class="btn-icon" title="Cetak Lembar Buku Induk"
                                         style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.25);">
                                         <i class="fas fa-print"></i>
+                                    </a>
+                                    @endif
+                                    <a href="{{ route('dashboard.kesiswaan.buku-induk.cetak-buku-induk', $item->peserta_didik_id) }}"
+                                        target="_blank" class="btn-icon" title="Cetak Buku Induk A3 (Hasil Prestasi)"
+                                        style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6); border: 1px solid rgba(139,92,246,0.25);">
+                                        <i class="fas fa-file-lines"></i>
                                     </a>
                                 </div>
                             </td>
@@ -651,6 +677,8 @@
             </form>
         </div>
     </div>
+    {{-- 6. Modal Atur Nilai --}}
+    @include('dashboard.kesiswaan.partials.modal-nilai')
 @endsection
 
 @push('styles')
@@ -724,5 +752,8 @@
 @push('scripts')
     <script
         src="{{ asset('js/buku-induk.js') }}?v={{ file_exists(public_path('js/buku-induk.js')) ? filemtime(public_path('js/buku-induk.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/buku-induk-nilai.js') }}?v={{ file_exists(public_path('js/buku-induk-nilai.js')) ? filemtime(public_path('js/buku-induk-nilai.js')) : time() }}">
     </script>
 @endpush

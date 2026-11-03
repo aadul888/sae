@@ -428,7 +428,9 @@ class PesertaDidikTidakAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return redirect()->route('login');
-        $canRead = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'read');
+        $canRead = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'read')
+            || RolePermission::canAccess($user, 'menu_kesiswaan_peserta_didik', 'read')
+            || RolePermission::canAccess($user, 'menu_kesiswaan', 'read');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         if (!$canRead && $role !== 'admin') {
             abort(403, 'Akses ditolak: Anda tidak memiliki wewenang mengunduh berkas template.');
@@ -513,7 +515,9 @@ class PesertaDidikTidakAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $canCreate = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'create');
+        $canCreate = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'create')
+            || RolePermission::canAccess($user, 'menu_kesiswaan_peserta_didik', 'create')
+            || RolePermission::canAccess($user, 'menu_kesiswaan', 'create');
         $isAdmin = ($role === 'admin');
 
         if (!$canCreate && !$isAdmin) {
@@ -587,12 +591,9 @@ class PesertaDidikTidakAktifController extends Controller
                     }
                 }
             }
-            // 4. Cek fallback index dari array_values jika bukan '__col_'
-            if ($fallbackIndex !== null) {
-                $vals = array_values(array_filter($row, fn($k) => !str_starts_with((string)$k, '__col_'), ARRAY_FILTER_USE_KEY));
-                if (isset($vals[$fallbackIndex]) && trim((string)$vals[$fallbackIndex]) !== '') {
-                    return trim((string)$vals[$fallbackIndex]);
-                }
+            // 4. Fallback index dari kolom mentah (__col_N) — selalu ada & akurat posisinya.
+            if ($fallbackIndex !== null && isset($row['__col_' . $fallbackIndex])) {
+                return trim((string)$row['__col_' . $fallbackIndex]);
             }
             return '';
         };
