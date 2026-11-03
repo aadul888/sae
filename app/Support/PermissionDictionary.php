@@ -140,6 +140,11 @@ final class PermissionDictionary
                     'icon' => 'fa-file-signature',
                     'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
+                'menu_kebutuhan_mbg' => [
+                    'label' => 'Data Kebutuhan MBG',
+                    'icon' => 'fa-utensils',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
             ],
 
             'Administrasi Guru' => [

@@ -103,7 +103,8 @@
             $canRole('menu_pengumuman') ||
             $canRole('menu_rfid') ||
             $role === 'admin' ||
-            $canRole('menu_kartu_pelajar'));
+            $canRole('menu_kartu_pelajar') ||
+            $canRole('menu_kebutuhan_mbg'));
 
     // Section: Sistem
     $hasPengaturan =
@@ -1550,6 +1551,7 @@
                 request()->routeIs('dashboard.rfid') ||
                 request()->routeIs('dashboard.kartu-pelajar.*') ||
                 request()->routeIs('dashboard.pip.*') ||
+                request()->routeIs('dashboard.kebutuhan-mbg.*') ||
                 (request()->routeIs('dashboard.agenda.*') &&
                     !request()->routeIs('dashboard.agenda-kbm.*') &&
                     !request()->routeIs('dashboard.agenda-kbm')) ||
@@ -1618,6 +1620,14 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
                         <span class="nav-label">e-Izin Siswa</span>
+                    </a>
+                @endif
+
+                @if ($role === 'admin' || $canRole('menu_kebutuhan_mbg'))
+                    <a href="{{ route('dashboard.kebutuhan-mbg.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.kebutuhan-mbg*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-utensils"></i></span>
+                        <span class="nav-label">Data Kebutuhan MBG</span>
                     </a>
                 @endif
             </div>

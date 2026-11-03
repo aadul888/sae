@@ -467,10 +467,17 @@ class ImageOptimizerService
     /**
      * Direktori di bawah public/ (mis. public/uploads) tidak warisan aturan Laravel,
      * jadi tiap direktori unggahan diberi penjaga: berkas tidak boleh dieksekusi.
-     * Catatan: ini khusus Apache. Untuk nginx, set `location ~ \.php$` di server block.
+     *
+     * Hanya berguna di Apache / OpenLiteSpeed (keduanya membaca .htaccess).
+     * Di nginx berkas ini diabaikan — penjaganya ada di `nginx.conf`
+     * (`location = /index.php`, sisanya `location ~ \.php$` ditolak 403).
      */
     private function writePublicGuard(string $directory): void
     {
+        if (!$this->serverReadsHtaccess()) {
+            return;
+        }
+
         $publicRoot = rtrim(str_replace('\\', '/', public_path()), '/');
         $normalized = str_replace('\\', '/', $directory);
 
@@ -503,6 +510,17 @@ class ImageOptimizerService
             php_flag engine off
         </IfModule>
         HTACCESS);
+    }
+
+    /**
+     * True bila web server saat ini membaca .htaccess (Apache / OpenLiteSpeed).
+     * Di CLI (mis. artisan/queue) tidak ada SERVER_SOFTWARE → false.
+     */
+    private function serverReadsHtaccess(): bool
+    {
+        $software = strtolower((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''));
+
+        return str_contains($software, 'apache') || str_contains($software, 'litespeed');
     }
 
     /**

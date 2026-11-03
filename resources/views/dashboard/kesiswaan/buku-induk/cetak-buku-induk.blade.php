@@ -100,6 +100,10 @@
             margin: 0 auto;
             overflow: hidden;
             display: flex; align-items: center; justify-content: center;
+            /* Khusus pas foto: latar merah (tetap tercetak). */
+            background: #d92b2b;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .photo-cap { font-size: 6.4pt; line-height: 1.1; margin-top: 3px; }

@@ -627,8 +627,9 @@ class BukuIndukNilaiService
     /**
      * Matriks nilai satu siswa untuk lembar cetak / modal atur nilai.
      *
-     * @param  string  $akademik  'aktif' (tampilkan semua 6 semester + dummy) atau
-     *                            'alumni' (hanya semester kelas akhir 5–6, tanpa dummy).
+     * @param  string  $akademik  'aktif' (tampilkan semua 6 semester) atau
+     *                            'alumni' (hanya semester kelas akhir 5–6).
+     *                            Nilai tidak tersimpan dikembalikan null (kosong).
      * @return array<int, array{nama:string, kelompok:string, nilai:array<int,float|null>, akhir:float|null, editable?:array<int,int>}>
      */
     public static function matriks($pesertaDidikId, string $akademik = 'aktif'): array
@@ -698,9 +699,7 @@ class BukuIndukNilaiService
                 if ($boleh) {
                     $editableSem[] = $sem;
                 }
-                $nilai[$sem] = $boleh
-                    ? ($tersimpan[$nama][$sem] ?? ($isAlumni ? null : self::dummy($pesertaDidikId, $nama, $sem)))
-                    : null;
+                $nilai[$sem] = $boleh ? ($tersimpan[$nama][$sem] ?? null) : null;
             }
 
             // Mapel PKL: hanya semester pelaksanaan tingkat siswa yang boleh diisi.
@@ -729,14 +728,37 @@ class BukuIndukNilaiService
         return $hasil;
     }
 
-    /**
-     * Nilai dummy deterministik saat nilai asli belum tersedia.
-     * ponytail: hapus saat impor nilai asli sudah rutin dipakai.
-     */
-    public static function dummy(string $pesertaDidikId, string $mapel, int $semester): float
+    /** Rentang nilai sah (e-Rapor): 10–100. */
+    public const NILAI_MIN = 10.0;
+    public const NILAI_MAX = 100.0;
+
+    /** Keterangan rentang nilai untuk pesan validasi. */
+    public static function rentangNilai(): string
     {
-        $seed = crc32($pesertaDidikId . '|' . $mapel . '|' . $semester);
-        return (float) (78 + ($seed % 15));
+        return number_format(self::NILAI_MIN, 2, '.', '') . ' s.d ' . number_format(self::NILAI_MAX, 2, '.', '');
+    }
+
+    /**
+     * Normalisasi & validasi input nilai.
+     *
+     * @return array{ok:bool, nilai:float|null, pesan:string|null} `nilai` null = hapus.
+     *         `ok` false bila bukan angka atau di luar rentang 10–100.
+     */
+    public static function nilaiSah($val): array
+    {
+        $val = is_string($val) ? str_replace(',', '.', trim($val)) : $val;
+        if ($val === '' || $val === null) {
+            return ['ok' => true, 'nilai' => null, 'pesan' => null];
+        }
+        if (!is_numeric($val)) {
+            return ['ok' => false, 'nilai' => null, 'pesan' => 'bukan angka'];
+        }
+        $f = (float) $val;
+        if ($f < self::NILAI_MIN || $f > self::NILAI_MAX) {
+            return ['ok' => false, 'nilai' => null, 'pesan' => 'di luar rentang ' . self::rentangNilai()];
+        }
+
+        return ['ok' => true, 'nilai' => $f, 'pesan' => null];
     }
 
     /**
@@ -829,10 +851,10 @@ class BukuIndukNilaiService
                 // Kumpulkan nilai per semester. Format lebar (6 kolom) & panjang (kolom tunggal) sama-sama tertangani:
                 // format panjang akan mengisi hanya satu semester (kolom semester + nilai).
                 $values = [];
-                for ($sem = 1; $sem <= 6; $sem++) {
+                foreach ([1, 2, 3, 4, 5, 6] as $sem) {
                     $raw = $semesterValue($row, $sem);
                     if ($raw !== '') {
-                        $values[$sem] = (float) str_replace(',', '.', $raw);
+                        $values[$sem] = $raw;
                     }
                 }
 
@@ -841,7 +863,7 @@ class BukuIndukNilaiService
                     $semester = (int) $extract($row, ['semester', 'smt'], 2);
                     $nilaiRaw = $extract($row, ['nilai', 'score'], 3);
                     if ($semester >= 1 && $semester <= 6 && $nilaiRaw !== '') {
-                        $values[$semester] = (float) str_replace(',', '.', $nilaiRaw);
+                        $values[$semester] = $nilaiRaw;
                     }
                 }
 
@@ -852,9 +874,14 @@ class BukuIndukNilaiService
                 }
 
                 foreach ($values as $semester => $nilai) {
+                    $cek = self::nilaiSah($nilai);
+                    if (!$cek['ok']) {
+                        $errors[] = "Baris {$rowNum}: semester {$semester} {$cek['pesan']} (wajib " . self::rentangNilai() . ').';
+                        continue;
+                    }
                     DB::table('buku_induk_nilai')->updateOrInsert(
                         ['peserta_didik_id' => $pdId, 'nama_mata_pelajaran' => $mapel, 'semester' => $semester],
-                        ['nilai' => $nilai, 'kelompok' => 'umum', 'tingkat' => (string) (($semester + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
+                        ['nilai' => $cek['nilai'], 'kelompok' => 'umum', 'tingkat' => (string) (($semester + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
                     );
                     $imported++;
                 }

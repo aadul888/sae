@@ -107,14 +107,54 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ==================== Input Nilai per Kelas & Semester ==================== */
+    const NILAI_MIN = 10;
+    const NILAI_MAX = 100;
+
+    /** true bila nilai kosong atau angka dalam rentang 10–100. */
+    function nilaiOk(raw) {
+        const v = String(raw == null ? '' : raw).replace(',', '.').trim();
+        if (v === '') return true;
+        if (!/^\d+(\.\d+)?$/.test(v)) return false;
+        const n = parseFloat(v);
+        return n >= NILAI_MIN && n <= NILAI_MAX;
+    }
+
+    /** Tandai input nilai yang di luar rentang; kembalikan daftar input yang salah. */
+    function tandaiNilaiSalah(scope) {
+        const salah = [];
+        scope.querySelectorAll('.bi-nilai-input, .nilai-input').forEach(function (inp) {
+            const ok = nilaiOk(inp.value);
+            inp.classList.toggle('bi-nilai-invalid', !ok);
+            if (!ok) salah.push(inp);
+        });
+        return salah;
+    }
+
     const formInputNilai = document.getElementById('formInputNilai');
     if (formInputNilai) {
         formInputNilai.querySelectorAll('.bi-nilai-input').forEach(function (inp) {
-            inp.addEventListener('blur', function () { inp.value = inp.value.replace(',', '.').trim(); });
+            inp.addEventListener('blur', function () {
+                inp.value = inp.value.replace(',', '.').trim();
+                inp.classList.toggle('bi-nilai-invalid', !nilaiOk(inp.value));
+            });
+            inp.addEventListener('input', function () {
+                if (inp.classList.contains('bi-nilai-invalid') && nilaiOk(inp.value)) {
+                    inp.classList.remove('bi-nilai-invalid');
+                }
+            });
         });
 
         formInputNilai.addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            const salah = tandaiNilaiSalah(formInputNilai);
+            if (salah.length) {
+                salah[0].focus();
+                Swal.fire('Nilai tidak valid', 'Nilai wajib angka ' + NILAI_MIN + '.00 s.d ' + NILAI_MAX +
+                    '. Perbaiki ' + salah.length + ' isian yang ditandai merah.', 'error');
+                return;
+            }
+
             const btn = formInputNilai.querySelector('button[type="submit"]');
             const info = document.getElementById('inputNilaiInfo');
             const original = btn ? btn.innerHTML : '';
@@ -539,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 html += '<td style="padding:4px 4px;text-align:center;">'
                     + '<input type="text" inputmode="decimal" class="nilai-input" data-mapel="' + esc(row.nama) + '" data-sem="' + s + '"'
-                    + ' value="' + fmtVal(val) + '" placeholder="—"'
+                    + ' value="' + fmtVal(val) + '" placeholder="—" maxlength="6" title="Wajib angka ' + NILAI_MIN + '.00 s.d ' + NILAI_MAX + '"'
                     + ' style="width:100%;box-sizing:border-box;text-align:center;padding:6px 4px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-hover,#f9fafb);color:var(--text-color);">'
                     + '</td>';
             });
@@ -555,6 +595,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (nilaiTableWrap) {
         nilaiTableWrap.addEventListener('input', function (e) {
             if (!e.target.classList.contains('nilai-input')) return;
+            if (e.target.classList.contains('bi-nilai-invalid') && nilaiOk(e.target.value)) {
+                e.target.classList.remove('bi-nilai-invalid');
+            }
             const tr = e.target.closest('tr');
             if (!tr) return;
             const inputs = tr.querySelectorAll('.nilai-input');
@@ -636,6 +679,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = nilaiPdId ? nilaiPdId.value : '';
             const akademik = nilaiAkademik ? nilaiAkademik.value : 'aktif';
             if (!id) return;
+
+            const salah = nilaiTableWrap ? tandaiNilaiSalah(nilaiTableWrap) : [];
+            if (salah.length) {
+                Swal.fire('Nilai tidak valid', 'Nilai wajib angka ' + NILAI_MIN + '.00 s.d ' + NILAI_MAX +
+                    '. Perbaiki ' + salah.length + ' isian yang ditandai merah.', 'error');
+                return;
+            }
 
             // Susun payload: { nilai: { mapel: { sem: value } } }
             const payload = { nilai: {}, akademik: akademik };

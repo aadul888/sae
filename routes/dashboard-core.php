@@ -18,6 +18,14 @@ use App\Http\Controllers\{
 // Grup rute dashboard. Modul tendik/sarpras/lab/keamanan ada di dashboard-tendik.php.
 Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
+    // Modul kebutuhan-mbg (Data Kebutuhan MBG)
+    Route::get('/kebutuhan-mbg', [\App\Http\Controllers\KebutuhanMbgController::class, 'index'])->name('kebutuhan-mbg.index')->middleware('permission:menu_kebutuhan_mbg,read');
+    Route::get('/kebutuhan-mbg/export', [\App\Http\Controllers\KebutuhanMbgController::class, 'export'])->name('kebutuhan-mbg.export')->middleware('permission:menu_kebutuhan_mbg,read');
+    Route::post('/kebutuhan-mbg', [\App\Http\Controllers\KebutuhanMbgController::class, 'store'])->name('kebutuhan-mbg.store')->middleware('permission:menu_kebutuhan_mbg,create');
+    Route::get('/kebutuhan-mbg/{id}', [\App\Http\Controllers\KebutuhanMbgController::class, 'show'])->name('kebutuhan-mbg.show')->middleware('permission:menu_kebutuhan_mbg,read');
+    Route::put('/kebutuhan-mbg/{id}', [\App\Http\Controllers\KebutuhanMbgController::class, 'update'])->name('kebutuhan-mbg.update')->middleware('permission:menu_kebutuhan_mbg,update');
+    Route::delete('/kebutuhan-mbg/{id}', [\App\Http\Controllers\KebutuhanMbgController::class, 'destroy'])->name('kebutuhan-mbg.destroy')->middleware('permission:menu_kebutuhan_mbg,delete');
+
     Route::get('/people/search', [\App\Http\Controllers\PeopleSearchController::class, 'search'])
         ->name('people.search')
         ->middleware('permission:menu_pengguna|menu_persuratan|menu_surat_keluar|menu_kesiswaan_administrasi|menu_kesiswaan_kedisiplinan|menu_kesiswaan_kegiatan|menu_kesiswaan_prestasi|menu_kesiswaan_peserta_didik|menu_perpustakaan|menu_sarpras|menu_laboran|menu_teknisi|menu_keamanan|menu_buku_tamu|menu_piket|menu_e_izin,read');

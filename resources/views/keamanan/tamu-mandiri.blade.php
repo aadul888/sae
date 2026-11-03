@@ -39,7 +39,7 @@
                 Silakan pilih kategori kunjungan dan lengkapi data identitas Anda di bawah ini:
             </p>
 
-            <form id="formPublicTamu" action="{{ route('tamu.submit') }}" method="POST" novalidate>
+            <form id="formPublicTamu" action="{{ route('tamu.submit') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <input type="hidden" name="peserta_didik_id" id="hidden_peserta_didik_id" value="">
 
@@ -315,6 +315,86 @@
                     <input type="text" name="nomor_polisi_kendaraan" id="tamu_nopol" class="input-field"
                         placeholder="Contoh: B 1234 ABC / D 5678 XYZ">
                 </div>
+
+                {{-- Bukti Foto Kunjungan Tamu (Kamera / Unggah File Berkompresi) --}}
+                <div class="photo-capture-box" style="margin-top: 16px; border: 1px dashed var(--border-glass, rgba(255,255,255,0.2)); border-radius: var(--radius-lg, 12px); padding: 14px; background: rgba(255,255,255,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+                        <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--text-heading);">
+                            <i class="fas fa-camera text-primary me-1"></i> Bukti Foto Kunjungan (Opsional)
+                        </span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 999px;">
+                            Kompresi Otomatis
+                        </span>
+                    </div>
+
+                    {{-- Mode Switcher: Kamera vs Unggah --}}
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="btn btn-outline btn-photo-tab active" id="btnTabKamera" style="flex: 1; padding: 6px 10px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-video"></i> Kamera Langsung
+                        </button>
+                        <button type="button" class="btn btn-outline btn-photo-tab" id="btnTabUnggah" style="flex: 1; padding: 6px 10px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-file-image"></i> Unggah Gambar
+                        </button>
+                    </div>
+
+                    {{-- Panel 1: Kamera Langsung --}}
+                    <div id="panelKamera" style="display: block;">
+                        <div id="videoContainer" style="position: relative; width: 100%; max-width: 380px; margin: 0 auto; aspect-ratio: 4/3; background: #000; border-radius: var(--radius-md, 8px); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <video id="webcamVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                            <div id="cameraPlaceholder" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                                <div style="font-size: var(--text-xs, 0.75rem);">Kamera belum aktif</div>
+                                <button type="button" id="btnStartCamera" class="btn btn-primary" style="margin-top: 10px; padding: 6px 14px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-camera"></i> Aktifkan Kamera
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="cameraControls" style="display: none; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                            <button type="button" id="btnSwitchCamera" class="btn btn-secondary" style="padding: 6px 12px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 5px;" title="Ganti Kamera Depan / Belakang">
+                                <i class="fas fa-camera-rotate"></i> Putar Kamera
+                            </button>
+                            <button type="button" id="btnCapturePhoto" class="btn btn-primary" style="padding: 6px 16px; font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-circle-dot"></i> Jepret Foto
+                            </button>
+                            <button type="button" id="btnStopCamera" class="btn btn-secondary" style="padding: 6px 12px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-stop"></i> Matikan
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Panel 2: Unggah Berkas --}}
+                    <div id="panelUnggah" style="display: none;">
+                        <div style="border: 1px dashed var(--border-glass, rgba(255,255,255,0.25)); border-radius: var(--radius-md, 8px); padding: 18px 14px; text-align: center; background: rgba(255,255,255,0.02);">
+                            <i class="fas fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--primary, #0ea5e9); margin-bottom: 6px;"></i>
+                            <div style="font-size: var(--text-xs, 0.78rem); font-weight: 600; color: var(--text-heading); margin-bottom: 2px;">
+                                Pilih atau Seret Foto Kunjungan
+                            </div>
+                            <div style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); margin-bottom: 10px;">
+                                Format JPG/PNG, dikompresi otomatis &lt; 200 KB
+                            </div>
+                            <input type="file" id="inputFileFoto" accept="image/*" class="input-field" style="font-size: var(--text-xs, 0.75rem); max-width: 280px; margin: 0 auto;">
+                        </div>
+                    </div>
+
+                    {{-- Preview Hasil Foto Terpilih / Terjepret --}}
+                    <div id="photoPreviewWrap" style="display: none; margin-top: 12px; text-align: center;">
+                        <div style="position: relative; display: inline-block; max-width: 260px; border-radius: var(--radius-md, 8px); overflow: hidden; border: 2px solid #10b981; box-shadow: 0 4px 12px rgba(16,185,129,0.2);">
+                            <img id="imgPhotoPreview" src="" alt="Preview Foto Tamu" style="width: 100%; height: auto; display: block; object-fit: cover;">
+                            <span style="position: absolute; top: 6px; left: 6px; background: rgba(16, 185, 129, 0.9); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                <i class="fas fa-check"></i> Siap Disimpan
+                            </span>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <button type="button" id="btnHapusFoto" class="btn btn-outline" style="color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3); font-size: var(--text-2xs, 0.72rem); padding: 4px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-trash"></i> Hapus / Ganti Foto
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Hidden storage for compressed base64 image data --}}
+                    <input type="hidden" name="foto_tamu_data" id="foto_tamu_data" value="">
+                </div>
                 </div>{{-- /#formFields --}}
 
                 <button type="submit" class="btn btn-primary" id="btnSubmitTamu"
@@ -333,6 +413,11 @@
 
 @section('styles')
     <style>
+        .btn-photo-tab.active {
+            background: var(--primary, #0ea5e9) !important;
+            color: #fff !important;
+            border-color: var(--primary, #0ea5e9) !important;
+        }
         .category-step {
             border: 2px solid rgba(14, 165, 233, 0.45);
             background: linear-gradient(180deg, rgba(14, 165, 233, 0.12), rgba(14, 165, 233, 0.03));

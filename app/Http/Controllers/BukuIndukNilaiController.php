@@ -109,33 +109,51 @@ class BukuIndukNilaiController extends Controller
             $bolehMap[$row['nama']] = $row['editable'] ?? [];
         }
 
-        DB::transaction(function () use ($data, $id, $akademik, $kelompokMap, $bolehMap) {
-            foreach ($data as $mapel => $semesters) {
-                $mapel = trim((string) $mapel);
-                if ($mapel === '' || !is_array($semesters) || !array_key_exists($mapel, $bolehMap)) continue;
-                foreach ($semesters as $sem => $val) {
-                    $sem = (int) $sem;
-                    if ($sem < 1 || $sem > 6) continue;
-                    // Alumni hanya punya nilai kelas XII (semester 5–6).
-                    if ($akademik === 'alumni' && $sem < 5) continue;
-                    // Semester terkunci (mis. pelaksanaan PKL) atau mapel tidak diajarkan.
-                    if (!in_array($sem, $bolehMap[$mapel], true)) continue;
+        $salah = [];
+        $rencana = [];
 
-                    $val = is_string($val) ? str_replace(',', '.', trim($val)) : $val;
-                    if ($val === '' || $val === null) {
-                        DB::table('buku_induk_nilai')
-                            ->where('peserta_didik_id', $id)
-                            ->where('nama_mata_pelajaran', $mapel)
-                            ->where('semester', $sem)
-                            ->delete();
-                        continue;
-                    }
+        // Validasi dulu (all-or-nothing): bila ada isian tidak sah, tidak ada yang disimpan.
+        foreach ($data as $mapel => $semesters) {
+            $mapel = trim((string) $mapel);
+            if ($mapel === '' || !is_array($semesters) || !array_key_exists($mapel, $bolehMap)) continue;
+            foreach ($semesters as $sem => $val) {
+                $sem = (int) $sem;
+                if ($sem < 1 || $sem > 6) continue;
+                // Alumni hanya punya nilai kelas XII (semester 5–6).
+                if ($akademik === 'alumni' && $sem < 5) continue;
+                // Semester terkunci (mis. pelaksanaan PKL) atau mapel tidak diajarkan.
+                if (!in_array($sem, $bolehMap[$mapel], true)) continue;
 
-                    DB::table('buku_induk_nilai')->updateOrInsert(
-                        ['peserta_didik_id' => $id, 'nama_mata_pelajaran' => $mapel, 'semester' => $sem],
-                        ['nilai' => (float) $val, 'kelompok' => $kelompokMap[$mapel] ?? 'umum', 'tingkat' => (string) (($sem + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
-                    );
+                $cek = BukuIndukNilaiService::nilaiSah($val);
+                if (!$cek['ok']) {
+                    $salah[] = "{$mapel} (Sem {$sem}): {$cek['pesan']}";
+                    continue;
                 }
+                $rencana[] = [$mapel, $sem, $cek['nilai']];
+            }
+        }
+
+        if ($salah) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nilai harus angka ' . BukuIndukNilaiService::rentangNilai() . '. Perbaiki: ' . implode('; ', array_slice($salah, 0, 5)),
+            ], 422);
+        }
+
+        DB::transaction(function () use ($rencana, $id, $kelompokMap) {
+            foreach ($rencana as [$mapel, $sem, $nilai]) {
+                if ($nilai === null) {
+                    DB::table('buku_induk_nilai')
+                        ->where('peserta_didik_id', $id)
+                        ->where('nama_mata_pelajaran', $mapel)
+                        ->where('semester', $sem)
+                        ->delete();
+                    continue;
+                }
+                DB::table('buku_induk_nilai')->updateOrInsert(
+                    ['peserta_didik_id' => $id, 'nama_mata_pelajaran' => $mapel, 'semester' => $sem],
+                    ['nilai' => $nilai, 'kelompok' => $kelompokMap[$mapel] ?? 'umum', 'tingkat' => (string) (($sem + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
+                );
             }
         });
 
@@ -458,37 +476,58 @@ class BukuIndukNilaiController extends Controller
         }
 
         // Trust boundary: hanya siswa kelas terpilih yang diproses.
-        $set = array_flip(array_map(fn ($s) => $s->peserta_didik_id, BukuIndukJurusanService::siswaKelas($kelasId)));
+        $siswaKelas = BukuIndukJurusanService::siswaKelas($kelasId);
+        $set = [];
+        $namaSiswa = [];
+        foreach ($siswaKelas as $s) {
+            $set[$s->peserta_didik_id] = true;
+            $namaSiswa[$s->peserta_didik_id] = (string) ($s->nama ?? '');
+        }
         $saved = 0;
+        $salah = [];
+        $rencana = [];
 
-        DB::transaction(function () use ($data, $semester, $kelompokMap, $set, &$saved) {
-            foreach ($data as $pdId => $mapels) {
-                if (!isset($set[$pdId]) || !is_array($mapels)) {
+        // Validasi dulu (all-or-nothing): bila ada isian tidak sah, tidak ada yang disimpan.
+        foreach ($data as $pdId => $mapels) {
+            if (!isset($set[$pdId]) || !is_array($mapels)) {
+                continue;
+            }
+            foreach ($mapels as $nama => $val) {
+                $nama = trim((string) $nama);
+                if (!array_key_exists($nama, $kelompokMap)) {
                     continue;
                 }
-                foreach ($mapels as $nama => $val) {
-                    $nama = trim((string) $nama);
-                    if (!array_key_exists($nama, $kelompokMap)) {
-                        continue;
-                    }
-                    $val = is_string($val) ? str_replace(',', '.', trim($val)) : $val;
-                    if ($val === '' || $val === null) {
-                        DB::table('buku_induk_nilai')
-                            ->where('peserta_didik_id', $pdId)
-                            ->where('nama_mata_pelajaran', $nama)
-                            ->where('semester', $semester)
-                            ->delete();
-                        continue;
-                    }
-                    if (!is_numeric($val)) {
-                        continue;
-                    }
-                    DB::table('buku_induk_nilai')->updateOrInsert(
-                        ['peserta_didik_id' => $pdId, 'nama_mata_pelajaran' => $nama, 'semester' => $semester],
-                        ['nilai' => (float) $val, 'kelompok' => $kelompokMap[$nama], 'tingkat' => (string) (($semester + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
-                    );
-                    $saved++;
+                $cek = BukuIndukNilaiService::nilaiSah($val);
+                if (!$cek['ok']) {
+                    $salah[] = ($namaSiswa[$pdId] ?? $pdId) . " — {$nama}: {$cek['pesan']}";
+                    continue;
                 }
+                $rencana[] = [$pdId, $nama, $cek['nilai']];
+            }
+        }
+
+        if ($salah) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nilai harus angka ' . BukuIndukNilaiService::rentangNilai() . '. Perbaiki ' . count($salah) . ' isian, mis. ' . implode('; ', array_slice($salah, 0, 3)),
+            ], 422);
+        }
+
+        DB::transaction(function () use ($rencana, $semester, $kelompokMap, &$saved) {
+            foreach ($rencana as [$pdId, $nama, $nilai]) {
+                if ($nilai === null) {
+                    DB::table('buku_induk_nilai')
+                        ->where('peserta_didik_id', $pdId)
+                        ->where('nama_mata_pelajaran', $nama)
+                        ->where('semester', $semester)
+                        ->delete();
+                    continue;
+                }
+                DB::table('buku_induk_nilai')->updateOrInsert(
+                    ['peserta_didik_id' => $pdId, 'nama_mata_pelajaran' => $nama, 'semester' => $semester],
+                    ['nilai' => $nilai, 'kelompok' => $kelompokMap[$nama], 'tingkat' => (string) (($semester + 1) >> 1), 'updated_at' => now(), 'created_at' => now()]
+                );
+                $saved++;
             }
         });
 

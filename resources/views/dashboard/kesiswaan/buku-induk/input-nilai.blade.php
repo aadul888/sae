@@ -112,8 +112,12 @@
 
         {{-- 5. Tabel Nilai Manual --}}
         <div class="card" style="padding: 18px;">
-            <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-md, 1rem); margin-bottom: 12px;">
+            <div style="font-weight: 800; color: var(--text-color); font-size: var(--text-md, 1rem); margin-bottom: 4px;">
                 Daftar Nilai — {{ $kelas['nama'] }} · Semester {{ $semester }}
+            </div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 12px;">
+                Isi nilai angka wajib <strong>{{ \App\Services\BukuIndukNilaiService::rentangNilai() }}</strong> (boleh desimal, mis. 85.50).
+                Kosongkan untuk menghapus nilai.
             </div>
 
             @if (!$mapel)
@@ -154,6 +158,8 @@
                                             <td>
                                                 <input type="text" inputmode="decimal" class="bi-nilai-input"
                                                     name="nilai[{{ $s->peserta_didik_id }}][{{ $nama }}]"
+                                                    data-min="10" data-max="100" maxlength="6" placeholder="—"
+                                                    title="Wajib angka {{ \App\Services\BukuIndukNilaiService::rentangNilai() }}"
                                                     value="{{ $tersimpan[$s->peserta_didik_id][$nama] ?? '' }}">
                                             </td>
                                         @endforeach

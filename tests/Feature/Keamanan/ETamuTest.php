@@ -145,4 +145,39 @@ class ETamuTest extends TestCase
         // Clean up
         DB::table('keamanan_buku_tamu')->where('id', $latest->id)->delete();
     }
+
+    public function test_guest_can_submit_with_compressed_photo_and_preview_it(): void
+    {
+        // 1x1 transparent/red PNG base64
+        $dummyImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+        $payload = [
+            'nama_tamu' => 'Tamu Bukti Foto Test',
+            'jenis_tamu' => 'umum',
+            'nomor_kontak' => '08777777777',
+            'tujuan_bertemu' => 'Kepala Sekolah',
+            'keperluan' => 'Silaturahmi',
+            'foto_tamu_data' => $dummyImage,
+        ];
+
+        $response = $this->post(route('tamu.submit'), $payload);
+        $latest = DB::table('keamanan_buku_tamu')->where('nama_tamu', 'Tamu Bukti Foto Test')->latest('id')->first();
+        $this->assertNotNull($latest);
+        $this->assertNotEmpty($latest->foto_tamu);
+
+        // Verifikasi fisik file tersimpan di storage
+        $fullPath = storage_path('app/public/' . ltrim($latest->foto_tamu, '/\\'));
+        $this->assertFileExists($fullPath);
+
+        // Tiket sukses harus menampilkan foto tamu
+        $ticketResponse = $this->get(route('tamu.success', $latest->id));
+        $ticketResponse->assertStatus(200);
+        $ticketResponse->assertSee($latest->foto_tamu);
+
+        // Cleanup
+        if (file_exists($fullPath)) {
+            @unlink($fullPath);
+        }
+        DB::table('keamanan_buku_tamu')->where('id', $latest->id)->delete();
+    }
 }

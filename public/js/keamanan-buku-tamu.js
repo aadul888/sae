@@ -1,3 +1,84 @@
+let modalCameraStream = null;
+let modalFacingMode = 'user';
+
+function stopModalCameraStream() {
+    if (modalCameraStream) {
+        modalCameraStream.getTracks().forEach(track => track.stop());
+        modalCameraStream = null;
+    }
+    const video = document.getElementById('modalWebcamVideo');
+    if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.style.display = 'none';
+    }
+    const placeholder = document.getElementById('modalCameraPlaceholder');
+    if (placeholder) placeholder.style.display = 'block';
+    const controls = document.getElementById('modalCameraControls');
+    if (controls) controls.style.display = 'none';
+}
+
+function resetModalFoto(existingUrl = null) {
+    stopModalCameraStream();
+    const hiddenData = document.getElementById('modal_foto_tamu_data');
+    const hiddenHapus = document.getElementById('modal_hapus_foto_tamu');
+    const wrapPreview = document.getElementById('modalPhotoPreviewWrap');
+    const imgPreview = document.getElementById('modalImgPhotoPreview');
+    const inputFile = document.getElementById('modalInputFileFoto');
+
+    if (hiddenData) hiddenData.value = '';
+    if (hiddenHapus) hiddenHapus.value = '0';
+    if (inputFile) inputFile.value = '';
+
+    if (existingUrl) {
+        if (imgPreview) imgPreview.src = existingUrl;
+        if (wrapPreview) wrapPreview.style.display = 'block';
+    } else {
+        if (imgPreview) imgPreview.src = '';
+        if (wrapPreview) wrapPreview.style.display = 'none';
+    }
+
+    // Default ke tab kamera
+    window.switchModalPhotoTab('kamera');
+}
+
+window.switchModalPhotoTab = function (tab) {
+    const btnKamera = document.getElementById('modalBtnTabKamera');
+    const btnUnggah = document.getElementById('modalBtnTabUnggah');
+    const panelKamera = document.getElementById('modalPanelKamera');
+    const panelUnggah = document.getElementById('modalPanelUnggah');
+
+    if (tab === 'kamera') {
+        if (btnKamera) btnKamera.classList.add('active');
+        if (btnUnggah) btnUnggah.classList.remove('active');
+        if (panelKamera) panelKamera.style.display = 'block';
+        if (panelUnggah) panelUnggah.style.display = 'none';
+    } else {
+        if (btnUnggah) btnUnggah.classList.add('active');
+        if (btnKamera) btnKamera.classList.remove('active');
+        if (panelUnggah) panelUnggah.style.display = 'block';
+        if (panelKamera) panelKamera.style.display = 'none';
+        stopModalCameraStream();
+    }
+};
+
+window.previewFotoTamu = function (url, name) {
+    const modal = document.getElementById('modalFotoPreview');
+    const img = document.getElementById('modalFotoPreviewImg');
+    const title = document.getElementById('modalFotoTamuNama');
+    if (!modal || !img) return;
+    img.src = url;
+    if (title) title.textContent = 'Foto Tamu: ' + (name || '');
+    modal.style.display = 'flex';
+};
+
+window.closeModalFotoPreview = function () {
+    const modal = document.getElementById('modalFotoPreview');
+    const img = document.getElementById('modalFotoPreviewImg');
+    if (modal) modal.style.display = 'none';
+    if (img) img.src = '';
+};
+
 window.openModalTamu = function () {
     const modal = document.getElementById('modalTamu');
     const form = document.getElementById('formTamu');
@@ -29,10 +110,14 @@ window.openModalTamu = function () {
     window.syncDropdownValue('manual_keperluan_select', 'wrapManualKeperluanLainnya', 'manual_keperluan_lainnya_input', 'tamu_keperluan', '');
     window.syncDropdownValue('manual_instansi_select', 'wrapManualInstansiLainnya', 'manual_instansi_lainnya_input', 'tamu_instansi', '');
 
+    // Reset foto
+    resetModalFoto();
+
     modal.style.display = 'flex';
 };
 
 window.closeModalTamu = function () {
+    stopModalCameraStream();
     const modal = document.getElementById('modalTamu');
     if (modal) modal.style.display = 'none';
 };
@@ -282,12 +367,22 @@ window.editTamu = function (data) {
         window.toggleManualSuratTugas(false);
     }
 
+    // Set Foto Tamu jika ada
+    const storageBase = (window.BUKU_TAMU_CONFIG && window.BUKU_TAMU_CONFIG.storageUrl) || '/storage/';
+    if (data.foto_tamu) {
+        const fullUrl = data.foto_tamu.startsWith('http') ? data.foto_tamu : (storageBase.replace(/\/$/, '') + '/' + data.foto_tamu.replace(/^\//, ''));
+        resetModalFoto(fullUrl);
+    } else {
+        resetModalFoto();
+    }
+
     modal.style.display = 'flex';
 };
 
 document.addEventListener('DOMContentLoaded', function () {
     const modalTamu = document.getElementById('modalTamu');
     const modalQr = document.getElementById('modalQrCode');
+    const modalFotoPreview = document.getElementById('modalFotoPreview');
 
     if (modalTamu) {
         modalTamu.addEventListener('click', function (e) {
@@ -300,6 +395,143 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.target === modalQr) window.closeModalQr();
         });
     }
+
+    if (modalFotoPreview) {
+        modalFotoPreview.addEventListener('click', function (e) {
+            if (e.target === modalFotoPreview) window.closeModalFotoPreview();
+        });
+    }
+
+    // Modal Foto Controls (Kamera & Kompresi Berkas)
+    const btnTabKamera = document.getElementById('modalBtnTabKamera');
+    const btnTabUnggah = document.getElementById('modalBtnTabUnggah');
+    const btnStartCamera = document.getElementById('modalBtnStartCamera');
+    const btnStopCamera = document.getElementById('modalBtnStopCamera');
+    const btnSwitchCamera = document.getElementById('modalBtnSwitchCamera');
+    const btnCapturePhoto = document.getElementById('modalBtnCapturePhoto');
+    const btnHapusFoto = document.getElementById('modalBtnHapusFoto');
+    const inputFileFoto = document.getElementById('modalInputFileFoto');
+    const webcamVideo = document.getElementById('modalWebcamVideo');
+    const cameraPlaceholder = document.getElementById('modalCameraPlaceholder');
+    const cameraControls = document.getElementById('modalCameraControls');
+    const hiddenFotoData = document.getElementById('modal_foto_tamu_data');
+    const hiddenHapusFoto = document.getElementById('modal_hapus_foto_tamu');
+    const photoPreviewWrap = document.getElementById('modalPhotoPreviewWrap');
+    const imgPhotoPreview = document.getElementById('modalImgPhotoPreview');
+
+    if (btnTabKamera) btnTabKamera.addEventListener('click', () => window.switchModalPhotoTab('kamera'));
+    if (btnTabUnggah) btnTabUnggah.addEventListener('click', () => window.switchModalPhotoTab('unggah'));
+
+    async function startModalCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Browser tidak mendukung akses kamera langsung. Silakan gunakan tab Unggah Berkas.');
+            window.switchModalPhotoTab('unggah');
+            return;
+        }
+
+        stopModalCameraStream();
+
+        try {
+            const constraints = {
+                video: {
+                    facingMode: modalFacingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            };
+            modalCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+            if (webcamVideo) {
+                webcamVideo.srcObject = modalCameraStream;
+                webcamVideo.style.display = 'block';
+                await webcamVideo.play();
+            }
+            if (cameraPlaceholder) cameraPlaceholder.style.display = 'none';
+            if (cameraControls) cameraControls.style.display = 'flex';
+        } catch (err) {
+            console.error('Kamera satpam gagal aktif:', err);
+            alert('Kamera tidak dapat diakses: ' + (err.message || 'Izin kamera ditolak atau sedang dipakai.'));
+        }
+    }
+
+    if (btnStartCamera) btnStartCamera.addEventListener('click', startModalCamera);
+    if (btnStopCamera) btnStopCamera.addEventListener('click', stopModalCameraStream);
+
+    if (btnSwitchCamera) {
+        btnSwitchCamera.addEventListener('click', function () {
+            modalFacingMode = modalFacingMode === 'user' ? 'environment' : 'user';
+            startModalCamera();
+        });
+    }
+
+    function compressCanvas(sourceEl, width, height, maxDim = 1000, quality = 0.8) {
+        let w = width;
+        let h = height;
+        if (w > maxDim || h > maxDim) {
+            const ratio = Math.min(maxDim / w, maxDim / h);
+            w = Math.max(1, Math.round(w * ratio));
+            h = Math.max(1, Math.round(h * ratio));
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(sourceEl, 0, 0, w, h);
+        return canvas.toDataURL('image/jpeg', quality);
+    }
+
+    if (btnCapturePhoto) {
+        btnCapturePhoto.addEventListener('click', function () {
+            if (!webcamVideo || !modalCameraStream) return;
+            const w = webcamVideo.videoWidth || 640;
+            const h = webcamVideo.videoHeight || 480;
+            const dataUrl = compressCanvas(webcamVideo, w, h);
+            if (hiddenFotoData) hiddenFotoData.value = dataUrl;
+            if (hiddenHapusFoto) hiddenHapusFoto.value = '0';
+            if (imgPhotoPreview) imgPhotoPreview.src = dataUrl;
+            if (photoPreviewWrap) photoPreviewWrap.style.display = 'block';
+            stopModalCameraStream();
+        });
+    }
+
+    if (inputFileFoto) {
+        inputFileFoto.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Pilih berkas format gambar (JPG/PNG).');
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const dataUrl = compressCanvas(img, img.width, img.height);
+                    if (hiddenFotoData) hiddenFotoData.value = dataUrl;
+                    if (hiddenHapusFoto) hiddenHapusFoto.value = '0';
+                    if (imgPhotoPreview) imgPhotoPreview.src = dataUrl;
+                    if (photoPreviewWrap) photoPreviewWrap.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (btnHapusFoto) {
+        btnHapusFoto.addEventListener('click', function () {
+            if (hiddenFotoData) hiddenFotoData.value = '';
+            if (hiddenHapusFoto) hiddenHapusFoto.value = '1';
+            if (imgPhotoPreview) imgPhotoPreview.src = '';
+            if (photoPreviewWrap) photoPreviewWrap.style.display = 'none';
+            if (inputFileFoto) inputFileFoto.value = '';
+        });
+    }
+
+    window.addEventListener('beforeunload', stopModalCameraStream);
 
     // Category radio click handler di modal satpam
     document.querySelectorAll('#manualCategoryGrid .category-option').forEach(opt => {

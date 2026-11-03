@@ -122,6 +122,12 @@
             background: var(--bg-card, #fff); color: var(--text-color); font-size: var(--text-xs, 0.75rem);
         }
         .bi-nilai-input:focus { outline: none; border-color: var(--primary, #3b82f6); }
+        .bi-nilai-input.bi-nilai-invalid,
+        .nilai-input.bi-nilai-invalid {
+            border-color: #ef4444 !important;
+            background: rgba(239,68,68,0.08) !important;
+            color: #b91c1c !important;
+        }
         .bi-singkatan-item {
             flex: 0 0 64px; width: 64px; min-height: 24px; padding: 2px 6px; text-align: center;
             font-size: var(--text-2xs, 0.6875rem); font-weight: 700; letter-spacing: .02em;

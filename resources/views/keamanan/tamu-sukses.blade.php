@@ -10,6 +10,13 @@
                 <i class="fas fa-circle-check"></i> Kunjungan Tercatat Berhasil
             </div>
 
+            @if (!empty($tamu->foto_tamu))
+                <div style="margin-bottom: 12px;">
+                    <img src="{{ asset('storage/' . $tamu->foto_tamu) }}" alt="Foto {{ $tamu->nama_tamu }}"
+                        style="width: 84px; height: 84px; object-fit: cover; border-radius: 50%; border: 3px solid #10b981; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); display: inline-block;">
+                </div>
+            @endif
+
             <h1 style="font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 900; color: var(--text-heading); margin: 0 0 6px;">
                 Terima Kasih, {{ $tamu->nama_tamu }}
             </h1>

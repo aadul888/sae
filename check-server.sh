@@ -203,6 +203,47 @@ fi
 
 # -----------------------------------------------------------------------------
 echo
+echo "${CYAN}11. Web Server & Hardening Unggahan${NC}"
+# -----------------------------------------------------------------------------
+if command -v nginx >/dev/null 2>&1; then
+    ok "nginx: $(nginx -v 2>&1 | head -n1)"
+elif [ -d /www/server/nginx ]; then
+    ok "nginx aaPanel terpasang (/www/server/nginx)"
+else
+    warn "nginx tidak terdeteksi di PATH (mungkin OpenLiteSpeed/Apache)"
+fi
+
+VHOST_DIR="/www/server/panel/vhost/nginx"
+if [ -d "${VHOST_DIR}" ]; then
+    if grep -rqs 'enable-php' "${VHOST_DIR}" 2>/dev/null; then
+        warn "vhost aaPanel memakai handler PHP generik (enable-php-*.conf)."
+        warn "  Artinya berkas .php DI MANA SAJA (termasuk folder unggahan) dieksekusi."
+        warn "  Perbaikan: batasi ke 'location = /index.php' — lihat README > Hardening Nginx."
+    else
+        ok "tidak ditemukan handler PHP generik di vhost aaPanel"
+    fi
+    if grep -rqs 'location = /index.php' "${VHOST_DIR}" 2>/dev/null; then
+        ok "vhost sudah memakai 'location = /index.php'"
+    fi
+else
+    warn "folder vhost aaPanel ${VHOST_DIR} tidak ada — bukan aaPanel? lewati pemeriksaan."
+fi
+
+for d in public/uploads storage/app/public; do
+    if [ -d "$d" ]; then
+        JUMLAH=$(find "$d" -type f ! -name '.htaccess' 2>/dev/null | wc -l)
+        ok "$d ada (${JUMLAH} berkas)"
+    else
+        warn "$d belum ada (wajar bila belum ada unggahan)"
+    fi
+done
+
+echo "     Uji manual setelah reload (harus 403/404, BUKAN 'RCE'):"
+echo "       echo '<?php echo \"RCE\";' > public/uploads/probe.php"
+echo "       curl -i https://<domain>/uploads/probe.php ; rm public/uploads/probe.php"
+
+# -----------------------------------------------------------------------------
+echo
 echo "=============================================="
 if [ -n "${MISSING}" ]; then
     echo "${RED}RINGKASAN: ekstensi berikut WAJIB dipasang:${NC}${MISSING}"

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Models\RolePermission;
 use App\Services\KeamananImportService;
 use App\Services\QrCodeService;
@@ -154,6 +156,74 @@ class KeamananBukuTamuController extends Controller
         return $this->renderCetak('tamu', 'Laporan Buku Tamu / Kunjungan', $filterInfo, $rows);
     }
 
+    /**
+     * Kompresi dan simpan bukti foto kunjungan tamu (baik kamera maupun unggahan berkas)
+     */
+    protected function handleFotoTamu(Request $request, ?string $oldPath = null): ?string
+    {
+        $rawBase64 = $request->input('foto_tamu_data');
+        $uploadedFile = $request->file('foto_tamu');
+
+        $binaryData = null;
+        if (!empty($rawBase64) && is_string($rawBase64)) {
+            if (preg_match('/^data:image\/(\w+);base64,/', $rawBase64)) {
+                $rawBase64 = substr($rawBase64, strpos($rawBase64, ',') + 1);
+            }
+            $binaryData = base64_decode($rawBase64);
+        } elseif ($uploadedFile && $uploadedFile->isValid()) {
+            $binaryData = file_get_contents($uploadedFile->getRealPath());
+        }
+
+        if (!$binaryData) {
+            return $oldPath;
+        }
+
+        $srcImg = @imagecreatefromstring($binaryData);
+        if (!$srcImg) {
+            return $oldPath;
+        }
+
+        // Resolusi proporsional maksimal 1000px agar aman dan hemat penyimpanan
+        $origWidth = imagesx($srcImg);
+        $origHeight = imagesy($srcImg);
+        $maxDim = 1000;
+
+        if ($origWidth > $maxDim || $origHeight > $maxDim) {
+            $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
+            $newW = (int) max(1, round($origWidth * $ratio));
+            $newH = (int) max(1, round($origHeight * $ratio));
+            $destImg = imagecreatetruecolor($newW, $newH);
+            imagecopyresampled($destImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $origWidth, $origHeight);
+            imagedestroy($srcImg);
+            $finalImg = $destImg;
+        } else {
+            $finalImg = $srcImg;
+        }
+
+        $subDir = 'assets/keamanan/tamu/' . date('Y/m');
+        $targetDir = storage_path('app/public/' . $subDir);
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true, true);
+        }
+
+        $filename = 'tamu_' . date('Ymd_His') . '_' . Str::random(8) . '.jpg';
+        $fullPath = $targetDir . DIRECTORY_SEPARATOR . $filename;
+
+        // Kompresi JPEG kualitas 78 (sangat jernih namun hemat ruang ~80-160KB)
+        imagejpeg($finalImg, $fullPath, 78);
+        imagedestroy($finalImg);
+
+        // Hapus foto lama jika ada penggantian
+        if ($oldPath && $oldPath !== ($subDir . '/' . $filename)) {
+            $oldFullPath = storage_path('app/public/' . ltrim($oldPath, '/\\'));
+            if (File::exists($oldFullPath)) {
+                @unlink($oldFullPath);
+            }
+        }
+
+        return $subDir . '/' . $filename;
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -169,11 +239,14 @@ class KeamananBukuTamuController extends Controller
             'ada_surat_tugas' => 'nullable|in:0,1',
             'nomor_surat_tugas' => 'nullable|string|max:150',
             'tanggal_surat_tugas' => 'nullable|date',
+            'foto_tamu' => 'nullable|image|max:10240',
+            'foto_tamu_data' => 'nullable|string',
         ]);
 
         $user = session('user');
         $ptkId = $user['ptk_id'] ?? null;
         $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
+        $fotoPath = $this->handleFotoTamu($request);
 
         DB::table('keamanan_buku_tamu')->insert([
             'tanggal' => $request->tanggal,
@@ -197,6 +270,7 @@ class KeamananBukuTamuController extends Controller
             'keperluan' => $request->keperluan,
             'nomor_kartu_visitor' => $request->nomor_kartu_visitor ?: null,
             'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
+            'foto_tamu' => $fotoPath,
             'petugas_satpam_ptk_id' => $ptkId,
             'is_mandiri' => 0,
             'status' => $request->status ?? 'berada_di_lokasi',
@@ -221,9 +295,21 @@ class KeamananBukuTamuController extends Controller
             'ada_surat_tugas' => 'nullable|in:0,1',
             'nomor_surat_tugas' => 'nullable|string|max:150',
             'tanggal_surat_tugas' => 'nullable|date',
+            'foto_tamu' => 'nullable|image|max:10240',
+            'foto_tamu_data' => 'nullable|string',
         ]);
 
+        $existing = DB::table('keamanan_buku_tamu')->where('id', $id)->first();
+        $oldPath = $existing?->foto_tamu;
+        if ($request->boolean('hapus_foto_tamu')) {
+            if ($oldPath) {
+                @unlink(storage_path('app/public/' . ltrim($oldPath, '/\\')));
+            }
+            $oldPath = null;
+        }
+
         $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
+        $fotoPath = $this->handleFotoTamu($request, $oldPath);
 
         DB::table('keamanan_buku_tamu')->where('id', $id)->update([
             'tanggal' => $request->tanggal,
@@ -247,6 +333,7 @@ class KeamananBukuTamuController extends Controller
             'keperluan' => $request->keperluan,
             'nomor_kartu_visitor' => $request->nomor_kartu_visitor ?: null,
             'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
+            'foto_tamu' => $fotoPath,
             'status' => $request->status ?? 'berada_di_lokasi',
             'updated_at' => now(),
         ]);
@@ -267,6 +354,14 @@ class KeamananBukuTamuController extends Controller
 
     public function destroy($id)
     {
+        $record = DB::table('keamanan_buku_tamu')->where('id', $id)->first();
+        if ($record && !empty($record->foto_tamu)) {
+            $fullPath = storage_path('app/public/' . ltrim($record->foto_tamu, '/\\'));
+            if (File::exists($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
+
         DB::table('keamanan_buku_tamu')->where('id', $id)->delete();
         return redirect()->route('dashboard.keamanan.buku-tamu.index')->with('success', 'Data tamu berhasil dihapus.');
     }
@@ -353,9 +448,12 @@ class KeamananBukuTamuController extends Controller
             'ada_surat_tugas' => 'nullable|in:0,1',
             'nomor_surat_tugas' => 'nullable|required_if:ada_surat_tugas,1|string|max:150',
             'tanggal_surat_tugas' => 'nullable|required_if:ada_surat_tugas,1|date',
+            'foto_tamu' => 'nullable|image|max:10240',
+            'foto_tamu_data' => 'nullable|string',
         ]);
 
         $adaSurat = (bool) $request->input('ada_surat_tugas', 0);
+        $fotoPath = $this->handleFotoTamu($request);
 
         $id = DB::table('keamanan_buku_tamu')->insertGetId([
             'tanggal' => date('Y-m-d'),
@@ -379,6 +477,7 @@ class KeamananBukuTamuController extends Controller
             'keperluan' => $request->keperluan,
             'nomor_kartu_visitor' => null,
             'nomor_polisi_kendaraan' => $request->nomor_polisi_kendaraan ?: null,
+            'foto_tamu' => $fotoPath,
             'petugas_satpam_ptk_id' => null,
             'is_mandiri' => 1,
             'status' => 'berada_di_lokasi',

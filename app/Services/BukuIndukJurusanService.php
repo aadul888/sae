@@ -381,14 +381,17 @@ class BukuIndukJurusanService
             $terisi = 0;
             foreach ($dikenali as $kolom => $_) {
                 $nama = $mapelKolom[$kolom];
-                $raw = $row[$kolom] ?? '';
-                $val = is_string($raw) ? str_replace(',', '.', trim($raw)) : $raw;
-                if ($val === '' || $val === null || !is_numeric($val)) {
+                $cek = BukuIndukNilaiService::nilaiSah($row[$kolom] ?? '');
+                if (!$cek['ok']) {
+                    $errors[] = "Baris {$rowNum}: {$nama} {$cek['pesan']} (wajib " . BukuIndukNilaiService::rentangNilai() . ').';
+                    continue;
+                }
+                if ($cek['nilai'] === null) {
                     continue;
                 }
                 DB::table('buku_induk_nilai')->updateOrInsert(
                     ['peserta_didik_id' => $pdId, 'nama_mata_pelajaran' => $nama, 'semester' => $semester],
-                    ['nilai' => (float) $val, 'kelompok' => $kelompok[$nama] ?? 'umum', 'tingkat' => $tingkat, 'updated_at' => now(), 'created_at' => now()]
+                    ['nilai' => $cek['nilai'], 'kelompok' => $kelompok[$nama] ?? 'umum', 'tingkat' => $tingkat, 'updated_at' => now(), 'created_at' => now()]
                 );
                 $imported++;
                 $terisi++;

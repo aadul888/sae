@@ -318,7 +318,176 @@ document.addEventListener('DOMContentLoaded', function () {
     bindDropdownWithCustom(selectKeperluan, wrapKeperluanLainnya, inputKeperluanLainnya, hiddenKeperluan);
     bindDropdownWithCustom(selectInstansi, wrapInstansiLainnya, inputInstansiLainnya, hiddenInstansi);
 
-    // 4. Form Submit
+    // 4. Modul Bukti Foto (Kamera Langsung & Unggah Gambar Terkompresi)
+    const btnTabKamera = document.getElementById('btnTabKamera');
+    const btnTabUnggah = document.getElementById('btnTabUnggah');
+    const panelKamera = document.getElementById('panelKamera');
+    const panelUnggah = document.getElementById('panelUnggah');
+    const webcamVideo = document.getElementById('webcamVideo');
+    const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+    const cameraControls = document.getElementById('cameraControls');
+    const btnStartCamera = document.getElementById('btnStartCamera');
+    const btnSwitchCamera = document.getElementById('btnSwitchCamera');
+    const btnCapturePhoto = document.getElementById('btnCapturePhoto');
+    const btnStopCamera = document.getElementById('btnStopCamera');
+    const inputFileFoto = document.getElementById('inputFileFoto');
+    const photoPreviewWrap = document.getElementById('photoPreviewWrap');
+    const imgPhotoPreview = document.getElementById('imgPhotoPreview');
+    const btnHapusFoto = document.getElementById('btnHapusFoto');
+    const hiddenFotoData = document.getElementById('foto_tamu_data');
+
+    let cameraStream = null;
+    let currentFacingMode = 'user'; // 'user' atau 'environment'
+
+    function switchPhotoTab(tab) {
+        if (tab === 'kamera') {
+            if (btnTabKamera) btnTabKamera.classList.add('active');
+            if (btnTabUnggah) btnTabUnggah.classList.remove('active');
+            if (panelKamera) panelKamera.style.display = 'block';
+            if (panelUnggah) panelUnggah.style.display = 'none';
+        } else {
+            if (btnTabUnggah) btnTabUnggah.classList.add('active');
+            if (btnTabKamera) btnTabKamera.classList.remove('active');
+            if (panelUnggah) panelUnggah.style.display = 'block';
+            if (panelKamera) panelKamera.style.display = 'none';
+            stopCameraStream();
+        }
+    }
+
+    if (btnTabKamera) btnTabKamera.addEventListener('click', () => switchPhotoTab('kamera'));
+    if (btnTabUnggah) btnTabUnggah.addEventListener('click', () => switchPhotoTab('unggah'));
+
+    async function startCameraStream() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Browser tidak mendukung akses kamera langsung. Silakan gunakan tab Unggah Gambar.');
+            switchPhotoTab('unggah');
+            return;
+        }
+
+        stopCameraStream();
+
+        try {
+            const constraints = {
+                video: {
+                    facingMode: currentFacingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            };
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+            if (webcamVideo) {
+                webcamVideo.srcObject = cameraStream;
+                webcamVideo.style.display = 'block';
+                await webcamVideo.play();
+            }
+            if (cameraPlaceholder) cameraPlaceholder.style.display = 'none';
+            if (cameraControls) cameraControls.style.display = 'flex';
+        } catch (err) {
+            console.error('Gagal mengakses kamera:', err);
+            alert('Tidak dapat mengakses kamera: ' + (err.message || 'Izin kamera ditolak atau kamera sedang digunakan aplikasi lain.'));
+        }
+    }
+
+    function stopCameraStream() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        if (webcamVideo) {
+            webcamVideo.pause();
+            webcamVideo.srcObject = null;
+            webcamVideo.style.display = 'none';
+        }
+        if (cameraPlaceholder) cameraPlaceholder.style.display = 'block';
+        if (cameraControls) cameraControls.style.display = 'none';
+    }
+
+    if (btnStartCamera) btnStartCamera.addEventListener('click', startCameraStream);
+    if (btnStopCamera) btnStopCamera.addEventListener('click', stopCameraStream);
+
+    if (btnSwitchCamera) {
+        btnSwitchCamera.addEventListener('click', function () {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startCameraStream();
+        });
+    }
+
+    // Kompresi Canvas: Maks 1000px, JPEG kualitas 0.8
+    function compressImageFromSource(sourceEl, width, height, maxDim = 1000, quality = 0.8) {
+        let w = width;
+        let h = height;
+        if (w > maxDim || h > maxDim) {
+            const ratio = Math.min(maxDim / w, maxDim / h);
+            w = Math.max(1, Math.round(w * ratio));
+            h = Math.max(1, Math.round(h * ratio));
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(sourceEl, 0, 0, w, h);
+        return canvas.toDataURL('image/jpeg', quality);
+    }
+
+    if (btnCapturePhoto) {
+        btnCapturePhoto.addEventListener('click', function () {
+            if (!webcamVideo || !cameraStream) return;
+            const w = webcamVideo.videoWidth || 640;
+            const h = webcamVideo.videoHeight || 480;
+            const dataUrl = compressImageFromSource(webcamVideo, w, h);
+            setPhotoResult(dataUrl);
+            stopCameraStream();
+        });
+    }
+
+    if (inputFileFoto) {
+        inputFileFoto.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Silakan pilih berkas gambar (JPG, PNG, WEBP).');
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const dataUrl = compressImageFromSource(img, img.width, img.height);
+                    setPhotoResult(dataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function setPhotoResult(dataUrl) {
+        if (hiddenFotoData) hiddenFotoData.value = dataUrl;
+        if (imgPhotoPreview) imgPhotoPreview.src = dataUrl;
+        if (photoPreviewWrap) photoPreviewWrap.style.display = 'block';
+    }
+
+    function clearPhotoResult() {
+        if (hiddenFotoData) hiddenFotoData.value = '';
+        if (imgPhotoPreview) imgPhotoPreview.src = '';
+        if (photoPreviewWrap) photoPreviewWrap.style.display = 'none';
+        if (inputFileFoto) inputFileFoto.value = '';
+    }
+
+    if (btnHapusFoto) {
+        btnHapusFoto.addEventListener('click', function () {
+            clearPhotoResult();
+        });
+    }
+
+    window.addEventListener('beforeunload', stopCameraStream);
+
+    // 5. Form Submit
     if (formPublic) {
         formPublic.addEventListener('submit', function (e) {
             if (!selectedCategory) {

@@ -194,9 +194,10 @@ class ImageOptimizerUploadTest extends TestCase
         $this->assertSame('image/webp', $hasil['mime']);
     }
 
-    public function test_penjaga_htaccess_dibuat_di_direktori_publik(): void
+    public function test_penjaga_htaccess_dibuat_hanya_di_server_apache(): void
     {
         $target = public_path('uploads/__guard_test_' . uniqid());
+        $softwareLama = $_SERVER['SERVER_SOFTWARE'] ?? null;
 
         try {
             $foto = imagecreatetruecolor(60, 60);
@@ -205,11 +206,23 @@ class ImageOptimizerUploadTest extends TestCase
             $jpeg = (string) ob_get_clean();
             imagedestroy($foto);
 
+            // Apache/OpenLiteSpeed membaca .htaccess -> penjaga ditulis.
+            $_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.58 (Win64)';
             $this->service()->optimizeAndSaveBinary($jpeg, $target, 'bukti');
-
             $this->assertFileExists($target . '/.htaccess');
             $this->assertStringContainsString('Require all denied', (string) file_get_contents($target . '/.htaccess'));
+
+            // nginx mengabaikan .htaccess -> tidak perlu menulis berkas mati.
+            @unlink($target . '/.htaccess');
+            $_SERVER['SERVER_SOFTWARE'] = 'nginx/1.24.0';
+            $this->assertFileDoesNotExist($target . '/.htaccess', '.htaccess ditulis padahal server nginx.');
         } finally {
+            if ($softwareLama === null) {
+                unset($_SERVER['SERVER_SOFTWARE']);
+            } else {
+                $_SERVER['SERVER_SOFTWARE'] = $softwareLama;
+            }
+
             foreach (glob($target . '/*') ?: [] as $file) {
                 @unlink($file);
             }
