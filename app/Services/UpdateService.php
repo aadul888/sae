@@ -23,7 +23,8 @@ class UpdateService
     public function checkUpdate(): array
     {
         $setting = Table::exists('settings') ? DB::table('settings')->where('id', 1)->first() : null;
-        $currentVersion = $setting->app_version ?? self::CURRENT_VERSION;
+        // Versi = konstanta kode; settings.app_version hanya mirror (ditulis saat update via updater).
+        $currentVersion = self::CURRENT_VERSION;
         $lastUpdateAt = $setting->last_update_at ?? null;
 
         $hasGit = is_dir(base_path('.git'));

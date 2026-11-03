@@ -41,7 +41,7 @@ class AdminDashboardStatsService
         $sekolah = Table::exists('sekolah') ? DB::table('sekolah')->first() : null;
         $setting = Table::exists('settings') ? DB::table('settings')->first() : null;
         $lastSync = $setting->last_sync ?? null;
-        $appVersion = $setting->app_version ?? UpdateService::CURRENT_VERSION;
+        $appVersion = UpdateService::CURRENT_VERSION;
 
         // Otomatis lapor monitoring ke sae-core (throttled 3 jam agar realtime tanpa membebani)
         try {

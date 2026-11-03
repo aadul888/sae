@@ -3,8 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -69,16 +67,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             static $appVersion = null;
             if ($appVersion === null) {
-                $appVersion = defined('\App\Services\UpdateService::CURRENT_VERSION') 
-                    ? \App\Services\UpdateService::CURRENT_VERSION 
-                    : '1.0.4';
-                try {
-                    if (file_exists(base_path('.env'))) {
-                        $appVersion = DB::table('settings')->where('id', 1)->value('app_version') ?: $appVersion;
-                    }
-                } catch (\Throwable $e) {
-                    // Fallback to default version if DB not ready or table missing
-                }
+                // Versi = konstanta kode (sumber kebenaran). Nilai settings.app_version
+                // bisa tertinggal saat deploy via git pull manual tanpa updater.
+                $appVersion = \App\Services\UpdateService::CURRENT_VERSION;
             }
             $view->with('appVersion', $appVersion);
             $view->with('sysSign', \App\Support\SystemSignature::badge());

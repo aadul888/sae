@@ -83,8 +83,8 @@ class MonitoringReporterService
 
         $tipeInstalasi = $isLocal ? 'lokal' : 'online';
 
-        // ponytail: app_version diambil dari setting atau konstanta UpdateService; fallback ke 1.0.0
-        $appVersion = $setting->app_version ?? (defined('\App\Services\UpdateService::CURRENT_VERSION') ? UpdateService::CURRENT_VERSION : '1.0.0');
+        // ponytail: versi = konstanta kode (sumber kebenaran), bukan settings.app_version yang bisa tertinggal
+        $appVersion = UpdateService::CURRENT_VERSION;
 
         return [
             'npsn' => (string) $npsn,
