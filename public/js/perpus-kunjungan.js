@@ -106,10 +106,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const formDel = btnDelete.closest('form');
             const nama = btnDelete.getAttribute('data-nama') || 'log ini';
 
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus data kunjungan dari \"${nama}\"?", "Hapus Kunjungan?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
-                    formDel.submit();
-                }
+            window.SAE.confirm(
+                `Apakah Anda yakin ingin menghapus data kunjungan dari "${nama}"?`,
+                "Hapus Kunjungan?",
+                "warning",
+                "Ya, Hapus!",
+                "Batal"
+            ).then((ok) => {
+                if (ok) formDel.submit();
             });
         }
     });
