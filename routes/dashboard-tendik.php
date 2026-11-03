@@ -373,6 +373,12 @@ return function () {
         Route::get('/import/template', [\App\Http\Controllers\PerpusImportController::class, 'template'])->name('import.template')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,read');
         Route::post('/import', [\App\Http\Controllers\PerpusImportController::class, 'import'])->name('import.process')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
         Route::post('/koleksi-scan', [\App\Http\Controllers\PerpusImportController::class, 'storeScan'])->name('koleksi.scan')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
+
+        // Penarikan E-Book Kemendikbud & Koleksi Digital
+        Route::get('/ebook', [\App\Http\Controllers\PerpusEbookController::class, 'index'])->name('ebook.index')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,read');
+        Route::post('/ebook/tarik', [\App\Http\Controllers\PerpusEbookController::class, 'tarik'])->name('ebook.tarik')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
+        Route::post('/ebook/tarik-banyak', [\App\Http\Controllers\PerpusEbookController::class, 'tarikBanyak'])->name('ebook.tarik-banyak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
+        Route::post('/ebook/manual', [\App\Http\Controllers\PerpusEbookController::class, 'storeManual'])->name('ebook.manual')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
     });
 
     // 7. Teknisi & Maintenance (Work Order & Pemeliharaan Preventif)

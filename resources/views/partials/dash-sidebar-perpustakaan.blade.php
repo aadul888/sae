@@ -22,6 +22,11 @@
                                 <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book"></i></span>
                                 <span class="nav-label">Katalog &amp; Koleksi Buku</span>
                             </a>
+                            <a href="{{ route('dashboard.perpustakaan.ebook.index') }}"
+                                class="dash-nav-nested-link child-link {{ request()->routeIs('dashboard.perpustakaan.ebook*') ? 'active' : '' }}">
+                                <span class="nav-icon nested-icon"><i class="fas fa-fw fa-cloud-arrow-down"></i></span>
+                                <span class="nav-label">Tarik E-Book Kemendikbud</span>
+                            </a>
                             <a href="{{ route('dashboard.perpustakaan.import.form') }}"
                                 class="dash-nav-nested-link child-link {{ request()->routeIs('dashboard.perpustakaan.import*') ? 'active' : '' }}">
                                 <span class="nav-icon nested-icon"><i class="fas fa-fw fa-file-import"></i></span>

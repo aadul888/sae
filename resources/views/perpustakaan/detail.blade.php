@@ -7,6 +7,7 @@
     $tersedia = (int) ($buku->eksemplar_tersedia ?? 0);
     $totalEks = (int) ($buku->jumlah_eksemplar ?? 0);
     $dipinjam = max(0, $totalEks - $tersedia);
+    $isEbook = ($buku->format ?? 'fisik') === 'ebook' || !empty($buku->tautan_baca) || !empty($buku->file_ebook);
 @endphp
 
 @section('content')
@@ -50,20 +51,40 @@
                     <div
                         style="display:flex;justify-content:space-between;align-items:center;gap:10px;
                                font-size:var(--text-xs,.75rem);color:var(--text-muted);">
-                        <span><i class="fas fa-copy me-1"></i>{{ $totalEks }} eksemplar</span>
-                        <span><i class="fas fa-hand-holding-hand me-1"></i>{{ $dipinjam }} dipinjam</span>
-                        <span style="color:{{ $tersedia > 0 ? 'var(--success,#10b981)' : 'var(--danger,#ef4444)' }};font-weight:800;">
-                            <i class="fas fa-circle-check me-1"></i>{{ $tersedia }} tersedia
-                        </span>
+                        @if ($isEbook)
+                            <span><i class="fas fa-cloud-arrow-down me-1"></i>E-Book Digital</span>
+                            <span><i class="fas fa-eye me-1"></i>{{ $buku->total_dibaca ?? 0 }}× dibaca</span>
+                            <span style="color:var(--success,#10b981);font-weight:800;">
+                                <i class="fas fa-infinity me-1"></i>Akses Terbuka
+                            </span>
+                        @else
+                            <span><i class="fas fa-copy me-1"></i>{{ $totalEks }} eksemplar</span>
+                            <span><i class="fas fa-hand-holding-hand me-1"></i>{{ $dipinjam }} dipinjam</span>
+                            <span style="color:{{ $tersedia > 0 ? 'var(--success,#10b981)' : 'var(--danger,#ef4444)' }};font-weight:800;">
+                                <i class="fas fa-circle-check me-1"></i>{{ $tersedia }} tersedia
+                            </span>
+                        @endif
                     </div>
                 </div>
             </div>
 
             {{-- Info --}}
             <div>
-                <span class="hero-kicker" style="margin-bottom:.6rem;">
-                    <i class="fas fa-tag"></i> {{ $buku->kategori ?: 'Umum' }}
-                </span>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:.6rem;flex-wrap:wrap;">
+                    <span class="hero-kicker" style="margin-bottom:0;">
+                        <i class="fas fa-tag"></i> {{ $buku->kategori ?: 'Umum' }}
+                    </span>
+                    @if ($isEbook)
+                        <span style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(59,130,246,0.12);color:var(--primary);">
+                            <i class="fas fa-bolt me-1"></i>E-BOOK
+                        </span>
+                        @if (!empty($buku->kelas))
+                            <span style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(100,116,139,0.1);color:var(--text-muted);">
+                                Kelas {{ $buku->kelas }}
+                            </span>
+                        @endif
+                    @endif
+                </div>
                 <h1 class="hero-title" style="font-size:clamp(1.4rem,3.5vw,2.05rem);line-height:1.25;margin-bottom:.6rem;">
                     {{ $buku->judul }}
                 </h1>
@@ -85,6 +106,18 @@
                     @endif
                 </div>
 
+                {{-- Sinopsis jika ada --}}
+                @if (!empty($buku->sinopsis))
+                    <div style="margin-bottom:1.1rem;padding:12px 14px;border-radius:var(--radius-md,8px);background:rgba(59,130,246,0.04);border:1px solid var(--border-glass);">
+                        <div style="font-size:var(--text-xs,0.75rem);font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
+                            Sinopsis &amp; Ringkasan
+                        </div>
+                        <p style="margin:0;font-size:var(--text-sm,0.8125rem);color:var(--text-main);line-height:1.5;">
+                            {{ $buku->sinopsis }}
+                        </p>
+                    </div>
+                @endif
+
                 {{-- Grid metadata --}}
                 <div
                     style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.85rem;margin-bottom:1.25rem;">
@@ -92,9 +125,15 @@
                         $meta = [
                             ['label' => 'Penerbit', 'value' => $buku->penerbit ?: '-', 'icon' => 'fa-building'],
                             ['label' => 'Tahun Terbit', 'value' => $buku->tahun_terbit ?: '-', 'icon' => 'fa-calendar'],
-                            ['label' => 'ISBN', 'value' => $buku->isbn ?: '-', 'icon' => 'fa-barcode'],
-                            ['label' => 'Lokasi Rak', 'value' => $buku->lokasi_rak ?: '-', 'icon' => 'fa-map-location-dot'],
+                            ['label' => 'Format', 'value' => $isEbook ? 'Buku Digital (E-Book)' : 'Buku Fisik', 'icon' => $isEbook ? 'fa-tablet-screen-button' : 'fa-book'],
+                            ['label' => 'Lokasi / Akses', 'value' => $isEbook ? 'Online / Bebas Akses' : ($buku->lokasi_rak ?: '-'), 'icon' => $isEbook ? 'fa-globe' : 'fa-map-location-dot'],
                         ];
+                        if (!empty($buku->isbn)) {
+                            $meta[] = ['label' => 'ISBN', 'value' => $buku->isbn, 'icon' => 'fa-barcode'];
+                        }
+                        if (!empty($buku->jurusan)) {
+                            $meta[] = ['label' => 'Program Keahlian', 'value' => $buku->jurusan, 'icon' => 'fa-graduation-cap'];
+                        }
                     @endphp
                     @foreach ($meta as $m)
                         <div
@@ -115,7 +154,18 @@
 
                 {{-- Aksi --}}
                 <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-                    @if ($member)
+                    @if ($isEbook)
+                        <a href="{{ route('perpustakaan.buku.baca', $buku->id) }}" class="btn btn-primary"
+                            style="display:inline-flex;align-items:center;gap:8px;">
+                            <i class="fas fa-book-open-reader"></i> Baca E-Book Sekarang
+                        </a>
+                        @if (!empty($buku->tautan_baca))
+                            <a href="{{ $buku->tautan_baca }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline"
+                                style="display:inline-flex;align-items:center;gap:8px;">
+                                <i class="fas fa-arrow-up-right-from-square"></i> Sumber Asli Kemendikbud
+                            </a>
+                        @endif
+                    @elseif ($member)
                         @if ($tersedia > 0)
                             <a href="{{ route('perpustakaan.katalog', ['tersedia' => 1]) }}" class="btn btn-primary"
                                 style="display:inline-flex;align-items:center;gap:8px;">

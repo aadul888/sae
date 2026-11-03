@@ -101,6 +101,7 @@ Route::prefix('perpustakaan')->name('perpustakaan.')->group(function () {
     Route::get('/portal', [\App\Http\Controllers\PerpusPublicController::class, 'portal'])->name('portal');
     Route::get('/katalog', [\App\Http\Controllers\PerpusPublicController::class, 'katalog'])->name('katalog');
     Route::get('/buku/{id}', [\App\Http\Controllers\PerpusPublicController::class, 'detail'])->name('buku.detail');
+    Route::get('/buku/{id}/baca', [\App\Http\Controllers\PerpusPublicController::class, 'baca'])->name('buku.baca');
     Route::post('/buku/{id}/reservasi', [\App\Http\Controllers\PerpusPublicController::class, 'reservasi'])->name('buku.reservasi');
     Route::post('/buku/{id}/ulasan', [\App\Http\Controllers\PerpusPublicController::class, 'simpanUlasan'])->name('buku.ulasan');
     Route::post('/reservasi/{id}/batal', [\App\Http\Controllers\PerpusPublicController::class, 'batalkanReservasi'])->name('reservasi.batal');

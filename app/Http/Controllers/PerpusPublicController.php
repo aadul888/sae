@@ -44,6 +44,7 @@ class PerpusPublicController extends Controller
 
         $q = trim((string) $request->query('q', ''));
         $kategori = trim((string) $request->query('kategori', ''));
+        $format = trim((string) $request->query('format', ''));
 
         $hasKoleksi = Table::exists('perpus_koleksi_buku');
         $query = $hasKoleksi ? DB::table('perpus_koleksi_buku') : null;
@@ -65,6 +66,9 @@ class PerpusPublicController extends Controller
             if ($kategori !== '') {
                 $query->where('kategori', $kategori);
             }
+            if ($format !== '' && in_array($format, ['fisik', 'ebook'], true)) {
+                $query->where('format', $format);
+            }
             if ($q !== '') {
                 $query->where(function ($qb) use ($q) {
                     $qb->where('judul', 'like', "%{$q}%")
@@ -82,6 +86,7 @@ class PerpusPublicController extends Controller
             'eksemplar'      => $totalEksemplar,
             'tersedia'       => $totalTersedia,
             'dipinjam'       => max(0, $totalDipinjam),
+            'ebook'          => $hasKoleksi && Table::hasColumn('perpus_koleksi_buku', 'format') ? (int) DB::table('perpus_koleksi_buku')->where('format', 'ebook')->count() : 0,
             'anggota'        => Table::exists('perpus_anggota') ? (int) DB::table('perpus_anggota')->where('is_active', true)->count() : 0,
             'kunjungan_hari' => Table::exists('perpus_kunjungan') ? (int) DB::table('perpus_kunjungan')->whereDate('tanggal', now()->toDateString())->count() : 0,
             'pinjam_hari'    => Table::exists('perpus_sirkulasi') ? (int) DB::table('perpus_sirkulasi')->whereDate('tgl_pinjam', now()->toDateString())->count() : 0,
@@ -386,6 +391,7 @@ class PerpusPublicController extends Controller
         $member = $this->currentMember();
         $q = trim((string) $request->query('q', ''));
         $kategori = trim((string) $request->query('kategori', ''));
+        $format = trim((string) $request->query('format', ''));
         $hanyaTersedia = $request->boolean('tersedia');
 
         $base = Table::exists('perpus_koleksi_buku') ? DB::table('perpus_koleksi_buku') : null;
@@ -398,6 +404,9 @@ class PerpusPublicController extends Controller
             $q2 = clone $base;
             if ($kategori !== '') {
                 $q2->where('kategori', $kategori);
+            }
+            if ($format !== '' && in_array($format, ['fisik', 'ebook'], true)) {
+                $q2->where('format', $format);
             }
             if ($hanyaTersedia) {
                 $q2->where('eksemplar_tersedia', '>', 0);
@@ -415,8 +424,44 @@ class PerpusPublicController extends Controller
         }
 
         return view('perpustakaan.katalog', compact(
-            'member', 'buku', 'q', 'kategori', 'kategoriList', 'hanyaTersedia'
+            'member', 'buku', 'q', 'kategori', 'kategoriList', 'hanyaTersedia', 'format'
         ));
+    }
+
+    /**
+     * Membuka reader e-book, mencatat kunjungan digital, dan memberikan reward poin literasi.
+     */
+    public function baca(int $id)
+    {
+        $member = $this->currentMember();
+
+        if (!Table::exists('perpus_koleksi_buku')) {
+            return redirect()->route('perpustakaan.katalog');
+        }
+
+        $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+        if (!$buku) {
+            return redirect()->route('perpustakaan.katalog')->with('error', 'Buku tidak ditemukan.');
+        }
+
+        if (($buku->format ?? 'fisik') !== 'ebook' && empty($buku->tautan_baca) && empty($buku->file_ebook)) {
+            return redirect()->route('perpustakaan.buku.detail', $id)
+                ->with('error', 'Buku ini adalah buku fisik. Silakan pinjam langsung di perpustakaan.');
+        }
+
+        $hasil = \App\Services\PerpustakaanEbookService::catatMembaca($id, $member);
+        $urlBaca = $hasil['tautan_baca'] ?? $buku->tautan_baca;
+
+        if (!$urlBaca && $buku->file_ebook) {
+            $urlBaca = asset('storage/' . $buku->file_ebook);
+        }
+
+        if (!$urlBaca) {
+            return redirect()->route('perpustakaan.buku.detail', $id)
+                ->with('error', 'Tautan baca e-book belum tersedia.');
+        }
+
+        return view('perpustakaan.baca', compact('buku', 'member', 'urlBaca', 'hasil'));
     }
 
     public function detail(int $id)

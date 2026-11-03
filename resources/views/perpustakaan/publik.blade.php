@@ -141,6 +141,15 @@
                     <div class="kpi-desc">Sedang Dipinjam</div>
                 </div>
             </div>
+            @if (!empty($stats['ebook']))
+                <div class="kpi-card">
+                    <div class="kpi-icon blue"><i class="fas fa-cloud-arrow-down"></i></div>
+                    <div>
+                        <div class="kpi-num" data-count="{{ $stats['ebook'] }}">0</div>
+                        <div class="kpi-desc">E-Book Digital</div>
+                    </div>
+                </div>
+            @endif
             <div class="kpi-card">
                 <div class="kpi-icon purple"><i class="fas fa-id-card"></i></div>
                 <div>
@@ -267,13 +276,18 @@
             <form method="GET" action="{{ route('perpustakaan.index') }}" class="filter-strip"
                 style="margin-bottom:1.5rem;">
                 <input type="text" name="q" value="{{ $q }}" class="filter-select"
-                    placeholder="Cari judul, penulis, penerbit, atau ISBN..." style="flex:2 1 260px;">
-                <select name="kategori" class="filter-select">
+                    placeholder="Cari judul, penulis, penerbit, atau ISBN..." style="flex:2 1 240px;">
+                <select name="kategori" class="filter-select" style="flex:1 1 150px;">
                     <option value="">Semua Kategori</option>
                     @foreach ($kategoriList as $opt)
                         <option value="{{ $opt }}" {{ $kategori === $opt ? 'selected' : '' }}>{{ $opt }}
                         </option>
                     @endforeach
+                </select>
+                <select name="format" class="filter-select" style="flex:1 1 130px;">
+                    <option value="">Semua Format</option>
+                    <option value="fisik" {{ request('format') === 'fisik' ? 'selected' : '' }}>Buku Fisik</option>
+                    <option value="ebook" {{ request('format') === 'ebook' ? 'selected' : '' }}>E-Book Digital</option>
                 </select>
                 <button type="submit" class="btn btn-primary"
                     style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;">
@@ -284,19 +298,30 @@
             @if ($buku->isEmpty())
                 <div class="chart-box" style="text-align:center;padding:3rem 1.5rem;">
                     <i class="fas fa-book"
-                        style="font-size:var(--text-4xl,2.5rem);opacity:.35;display:block;margin-bottom:12px;"></i>
+                        style="font-size:var(--text-4xl);opacity:.35;display:block;margin-bottom:12px;"></i>
                     <div style="color:var(--text-muted);">Belum ada koleksi yang cocok dengan pencarian Anda.</div>
                 </div>
             @else
                 <div class="services-grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));">
                     @foreach ($buku as $b)
-                        @php $tersedia = (int) ($b->eksemplar_tersedia ?? 0); @endphp
+                        @php
+                            $tersedia = (int) ($b->eksemplar_tersedia ?? 0);
+                            $isEb = ($b->format ?? 'fisik') === 'ebook' || !empty($b->tautan_baca) || !empty($b->file_ebook);
+                        @endphp
                         <div class="service-card" style="gap:10px;">
                             <div>
                                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                                     <h3 class="service-title" style="flex:1;">{{ $b->judul }}</h3>
-                                    <span
-                                        style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(59,130,246,.12);color:var(--primary);white-space:nowrap;">{{ $b->kategori ?: 'Umum' }}</span>
+                                    <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+                                        @if ($isEb)
+                                            <span
+                                                style="font-size:var(--text-2xs);font-weight:700;padding:3px 8px;border-radius:var(--radius-pill);background:rgba(59,130,246,.15);color:var(--primary);white-space:nowrap;">
+                                                <i class="fas fa-bolt me-1"></i>E-Book
+                                            </span>
+                                        @endif
+                                        <span
+                                            style="font-size:var(--text-2xs);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill);background:rgba(100,116,139,.1);color:var(--text-muted);white-space:nowrap;">{{ $b->kategori ?: 'Umum' }}</span>
+                                    </div>
                                 </div>
                                 <ul class="service-list" style="margin-top:8px;">
                                     <li><i class="fas fa-user-pen text-primary me-2"></i>
@@ -305,7 +330,9 @@
                                         {{ $b->penerbit ?: '-' }}{{ $b->tahun_terbit ? ' (' . $b->tahun_terbit . ')' : '' }}
                                     </li>
                                     <li>
-                                        @if ($tersedia > 0)
+                                        @if ($isEb)
+                                            <i class="fas fa-infinity text-success me-2"></i> Akses Terbuka (Digital)
+                                        @elseif ($tersedia > 0)
                                             <i class="fas fa-circle-check text-success me-2"></i> Tersedia
                                             {{ $tersedia }} eksemplar
                                         @else
@@ -313,6 +340,23 @@
                                         @endif
                                     </li>
                                 </ul>
+                                <div style="margin-top:12px;display:flex;gap:6px;">
+                                    @if ($isEb)
+                                        <a href="{{ route('perpustakaan.buku.baca', $b->id) }}" class="btn btn-primary"
+                                            style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:6px 10px;">
+                                            <i class="fas fa-book-open-reader"></i> Baca Online
+                                        </a>
+                                        <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
+                                            style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;font-size:var(--text-xs);" title="Detail Buku">
+                                            <i class="fas fa-circle-info"></i>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
+                                            style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:6px 10px;">
+                                            <i class="fas fa-circle-info"></i> Detail Buku
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach

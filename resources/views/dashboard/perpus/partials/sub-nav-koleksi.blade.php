@@ -1,9 +1,9 @@
-{{-- Partial: Sub-tab Katalog & Koleksi (daftar katalog, import massal, input scan barcode).
+{{-- Partial: Sub-tab Katalog & Koleksi (daftar katalog, tarik ebook, import massal, input scan barcode).
      Dipakai oleh halaman Katalog (koleksi) dan halaman Import & Scan agar keduanya terasa satu modul. --}}
 @php
     $bagianKoleksi = request()->routeIs('dashboard.perpustakaan.import*')
         ? (request()->query('bagian') === 'scan' ? 'scan' : 'import')
-        : 'daftar';
+        : (request()->routeIs('dashboard.perpustakaan.ebook*') ? 'ebook' : 'daftar');
 
     $subKoleksi = [
         [
@@ -11,6 +11,12 @@
             'label' => 'Daftar Katalog',
             'icon' => 'fas fa-list',
             'url' => route('dashboard.perpustakaan.koleksi.index'),
+        ],
+        [
+            'kunci' => 'ebook',
+            'label' => 'Tarik E-Book Kemendikbud',
+            'icon' => 'fas fa-cloud-arrow-down',
+            'url' => route('dashboard.perpustakaan.ebook.index'),
         ],
         [
             'kunci' => 'import',

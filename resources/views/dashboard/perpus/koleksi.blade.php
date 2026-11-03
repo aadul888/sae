@@ -190,7 +190,14 @@
                                     @endif
                                 </td>
                                 <td style="padding: 14px 18px;" data-label="Judul Buku">
-                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">{{ $item->judul }}</div>
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem);">
+                                        {{ $item->judul }}
+                                        @if (($item->format ?? 'fisik') === 'ebook' || !empty($item->tautan_baca))
+                                            <span class="badge badge-info" style="font-size:var(--text-2xs);padding:2px 6px;margin-left:6px;vertical-align:middle;">
+                                                <i class="fas fa-cloud-arrow-down me-1"></i>E-Book
+                                            </span>
+                                        @endif
+                                    </div>
                                     @if ($item->tahun_terbit)
                                         <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Tahun:
                                             {{ $item->tahun_terbit }}</div>

@@ -23,6 +23,7 @@ class PerpustakaanMemberService
         'kembali_tepat'   => 15,
         'kembali_telat'   => 3,
         'kunjungan'       => 2,
+        'baca_ebook'      => 3,
         'ulasan'          => 5,
         'reservasi'       => 2,
     ];
