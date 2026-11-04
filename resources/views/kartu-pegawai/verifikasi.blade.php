@@ -71,8 +71,27 @@
                 <!-- Foto Pegawai -->
                 <div class="pd-photo-col">
                     <div class="pd-photo-wrap">
-                        @if (!empty($card['foto_url']))
-                            <img src="{{ $card['foto_url'] }}" alt="Foto {{ $card['nama'] }}" class="main-photo">
+                        @php
+                            $rawFotoUrl = $card['foto_url'] ?? null;
+                            $fotoSrc = null;
+                            if (!empty($rawFotoUrl)) {
+                                $p = parse_url($rawFotoUrl);
+                                if (!empty($p['path'])) {
+                                    $fotoSrc = $p['path'] . (!empty($p['query']) ? '?' . $p['query'] : '');
+                                } else {
+                                    $fotoSrc = $rawFotoUrl;
+                                }
+                            }
+                        @endphp
+                        @if (!empty($fotoSrc))
+                            <img src="{{ $fotoSrc }}" data-fallback-url="{{ $rawFotoUrl }}" alt="Foto {{ $card['nama'] }}" class="main-photo"
+                                onerror="if(this.dataset.fallbackUrl && this.src !== this.dataset.fallbackUrl){ this.src = this.dataset.fallbackUrl; } else { this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex'; }">
+                            <div style="display: none; position: relative; z-index: 2; text-align: center; color: var(--text-muted, #94a3b8);">
+                                <i class="fas fa-user-tie" style="font-size: 42px; opacity: 0.65;"></i>
+                                <div style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">
+                                    PASFOTO
+                                </div>
+                            </div>
                         @else
                             <div style="position: relative; z-index: 2; text-align: center; color: var(--text-muted, #94a3b8);">
                                 <i class="fas fa-user-tie" style="font-size: 42px; opacity: 0.65;"></i>

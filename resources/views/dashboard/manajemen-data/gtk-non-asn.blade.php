@@ -6,6 +6,7 @@
 @section('content')
     @php
         $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
+        $canManageGtkPhotos = ($canUpdate ?? false) || $isAdmin;
         $gtkTabs = [
             [
                 'key' => 'guru',
@@ -226,10 +227,21 @@
                             <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Nama">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span
-                                        style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;">
-                                        <i class="fas fa-user-clock"></i>
-                                    </span>
+                                    @php($fotoUrl = \App\Services\GtkFotoService::url($item->foto_path ?? null))
+                                    <div class="pd-foto-thumb {{ $fotoUrl ? '' : 'empty' }}"
+                                        id="gtkFotoThumb_nonasn:{{ $item->id }}"
+                                        @if ($canManageGtkPhotos) onclick="openGtkFotoModal('nonasn:{{ $item->id }}', '{{ addslashes($item->nama) }}', '{{ $item->nuptk ?? ($item->nip ?? ($item->nik ?? '')) }}', '{{ $fotoUrl ?? '' }}')"
+                                            title="Klik untuk unggah / ganti pasfoto GTK (PNG)"
+                                        @else
+                                            title="Pasfoto GTK" @endif
+                                        style="width: 42px; height: 42px; flex-shrink: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; border: 1.5px {{ $fotoUrl ? 'solid var(--border-color)' : 'dashed rgba(99,102,241,0.4)' }}; background: {{ $fotoUrl ? 'repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px' : 'rgba(99,102,241,0.08)' }}; display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: {{ $canManageGtkPhotos ? 'pointer' : 'default' }};">
+                                        @if ($fotoUrl)
+                                            <img src="{{ $fotoUrl }}" alt="Foto {{ $item->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                        @else
+                                            <i class="fas fa-camera"></i>
+                                        @endif
+                                    </div>
                                     <div>
                                         <div>{{ $item->nama }}</div>
                                         <div
@@ -643,8 +655,13 @@
     @endif
 
     @include('kartu-pegawai.modal-fullscreen')
+    @include('partials.modal-upload-foto-gtk', [
+        'uploadUrl' => route('dashboard.gtk-non-asn.upload-foto'),
+        'deleteUrl' => route('dashboard.gtk-non-asn.delete-foto'),
+    ])
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/gtk-non-asn.js') }}?v={{ filemtime(public_path('js/gtk-non-asn.js')) }}"></script>
+    <script src="{{ asset('js/gtk-foto.js') }}?v={{ filemtime(public_path('js/gtk-foto.js')) }}"></script>
 @endpush

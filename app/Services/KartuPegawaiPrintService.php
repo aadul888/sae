@@ -150,10 +150,22 @@ class KartuPegawaiPrintService
             // Foto Profil
             $fotoUrl = null;
             if ($penggunaId) {
-                $fotoUrl = User::where('pengguna_id', $penggunaId)->first()?->foto_url;
+                $fotoUrl = User::where('pengguna_id', $penggunaId)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
             }
             if (!$fotoUrl && $username) {
-                $fotoUrl = User::where('username', $username)->first()?->foto_url;
+                $fotoUrl = User::where('username', $username)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
+            }
+            if (!$fotoUrl && !empty($namaDasar)) {
+                $fotoUrl = User::where('nama', $namaDasar)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
             }
         } else {
             $sumber = 'dapodik';
@@ -211,7 +223,31 @@ class KartuPegawaiPrintService
             $username = $u?->username;
 
             // Foto Profil
-            $fotoUrl = User::where('ptk_id', $ptkRow->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
+            $fotoUrl = User::where('ptk_id', $ptkRow->ptk_id)
+                ->whereNotNull('foto_path')
+                ->where('foto_path', '!=', '')
+                ->first()?->foto_url;
+
+            if (!$fotoUrl && $penggunaId) {
+                $fotoUrl = User::where('pengguna_id', $penggunaId)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
+            }
+
+            if (!$fotoUrl && $username) {
+                $fotoUrl = User::where('username', $username)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
+            }
+
+            if (!$fotoUrl && !empty($namaDasar)) {
+                $fotoUrl = User::where('nama', $namaDasar)
+                    ->whereNotNull('foto_path')
+                    ->where('foto_path', '!=', '')
+                    ->first()?->foto_url;
+            }
         }
 
         // Fallback foto dari sesi jika pengguna yang sedang login melihat kartu miliknya
@@ -219,7 +255,15 @@ class KartuPegawaiPrintService
             $sUser = session('user');
             $sPtkId = is_array($sUser) ? ($sUser['ptk_id'] ?? null) : ($sUser->ptk_id ?? null);
             $sPenggunaId = is_array($sUser) ? ($sUser['pengguna_id'] ?? null) : ($sUser->pengguna_id ?? null);
-            if (($sPtkId && $sPtkId === $identifier) || ($sPenggunaId && $sPenggunaId === $penggunaId)) {
+            $sNama = is_array($sUser) ? ($sUser['nama'] ?? ($sUser['name'] ?? null)) : ($sUser->nama ?? ($sUser->name ?? null));
+            $sNip = is_array($sUser) ? ($sUser['nip'] ?? null) : ($sUser->nip ?? null);
+
+            $isSelf = ($sPtkId && ($sPtkId === $identifier || $sPtkId === ($ptkRow->ptk_id ?? null))) ||
+                ($sPenggunaId && ($sPenggunaId === ($penggunaId ?? null))) ||
+                ($sNip && !empty($nip) && $nip !== '-' && $sNip === $nip) ||
+                ($sNama && !empty($namaDasar) && strcasecmp($sNama, $namaDasar) === 0);
+
+            if ($isSelf) {
                 $fotoUrl = is_array($sUser) ? ($sUser['foto_url'] ?? null) : ($sUser->foto_url ?? null);
             }
         }

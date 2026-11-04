@@ -95,13 +95,25 @@
     <div class="dash-banner"
         style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
-            @if ($fotoUrl)
+            @php
+                $rawBannerFoto = $fotoUrl ?? null;
+                $bannerFotoSrc = null;
+                if (!empty($rawBannerFoto)) {
+                    $p = parse_url($rawBannerFoto);
+                    if (!empty($p['path'])) {
+                        $bannerFotoSrc = $p['path'] . (!empty($p['query']) ? '?' . $p['query'] : '');
+                    } else {
+                        $bannerFotoSrc = $rawBannerFoto;
+                    }
+                }
+            @endphp
+            @if ($bannerFotoSrc)
                 <!-- Pasfoto Guru / Pendidik -->
                 <div class="dash-banner-foto"
                     style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}"
+                    <img src="{{ $bannerFotoSrc }}" data-fallback-url="{{ $rawBannerFoto }}" alt="{{ $userName }}"
                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: var(--radius-lg, 12px); filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
-                        onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                        onerror="if(this.dataset.fallbackUrl && this.src !== this.dataset.fallbackUrl){ this.src = this.dataset.fallbackUrl; } else { this.style.display='none'; this.parentElement.style.display='none'; }">
                 </div>
             @endif
 

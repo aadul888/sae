@@ -17,6 +17,9 @@ class GtkGabunganService
     /** Status penanda baris yang berasal dari input lokal. */
     public const SUMBER_NON_ASN = 'non_asn';
 
+    /** Cache foto_path per pengguna_id selama satu request. */
+    private array $fotoCache = [];
+
     public function nonAsnTersedia(): bool
     {
         return Table::exists('gtk_non_asn');
@@ -71,7 +74,26 @@ class GtkGabunganService
             'no_hp' => $row->no_hp,
             'alamat_jalan' => $row->alamat,
             'sumber_data' => self::SUMBER_NON_ASN,
+            'foto_path' => $this->fotoPath($row->pengguna_id ?? null),
         ];
+    }
+
+    /**
+     * Path pasfoto GTK dari akun `pengguna` (kolom yang tidak disentuh sync Dapodik).
+     */
+    private function fotoPath(?string $penggunaId): ?string
+    {
+        if (empty($penggunaId)) {
+            return null;
+        }
+
+        if (!array_key_exists($penggunaId, $this->fotoCache)) {
+            $this->fotoCache[$penggunaId] = Table::exists('pengguna')
+                ? DB::table('pengguna')->where('pengguna_id', $penggunaId)->value('foto_path')
+                : null;
+        }
+
+        return $this->fotoCache[$penggunaId];
     }
 
     /**

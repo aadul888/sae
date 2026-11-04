@@ -497,14 +497,20 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif,read');
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif,read');
     Route::post('/manajemen-data/guru-aktif/{id}/gelar', [\App\Http\Controllers\GuruAktifController::class, 'updateGelar'])->name('guru-aktif.update-gelar')->middleware('permission:menu_guru_aktif,update');
+    Route::post('/manajemen-data/guru-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'uploadFoto'])->name('guru-aktif.upload-foto')->middleware('permission:menu_guru_aktif,update');
+    Route::delete('/manajemen-data/guru-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'deleteFoto'])->name('guru-aktif.delete-foto')->middleware('permission:menu_guru_aktif,update');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif,read');
     Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif,read');
+    Route::post('/manajemen-data/tendik-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'uploadFoto'])->name('tendik-aktif.upload-foto')->middleware('permission:menu_tendik_aktif,update');
+    Route::delete('/manajemen-data/tendik-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'deleteFoto'])->name('tendik-aktif.delete-foto')->middleware('permission:menu_tendik_aktif,update');
 
     // GTK Non-ASN — data input lokal, di luar Dapodik (tabel gtk_non_asn)
     Route::get('/manajemen-data/gtk-non-asn', [\App\Http\Controllers\GtkNonAsnController::class, 'index'])->name('gtk-non-asn.index')->middleware('permission:menu_gtk_non_asn,read');
     Route::get('/manajemen-data/gtk-non-asn/download-template', [\App\Http\Controllers\GtkNonAsnController::class, 'downloadTemplate'])->name('gtk-non-asn.download-template')->middleware('permission:menu_gtk_non_asn,read');
     Route::post('/manajemen-data/gtk-non-asn/import', [\App\Http\Controllers\GtkNonAsnController::class, 'import'])->name('gtk-non-asn.import')->middleware('permission:menu_gtk_non_asn,create');
     Route::post('/manajemen-data/gtk-non-asn', [\App\Http\Controllers\GtkNonAsnController::class, 'store'])->name('gtk-non-asn.store')->middleware('permission:menu_gtk_non_asn,create');
+    Route::post('/manajemen-data/gtk-non-asn/foto', [\App\Http\Controllers\GtkFotoController::class, 'uploadFoto'])->name('gtk-non-asn.upload-foto')->middleware('permission:menu_gtk_non_asn,update');
+    Route::delete('/manajemen-data/gtk-non-asn/foto', [\App\Http\Controllers\GtkFotoController::class, 'deleteFoto'])->name('gtk-non-asn.delete-foto')->middleware('permission:menu_gtk_non_asn,update');
     Route::put('/manajemen-data/gtk-non-asn/{id}', [\App\Http\Controllers\GtkNonAsnController::class, 'update'])->name('gtk-non-asn.update')->middleware('permission:menu_gtk_non_asn,update');
     Route::delete('/manajemen-data/gtk-non-asn/{id}', [\App\Http\Controllers\GtkNonAsnController::class, 'destroy'])->name('gtk-non-asn.destroy')->middleware('permission:menu_gtk_non_asn,delete');
     Route::post('/manajemen-data/gtk-non-asn/{id}/buat-akun', [\App\Http\Controllers\GtkNonAsnController::class, 'buatAkun'])->name('gtk-non-asn.buat-akun')->middleware('permission:menu_pengguna,create|menu_gtk_non_asn,create');

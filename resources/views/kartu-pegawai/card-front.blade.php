@@ -31,11 +31,28 @@
     <div class="kp-divider"></div>
 
     <!-- Body Kartu (Portrait) -->
-    <div class="kp-body-portrait">
+    <div class="kp-body-portrait" style="justify-content: flex-start; gap: 0;">
         <!-- Pasfoto Pegawai -->
         <div class="kp-photo-box">
-            @if (!empty($card['foto_url']))
-                <img src="{{ $card['foto_url'] }}" alt="Pasfoto {{ $card['nama'] }}" class="kp-student-photo">
+            @php
+                $rawFotoUrl = $card['foto_url'] ?? null;
+                $fotoSrc = null;
+                if (!empty($rawFotoUrl)) {
+                    $p = parse_url($rawFotoUrl);
+                    if (!empty($p['path'])) {
+                        $fotoSrc = $p['path'] . (!empty($p['query']) ? '?' . $p['query'] : '');
+                    } else {
+                        $fotoSrc = $rawFotoUrl;
+                    }
+                }
+            @endphp
+            @if (!empty($fotoSrc))
+                <img src="{{ $fotoSrc }}" data-fallback-url="{{ $rawFotoUrl }}" alt="Pasfoto {{ $card['nama'] }}" class="kp-student-photo"
+                    onerror="if(this.dataset.fallbackUrl && this.src !== this.dataset.fallbackUrl){ this.src = this.dataset.fallbackUrl; } else { this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex'; }">
+                <div class="kp-photo-placeholder" style="display: none; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
+                    <i class="fas fa-user-tie" style="color: #64748b; font-size: 16pt;"></i>
+                    <span style="font-size: 5pt; font-weight: 700; color: #64748b; margin-top: 2px;">PEGAWAI</span>
+                </div>
             @else
                 <div class="kp-photo-placeholder" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
                     <i class="fas fa-user-tie" style="color: #64748b; font-size: 16pt;"></i>
@@ -45,7 +62,7 @@
         </div>
 
         <!-- Biodata Singkat Pegawai -->
-        <div class="kp-student-info">
+        <div class="kp-student-info" style="margin-top: 1.5mm; flex-shrink: 0;">
             <div class="kp-student-name" title="{{ $card['nama'] }}">
                 {{ $card['nama'] }}
             </div>
@@ -59,13 +76,15 @@
             </div>
         </div>
 
-        <!-- QR Code Direct Scan (Presensi / Verifikasi) -->
-        <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" ontouchstart="event.stopPropagation()"
-            ontouchend="event.stopPropagation(); zoomKpQrCode(event, this);" data-pegawai-name="{{ $card['nama'] }}"
-            data-pegawai-code="{{ !empty($card['nip']) && $card['nip'] !== '-' ? $card['nip'] : '-' }}"
-            title="Klik untuk memperbesar QR Code (Presensi / Verifikasi)">
-            <div class="kp-qr-wrapper">
-                {!! $card['qr_code_svg'] !!}
+        <!-- Area Tengah Vertikal: QR Code Berada Persis di Tengah Antara Pill NIP dan Garis Bawah Footer -->
+        <div class="kp-qr-center-area" style="flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 0; margin: 0;">
+            <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" ontouchstart="event.stopPropagation()"
+                ontouchend="event.stopPropagation(); zoomKpQrCode(event, this);" data-pegawai-name="{{ $card['nama'] }}"
+                data-pegawai-code="{{ !empty($card['nip']) && $card['nip'] !== '-' ? $card['nip'] : '-' }}"
+                title="Klik untuk memperbesar QR Code (Presensi / Verifikasi)" style="margin: 0;">
+                <div class="kp-qr-wrapper" style="width: 21.5mm; height: 21.5mm; padding: 1mm; border-radius: 2mm;">
+                    {!! $card['qr_code_svg'] !!}
+                </div>
             </div>
         </div>
     </div>

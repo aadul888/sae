@@ -90,6 +90,10 @@ class TendikAktifController extends Controller
 
         $baseFilterTendik($baseQuery);
 
+        $baseQuery->addSelect(
+            DB::raw("(SELECT p.foto_path FROM pengguna p WHERE p.ptk_id = gtk.ptk_id LIMIT 1) as foto_path")
+        );
+
         if ($q !== '') {
             $baseQuery->where(function ($sub) use ($q) {
                 $sub->where('nama', 'LIKE', "%{$q}%")

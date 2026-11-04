@@ -113,7 +113,15 @@ class User extends Authenticatable
 
         $cleanPath = ltrim($path, '/');
         $fullPath = storage_path('app/public/' . $cleanPath);
-        $version = file_exists($fullPath) ? filemtime($fullPath) : null;
+        $publicPath = public_path('storage/' . $cleanPath);
+
+        // Hanya bentuk URL jika berkas fisik benar-benar ada di storage lokal
+        $exists = file_exists($fullPath) || file_exists($publicPath);
+        if (!$exists) {
+            return null;
+        }
+
+        $version = file_exists($fullPath) ? filemtime($fullPath) : (file_exists($publicPath) ? filemtime($publicPath) : null);
 
         $url = asset('storage/' . $cleanPath);
         return $version ? ($url . '?v=' . $version) : $url;

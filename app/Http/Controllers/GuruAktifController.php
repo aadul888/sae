@@ -112,6 +112,10 @@ class GuruAktifController extends Controller
             ]);
         }
 
+        $baseQuery->addSelect(
+            DB::raw("(SELECT p.foto_path FROM pengguna p WHERE p.ptk_id = gtk.ptk_id LIMIT 1) as foto_path")
+        );
+
         $baseFilterGuru($baseQuery);
 
         if ($q !== '') {

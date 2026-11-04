@@ -93,6 +93,12 @@ class GtkNonAsnController extends Controller
 
             $all = $query->get();
 
+            // Pasfoto tersimpan di akun login (pengguna.foto_path), bukan di gtk_non_asn.
+            $fotoPaths = DB::table('pengguna')
+                ->whereIn('pengguna_id', $all->pluck('pengguna_id')->filter()->all())
+                ->pluck('foto_path', 'pengguna_id');
+            $all->each(fn ($r) => $r->foto_path = $fotoPaths[$r->pengguna_id] ?? null);
+
             $summary = [
                 'total'      => $all->count(),
                 'aktif'      => $all->where('status', 'aktif')->count(),
