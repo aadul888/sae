@@ -34,58 +34,35 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Buku Agenda Surat Masuk">
-                    <i class="fas fa-inbox text-primary"></i>
-                </a>
-                <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Pengaturan Persuratan &amp; Harddisk">
-                    <i class="fas fa-sliders text-muted"></i>
-                </a>
-                <button type="button" class="btn btn-outline" id="btnOpenCetakAgendaKeluar"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Cetak Buku Agenda Surat Keluar">
-                    <i class="fas fa-print text-primary"></i>
-                </button>
-                <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak') }}" target="_blank"
-                    class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Cetak Buku Ekspedisi Pengiriman Surat Keluar">
-                    <i class="fas fa-truck-fast text-success"></i>
-                </a>
+                @if (($tab ?? '') === 'ekspedisi')
+                    <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
+                        target="_blank" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Cetak Buku Ekspedisi Pengiriman Surat Keluar">
+                        <i class="fas fa-print text-primary"></i>
+                    </a>
+                @else
+                    <button type="button" class="btn btn-outline" id="btnOpenCetakAgendaKeluar"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Cetak Buku Agenda Surat Keluar">
+                        <i class="fas fa-print text-primary"></i>
+                    </button>
+                @endif
+
                 @if ($canCreate)
+                    <button type="button" class="btn btn-outline" id="btnOpenImportKeluar"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(16,185,129,0.4);"
+                        title="Import Surat Keluar via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
+                    </button>
+
                     @if (($tab ?? '') === 'template')
                         <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: linear-gradient(135deg, #4f46e5 0%, var(--purple, #7c3aed) 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
-                            title="Buat Surat Keluar dari Template Autocrat">
-                            <i class="fas fa-wand-magic-sparkles"></i>
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Tambah Template Surat Autocrat">
+                            <i class="fas fa-plus"></i>
                         </button>
-                    @elseif (($tab ?? '') === 'ekspedisi')
-                        <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
-                            target="_blank" class="btn btn-outline"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: var(--success, #10b981); border-color: rgba(16,185,129,0.35);"
-                            title="Cetak Buku Ekspedisi Kolektif Sesuai Filter">
-                            <i class="fas fa-print"></i>
-                        </a>
                     @else
-                        {{-- Tab Surat Keluar (mengkoordinir semua jenis surat keluar) --}}
-                        <button type="button" class="btn btn-outline" id="btnOpenImportKeluar"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(16,185,129,0.4);"
-                            title="Import Surat Keluar via Excel">
-                            <i class="fas fa-file-excel text-success"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline" id="btnOpenModalSpt"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(37,99,235,0.4); color: var(--primary-hover, #2563eb);"
-                            title="Terbitkan Surat Perintah Tugas (SPT)">
-                            <i class="fas fa-file-contract text-info"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline" id="btnOpenCreateKet"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(99,102,241,0.4); color: var(--primary);"
-                            title="Buat Surat Keterangan Siswa Aktif">
-                            <i class="fas fa-file-signature text-primary"></i>
-                        </button>
                         <button type="button" class="btn btn-primary" id="btnOpenCreateKeluar"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                             title="Catat Surat Keluar Baru">

@@ -26,16 +26,6 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Buku Agenda Surat Keluar">
-                    <i class="fas fa-paper-plane text-success"></i>
-                </a>
-                <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Pengaturan Persuratan &amp; Harddisk">
-                    <i class="fas fa-sliders text-muted"></i>
-                </a>
                 <button type="button" class="btn btn-outline" id="btnOpenCetakAgendaMasuk"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Cetak Buku Agenda Surat Masuk">
