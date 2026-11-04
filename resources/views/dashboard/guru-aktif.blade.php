@@ -283,13 +283,16 @@
                             </td>
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions">
+                                    <button type="button" class="btn-icon" title="Kartu Pegawai Digital"
+                                        onclick="openKartuPegawaiModal('{{ $item->ptk_id }}')"
+                                        style="color: var(--accent, #06b6d4);">
+                                        <i class="fas fa-id-badge"></i>
+                                    </button>
                                     @if ($isAdmin)
                                         <button type="button" class="btn-icon" title="Lihat Profil Lengkap"
                                             onclick="openBiodataGuruModal('{{ $item->ptk_id }}')">
                                             <i class="fas fa-id-card"></i>
                                         </button>
-                                    @else
-                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </div>
                             </td>
@@ -448,6 +451,8 @@
             </div>
         </div>
     </div>
+
+    @include('kartu-pegawai.modal-fullscreen')
 
     @push('scripts')
         <script src="{{ asset('js/guru-aktif.js') }}?v={{ filemtime(public_path('js/guru-aktif.js')) }}"></script>

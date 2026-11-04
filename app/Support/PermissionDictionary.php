@@ -138,12 +138,12 @@ final class PermissionDictionary
                 'menu_e_izin' => [
                     'label' => 'e-Izin Keluar-Masuk & Pulang',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                    'roles' => ['admin', 'peserta_didik'],
                 ],
                 'menu_kebutuhan_mbg' => [
                     'label' => 'Data Kebutuhan MBG',
                     'icon' => 'fa-utensils',
-                    'roles' => ['admin', 'guru', 'tendik'],
+                    'roles' => ['admin'],
                 ],
             ],
 

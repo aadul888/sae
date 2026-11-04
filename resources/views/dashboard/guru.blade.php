@@ -141,6 +141,16 @@
             </div>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @php
+                $kartuPegawaiId = $ptkId ?: ($gtk?->ptk_id ?? (session('user.ptk_id') ?: (session('user.pengguna_id') ?: session('user.username'))));
+            @endphp
+            @if ($kartuPegawaiId)
+                <button type="button" class="btn btn-outline" onclick="openKartuPegawaiModal('{{ $kartuPegawaiId }}')"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--accent, #06b6d4); color: var(--accent, #06b6d4);"
+                    title="Lihat / Cetak Kartu Pegawai Digital">
+                    <i class="fas fa-id-card"></i>
+                </button>
+            @endif
             <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                 title="Jadwal Mengajar">
@@ -536,6 +546,8 @@
             </div>
         @endif
     </div>
+    <!-- Modal Pratinjau Kartu Pegawai Digital (Layar Penuh, Swipeable) -->
+    @include('kartu-pegawai.modal-fullscreen')
 @endsection
 
 @push('scripts')

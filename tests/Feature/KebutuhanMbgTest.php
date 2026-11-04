@@ -68,4 +68,23 @@ class KebutuhanMbgTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
+
+    public function test_non_admin_roles_cannot_access_mbg(): void
+    {
+        $roles = ['guru', 'tendik', 'peserta_didik', 'orang_tua'];
+        foreach ($roles as $role) {
+            $sessionUser = [
+                'id' => "test-user-{$role}",
+                'pengguna_id' => "test-user-{$role}",
+                'username' => "user_{$role}",
+                'nama' => "Test {$role}",
+                'role' => $role,
+            ];
+
+            $response = $this->withSession(['user' => $sessionUser])
+                ->get(route('dashboard.kebutuhan-mbg.index'));
+
+            $response->assertStatus(302);
+        }
+    }
 }

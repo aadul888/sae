@@ -307,13 +307,16 @@
                             </td>
                             <td style="padding: 12px 16px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions">
+                                    <button type="button" class="btn-icon" title="Kartu Pegawai Digital"
+                                        onclick="openKartuPegawaiModal('{{ $tendik->ptk_id }}')"
+                                        style="color: var(--accent, #06b6d4);">
+                                        <i class="fas fa-id-badge"></i>
+                                    </button>
                                     @if ($isAdmin)
                                         <button type="button" class="btn-icon btn-detail-tendik"
                                             data-id="{{ $tendik->ptk_id }}" title="Lihat Profil Lengkap">
                                             <i class="fas fa-id-card"></i>
                                         </button>
-                                    @else
-                                        <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif
                                 </div>
                             </td>
@@ -376,6 +379,8 @@
             </div>
         </div>
     </div>
+
+    @include('kartu-pegawai.modal-fullscreen')
 @endsection
 
 @push('scripts')

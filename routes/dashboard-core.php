@@ -538,6 +538,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/cetak-keuangan', [\App\Http\Controllers\KartuPelajarController::class, 'printLaporanKeuangan'])->name('kartu-pelajar.cetak-keuangan');
     Route::get('/kartu-pelajar/cetak-pengambilan', [\App\Http\Controllers\KartuPelajarController::class, 'printPengambilan'])->name('kartu-pelajar.cetak-pengambilan');
 
+    // Kartu Pegawai Digital — Layanan Cetak Tunggal
+    Route::get('/kartu-pegawai/cetak/{id}', [\App\Http\Controllers\KartuPegawaiController::class, 'printSingle'])->name('kartu-pegawai.cetak-single');
+
     // Modul Pengelolaan Usulan & Riwayat PIP (Wali Kelas & Admin)
     Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip|menu_pip,read');
     Route::get('/pip/cari-siswa', [\App\Http\Controllers\PipController::class, 'cariSiswa'])->name('pip.cari-siswa');

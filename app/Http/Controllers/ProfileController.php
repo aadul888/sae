@@ -70,6 +70,26 @@ class ProfileController extends Controller
                 ? DB::table('gtk')->where('ptk_id', $user->ptk_id)->first()
                 : null;
 
+            $nonAsnRow = null;
+            if (!$gtk && Table::exists('gtk_non_asn')) {
+                $nonAsnRow = DB::table('gtk_non_asn')
+                    ->where('pengguna_id', $user->pengguna_id)
+                    ->orWhere('username', $user->username)
+                    ->first();
+                if ($nonAsnRow) {
+                    $gtk = (object) [
+                        'nama' => $nonAsnRow->nama,
+                        'nip' => $nonAsnRow->nip,
+                        'nuptk' => $nonAsnRow->nuptk,
+                        'nik' => $nonAsnRow->nik,
+                        'jenis_ptk_id_str' => $nonAsnRow->jenis_ptk,
+                        'jabatan_ptk_id_str' => $nonAsnRow->jabatan,
+                        'status_kepegawaian_id_str' => $nonAsnRow->status_kepegawaian,
+                        'bidang_studi_terakhir' => $nonAsnRow->bidang_studi,
+                    ];
+                }
+            }
+
             // Cari tugas tambahan aktif dari tabel RBAC/Dapodik
             $tugasTambahan = null;
             if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
@@ -118,20 +138,33 @@ class ProfileController extends Controller
                 'sekolah' => $sekolah->nama ?? 'SMK Swasta Kristen Tagari Rantepao',
                 'status_kepegawaian' => $gtk->status_kepegawaian_id_str ?? null,
                 'foto_url' => $user->foto_url ?? session('user.foto_url'),
+                'card_identifier' => $user->ptk_id ?: ($nonAsnRow?->kode ?: ($user->pengguna_id ?: $user->username)),
             ];
 
-            // Gelar mandiri (tabel lokal gtk_meta, aman dari tarik Dapodik)
-            $gelarService = app(\App\Services\GtkMetaService::class);
-            $gelar = $gelarService->gelar($user->ptk_id);
-            $profileDetails['gelar_depan'] = $gelar['gelar_depan'];
-            $profileDetails['gelar_belakang'] = $gelar['gelar_belakang'];
-            $profileDetails['can_edit_gelar'] = !empty($user->ptk_id) && $gelarService->available();
-            $profileDetails['nama_lengkap'] = \App\Services\GtkMetaService::namaLengkap(
-                $gtk->nama ?? $user->nama,
-                $gelar['gelar_depan'],
-                $gelar['gelar_belakang']
-            );
-            $profileDetails['nama_dasar'] = $gtk->nama ?? $user->nama;
+            if ($nonAsnRow) {
+                $profileDetails['gelar_depan'] = $nonAsnRow->gelar_depan;
+                $profileDetails['gelar_belakang'] = $nonAsnRow->gelar_belakang;
+                $profileDetails['can_edit_gelar'] = false;
+                $profileDetails['nama_lengkap'] = \App\Services\GtkMetaService::namaLengkap(
+                    $nonAsnRow->nama,
+                    $nonAsnRow->gelar_depan,
+                    $nonAsnRow->gelar_belakang
+                );
+                $profileDetails['nama_dasar'] = $nonAsnRow->nama;
+            } else {
+                // Gelar mandiri (tabel lokal gtk_meta, aman dari tarik Dapodik)
+                $gelarService = app(\App\Services\GtkMetaService::class);
+                $gelar = $gelarService->gelar($user->ptk_id);
+                $profileDetails['gelar_depan'] = $gelar['gelar_depan'];
+                $profileDetails['gelar_belakang'] = $gelar['gelar_belakang'];
+                $profileDetails['can_edit_gelar'] = !empty($user->ptk_id) && $gelarService->available();
+                $profileDetails['nama_lengkap'] = \App\Services\GtkMetaService::namaLengkap(
+                    $gtk->nama ?? $user->nama,
+                    $gelar['gelar_depan'],
+                    $gelar['gelar_belakang']
+                );
+                $profileDetails['nama_dasar'] = $gtk->nama ?? $user->nama;
+            }
         } else {
             // Admin
             $profileDetails = [

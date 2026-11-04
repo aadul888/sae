@@ -61,3 +61,9 @@ Route::middleware(['web'])->group(function () {
     Route::post('/kesiswaan/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper']);
     Route::put('/kesiswaan/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper']);
 });
+
+// Fallback penyajian berkas publik storage (aktif bila symlink belum dibuat / dilarang di hosting)
+Route::get('/storage/{path}', [\App\Http\Controllers\StorageFallbackController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.fallback');
+

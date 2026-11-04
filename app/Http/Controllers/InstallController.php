@@ -176,6 +176,13 @@ class InstallController extends Controller
 
             // Hubungkan storage symlink secara aman
             try {
+                $storagePublic = public_path('storage');
+                if (is_dir($storagePublic) && !is_link($storagePublic)) {
+                    $storageEntries = @scandir($storagePublic);
+                    if (is_array($storageEntries) && count(array_diff($storageEntries, ['.', '..'])) === 0) {
+                        @rmdir($storagePublic);
+                    }
+                }
                 Artisan::call('storage:link', [
                     '--force' => true,
                 ]);

@@ -224,6 +224,9 @@ php -r '
 # -----------------------------------------------------------------------------
 step "8/9 Menyiapkan storage dan cache"
 
+if [ -d "public/storage" ] && [ ! -L "public/storage" ]; then
+    rmdir public/storage 2>/dev/null || true
+fi
 php artisan storage:link --force 2>/dev/null || warn "storage:link dilewati (mungkin sudah ada)."
 touch storage/logs/laravel.log 2>/dev/null || true
 chmod 664 storage/logs/laravel.log 2>/dev/null || true

@@ -119,14 +119,6 @@
                             <i class="fas fa-check-square"></i>
                             <span><span id="bulkRequestSelectedCount">0</span> antrean dipilih</span>
                         </span>
-                        <label id="wrapPilihSemuaFilterRequest"
-                            style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #4338ca; background: #ffffff; padding: 4px 10px; border-radius: var(--radius-sm, 6px); border: 1px solid #c7d2fe; cursor: pointer;">
-                            <input type="checkbox" id="checkPilihSemuaFilterRequest"
-                                style="accent-color: var(--primary); cursor: pointer;">
-                            <span>Pilih <strong>Semua
-                                    ({{ number_format(!empty($requestList) ? $requestList->total() : 0, 0, ',', '.') }})</strong>
-                                Sesuai Filter Saat Ini</span>
-                        </label>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <button type="button" class="btn btn-outline btn-sm" onclick="executeCetakSelectedRequests()"

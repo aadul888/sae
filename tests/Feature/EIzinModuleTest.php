@@ -59,13 +59,25 @@ class EIzinModuleTest extends TestCase
 
     public function test_wali_kelas_can_access_e_izin_index(): void
     {
+        $rombel = \Illuminate\Support\Facades\DB::table('rombongan_belajar')->whereNotNull('ptk_id')->first();
+        $ptkId = $rombel?->ptk_id ?? 'ptk-wali-uuid';
+        if (!$rombel) {
+            \Illuminate\Support\Facades\DB::table('rombongan_belajar')->insert([
+                'rombongan_belajar_id' => 'rombel-test-uuid',
+                'nama' => 'XII RPL 1 Test',
+                'tingkat_pendidikan_id' => 12,
+                'semester_id' => '20261',
+                'ptk_id' => $ptkId,
+            ]);
+        }
+
         $sessionUser = [
             'id'          => 'wali-test-1',
             'pengguna_id' => 'wali-test-1',
             'username'    => 'guruwali',
             'nama'        => 'Guru Wali Test',
             'role'        => 'guru',
-            'ptk_id'      => 'ptk-wali-uuid',
+            'ptk_id'      => $ptkId,
         ];
 
         $res = $this->withSession(['user' => $sessionUser])
@@ -73,6 +85,24 @@ class EIzinModuleTest extends TestCase
 
         $res->assertStatus(200);
         $res->assertSee('e-Izin');
+    }
+
+    public function test_guru_without_duty_cannot_access_e_izin_index(): void
+    {
+        $sessionUser = [
+            'id'          => 'guru-plain-test-1',
+            'pengguna_id' => 'guru-plain-test-1',
+            'username'    => 'guruplain',
+            'nama'        => 'Guru Reguler Test',
+            'role'        => 'guru',
+            'ptk_id'      => 'ptk-non-existent-99999',
+        ];
+
+        $res = $this->withSession(['user' => $sessionUser])
+            ->get(route('dashboard.e-izin.index'));
+
+        $res->assertStatus(302);
+        $res->assertRedirect(route('dashboard.guru'));
     }
 
     public function test_orang_tua_dashboard_loads_without_error(): void

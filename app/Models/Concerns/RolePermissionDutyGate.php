@@ -95,7 +95,7 @@ trait RolePermissionDutyGate
             // 2. Pemetaan bawaan berdasarkan kode tugas tambahan
             $kode = $rec->kode;
             if ($kode === 'WALI_KELAS') {
-                foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
+                foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik', 'menu_e_izin'] as $k) {
                     $allowedKeys[$k] = true;
                 }
             } elseif (in_array($kode, ['KEPALA_SEKOLAH', 'WAKA_KURIKULUM'], true)) {
@@ -135,7 +135,7 @@ trait RolePermissionDutyGate
                     $allowedKeys[$k] = true;
                 }
             } elseif ($kode === 'PETUGAS_KEAMANAN' || $kode === 'SATPAM') {
-                foreach (['menu_keamanan', 'menu_keamanan_izin', 'menu_keamanan_presensi', 'menu_keamanan_buku_tamu', 'menu_buku_tamu', 'menu_keamanan_patroli', 'menu_keamanan_scan', 'menu_rfid'] as $k) {
+                foreach (['menu_keamanan', 'menu_keamanan_izin', 'menu_keamanan_presensi', 'menu_keamanan_buku_tamu', 'menu_buku_tamu', 'menu_keamanan_patroli', 'menu_keamanan_scan', 'menu_rfid', 'menu_e_izin'] as $k) {
                     $allowedKeys[$k] = true;
                 }
             } elseif (in_array($kode, ['PENJAGA_SEKOLAH', 'PESURUH'], true)) {

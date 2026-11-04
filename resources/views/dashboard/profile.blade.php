@@ -84,12 +84,23 @@
             <div class="profile-col-left">
                 <!-- Card Data Biodata -->
                 <div class="profile-card">
-                    <div class="profile-card-header">
+                    <div class="profile-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                         <h2 class="profile-card-title">
                             <i class="fas fa-id-card text-primary"></i>
                             <span>Data Informasi Akun</span>
                         </h2>
-                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Terhubung Dapodik</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            @if (in_array($role, ['guru', 'tendik'], true) && !empty($profileDetails['card_identifier']))
+                                <button type="button" class="btn btn-outline"
+                                    onclick="openKartuPegawaiModal('{{ $profileDetails['card_identifier'] }}')"
+                                    style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); font-weight: 700; border-color: var(--accent, #06b6d4); color: var(--accent, #06b6d4); display: inline-flex; align-items: center; gap: 6px;"
+                                    title="Lihat / Cetak Kartu Pegawai Digital">
+                                    <i class="fas fa-id-badge"></i>
+                                    <span>Kartu Pegawai Digital</span>
+                                </button>
+                            @endif
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Terhubung Dapodik</span>
+                        </div>
                     </div>
                     <div class="profile-card-body">
                         <div class="profile-info-list">
@@ -597,6 +608,9 @@
                 </div>
             </div>
         @endif
+
+        <!-- Modal Pratinjau Kartu Pegawai Digital (Layar Penuh, Swipeable) -->
+        @include('kartu-pegawai.modal-fullscreen')
     </div>
 @endsection
 

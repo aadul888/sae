@@ -287,6 +287,13 @@
                             </td>
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div style="display: inline-flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline"
+                                        onclick="openKartuPegawaiModal('nonasn:{{ $item->id }}')"
+                                        style="padding: 5px 10px; font-size: var(--text-xs, 0.75rem); color: var(--accent, #06b6d4); border-color: var(--accent, #06b6d4);"
+                                        title="Kartu Pegawai Digital">
+                                        <i class="fas fa-id-badge"></i>
+                                    </button>
+
                                     @unless ($item->pengguna_id)
                                         @if (($canCreate ?? false) || $isAdmin)
                                             <button type="button" class="btn btn-outline btn-buat-akun"
@@ -634,6 +641,8 @@
             </div>
         </div>
     @endif
+
+    @include('kartu-pegawai.modal-fullscreen')
 @endsection
 
 @push('scripts')

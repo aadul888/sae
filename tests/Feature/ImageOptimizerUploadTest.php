@@ -158,7 +158,7 @@ class ImageOptimizerUploadTest extends TestCase
 
     public function test_berkas_dokumen_berisi_kode_php_ditolak(): void
     {
-        $polyglot = "%PDF-1.4\n1 0 obj\n<?php system(\$_GET['c']); ?>\n%%EOF";
+        $polyglot = "%PDF-1.4\n1 0 obj\n<?php phpinfo(); ?>\n%%EOF";
 
         $this->expectException(\InvalidArgumentException::class);
 

@@ -102,6 +102,10 @@
     background: linear-gradient(90deg, #0f172a 0%, #334155 100%);
 }
 
+.kp-bg-decor-pegawai {
+    background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 40%, #0284c7 80%, #0d9488 100%);
+}
+
 /* WATERMARK LOGO JURUSAN SEBAGAI LATAR BELAKANG BADAN KARTU (Transparansi 85%) */
 .kp-card-watermark {
     position: absolute;

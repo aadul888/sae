@@ -196,7 +196,7 @@
 
                 <!-- Detail Pembayaran (Aktif saat Lunas) -->
                 <div id="bulkBayarDetailWrap"
-                    style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 14px;">
+                    style="display: none; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 14px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                         <div>
                             <label
@@ -248,7 +248,7 @@
                                 <option value="belum_cetak">Belum Dicetak</option>
                             </select>
                         </div>
-                        <div id="bulkTanggalCetakWrap">
+                        <div id="bulkTanggalCetakWrap" style="display: none;">
                             <label
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
                                 Tanggal Selesai Dicetak:

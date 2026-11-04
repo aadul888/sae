@@ -102,8 +102,9 @@
         ($canRole('menu_formulir') ||
             $canRole('menu_pengumuman') ||
             $canRole('menu_rfid') ||
-            $role === 'admin' ||
             $canRole('menu_kartu_pelajar') ||
+            $canRole('menu_pip') ||
+            $canRole('menu_e_izin') ||
             $canRole('menu_kebutuhan_mbg'));
 
     // Section: Sistem
@@ -117,10 +118,13 @@
     // Section: Portal Peserta Didik (Khusus Peserta Didik)
     $hasPortalPesertaDidik =
         $role === 'peserta_didik' &&
-        ($can('menu_surat_izin_pd') ||
+        ($can('menu_identitas_siswa') ||
+            $can('menu_validasi_berkas') ||
+            $can('menu_surat_izin_pd') ||
+            $can('menu_e_izin') ||
             $can('menu_riwayat_rfid') ||
             $can('menu_jadwal_pelajaran') ||
-            $can('menu_validasi_berkas'));
+            $can('menu_jadwal_kbm'));
 
     // Section: Wali Kelas (Khusus Guru dengan Tugas Tambahan Wali Kelas atau Siswa Koordinator)
     $hasWaliKelasDuty = collect($userDuties)->contains('kode', 'WALI_KELAS');
@@ -489,7 +493,7 @@
                 ($can('menu_presensi_mengajar') ||
                     $can('menu_agenda_kbm') ||
                     $can('menu_presensi_peserta_didik') ||
-                    $can('menu_jadwal_pelajaran_guru') ||
+                    $can('menu_jadwal_pelajaran') ||
                     $can('menu_jadwal_kbm'));
             $isJadwalGuruActive =
                 request()->routeIs('dashboard.jadwal-pelajaran*') &&
@@ -516,7 +520,7 @@
                 </button>
                 <div class="dash-nav-submenu">
 
-                    @if ($can('menu_jadwal_pelajaran_guru') || $can('menu_jadwal_kbm') || $role === 'guru')
+                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm'))
                         <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
                             class="dash-nav-sublink {{ $isJadwalGuruActive ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
@@ -1370,7 +1374,7 @@
                     </a>
                 @endif
 
-                @if ($can('menu_e_izin') || $role === 'peserta_didik')
+                @if ($can('menu_e_izin'))
                     <a href="{{ route('dashboard.e-izin.index', ['tab' => 'saya']) }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
@@ -1386,7 +1390,7 @@
                     </a>
                 @endif
 
-                @if ($can('menu_jadwal_pelajaran_pd') || $can('menu_jadwal_kbm') || $role === 'peserta_didik')
+                @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm'))
                     <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'siswa']) }}"
                         class="dash-nav-sublink {{ $isJadwalPdActive ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
@@ -1398,26 +1402,32 @@
     @endif
 
     {{-- Menu Khusus: Portal Orang Tua / Wali Murid --}}
-    @if ($role === 'orang_tua')
+    @if ($role === 'orang_tua' && ($can('menu_riwayat_rfid') || $can('menu_jadwal_pelajaran') || $can('menu_surat_izin_pd') || $can('menu_identitas_siswa')))
         <span class="nav-section-label">Portal Pemantauan Siswa</span>
 
-        <a href="{{ route('dashboard.orang-tua.kehadiran') }}"
-            class="dash-nav-link {{ request()->routeIs('dashboard.orang-tua.kehadiran*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-fw fa-calendar-check text-success"></i></span>
-            <span class="nav-label">Riwayat Kehadiran</span>
-        </a>
+        @if ($can('menu_riwayat_rfid'))
+            <a href="{{ route('dashboard.orang-tua.kehadiran') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.orang-tua.kehadiran*') ? 'active' : '' }}">
+                <span class="nav-icon"><i class="fas fa-fw fa-calendar-check text-success"></i></span>
+                <span class="nav-label">Riwayat Kehadiran</span>
+            </a>
+        @endif
 
-        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
-            class="dash-nav-link {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-fw fa-calendar-days text-primary"></i></span>
-            <span class="nav-label">Jadwal Pelajaran KBM</span>
-        </a>
+        @if ($can('menu_jadwal_pelajaran'))
+            <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                <span class="nav-icon"><i class="fas fa-fw fa-calendar-days text-primary"></i></span>
+                <span class="nav-label">Jadwal Pelajaran KBM</span>
+            </a>
+        @endif
 
-        <a href="{{ route('dashboard.orang-tua.izin') }}"
-            class="dash-nav-link {{ request()->routeIs('dashboard.orang-tua.izin*') ? 'active' : '' }}">
-            <span class="nav-icon"><i class="fas fa-fw fa-ticket-alt text-warning"></i></span>
-            <span class="nav-label">e-Izin &amp; Surat Sakit</span>
-        </a>
+        @if ($can('menu_surat_izin_pd'))
+            <a href="{{ route('dashboard.orang-tua.izin') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.orang-tua.izin*') ? 'active' : '' }}">
+                <span class="nav-icon"><i class="fas fa-fw fa-ticket-alt text-warning"></i></span>
+                <span class="nav-label">e-Izin &amp; Surat Sakit</span>
+            </a>
+        @endif
 
         @if ($can('menu_identitas_siswa'))
             <a href="{{ route('dashboard.identitas.index') }}"
@@ -1599,7 +1609,7 @@
                     </a>
                 @endif
 
-                @if ($role === 'admin' || $canRole('menu_kartu_pelajar'))
+                @if ($canRole('menu_kartu_pelajar'))
                     <a href="{{ route('dashboard.kartu-pelajar.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.kartu-pelajar.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-address-card"></i></span>
@@ -1607,7 +1617,7 @@
                     </a>
                 @endif
 
-                @if ($role === 'admin' || $canRole('menu_pip'))
+                @if ($canRole('menu_pip'))
                     <a href="{{ route('dashboard.pip.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.pip.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
@@ -1615,7 +1625,7 @@
                     </a>
                 @endif
 
-                @if ($role === 'admin' || $canRole('menu_e_izin') || $can('menu_e_izin'))
+                @if ($canRole('menu_e_izin'))
                     <a href="{{ route('dashboard.e-izin.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
@@ -1623,7 +1633,7 @@
                     </a>
                 @endif
 
-                @if ($role === 'admin' || $canRole('menu_kebutuhan_mbg'))
+                @if ($canRole('menu_kebutuhan_mbg'))
                     <a href="{{ route('dashboard.kebutuhan-mbg.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.kebutuhan-mbg*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-utensils"></i></span>

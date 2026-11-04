@@ -68,6 +68,7 @@ final class DutyPermissionDefaults
                 'menu_agenda_kbm',
                 'menu_berkas_peserta_didik',
                 'menu_poin',
+                'menu_e_izin',
             ],
             'PEMBINA_EKSKUL' => [
                 'menu_kesiswaan',
@@ -212,6 +213,7 @@ final class DutyPermissionDefaults
                 'menu_keamanan_patroli',
                 'menu_keamanan_scan',
                 'menu_rfid',
+                'menu_e_izin',
             ],
             'PENJAGA_SEKOLAH' => [
                 'menu_penjaga',

@@ -374,7 +374,15 @@ class UpdateService
 
         // 5. Clear Caches, Symlink Storage & Optimize
         try {
-            if (!file_exists(public_path('storage'))) {
+            $storagePublic = public_path('storage');
+            if (is_dir($storagePublic) && !is_link($storagePublic)) {
+                $storageEntries = @scandir($storagePublic);
+                if (is_array($storageEntries) && count(array_diff($storageEntries, ['.', '..'])) === 0) {
+                    @rmdir($storagePublic);
+                }
+            }
+
+            if (!file_exists($storagePublic) && !is_link($storagePublic)) {
                 Artisan::call('storage:link');
                 $logs[] = "[STORAGE] Symlink public/storage dibuat.";
             }

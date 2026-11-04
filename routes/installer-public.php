@@ -82,6 +82,11 @@ Route::post('/api/check-nisn', [HomeController::class, 'checkNisn'])->name('api.
 Route::get('/v/doc/{doc_id}', [\App\Http\Controllers\SuratPublicVerifyController::class, 'verifyDoc'])->name('surat.public-verify');
 Route::get('/verifikasi-surat/{doc_id}', [\App\Http\Controllers\SuratPublicVerifyController::class, 'verifyDoc'])->name('surat.public-verify-long');
 
+// Kartu Pegawai Digital — Verifikasi Publik & Direct Scan
+Route::get('/v/p/{id}', [\App\Http\Controllers\KartuPegawaiController::class, 'verify'])->name('kartu-pegawai.verify-short');
+Route::get('/verifikasi-pegawai/{id}', [\App\Http\Controllers\KartuPegawaiController::class, 'verify'])->name('kartu-pegawai.verify');
+Route::get('/kartu-pegawai/preview/{id}', [\App\Http\Controllers\KartuPegawaiController::class, 'preview'])->name('kartu-pegawai.preview');
+
 // Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Mendukung URL Baru /v/{nisn} dan Format Lama /{nisn})
 Route::get('/v/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify-short');
 Route::get('/verifikasi-pelajar/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify');

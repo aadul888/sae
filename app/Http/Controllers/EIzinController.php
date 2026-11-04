@@ -28,20 +28,16 @@ class EIzinController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canRead = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'read')
-            || in_array($role, ['admin', 'guru', 'tendik', 'peserta_didik']);
+        $canRead = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'read');
 
         if (!$canRead) {
             return redirect()->route('dashboard.' . ($role ?: 'login'))
                 ->with('error', 'Anda tidak memiliki hak akses ke modul e-Izin.');
         }
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'create')
-            || in_array($role, ['admin', 'peserta_didik']);
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'update')
-            || in_array($role, ['admin', 'guru', 'tendik']);
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'delete')
-            || $role === 'admin';
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'create');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'delete');
 
         $isSuperAdmin = ($role === 'admin');
         $isStudent = ($role === 'peserta_didik');
@@ -741,8 +737,8 @@ class EIzinController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        if ($role !== 'admin') {
-            return $this->errorResponse($request, 'Akses ditolak: Hanya Administrator yang dapat menghapus data.', 403);
+        if (!RolePermission::canAccess($user ?: $role, 'menu_e_izin', 'delete')) {
+            return $this->errorResponse($request, 'Akses ditolak: Anda tidak memiliki izin untuk menghapus data ini.', 403);
         }
 
         DB::table('peserta_didik_izin_keluar')->where('id', $id)->delete();

@@ -1,6 +1,6 @@
 /**
  * SAE - Kartu Pelajar Bulk Actions & Batch Selection Module
- * Mengelola seleksi per baris / seluruh data terfilter serta eksekusi massal pembayaran & request cetak.
+ * Mengelola seleksi per baris serta eksekusi massal pembayaran & request cetak.
  */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -47,20 +47,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return Array.from(document.querySelectorAll(".check-request-row:checked")).map(c => c.value);
     }
 
-    function isRequestApplyAll() {
-        const chk = document.getElementById("checkPilihSemuaFilterRequest");
-        return chk ? chk.checked : false;
-    }
-
     function updateRequestBulkBar() {
         const ids = getRequestSelectedIds();
         const bulkBar = document.getElementById("bulkActionRequestBar");
         const bulkCountEl = document.getElementById("bulkRequestSelectedCount");
         const checkAll = document.getElementById("checkAllRequests");
-        const checkApplyAll = document.getElementById("checkPilihSemuaFilterRequest");
 
         if (bulkBar && bulkCountEl) {
-            if (ids.length > 0 || (checkApplyAll && checkApplyAll.checked)) {
+            if (ids.length > 0) {
                 bulkBar.style.display = "flex";
                 bulkCountEl.textContent = ids.length;
             } else {
@@ -74,7 +68,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Delegated Change Handler untuk checkbox
+    // =========================================================================
+    // 3. Reaktivitas Field Modal Bulk Pembayaran
+    // =========================================================================
+    function syncBulkModalFields() {
+        const selectedRadio = document.querySelector('input[name="bulk_status_pembayaran"]:checked');
+        const detailWrap = document.getElementById("bulkBayarDetailWrap");
+        if (detailWrap) {
+            detailWrap.style.display = (selectedRadio && selectedRadio.value === "lunas") ? "block" : "none";
+        }
+
+        const selectCetak = document.getElementById("bulkStatusCetak");
+        const tglCetakWrap = document.getElementById("bulkTanggalCetakWrap");
+        if (tglCetakWrap && selectCetak) {
+            tglCetakWrap.style.display = (selectCetak.value === "sudah_cetak") ? "block" : "none";
+        }
+    }
+
+    // Delegated Change Handler untuk seleksi checkbox & form modal
     document.addEventListener("change", function (e) {
         if (!e.target) return;
 
@@ -99,11 +110,11 @@ document.addEventListener("DOMContentLoaded", function () {
             updateRequestBulkBar();
         } else if (e.target.classList.contains("check-request-row")) {
             updateRequestBulkBar();
-        } else if (e.target.id === "checkPilihSemuaFilterRequest") {
-            if (e.target.checked) {
-                document.querySelectorAll(".check-request-row").forEach(c => c.checked = true);
-            }
-            updateRequestBulkBar();
+        }
+
+        // Reaktivitas modal form
+        if (e.target.name === "bulk_status_pembayaran" || e.target.id === "bulkStatusCetak") {
+            syncBulkModalFields();
         }
     });
 
@@ -114,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // =========================================================================
-    // 3. Eksekusi Bulk Action Berhasil Cetak (Pembayaran & Fisik)
+    // 4. Eksekusi Bulk Action Berhasil Cetak (Pembayaran & Fisik)
     // =========================================================================
     window.openModalBulkPembayaran = function (presetAction) {
         const ids = getBerhasilSelectedIds();
@@ -143,37 +154,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const filterRombel = document.getElementById("filterRombel");
         const filterStatusBayar = document.getElementById("filterStatusBayar");
 
-        document.getElementById("bulkModalFilterQ").value = (searchInput ? searchInput.value.trim() : "") || urlParams.get("q") || "";
-        document.getElementById("bulkModalFilterRombel").value = (filterRombel ? filterRombel.value : "") || urlParams.get("rombel") || "";
-        document.getElementById("bulkModalFilterStatusBayar").value = (filterStatusBayar ? filterStatusBayar.value : "") || urlParams.get("status_pembayaran") || "";
+        const elFilterQ = document.getElementById("bulkModalFilterQ");
+        const elFilterRombel = document.getElementById("bulkModalFilterRombel");
+        const elFilterStatusBayar = document.getElementById("bulkModalFilterStatusBayar");
+
+        if (elFilterQ) elFilterQ.value = (searchInput ? searchInput.value.trim() : "") || urlParams.get("q") || "";
+        if (elFilterRombel) elFilterRombel.value = (filterRombel ? filterRombel.value : "") || urlParams.get("rombel") || "";
+        if (elFilterStatusBayar) elFilterStatusBayar.value = (filterStatusBayar ? filterStatusBayar.value : "") || urlParams.get("status_pembayaran") || "";
 
         const todayStr = new Date().toISOString().substring(0, 10);
         const radioBayar = document.querySelectorAll('input[name="bulk_status_pembayaran"]');
-        const detailWrap = document.getElementById("bulkBayarDetailWrap");
         const selectCetak = document.getElementById("bulkStatusCetak");
         const tglBayarInput = document.getElementById("bulkTanggalBayar");
         const tglCetakInput = document.getElementById("bulkTanggalCetak");
-        const tglCetakWrap = document.getElementById("bulkTanggalCetakWrap");
 
         if (tglBayarInput) tglBayarInput.value = todayStr;
         if (tglCetakInput) tglCetakInput.value = todayStr;
 
         if (presetAction === "set_lunas") {
             radioBayar.forEach(r => r.checked = (r.value === "lunas"));
-            if (detailWrap) detailWrap.style.display = "block";
             if (selectCetak) selectCetak.value = "keep";
-            if (tglCetakWrap) tglCetakWrap.style.display = "none";
         } else if (presetAction === "set_belum_bayar") {
             radioBayar.forEach(r => r.checked = (r.value === "belum_bayar"));
-            if (detailWrap) detailWrap.style.display = "none";
             if (selectCetak) selectCetak.value = "keep";
-            if (tglCetakWrap) tglCetakWrap.style.display = "none";
         } else {
             radioBayar.forEach(r => r.checked = (r.value === "keep"));
-            if (detailWrap) detailWrap.style.display = "none";
             if (selectCetak) selectCetak.value = "keep";
-            if (tglCetakWrap) tglCetakWrap.style.display = "none";
         }
+
+        syncBulkModalFields();
 
         modalBulkBayar.style.display = "flex";
         document.body.style.overflow = "hidden";
@@ -199,17 +208,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            const formData = new FormData(formBulkBayar);
+            const payload = Object.fromEntries(formData.entries());
+            payload.ids = ids;
+            payload.apply_all_filtered = applyAll ? 1 : 0;
+
+            const bayarVal = payload.bulk_status_pembayaran || "keep";
+            const cetakVal = payload.bulk_status_cetak || "keep";
+            const catatanVal = (payload.bulk_catatan || "").trim();
+
+            if (bayarVal === "keep" && cetakVal === "keep" && !catatanVal) {
+                Swal.fire("Peringatan", "Pilih status pembayaran atau status fisik kartu yang ingin diubah.", "warning");
+                return;
+            }
+
+            // Tentukan action yang tepat
+            if (bayarVal === "lunas" && cetakVal === "keep") {
+                payload.action = "set_lunas";
+            } else if (bayarVal === "belum_bayar" && cetakVal === "keep") {
+                payload.action = "set_belum_bayar";
+            } else if (cetakVal === "sudah_cetak" && bayarVal === "keep") {
+                payload.action = "set_sudah_cetak";
+            } else if (cetakVal === "belum_cetak" && bayarVal === "keep") {
+                payload.action = "set_belum_cetak";
+            } else {
+                payload.action = "custom_bulk";
+            }
+
             const btnSubmit = document.getElementById("btnSubmitBulkPembayaran");
             const originalText = btnSubmit ? btnSubmit.innerHTML : "";
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menerapkan...';
             }
-
-            const formData = new FormData(formBulkBayar);
-            const payload = Object.fromEntries(formData.entries());
-            payload.ids = ids;
-            payload.apply_all_filtered = applyAll ? 1 : 0;
 
             try {
                 const res = await fetch("/dashboard/kartu-pelajar/bulk-action", {
@@ -256,14 +287,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================================================================
-    // 4. Eksekusi Bulk Action Tab Request Cetak
+    // 5. Eksekusi Bulk Action Tab Request Cetak
     // =========================================================================
     window.executeBulkRequestAction = async function (action) {
         const ids = getRequestSelectedIds();
-        const applyAll = isRequestApplyAll();
 
-        if (!ids.length && !applyAll) {
-            Swal.fire("Peringatan", "Pilih minimal satu antrean atau centang 'Pilih Semua Sesuai Filter'.", "warning");
+        if (!ids.length) {
+            Swal.fire("Peringatan", "Pilih minimal satu antrean terlebih dahulu.", "warning");
             return;
         }
 
@@ -274,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
             delete: "MENGHAPUS PERMANEN",
         };
 
-        const targetCountText = applyAll ? "seluruh antrean sesuai filter saat ini" : `${ids.length} antrean terpilih`;
+        const targetCountText = `${ids.length} antrean terpilih`;
 
         const confirmed = await Swal.fire({
             title: action === "delete" ? "Hapus Antrean Massal?" : "Konfirmasi Aksi Massal",
@@ -305,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const payload = {
             action: action,
             ids: ids,
-            apply_all_filtered: applyAll ? 1 : 0,
+            apply_all_filtered: 0,
             filter_q: (searchInput ? searchInput.value.trim() : "") || urlParams.get("q") || "",
             filter_rombel: (filterRombel ? filterRombel.value : "") || urlParams.get("rombel") || "",
             filter_status_bayar: (filterStatusBayar ? filterStatusBayar.value : "") || urlParams.get("status_pembayaran") || "",
@@ -346,37 +376,18 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // =========================================================================
-    // 5. Cetak Masal Khusus Antrean Terpilih / Terfilter
+    // 6. Cetak Masal Khusus Antrean Terpilih
     // =========================================================================
     window.executeCetakSelectedRequests = function () {
         const ids = getRequestSelectedIds();
-        const applyAll = isRequestApplyAll();
 
-        if (!ids.length && !applyAll) {
-            Swal.fire("Peringatan", "Pilih minimal satu antrean atau centang 'Pilih Semua Sesuai Filter'.", "warning");
+        if (!ids.length) {
+            Swal.fire("Peringatan", "Pilih minimal satu antrean terlebih dahulu.", "warning");
             return;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchInput = document.getElementById("searchKartuPelajar");
-        const filterRombel = document.getElementById("filterRombel");
-        const filterStatusBayar = document.getElementById("filterStatusBayar");
-        const filterReqStatus = document.getElementById("filterReqStatus");
-
         const params = new URLSearchParams();
-        if (applyAll) {
-            const q = (searchInput ? searchInput.value.trim() : "") || urlParams.get("q") || "";
-            const rombel = (filterRombel ? filterRombel.value : "") || urlParams.get("rombel") || "";
-            const bayar = (filterStatusBayar ? filterStatusBayar.value : "") || urlParams.get("status_pembayaran") || "";
-            const reqSt = (filterReqStatus ? filterReqStatus.value : "") || urlParams.get("req_status") || "";
-
-            if (q) params.set("filter_q", q);
-            if (rombel) params.set("filter_rombel", rombel);
-            if (bayar) params.set("filter_status_bayar", bayar);
-            if (reqSt) params.set("filter_req_status", reqSt);
-        } else {
-            params.set("ids", ids.join(","));
-        }
+        params.set("ids", ids.join(","));
         params.set("hanya_ada_foto", "1");
 
         const printUrl = "/dashboard/kartu-pelajar/cetak-antrean?" + params.toString();

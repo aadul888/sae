@@ -146,7 +146,14 @@ class RolePermission extends Model
             if (in_array($group, ['Manajemen Data', 'Master Data', 'Sistem & Pengaturan', 'Fitur Operasional'], true)) {
                 return true;
             }
-            if (in_array($permissionKey, ['menu_dapodik', 'menu_buku_tamu', 'menu_agenda', 'menu_kelulusan', 'menu_poin', 'menu_rfid', 'menu_formulir', 'menu_e_izin', 'menu_pengumuman'], true)) {
+            if (in_array($permissionKey, [
+                'menu_dapodik', 'menu_buku_tamu', 'menu_agenda', 'menu_kelulusan',
+                'menu_poin', 'menu_rfid', 'menu_formulir', 'menu_pengumuman',
+                'menu_kartu_pelajar', 'menu_pip', 'menu_kebutuhan_mbg', 'menu_buku_induk',
+            ], true)) {
+                return true;
+            }
+            if ($permissionKey === 'menu_e_izin' && in_array($role, ['guru', 'tendik', 'orang_tua'], true)) {
                 return true;
             }
         }
@@ -451,7 +458,7 @@ class RolePermission extends Model
         }
 
         // 3. Fallback default untuk modul wali kelas & peserta didik binaan: read, create, update, delete diizinkan
-        if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
+        if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik', 'menu_e_izin'], true)) {
             return in_array($actionCol, ['can_read', 'can_create', 'can_update', 'can_delete'], true);
         }
 
@@ -495,7 +502,7 @@ class RolePermission extends Model
         // Khusus Wali Kelas (Guru) dan Koordinator Kelas (Peserta Didik):
         // Menu + CRUD otomatis mewarisi hak akses Wali Kelas
         if (($role === 'guru' && self::isWaliKelasOrAdmin($user)) || ($role === 'peserta_didik' && self::isKoordinator($user))) {
-            if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
+            if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik', 'menu_e_izin'], true)) {
                 return self::getWaliKelasPermission($permissionKey, $action);
             }
         }
