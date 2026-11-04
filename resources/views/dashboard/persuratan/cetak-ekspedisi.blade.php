@@ -22,6 +22,12 @@
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
     <style>
+        /* Ekspedisi: lembar per-surat = tegak; buku kolektif = mendatar. */
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 8mm 10mm;
+        }
+
         .filter-form-bar {
             display: inline-flex;
             align-items: center;
@@ -108,6 +114,56 @@
             padding-bottom: 6px;
             margin-bottom: 8px;
             letter-spacing: 0.5px;
+        }
+
+        /* Panel Ringkasan & Rekapitulasi */
+        .rekap-panel {
+            border: 1px solid #94a3b8;
+            border-radius: var(--radius-md, 8px);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            background: #f8fafc;
+        }
+
+        .rekap-title {
+            font-size: var(--text-base, 0.875rem);
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .rekap-cols {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .rekap-card h4 {
+            margin: 0 0 5px 0;
+            font-size: var(--text-xs, 0.75rem);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #475569;
+        }
+
+        .rekap-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-xs, 0.75rem);
+        }
+
+        .rekap-card th,
+        .rekap-card td {
+            padding: 3px 4px;
+            border-bottom: 1px solid #cbd5e1;
+            text-align: left;
+            color: #1e293b;
+        }
+
+        .rekap-card td.num {
+            text-align: right;
+            font-weight: 700;
         }
 
         @media print {
@@ -285,6 +341,78 @@
                 </div>
                 <div style="font-size: var(--text-base, 0.875rem); color: #475569; margin-top: 3px; font-weight: 600;">
                     Daftar Tanda Terima Distribusi Surat Keluar &bull; Total Berkas: {{ $items->count() }} Dokumen
+                </div>
+            </div>
+
+            @php
+                $totalEkspedisi = $items->count();
+                $tujuanUnik = $items->map(fn($it) => trim((string) ($it->tujuan_penerima ?? '')))
+                    ->filter()->unique()->count();
+                $rekapBulanEks = $items->groupBy(function ($it) {
+                    return $it->tanggal_surat
+                        ? \Carbon\Carbon::parse($it->tanggal_surat)->format('Y-m')
+                        : '0000-00';
+                })->sortKeys()->mapWithKeys(function ($grp, $k) {
+                    $label = $k === '0000-00'
+                        ? 'Tanpa Tanggal'
+                        : \Carbon\Carbon::createFromFormat('Y-m', $k)->translatedFormat('F Y');
+                    return [$label => $grp->count()];
+                });
+                $rekapIndeks = $items->groupBy(fn($it) => trim((string) ($it->kode_indeks ?? '')) ?: '—')
+                    ->map->count()->sortDesc()->take(5);
+            @endphp
+
+            {{-- Panel Ringkasan & Rekapitulasi Ekspedisi --}}
+            <div class="rekap-panel">
+                <div class="rekap-title">
+                    <i class="fas fa-chart-simple"></i> RINGKASAN &amp; REKAPITULASI EKSPEDISI
+                </div>
+                <div class="rekap-cols">
+                    <div class="rekap-card">
+                        <h4>Ikhtisar</h4>
+                        <table>
+                            <tr>
+                                <td>Total Berkas</td>
+                                <td class="num">{{ $totalEkspedisi }}</td>
+                            </tr>
+                            <tr>
+                                <td>Tujuan Penerima Unik</td>
+                                <td class="num">{{ $tujuanUnik }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="rekap-card">
+                        <h4>Rekap per Bulan</h4>
+                        <table>
+                            @forelse ($rekapBulanEks as $bln => $jml)
+                                <tr>
+                                    <td>{{ $bln }}</td>
+                                    <td class="num">{{ $jml }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2">Tidak ada data.</td>
+                                </tr>
+                            @endforelse
+                        </table>
+                    </div>
+
+                    <div class="rekap-card">
+                        <h4>Top 5 Kode Indeks</h4>
+                        <table>
+                            @forelse ($rekapIndeks as $idx => $jml)
+                                <tr>
+                                    <td>{{ $idx }}</td>
+                                    <td class="num">{{ $jml }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2">Tidak ada data.</td>
+                                </tr>
+                            @endforelse
+                        </table>
+                    </div>
                 </div>
             </div>
 

@@ -307,7 +307,11 @@
                     </button>
                 </div>
 
+                {{-- data-no-ajax: halaman indeks punya datatable, sehingga
+                     dashboard-live-search.js meng-intersep submit GET dan
+                     membatalkannya (lembar cetak tak terbuka). --}}
                 <form action="{{ route('dashboard.persuratan.masuk.agenda.cetak') }}" method="GET" target="_blank"
+                    data-no-ajax
                     style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
                     <div>
                         <label

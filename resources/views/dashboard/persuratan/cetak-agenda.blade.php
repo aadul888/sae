@@ -21,6 +21,12 @@
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
     <style>
+        /* Buku agenda selalu 8 kolom → wajib mendatar agar tidak terpotong. */
+        @page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
+        }
+
         .filter-form-bar {
             display: inline-flex;
             align-items: center;
@@ -94,6 +100,56 @@
             font-weight: 600;
         }
 
+        /* Panel Ringkasan & Rekapitulasi */
+        .rekap-panel {
+            border: 1px solid #94a3b8;
+            border-radius: var(--radius-md, 8px);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            background: #f8fafc;
+        }
+
+        .rekap-title {
+            font-size: var(--text-base, 0.875rem);
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .rekap-cols {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .rekap-card h4 {
+            margin: 0 0 5px 0;
+            font-size: var(--text-xs, 0.75rem);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #475569;
+        }
+
+        .rekap-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-xs, 0.75rem);
+        }
+
+        .rekap-card th,
+        .rekap-card td {
+            padding: 3px 4px;
+            border-bottom: 1px solid #cbd5e1;
+            text-align: left;
+            color: #1e293b;
+        }
+
+        .rekap-card td.num {
+            text-align: right;
+            font-weight: 700;
+        }
+
         @media print {
             .table-agenda th {
                 background: #e2e8f0 !important;
@@ -149,6 +205,90 @@
         <div class="agenda-header">
             <h2>{{ $judul }}</h2>
             <p>Periode: {{ $periodeText }} &bull; Total Berkas: {{ $items->count() }} Dokumen</p>
+        </div>
+
+        @php
+            // Rekapitulasi informatif dari koleksi yang sudah dimuat (tanpa query tambahan).
+            $totalBerkas = $items->count();
+            $rekapStatus = $items->groupBy(fn($it) => (string) ($it->status ?? '') ?: '—')
+                ->map->count()->sortDesc();
+            $rekapBulan = $items->groupBy(function ($it) {
+                return $it->tanggal_surat
+                    ? \Carbon\Carbon::parse($it->tanggal_surat)->format('Y-m')
+                    : '0000-00';
+            })->sortKeys()->mapWithKeys(function ($grp, $k) {
+                $label = $k === '0000-00'
+                    ? 'Tanpa Tanggal'
+                    : \Carbon\Carbon::createFromFormat('Y-m', $k)->translatedFormat('F Y');
+                return [$label => $grp->count()];
+            });
+            $kolomPihak = $jenisSurat === 'masuk' ? 'pengirim_asal' : 'tujuan_penerima';
+            $rekapPihak = $items->groupBy(fn($it) => trim((string) ($it->{$kolomPihak} ?? '')) ?: '—')
+                ->map->count()->sortDesc()->take(5);
+            $labelStatus = fn($s) => ucwords(str_replace('_', ' ', (string) $s));
+        @endphp
+
+        {{-- Panel Ringkasan & Rekapitulasi --}}
+        <div class="rekap-panel">
+            <div class="rekap-title">
+                <i class="fas fa-chart-simple"></i>
+                RINGKASAN &amp; REKAPITULASI {{ $jenisSurat === 'masuk' ? 'SURAT MASUK' : 'SURAT KELUAR' }}
+            </div>
+            <div class="rekap-cols">
+                <div class="rekap-card">
+                    <h4>Status Pemrosesan</h4>
+                    <table>
+                        @forelse ($rekapStatus as $st => $jml)
+                            <tr>
+                                <td>{{ $labelStatus($st) }}</td>
+                                <td class="num">{{ $jml }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2">Tidak ada data.</td>
+                            </tr>
+                        @endforelse
+                        @if ($rekapStatus->isNotEmpty())
+                            <tr>
+                                <td><strong>Total</strong></td>
+                                <td class="num">{{ $totalBerkas }}</td>
+                            </tr>
+                        @endif
+                    </table>
+                </div>
+
+                <div class="rekap-card">
+                    <h4>Rekap per Bulan</h4>
+                    <table>
+                        @forelse ($rekapBulan as $bln => $jml)
+                            <tr>
+                                <td>{{ $bln }}</td>
+                                <td class="num">{{ $jml }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2">Tidak ada data.</td>
+                            </tr>
+                        @endforelse
+                    </table>
+                </div>
+
+                <div class="rekap-card">
+                    <h4>{{ $jenisSurat === 'masuk' ? 'Top 5 Instansi Pengirim' : 'Top 5 Tujuan Penerima' }}</h4>
+                    <table>
+                        @forelse ($rekapPihak as $pihak => $jml)
+                            <tr>
+                                <td>{{ $pihak }}</td>
+                                <td class="num">{{ $jml }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2">Tidak ada data.</td>
+                            </tr>
+                        @endforelse
+                    </table>
+                </div>
+            </div>
         </div>
 
         {{-- Tabel Register Agenda Kedinasan --}}

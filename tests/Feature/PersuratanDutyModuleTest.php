@@ -192,17 +192,38 @@ class PersuratanDutyModuleTest extends TestCase
             ->get(route('dashboard.persuratan.masuk.agenda.cetak'));
         $resAgendaMasuk->assertStatus(200);
         $resAgendaMasuk->assertSee('BUKU AGENDA SURAT MASUK', false);
+        // Kolom banyak → kertas mendatar.
+        $resAgendaMasuk->assertSee('size: A4 landscape', false);
+        $resAgendaMasuk->assertSee('RINGKASAN &amp; REKAPITULASI SURAT MASUK', false);
 
         // 5. Cetak Buku Agenda Surat Keluar
         $resAgendaKeluar = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.keluar.agenda.cetak'));
         $resAgendaKeluar->assertStatus(200);
         $resAgendaKeluar->assertSee('BUKU AGENDA SURAT KELUAR', false);
+        $resAgendaKeluar->assertSee('size: A4 landscape', false);
+        $resAgendaKeluar->assertSee('RINGKASAN &amp; REKAPITULASI SURAT KELUAR', false);
 
         // 6. Cetak Buku Ekspedisi Kolektif
         $resEkspedisiCetak = $this->withSession(['user' => $admin])
             ->get(route('dashboard.persuratan.keluar.ekspedisi.cetak'));
         $resEkspedisiCetak->assertStatus(200);
         $resEkspedisiCetak->assertSee('BUKU EKSPEDISI', false);
+        $resEkspedisiCetak->assertSee('RINGKASAN &amp; REKAPITULASI EKSPEDISI', false);
+
+        // 7. Form cetak pada halaman INDEKS harus `data-no-ajax`, jika tidak
+        // dashboard-live-search.js membatalkan submit GET (lembar cetak tak terbuka).
+        foreach ([
+            route('dashboard.persuratan.masuk.index'),
+            route('dashboard.persuratan.keluar.index'),
+        ] as $indexUrl) {
+            $resIndex = $this->withSession(['user' => $admin])->get($indexUrl);
+            $resIndex->assertStatus(200);
+            $this->assertStringContainsString(
+                'data-no-ajax',
+                $resIndex->getContent(),
+                "Form cetak pada {$indexUrl} harus memakai data-no-ajax agar tidak diintersep live-search."
+            );
+        }
     }
 }
