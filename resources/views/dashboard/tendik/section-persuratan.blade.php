@@ -247,8 +247,6 @@
     </div>
 </div>
 
-atan & Tata Usaha Umum â€” SAE --}}
-
 @php
     $hdd = $stats['hdd_status'] ?? [
         'is_ready' => true,

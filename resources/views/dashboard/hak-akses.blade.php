@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Hak Akses & Peran â€” SAE')
+@section('title', 'Hak Akses & Peran — SAE')
 @section('dash_title', 'Hak Akses & Peran')
 
 @section('content')
@@ -345,7 +345,7 @@
                                     <option disabled style="background-color: #1e293b; color: var(--text-muted, #94a3b8);">Semua modul sistem
                                         sudah aktif untuk peran ini</option>
                                 @endforelse
-                                <optgroup label="â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+                                <optgroup label="─────────────────────"
                                     style="color: var(--text-muted); background-color: var(--dropdown-bg);"></optgroup>
                                 <option value="__NEW_CUSTOM_MODULE__"
                                     style="background-color: var(--dropdown-bg); color: var(--primary); font-weight: 600; padding: 8px 12px;">

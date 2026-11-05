@@ -420,7 +420,7 @@ class TeknisiModulLapanganTest extends TestCase
             ->assertStatus(200)
             ->assertSee($subjek, false);
 
-        // Ubah pemakaian â†’ baris pelaksanaan ikut diperbarui (tidak dobel).
+        // Ubah pemakaian -> baris pelaksanaan ikut diperbarui (tidak dobel).
         $this->withSession($session)
             ->putJson(route('dashboard.teknisi.modul.update', ['modul' => 'pemakaian-bahan', 'id' => $log->id]), [
                 'tanggal'  => now()->toDateString(),
@@ -434,7 +434,7 @@ class TeknisiModulLapanganTest extends TestCase
         $this->assertSame(1, DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->count());
         $this->assertStringContainsString($subjek . ' (revisi)', DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $log->id)->value('area'));
 
-        // Hapus pemakaian â†’ baris pelaksanaan ikut terhapus.
+        // Hapus pemakaian -> baris pelaksanaan ikut terhapus.
         $this->withSession($session)
             ->deleteJson(route('dashboard.teknisi.modul.destroy', ['modul' => 'pemakaian-bahan', 'id' => $log->id]))
             ->assertStatus(200);
@@ -461,7 +461,7 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
-     * Setiap unggahan Excel mencatat akun pengunggah â€” baik pada baris data
+     * Setiap unggahan Excel mencatat akun pengunggah — baik pada baris data
      * (`user_id`) maupun pada riwayat unggah `teknisi_import_log`.
      */
     public function test_import_work_order_dan_pemeliharaan_mencatat_pengunggah(): void
@@ -515,7 +515,7 @@ class TeknisiModulLapanganTest extends TestCase
     }
 
     /**
-     * Nama petugas TIDAK diambil dari berkas impor â€” selalu akun yang login.
+     * Nama petugas TIDAK diambil dari berkas impor — selalu akun yang login.
      * Kolom `petugas_nama` di CSV harus diabaikan.
      */
     public function test_import_mengabaikan_nama_petugas_dari_berkas(): void

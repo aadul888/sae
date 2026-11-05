@@ -1,5 +1,5 @@
 ﻿/**
- * SAE â€” Pengelolaan Buku Induk Peserta Didik
+ * SAE — Pengelolaan Buku Induk Peserta Didik
  * Modular JavaScript (Vanilla JS + SweetAlert2), mengacu pada datatable global SAE.
  */
 
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 form.style.display = 'flex';
             }
 
-            if (titleEl) titleEl.textContent = `Buku Induk â€” ${d.nama}`;
+            if (titleEl) titleEl.textContent = `Buku Induk — ${d.nama}`;
             if (subtitleEl) {
                 subtitleEl.innerHTML =
                     `NISN: <strong>${escapeHtml(d.nisn || '-')}</strong> &bull; ` +
