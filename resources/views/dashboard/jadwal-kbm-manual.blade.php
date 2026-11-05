@@ -27,13 +27,28 @@
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 12px !important;
+                text-align: center !important;
+            }
+
+            .dash-banner > div:first-child {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .dash-banner .banner-badge-row {
+                justify-content: center !important;
+                width: 100% !important;
             }
 
             .pemberlakuan-badge-wrap {
-                display: flex !important;
+                display: inline-flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 8px !important;
                 flex-wrap: wrap !important;
-                width: 100% !important;
-                gap: 6px !important;
             }
 
             .jadwal-subnav-desktop {
@@ -69,7 +84,7 @@
                 Modul khusus Wali Kelas / Koordinator Kelas untuk menyusun jam dan mata pelajaran sesuai guru pengampu
                 secara terstruktur dan anti-bentrok.
             </p>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="banner-badge-row" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <!-- Pemberlakuan Jadwal Aktif oleh Admin (Eksklusif: Otomatis vs Manual) -->
                 @if ($isAdmin)
                     <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">

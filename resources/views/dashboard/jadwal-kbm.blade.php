@@ -25,13 +25,28 @@
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 12px !important;
+                text-align: center !important;
+            }
+
+            .dash-banner > div:first-child {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .dash-banner .banner-badge-row {
+                justify-content: center !important;
+                width: 100% !important;
             }
 
             .pemberlakuan-badge-wrap {
-                display: flex !important;
+                display: inline-flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 8px !important;
                 flex-wrap: wrap !important;
-                width: 100% !important;
-                gap: 6px !important;
             }
 
             .jadwal-subnav-desktop,
@@ -145,7 +160,7 @@
                 Visualisasi jadwal mengajar guru per rombel secara modular dan anti-bentrok, terintegrasi ke presensi dan
                 agenda KBM.
             </p>
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div class="banner-badge-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <!-- Badge Pekan Aktif (lapis 2: pemberlakuan per pekan) -->
                 @if (!empty($ringkasanPekan['aktif_ke']))
                     <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'pekan'])) }}"

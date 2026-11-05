@@ -6321,29 +6321,35 @@ input:disabled + .slider-toggle-crud {
         white-space: nowrap;
     }
 
-    /* Grid 4 kolom bila tombol ikon lebih dari 4. */
+    /* Grid 4 kolom bila tombol ikon lebih dari 4 — flex wrap max-width 4 tombol agar tombol ganjil/sisa selalu di tengah */
     .dash-banner-actions.banner-actions--grid4 {
-        display: grid !important;
-        grid-template-columns: repeat(4, var(--control-height-md, 38px)) !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
         justify-content: center !important;
         align-content: center !important;
+        align-items: center !important;
         gap: 8px !important;
-        width: auto !important;
-        max-width: 100% !important;
+        width: 100% !important;
+        max-width: calc(4 * var(--control-height-md, 38px) + 3 * 8px) !important;
         margin: 0 auto !important;
     }
 
     .dash-banner-actions.banner-actions--grid4 > .btn.banner-actions__icon,
+    .dash-banner-actions.banner-actions--grid4 > div,
     .dash-banner-actions.banner-actions--grid4 > div > .btn.banner-actions__icon {
         width: var(--control-height-md, 38px) !important;
+        height: var(--control-height-md, 38px) !important;
         min-width: var(--control-height-md, 38px) !important;
-        flex: none !important;
+        max-width: var(--control-height-md, 38px) !important;
+        flex: 0 0 var(--control-height-md, 38px) !important;
     }
 
-    /* Bila ada tombol teks di dalam bar bergrid, biarkan selebar grid. */
+    /* Bila ada tombol teks di dalam bar bergrid, biarkan selebar baris dan di tengah. */
     .dash-banner-actions.banner-actions--grid4 > .btn.banner-actions__text {
-        grid-column: 1 / -1 !important;
-        justify-self: center !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        justify-content: center !important;
     }
 
     /* Wrapper inline (mis. dropdown cetak) tetap sejajar di tengah. */
