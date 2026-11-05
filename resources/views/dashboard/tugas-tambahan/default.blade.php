@@ -32,12 +32,14 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @php
                     $baseRole = is_array($sessionUser) ? ($sessionUser['role'] ?? 'guru') : ($sessionUser->role ?? 'guru');
                 @endphp
-                <a href="{{ route('dashboard.' . ($baseRole === 'peserta_didik' ? 'peserta-didik' : $baseRole)) }}" class="btn btn-outline" style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard Pokok
+                <a href="{{ route('dashboard.' . ($baseRole === 'peserta_didik' ? 'peserta-didik' : $baseRole)) }}" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Kembali ke Dashboard Pokok" aria-label="Kembali ke Dashboard Pokok">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
             </div>
         </div>

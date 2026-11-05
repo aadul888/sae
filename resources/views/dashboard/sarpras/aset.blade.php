@@ -26,27 +26,28 @@
                 @if ($tab === 'sarpras')
                     <a href="{{ route('dashboard.sarpras.aset.export', request()->only(['q', 'kategori', 'kondisi', 'ruang_id', 'jurusan_id'])) }}"
                         class="btn btn-outline"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                        title="Unduh daftar Inventaris & Aset sebagai Excel sesuai filter">
-                        <i class="fas fa-file-excel text-success"></i> Unduh Excel
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                        title="Unduh daftar Inventaris &amp; Aset sebagai Excel sesuai filter"
+                        aria-label="Unduh daftar Inventaris &amp; Aset sebagai Excel">
+                        <i class="fas fa-file-excel text-success"></i>
                     </a>
                 @endif
                 @if ($canCreate && $tab === 'sarpras')
                     <button type="button" class="btn btn-outline" id="btnOpenImportAset"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
-                        title="Import Aset via Excel">
-                        <i class="fas fa-file-excel text-success"></i> Import Excel
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Import Aset via Excel" aria-label="Import Aset via Excel">
+                        <i class="fas fa-file-excel text-success"></i>
                     </button>
                     <button type="button" class="btn btn-primary" id="btnOpenModalAset"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Tambah Aset Baru">
+                        title="Tambah Aset Baru" aria-label="Tambah Aset Baru">
                         <i class="fas fa-plus"></i>
                     </button>
                 @elseif ($tab === 'laboran')
                     <a href="{{ route('dashboard.laboran.inventaris.index') }}" class="btn btn-outline"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                        title="Buka Modul Inventaris Laboran Penuh">
-                        <i class="fas fa-flask text-primary"></i> Modul Laboran Penuh
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                        title="Buka Modul Inventaris Laboran Penuh" aria-label="Buka Modul Inventaris Laboran Penuh">
+                        <i class="fas fa-flask text-primary"></i>
                     </a>
                 @endif
             </div>

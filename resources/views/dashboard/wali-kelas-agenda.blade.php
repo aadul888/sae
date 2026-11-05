@@ -61,17 +61,17 @@
 
                 @if ($hasRombel)
                     <a href="{{ route('dashboard.wali-kelas.agenda.cetak', array_filter(['rombel_id' => $canSwitchRombel ? $activeRombel?->rombongan_belajar_id : null, 'tanggal' => $tab === 'jadwal' ? $tanggal : null])) }}"
-                        target="_blank" class="btn btn-outline" title="Cetak Rekap Jurnal Agenda Kelas"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); text-decoration: none;">
+                        target="_blank" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                        title="Cetak Rekap Jurnal Agenda Kelas" aria-label="Cetak Rekap Jurnal Agenda Kelas">
                         <i class="fas fa-print text-primary"></i>
-                        <span>Cetak Jurnal</span>
                     </a>
 
                     @if ($canCreate)
                         <button type="button" class="btn btn-primary" id="btnOpenCreateAgenda"
-                            style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700;">
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Input Agenda Tambahan" aria-label="Input Agenda Tambahan">
                             <i class="fas fa-plus"></i>
-                            <span>Input Agenda Tambahan</span>
                         </button>
                     @endif
                 @endif

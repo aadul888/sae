@@ -16,14 +16,16 @@
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="dash-banner-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                 <a href="{{ route('dashboard.perpustakaan.anggota.kartu.cetak') }}" target="_blank" class="btn btn-outline"
-                    style="display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:var(--radius-md,8px);">
-                    <i class="fas fa-print"></i> Cetak Kartu Massal
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Cetak Kartu Massal" aria-label="Cetak Kartu Massal">
+                    <i class="fas fa-print"></i>
                 </a>
                 <button type="button" class="btn btn-primary" onclick="openModalAnggota()"
-                    style="display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:var(--radius-md,8px);">
-                    <i class="fas fa-plus"></i> Daftarkan Anggota
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Daftarkan Anggota Baru" aria-label="Daftarkan Anggota Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>

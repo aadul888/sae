@@ -25,13 +25,13 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-outline" id="btnOpenModalMutasiGlobal"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
-                        title="Catat Mutasi Masuk / Keluar Barang">
-                        <i class="fas fa-arrow-right-arrow-left text-warning"></i> Catat Mutasi
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Catat Mutasi Masuk / Keluar Barang" aria-label="Catat Mutasi Masuk / Keluar Barang">
+                        <i class="fas fa-arrow-right-arrow-left text-warning"></i>
                     </button>
                     <button type="button" class="btn btn-primary" id="btnOpenModalBarang"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Tambah Barang Persediaan Baru">
+                        title="Tambah Barang Persediaan Baru" aria-label="Tambah Barang Persediaan Baru">
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif

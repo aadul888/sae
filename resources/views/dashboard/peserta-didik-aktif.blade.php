@@ -39,10 +39,9 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate || $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
-                    title="Import Excel Peserta Didik Aktif (Sementara)">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
+                    title="Import Excel Peserta Didik Aktif (Sementara)" aria-label="Import Excel Peserta Didik Aktif">
                     <i class="fas fa-file-excel"></i>
-                    <span>Import Excel</span>
                 </button>
             @endif
             @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))

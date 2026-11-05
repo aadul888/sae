@@ -29,12 +29,16 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <a href="{{ route('dashboard.tendik') }}" class="btn btn-outline" style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-arrow-left me-1"></i> Dashboard Pokok Tendik
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="{{ route('dashboard.tendik') }}" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Dashboard Pokok Tendik" aria-label="Dashboard Pokok Tendik">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
-                <a href="{{ route('dashboard.tendik.laporan.index') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); border-color: var(--success, #10b981);">
-                    <i class="fas fa-file-signature me-1"></i> Rekap Kinerja Tendik
+                <a href="{{ route('dashboard.tendik.laporan.index') }}" class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: var(--success, #10b981); border-color: var(--success, #10b981); text-decoration: none;"
+                    title="Rekap Kinerja Tendik" aria-label="Rekap Kinerja Tendik">
+                    <i class="fas fa-file-signature"></i>
                 </a>
             </div>
         </div>

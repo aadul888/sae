@@ -29,12 +29,16 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <a href="{{ route('dashboard.guru') }}" class="btn btn-outline" style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-arrow-left me-1"></i> Dashboard Pokok
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="{{ route('dashboard.guru') }}" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Dashboard Pokok Guru" aria-label="Dashboard Pokok Guru">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
-                <a href="{{ route('dashboard.piket.izin.index') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); background: var(--purple, #8b5cf6); border-color: var(--purple, #8b5cf6);">
-                    <i class="fas fa-ticket-alt me-1"></i> Buat Surat Izin Siswa
+                <a href="{{ route('dashboard.piket.izin.index') }}" class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: var(--purple, #8b5cf6); border-color: var(--purple, #8b5cf6); text-decoration: none;"
+                    title="Buat Surat Izin Siswa" aria-label="Buat Surat Izin Siswa">
+                    <i class="fas fa-ticket-alt"></i>
                 </a>
             </div>
         </div>

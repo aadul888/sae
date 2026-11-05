@@ -25,9 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.sarpras.laporan.cetak', request()->all()) }}" target="_blank"
                     class="btn btn-primary"
-                    style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                    title="Cetak Buku Induk Inventaris (PDF / Print)">
-                    <i class="fas fa-print"></i> Cetak Buku Induk
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Cetak Buku Induk Inventaris (PDF / Print)" aria-label="Cetak Buku Induk Inventaris">
+                    <i class="fas fa-print"></i>
                 </a>
             </div>
         </div>

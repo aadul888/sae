@@ -32,10 +32,9 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
                 <button type="button" class="btn btn-primary btn-open-modal-tambah" id="btnOpenModalTambah"
-                    title="Catat Aktivitas Harian Baru"
-                    style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 600; background: var(--success, #10b981); border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
+                    title="Catat Aktivitas Harian Baru" aria-label="Catat Aktivitas Harian Baru"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); font-weight: 600; background: var(--success, #10b981); border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
                     <i class="fas fa-plus"></i>
-                    <span>Catat Aktivitas</span>
                 </button>
             @endif
             <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"

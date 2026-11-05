@@ -47,12 +47,14 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if (($canCreate ?? false) || $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openImportNonAsnModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px; border-color: var(--success, #10b981); color: var(--success, #10b981);">
-                    <i class="fas fa-file-excel"></i> Import Excel
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
+                    title="Import GTK Non-ASN via Excel" aria-label="Import GTK Non-ASN via Excel">
+                    <i class="fas fa-file-excel"></i>
                 </button>
                 <button type="button" class="btn btn-primary" onclick="openNonAsnModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plus"></i> Tambah Non-ASN
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Tambah Data GTK Non-ASN" aria-label="Tambah Data GTK Non-ASN">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>

@@ -20,10 +20,11 @@
                     </div>
                 </div>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-outline" onclick="openModalEbookManual()"
-                    style="display:inline-flex;align-items:center;gap:6px;">
-                    <i class="fas fa-file-circle-plus"></i> Tambah E-Book Mandiri
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Tambah E-Book Mandiri" aria-label="Tambah E-Book Mandiri">
+                    <i class="fas fa-file-circle-plus"></i>
                 </button>
             </div>
         </div>

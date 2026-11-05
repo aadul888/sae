@@ -16,10 +16,14 @@
                     </div>
                 </div>
             </div>
-            <a href="{{ route('dashboard.perpustakaan.laporan.tahunan.cetak', ['ta' => $ta]) }}" target="_blank"
-                class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;">
-                <i class="fas fa-print"></i> Cetak A3
-            </a>
+            <div class="dash-banner-actions">
+                <a href="{{ route('dashboard.perpustakaan.laporan.tahunan.cetak', ['ta' => $ta]) }}" target="_blank"
+                    class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Cetak Laporan Tahunan Ukuran A3" aria-label="Cetak Laporan Tahunan Ukuran A3">
+                    <i class="fas fa-print"></i>
+                </a>
+            </div>
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')

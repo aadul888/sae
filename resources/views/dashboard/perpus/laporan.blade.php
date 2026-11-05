@@ -25,8 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.perpustakaan.laporan.cetak', request()->only('dari', 'sampai', 'kategori')) }}"
                     target="_blank" class="btn btn-primary"
-                    style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px);" title="Cetak Laporan Periode">
-                    <i class="fas fa-print"></i> Cetak Laporan
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Cetak Laporan Periode" aria-label="Cetak Laporan Periode">
+                    <i class="fas fa-print"></i>
                 </a>
             </div>
         </div>

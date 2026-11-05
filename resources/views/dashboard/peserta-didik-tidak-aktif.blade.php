@@ -36,25 +36,26 @@
                 arsip foto.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate || $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
-                    title="Import Excel Peserta Didik Keluar / Tidak Aktif (Format Dapodik)">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
+                    title="Import Excel Peserta Didik Keluar / Tidak Aktif (Format Dapodik)" aria-label="Import Excel Peserta Didik Keluar">
                     <i class="fas fa-file-excel"></i>
-                    <span>Import Excel</span>
                 </button>
             @endif
             @if (($canCreate || $canUpdate) && $grade12ActiveCount > 0)
                 <button type="button" id="btnArchiveGrade12" class="btn btn-primary" data-count="{{ $grade12ActiveCount }}"
                     data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
-                    style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); font-weight: 600; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
-                    title="Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
+                    title="Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})" aria-label="Arsipkan Peserta Didik Kelas XII">
                     <i class="fas fa-box-archive"></i>
                 </button>
             @endif
             <a href="{{ route('dashboard.peserta-didik-tidak-aktif.export', ['status' => $status, 'tahun' => $tahun]) }}"
-                class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);" title="Ekspor Excel (.CSV)">
+                class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                title="Ekspor Excel (.CSV)" aria-label="Ekspor Excel (.CSV)">
                 <i class="fas fa-file-excel text-success"></i>
             </a>
         </div>

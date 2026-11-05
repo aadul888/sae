@@ -24,12 +24,14 @@
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.sarpras.aset.index') }}" class="btn btn-outline"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;">
-                    <i class="fas fa-boxes-stacked text-primary"></i> Kelola Aset &amp; Inventaris
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Kelola Aset &amp; Inventaris" aria-label="Kelola Aset &amp; Inventaris">
+                    <i class="fas fa-boxes-stacked text-primary"></i>
                 </a>
                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" class="btn btn-primary"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;">
-                    <i class="fas fa-door-open"></i> Master Ruang
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Master Data Ruang &amp; Gedung" aria-label="Master Data Ruang &amp; Gedung">
+                    <i class="fas fa-door-open"></i>
                 </a>
             </div>
         </div>

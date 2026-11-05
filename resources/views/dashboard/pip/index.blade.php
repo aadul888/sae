@@ -53,21 +53,24 @@
                 @endif
             @elseif ($tab === 'usulan')
                 <button type="button" class="btn btn-outline" onclick="pipExportUsulanExcel()"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; border-color: var(--success, #10b981); color: var(--success, #10b981);"
-                    title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
-                    <i class="fas fa-file-excel"></i> Export Excel
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
+                    title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap"
+                    aria-label="Export Seluruh Data Usulan PIP ke Format Excel">
+                    <i class="fas fa-file-excel"></i>
                 </button>
                 @if (!$isAdmin && !empty($isWaliLocked))
                     <button type="button" class="btn btn-outline" disabled
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; opacity: 0.6; cursor: not-allowed;"
-                        title="Pengusulan PIP saat ini terkunci / telah melewati batas waktu pengisian">
-                        <i class="fas fa-lock"></i> Usulan Ditutup
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); opacity: 0.6; cursor: not-allowed;"
+                        title="Pengusulan PIP saat ini terkunci / telah melewati batas waktu pengisian"
+                        aria-label="Pengusulan PIP saat ini terkunci">
+                        <i class="fas fa-lock"></i>
                     </button>
                 @else
                     <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700;"
-                        title="Tambah Usulan Siswa PIP Baru">
-                        <i class="fas fa-plus"></i> Usulan
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Tambah Usulan Siswa PIP Baru"
+                        aria-label="Tambah Usulan Siswa PIP Baru">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @endif
             @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)

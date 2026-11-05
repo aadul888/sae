@@ -32,10 +32,11 @@
                 </div>
             </div>
 
-            <div style="display: flex; align-items: center; flex-shrink: 0;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.wali-kelas.presensi.index') }}" class="btn btn-primary"
-                    style="padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-                    <i class="fas fa-calendar-check"></i> Input Presensi Kelas
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Input Presensi Kelas" aria-label="Input Presensi Kelas">
+                    <i class="fas fa-calendar-check"></i>
                 </a>
             </div>
         </div>
