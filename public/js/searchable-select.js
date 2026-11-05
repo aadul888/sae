@@ -11,6 +11,10 @@
     var OPEN_CLASS = 'is-open';
     var styleInjected = false;
 
+    function cleanText(text) {
+        return (text || '').replace(/\s+/g, ' ').trim();
+    }
+
     function injectStyle() {
         if (styleInjected) return;
         styleInjected = true;
@@ -59,12 +63,14 @@
         input.setAttribute('aria-expanded', 'false');
         input.className = (select.className || '') + ' sae-searchable-select__input';
         if (select.getAttribute('style')) input.setAttribute('style', select.getAttribute('style'));
+        var defaultOption = placeholderOption || select.options[select.selectedIndex] || null;
         input.placeholder = select.dataset.searchablePlaceholder ||
-            (placeholderOption ? placeholderOption.textContent.trim() : 'Ketik untuk mencari...');
+            (defaultOption ? cleanText(defaultOption.textContent) : 'Ketik untuk mencari...');
         if (needsValidation) input.required = true;
 
         var list = document.createElement('div');
         list.className = 'sae-searchable-select__list';
+        list.setAttribute('role', 'listbox');
 
         select.parentNode.insertBefore(wrapper, select);
         wrapper.appendChild(select);
@@ -76,6 +82,9 @@
 
         var filtered = [];
         var activeIndex = -1;
+        // Default blank: input dikosongkan sampai nilai diisi lewat pilihan atau
+        // set programatik, sehingga bisa langsung diketik tanpa hapus dulu.
+        var showValue = false;
 
         function syncInput() {
             var match = null;
@@ -85,7 +94,7 @@
                     break;
                 }
             }
-            input.value = match ? match.textContent.trim() : '';
+            input.value = match ? cleanText(match.textContent) : '';
         }
 
         // Selaraskan tampilan saat JS lain mengubah select.value langsung.
@@ -95,7 +104,7 @@
                 configurable: true,
                 enumerable: proto.enumerable,
                 get: function () { return proto.get.call(this); },
-                set: function (val) { proto.set.call(this, val); syncInput(); }
+                set: function (val) { proto.set.call(this, val); showValue = true; syncInput(); }
             });
         }
 
@@ -105,7 +114,7 @@
             for (var i = 0; i < select.options.length; i++) {
                 var opt = select.options[i];
                 if (opt.disabled) continue;
-                var text = opt.textContent.trim();
+                var text = cleanText(opt.textContent);
                 if (q && text.toLowerCase().indexOf(q) === -1 && opt.value.toLowerCase().indexOf(q) === -1) continue;
                 filtered.push(opt);
             }
@@ -124,16 +133,29 @@
             filtered.forEach(function (opt, idx) {
                 var item = document.createElement('div');
                 item.className = 'sae-searchable-select__option';
-                if (opt.value === select.value) item.classList.add('is-selected');
+                item.setAttribute('role', 'option');
+                if (opt.value === select.value) {
+                    item.classList.add('is-selected');
+                    item.setAttribute('aria-selected', 'true');
+                }
                 if (idx === activeIndex) item.classList.add('is-active');
-                item.textContent = opt.textContent.trim();
+                item.textContent = cleanText(opt.textContent);
                 item.addEventListener('mousedown', function (e) {
                     e.preventDefault();
                     pick(opt);
                 });
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (select.value !== opt.value) pick(opt);
+                });
                 item.addEventListener('mouseenter', function () {
+                    // Jangan render ulang saat hover: node opsi yang diganti di
+                    // bawah kursor memicu mouseenter lagi dan membuat list
+                    // berkedip sehingga klik tidak pernah mendarat.
                     activeIndex = idx;
-                    renderList();
+                    list.querySelectorAll('.sae-searchable-select__option').forEach(function (el, i) {
+                        el.classList.toggle('is-active', i === idx);
+                    });
                 });
                 list.appendChild(item);
             });
@@ -153,7 +175,16 @@
             activeIndex = -1;
         }
 
+        function revertOrSync() {
+            if (showValue) {
+                syncInput();
+            } else {
+                input.value = '';
+            }
+        }
+
         function pick(opt) {
+            showValue = opt.value !== '';
             if (opt.value === '') {
                 select.value = '';
             } else {
@@ -188,7 +219,7 @@
                     pick(filtered[activeIndex >= 0 ? activeIndex : 0]);
                 }
             } else if (e.key === 'Escape') {
-                syncInput();
+                revertOrSync();
                 closeList();
             } else if (e.key === 'Tab') {
                 closeList();
@@ -200,7 +231,7 @@
             // Simpan jeda agar klik opsi tetap terproses.
             setTimeout(function () {
                 if (!wrapper.contains(document.activeElement)) {
-                    syncInput();
+                    revertOrSync();
                     closeList();
                 }
             }, 120);
@@ -213,7 +244,10 @@
         var form = select.form;
         if (form) {
             form.addEventListener('reset', function () {
-                setTimeout(syncInput, 0);
+                setTimeout(function () {
+                    showValue = false;
+                    input.value = '';
+                }, 0);
             });
         }
         if (form && needsValidation) {
@@ -230,7 +264,7 @@
         }
         input.addEventListener('input', function () { input.setCustomValidity(''); });
 
-        syncInput();
+        input.value = '';
     }
 
     function initAll(root) {

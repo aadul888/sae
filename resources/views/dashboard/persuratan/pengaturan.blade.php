@@ -58,6 +58,9 @@
             </div>
         @endif
 
+        <!-- Tab Navigasi Modul Persuratan -->
+        @include('dashboard.persuratan.partials.tab-nav')
+
         <!-- 3. Navigasi 2 Tab: Format & Indeks vs Penyimpanan HDD -->
         <div class="dash-tabs"
             style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 22px;">
@@ -280,9 +283,7 @@
                                     <select id="perPageSelect" name="perPage" class="per-page-select"
                                         style="height: 38px;">
                                         @foreach ([10, 15, 20, 25, 50, 100] as $n)
-                                            <option value="{{ $n }}"
-                                                {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>
-                                                {{ $n }}</option>
+                                            <option value="{{ $n }}" {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>{{ $n }}</option>
                                         @endforeach
                                     </select>
                                     <span>entri</span>
@@ -292,9 +293,7 @@
                                     style="height: 38px;">
                                     <option value="">Semua Kategori</option>
                                     @foreach ($kategoriList as $kat)
-                                        <option value="{{ $kat }}"
-                                            {{ ($kategoriIndeks ?? '') === $kat ? 'selected' : '' }}>{{ $kat }}
-                                        </option>
+                                        <option value="{{ $kat }}" {{ ($kategoriIndeks ?? '') === $kat ? 'selected' : '' }}>{{ $kat }}</option>
                                     @endforeach
                                 </select>
 

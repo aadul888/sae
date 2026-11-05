@@ -105,6 +105,9 @@
             </div>
         </div>
 
+        <!-- Tab Navigasi Modul Persuratan -->
+        @include('dashboard.persuratan.partials.tab-nav')
+
         <!-- Card Interaktif: Nomor Surat Masuk Terakhir (Diatas Datatable) -->
         <div class="card card-nomor-terakhir"
             style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
@@ -161,8 +164,7 @@
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                 @foreach ([10, 15, 25, 50, 100] as $n)
-                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                        {{ $n }}</option>
+                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
                                 @endforeach
                             </select>
                             <span>entri</span>
@@ -170,24 +172,16 @@
 
                         <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Status</option>
-                            <option value="menunggu_disposisi"
-                                {{ ($status ?? '') === 'menunggu_disposisi' ? 'selected' : '' }}>Menunggu Disposisi
-                            </option>
-                            <option value="diproses" {{ ($status ?? '') === 'diproses' ? 'selected' : '' }}>Sedang
-                                Diproses
-                            </option>
+                            <option value="menunggu_disposisi" {{ ($status ?? '') === 'menunggu_disposisi' ? 'selected' : '' }}>Menunggu Disposisi</option>
+                            <option value="diproses" {{ ($status ?? '') === 'diproses' ? 'selected' : '' }}>Sedang Diproses</option>
                             <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan
-                            </option>
+                            <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
                         </select>
 
                         <select id="filterPtk" name="ptk_id" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Tujuan Disposisi</option>
                             @foreach ($ptkList as $ptk)
-                                <option value="{{ $ptk->ptk_id }}"
-                                    {{ ($filterPtk ?? '') === $ptk->ptk_id ? 'selected' : '' }}>
-                                    {{ $ptk->nama }}
-                                </option>
+                                <option value="{{ $ptk->ptk_id }}" {{ ($filterPtk ?? '') === $ptk->ptk_id ? 'selected' : '' }}>{{ $ptk->nama }}</option>
                             @endforeach
                         </select>
 
@@ -195,8 +189,7 @@
                             style="height: 38px; min-width: 120px;" title="Filter Bulan Surat">
                             <option value="">Semua Bulan</option>
                             @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
-                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>
-                                    {{ $mName }}</option>
+                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>{{ $mName }}</option>
                             @endforeach
                         </select>
 

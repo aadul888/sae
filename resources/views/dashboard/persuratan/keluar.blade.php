@@ -1,7 +1,17 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Buku Agenda Surat Keluar & Surat Keterangan — SAE')
-@section('dash_title', 'Surat Keluar')
+@php
+    $currentTab = $tab ?? 'keluar';
+    $bannerTitles = [
+        'template'  => ['title' => 'Buat Surat Keluar', 'desc' => 'Penerbitan surat dinas otomatis dari berbagai template naskah dinas siap pakai.'],
+        'ekspedisi' => ['title' => 'Buku Ekspedisi Surat Keluar', 'desc' => 'Tanda terima pengiriman dan tracking distribusi surat keluar.'],
+        'keluar'    => ['title' => 'Buku Agenda Surat Keluar', 'desc' => 'Penomoran surat dinas otomatis, surat keterangan siswa, SPT, dan arsip dokumen di harddisk.'],
+    ];
+    $bannerInfo = $bannerTitles[$currentTab] ?? $bannerTitles['keluar'];
+@endphp
+
+@section('title', $bannerInfo['title'] . ' — SAE')
+@section('dash_title', $bannerInfo['title'])
 
 @section('content')
     <div id="suratKeluarContainer" data-cetak-id="{{ session('cetak_id') ?? '' }}"
@@ -20,15 +30,14 @@
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
                     style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
-                    <i class="fas fa-paper-plane"></i>
+                    <i class="{{ $currentTab === 'template' ? 'fas fa-wand-magic-sparkles' : ($currentTab === 'ekspedisi' ? 'fas fa-truck-fast' : 'fas fa-paper-plane') }}"></i>
                 </div>
                 <div>
                     <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                        Buku Agenda Surat Keluar
+                        {{ $bannerInfo['title'] }}
                     </h2>
                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                        Penomoran surat dinas otomatis, penerbitan surat dari template Autocrat, dan arsip dokumen di
-                        harddisk.
+                        {{ $bannerInfo['desc'] }}
                     </div>
                 </div>
             </div>
@@ -57,9 +66,9 @@
                     </button>
 
                     @if (($tab ?? '') === 'template')
-                        <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
+                        <button type="button" class="btn btn-primary" id="btnOpenPilihJenisSurat"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                            title="Tambah Template Surat Autocrat">
+                            title="Pilih Jenis &amp; Buat Surat Baru">
                             <i class="fas fa-plus"></i>
                         </button>
                     @else
@@ -127,28 +136,13 @@
                 </div>
                 <div class="dash-stat-info">
                     <div class="dash-stat-value">{{ number_format($stats['template'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Template Surat Autocrat</div>
+                    <div class="dash-stat-label">Template Naskah</div>
                 </div>
             </div>
         </div>
 
-        <!-- 4. Tab Navigasi Baku SAE (3 Tab Terpadu) -->
-        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-            <div class="periode-nav-desktop">
-                <a href="{{ route('dashboard.persuratan.keluar.index') }}"
-                    class="periode-nav-tab {{ ($tab ?? 'keluar') === 'keluar' ? 'active' : '' }}">
-                    <i class="fas fa-paper-plane"></i> Surat Keluar
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']) }}"
-                    class="periode-nav-tab {{ ($tab ?? '') === 'ekspedisi' ? 'active' : '' }}">
-                    <i class="fas fa-truck-fast"></i> Buku Ekspedisi
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
-                    class="periode-nav-tab {{ ($tab ?? '') === 'template' ? 'active' : '' }}">
-                    <i class="fas fa-wand-magic-sparkles"></i> Autocrat
-                </a>
-            </div>
-        </div>
+        <!-- 4. Tab Navigasi Modul Persuratan -->
+        @include('dashboard.persuratan.partials.tab-nav')
 
         @php
             $activeTab = $tab ?? 'keluar';
@@ -174,9 +168,9 @@
                     'gradient' => 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(16,185,129,0.03) 100%)',
                 ],
                 'template' => [
-                    'label' => 'Nomor Template Surat Terakhir (Autocrat)',
+                    'label' => 'Nomor Surat Terakhir dari Template',
                     'nomor' => $stats['nomor_terakhir_template'] ?? '-',
-                    'badge' => 'Autocrat',
+                    'badge' => 'Buat Surat',
                     'icon' => 'fas fa-wand-magic-sparkles',
                     'color' => '#7c3aed',
                     'bg' => 'rgba(124,58,237,0.12)',
@@ -254,8 +248,7 @@
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                 @foreach ([10, 15, 25, 50, 100] as $n)
-                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                        {{ $n }}</option>
+                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
                                 @endforeach
                             </select>
                             <span>entri</span>
@@ -266,23 +259,16 @@
                                 style="height: 38px;">
                                 <option value="">Semua Indeks</option>
                                 @foreach ($indeksList as $idx)
-                                    <option value="{{ $idx->kode }}"
-                                        {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>
-                                        {{ $idx->kode }} - {{ $idx->judul }}
-                                    </option>
+                                    <option value="{{ $idx->kode }}" {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
                                 @endforeach
                             </select>
 
                             <select id="filterStatus" name="status" class="toolbar-filter-select"
                                 style="height: 38px;">
                                 <option value="">Semua Status</option>
-                                <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai /
-                                    Terbit
-                                </option>
+                                <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai / Terbit</option>
                                 <option value="draf" {{ ($status ?? '') === 'draf' ? 'selected' : '' }}>Draf</option>
-                                <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>
-                                    Diarsipkan
-                                </option>
+                                <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
                             </select>
                         @endif
 
@@ -290,8 +276,7 @@
                             style="height: 38px; min-width: 120px;" title="Filter Bulan Surat">
                             <option value="">Semua Bulan</option>
                             @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
-                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>
-                                    {{ $mName }}</option>
+                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>{{ $mName }}</option>
                             @endforeach
                         </select>
 
@@ -449,10 +434,10 @@
                                         style="padding: 30px; text-align: center; color: var(--text-muted);">
                                         <i class="fas fa-wand-magic-sparkles mb-2"
                                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
-                                        <div>Belum ada surat keluar yang dibuat dari template Autocrat.</div>
+                                        <div>Belum ada surat keluar yang dibuat dari template.</div>
                                         @if ($canCreate)
                                             <button type="button" class="btn btn-outline btn-sm mt-3"
-                                                onclick="document.getElementById('btnOpenModalTemplate')?.click()">
+                                                onclick="document.getElementById('btnOpenPilihJenisSurat')?.click()">
                                                 <i class="fas fa-plus me-1"></i> Buat Surat Sekarang
                                             </button>
                                         @endif
@@ -560,7 +545,7 @@
                                             @elseif ($isTmpl)
                                                 <span class="badge-compact"
                                                     style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed); border: 1px solid rgba(124,58,237,0.25);"><i
-                                                        class="fas fa-wand-magic-sparkles me-1"></i>Autocrat</span>
+                                                        class="fas fa-wand-magic-sparkles me-1"></i>Template</span>
                                             @else
                                                 <span class="badge-compact"
                                                     style="background: rgba(16,185,129,0.1); color: var(--success, #10b981);">Surat
@@ -676,7 +661,7 @@
                                             @if ($isTmpl && $tmplItem)
                                                 <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmplItem->id) }}"
                                                     target="_blank" class="btn-icon text-primary"
-                                                    title="Cetak Surat Template Autocrat">
+                                                    title="Cetak Surat Template">
                                                     <i class="fas fa-print"></i>
                                                 </a>
                                                 <a href="{{ url('/v/doc/' . $tmplItem->doc_id) }}" target="_blank"

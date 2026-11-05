@@ -30,9 +30,7 @@
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                 required>
                                 @foreach ($indeksList as $idx)
-                                    <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
-                                        ({{ $idx->kategori }})
-                                    </option>
+                                    <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }} ({{ $idx->kategori }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -120,41 +118,6 @@
                             </div>
                         </div>
 
-                        <!-- Integrasi Sarpras Aset (Opsional BAST / Pemeliharaan / Mutasi) -->
-                        <div
-                            style="background: rgba(245,158,11,0.05); border: 1px dashed rgba(245,158,11,0.3); border-radius: var(--radius-lg, 12px); padding: 12px 14px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label
-                                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--warning, #d97706); margin: 0; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-boxes-stacked"></i> Kaitkan Barang Sarpras / BAST (Opsional):
-                                </label>
-                                <button type="button" id="btnQuickBastKeluar" class="btn btn-outline"
-                                    style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-color: rgba(245,158,11,0.4); color: var(--warning, #d97706);">
-                                    <i class="fas fa-magic me-1"></i> Format BAST Otomatis
-                                </button>
-                            </div>
-                            <select name="sarpras_aset_id" id="selectSarprasAsetKeluar" data-searchable
-                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
-                                <option value="">-- Tidak dikaitkan dengan aset sarpras --</option>
-                                @if (isset($daftarAset))
-                                    @foreach ($daftarAset as $ast)
-                                        <option value="{{ $ast->id }}" data-kode="{{ $ast->kode_aset }}"
-                                            data-nama="{{ $ast->nama_barang }}" data-merk="{{ $ast->merk_tipe }}"
-                                            data-kondisi="{{ $ast->kondisi }}">
-                                            [{{ $ast->kode_aset }}] {{ $ast->nama_barang }}
-                                            ({{ $ast->merk_tipe ?: 'Merk -' }} &bull; Kondisi:
-                                            {{ ucfirst($ast->kondisi) }})
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
-                                Pilih aset sekolah jika surat keluar ini merupakan Berita Acara Serah Terima (BAST),
-                                penghapusan aset, atau surat permohonan servis.
-                            </div>
-                        </div>
-
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
@@ -225,8 +188,7 @@
                                 required>
                                 <option value="siswa_aktif">Surat Keterangan Siswa Aktif</option>
                                 <option value="kelakuan_baik">Surat Keterangan Berkelakuan Baik</option>
-                                <option value="panggilan_ortu">Surat Panggilan Orang Tua / Wali (Integrasi BK &amp;
-                                    Kedisiplinan)</option>
+                                <option value="panggilan_ortu">Surat Panggilan Orang Tua / Wali (Integrasi BK &amp; Kedisiplinan)</option>
                                 <option value="rekomendasi">Surat Rekomendasi Siswa</option>
                             </select>
                         </div>
@@ -281,10 +243,7 @@
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                 required>
                                 @foreach ($indeksList as $idx)
-                                    <option value="{{ $idx->kode }}"
-                                        {{ $idx->kode === 'KS.02.23' ? 'selected' : '' }}>
-                                        {{ $idx->kode }} - {{ $idx->judul }} ({{ $idx->kategori }})
-                                    </option>
+                                    <option value="{{ $idx->kode }}" {{ $idx->kode === 'KS.02.23' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }} ({{ $idx->kategori }})</option>
                                 @endforeach
                             </select>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
@@ -325,19 +284,12 @@
                             <select id="selectKeperluanPreset" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px;">
                                 <option value="">-- Pilih Contoh Keperluan / Ketik Sendiri --</option>
-                                <option value="Kelengkapan Berkas Tunjangan Gaji / Anak Orang Tua">Kelengkapan Berkas
-                                    Tunjangan Gaji / Anak Orang Tua</option>
-                                <option value="Pengurusan Beasiswa PIP / Prestasi">Pengurusan Beasiswa PIP / Prestasi
-                                </option>
-                                <option value="Pembukaan Rekening Tabungan Bank">Pembukaan Rekening Tabungan Bank
-                                </option>
-                                <option value="Pendaftaran BPJS / Asuransi Kesehatan">Pendaftaran BPJS / Asuransi
-                                    Kesehatan
-                                </option>
-                                <option value="Melanjutkan Studi / Pindah Sekolah">Melanjutkan Studi / Pindah Sekolah
-                                </option>
-                                <option value="Pengurusan Visa / Paspor Kedutaan">Pengurusan Visa / Paspor Kedutaan
-                                </option>
+                                <option value="Kelengkapan Berkas Tunjangan Gaji / Anak Orang Tua">Kelengkapan Berkas Tunjangan Gaji / Anak Orang Tua</option>
+                                <option value="Pengurusan Beasiswa PIP / Prestasi">Pengurusan Beasiswa PIP / Prestasi</option>
+                                <option value="Pembukaan Rekening Tabungan Bank">Pembukaan Rekening Tabungan Bank</option>
+                                <option value="Pendaftaran BPJS / Asuransi Kesehatan">Pendaftaran BPJS / Asuransi Kesehatan</option>
+                                <option value="Melanjutkan Studi / Pindah Sekolah">Melanjutkan Studi / Pindah Sekolah</option>
+                                <option value="Pengurusan Visa / Paspor Kedutaan">Pengurusan Visa / Paspor Kedutaan</option>
                             </select>
                             <input type="text" name="keperluan" id="inputKeperluan"
                                 placeholder="Tuliskan keperluan lengkap..."
@@ -610,11 +562,14 @@
                 style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-xl, 16px); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                    <h4
-                        style="margin: 0; font-size: var(--text-lg, 1.125rem); color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Buat Surat Keluar dari Template
-                        (Autocrat)
-                    </h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <h4 id="lblTitleModalTemplate"
+                            style="margin: 0; font-size: var(--text-lg, 1.125rem); color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-pen text-primary"></i> <span id="lblTextModalTemplate">Buat Surat Keluar dari Template</span>
+                        </h4>
+                        <span id="badgeIndeksModalTemplate" class="badge-compact"
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-family: monospace; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; display: none;"></span>
+                    </div>
                     <button type="button" id="btnCloseModalTemplate"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
@@ -633,9 +588,7 @@
                                 @foreach ($templatePresets as $tKey => $tVal)
                                     <option value="{{ $tKey }}" data-indeks="{{ $tVal['indeks'] }}"
                                         data-perihal="{{ $tVal['perihal'] }}" data-salam="{{ $tVal['salam'] }}"
-                                        data-pembuka="{{ $tVal['pembuka'] }}" data-penutup="{{ $tVal['penutup'] }}">
-                                        {{ $tVal['label'] }}
-                                    </option>
+                                        data-pembuka="{{ $tVal['pembuka'] }}" data-penutup="{{ $tVal['penutup'] }}">{{ $tVal['label'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -647,10 +600,7 @@
                             <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required data-searchable
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 @foreach ($indeksList as $idx)
-                                    <option value="{{ $idx->kode }}"
-                                        {{ $idx->kode === 'HM.01.02' ? 'selected' : '' }}>
-                                        {{ $idx->kode }} - {{ $idx->judul }}
-                                    </option>
+                                    <option value="{{ $idx->kode }}" {{ $idx->kode === 'HM.01.02' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -733,7 +683,7 @@
                     </div>
 
                     {{-- Form Rincian Acara / Kegiatan (Autocrat Merge Fields) --}}
-                    <div
+                    <div id="sectionRincianKegiatanTemplate"
                         style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 14px;">
                         <div
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
@@ -891,8 +841,7 @@
                             style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="">Semua Indeks Klasifikasi</option>
                             @foreach ($indeksList as $idx)
-                                <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
-                                </option>
+                                <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -906,5 +855,93 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal 6: Pemilih Jenis Surat Sesuai Kebutuhan Indeks (Selector) -->
+        <div class="modal-overlay" id="modalPilihJenisSurat"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+            <div class="modal-container"
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-xl, 16px); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <div>
+                        <h4
+                            style="margin: 0; font-size: var(--text-lg, 1.125rem); color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-pen text-primary"></i> Buat Surat Berdasarkan Indeks Klasifikasi
+                        </h4>
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
+                            Pilih indeks surat naskah dinas untuk membuka formulir atau template dokumen yang sesuai.
+                        </div>
+                    </div>
+                    <button type="button" id="btnCloseModalPilihJenis"
+                        style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;" aria-label="Tutup">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Dropdown Pilihan Indeks Surat -->
+                    <div>
+                        <label for="selectIndeksPembuatanSurat"
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 6px;">
+                            Pilih Indeks Klasifikasi Surat: <span style="color: var(--danger, #ef4444);">*</span>
+                        </label>
+                        <select id="selectIndeksPembuatanSurat" class="form-control" data-searchable
+                            style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 600;">
+                            <option value="">-- Cari atau Pilih Indeks Klasifikasi Surat (62 Indeks) --</option>
+                            @foreach ($indeksList->groupBy('kategori') as $kategori => $items)
+                                <optgroup label="Klasifikasi {{ $kategori ?: 'Umum' }}">
+                                    @foreach ($items as $idx)
+                                        <option value="{{ $idx->kode }}"
+                                            data-kode="{{ $idx->kode }}"
+                                            data-judul="{{ $idx->judul }}"
+                                            data-kategori="{{ $idx->kategori }}"
+                                            {{ $idx->kode === 'TU.04' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }} ({{ $idx->kategori }})</option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Card Preview Dinamis Sesuai Indeks yang Dipilih -->
+                    <div id="cardIndeksPreview"
+                        style="border: 1px solid rgba(99,102,241,0.25); background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(99,102,241,0.01) 100%); border-radius: var(--radius-lg, 12px); padding: 18px; display: flex; gap: 16px; align-items: flex-start; transition: all 0.2s ease;">
+                        <div id="iconIndeksPreview"
+                            style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                                <span id="badgeKodeIndeksPreview" class="badge-compact"
+                                    style="background: rgba(99,102,241,0.18); color: var(--primary); font-family: monospace; font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">TU.04</span>
+                                <span id="badgeKategoriIndeksPreview"
+                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color);">Tata Usaha</span>
+                            </div>
+                            <div id="titleIndeksPreview"
+                                style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 4px;">
+                                Rapat &amp; Rakor
+                            </div>
+                            <div id="descIndeksPreview"
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.5; margin-bottom: 8px;">
+                                Membuka template surat naskah dinas resmi untuk undangan rapat koordinasi, agenda dinas, waktu dan tempat kegiatan.
+                            </div>
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-color); background: rgba(0,0,0,0.03); padding: 6px 10px; border-radius: var(--radius-sm, 6px); border-left: 3px solid var(--primary);">
+                                <strong>Draf Perihal:</strong> <span id="perihalIndeksPreview" style="font-style: italic;">Undangan Rapat Koordinasi dan Dinas Sekolah</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Action -->
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <button type="button" id="btnCancelPilihIndeks" class="btn btn-outline"
+                            style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            Batal
+                        </button>
+                        <button type="button" id="btnSubmitPilihIndeks" class="btn btn-primary"
+                            style="padding: 8px 20px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 8px;">
+                            <span>Lanjutkan Buka Formulir</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
