@@ -59,7 +59,16 @@ class SuratKeluarService
             'surat_keterangan'          => SuratKeteranganPd::count(),
             'spt'                       => Table::exists('gtk_spt') ? DB::table('gtk_spt')->count() : 0,
             'template'                  => DB::table('ref_indeks_surat')->where('is_active', true)->count(),
+            'template_terbit'           => Persuratan::where('jenis_surat', 'keluar')
+                ->where(function ($q) {
+                    $q->where('keterangan', 'like', '%autocrat%')
+                      ->orWhere('keterangan', 'like', '%template%');
+                })->count(),
+            'template_kategori'         => DB::table('ref_indeks_surat')->where('is_active', true)->distinct('kategori')->count('kategori'),
             'ekspedisi'                 => Persuratan::where('jenis_surat', 'keluar')->count(),
+            'ekspedisi_bulan_ini'       => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
+            'ekspedisi_terkirim'        => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
+            'ekspedisi_tujuan'          => Persuratan::where('jenis_surat', 'keluar')->whereNotNull('tujuan_penerima')->where('tujuan_penerima', '!=', '')->distinct('tujuan_penerima')->count('tujuan_penerima'),
             'bulan_ini'                 => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
             'selesai'                   => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
             'nomor_terakhir'            => $nomorTerakhirKeluar,

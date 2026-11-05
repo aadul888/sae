@@ -98,47 +98,129 @@
             </div>
         @endif
 
-        <!-- 3. Stat Grid Baku SAE (4 Card Simetris) -->
+        <!-- 3. Stat Grid Baku SAE (4 Card Simetris Dinamis Sesuai Tab) -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
-                    <i class="fas fa-paper-plane"></i>
+            @if (($tab ?? '') === 'template')
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed);">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['template'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Katalog Template Siap Pakai</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ number_format($stats['total'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Total Surat Keluar</div>
-                </div>
-            </div>
 
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
-                    <i class="fas fa-user-graduate"></i>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
+                        <i class="fas fa-file-circle-check"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['template_terbit'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Surat Template Diterbitkan</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ number_format($stats['surat_keterangan'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Surat Keterangan Siswa</div>
-                </div>
-            </div>
 
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
-                    <i class="fas fa-file-contract"></i>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
+                        <i class="fas fa-folder-tree"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['template_kategori'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Kategori Klasifikasi</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ number_format($stats['spt'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Surat Perintah Tugas (SPT)</div>
-                </div>
-            </div>
 
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed);">
-                    <i class="fas fa-wand-magic-sparkles"></i>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">E-Kop &amp; QR</div>
+                        <div class="dash-stat-label">Verifikasi Digital Otomatis</div>
+                    </div>
                 </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ number_format($stats['template'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Template Naskah</div>
+            @elseif (($tab ?? '') === 'ekspedisi')
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
+                        <i class="fas fa-truck-fast"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['ekspedisi'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Total Entri Ekspedisi</div>
+                    </div>
                 </div>
-            </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['ekspedisi_bulan_ini'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Distribusi Bulan Ini</div>
+                    </div>
+                </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
+                        <i class="fas fa-circle-check"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['ekspedisi_terkirim'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Surat Terbit &amp; Dikirim</div>
+                    </div>
+                </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed);">
+                        <i class="fas fa-location-dot"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['ekspedisi_tujuan'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Tujuan Penerima Aktif</div>
+                    </div>
+                </div>
+            @else
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['total'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Total Surat Keluar</div>
+                    </div>
+                </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['surat_keterangan'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Surat Keterangan Siswa</div>
+                    </div>
+                </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['spt'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Surat Perintah Tugas (SPT)</div>
+                    </div>
+                </div>
+
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed);">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value">{{ number_format($stats['template'] ?? 0) }}</div>
+                        <div class="dash-stat-label">Template Naskah</div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- 4. Tab Navigasi Modul Persuratan -->
@@ -147,9 +229,21 @@
         @php
             $activeTab = $tab ?? 'keluar';
             $tabConfigs = [
+                'template' => [
+                    'label' => 'Template Naskah Dinas & Otomasi',
+                    'nomor' => 'HM.01.02',
+                    'sublabel' => 'Indeks Terbanyak',
+                    'badge' => 'Autokrat & Generator',
+                    'icon' => 'fas fa-wand-magic-sparkles',
+                    'color' => '#7c3aed',
+                    'bg' => 'rgba(124,58,237,0.12)',
+                    'border' => 'rgba(124,58,237,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(99,102,241,0.03) 100%)',
+                ],
                 'keluar' => [
                     'label' => 'Nomor Surat Keluar Terakhir',
                     'nomor' => $stats['nomor_terakhir'] ?? '-',
+                    'sublabel' => '',
                     'badge' => 'Terkoordinir',
                     'icon' => 'fas fa-paper-plane',
                     'color' => '#10b981',
@@ -158,8 +252,9 @@
                     'gradient' => 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(99,102,241,0.03) 100%)',
                 ],
                 'ekspedisi' => [
-                    'label' => 'Buku Ekspedisi Pengiriman Surat Keluar',
+                    'label' => 'Nomor Resi / Surat Ekspedisi Terakhir',
                     'nomor' => $stats['nomor_terakhir'] ?? '-',
+                    'sublabel' => '',
                     'badge' => 'Tanda Terima',
                     'icon' => 'fas fa-truck-fast',
                     'color' => '#f59e0b',
@@ -171,46 +266,71 @@
             $curCfg = $tabConfigs[$activeTab] ?? $tabConfigs['keluar'];
         @endphp
 
-        <!-- Card Interaktif: Nomor Surat Terakhir (Diatas Datatable) -->
-        @if ($activeTab !== 'template')
-            <div class="card card-nomor-terakhir"
-                style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid {{ $curCfg['border'] }}; background: {{ $curCfg['gradient'] }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
-                    <div
-                        style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
-                        <i class="{{ $curCfg['icon'] }}"></i>
-                    </div>
-                    <div style="min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span
-                                style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-                                {{ $curCfg['label'] }}
+        <!-- Card Interaktif: Nomor Surat / Aksi Cepat (Diatas Datatable) -->
+        <div class="card card-nomor-terakhir"
+            style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid {{ $curCfg['border'] }}; background: {{ $curCfg['gradient'] }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
+                <div
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    <i class="{{ $curCfg['icon'] }}"></i>
+                </div>
+                <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span
+                            style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            {{ $curCfg['label'] }}
+                        </span>
+                        <span class="badge"
+                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
+                            {{ $curCfg['badge'] }}
+                        </span>
+                        @if ($activeTab === 'keluar')
+                            <span class="badge"
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
                             </span>
                             <span class="badge"
-                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
-                                {{ $curCfg['badge'] }}
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);">
+                                SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
                             </span>
-                            @if ($activeTab === 'keluar')
-                                <span class="badge"
-                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
-                                    SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
-                                </span>
-                                <span class="badge"
-                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);">
-                                    SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
-                                </span>
-                            @endif
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                        @elseif ($activeTab === 'ekspedisi')
+                            <span class="badge"
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.1); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.25);">
+                                Siap Distribusi: {{ number_format($stats['ekspedisi'] ?? 0) }} Surat
+                            </span>
+                        @elseif ($activeTab === 'template')
+                            <span class="badge"
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(124,58,237,0.1); color: var(--purple, #7c3aed); border: 1px solid rgba(124,58,237,0.25);">
+                                62 Klasifikasi Indeks Surat
+                            </span>
+                        @endif
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                        @if ($activeTab === 'template')
+                            <span
+                                style="font-family: inherit; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color);">
+                                Penerbitan Surat Dinas Otomatis &amp; Lembar Ber-KOP Resmi
+                            </span>
+                        @else
                             <span id="labelNomorSuratKeluar"
                                 style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: {{ $curCfg['color'] }}; background: {{ $curCfg['bg'] }}; padding: 4px 12px; border-radius: var(--radius-md, 8px); border: 1px solid {{ $curCfg['border'] }}; letter-spacing: 0.5px;">
                                 {{ $curCfg['nomor'] }}
                             </span>
-                        </div>
+                        @endif
                     </div>
                 </div>
+            </div>
 
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                @if ($activeTab === 'template')
+                    @if ($canCreate)
+                        <button type="button" class="btn btn-primary" id="btnHeroOpenPilihJenisSurat" onclick="document.getElementById('btnOpenPilihJenisSurat')?.click()"
+                            style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: {{ $curCfg['color'] }}; border-color: {{ $curCfg['color'] }};"
+                            title="Buat Surat Baru Menggunakan Template">
+                            <i class="fas fa-plus"></i> <span>Buat Surat Baru</span>
+                        </button>
+                    @endif
+                @else
                     <button type="button" class="btn btn-outline" onclick="copyNomorSurat(this, '{{ $curCfg['nomor'] }}')"
                         style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);"
                         title="Salin nomor surat ke clipboard">
@@ -225,9 +345,18 @@
                             <i class="fas fa-search"></i> <span>Cari di Datatable</span>
                         </button>
                     @endif
-                </div>
+
+                    @if ($activeTab === 'ekspedisi')
+                        <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
+                            target="_blank" class="btn btn-outline"
+                            style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg); border-color: rgba(245,158,11,0.4); color: #f59e0b;"
+                            title="Cetak Buku Ekspedisi Lengkap">
+                            <i class="fas fa-print"></i> <span>Cetak Ekspedisi</span>
+                        </a>
+                    @endif
+                @endif
             </div>
-        @endif
+        </div>
 
         <!-- Unified Datatable Surat Keluar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
         <div class="card datatable-card-wrapper" id="tableDataContainer">
