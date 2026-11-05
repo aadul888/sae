@@ -470,6 +470,8 @@ class PresensiKioskService
         $formattedData = self::formatSiswaResponseData($siswa, $presensi);
 
         RealtimeService::trigger('presensi.scanned', [
+            // Data pribadi: hanya untuk pengguna non-siswa (kiosk/operator), bukan portal siswa & orang tua.
+            '_audience'       => ['!role:peserta_didik', '!role:siswa', '!role:orang_tua', '!role:wali_murid'],
             'nama'            => $siswa->nama,
             'nisn'            => $siswa->nisn,
             'rombel'          => $siswa->nama_rombel ?? '-',

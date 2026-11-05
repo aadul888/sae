@@ -155,6 +155,92 @@ class RealtimeTest extends TestCase
         $this->assertTrue($hasJadwalEvent, 'Event jadwal.changed harus ter-trigger di RealtimeService');
     }
 
+    public function test_audience_membatasi_event_hanya_untuk_pengguna_tertentu(): void
+    {
+        $nama = 'test.audience.' . uniqid();
+        RealtimeService::trigger($nama, ['pesan' => 'rahasia'], null);
+
+        // Audience implisit dari payload notifikasi pribadi.
+        RealtimeService::trigger($nama . '.pribadi', ['murid_user_id' => 4242, 'pesan' => 'untuk murid']);
+
+        $pemilik = collect(RealtimeService::getEventsSince(null, ['user_id' => 4242, 'role' => 'peserta_didik']))
+            ->firstWhere('event', $nama . '.pribadi');
+        $this->assertNotNull($pemilik, 'Pemilik event harus menerima notifikasi pribadinya.');
+
+        $orangLain = collect(RealtimeService::getEventsSince(null, ['user_id' => 777, 'role' => 'guru']))
+            ->firstWhere('event', $nama . '.pribadi');
+        $this->assertNull($orangLain, 'Pengguna lain tidak boleh menerima notifikasi pribadi.');
+
+        // Event tanpa audience tetap publik.
+        $publik = collect(RealtimeService::getEventsSince(null, ['user_id' => 777, 'role' => 'guru']))
+            ->firstWhere('event', $nama);
+        $this->assertNotNull($publik, 'Event tanpa audience harus tetap terkirim ke semua pengguna.');
+    }
+
+    public function test_audience_pengecualian_peran_menyembunyikan_event_dari_siswa(): void
+    {
+        $nama = 'test.audience.deny.' . uniqid();
+        RealtimeService::trigger($nama, [
+            '_audience' => ['!role:peserta_didik'],
+            'nama'      => 'Siswa Uji',
+            'nisn'      => '1234567',
+        ]);
+
+        $siswa = collect(RealtimeService::getEventsSince(null, ['user_id' => 1, 'role' => 'peserta_didik']))
+            ->firstWhere('event', $nama);
+        $this->assertNull($siswa, 'Peran yang dikecualikan tidak boleh menerima event berisi data pribadi.');
+
+        $operator = collect(RealtimeService::getEventsSince(null, ['user_id' => 2, 'role' => 'tendik']))
+            ->firstWhere('event', $nama);
+        $this->assertNotNull($operator, 'Peran lain tetap menerima event kiosk.');
+    }
+
+    public function test_audience_peserta_didik_menjangkau_akun_siswa_dan_orang_tua(): void
+    {
+        $nama = 'test.audience.pd.' . uniqid();
+        RealtimeService::trigger($nama, ['peserta_didik_id' => 5150, 'pesan' => 'presensi tercatat']);
+
+        foreach (['peserta_didik' => 11, 'orang_tua' => 22] as $role => $userId) {
+            $event = collect(RealtimeService::getEventsSince(null, [
+                'user_id' => $userId,
+                'role'    => $role,
+                'pd_id'   => 5150,
+            ]))->firstWhere('event', $nama);
+
+            $this->assertNotNull($event, "Akun {$role} dari siswa terkait harus menerima event.");
+        }
+
+        $bukanTerkait = collect(RealtimeService::getEventsSince(null, [
+            'user_id' => 33,
+            'role'    => 'peserta_didik',
+            'pd_id'   => 9999,
+        ]))->firstWhere('event', $nama);
+        $this->assertNull($bukanTerkait, 'Siswa lain tidak boleh menerima event.');
+    }
+
+    public function test_audience_tidak_ikut_terkirim_ke_klien(): void
+    {
+        $nama = 'test.audience.payload.' . uniqid();
+        $event = RealtimeService::trigger($nama, [
+            '_audience' => ['user:99'],
+            'pesan'     => 'halo',
+        ]);
+
+        $this->assertArrayNotHasKey('_audience', $event['data']);
+        $this->assertEquals('halo', $event['data']['pesan']);
+        $this->assertEquals(['user:99'], $event['audience']);
+    }
+
+    public function test_id_event_unik_walau_dipicu_pada_milidetik_sama(): void
+    {
+        $ids = [];
+        for ($i = 0; $i < 25; $i++) {
+            $ids[] = RealtimeService::trigger('test.id.unik')['id'];
+        }
+
+        $this->assertCount(25, array_unique($ids), 'Setiap event harus punya ID unik.');
+    }
+
     protected function tearDown(): void
     {
         \App\Models\Pengumuman::where('judul', 'LIKE', '%Uji Broadcast%')->delete();

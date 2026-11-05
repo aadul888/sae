@@ -124,6 +124,39 @@
         }
     }
 
+    let cardRefreshTimer = null;
+
+    /**
+     * Bandingkan `path` event dengan halaman yang sedang dibuka (tanpa query string).
+     * Halaman induk dianggap cocok dengan aksi pada sub-path-nya.
+     */
+    function isSamePath(path) {
+        const bersih = (p) =>
+            String(p || "")
+                .replace(/^\/+/, "")
+                .replace(/\/+$/, "");
+        const current = bersih(window.location.pathname);
+        const target = bersih(path);
+
+        return (
+            target === "" ||
+            current === target ||
+            current.startsWith(target + "/") ||
+            target.startsWith(current + "/")
+        );
+    }
+
+    /**
+     * Debounce: rentetan event dalam waktu singkat cukup memicu satu kali fetch halaman.
+     */
+    function requestRekapRefresh(options = {}) {
+        if (cardRefreshTimer) clearTimeout(cardRefreshTimer);
+        cardRefreshTimer = setTimeout(() => {
+            cardRefreshTimer = null;
+            updateRekapCards(options);
+        }, 300);
+    }
+
     /**
      * Memperbarui angka card rekap di setiap modul dashboard secara live tanpa reload
      */
@@ -403,8 +436,14 @@
             }
         }
 
-        // 5. Perbarui otomatis card rekap (stat grid) di modul yang sedang terbuka
-        updateRekapCards({
+        // 5. Perbarui otomatis card rekap (stat grid) di modul yang sedang terbuka.
+        //    Event `data.changed` membawa `path`; lewati bila berbeda dengan halaman aktif
+        //    agar semua klien tidak ikut memuat ulang halaman saat satu orang menyimpan data.
+        if (eventName === "data.changed" && data && !isSamePath(data.path)) {
+            return;
+        }
+
+        requestRekapRefresh({
             refreshTable:
                 eventName === "data.changed" ||
                 eventName === "presensi.scanned" ||

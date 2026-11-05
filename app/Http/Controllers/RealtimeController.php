@@ -22,13 +22,14 @@ class RealtimeController extends Controller
         }
 
         $lastId = $request->header('Last-Event-ID', $request->query('last_id'));
+        $viewer = self::viewerFrom($user);
 
         // Tutup sesi PHP agar request HTTP paralel berikutnya tidak terblokir
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
 
-        $response = new StreamedResponse(function () use ($lastId) {
+        $response = new StreamedResponse(function () use ($lastId, $viewer) {
             while (ob_get_level() > 0) {
                 ob_end_flush();
             }
@@ -36,7 +37,7 @@ class RealtimeController extends Controller
             // Kirim retry directive agar browser tahu interval reconnect jika memakai EventSource
             echo "retry: 4000\n";
 
-            $newEvents = RealtimeService::getEventsSince($lastId);
+            $newEvents = RealtimeService::getEventsSince($lastId, $viewer);
             if (!empty($newEvents)) {
                 foreach ($newEvents as $event) {
                     echo "id: {$event['id']}\n";
@@ -69,12 +70,42 @@ class RealtimeController extends Controller
         }
 
         $lastId = $request->query('last_id');
-        $events = RealtimeService::getEventsSince($lastId);
+        $events = RealtimeService::getEventsSince($lastId, self::viewerFrom($user));
 
         return response()->json([
             'status'  => 'success',
             'events'  => $events,
             'last_id' => !empty($events) ? end($events)['id'] : $lastId,
         ]);
+    }
+
+    /**
+     * Bentuk identitas penerima untuk penyaringan event realtime.
+     *
+     * @param  array<string, mixed>|object|null  $user
+     * @return array{user_id: mixed, role: string|null}|null
+     */
+    private static function viewerFrom($user): ?array
+    {
+        if (!$user) {
+            return null;
+        }
+
+        $id = is_array($user)
+            ? ($user['pengguna_id'] ?? ($user['id'] ?? null))
+            : ($user->pengguna_id ?? ($user->id ?? null));
+        $role = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        if ($id === null && $role === null) {
+            return null;
+        }
+
+        return [
+            'user_id' => $id,
+            'role'    => $role !== null ? strtolower((string) $role) : null,
+            'pd_id'   => is_array($user)
+                ? ($user['peserta_didik_id'] ?? null)
+                : ($user->peserta_didik_id ?? null),
+        ];
     }
 }
