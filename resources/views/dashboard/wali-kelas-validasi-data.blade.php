@@ -59,7 +59,7 @@
             </p>
         </div>
     @else
-        <!-- Summary Stats Grid -->
+        <!-- Summary Stats Grid (4 Kartu Utama Baku SAE) -->
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 20px;">
             <div class="dash-stat-card">
@@ -111,19 +111,12 @@
                     <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent);">
                         {{ number_format($summary['berkas_lengkap'], 0, ',', '.') }}
                     </div>
-                    <div class="dash-stat-label">Berkas Lengkap &amp; Valid</div>
-                </div>
-            </div>
-
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(168,85,247,0.15); color: #a855f7;">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #a855f7;">
-                        {{ number_format($summary['berkas_menunggu'], 0, ',', '.') }}
+                    <div class="dash-stat-label">
+                        Berkas Lengkap &amp; Valid
+                        <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                            ({{ number_format($summary['berkas_menunggu'], 0, ',', '.') }} menunggu verifikasi)
+                        </span>
                     </div>
-                    <div class="dash-stat-label">Menunggu Verifikasi</div>
                 </div>
             </div>
         </div>
@@ -530,6 +523,7 @@
 
     <!-- MODAL: VERIFIKASI BERKAS DIGITAL SISWA (PDF ONLY, 2 STATUS: VALID / TIDAK VALID) -->
     <div id="modalVerifikasiBerkasDigital" class="modal-backdrop"
+        data-can-update="{{ !empty($canUpdate) ? '1' : '0' }}"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
             style="max-width: 860px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">

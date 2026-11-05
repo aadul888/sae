@@ -42,8 +42,8 @@
     </div>
 @endif
 
-<!-- Summary Stats Grid Baku SAE -->
-<div class="dash-stat-grid stat-grid-presensi" style="margin-bottom: 20px;">
+<!-- Summary Stats Grid Baku SAE (4 Kartu Utama) -->
+<div class="dash-stat-grid stat-grid-presensi" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
             <i class="fas fa-users"></i>
@@ -58,85 +58,56 @@
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
-            <i class="fas fa-check-double"></i>
+            <i class="fas fa-user-check"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
-                {{ $summary['hadir'] }}
+                {{ $summary['hadir'] + $summary['terlambat'] }}
+                <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted);">({{ $summary['persen'] }}%)</span>
             </div>
-            <div class="dash-stat-label">Hadir Tepat Waktu</div>
+            <div class="dash-stat-label">
+                Hadir Hari Ini
+                <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    ({{ $summary['hadir'] }} tepat &bull; {{ $summary['terlambat'] }} terlambat)
+                </span>
+            </div>
         </div>
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                {{ $summary['terlambat'] }}
-            </div>
-            <div class="dash-stat-label">Terlambat Masuk</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
+        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6);">
             <i class="fas fa-envelope-open-text"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
-                {{ $summary['izin'] }}
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--purple, #8b5cf6);">
+                {{ $summary['sakit'] + $summary['izin'] }}
             </div>
-            <div class="dash-stat-label">Izin Tercatat</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(236,72,153,0.15); color: #ec4899;">
-            <i class="fas fa-notes-medical"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ec4899;">
-                {{ $summary['sakit'] }}
+            <div class="dash-stat-label">
+                Sakit &amp; Izin
+                <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    ({{ $summary['sakit'] }} sakit &bull; {{ $summary['izin'] }} izin)
+                </span>
             </div>
-            <div class="dash-stat-label">Sakit</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
-            <i class="fas fa-circle-xmark"></i>
+            <i class="fas fa-user-xmark"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                 {{ $summary['alpha'] }}
+                @if ($summary['belum'] > 0)
+                    <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted);">(+{{ $summary['belum'] }})</span>
+                @endif
             </div>
-            <div class="dash-stat-label">Alpha</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: var(--text-muted, #64748b);">
-            <i class="fas fa-user-clock"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--text-muted, #64748b);">
-                {{ $summary['belum'] }}
+            <div class="dash-stat-label">
+                Tanpa Keterangan
+                <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    ({{ $summary['alpha'] }} alpha &bull; {{ $summary['belum'] }} belum presensi)
+                </span>
             </div>
-            <div class="dash-stat-label">Belum Presensi</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4);">
-            <i class="fas fa-chart-pie"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent, #06b6d4);">
-                {{ $summary['persen'] }}%
-            </div>
-            <div class="dash-stat-label">% Kehadiran</div>
         </div>
     </div>
 </div>

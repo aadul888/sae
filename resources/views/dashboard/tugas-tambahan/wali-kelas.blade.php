@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <!-- 2. Stat Cards Perwalian -->
+    <!-- 2. Stat Cards Perwalian (4 Kartu Utama Baku SAE) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 22px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
@@ -64,17 +64,14 @@
                     <span
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted);">({{ $presensiHariIni['persen'] ?? 0 }}%)</span>
                 </div>
-                <div class="dash-stat-label">Hadir Hari Ini</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $presensiHariIni['T'] ?? 0 }}</div>
-                <div class="dash-stat-label">Terlambat Masuk</div>
+                <div class="dash-stat-label">
+                    Hadir Hari Ini
+                    @if (!empty($presensiHariIni['T']))
+                        <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                            ({{ $presensiHariIni['T'] }} terlambat)
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -84,8 +81,9 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="color: var(--purple, #8b5cf6);">
-                    {{ ($presensiHariIni['S'] ?? 0) + ($presensiHariIni['I'] ?? 0) }}</div>
-                <div class="dash-stat-label">Sakit / Izin (S:{{ $presensiHariIni['S'] ?? 0 }},
+                    {{ ($presensiHariIni['S'] ?? 0) + ($presensiHariIni['I'] ?? 0) }}
+                </div>
+                <div class="dash-stat-label">Sakit &amp; Izin (S:{{ $presensiHariIni['S'] ?? 0 }},
                     I:{{ $presensiHariIni['I'] ?? 0 }})</div>
             </div>
         </div>
@@ -97,18 +95,6 @@
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="color: var(--danger, #ef4444);">{{ $presensiHariIni['A'] ?? 0 }}</div>
                 <div class="dash-stat-label">Tanpa Keterangan (Alpha)</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
-                <i class="fas fa-file-circle-check"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: var(--accent, #06b6d4);">
-                    {{ $kualitasData['persen'] ?? 0 }}%
-                </div>
-                <div class="dash-stat-label">Kualitas Data ({{ $kualitasData['valid'] ?? 0 }}/{{ $totalSiswa }})</div>
             </div>
         </div>
     </div>

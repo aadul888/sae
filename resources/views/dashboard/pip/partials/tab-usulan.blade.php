@@ -158,20 +158,7 @@
         </div>
     </div>
 
-    <!-- 2. Belum Diusulkan -->
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
-            <i class="fas fa-hourglass-half"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                {{ number_format($stats['belum_diajukan'], 0, ',', '.') }}
-            </div>
-            <div class="dash-stat-label">Belum Diusulkan</div>
-        </div>
-    </div>
-
-    <!-- 3. Sudah Diusulkan -->
+    <!-- 2. Sudah Diusulkan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
@@ -180,37 +167,38 @@
             <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($stats['sudah_diajukan'], 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Sudah Diusulkan</div>
+            <div class="dash-stat-label">
+                Sudah Diusulkan
+                @if (!empty($stats['total_usulan_diubah']))
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ number_format($stats['total_usulan_diubah']) }} ada perubahan)
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 
-    <!-- 4. Ditolak -->
+    <!-- 3. Belum Diusulkan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
-            <i class="fas fa-circle-xmark"></i>
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
+            <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
-                {{ number_format($stats['ditolak'] ?? 0, 0, ',', '.') }}
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
+                {{ number_format($stats['belum_diajukan'], 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Ditolak</div>
+            <div class="dash-stat-label">
+                Belum Diusulkan
+                @if (!empty($stats['ditolak']))
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ number_format($stats['ditolak']) }} ditolak)
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 
-    <!-- 5. Diperbarui / Ada Perubahan -->
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
-            <i class="fas fa-clock-rotate-left"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--purple, #8b5cf6);">
-                {{ number_format($stats['total_usulan_diubah'] ?? 0, 0, ',', '.') }}
-            </div>
-            <div class="dash-stat-label">Ada Perubahan</div>
-        </div>
-    </div>
-
-    <!-- 6. Kuota Kelas / Pagu Kuota -->
+    <!-- 4. Kuota Kelas / Pagu Kuota -->
     @if ($activeRombel)
         <div class="dash-stat-card">
             <div class="dash-stat-icon"

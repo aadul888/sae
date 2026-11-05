@@ -17,7 +17,7 @@
     $usulanTerbaru = $d['usulan_terbaru'] ?? collect();
 @endphp
 
-<!-- 1. Stats Counter Grid (6 Kartu Metrik Utama PIP SAE - Genap & Konsisten) -->
+<!-- 1. Stats Counter Grid (4 Kartu Metrik Utama PIP SAE) -->
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px;">
     <!-- Card 1: Total Usulan -->
@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <!-- Card 2: Sudah Diusulkan -->
+    <!-- Card 2: Status Usulan (Sudah & Belum) -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
@@ -42,24 +42,16 @@
             <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($sudahDiajukan) }}
             </div>
-            <div class="dash-stat-label">Sudah Diusulkan</div>
-        </div>
-    </div>
-
-    <!-- Card 3: Belum Diusulkan -->
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                {{ number_format($belumDiajukan) }}
+            <div class="dash-stat-label">
+                Sudah Diusulkan
+                <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    ({{ number_format($belumDiajukan) }} belum diajukan)
+                </span>
             </div>
-            <div class="dash-stat-label">Belum Diusulkan</div>
         </div>
     </div>
 
-    <!-- Card 4: Kuota Sekolah / Kelas -->
+    <!-- Card 3: Kuota Sekolah / Kelas -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent);">
             <i class="fas fa-layer-group"></i>
@@ -75,31 +67,20 @@
             <div class="dash-stat-label">
                 @if ($isAdmin)
                     Pagu Kuota ({{ $pctTerpakai }}%)
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ number_format($sisaKuota) }} sisa kuota)
+                    </span>
                 @else
                     Kuota Kelas
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ $sisaKuotaKelas }} sisa kuota)
+                    </span>
                 @endif
             </div>
         </div>
     </div>
 
-    <!-- Card 5: Sisa Kuota Terbuka -->
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
-            <i class="fas fa-sliders"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--purple, #8b5cf6);">
-                @if ($isAdmin)
-                    {{ number_format($sisaKuota) }}
-                @else
-                    {{ $sisaKuotaKelas }}
-                @endif
-            </div>
-            <div class="dash-stat-label">Sisa Kuota</div>
-        </div>
-    </div>
-
-    <!-- Card 6: Riwayat Dana Cair -->
+    <!-- Card 4: Riwayat Dana Cair -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: #0ea5e9;">
             <i class="fas fa-money-bill-trend-up"></i>

@@ -46,8 +46,8 @@
         </div>
     </div>
 
-    <!-- 2. Stat Grid Baku SAE -->
-    <div class="dash-stat-grid" style="margin-bottom: var(--space-5, 20px);">
+    <!-- 2. Stat Grid Baku SAE (4 Kartu Utama) -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: var(--space-5, 20px);">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                 <i class="fas fa-ticket-alt"></i>
@@ -63,28 +63,15 @@
                 <i class="fas fa-user-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['menunggu_wali'] }}</div>
-                <div class="dash-stat-label">Menunggu Wali Kelas</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
-                <i class="fas fa-clipboard-user"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['menunggu_piket'] }}</div>
-                <div class="dash-stat-label">Menunggu Guru Piket</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: #0ea5e9;">
-                <i class="fas fa-shield-halved"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['menunggu_satpam'] }}</div>
-                <div class="dash-stat-label">Disetujui (Siap Gerbang)</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">
+                    {{ $stats['menunggu_wali'] + $stats['menunggu_piket'] }}
+                </div>
+                <div class="dash-stat-label">
+                    Menunggu Approval
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ $stats['menunggu_wali'] }} wali kelas &bull; {{ $stats['menunggu_piket'] }} piket)
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -93,8 +80,15 @@
                 <i class="fas fa-person-walking"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['di_luar'] }}</div>
-                <div class="dash-stat-label">Sedang di Luar</div>
+                <div class="dash-stat-value" style="color: #ea580c;">
+                    {{ $stats['menunggu_satpam'] + $stats['di_luar'] }}
+                </div>
+                <div class="dash-stat-label">
+                    Izin Aktif / Di Luar
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ $stats['menunggu_satpam'] }} siap gerbang &bull; {{ $stats['di_luar'] }} di luar)
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -103,8 +97,15 @@
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['kembali'] + $stats['pulang'] }}</div>
-                <div class="dash-stat-label">Selesai (Kembali/Pulang)</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">
+                    {{ $stats['kembali'] + $stats['pulang'] }}
+                </div>
+                <div class="dash-stat-label">
+                    Selesai Izin
+                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                        ({{ $stats['kembali'] }} kembali &bull; {{ $stats['pulang'] }} pulang)
+                    </span>
+                </div>
             </div>
         </div>
     </div>
