@@ -25,7 +25,7 @@
                 title="Presensi Mengajar Guru">
                 <i class="fas fa-calendar-check text-primary"></i>
             </a>
-            @if ($selectedRombel && $siswaList->isNotEmpty())
+            @if ($selectedRombel && $siswaList->isNotEmpty() && ($isJamMengajarAktif ?? true))
                 <button type="button" class="btn btn-primary btn-tab2-action" id="btnHadirSemua"
                     data-rombel="{{ $selectedRombelId }}" data-rombel-nama="{{ $selectedRombel->nama }}"
                     data-pembelajaran="{{ $selectedPembelajaranId }}" data-jam-ke="{{ $jamKe }}"
@@ -426,7 +426,47 @@
     <div id="tabPaneDetail" class="pk-tab-pane"
         style="{{ ($activeTab ?? 'monitoring') === 'detail' ? 'display: block;' : 'display: none;' }}">
 
-        @if ($rombelList->isEmpty())
+        @if (!$canViewAllClasses && !($isJamMengajarAktif ?? true))
+            <!-- Filter Bar Card Baku SAE (Tetap tampil agar guru dapat cek & ubah filter tanggal) -->
+            <div class="card" style="padding: 16px; margin-bottom: 20px;">
+                <form action="{{ route('dashboard.presensi.kelas') }}" method="GET" id="formFilterPresensiKelas"
+                    style="margin: 0;">
+                    <input type="hidden" name="tab" value="detail">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <!-- Filter Tanggal Inline Baku SAE -->
+                            <div
+                                style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                                <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
+                                    title="Tanggal KBM"></i>
+                                <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}"
+                                    style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 125px; cursor: pointer;"
+                                    onchange="this.form.submit()">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Card Info Bukan Jam Mengajar Aktif -->
+            <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px; border: 1.5px dashed var(--border-color); border-radius: var(--radius-xl, 16px);">
+                <div
+                    style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
+                    Bukan Jam Mengajar Aktif
+                </h3>
+                <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 540px; margin: 0 auto;">
+                    {{ $pesanTidakAktif ?? 'Data presensi siswa per kelas hanya ditampilkan pada hari dan jam mengajar aktif Anda.' }}
+                </p>
+                <div style="margin-top: 16px;">
+                    <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline btn-sm">
+                        <i class="fas fa-calendar-check me-1"></i> Buka Presensi Mengajar Guru
+                    </a>
+                </div>
+            </div>
+        @elseif ($rombelList->isEmpty())
             <!-- Empty State jika Guru belum ada tugas rombel / jadwal KBM -->
             <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
                 <div
