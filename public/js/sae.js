@@ -626,6 +626,36 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = link.href;
         }
     });
+
+    // 4. Cegah background putih/biru pucat bawaan browser pada input/form autofill cache
+    const disableNativeCacheAutocomplete = () => {
+        document.querySelectorAll("form:not([autocomplete])").forEach((f) => {
+            f.setAttribute("autocomplete", "off");
+        });
+        document
+            .querySelectorAll(
+                'input:not([autocomplete]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="checkbox"]):not([type="radio"])',
+            )
+            .forEach((inp) => {
+                inp.setAttribute("autocomplete", "off");
+            });
+    };
+    disableNativeCacheAutocomplete();
+    if (window.MutationObserver) {
+        new MutationObserver((mutations) => {
+            let hasNewNodes = false;
+            for (const m of mutations) {
+                if (m.addedNodes && m.addedNodes.length) {
+                    hasNewNodes = true;
+                    break;
+                }
+            }
+            if (hasNewNodes) disableNativeCacheAutocomplete();
+        }).observe(document.body || document.documentElement, {
+            childList: true,
+            subtree: true,
+        });
+    }
 });
 
 // Global Controller Mega Dropdown Layanan (Gaya Disdik Jabar)

@@ -2099,6 +2099,7 @@ select.input {
     background-color: var(--card-bg) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-color) !important;
+    color-scheme: dark;
     border-radius: var(--radius-md, 8px);
     padding: 8px 12px;
     font-size: var(--text-base, 0.875rem);
@@ -2168,10 +2169,22 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
+[data-theme="light"] .form-control,
+[data-theme="light"] .input-control,
+[data-theme="light"] .input,
+[data-theme="light"] input[type="text"]:not(.kiosk-hidden-input),
+[data-theme="light"] input[type="search"],
 [data-theme="light"] input[type="date"],
 [data-theme="light"] input[type="time"],
 [data-theme="light"] input[type="month"],
-[data-theme="light"] input[type="datetime-local"] {
+[data-theme="light"] input[type="datetime-local"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] input[type="password"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="tel"],
+[data-theme="light"] input[type="url"],
+[data-theme="light"] textarea,
+[data-theme="light"] select {
     color-scheme: light;
 }
 

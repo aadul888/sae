@@ -298,9 +298,13 @@ body {
     border-radius: var(--radius-lg, 12px);
     padding: 11px 14px;
     color: var(--text-main);
+    color-scheme: dark;
     font-size: var(--text-base, 0.875rem);
     outline: none;
     transition: border-color 0.2s ease;
+}
+[data-theme="light"] .input-control {
+    color-scheme: light;
 }
 .input-control:focus {
     border-color: var(--primary);
@@ -366,19 +370,29 @@ select option {
     padding: 8px 12px;
 }
 
-/* Fix browser autofill style to blend seamlessly with form container */
+/* Fix browser autofill / autocomplete suggestion style to blend seamlessly with form container */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
 textarea:-webkit-autofill,
-select:-webkit-autofill {
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active,
+input:autofill,
+textarea:autofill,
+select:autofill {
     -webkit-box-shadow: 0 0 0 1000px #131b2e inset !important;
     box-shadow: 0 0 0 1000px #131b2e inset !important;
     -webkit-text-fill-color: #f1f5f9 !important;
     border-radius: inherit !important;
     transition: background-color 5000000s ease-in-out 0s;
-    caret-color: #f1f5f9;
+    caret-color: #f1f5f9 !important;
+    color-scheme: dark !important;
 }
 
 [data-theme="light"] input:-webkit-autofill,
@@ -386,12 +400,44 @@ select:-webkit-autofill {
 [data-theme="light"] input:-webkit-autofill:focus,
 [data-theme="light"] input:-webkit-autofill:active,
 [data-theme="light"] textarea:-webkit-autofill,
-[data-theme="light"] select:-webkit-autofill {
+[data-theme="light"] textarea:-webkit-autofill:hover,
+[data-theme="light"] textarea:-webkit-autofill:focus,
+[data-theme="light"] textarea:-webkit-autofill:active,
+[data-theme="light"] select:-webkit-autofill,
+[data-theme="light"] select:-webkit-autofill:hover,
+[data-theme="light"] select:-webkit-autofill:focus,
+[data-theme="light"] select:-webkit-autofill:active,
+[data-theme="light"] input:autofill,
+[data-theme="light"] textarea:autofill,
+[data-theme="light"] select:autofill {
     -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
     box-shadow: 0 0 0 1000px #ffffff inset !important;
     -webkit-text-fill-color: #0f172a !important;
     border-radius: inherit !important;
-    caret-color: #0f172a;
+    transition: background-color 5000000s ease-in-out 0s;
+    caret-color: #0f172a !important;
+    color-scheme: light !important;
+}
+
+/* Custom text selection style across theme */
+::selection {
+    background-color: rgba(99, 102, 241, 0.35) !important;
+    color: #ffffff !important;
+}
+
+::-moz-selection {
+    background-color: rgba(99, 102, 241, 0.35) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] ::selection {
+    background-color: rgba(99, 102, 241, 0.25) !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] ::-moz-selection {
+    background-color: rgba(99, 102, 241, 0.25) !important;
+    color: #0f172a !important;
 }
 
 /* Alert Boxes */
