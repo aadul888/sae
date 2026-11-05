@@ -32,12 +32,22 @@ class SuratSptService
 
         $kepsekNama = $kepsek?->nama ?? 'Kepala Sekolah';
         $createdBy = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Tendik Persuratan')) : ($user->nama ?? ($user->name ?? 'Tendik Persuratan'));
+        $satuan = Sekolah::first();
+        $namaSatuan = $satuan?->nama ?? 'Sekolah';
 
         $sptId = DB::table('gtk_spt')->insertGetId([
             'nomor_spt' => $nomorSpt,
             'dasar_penugasan' => $request->dasar_penugasan,
             'nama_kegiatan' => $request->nama_kegiatan,
             'lokasi_tujuan' => $request->lokasi_tujuan,
+            'waktu_pelaksanaan' => $request->waktu_pelaksanaan ?: null,
+            'alamat_tujuan' => $request->alamat_tujuan ?: null,
+            'alat_angkutan' => $request->alat_angkutan ?: 'Kendaraan Darat',
+            'tempat_berangkat' => $request->tempat_berangkat ?: $namaSatuan,
+            'pengikut' => $request->pengikut ?: null,
+            'instansi_pembebanan' => $request->instansi_pembebanan ?: $namaSatuan,
+            'akun_kodering' => $request->akun_kodering ?: null,
+            'tingkat_biaya' => $request->tingkat_biaya ?: null,
             'tanggal_berangkat' => $request->tanggal_berangkat,
             'tanggal_kembali' => $request->tanggal_kembali,
             'lama_hari' => $lamaHari,

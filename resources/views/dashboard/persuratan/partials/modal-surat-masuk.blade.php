@@ -104,7 +104,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Status Surat:
                             </label>
-                            <select name="status" id="selectStatus"
+                            <select name="status" id="selectStatus" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 <option value="menunggu_disposisi">Menunggu Disposisi</option>
                                 <option value="diproses">Sedang Diproses</option>
@@ -205,7 +205,7 @@
                                     style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                     Instruksi Disposisi: <span class="text-danger">*</span>
                                 </label>
-                                <select name="instruksi" id="selectInstruksi"
+                                <select name="instruksi" id="selectInstruksi" data-searchable
                                     style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                     required>
                                     <option value="Tindak Lanjuti">Tindak Lanjuti</option>
@@ -332,7 +332,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Tahun:
                             </label>
-                            <select name="tahun" class="form-control"
+                            <select name="tahun" class="form-control" data-searchable
                                 style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 @for ($y = date('Y'); $y >= 2024; $y--)
                                     <option value="{{ $y }}">{{ $y }}</option>
@@ -344,7 +344,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Bulan (Opsional):
                             </label>
-                            <select name="bulan" class="form-control"
+                            <select name="bulan" class="form-control" data-searchable
                                 style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 <option value="">Semua Bulan (1 Tahun)</option>
                                 @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
@@ -359,7 +359,7 @@
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                             Status Pemrosesan:
                         </label>
-                        <select name="status" class="form-control"
+                        <select name="status" class="form-control" data-searchable
                             style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="">Semua Status</option>
                             <option value="selesai">Selesai / Ditindaklanjuti</option>

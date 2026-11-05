@@ -521,4 +521,7 @@
     <script
         src="{{ asset('js/persuratan-import.js') }}?v={{ file_exists(public_path('js/persuratan-import.js')) ? filemtime(public_path('js/persuratan-import.js')) : time() }}">
     </script>
+    <script
+        src="{{ asset('js/searchable-select.js') }}?v={{ file_exists(public_path('js/searchable-select.js')) ? filemtime(public_path('js/searchable-select.js')) : time() }}">
+    </script>
 @endpush

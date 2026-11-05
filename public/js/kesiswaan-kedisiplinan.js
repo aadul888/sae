@@ -515,6 +515,82 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Tombol Hapus Pelanggaran Secara Total (Kesiswaan)
+        const btnHapus = e.target.closest('.btn-hapus-pelanggaran');
+        if (btnHapus) {
+            e.preventDefault();
+            const id = btnHapus.getAttribute('data-id');
+            const siswa = btnHapus.getAttribute('data-siswa') || 'siswa ini';
+            const aturan = btnHapus.getAttribute('data-aturan') || 'pelanggaran ini';
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Hapus Pelanggaran Total?',
+                    text: `Apakah Anda yakin ingin menghapus data pelanggaran "${aturan}" untuk ${siswa}? Tindakan ini akan menghapus catatan dan poin secara permanen untuk menghindari kesalahan input.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fas fa-trash-can"></i> Ya, Hapus Permanen',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Menghapus...',
+                            text: 'Sedang menghapus data dari sistem.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        fetch(`/dashboard/kesiswaan/kedisiplinan/pelanggaran/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': token,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil Dihapus!',
+                                    text: data.message || 'Catatan pelanggaran berhasil dihapus secara total.',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    if (typeof window.refreshLiveTable === 'function') {
+                                        window.refreshLiveTable(window.location.href);
+                                    } else {
+                                        location.reload();
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Gagal!', data.message || 'Gagal menghapus catatan pelanggaran.', 'error');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Error!', 'Terjadi kesalahan sistem saat menghapus data.', 'error');
+                        });
+                    }
+                });
+            } else if (confirm(`Hapus pelanggaran "${aturan}" untuk ${siswa}?`)) {
+                fetch(`/dashboard/kesiswaan/kedisiplinan/pelanggaran/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(() => location.reload());
+            }
+            return;
+        }
+
         // Tombol Terbitkan Surat Pemanggilan Ortu Cepat (Dari Tab Poin / Tindak Lanjut)
         const btnPanggil = e.target.closest('.btn-panggil-ortu-cepat');
         if (btnPanggil) {

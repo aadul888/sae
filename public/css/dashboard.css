@@ -5072,6 +5072,14 @@ input:disabled + .slider-toggle-crud {
     border-radius: var(--radius-xl, 16px);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.periode-nav-desktop::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .periode-nav-tab {

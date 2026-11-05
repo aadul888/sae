@@ -139,4 +139,35 @@ class KedisiplinanSanggahAndKeamananTest extends TestCase
             'pelapor_nama' => 'Pak Joko Satpam (Pos Keamanan)',
         ]);
     }
+
+    public function test_delete_pelanggaran_total(): void
+    {
+        $tatib = KedisiplinanTataTertib::first();
+        $siswa = PesertaDidik::first();
+        if (!$tatib || !$siswa) {
+            $this->markTestSkipped('Tatib or siswa not available.');
+        }
+
+        $pelanggaran = KedisiplinanPelanggaran::create([
+            'peserta_didik_id' => $siswa->peserta_didik_id,
+            'tata_tertib_id' => $tatib->id,
+            'tanggal_kejadian' => date('Y-m-d'),
+            'tempat_kejadian' => 'Uji Delete',
+            'poin' => 15,
+            'status_tindak_lanjut' => 'pending',
+        ]);
+
+        $response = $this->withSession([
+            'user' => [
+                'id' => 1,
+                'role' => 'admin',
+                'nama' => 'Kesiswaan Admin',
+                'permissions' => ['menu_kesiswaan_kedisiplinan' => ['delete' => true, 'read' => true]],
+            ],
+        ])->deleteJson(route('dashboard.kesiswaan.kedisiplinan.pelanggaran.destroy', $pelanggaran->id));
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+        $this->assertDatabaseMissing('kedisiplinan_pelanggaran', ['id' => $pelanggaran->id]);
+    }
 }

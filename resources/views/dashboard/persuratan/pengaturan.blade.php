@@ -615,7 +615,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Kategori Klasifikasi: <span class="text-danger">*</span>
                             </label>
-                            <select name="kategori" id="selectIndeksKategori"
+                            <select name="kategori" id="selectIndeksKategori" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                 required>
                                 <option value="Umum">Umum / Kedinasan</option>
@@ -667,5 +667,8 @@
 @push('scripts')
     <script
         src="{{ asset('js/persuratan-pengaturan.js') }}?v={{ file_exists(public_path('js/persuratan-pengaturan.js')) ? filemtime(public_path('js/persuratan-pengaturan.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/searchable-select.js') }}?v={{ file_exists(public_path('js/searchable-select.js')) ? filemtime(public_path('js/searchable-select.js')) : time() }}">
     </script>
 @endpush

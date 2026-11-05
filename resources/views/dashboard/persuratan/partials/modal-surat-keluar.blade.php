@@ -26,7 +26,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Kode Indeks Klasifikasi: <span class="text-danger">*</span>
                             </label>
-                            <select name="kode_indeks" id="selectKodeIndeksKeluar"
+                            <select name="kode_indeks" id="selectKodeIndeksKeluar" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                 required>
                                 @foreach ($indeksList as $idx)
@@ -96,7 +96,7 @@
                                     style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                     Status Surat:
                                 </label>
-                                <select name="status" id="selectStatusKeluar"
+                                <select name="status" id="selectStatusKeluar" data-searchable
                                     style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                     <option value="selesai">Selesai / Terbit</option>
                                     <option value="draf">Draf</option>
@@ -134,7 +134,7 @@
                                     <i class="fas fa-magic me-1"></i> Format BAST Otomatis
                                 </button>
                             </div>
-                            <select name="sarpras_aset_id" id="selectSarprasAsetKeluar"
+                            <select name="sarpras_aset_id" id="selectSarprasAsetKeluar" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
                                 <option value="">-- Tidak dikaitkan dengan aset sarpras --</option>
                                 @if (isset($daftarAset))
@@ -220,7 +220,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Jenis Surat yang Diterbitkan: <span class="text-danger">*</span>
                             </label>
-                            <select name="jenis_surat" id="selectJenisSuratKet"
+                            <select name="jenis_surat" id="selectJenisSuratKet" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 600;"
                                 required>
                                 <option value="siswa_aktif">Surat Keterangan Siswa Aktif</option>
@@ -277,7 +277,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Kode Indeks Klasifikasi Surat: <span class="text-danger">*</span>
                             </label>
-                            <select name="kode_indeks" id="selectKodeIndeksKet"
+                            <select name="kode_indeks" id="selectKodeIndeksKet" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"
                                 required>
                                 @foreach ($indeksList as $idx)
@@ -322,7 +322,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Keperluan Penerbitan Surat: <span class="text-danger">*</span>
                             </label>
-                            <select id="selectKeperluanPreset"
+                            <select id="selectKeperluanPreset" data-searchable
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 6px;">
                                 <option value="">-- Pilih Contoh Keperluan / Ketik Sendiri --</option>
                                 <option value="Kelengkapan Berkas Tunjangan Gaji / Anak Orang Tua">Kelengkapan Berkas
@@ -519,7 +519,7 @@
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
                             Anggaran <span style="color: var(--danger, #ef4444);">*</span></label>
-                        <select name="beban_anggaran" class="form-control" required
+                        <select name="beban_anggaran" class="form-control" required data-searchable
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="BOS Reguler">BOS Reguler</option>
                             <option value="BOS Kinerja">BOS Kinerja</option>
@@ -527,6 +527,48 @@
                             <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
                             <option value="Mandiri">Mandiri</option>
                         </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Detail
+                            Perjalanan Dinas (SPPD) <span
+                                style="font-weight: 400; color: var(--text-muted);">— opsional, mengisi lembar SPPD</span></label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <input type="text" name="waktu_pelaksanaan" class="form-control"
+                                placeholder="Waktu: 11.00 WIB s.d. selesai"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            <input type="text" name="alat_angkutan" class="form-control"
+                                placeholder="Alat angkutan: Kendaraan Darat"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            <input type="text" name="tingkat_biaya" class="form-control"
+                                placeholder="Tingkat biaya perjalanan dinas"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            <input type="text" name="tempat_berangkat" class="form-control"
+                                placeholder="Tempat berangkat (default: sekolah)"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <input type="text" name="alamat_tujuan" class="form-control"
+                            placeholder="Alamat lengkap lokasi tujuan (opsional)"
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <input type="text" name="instansi_pembebanan" class="form-control"
+                            placeholder="Instansi pembebanan anggaran (default: sekolah)"
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        <input type="text" name="akun_kodering" class="form-control"
+                            placeholder="Akun / kodering anggaran"
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <textarea name="pengikut" class="form-control" rows="2"
+                            placeholder="Pengikut (nama & tanggal lahir, satu per baris) — opsional"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 14px;">
@@ -586,7 +628,7 @@
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
                                 Pilihan Template Naskah <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
-                            <select name="template_type" id="selectTemplateType" class="form-control" required
+                            <select name="template_type" id="selectTemplateType" class="form-control" required data-searchable
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 @foreach ($templatePresets as $tKey => $tVal)
                                     <option value="{{ $tKey }}" data-indeks="{{ $tVal['indeks'] }}"
@@ -602,7 +644,7 @@
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
                                 Kode Indeks Klasifikasi <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
-                            <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required
+                            <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required data-searchable
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 @foreach ($indeksList as $idx)
                                     <option value="{{ $idx->kode }}"
@@ -818,7 +860,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Tahun:
                             </label>
-                            <select name="tahun" class="form-control"
+                            <select name="tahun" class="form-control" data-searchable
                                 style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 @for ($y = date('Y'); $y >= 2024; $y--)
                                     <option value="{{ $y }}">{{ $y }}</option>
@@ -830,7 +872,7 @@
                                 style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                                 Bulan (Opsional):
                             </label>
-                            <select name="bulan" class="form-control"
+                            <select name="bulan" class="form-control" data-searchable
                                 style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                                 <option value="">Semua Bulan (1 Tahun)</option>
                                 @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
@@ -845,7 +887,7 @@
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                             Kode Indeks Klasifikasi (Opsional):
                         </label>
-                        <select name="kode_indeks" class="form-control"
+                        <select name="kode_indeks" class="form-control" data-searchable
                             style="height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="">Semua Indeks Klasifikasi</option>
                             @foreach ($indeksList as $idx)

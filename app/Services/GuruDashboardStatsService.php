@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\JadwalPengaturan;
 use App\Models\KalenderPendidikan;
-use App\Models\PipPengaturan;
 use App\Models\RolePermission;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -224,11 +223,6 @@ class GuruDashboardStatsService
             }
         }
 
-        $pipCountdownWali = null;
-        if ($waliInfo && class_exists(PipPengaturan::class)) {
-            $pipCountdownWali = PipPengaturan::getStatusInfo();
-        }
-
         return compact(
             'stats',
             'jadwal_hari_ini',
@@ -244,8 +238,7 @@ class GuruDashboardStatsService
             'userName',
             'waliStats',
             'isJadwalDiberlakukan',
-            'waliInfo',
-            'pipCountdownWali'
+            'waliInfo'
         );
     }
 }

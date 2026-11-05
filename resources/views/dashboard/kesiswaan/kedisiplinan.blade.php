@@ -28,6 +28,26 @@
             gap: 18px;
             margin-bottom: 24px;
         }
+        .periode-nav-desktop {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        .periode-nav-desktop::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .table-responsive-stack {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+        }
+        .table-responsive-stack::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive-stack::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
         @media (max-width: 900px) {
             .rekap-charts-grid {
                 grid-template-columns: 1fr !important;
@@ -228,7 +248,7 @@
 
     <!-- 3. Navigation Tabs Wrapper (Urutan SOP: Rekap -> Tata Tertib -> Poin & Sanggah -> Pembinaan -> Pemanggilan -> Tindak Lanjut -> Riwayat) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-        <div class="periode-nav-desktop" style="overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap;">
+        <div class="periode-nav-desktop">
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'rekap']) }}"
                 class="periode-nav-tab {{ $activeTab === 'rekap' ? 'active' : '' }}">
                 <i class="fas fa-chart-pie"></i> Rekapitulasi &amp; Analisis
@@ -334,7 +354,7 @@
                         </div>
                     @endif
 
-                    @if ($activeTab === 'riwayat' || $activeTab === 'poin')
+                    @if ($activeTab === 'poin')
                         <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Status Tindak Lanjut</option>
                             <option value="pending" {{ ($status ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -639,6 +659,16 @@
                                                 </button>
                                             @endif
                                         @endif
+                                        @if ($canDelete)
+                                            <button type="button" class="btn btn-sm btn-outline btn-hapus-pelanggaran"
+                                                data-id="{{ $item->id }}"
+                                                data-siswa="{{ $item->siswa?->nama }}"
+                                                data-aturan="{{ $item->aturan?->nama_aturan }}"
+                                                title="Hapus Data Pelanggaran Secara Total"
+                                                style="border-radius: var(--radius-md, 8px); padding: 4px 8px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 4px; border-color: #ef4444; color: #ef4444;">
+                                                <i class="fas fa-trash-can"></i> Hapus
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -656,7 +686,7 @@
                 </table>
             </div>
 
-            @if ($poinList->hasPages())
+            @if (method_exists($poinList, 'hasPages') && $poinList->hasPages())
                 <div class="datatable-footer">
                     @include('partials.datatable-pagination', ['paginator' => $poinList])
                 </div>
@@ -747,23 +777,36 @@
                                     {{ $item->sanggah_validator ?: ($item->pelapor_nama ?: 'BK / Kesiswaan') }}
                                 </td>
                                 <td class="cell-aksi" style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                    @if ($item->sanggah_status)
-                                        <button type="button" class="btn btn-sm btn-outline btn-detail-sanggah"
-                                            data-sanggah-jenis="{{ $item->sanggah_jenis }}"
-                                            data-sanggah-ket="{{ $item->sanggah_keterangan }}"
-                                            data-sanggah-potong="{{ $item->sanggah_poin_potong }}"
-                                            data-sanggah-validator="{{ $item->sanggah_validator }}"
-                                            data-sanggah-tanggal="{{ $item->sanggah_tanggal ? date('d/m/Y', strtotime($item->sanggah_tanggal)) : '-' }}"
-                                            data-sanggah-bukti="{{ $item->sanggah_bukti ? asset($item->sanggah_bukti) : '' }}"
-                                            data-siswa="{{ $item->siswa?->nama }}"
-                                            data-aturan="{{ $item->aturan?->nama_aturan }}"
-                                            title="Lihat Detail Resolusi Sanggahan"
-                                            style="border-radius: var(--radius-md, 8px); padding: 4px 10px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 4px; border-color: #059669; color: #059669;">
-                                            <i class="fas fa-eye"></i> Detail
-                                        </button>
-                                    @else
-                                        <span class="text-muted" style="font-size: 0.75rem;">-</span>
-                                    @endif
+                                    <div style="display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                                        @if ($item->sanggah_status)
+                                            <button type="button" class="btn btn-sm btn-outline btn-detail-sanggah"
+                                                data-sanggah-jenis="{{ $item->sanggah_jenis }}"
+                                                data-sanggah-ket="{{ $item->sanggah_keterangan }}"
+                                                data-sanggah-potong="{{ $item->sanggah_poin_potong }}"
+                                                data-sanggah-validator="{{ $item->sanggah_validator }}"
+                                                data-sanggah-tanggal="{{ $item->sanggah_tanggal ? date('d/m/Y', strtotime($item->sanggah_tanggal)) : '-' }}"
+                                                data-sanggah-bukti="{{ $item->sanggah_bukti ? asset($item->sanggah_bukti) : '' }}"
+                                                data-siswa="{{ $item->siswa?->nama }}"
+                                                data-aturan="{{ $item->aturan?->nama_aturan }}"
+                                                title="Lihat Detail Resolusi Sanggahan"
+                                                style="border-radius: var(--radius-md, 8px); padding: 4px 10px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 4px; border-color: #059669; color: #059669;">
+                                                <i class="fas fa-eye"></i> Detail
+                                            </button>
+                                        @endif
+                                        @if ($canDelete)
+                                            <button type="button" class="btn btn-sm btn-outline btn-hapus-pelanggaran"
+                                                data-id="{{ $item->id }}"
+                                                data-siswa="{{ $item->siswa?->nama }}"
+                                                data-aturan="{{ $item->aturan?->nama_aturan }}"
+                                                title="Hapus Data Pelanggaran Secara Total"
+                                                style="border-radius: var(--radius-md, 8px); padding: 4px 8px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 4px; border-color: #ef4444; color: #ef4444;">
+                                                <i class="fas fa-trash-can"></i> Hapus
+                                            </button>
+                                        @endif
+                                        @if (!$item->sanggah_status && !$canDelete)
+                                            <span class="text-muted" style="font-size: 0.75rem;">-</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -780,7 +823,7 @@
                 </table>
             </div>
 
-            @if ($riwayatList->hasPages())
+            @if (method_exists($riwayatList, 'hasPages') && $riwayatList->hasPages())
                 <div class="datatable-footer">
                     @include('partials.datatable-pagination', ['paginator' => $riwayatList])
                 </div>
@@ -1022,7 +1065,7 @@
             </div>
 
             <!-- 3. Footer Paginasi Terpadu Datatable -->
-            @if ($pembinaanList->hasPages())
+            @if (method_exists($pembinaanList, 'hasPages') && $pembinaanList->hasPages())
                 <div class="datatable-footer">
                     @include('partials.datatable-pagination', ['paginator' => $pembinaanList])
                 </div>
@@ -1097,7 +1140,7 @@
             </div>
 
             <!-- 3. Footer Paginasi Terpadu Datatable -->
-            @if ($pemanggilanList->hasPages())
+            @if (method_exists($pemanggilanList, 'hasPages') && $pemanggilanList->hasPages())
                 <div class="datatable-footer">
                     @include('partials.datatable-pagination', ['paginator' => $pemanggilanList])
                 </div>

@@ -226,4 +226,57 @@ class PersuratanDutyModuleTest extends TestCase
             );
         }
     }
+
+    public function test_cetak_spt_menghasilkan_tiga_halaman_spt_sppd_laporan(): void
+    {
+        $admin = [
+            'id' => 'admin-spt-01',
+            'pengguna_id' => 'admin-spt-01',
+            'username' => 'admin',
+            'nama' => 'Administrator Sistem',
+            'role' => 'admin',
+        ];
+
+        $id = DB::table('gtk_spt')->insertGetId([
+            'nomor_spt'         => 'TEST/SPT/SPPD/0001',
+            'dasar_penugasan'   => 'Surat Undangan Dinas No. 026/SU/2026',
+            'nama_kegiatan'     => 'Mengikuti Teknikal Meeting Porsengur 2026',
+            'lokasi_tujuan'     => 'Gedung PGRI Panyangling Budi',
+            'waktu_pelaksanaan' => '11.00 WIB s.d. selesai',
+            'alamat_tujuan'     => 'Jl. Raya Pagelaran KM. 63',
+            'alat_angkutan'     => 'Kendaraan Darat',
+            'tempat_berangkat'  => 'SMK Negeri 1 Pagelaran',
+            'instansi_pembebanan' => 'SMK Negeri 1 Pagelaran',
+            'akun_kodering'     => 'BOS Reguler',
+            'tingkat_biaya'     => 'Tingkat B',
+            'tanggal_berangkat' => '2026-11-04',
+            'tanggal_kembali'   => '2026-11-04',
+            'lama_hari'         => 1,
+            'beban_anggaran'    => 'BOS Reguler',
+            'pejabat_nama'      => 'Sopian Iskandar Mustopa, S.E., MM.',
+            'pejabat_jabatan'   => 'Kepala Sekolah',
+            'daftar_ptk_id'     => json_encode([], JSON_UNESCAPED_UNICODE),
+            'status'            => 'disetujui',
+            'created_by'        => 'Tester',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        try {
+            $res = $this->withSession(['user' => $admin])
+                ->get(route('dashboard.persuratan.keluar.spt.cetak', $id));
+
+            $res->assertStatus(200);
+            $res->assertSee('Surat Perintah Tugas', false);
+            $res->assertSee('Surat Perintah Perjalanan Dinas (SPPD)', false);
+            $res->assertSee('Laporan Hasil Perjalanan Dinas', false);
+            $res->assertSee('Pangkat / Gol', false);
+            // Tiga halaman tercetak berurutan (hitung elemen, bukan CSS).
+            $this->assertSame(3, substr_count($res->getContent(), 'class="cetak-page'));
+            $this->assertSame(1, substr_count($res->getContent(), 'class="cetak-page landscape'));
+            $this->assertStringContainsString('size: A4 landscape', $res->getContent());
+        } finally {
+            DB::table('gtk_spt')->where('id', $id)->delete();
+        }
+    }
 }

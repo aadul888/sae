@@ -808,6 +808,14 @@ class KedisiplinanController extends Controller
     public function destroyPelanggaran($id)
     {
         $pelanggaran = KedisiplinanPelanggaran::findOrFail($id);
+
+        if ($pelanggaran->foto_bukti && file_exists(public_path($pelanggaran->foto_bukti))) {
+            @unlink(public_path($pelanggaran->foto_bukti));
+        }
+        if ($pelanggaran->sanggah_bukti && file_exists(public_path($pelanggaran->sanggah_bukti))) {
+            @unlink(public_path($pelanggaran->sanggah_bukti));
+        }
+
         $pelanggaran->delete();
 
         return response()->json([
