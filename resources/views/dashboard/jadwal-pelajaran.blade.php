@@ -25,12 +25,14 @@
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @if ($canManageJadwal && !$isViewingSiswa)
+                <button type="button" id="btnTambahJadwalManual" class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Input Jadwal Manual" aria-label="Input Jadwal Manual">
+                    <i class="fas fa-plus"></i>
+                </button>
+            @endif
             @if ($isGuru || $isViewingGuru)
-                <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
-                    title="Input &amp; Kelola Jadwal KBM Manual">
-                    <i class="fas fa-calendar-plus"></i>
-                </a>
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
                     title="Presensi Mengajar Guru">
@@ -245,7 +247,7 @@
                             style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 130px;">
                             <i class="fas fa-signal me-1 text-primary"></i> Status
                         </th>
-                        @if ($isGuru)
+                        @if ($isGuru || $canManageJadwal)
                             <th
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 <i class="fas fa-sliders me-1 text-primary"></i> Aksi
@@ -348,21 +350,49 @@
                                     @endif
                                 </div>
                             </td>
-                            @if ($isGuru)
+                            @if ($isGuru || $canManageJadwal)
                                 <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
-                                    <div class="cell-col-right" style="align-items: center;">
-                                        <a href="{{ route('dashboard.presensi-mengajar.index', ['rombongan_belajar_id' => $item->rombongan_belajar_id]) }}"
-                                            class="btn-icon" title="Presensi Mengajar di Kelas Ini"
-                                            style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
-                                            <i class="fas fa-calendar-check"></i>
-                                        </a>
+                                    <div class="cell-col-right" style="align-items: center; display: inline-flex; gap: 6px; justify-content: center;">
+                                        @if (!empty($item->can_manage))
+                                            <button type="button" class="btn-icon btn-jadwal-edit"
+                                                title="Edit Slot Jadwal"
+                                                data-id="{{ $item->id }}"
+                                                data-pembelajaran-id="{{ $item->pembelajaran_id }}"
+                                                data-rombel-id="{{ $item->rombongan_belajar_id }}"
+                                                data-rombel-name="{{ $item->nama_rombel }}"
+                                                data-hari="{{ $item->hari }}"
+                                                data-jam-ke-mulai="{{ $item->jam_ke_mulai }}"
+                                                data-jam-ke-selesai="{{ $item->jam_ke_selesai }}"
+                                                data-ruangan="{{ $item->ruangan }}"
+                                                data-keterangan="{{ $item->keterangan }}"
+                                                data-nama-mapel="{{ $item->nama_mata_pelajaran }}"
+                                                style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); display: inline-flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button type="button" class="btn-icon btn-jadwal-hapus"
+                                                title="Hapus Slot Jadwal"
+                                                data-id="{{ $item->id }}"
+                                                data-nama-mapel="{{ $item->nama_mata_pelajaran }}"
+                                                data-hari="{{ $item->hari }}"
+                                                data-jam-ke="{{ $item->jam_ke_mulai }}"
+                                                style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--danger, #ef4444); display: inline-flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
+                                        @if ($isGuru)
+                                            <a href="{{ route('dashboard.presensi-mengajar.index', ['rombongan_belajar_id' => $item->rombongan_belajar_id]) }}"
+                                                class="btn-icon" title="Presensi Mengajar di Kelas Ini"
+                                                style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                             @endif
                         </tr>
                     @empty
                         <tr class="empty-row">
-                            <td colspan="{{ $isGuru ? 8 : 7 }}"
+                            <td colspan="{{ ($isGuru || $canManageJadwal) ? 8 : 7 }}"
                                 style="padding: 42px 16px; text-align: center; color: var(--text-muted);">
                                 <div
                                     style="width: 52px; height: 52px; border-radius: 50%; background: rgba(99,102,241,0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin: 0 auto 10px auto;">
@@ -473,6 +503,42 @@
                                 </span>
                             @endif
                         </div>
+
+                        @if (!empty($item->can_manage) || $isGuru)
+                            <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 6px;">
+                                @if (!empty($item->can_manage))
+                                    <button type="button" class="btn-icon btn-jadwal-edit" title="Edit Slot Jadwal"
+                                        data-id="{{ $item->id }}"
+                                        data-pembelajaran-id="{{ $item->pembelajaran_id }}"
+                                        data-rombel-id="{{ $item->rombongan_belajar_id }}"
+                                        data-rombel-name="{{ $item->nama_rombel }}"
+                                        data-hari="{{ $item->hari }}"
+                                        data-jam-ke-mulai="{{ $item->jam_ke_mulai }}"
+                                        data-jam-ke-selesai="{{ $item->jam_ke_selesai }}"
+                                        data-ruangan="{{ $item->ruangan }}"
+                                        data-keterangan="{{ $item->keterangan }}"
+                                        data-nama-mapel="{{ $item->nama_mata_pelajaran }}"
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button type="button" class="btn-icon btn-jadwal-hapus" title="Hapus Slot Jadwal"
+                                        data-id="{{ $item->id }}"
+                                        data-nama-mapel="{{ $item->nama_mata_pelajaran }}"
+                                        data-hari="{{ $item->hari }}"
+                                        data-jam-ke="{{ $item->jam_ke_mulai }}"
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--danger, #ef4444); display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                @endif
+                                @if ($isGuru)
+                                    <a href="{{ route('dashboard.presensi-mengajar.index', ['rombongan_belajar_id' => $item->rombongan_belajar_id]) }}"
+                                        class="btn-icon" title="Presensi Mengajar di Kelas Ini"
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -498,6 +564,127 @@
             </div>
         @endif
     </div>
+
+    @if ($canManageJadwal && !$isViewingSiswa)
+        <!-- Modal Input / Edit Slot Jadwal Manual -->
+        <div id="modalJadwalManual" class="sae-modal"
+            data-route-store="{{ route('dashboard.jadwal-kbm.manual.store-slot') }}"
+            data-route-update="{{ url('/dashboard/master-data/jadwal-kbm/manual/update-slot') }}"
+            data-route-delete="{{ url('/dashboard/master-data/jadwal-kbm/manual/delete-slot') }}"
+            data-route-pembelajaran="{{ route('dashboard.jadwal-kbm.manual.pembelajaran') }}"
+            style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="card"
+                style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: var(--radius-lg, 12px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h3 id="mjTitle"
+                        style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color);">
+                        <i class="fas fa-calendar-plus text-primary me-2"></i> Jadwalkan Pelajaran
+                    </h3>
+                    <button type="button" id="mjTutup"
+                        style="background: transparent; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;"
+                        aria-label="Tutup"><i class="fas fa-times"></i></button>
+                </div>
+
+                <form id="mjForm">
+                    @csrf
+                    <input type="hidden" id="mjId" value="">
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="mjRombel"
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Kelas
+                            <span style="color: var(--danger, #ef4444);">*</span></label>
+                        <select id="mjRombel" name="rombongan_belajar_id" required class="form-control"
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                            <option value="">-- Pilih Kelas --</option>
+                            @foreach ($rombelOptions as $r)
+                                <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="mjPembelajaran"
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Mata
+                            Pelajaran &amp; Guru Pengampu <span style="color: var(--danger, #ef4444);">*</span></label>
+                        <select id="mjPembelajaran" name="pembelajaran_id" required class="form-control"
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                            <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="mjHari"
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Hari
+                            <span style="color: var(--danger, #ef4444);">*</span></label>
+                        <select id="mjHari" name="hari" required class="form-control"
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                            @foreach ($hariList as $h)
+                                <option value="{{ $h }}">{{ $h }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label for="mjJamKeMulai"
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Jam
+                                Ke-Mulai <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <select id="mjJamKeMulai" name="jam_ke_mulai" required class="form-control"
+                                style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                                @for ($i = 1; $i <= 16; $i++)
+                                    <option value="{{ $i }}">Jam Ke-{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mjJamKeSelesai"
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Jam
+                                Ke-Selesai <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <select id="mjJamKeSelesai" name="jam_ke_selesai" required class="form-control"
+                                style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                                @for ($i = 1; $i <= 16; $i++)
+                                    <option value="{{ $i }}">Jam Ke-{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="mjAlert"
+                        style="display: none; padding: 10px 14px; border-radius: var(--radius-md, 8px); margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem);">
+                    </div>
+
+                    <div id="mjBoxOverwrite"
+                        style="margin-bottom: 16px; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-md, 8px); display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="mjOverwrite" name="overwrite" value="1"
+                            style="width: 17px; height: 17px; cursor: pointer; accent-color: var(--warning, #f59e0b);">
+                        <label for="mjOverwrite"
+                            style="margin: 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); cursor: pointer; line-height: 1.4;">
+                            <strong>Ganti / Timpa jadwal kelas ini</strong> jika jam yang dipilih telah terisi pelajaran
+                            lain.
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="mjKeterangan"
+                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Keterangan
+                            Tambahan (Opsional)</label>
+                        <input type="text" id="mjKeterangan" name="keterangan"
+                            placeholder="Contoh: Praktik Bengkel / Teori" class="form-control"
+                            style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <button type="button" id="mjBatal" class="btn btn-outline" style="padding: 8px 16px;">Batal</button>
+                        <button type="submit" id="mjSimpan" class="btn btn-primary" style="padding: 8px 20px;">
+                            <i class="fas fa-save me-1"></i> Simpan Slot
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

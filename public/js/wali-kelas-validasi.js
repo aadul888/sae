@@ -251,6 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const siswa = json.siswa;
+            const canUpload = modal?.getAttribute("data-can-update") === "1";
             infoEl.innerHTML = `NISN: <strong>${escapeHtml(siswa.nisn)}</strong> &bull; NIPD: <strong>${escapeHtml(siswa.nipd)}</strong> &bull; Rombel: <strong>${escapeHtml(siswa.rombel)}</strong>`;
 
             const rekomendasiList = json.rekomendasi_penolakan || [];
@@ -259,108 +260,87 @@ document.addEventListener("DOMContentLoaded", function () {
             json.items.forEach((item) => {
                 const statusBadge =
                     item.status === "valid"
-                        ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-check me-1"></i> Valid / Sesuai</span>`
+                        ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-circle-check me-1"></i> Valid</span>`
                         : item.status === "tidak_valid"
-                          ? `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid / Ditolak</span>`
+                          ? `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid</span>`
                           : item.is_uploaded
-                            ? `<span class="badge badge-warning" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-clock me-1"></i> Menunggu Verifikasi</span>`
-                            : `<span class="badge badge-outline" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-minus me-1"></i> Belum Diunggah Siswa</span>`;
+                            ? `<span class="badge badge-warning" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-clock me-1"></i> Menunggu</span>`
+                            : `<span class="badge badge-outline" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-minus me-1"></i> Belum Unggah</span>`;
 
                 html += `
-                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-selected-status="${item.status || ''}" style="padding: 16px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--bg-hover);">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-selected-status="${item.status || ''}" style="padding: 14px 16px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color); background: var(--card-bg, #fff);">
+                        <!-- Header Berkas & Status -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                <div style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">
                                     <i class="fas ${item.icon}"></i>
                                 </div>
-                                <div>
-                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-color);">
-                                        ${escapeHtml(item.label)}
-                                        ${item.wajib ? '<span class="badge badge-outline" style="font-size: 0.65rem; margin-left: 6px;">Wajib</span>' : '<span class="badge badge-outline" style="font-size: 0.65rem; margin-left: 6px; opacity: 0.7;">Opsional</span>'}
-                                    </div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(item.deskripsi)}</div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-color);">${escapeHtml(item.label)}</span>
+                                    ${item.wajib ? '<span class="badge badge-outline" style="font-size: 0.65rem; padding: 1px 6px;">Wajib</span>' : ''}
                                 </div>
                             </div>
                             <div class="status-badge-container">${statusBadge}</div>
                         </div>
-                `;
 
-                if (item.is_uploaded) {
-                    html += `
-                        <div style="background: rgba(0,0,0,0.12); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                                <i class="fas fa-file-pdf text-danger" style="font-size: 1.4rem;"></i>
-                                <div style="min-width: 0;">
-                                    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color);">${escapeHtml(item.file_name)}</div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">Ukuran: ${item.file_size} &bull; Diunggah: ${item.uploaded_at || "-"}</div>
-                                </div>
+                        <!-- Info File & Aksi Dokumen (Dropzone: tarik & lepas file di sini) -->
+                        <div data-upload-dropzone="1" title="${canUpload ? 'Tarik & lepas file ke area ini, atau klik Unggah' : ''}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); margin-bottom: 12px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0; font-size: var(--text-sm, 0.8125rem);">
+                                ${item.is_uploaded ? `
+                                    <i class="fas fa-file-pdf text-danger" style="font-size: 1.15rem; flex-shrink: 0;"></i>
+                                    <span style="font-weight: 600; color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px;" title="${escapeHtml(item.file_name)}">${escapeHtml(item.file_name)}</span>
+                                    <span class="text-muted" style="font-size: var(--text-xs, 0.75rem);">(${item.file_size})</span>
+                                ` : `
+                                    <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);"><i class="fas fa-minus-circle me-1"></i>Belum ada file digital</span>
+                                `}
                             </div>
-                            <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${item.file_url}" data-title="${escapeHtml(item.label)} - ${escapeHtml(siswa.nama)}" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" data-status="${item.status || ''}" data-catatan="${escapeHtml(item.catatan_penolakan || '')}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; cursor: pointer;">
-                                <i class="fas fa-eye me-1"></i> Lihat Dokumen PDF
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; color: #d97706; font-size: 0.78rem; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-circle-info"></i>
-                            <span>Siswa belum mengunggah file PDF untuk dokumen ini. Anda tetap dapat menetapkan validasi berkas fisik.</span>
-                        </div>
-                    `;
-                }
-
-                html += `
-                    <!-- Form Validasi Status (2 PILIHAN STATUS: valid atau tidak_valid) -->
-                    <div style="background: var(--card-bg); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-color); margin-bottom: 8px;">
-                            Tentukan Hasil Validasi Berkas:
-                        </div>
-
-                        <div style="display: flex; gap: 18px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: #10b981; cursor: pointer;">
-                                <input type="radio" name="status_${item.jenis_berkas}" value="valid" ${item.status === "valid" ? "checked" : ""} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                <i class="fas fa-circle-check"></i> Valid / Sesuai
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: #ef4444; cursor: pointer;">
-                                <input type="radio" name="status_${item.jenis_berkas}" value="tidak_valid" ${item.status === "tidak_valid" ? "checked" : ""} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                <i class="fas fa-circle-xmark"></i> Tidak Valid / Tidak Sesuai
-                            </label>
-                        </div>
-
-                        <!-- Area Catatan Penolakan (Muncul jika status tidak_valid) -->
-                        <div id="boxPenolakan_${item.jenis_berkas}" style="display: ${item.status === "tidak_valid" ? "block" : "none"}; margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 10px;">
-                            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
-                                Pilih Rekomendasi Alasan Penolakan:
-                            </div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
-                                ${rekomendasiList
-                                    .map(
-                                        (rek) => `
-                                    <button type="button" class="btn btn-outline btn-chip-rekomendasi" data-target-text="textarea_${item.jenis_berkas}" data-text="${escapeHtml(rek)}" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 6px;">
-                                        <i class="fas fa-reply me-1"></i> ${escapeHtml(rek)}
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                ${item.is_uploaded ? `
+                                    <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${item.file_url}" data-title="${escapeHtml(item.label)} - ${escapeHtml(siswa.nama)}" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" data-status="${item.status || ''}" data-catatan="${escapeHtml(item.catatan_penolakan || '')}" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-md, 6px); cursor: pointer;">
+                                        <i class="fas fa-eye me-1"></i> Lihat PDF
                                     </button>
-                                `,
-                                    )
-                                    .join("")}
-                            </div>
-
-                            <div style="margin-bottom: 8px;">
-                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 4px;">
-                                    Catatan Penolakan / Kekurangan <span class="text-danger">*</span>:
-                                </label>
-                                <textarea id="textarea_${item.jenis_berkas}" class="form-control input-catatan-penolakan" rows="2" placeholder="Tuliskan petunjuk perbaikan bagi peserta didik..." style="font-size: 0.82rem;">${escapeHtml(item.catatan_penolakan || "")}</textarea>
+                                ` : ''}
+                                ${canUpload ? `
+                                    <button type="button" class="btn btn-outline btn-upload-berkas" data-upload-trigger="1" data-key="${item.jenis_berkas}" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-md, 6px); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-upload"></i> ${item.is_uploaded ? 'Ganti' : 'Unggah'}
+                                    </button>
+                                    <input type="file" class="input-upload-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                ` : ''}
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-                            <button type="button" class="btn btn-primary btn-save-verif-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-check"></i> Simpan Status Berkas
+                        <!-- Baris Kontrol Validasi & Simpan -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 16px; align-items: center;">
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
+                                    <input type="radio" name="status_${item.jenis_berkas}" value="valid" ${item.status === 'valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
+                                    <i class="fas fa-circle-check"></i> Valid
+                                </label>
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
+                                    <input type="radio" name="status_${item.jenis_berkas}" value="tidak_valid" ${item.status === 'tidak_valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
+                                    <i class="fas fa-circle-xmark"></i> Tidak Valid
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-save-verif-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" style="padding: 5px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 6px); display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-check"></i> Simpan
                             </button>
+                        </div>
+
+                        <!-- Area Catatan Penolakan (Hanya muncul jika status tidak_valid) -->
+                        <div id="boxPenolakan_${item.jenis_berkas}" style="display: ${item.status === 'tidak_valid' ? 'block' : 'none'}; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                            ${rekomendasiList.length ? `
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                                    ${rekomendasiList.map(rek => `
+                                        <button type="button" class="btn btn-outline btn-chip-rekomendasi" data-target-text="textarea_${item.jenis_berkas}" data-text="${escapeHtml(rek)}" style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-md, 6px); cursor: pointer;">
+                                            ${escapeHtml(rek)}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            <textarea id="textarea_${item.jenis_berkas}" class="form-control input-catatan-penolakan" rows="2" placeholder="Catatan perbaikan untuk siswa..." style="font-size: var(--text-sm, 0.8125rem); width: 100%; border-radius: var(--radius-md, 6px);">${escapeHtml(item.catatan_penolakan || '')}</textarea>
                         </div>
                     </div>
                 `;
-
-                html += `</div>`;
             });
 
             html += `</div>`;
@@ -390,6 +370,81 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (textarea) {
                         textarea.value = text;
                         textarea.focus();
+                    }
+                });
+            });
+
+            // Wire up upload mandiri per berkas oleh Wali Kelas
+            content.querySelectorAll(".input-upload-berkas").forEach((input) => {
+                input.addEventListener("change", async function () {
+                    const file = this.files && this.files[0];
+                    if (!file) return;
+
+                    const pdId = this.getAttribute("data-pd-id");
+                    const key = this.getAttribute("data-key");
+                    const card = document.getElementById(`cardBerkas_${key}`);
+                    const triggerBtn = card ? card.querySelector(".btn-upload-berkas") : null;
+
+                    if (file.size > 10 * 1024 * 1024) {
+                        Swal.fire("File Terlalu Besar", "Ukuran file maksimal 10 MB.", "warning");
+                        this.value = "";
+                        return;
+                    }
+
+                    const csrfToken =
+                        document.querySelector('meta[name="csrf-token"]')?.content ||
+                        document.querySelector('input[name="_token"]')?.value ||
+                        "";
+
+                    if (triggerBtn) {
+                        triggerBtn.disabled = true;
+                        triggerBtn.style.opacity = "0.6";
+                        triggerBtn.style.pointerEvents = "none";
+                    }
+
+                    const formData = new FormData();
+                    formData.append("jenis_berkas", key);
+                    formData.append("file", file);
+
+                    try {
+                        const res = await fetch(
+                            `/dashboard/wali-kelas/validasi-data/berkas-upload/${encodeURIComponent(pdId)}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "X-CSRF-TOKEN": csrfToken,
+                                    Accept: "application/json",
+                                    "X-Requested-With": "XMLHttpRequest",
+                                },
+                                body: formData,
+                            },
+                        );
+                        const json = await res.json();
+
+                        if (res.ok && json.status === "success") {
+                            berkasStatusChanged = true;
+                            await Swal.fire({
+                                icon: "success",
+                                title: "Berkas Terunggah!",
+                                text: json.message,
+                                timer: 1400,
+                                showConfirmButton: false,
+                            });
+                            window.openModalVerifikasiBerkas(id, siswa.nama);
+                            return;
+                        }
+
+                        const errMsg = json.message || (json.errors ? Object.values(json.errors).flat().join(" ") : "Gagal mengunggah berkas.");
+                        Swal.fire("Gagal Unggah", errMsg, "error");
+                    } catch (err) {
+                        Swal.fire("Kesalahan Jaringan", "Tidak dapat terhubung ke server.", "error");
+                    } finally {
+                        if (triggerBtn) {
+                            triggerBtn.disabled = false;
+                            triggerBtn.style.opacity = "";
+                            triggerBtn.style.pointerEvents = "";
+                        }
+                        this.value = "";
                     }
                 });
             });
@@ -473,8 +528,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                 if (badgeContainer) {
                                     badgeContainer.innerHTML =
                                         status === "valid"
-                                            ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-check me-1"></i> Valid / Sesuai</span>`
-                                            : `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid / Tidak Sesuai</span>`;
+                                            ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-circle-check me-1"></i> Valid</span>`
+                                            : `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 3px 8px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid</span>`;
                                 }
                                 card.setAttribute("data-selected-status", status);
                                 const currentRadio = card.querySelector(`input[name="status_${key}"][value="${status}"]`);

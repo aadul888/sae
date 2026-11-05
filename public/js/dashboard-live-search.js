@@ -112,6 +112,7 @@
             );
             selects.forEach((sel) => {
                 if (processedSelects.has(sel)) return;
+                if (sel.hasAttribute("data-no-live-search") || sel.closest("[data-no-live-search]") || sel.id === "selectBulanKalender" || sel.id === "selectKategoriKehadiran") return;
                 processedSelects.add(sel);
 
                 let pName = sel.name;
@@ -376,6 +377,10 @@
         }
 
         // 2. Standalone datatable toolbar (tanpa form GET)
+        if (el.hasAttribute("data-no-live-search") || el.closest("[data-no-live-search]") || el.id === "selectBulanKalender" || el.id === "selectKategoriKehadiran") {
+            return;
+        }
+
         const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd, #viewKalenderVisual");
         if (!hasTable) return;
 
@@ -427,31 +432,6 @@
                 window.location.href = resetBtn.href;
             }
         }
-    });
-
-    // Universal Delegated Click-to-Copy Handler (.copyable, [data-copy])
-    document.addEventListener("click", function (e) {
-        const copyEl = e.target.closest(".copyable, [data-copy]");
-        if (!copyEl) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        const raw = copyEl.getAttribute("data-copy") || copyEl.innerText.trim();
-        const textToCopy = raw
-            .replace(/^(?:NIK|NISN|NIPD|NUPTK|NIP|ID)\s*:\s*/i, "")
-            .trim();
-        const label = copyEl.getAttribute("data-label") || "Teks";
-
-        if (!textToCopy || textToCopy === "-") return;
-
-        if (window.SAE && typeof window.SAE.copy === "function") {
-            window.SAE.copy(textToCopy, label);
-        } else if (navigator.clipboard) {
-            navigator.clipboard.writeText(textToCopy);
-        }
-
-        copyEl.classList.add("copied");
-        setTimeout(() => copyEl.classList.remove("copied"), 1800);
     });
 })();
 

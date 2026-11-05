@@ -18,11 +18,17 @@ class MaintenanceController extends Controller
     private function checkAdmin()
     {
         $user = session('user');
-        if (!$user) return redirect()->route('login');
+        if (!$user) {
+            return request()->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Sesi login berakhir. Silakan masuk kembali lalu muat ulang halaman.'], 401)
+                : redirect()->route('login');
+        }
 
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         if ($role !== 'admin') {
-            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
+            return request()->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Akses ditolak: hanya administrator.'], 403)
+                : redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
         }
 
         return null;
@@ -126,6 +132,10 @@ class MaintenanceController extends Controller
 
         $type = (string) $request->input('type', 'full');
 
+        // Proses arsip bisa memakan waktu/memori; pastikan tidak dibunuh batas server.
+        @set_time_limit(0);
+        @ini_set('memory_limit', '1024M');
+
         try {
             $service = new BackupService();
 
@@ -146,7 +156,7 @@ class MaintenanceController extends Controller
                 'status'       => 'success',
                 'message'      => $message,
                 'filename'     => $result['filename'],
-                'download_url' => route('dashboard.maintenance.fetch', ['filename' => $result['filename']]),
+                'download_url' => route('dashboard.maintenance.fetch', ['filename' => $result['filename']], false),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -195,7 +205,7 @@ class MaintenanceController extends Controller
 
             return $request->expectsJson()
                 ? response()->json(['status' => 'error', 'message' => $msg], 422)
-                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('error', $msg);
+                : redirect(route('dashboard.maintenance.index', ['tab' => 'restore'], false))->with('error', $msg);
         }
 
         try {
@@ -208,13 +218,13 @@ class MaintenanceController extends Controller
 
             return $request->expectsJson()
                 ? response()->json(['status' => 'success', 'message' => $msg])
-                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('success', $msg);
+                : redirect(route('dashboard.maintenance.index', ['tab' => 'restore'], false))->with('success', $msg);
         } catch (\Throwable $e) {
             $msg = 'Gagal memulihkan database: ' . $e->getMessage();
 
             return $request->expectsJson()
                 ? response()->json(['status' => 'error', 'message' => $msg], 500)
-                : redirect()->route('dashboard.maintenance.index', ['tab' => 'restore'])->with('error', $msg);
+                : redirect(route('dashboard.maintenance.index', ['tab' => 'restore'], false))->with('error', $msg);
         }
     }
 

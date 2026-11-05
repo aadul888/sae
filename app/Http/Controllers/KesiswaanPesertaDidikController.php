@@ -203,7 +203,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class KesiswaanPese
     }
 
     /**
-     * Upload berkas siswa langsung oleh Tendik / Staf Kesiswaan (otomatis berstatus 'valid').
+     * Upload berkas siswa langsung oleh Wali Kelas / Tendik / Admin (otomatis berstatus 'valid').
      */
     public function uploadBerkasTendik(Request $request, $id): JsonResponse
     {

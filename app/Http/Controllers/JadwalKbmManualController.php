@@ -7,6 +7,7 @@ use App\Models\JadwalPengaturan;
 use App\Models\KalenderPendidikan;
 use App\Models\RolePermission;
 use App\Services\RealtimeService;
+use App\Services\JadwalPengaturanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\Table;
@@ -100,6 +101,40 @@ class JadwalKbmManualController extends Controller
             'rombelList'     => $activeRombel ? collect([$activeRombel]) : collect(),
             'activeRombel'   => $activeRombel,
         ];
+    }
+
+    /**
+     * API: Daftar mata pelajaran & guru pengampu per rombel (untuk modal input manual).
+     * Guru pengampu hanya menerima mapel yang diampu, kecuali wali kelas/pemegang izin kelola.
+     */
+    public function pembelajaranByRombel(Request $request, JadwalPengaturanService $service)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['pembelajaran' => []], 401);
+        }
+
+        $rombelId = $request->get('rombel_id');
+        if (!$rombelId) {
+            return response()->json(['pembelajaran' => []]);
+        }
+
+        $items = collect($service->getPembelajaranByRombel($request)['pembelajaran'] ?? []);
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role === 'guru') {
+            $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $rombelId);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'create')
+                || RolePermission::canAccess($user, 'menu_jadwal_kbm', 'update');
+
+            if ($ptkId && !$isWali && !$canManageAll) {
+                $items = $items->filter(fn($p) => $p->ptk_id === $ptkId)->values();
+            }
+        }
+
+        return response()->json(['pembelajaran' => $items]);
     }
 
     /**
@@ -779,7 +814,7 @@ class JadwalKbmManualController extends Controller
             'jam_ke_selesai'      => $validated['jam_ke_selesai'],
             'jam_mulai'           => $jamMulai,
             'jam_selesai'         => $jamSelesai,
-            'ruangan'             => $validated['ruangan'] ?? null,
+            'ruangan'             => $validated['ruangan'] ?? $jadwal->ruangan,
             'keterangan'          => $validated['keterangan'] ?? null,
         ]);
 

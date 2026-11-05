@@ -462,6 +462,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Modul Khusus: Input Jadwal KBM Manual (Koordinator Kelas / Wali Kelas / Admin)
     Route::get('/master-data/jadwal-kbm/manual', [\App\Http\Controllers\JadwalKbmManualController::class, 'index'])->name('jadwal-kbm.manual.index');
+    Route::get('/master-data/jadwal-kbm/manual/pembelajaran', [\App\Http\Controllers\JadwalKbmManualController::class, 'pembelajaranByRombel'])->name('jadwal-kbm.manual.pembelajaran');
     Route::post('/master-data/jadwal-kbm/manual/store-slot', [\App\Http\Controllers\JadwalKbmManualController::class, 'storeSlot'])->name('jadwal-kbm.manual.store-slot');
     Route::put('/master-data/jadwal-kbm/manual/update-slot/{id}', [\App\Http\Controllers\JadwalKbmManualController::class, 'updateSlot'])->name('jadwal-kbm.manual.update-slot');
     Route::delete('/master-data/jadwal-kbm/manual/delete-slot/{id}', [\App\Http\Controllers\JadwalKbmManualController::class, 'deleteSlot'])->name('jadwal-kbm.manual.delete-slot');

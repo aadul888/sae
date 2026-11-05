@@ -535,6 +535,13 @@
     margin-bottom: var(--space-9);
 }
 
+/* Upload dropzone: sorot area saat file ditarik di atasnya. */
+.upload-dropzone-active {
+    outline: 2px dashed var(--primary, #6366f1);
+    outline-offset: 2px;
+    background: rgba(99, 102, 241, 0.08) !important;
+}
+
 /* --------------------------------------------------------------------------
    10. UTILITAS — sedikit, sengaja dibatasi agar tidak menjadi Tailwind liar.
    -------------------------------------------------------------------------- */

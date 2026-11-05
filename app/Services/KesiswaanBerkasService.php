@@ -170,7 +170,7 @@ class KesiswaanBerkasService
     }
 
     /**
-     * Upload berkas siswa langsung oleh Tendik / Staf Kesiswaan.
+     * Upload berkas siswa langsung oleh Wali Kelas, Tendik, atau Admin (otomatis valid).
      */
     public function uploadBerkasTendik(Request $request, string|int $id, mixed $user): array
     {
@@ -214,6 +214,12 @@ class KesiswaanBerkasService
         $savedPath = $directory . '/' . $hasil['filename'];
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $roleLabel = match ($role) {
+            'admin' => 'Administrator',
+            'tendik' => 'Tendik Kesiswaan',
+            default => 'Wali Kelas',
+        };
 
         $berkas = PesertaDidikBerkas::updateOrCreate(
             [
@@ -229,9 +235,9 @@ class KesiswaanBerkasService
                 'status' => 'valid',
                 'catatan_penolakan' => null,
                 'rekomendasi_penolakan' => null,
-                'verified_by' => $userName . ' (Tendik)',
+                'verified_by' => $userName . ' (' . $roleLabel . ')',
                 'verified_at' => now(),
-                'uploaded_by' => $userName . ' (Tendik Kesiswaan)',
+                'uploaded_by' => $userName . ' (' . $roleLabel . ')',
             ]
         );
 
@@ -246,7 +252,7 @@ class KesiswaanBerkasService
 
         if (class_exists(AdminAktivitas::class)) {
             AdminAktivitas::record(
-                "Upload Berkas Tendik: {$pd->nama} - {$berkas->nama_berkas} (Valid)",
+                "Upload Berkas {$roleLabel}: {$pd->nama} - {$berkas->nama_berkas} (Valid)",
                 'Kesiswaan',
                 "Dokumen diunggah langsung oleh {$userName} dan otomatis diverifikasi valid.",
                 'success'

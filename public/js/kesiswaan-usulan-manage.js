@@ -99,6 +99,52 @@ document.addEventListener('DOMContentLoaded', function () {
             setDoc('docIjazah', data.ijazah, 'Ijazah_SMP.pdf');
             setDoc('docAkta', data.akta, 'Akta_Kelahiran.pdf');
 
+            // Tampilkan Catatan Penolakan / Alasan Siswa (Tunggal di atas strip berkas)
+            const alasanBox = document.getElementById('modalUsulanAlasanBox');
+            if (alasanBox) {
+                const defaultAlasan = 'penyesuaian formulir identitas mandiri.';
+                const distinctAlasan = [...new Set(items.map(i => (i.alasan || '').trim()).filter(a => a && a.toLowerCase() !== defaultAlasan))];
+                const distinctCatatan = [...new Set(items.map(i => (i.catatan_verifikasi || '').trim()).filter(c => c))];
+
+                let boxHtml = '';
+                if (distinctCatatan.length > 0) {
+                    boxHtml += `
+                        <div style="display:flex; align-items:flex-start; gap:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); color:var(--text-color); padding:8px 12px; border-radius:var(--radius-md, 8px); font-size:var(--text-xs, 0.75rem); line-height:1.4; margin-bottom:6px;">
+                            <i class="fas fa-triangle-exclamation" style="color:#ef4444; margin-top:2px; flex-shrink:0;"></i>
+                            <div><strong style="color:#ef4444;">Catatan Penolakan:</strong> ${escapeHtml(distinctCatatan.join(' | '))}</div>
+                        </div>
+                    `;
+                }
+
+                const filteredAlasan = distinctAlasan.filter(a => !distinctCatatan.includes(a));
+                if (filteredAlasan.length > 0) {
+                    boxHtml += `
+                        <div style="display:flex; align-items:flex-start; gap:8px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); color:var(--text-color); padding:8px 12px; border-radius:var(--radius-md, 8px); font-size:var(--text-xs, 0.75rem); line-height:1.4;">
+                            <i class="fas fa-circle-info" style="color:var(--primary); margin-top:2px; flex-shrink:0;"></i>
+                            <div><strong style="color:var(--primary);">Alasan Pengajuan:</strong> ${escapeHtml(filteredAlasan.join(' | '))}</div>
+                        </div>
+                    `;
+                }
+
+                if (boxHtml) {
+                    alasanBox.innerHTML = boxHtml;
+                    alasanBox.style.display = 'block';
+                } else {
+                    alasanBox.innerHTML = '';
+                    alasanBox.style.display = 'none';
+                }
+            }
+
+            const formatUsulanVal = (val) => {
+                if (!val || val === '(Belum Terisi / Kosong)' || val === '(Kosong)') {
+                    return { html: '<span style="color:var(--text-muted); opacity:0.5;">-</span>', raw: '' };
+                }
+                const str = String(val).trim();
+                const dateMatch = str.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/i);
+                const clean = dateMatch ? dateMatch[1] : str;
+                return { html: escapeHtml(clean), raw: clean };
+            };
+
             const tbody = document.getElementById('modalUsulanTableBody');
             if (tbody) {
                 tbody.innerHTML = '';
@@ -106,45 +152,55 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (items.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Tidak ada daftar butir perubahan data.</td></tr>';
                 } else {
-                    items.forEach((item, idx) => {
+                    items.forEach((item) => {
                         let statusHtml = '';
                         if (item.status === 'disetujui') {
                             statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(16,185,129,0.15); color:#10b981;"><i class="fas fa-check"></i> Disetujui</span>';
                         } else if (item.status === 'ditolak') {
                             statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(239,68,68,0.15); color:#ef4444;"><i class="fas fa-times"></i> Ditolak</span>';
                         } else if (item.status === 'sudah_ke_dapodik') {
-                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(59,130,246,0.15); color:#3b82f6;"><i class="fas fa-cloud-arrow-up"></i> Ke Dapodik</span>';
+                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(59,130,246,0.15); color:#3b82f6;"><i class="fas fa-cloud-arrow-up"></i> Dapodik</span>';
                         } else {
                             statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(245,158,11,0.15); color:#f59e0b;"><i class="fas fa-clock"></i> Menunggu</span>';
                         }
 
                         let buktiHtml = '';
                         if (item.berkas_bukti_url) {
-                            buktiHtml = `<button type="button" class="btn btn-outline btn-preview-lampiran-usulan" data-url="${item.berkas_bukti_url}" style="padding:2px 8px; font-size:0.72rem; border-radius:6px; display:inline-flex; align-items:center; gap:4px; margin-top:4px;"><i class="fas fa-paperclip"></i> Bukti Lampiran</button>`;
+                            buktiHtml = `<button type="button" class="btn-icon btn-preview-lampiran-usulan" data-url="${item.berkas_bukti_url}" title="Lihat Lampiran Bukti" style="width:22px; height:22px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; background:rgba(99,102,241,0.12); color:var(--primary); border:1px solid rgba(99,102,241,0.25); margin-left:6px; cursor:pointer;"><i class="fas fa-paperclip" style="font-size:0.7rem;"></i></button>`;
+                        }
+
+                        const valLama = formatUsulanVal(item.nilai_lama);
+                        const valBaru = formatUsulanVal(item.nilai_baru);
+
+                        let valBaruHtml = '';
+                        if (valBaru.raw) {
+                            valBaruHtml = `
+                                <span class="copyable" data-copy="${escapeHtml(valBaru.raw)}" data-label="${escapeHtml(item.kolom_label)}" title="Klik untuk salin" style="font-weight:700; color:var(--success, #10b981); font-size:0.86rem; word-break:break-word; cursor:pointer;">${valBaru.html}</span>
+                            `;
+                        } else {
+                            valBaruHtml = valBaru.html;
                         }
 
                         const tr = document.createElement('tr');
                         tr.style.borderBottom = '1px solid var(--border-color)';
                         tr.innerHTML = `
-                            <td style="padding:10px 12px; vertical-align:top;">
-                                <div style="font-weight:700; color:var(--text-color); font-size:0.84rem;">${escapeHtml(item.kolom_label)}</div>
-                                <div style="font-size:0.7rem; font-family:monospace; color:var(--text-muted);">${escapeHtml(item.kolom_perubahan)}</div>
-                                ${buktiHtml}
-                            </td>
-                            <td style="padding:10px 12px; vertical-align:top; background:rgba(239,68,68,0.02);">
-                                <div style="color:var(--text-muted); font-size:0.82rem; word-break:break-word;">
-                                    ${escapeHtml(item.nilai_lama)}
+                            <td style="padding:10px 14px; vertical-align:middle;">
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:700; color:var(--text-color); font-size:0.84rem;">${escapeHtml(item.kolom_label)}</span>
+                                    ${buktiHtml}
                                 </div>
                             </td>
-                            <td style="padding:10px 12px; vertical-align:top; background:rgba(16,185,129,0.03);">
-                                <div style="font-weight:700; color:var(--text-color); font-size:0.84rem; word-break:break-word;">
-                                    ${escapeHtml(item.nilai_baru)}
-                                </div>
-                                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px; line-height:1.3;">
-                                    <em>Alasan: ${escapeHtml(item.alasan)}</em>
+                            <td style="padding:10px 14px; vertical-align:middle; background:rgba(239,68,68,0.02);">
+                                <div style="color:var(--text-muted); font-size:0.84rem; word-break:break-word;">
+                                    ${valLama.html}
                                 </div>
                             </td>
-                            <td style="padding:10px 12px; vertical-align:top; text-align:center;">
+                            <td style="padding:10px 14px; vertical-align:middle; background:rgba(16,185,129,0.03);">
+                                <div>
+                                    ${valBaruHtml}
+                                </div>
+                            </td>
+                            <td style="padding:10px 14px; vertical-align:middle; text-align:center;">
                                 ${statusHtml}
                             </td>
                         `;

@@ -739,7 +739,30 @@ class DashboardController extends Controller
             return redirect()->route('dashboard.' . ($userRole ?: 'peserta-didik'));
         }
 
-        $currentMonth = now()->format('Y-m');
+        $selectedMonth = (string) $request->get('bulan', $request->get('selectBulanKalender', now()->format('Y-m')));
+        if (!preg_match('/^\d{4}-\d{2}$/', $selectedMonth)) {
+            $selectedMonth = now()->format('Y-m');
+        }
+
+        $carbonMonth = \Carbon\Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
+        $prevMonth = $carbonMonth->copy()->subMonth()->format('Y-m');
+        $nextMonth = $carbonMonth->copy()->addMonth()->format('Y-m');
+        $monthLabel = $carbonMonth->translatedFormat('F Y');
+
+        // Daftar 12 bulan terakhir untuk dropdown pemilih bulan
+        $availableMonths = [];
+        $cursorMonth = now()->startOfMonth()->subMonths(11);
+        for ($i = 0; $i < 13; $i++) {
+            $mKey = $cursorMonth->format('Y-m');
+            $availableMonths[$mKey] = $cursorMonth->translatedFormat('F Y');
+            $cursorMonth->addMonth();
+        }
+        if (!isset($availableMonths[$selectedMonth])) {
+            $availableMonths[$selectedMonth] = $carbonMonth->translatedFormat('F Y');
+            ksort($availableMonths);
+        }
+
+        $currentMonth = $selectedMonth;
         $today = now()->toDateString();
         $statsHarian = [
             'persen'              => 100,
@@ -756,10 +779,11 @@ class DashboardController extends Controller
             'jam_pulang_hari_ini' => '--:--',
         ];
         $riwayatHarian = [];
+        $calendarWeeks = [];
 
         if ($pd && Table::exists('presensi_harian')) {
             $bulanIniLogs = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
-                ->where('tanggal', 'like', "{$currentMonth}%")
+                ->where('tanggal', 'like', "{$selectedMonth}%")
                 ->get();
 
             $hadirCount = $bulanIniLogs->where('status', 'H')->count();
@@ -771,10 +795,11 @@ class DashboardController extends Controller
             $totalSesi = $bulanIniLogs->count();
             $totalKehadiran = $hadirCount + $terlambatCount + $dispenCount;
 
+            $limitDate = ($selectedMonth === now()->format('Y-m')) ? now()->toDateString() : $carbonMonth->copy()->endOfMonth()->toDateString();
             $heb = \App\Models\KalenderPendidikan::hitungHariEfektifBerjalan(
-                now()->startOfMonth()->toDateString(),
-                now()->endOfMonth()->toDateString(),
-                now()->toDateString(),
+                $carbonMonth->copy()->startOfMonth()->toDateString(),
+                $carbonMonth->copy()->endOfMonth()->toDateString(),
+                $limitDate,
                 'pd'
             );
             $denominator = $heb > 0 ? $heb : ($totalSesi ?: 1);
@@ -790,7 +815,10 @@ class DashboardController extends Controller
             $statsHarian['dispen'] = $dispenCount;
             $statsHarian['alpha'] = $alphaCount;
 
-            $todayLog = $bulanIniLogs->firstWhere('tanggal', $today);
+            // Selalu cek log hari ini untuk card status hari ini
+            $todayLog = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->where('tanggal', $today)
+                ->first();
             if ($todayLog) {
                 $statsHarian['jam_masuk_hari_ini'] = $todayLog->jam_masuk ? substr($todayLog->jam_masuk, 0, 5) . ' WIB' : '--:--';
                 $statsHarian['jam_pulang_hari_ini'] = $todayLog->jam_pulang ? substr($todayLog->jam_pulang, 0, 5) . ' WIB' : '--:--';
@@ -805,12 +833,10 @@ class DashboardController extends Controller
                 };
             }
 
-            $latestHarian = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
-                ->orderBy('tanggal', 'desc')
-                ->limit(30)
-                ->get();
+            // Membangun Riwayat Harian Tabel (order tanggal descending)
+            $harianLogsOrdered = $bulanIniLogs->sortByDesc('tanggal');
 
-            foreach ($latestHarian as $lh) {
+            foreach ($harianLogsOrdered as $lh) {
                 $statusLabel = 'Hadir';
                 $badgeBg = 'rgba(16,185,129,0.15)';
                 $badgeColor = '#10b981';
@@ -845,41 +871,425 @@ class DashboardController extends Controller
                     'badge_bg'    => $badgeBg,
                     'badge_color' => $badgeColor,
                     'metode'      => strtoupper($lh->metode_masuk ?: 'Manual/RFID'),
+                    'keterangan'  => $lh->keterangan ?: '-',
                 ];
+            }
+
+            // Ambil Data Transaksi e-Izin Keluar, Surat Izin, dan Catatan Kedisiplinan
+            $izinKeluarList = collect();
+            if (Table::exists('peserta_didik_izin_keluar')) {
+                $izinKeluarList = DB::table('peserta_didik_izin_keluar as iz')
+                    ->leftJoin('gtk as p', 'iz.petugas_piket_ptk_id', '=', 'p.ptk_id')
+                    ->where('iz.peserta_didik_id', $pd->peserta_didik_id)
+                    ->orderBy('iz.tanggal', 'desc')
+                    ->orderBy('iz.created_at', 'desc')
+                    ->select('iz.*', 'p.nama as nama_piket')
+                    ->limit(60)
+                    ->get();
+            }
+
+            $suratIzinList = collect();
+            if (Table::exists('presensi_izin')) {
+                $suratIzinList = DB::table('presensi_izin')
+                    ->where('peserta_didik_id', $pd->peserta_didik_id)
+                    ->orderBy('tanggal_mulai', 'desc')
+                    ->limit(50)
+                    ->get();
+            }
+
+            $kedisiplinanList = collect();
+            if (Table::exists('kedisiplinan_pelanggaran')) {
+                $kedisiplinanList = DB::table('kedisiplinan_pelanggaran as kp')
+                    ->leftJoin('kedisiplinan_tata_tertib as tt', 'kp.tata_tertib_id', '=', 'tt.id')
+                    ->where('kp.peserta_didik_id', $pd->peserta_didik_id)
+                    ->orderBy('kp.tanggal_kejadian', 'desc')
+                    ->select('kp.*', 'tt.nama_aturan', 'tt.kode as kode_aturan')
+                    ->limit(40)
+                    ->get();
+            }
+
+            $izinKeluarByDate = [];
+            foreach ($izinKeluarList as $iz) {
+                if (!empty($iz->tanggal)) {
+                    $dKey = \Carbon\Carbon::parse($iz->tanggal)->format('Y-m-d');
+                    $izinKeluarByDate[$dKey][] = $iz;
+                }
+            }
+
+            $suratIzinByDate = [];
+            foreach ($suratIzinList as $si) {
+                if (!empty($si->tanggal_mulai)) {
+                    $sCarbon = \Carbon\Carbon::parse($si->tanggal_mulai);
+                    $eCarbon = !empty($si->tanggal_selesai) ? \Carbon\Carbon::parse($si->tanggal_selesai) : $sCarbon->copy();
+                    while ($sCarbon->lte($eCarbon)) {
+                        $suratIzinByDate[$sCarbon->format('Y-m-d')][] = $si;
+                        $sCarbon->addDay();
+                    }
+                }
+            }
+
+            $kedisiplinanByDate = [];
+            foreach ($kedisiplinanList as $kp) {
+                if (!empty($kp->tanggal_kejadian)) {
+                    $dKey = \Carbon\Carbon::parse($kp->tanggal_kejadian)->format('Y-m-d');
+                    $kedisiplinanByDate[$dKey][] = $kp;
+                }
+            }
+
+            // Stats & Riwayat Presensi Mapel
+            $riwayatMapel = collect();
+            $statsMapel = [
+                'total' => 0,
+                'hadir' => 0,
+                'izin'  => 0,
+                'sakit' => 0,
+                'alpha' => 0,
+            ];
+
+            if ($pd && Table::exists('presensi_mapel')) {
+                $mapelLogs = DB::table('presensi_mapel as pm')
+                    ->leftJoin('gtk as g', 'pm.ptk_id', '=', 'g.ptk_id')
+                    ->where(function ($q) use ($pd) {
+                        $q->where('pm.peserta_didik_id', $pd->peserta_didik_id);
+                        if (!empty($pd->nisn)) {
+                            $q->orWhere('pm.nisn', $pd->nisn);
+                        }
+                    })
+                    ->orderBy('pm.tanggal', 'desc')
+                    ->orderBy('pm.jam_ke', 'asc')
+                    ->select('pm.*', 'g.nama as nama_guru')
+                    ->limit(60)
+                    ->get();
+
+                $statsMapel['total'] = $mapelLogs->count();
+                $statsMapel['hadir'] = $mapelLogs->whereIn('status', ['H', 'T', 'D'])->count();
+                $statsMapel['izin']  = $mapelLogs->where('status', 'I')->count();
+                $statsMapel['sakit'] = $mapelLogs->where('status', 'S')->count();
+                $statsMapel['alpha'] = $mapelLogs->where('status', 'A')->count();
+                $riwayatMapel = $mapelLogs;
+            }
+
+            $mapelByDate = [];
+            foreach ($riwayatMapel as $ml) {
+                if (!empty($ml->tanggal)) {
+                    $dKey = \Carbon\Carbon::parse($ml->tanggal)->format('Y-m-d');
+                    $mapelByDate[$dKey][] = $ml;
+                }
+            }
+
+            // Membangun Matriks Kalender Kehadiran
+            $daysInMonth = $carbonMonth->daysInMonth;
+            $startDayOfWeek = $carbonMonth->dayOfWeekIso; // 1 (Senin) - 7 (Minggu)
+
+            $logsByDate = [];
+            foreach ($bulanIniLogs as $bl) {
+                $dKey = \Carbon\Carbon::parse($bl->tanggal)->format('Y-m-d');
+                $logsByDate[$dKey] = $bl;
+            }
+
+            $currentWeek = [];
+            for ($pad = 1; $pad < $startDayOfWeek; $pad++) {
+                $currentWeek[] = null;
+            }
+
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dateStr = sprintf('%s-%02d', $selectedMonth, $d);
+                $dCarbon = \Carbon\Carbon::createFromDate($carbonMonth->year, $carbonMonth->month, $d);
+                $dayOfWeek = $dCarbon->dayOfWeekIso;
+                $isToday = ($dateStr === $today);
+                $isPast = ($dateStr < $today);
+                $isFuture = ($dateStr > $today);
+                $isSunday = ($dayOfWeek === 7);
+                $isSaturday = ($dayOfWeek === 6);
+
+                $dayIzinKeluar = $izinKeluarByDate[$dateStr] ?? [];
+                $daySuratIzin = $suratIzinByDate[$dateStr] ?? [];
+                $dayKedisiplinan = $kedisiplinanByDate[$dateStr] ?? [];
+                $dayMapel = $mapelByDate[$dateStr] ?? [];
+
+                $txExtra = [
+                    'has_mapel' => !empty($dayMapel),
+                    'mapel_items' => array_map(function ($item) {
+                        return [
+                            'mapel'   => $item->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                            'guru'    => $item->nama_guru ?: '-',
+                            'jam_ke'  => $item->jam_ke ?? '-',
+                            'status'  => match ($item->status ?? '') {
+                                'H' => 'Hadir',
+                                'T' => 'Terlambat',
+                                'I' => 'Izin',
+                                'S' => 'Sakit',
+                                'D' => 'Dispen',
+                                'A' => 'Alpha',
+                                default => 'Hadir'
+                            },
+                            'catatan' => $item->catatan ?: '-',
+                        ];
+                    }, $dayMapel),
+                    'has_izin_keluar' => !empty($dayIzinKeluar),
+                    'izin_keluar_items' => array_map(function ($item) {
+                        return [
+                            'nomor_tiket' => $item->nomor_tiket ?? '-',
+                            'jenis'       => match ($item->jenis_izin ?? '') {
+                                'pulang_cepat'    => 'Pulang Cepat',
+                                'terlambat_masuk' => 'Terlambat Masuk',
+                                default           => 'Izin Keluar Sebentar'
+                            },
+                            'alasan'      => $item->alasan ?: '-',
+                            'jam_keluar'  => $item->jam_izin_keluar ? substr($item->jam_izin_keluar, 0, 5) : '--:--',
+                            'jam_kembali' => $item->jam_rencana_kembali ? substr($item->jam_rencana_kembali, 0, 5) : '--:--',
+                            'status'      => match ($item->status ?? '') {
+                                'di_luar'        => 'Di Luar Sekolah',
+                                'kembali'        => 'Sudah Kembali',
+                                'pulang_selesai' => 'Pulang Selesai',
+                                'dibatalkan'     => 'Dibatalkan',
+                                default          => 'Menunggu Satpam'
+                            },
+                        ];
+                    }, $dayIzinKeluar),
+                    'has_surat_izin' => !empty($daySuratIzin),
+                    'surat_izin_items' => array_map(function ($item) {
+                        return [
+                            'jenis'     => ucfirst($item->jenis ?? 'Izin'),
+                            'alasan'    => $item->alasan ?: '-',
+                            'status'    => match ($item->status ?? '') {
+                                'disetujui' => 'Disetujui',
+                                'ditolak'   => 'Ditolak',
+                                default     => 'Menunggu Verifikasi'
+                            },
+                        ];
+                    }, $daySuratIzin),
+                    'has_kedisiplinan' => !empty($dayKedisiplinan),
+                    'kedisiplinan_items' => array_map(function ($item) {
+                        return [
+                            'aturan'     => $item->nama_aturan ?: 'Tata Tertib',
+                            'poin'       => (int) ($item->poin ?? 0),
+                            'keterangan' => $item->keterangan ?: '-',
+                        ];
+                    }, $dayKedisiplinan),
+                ];
+
+                $log = $logsByDate[$dateStr] ?? null;
+
+                if ($log) {
+                    $statusCfg = match ($log->status) {
+                        'H' => [
+                            'code'        => 'H',
+                            'label'       => 'Hadir',
+                            'sublabel'    => 'Tepat Waktu',
+                            'color'       => '#10b981',
+                            'bg'          => 'rgba(16, 185, 129, 0.12)',
+                            'border'      => '#10b981',
+                            'icon'        => 'fas fa-circle-check',
+                            'badge_class' => 'badge-success',
+                        ],
+                        'T' => [
+                            'code'        => 'T',
+                            'label'       => 'Terlambat',
+                            'sublabel'    => $log->menit_terlambat ? "+{$log->menit_terlambat}m" : 'Terlambat',
+                            'color'       => '#f59e0b',
+                            'bg'          => 'rgba(245, 158, 11, 0.12)',
+                            'border'      => '#f59e0b',
+                            'icon'        => 'fas fa-clock',
+                            'badge_class' => 'badge-warning',
+                        ],
+                        'I' => [
+                            'code'        => 'I',
+                            'label'       => 'Izin',
+                            'sublabel'    => 'Izin Resmi',
+                            'color'       => '#3b82f6',
+                            'bg'          => 'rgba(59, 130, 246, 0.12)',
+                            'border'      => '#3b82f6',
+                            'icon'        => 'fas fa-file-signature',
+                            'badge_class' => 'badge-primary',
+                        ],
+                        'S' => [
+                            'code'        => 'S',
+                            'label'       => 'Sakit',
+                            'sublabel'    => 'Surat Dokter/Ortu',
+                            'color'       => '#8b5cf6',
+                            'bg'          => 'rgba(139, 92, 246, 0.12)',
+                            'border'      => '#8b5cf6',
+                            'icon'        => 'fas fa-notes-medical',
+                            'badge_class' => 'badge-purple',
+                        ],
+                        'D' => [
+                            'code'        => 'D',
+                            'label'       => 'Dispensasi',
+                            'sublabel'    => 'Tugas Sekolah',
+                            'color'       => '#06b6d4',
+                            'bg'          => 'rgba(6, 182, 212, 0.12)',
+                            'border'      => '#06b6d4',
+                            'icon'        => 'fas fa-award',
+                            'badge_class' => 'badge-info',
+                        ],
+                        'A' => [
+                            'code'        => 'A',
+                            'label'       => 'Alpha',
+                            'sublabel'    => 'Tanpa Keterangan',
+                            'color'       => '#ef4444',
+                            'bg'          => 'rgba(239, 68, 68, 0.12)',
+                            'border'      => '#ef4444',
+                            'icon'        => 'fas fa-circle-xmark',
+                            'badge_class' => 'badge-danger',
+                        ],
+                        default => [
+                            'code'        => 'H',
+                            'label'       => 'Hadir',
+                            'sublabel'    => 'Tercatat',
+                            'color'       => '#10b981',
+                            'bg'          => 'rgba(16, 185, 129, 0.12)',
+                            'border'      => '#10b981',
+                            'icon'        => 'fas fa-circle-check',
+                            'badge_class' => 'badge-success',
+                        ],
+                    };
+
+                    $cellData = array_merge($statusCfg, $txExtra, [
+                        'day'            => $d,
+                        'date'           => $dateStr,
+                        'date_formatted' => $dCarbon->translatedFormat('l, d F Y'),
+                        'day_name'       => $dCarbon->translatedFormat('D'),
+                        'is_today'       => $isToday,
+                        'is_future'      => false,
+                        'is_weekend'     => ($isSunday || $isSaturday),
+                        'has_log'        => true,
+                        'jam_masuk'      => $log->jam_masuk ? substr($log->jam_masuk, 0, 5) . ' WIB' : '--:--',
+                        'jam_pulang'     => $log->jam_pulang ? substr($log->jam_pulang, 0, 5) . ' WIB' : '--:--',
+                        'metode'         => strtoupper($log->metode_masuk ?: 'Manual/RFID'),
+                        'keterangan'     => $log->keterangan ?: 'Presensi harian tercatat',
+                    ]);
+                } else {
+                    $statusHari = \App\Models\KalenderPendidikan::getStatusHari($dateStr, 'pd');
+                    $isLibur = ($statusHari['mode'] === 'libur');
+
+                    if ($isLibur) {
+                        $cellData = array_merge($txExtra, [
+                            'code'           => 'L',
+                            'label'          => 'Libur',
+                            'sublabel'       => $statusHari['nama_agenda'] ?: ($isSunday ? 'Hari Minggu' : 'Libur'),
+                            'color'          => '#64748b',
+                            'bg'             => 'rgba(100, 116, 139, 0.06)',
+                            'border'         => 'rgba(100, 116, 139, 0.25)',
+                            'icon'           => 'fas fa-umbrella-beach',
+                            'badge_class'    => 'badge-outline',
+                            'day'            => $d,
+                            'date'           => $dateStr,
+                            'date_formatted' => $dCarbon->translatedFormat('l, d F Y'),
+                            'day_name'       => $dCarbon->translatedFormat('D'),
+                            'is_today'       => $isToday,
+                            'is_future'      => $isFuture,
+                            'is_weekend'     => ($isSunday || $isSaturday),
+                            'has_log'        => false,
+                            'jam_masuk'      => '--:--',
+                            'jam_pulang'     => '--:--',
+                            'metode'         => '-',
+                            'keterangan'     => $statusHari['keterangan'] ?: ($statusHari['nama_agenda'] ?: 'Libur Sekolah / Akhir Pekan'),
+                        ]);
+                    } elseif ($isFuture) {
+                        $cellData = array_merge($txExtra, [
+                            'code'           => 'FUTURE',
+                            'label'          => 'Mendatang',
+                            'sublabel'       => 'Belum KBM',
+                            'color'          => 'var(--text-muted)',
+                            'bg'             => 'transparent',
+                            'border'         => 'var(--border-color)',
+                            'icon'           => 'far fa-calendar',
+                            'badge_class'    => 'badge-outline',
+                            'day'            => $d,
+                            'date'           => $dateStr,
+                            'date_formatted' => $dCarbon->translatedFormat('l, d F Y'),
+                            'day_name'       => $dCarbon->translatedFormat('D'),
+                            'is_today'       => false,
+                            'is_future'      => true,
+                            'is_weekend'     => false,
+                            'has_log'        => false,
+                            'jam_masuk'      => '--:--',
+                            'jam_pulang'     => '--:--',
+                            'metode'         => '-',
+                            'keterangan'     => 'Jadwal belajar belum berlangsung',
+                        ]);
+                    } elseif ($isToday) {
+                        $cellData = array_merge($txExtra, [
+                            'code'           => 'BELUM',
+                            'label'          => 'Hari Ini',
+                            'sublabel'       => 'Belum Tap Gerbang',
+                            'color'          => '#3b82f6',
+                            'bg'             => 'rgba(59, 130, 246, 0.08)',
+                            'border'         => '#3b82f6',
+                            'icon'           => 'fas fa-clock',
+                            'badge_class'    => 'badge-primary',
+                            'day'            => $d,
+                            'date'           => $dateStr,
+                            'date_formatted' => $dCarbon->translatedFormat('l, d F Y'),
+                            'day_name'       => $dCarbon->translatedFormat('D'),
+                            'is_today'       => true,
+                            'is_future'      => false,
+                            'is_weekend'     => false,
+                            'has_log'        => false,
+                            'jam_masuk'      => '--:--',
+                            'jam_pulang'     => '--:--',
+                            'metode'         => '-',
+                            'keterangan'     => 'Belum ada catatan kehadiran RFID masuk gerbang hari ini',
+                        ]);
+                    } else {
+                        $cellData = array_merge($txExtra, [
+                            'code'           => 'A',
+                            'label'          => 'Alpha',
+                            'sublabel'       => 'Tanpa Keterangan',
+                            'color'          => '#ef4444',
+                            'bg'             => 'rgba(239, 68, 68, 0.08)',
+                            'border'         => 'rgba(239, 68, 68, 0.35)',
+                            'icon'           => 'fas fa-circle-xmark',
+                            'badge_class'    => 'badge-danger',
+                            'day'            => $d,
+                            'date'           => $dateStr,
+                            'date_formatted' => $dCarbon->translatedFormat('l, d F Y'),
+                            'day_name'       => $dCarbon->translatedFormat('D'),
+                            'is_today'       => false,
+                            'is_future'      => false,
+                            'is_weekend'     => false,
+                            'has_log'        => false,
+                            'jam_masuk'      => '--:--',
+                            'jam_pulang'     => '--:--',
+                            'metode'         => '-',
+                            'keterangan'     => 'Tidak ada catatan presensi pada hari efektif sekolah',
+                        ]);
+                    }
+                }
+
+                $currentWeek[] = $cellData;
+
+                if (count($currentWeek) === 7) {
+                    $calendarWeeks[] = $currentWeek;
+                    $currentWeek = [];
+                }
+            }
+
+            if (count($currentWeek) > 0) {
+                while (count($currentWeek) < 7) {
+                    $currentWeek[] = null;
+                }
+                $calendarWeeks[] = $currentWeek;
             }
         }
 
-        // Stats & Riwayat Presensi Mapel
-        $riwayatMapel = collect();
-        $statsMapel = [
-            'total' => 0,
-            'hadir' => 0,
-            'izin'  => 0,
-            'sakit' => 0,
-            'alpha' => 0,
-        ];
-
-        if ($pd && Table::exists('presensi_mapel')) {
-            $mapelLogs = DB::table('presensi_mapel as pm')
-                ->leftJoin('gtk as g', 'pm.ptk_id', '=', 'g.ptk_id')
-                ->where(function ($q) use ($pd) {
-                    $q->where('pm.peserta_didik_id', $pd->peserta_didik_id);
-                    if (!empty($pd->nisn)) {
-                        $q->orWhere('pm.nisn', $pd->nisn);
-                    }
-                })
-                ->orderBy('pm.tanggal', 'desc')
-                ->orderBy('pm.jam_ke', 'asc')
-                ->select('pm.*', 'g.nama as nama_guru')
-                ->limit(50)
-                ->get();
-
-            $statsMapel['total'] = $mapelLogs->count();
-            $statsMapel['hadir'] = $mapelLogs->whereIn('status', ['H', 'T', 'D'])->count();
-            $statsMapel['izin']  = $mapelLogs->where('status', 'I')->count();
-            $statsMapel['sakit'] = $mapelLogs->where('status', 'S')->count();
-            $statsMapel['alpha'] = $mapelLogs->where('status', 'A')->count();
-            $riwayatMapel = $mapelLogs;
+        if ($request->ajax() || $request->query('ajax') == '1') {
+            return response()->json([
+                'status'          => 'success',
+                'selectedMonth'   => $selectedMonth,
+                'monthLabel'      => $monthLabel,
+                'prevMonth'       => $prevMonth,
+                'nextMonth'       => $nextMonth,
+                'availableMonths' => $availableMonths,
+                'statsHarian'     => $statsHarian,
+                'calendarHtml'    => view('dashboard.partials.orang-tua-kalender-grid', compact(
+                    'calendarWeeks', 'today', 'selectedMonth', 'monthLabel'
+                ))->render(),
+                'tableHtml'       => view('dashboard.partials.orang-tua-tabel-harian', compact(
+                    'riwayatHarian'
+                ))->render(),
+            ], 200, [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
 
         return view('dashboard.orang-tua-kehadiran', compact(
@@ -890,8 +1300,18 @@ class DashboardController extends Controller
             'allPdList',
             'statsHarian',
             'riwayatHarian',
+            'calendarWeeks',
+            'selectedMonth',
+            'monthLabel',
+            'prevMonth',
+            'nextMonth',
+            'availableMonths',
+            'today',
             'statsMapel',
-            'riwayatMapel'
+            'riwayatMapel',
+            'izinKeluarList',
+            'suratIzinList',
+            'kedisiplinanList'
         ));
     }
 

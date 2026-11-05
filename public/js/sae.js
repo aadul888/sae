@@ -451,8 +451,8 @@ window.SAE = {
         if (!text) return false;
         let success = false;
 
-        // 1. Coba Modern Clipboard API jika secure context
-        if (navigator.clipboard && window.isSecureContext) {
+        // 1. Coba Modern Clipboard API jika di secure context (HTTPS / localhost)
+        if (window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
             try {
                 await navigator.clipboard.writeText(text);
                 success = true;
@@ -461,15 +461,21 @@ window.SAE = {
             }
         }
 
-        // 2. Fallback textarea + execCommand untuk HTTP / non-HTTPS domain
+        // 2. Synchronous fallback textarea + execCommand untuk HTTP / non-HTTPS domain
         if (!success) {
             try {
                 const tempTextArea = document.createElement("textarea");
                 tempTextArea.value = text;
                 tempTextArea.style.position = "fixed";
-                tempTextArea.style.left = "-9999px";
                 tempTextArea.style.top = "0";
-                tempTextArea.setAttribute("readonly", "");
+                tempTextArea.style.left = "-9999px";
+                tempTextArea.style.width = "2em";
+                tempTextArea.style.height = "2em";
+                tempTextArea.style.padding = "0";
+                tempTextArea.style.border = "none";
+                tempTextArea.style.outline = "none";
+                tempTextArea.style.boxShadow = "none";
+                tempTextArea.style.background = "transparent";
                 document.body.appendChild(tempTextArea);
                 tempTextArea.focus();
                 tempTextArea.select();
@@ -482,7 +488,7 @@ window.SAE = {
         }
 
         if (success) {
-            this.toast(`${label} berhasil disalin ke clipboard!`, "success");
+            this.toast(`${label} berhasil disalin!`, "success");
         } else {
             this.toast("Gagal menyalin teks ke clipboard.", "danger");
         }
@@ -570,19 +576,40 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) {}
     }
 
-    // 2. Global Event Delegation untuk data-copy
+    // 2. Global Event Delegation untuk [data-copy] & .copyable
     document.addEventListener("click", (e) => {
-        const copyBtn = e.target.closest("[data-copy]");
+        const copyBtn = e.target.closest("[data-copy], .copyable");
         if (!copyBtn) return;
-        e.preventDefault();
 
-        const targetSelector = copyBtn.getAttribute("data-copy");
-        const label = copyBtn.getAttribute("data-copy-label") || "Teks";
-        const targetEl = document.querySelector(targetSelector);
-        if (targetEl) {
-            const val = targetEl.value || targetEl.innerText;
-            window.SAE.copy(val, label);
+        const valAttr = copyBtn.getAttribute("data-copy");
+        const label = copyBtn.getAttribute("data-copy-label") || copyBtn.getAttribute("data-label") || "Teks";
+        let textToCopy = "";
+
+        // Jika valAttr diawali '#' atau '.', maka merupakan CSS selector target elemen
+        if (valAttr && (valAttr.startsWith("#") || valAttr.startsWith("."))) {
+            try {
+                const targetEl = document.querySelector(valAttr);
+                if (targetEl) {
+                    textToCopy = targetEl.value || targetEl.innerText || "";
+                }
+            } catch (_) {}
         }
+
+        // Jika bukan selector atau targetEl kosong, gunakan nilai literal atau teks elemen
+        if (!textToCopy) {
+            textToCopy = valAttr || copyBtn.innerText || "";
+        }
+
+        textToCopy = String(textToCopy)
+            .replace(/^(?:NIK|NISN|NIPD|NUPTK|NIP|ID)\s*:\s*/i, "")
+            .trim();
+
+        if (!textToCopy || textToCopy === "-") return;
+
+        e.preventDefault();
+        window.SAE.copy(textToCopy, label);
+        copyBtn.classList.add("copied");
+        setTimeout(() => copyBtn.classList.remove("copied"), 1500);
     });
 
     // 3. Global Event Delegation untuk data-confirm pada form submit / link click

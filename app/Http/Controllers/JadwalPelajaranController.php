@@ -55,6 +55,11 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class JadwalPelajar
         $isViewingGuru = ($viewMode === 'guru');
         $isViewingSiswa = ($viewMode === 'siswa');
 
+        // Hak input manual (strategi sama dengan modul Jadwal KBM Manual): Admin, Wali Kelas, Guru pengampu
+        $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+        $waliRombelId = $waliRombel?->rombongan_belajar_id;
+        $canManageJadwal = $isAdmin || $isGuru || (bool) $waliRombelId;
+
         $isJadwalDiberlakukan = JadwalPengaturan::isDiberlakukan();
         $modeAktif = JadwalPengaturan::getModeAktif();
 
@@ -147,7 +152,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class JadwalPelajar
             ->appends($request->query());
 
         // Enrich setiap jadwal item dengan nama rombel, guru, dan status live KBM
-        $schedules->getCollection()->transform(function ($j) use ($hariIni, $nowHi) {
+        $schedules->getCollection()->transform(function ($j) use ($hariIni, $nowHi, $isAdmin, $isGuru, $ptkId, $waliRombelId) {
             $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
             $guruNama = DB::table('gtk')->where('ptk_id', $j->ptk_id)->value('nama') ?? ($j->ptk_id ?: 'Guru Pengampu');
 
@@ -167,6 +172,15 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class JadwalPelajar
             $j->nama_rombel = $rombelNama;
             $j->nama_guru = $guruNama;
             $j->status_kbm = $status;
+
+            // Izin edit/hapus baris: hanya jadwal manual non-rutin milik kewenangan pengguna
+            $isRoutine = in_array($j->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)
+                || str_starts_with((string) $j->pembelajaran_id, 'ROUTINE_');
+            $j->can_manage = ($j->sumber === 'manual') && !$isRoutine && (
+                $isAdmin
+                || ($isGuru && $ptkId && $j->ptk_id === $ptkId)
+                || ($waliRombelId && $j->rombongan_belajar_id === $waliRombelId)
+            );
             return $j;
         });
 
@@ -214,7 +228,10 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class JadwalPelajar
             'siswaPd',
             'viewMode',
             'isViewingGuru',
-            'isViewingSiswa'
+            'isViewingSiswa',
+            'canManageJadwal',
+            'waliRombelId',
+            'ptkId'
         ));
     }
 }

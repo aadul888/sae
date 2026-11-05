@@ -126,6 +126,9 @@
         <script
             src="{{ asset('js/quick-menu.js') }}?v={{ file_exists(public_path('js/quick-menu.js')) ? filemtime(public_path('js/quick-menu.js')) : time() }}">
         </script>
+        <script
+            src="{{ asset('js/upload-dropzone.js') }}?v={{ file_exists(public_path('js/upload-dropzone.js')) ? filemtime(public_path('js/upload-dropzone.js')) : time() }}">
+        </script>
         @stack('scripts')
 </body>
 

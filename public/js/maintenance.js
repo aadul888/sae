@@ -42,6 +42,33 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => a.remove(), 1000);
     }
 
+    // Baca respons dan laporkan pesan error yang sebenarnya (termasuk saat server
+    // membalas HTML karena sesi berakhir / URL meleset).
+    async function readJson(res) {
+        const raw = await res.text().catch(() => "");
+        let data = null;
+        try {
+            data = raw ? JSON.parse(raw) : null;
+        } catch (_) {
+            data = null;
+        }
+        return { data, raw };
+    }
+
+    function errorMessage(res, data, raw, fallback) {
+        if (data && data.message) return data.message;
+        if (data && data.errors) return Object.values(data.errors).flat().join(" ");
+        if (res.status === 401 || res.status === 419) {
+            return "Sesi login berakhir. Muat ulang halaman lalu coba lagi.";
+        }
+        if (res.status === 403) return "Akses ditolak (hanya administrator).";
+        if (res.status === 413) return "Berkas terlalu besar untuk diproses server.";
+        if (/<html/i.test(raw || "")) {
+            return "Server membalas halaman HTML, bukan JSON (HTTP " + res.status + "). Kemungkinan sesi berakhir atau alamat aksi salah.";
+        }
+        return fallback + " (HTTP " + res.status + ")";
+    }
+
     // =========================================================================
     // 2. Tombol Backup: buat paket via AJAX, lalu unduh + SweetAlert + refresh
     // =========================================================================
@@ -69,9 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify({ type: this.dataset.backupType || "full" }),
                 });
 
-                const data = await res.json().catch(() => null);
+                const { data, raw } = await readJson(res);
                 if (!res.ok || !data || data.status !== "success") {
-                    throw new Error((data && data.message) || "Gagal membuat paket arsip.");
+                    throw new Error(errorMessage(res, data, raw, "Gagal membuat paket arsip."));
                 }
 
                 startDownload(data.download_url);
@@ -148,14 +175,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: new FormData(formRestore),
                 });
 
-                const data = await res.json().catch(() => null);
+                const { data, raw } = await readJson(res);
 
                 if (!res.ok || !data || data.status !== "success") {
-                    let msg = (data && data.message) || "Gagal memulihkan database.";
-                    if (data && data.errors) {
-                        msg = Object.values(data.errors).flat().join(" ");
-                    }
-                    throw new Error(msg);
+                    throw new Error(errorMessage(res, data, raw, "Gagal memulihkan database."));
                 }
 
                 window.SAE.alert(data.message, "Restore Berhasil", "success").then(function () {

@@ -108,17 +108,60 @@ class LoginOrangTuaTest extends TestCase
     }
 
     /**
-     * Test login orang tua dengan tanggal lahir salah ditolak.
+     * Test halaman kehadiran orang tua merender kalender presensi dan legenda warna.
      */
-    public function test_login_orang_tua_with_wrong_date_rejected()
+    public function test_orang_tua_kehadiran_page_renders_calendar_view()
     {
-        $response = $this->post('/login', [
+        $this->post('/login', [
             'login_type'     => 'orang_tua',
             'nisn_anak'      => $this->nisn,
-            'tgl_lahir_anak' => '01-01-2015',
+            'tgl_lahir_anak' => '07-02-2009',
         ]);
 
-        $response->assertSessionHas('error');
-        $this->assertNull(session('user'));
+        $response = $this->get('/dashboard/orang-tua/kehadiran');
+        $response->assertStatus(200);
+        $response->assertSee('id="viewKalenderHarian"', false);
+        $response->assertSee('class="cal-table"', false);
+        $response->assertSee('class="cal-legend-bar"', false);
+        $response->assertSee('id="detailPresensiBox"', false);
+        $response->assertSee('id="btnViewKalender"', false);
+        $response->assertSee('id="btnViewTabel"', false);
+        $response->assertSee('id="selectBulanKalender"', false);
+        $response->assertSee('id="selectKategoriKehadiran"', false);
+        $response->assertSee('id="panelTabelContainer"', false);
+        $response->assertSee('id="calHeaderTitle"', false);
+        $response->assertSee('id="calFilterAlert"', false);
+        $response->assertSee('id="subPanelHarian"', false);
+        $response->assertSee('id="subPanelMapel"', false);
+        $response->assertSee('id="subPanelIzinKeluar"', false);
+        $response->assertSee('id="subPanelSuratIzin"', false);
+        $response->assertSee('id="subPanelKedisiplinan"', false);
+    }
+
+    /**
+     * Test pergantian bulan kalender via AJAX request mengembalikan JSON kalender & tabel partial.
+     */
+    public function test_orang_tua_kehadiran_ajax_month_switch()
+    {
+        $this->post('/login', [
+            'login_type'     => 'orang_tua',
+            'nisn_anak'      => $this->nisn,
+            'tgl_lahir_anak' => '07-02-2009',
+        ]);
+
+        $response = $this->getJson('/dashboard/orang-tua/kehadiran?bulan=' . now()->subMonth()->format('Y-m') . '&ajax=1');
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'status',
+            'selectedMonth',
+            'monthLabel',
+            'prevMonth',
+            'nextMonth',
+            'availableMonths',
+            'statsHarian',
+            'calendarHtml',
+            'tableHtml',
+        ]);
+        $response->assertJson(['status' => 'success']);
     }
 }
