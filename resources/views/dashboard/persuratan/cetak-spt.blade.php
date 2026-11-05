@@ -288,6 +288,11 @@
             vertical-align: top;
         }
 
+        .sppd-col-left {
+            display: flex;
+            flex-direction: column;
+        }
+
         .sppd-ttd-kpa {
             margin-left: 45%;
             margin-top: 18px; /* jarak setelah tabel ke tanda tangan dikeluarkan bla bla */
@@ -295,8 +300,42 @@
             line-height: 1.25;
         }
 
+        .sppd-qr-verify {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto; /* dorong ke paling bawah kolom 1 */
+            padding-top: 8px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 6.8pt;
+            color: #475569;
+            line-height: 1.25;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .sppd-qr-verify img {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #cbd5e1;
+            padding: 1.5px;
+            background: #fff;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .sp-doc.portrait {
+            position: relative;
+            padding-bottom: 2.2cm !important; /* ruang agar isi dokumen tidak bertabrakan dengan footer statis */
+            box-sizing: border-box;
+        }
+
         .spt-footer-verify {
-            margin-top: 24px;
+            position: absolute;
+            bottom: 1.2cm;
+            left: 1.5cm;
+            right: 1.5cm;
             padding-top: 8px;
             border-top: 1px dashed #cbd5e1;
             display: flex;
@@ -304,7 +343,15 @@
             align-items: center;
             font-size: 7.5pt;
             color: #475569;
-            page-break-inside: avoid;
+        }
+
+        @media print {
+            .spt-footer-verify {
+                position: absolute;
+                bottom: 0.5cm;
+                left: 0;
+                right: 0;
+            }
         }
 
         .spt-footer-verify .qr-box {

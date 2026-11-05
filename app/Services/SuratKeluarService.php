@@ -49,11 +49,7 @@ class SuratKeluarService
     public static function buildStats(): array
     {
         $curMonth = date('Y-m');
-        $nomorTerakhirKeluar = Persuratan::where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat');
-        if (!$nomorTerakhirKeluar) {
-            $settingRow = DB::table('persuratan_settings')->first();
-            $nomorTerakhirKeluar = $settingRow?->nomor_terakhir_surat_keluar ? PersuratanHddService::generateNomorSuratKeluar('KPG.11.01') : '-';
-        }
+        $nomorTerakhirKeluar = Persuratan::where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat') ?: '-';
 
         $latestKet = SuratKeteranganPd::orderByDesc('id')->value('nomor_surat') ?: '-';
         $latestSpt = (Table::exists('gtk_spt') ? DB::table('gtk_spt')->orderByDesc('id')->value('nomor_spt') : null) ?: '-';
@@ -66,7 +62,7 @@ class SuratKeluarService
             'ekspedisi'                 => Persuratan::where('jenis_surat', 'keluar')->count(),
             'bulan_ini'                 => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
             'selesai'                   => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
-            'nomor_terakhir'            => $nomorTerakhirKeluar ?: '-',
+            'nomor_terakhir'            => $nomorTerakhirKeluar,
             'nomor_terakhir_keterangan' => $latestKet,
             'nomor_terakhir_spt'        => $latestSpt,
         ];
@@ -77,6 +73,7 @@ class SuratKeluarService
      */
     public static function buildIndexData(Request $request): array
     {
+        self::syncCounterWithDatabase();
         self::syncSptToPersuratan();
         $stats = self::buildStats();
 
@@ -295,5 +292,32 @@ class SuratKeluarService
         }
 
         $surat->delete();
+
+        // Jika tidak ada lagi surat keluar, reset counter setting ke 0
+        self::syncCounterWithDatabase();
+    }
+
+    /**
+     * Sinkronkan counter setting nomor terakhir dengan database aktual
+     */
+    public static function syncCounterWithDatabase(): void
+    {
+        $setting = DB::table('persuratan_settings')->first();
+        if (!$setting) return;
+
+        $countKeluar = Persuratan::where('jenis_surat', 'keluar')->count();
+        $countKet = SuratKeteranganPd::count();
+
+        $updates = [];
+        if ($countKeluar === 0 && (int)$setting->nomor_terakhir_surat_keluar > 0) {
+            $updates['nomor_terakhir_surat_keluar'] = 0;
+        }
+        if ($countKet === 0 && (int)$setting->nomor_terakhir_surat_keterangan > 0) {
+            $updates['nomor_terakhir_surat_keterangan'] = 0;
+        }
+
+        if (!empty($updates)) {
+            DB::table('persuratan_settings')->where('id', $setting->id)->update($updates);
+        }
     }
 }

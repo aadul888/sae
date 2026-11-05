@@ -21,9 +21,15 @@ class SuratSptService
         $end = Carbon::parse($request->tanggal_kembali);
         $lamaHari = $start->diffInDays($end) + 1;
 
-        $year = date('Y');
-        $countThisYear = DB::table('gtk_spt')->whereYear('tanggal_berangkat', $year)->count() + 1;
-        $nomorSpt = sprintf('800/SPT/%s/%03d', $year, $countThisYear);
+        $kodeIndeks = trim($request->kode_indeks ?: 'KPG.11.01');
+        $manualNomor = trim($request->nomor_spt ?? '');
+
+        if (!empty($manualNomor)) {
+            $nomorSpt = $manualNomor;
+        } else {
+            $nomorSpt = PersuratanHddService::generateNomorSuratKeluar($kodeIndeks);
+            PersuratanHddService::incrementNomorCounter('keluar');
+        }
 
         $kepsek = Gtk::where(function ($q) {
             $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
@@ -65,7 +71,7 @@ class SuratSptService
         // Catat otomatis ke buku agenda persuratan keluar agar terkoordinir penuh
         Persuratan::create([
             'nomor_surat'     => $nomorSpt,
-            'kode_indeks'     => '800',
+            'kode_indeks'     => $kodeIndeks,
             'jenis_surat'     => 'keluar',
             'perihal'         => "Surat Perintah Tugas (SPT): {$request->nama_kegiatan}",
             'pengirim_asal'   => $kepsekNama,
@@ -91,6 +97,7 @@ class SuratSptService
         if ($spt) {
             Persuratan::where('nomor_surat', $spt->nomor_spt)->delete();
             DB::table('gtk_spt')->where('id', $id)->delete();
+            SuratKeluarService::syncCounterWithDatabase();
             return true;
         }
 

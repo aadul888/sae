@@ -432,10 +432,45 @@
 
                 <form action="{{ route('dashboard.persuratan.keluar.spt.store') }}" method="POST" id="formSpt">
                     @csrf
+                    <!-- Seksi 0: Klasifikasi Indeks & Nomor SPT -->
+                    <div style="background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-hashtag"></i> 1. Klasifikasi Indeks &amp; Nomor SPT
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                    Kode Indeks Klasifikasi: <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <select name="kode_indeks" id="selectKodeIndeksSpt" class="form-control" data-searchable required
+                                    style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                    @foreach ($indeksList as $idx)
+                                        <option value="{{ $idx->kode }}" {{ $idx->kode === 'KPG.11.01' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                    Nomor SPT:
+                                </label>
+                                <div style="display: flex; gap: 6px;">
+                                    <input type="text" name="nomor_spt" id="inputNomorSpt" class="form-control"
+                                        placeholder="Otomatis mengikuti template pengaturan..."
+                                        style="flex: 1; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-family: monospace; font-size: var(--text-base, 0.875rem);">
+                                    <button type="button" class="btn btn-outline" id="btnAutoNumberSpt"
+                                        style="padding: 0 10px; height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
+                                        title="Generate ulang nomor SPT">
+                                        <i class="fas fa-arrows-rotate"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Seksi 1: Dasar Penugasan -->
                     <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 14px;">
                         <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-scale-balanced"></i> 1. Dasar Penugasan Dinas
+                            <i class="fas fa-scale-balanced"></i> 2. Dasar Penugasan Dinas
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label
@@ -450,7 +485,7 @@
                     <!-- Seksi 2: Tujuan & Rincian Tugas -->
                     <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 14px;">
                         <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-bullseye"></i> 2. Pokok Tugas &amp; Tujuan Penugasan
+                            <i class="fas fa-bullseye"></i> 3. Pokok Tugas &amp; Tujuan Penugasan
                         </div>
                         <div class="form-group" style="margin-bottom: 12px;">
                             <label
@@ -491,7 +526,7 @@
                     <!-- Seksi 3: Personel & Administrasi SPPD -->
                     <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 18px;">
                         <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-users"></i> 3. Personel Ditugaskan &amp; Beban Anggaran
+                            <i class="fas fa-users"></i> 4. Personel Ditugaskan &amp; Beban Anggaran
                         </div>
                         <div class="form-group" style="margin-bottom: 12px;">
                             <label

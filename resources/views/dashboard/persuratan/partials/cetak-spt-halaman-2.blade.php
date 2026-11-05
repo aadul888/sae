@@ -128,6 +128,16 @@
             @endif
             NIP. {{ $nipKepsek }}
         </div>
+
+        @if (!empty($qrUri))
+            <div class="sppd-qr-verify">
+                <img src="{{ $qrUri }}" alt="QR Code Verifikasi">
+                <div>
+                    <strong>Dokumen Sah SPPD — Sistem Aplikasi Edukasi (SAE)</strong><br>
+                    ID Dokumen: <code>{{ $docId }}</code> &bull; Pindai QR Code untuk verifikasi keaslian.
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- KOLOM KANAN: Lembar Belakang / Visum Riwayat Perjalanan (Tabel I s.d. VI) --}}
@@ -239,15 +249,6 @@
                         <div style="font-size: 6.8pt; line-height: 1.15; text-align: justify; margin-top: 1px;">
                             PA/KPA Yang menerbitkan SPPD, pegawai yang melakukan perjalanan dinas, para pejabat yang mengesahkan tanggal berangkat/tiba, serta bendahara pengeluaran bertanggung jawab berdasarkan peraturan-peraturan keuangan Negara apabila Negara menderita rugi akibat kesalahan, kelalaian dan kealpaannya.
                         </div>
-                        @if (!empty($qrUri))
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding-top: 4px; border-top: 1px dashed #94a3b8; font-size: 6.5pt; color: #475569;">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="{{ $qrUri }}" alt="QR Verifikasi" style="width: 26px; height: 26px; border: 1px solid #cbd5e1; padding: 1px; background: #fff;">
-                                    <span>Pindai QR Code untuk verifikasi keabsahan SPPD (ID: <code>{{ $docId }}</code>)</span>
-                                </div>
-                                <div>Lembar 2 (Landscape)</div>
-                            </div>
-                        @endif
                     </td>
                 </tr>
             </tbody>

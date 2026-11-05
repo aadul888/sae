@@ -483,10 +483,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCloseModalSpt = document.getElementById('btnCloseModalSpt');
     const btnCancelModalSpt = document.getElementById('btnCancelModalSpt');
     const formSpt = document.getElementById('formSpt');
+    const selectKodeIndeksSpt = document.getElementById('selectKodeIndeksSpt');
+    const inputNomorSpt = document.getElementById('inputNomorSpt');
+    const btnAutoNumberSpt = document.getElementById('btnAutoNumberSpt');
+
+    function fetchAutoNumberSpt(kodeIndeks) {
+        if (!inputNomorSpt || !suratKeluarNextNumberUrl) return;
+        fetch(suratKeluarNextNumberUrl + '?type=keluar&kode_indeks=' + encodeURIComponent(kodeIndeks))
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.nomor_surat) {
+                    inputNomorSpt.value = data.nomor_surat;
+                }
+            })
+            .catch(() => {});
+    }
+
+    if (selectKodeIndeksSpt) {
+        selectKodeIndeksSpt.addEventListener('change', function () {
+            if (selectKodeIndeksSpt.value) {
+                fetchAutoNumberSpt(selectKodeIndeksSpt.value);
+            }
+        });
+    }
+
+    if (btnAutoNumberSpt) {
+        btnAutoNumberSpt.addEventListener('click', function () {
+            const idx = selectKodeIndeksSpt ? selectKodeIndeksSpt.value : 'KPG.11.01';
+            fetchAutoNumberSpt(idx || 'KPG.11.01');
+        });
+    }
 
     function openSptModal() {
         if (!modalSpt) return;
         if (formSpt) formSpt.reset();
+        const defaultSptIdx = selectKodeIndeksSpt ? selectKodeIndeksSpt.value : 'KPG.11.01';
+        fetchAutoNumberSpt(defaultSptIdx || 'KPG.11.01');
         modalSpt.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
