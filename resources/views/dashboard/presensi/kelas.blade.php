@@ -460,6 +460,12 @@
                 <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); max-width: 540px; margin: 0 auto;">
                     {{ $pesanTidakAktif ?? 'Data presensi siswa per kelas hanya ditampilkan pada hari dan jam mengajar aktif Anda.' }}
                 </p>
+                @if (!empty($nextJadwalInfo))
+                    <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.08); color: var(--primary); padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>{{ $nextJadwalInfo }}</span>
+                    </div>
+                @endif
                 <div style="margin-top: 16px;">
                     <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline btn-sm">
                         <i class="fas fa-calendar-check me-1"></i> Buka Presensi Mengajar Guru

@@ -73,26 +73,38 @@ class PresensiKelasService
         $isJamMengajarAktif = true;
         $pesanTidakAktif = null;
 
+        $nextJadwalInfo = null;
+
         if ($isGuru) {
-            if (!$isToday) {
+            $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+            $isLibur = (($statusKalender['mode'] ?? '') === 'libur' || ($statusKalender['is_libur'] ?? false));
+
+            if ($isLibur) {
+                $isJamMengajarAktif = false;
+                $alasanLibur = $statusKalender['nama_agenda'] ?: 'Hari Libur Sekolah / Non-Aktif Belajar';
+                $pesanTidakAktif = "Hari ini adalah {$alasanLibur}. Presensi KBM kelas dinonaktifkan.";
+            } elseif (!$isToday) {
                 $isJamMengajarAktif = false;
                 $pesanTidakAktif = "Data presensi siswa per kelas hanya ditampilkan pada hari dan jam mengajar aktif (hari ini). Tanggal {$tanggal} bukan jadwal aktif saat ini.";
             } else {
                 if (Table::exists('jadwal_kbm')) {
-                    $jq = DB::table('jadwal_kbm')
-                        ->where('is_active', true)
-                        ->where('ptk_id', $ptkId)
-                        ->where('hari', $hariTanggal);
+                    $jq = DB::table('jadwal_kbm as j')
+                        ->leftJoin('rombongan_belajar as rb', 'j.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                        ->where('j.is_active', true)
+                        ->where('j.ptk_id', $ptkId)
+                        ->where('j.hari', $hariTanggal)
+                        ->select('j.*', 'rb.nama as nama_rombel');
                     if ($modeAktif) {
-                        $jq->where('sumber', $modeAktif);
+                        $jq->where('j.sumber', $modeAktif);
                     }
-                    $todaySchedules = $jq->orderBy('jam_ke_mulai', 'asc')->get();
+                    $todaySchedules = $jq->orderBy('j.jam_ke_mulai', 'asc')->get();
 
                     $activeSchedules = $todaySchedules->filter(function ($j) use ($nowHi) {
                         if (empty($j->jam_mulai) || empty($j->jam_selesai)) return false;
                         $jm = substr($j->jam_mulai, 0, 5);
                         $js = substr($j->jam_selesai, 0, 5);
-                        return ($nowHi >= $jm && $nowHi <= $js);
+                        $jsGrace = Carbon::createFromFormat('H:i', $js)->addMinutes(15)->format('H:i');
+                        return ($nowHi >= $jm && $nowHi <= $jsGrace);
                     });
 
                     if ($activeSchedules->isNotEmpty()) {
@@ -102,6 +114,17 @@ class PresensiKelasService
                     } else {
                         $isJamMengajarAktif = false;
                         $pesanTidakAktif = "Saat ini (pukul {$nowHi}) bukan jam mengajar aktif Anda. Data presensi siswa hanya akan muncul saat jadwal mengajar Anda berlangsung.";
+
+                        $nextJadwal = $todaySchedules->first(function ($j) use ($nowHi) {
+                            return !empty($j->jam_mulai) && substr($j->jam_mulai, 0, 5) > $nowHi;
+                        });
+
+                        if ($nextJadwal) {
+                            $rombelLabel = $nextJadwal->nama_rombel ?: $nextJadwal->rombongan_belajar_id;
+                            $nextJadwalInfo = "Jadwal berikutnya hari ini: {$nextJadwal->nama_mata_pelajaran} (Kelas {$rombelLabel}) pukul " . substr($nextJadwal->jam_mulai, 0, 5) . " - " . substr($nextJadwal->jam_selesai, 0, 5) . " WIB.";
+                        } else {
+                            $nextJadwalInfo = "Tidak ada jadwal mengajar KBM lagi untuk Anda hari ini.";
+                        }
                     }
                 } else {
                     $isJamMengajarAktif = false;
@@ -517,7 +540,8 @@ class PresensiKelasService
             'canViewAllClasses',
             'isAdmin',
             'isJamMengajarAktif',
-            'pesanTidakAktif'
+            'pesanTidakAktif',
+            'nextJadwalInfo'
         );
     }
 
@@ -946,12 +970,23 @@ class PresensiKelasService
             if ($modeAktif) {
                 $jq->where('sumber', $modeAktif);
             }
+            $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+            if (($statusKalender['mode'] ?? '') === 'libur' || ($statusKalender['is_libur'] ?? false)) {
+                $alasan = $statusKalender['nama_agenda'] ?: 'Hari Libur / Non-Aktif Belajar';
+                return [
+                    'status'  => 'error',
+                    'code'    => 422,
+                    'message' => "Presensi mapel tidak dapat dicatat karena tanggal {$tanggal} adalah {$alasan}.",
+                ];
+            }
+
             $schedules = $jq->get();
             $isAktif = $schedules->contains(function ($j) use ($nowHi) {
                 if (empty($j->jam_mulai) || empty($j->jam_selesai)) return false;
                 $jm = substr($j->jam_mulai, 0, 5);
                 $js = substr($j->jam_selesai, 0, 5);
-                return ($nowHi >= $jm && $nowHi <= $js);
+                $jsGrace = Carbon::createFromFormat('H:i', $js)->addMinutes(15)->format('H:i');
+                return ($nowHi >= $jm && $nowHi <= $jsGrace);
             });
 
             if (!$isAktif) {
