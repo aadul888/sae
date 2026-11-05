@@ -47,55 +47,135 @@
 @include('dashboard.tendik.partials.domain-tabs')
 
 
-<!-- 3. Akses Cepat Menu Persuratan (Responsive Grid Seimbang & Genap) -->
-<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-    <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--primary, #3b82f6);" title="Buku Agenda Surat Masuk">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
-            <i class="fas fa-inbox"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Surat Masuk</span>
-    </a>
+<!-- 3. Akses Cepat Menu Persuratan (selaras submenu sidebar & tupoksi) -->
+@php
+    $can = $can ?? fn(string $key) => \App\Models\RolePermission::canAccess(session('user') ?: 'tendik', $key, 'read');
+    $quickItems = [
+        [
+            'label' => 'Surat Masuk',
+            'title' => 'Buku Agenda Surat Masuk',
+            'route' => route('dashboard.persuratan.masuk.index'),
+            'icon' => 'fa-inbox',
+            'color' => 'var(--primary, #3b82f6)',
+            'bg' => 'rgba(59, 130, 246, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_surat_masuk', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Surat Keluar',
+            'title' => 'Buku Agenda Surat Keluar',
+            'route' => route('dashboard.persuratan.keluar.index'),
+            'icon' => 'fa-paper-plane',
+            'color' => 'var(--success, #10b981)',
+            'bg' => 'rgba(16, 185, 129, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Buku Ekspedisi',
+            'title' => 'Buku Ekspedisi Pengiriman Surat Keluar',
+            'route' => route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']),
+            'icon' => 'fa-truck-fast',
+            'color' => 'var(--info, #0ea5e9)',
+            'bg' => 'rgba(14, 165, 233, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Autocrat',
+            'title' => 'Template Surat Otomatis Autocrat',
+            'route' => route('dashboard.persuratan.keluar.index', ['tab' => 'template']),
+            'icon' => 'fa-wand-magic-sparkles',
+            'color' => 'var(--purple, #8b5cf6)',
+            'bg' => 'rgba(139, 92, 246, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Pengaturan & Arsip',
+            'title' => 'Pengaturan Persuratan & Kearsipan HDD',
+            'route' => route('dashboard.persuratan.pengaturan.index'),
+            'icon' => 'fa-sliders',
+            'color' => 'var(--warning, #f59e0b)',
+            'bg' => 'rgba(245, 158, 11, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_pengaturan_persuratan', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Target Capaian',
+            'title' => 'Target & Capaian Kinerja',
+            'route' => route('dashboard.tendik.target.index', ['bidang' => 'persuratan']),
+            'icon' => 'fa-bullseye',
+            'color' => 'var(--primary-light, #6366f1)',
+            'bg' => 'rgba(99, 102, 241, 0.15)',
+            'group' => 'kinerja',
+            'can' => ['menu_target_capaian'],
+        ],
+        [
+            'label' => 'Aktivitas Harian',
+            'title' => 'Input Log Aktivitas Harian',
+            'route' => route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']),
+            'icon' => 'fa-clipboard-check',
+            'color' => 'var(--accent, #06b6d4)',
+            'bg' => 'rgba(6, 182, 212, 0.15)',
+            'group' => 'kinerja',
+            'can' => ['menu_aktivitas_tendik'],
+        ],
+        [
+            'label' => 'Laporan Kinerja',
+            'title' => 'Laporan & Rekapitulasi Kinerja',
+            'route' => route('dashboard.tendik.laporan.index', ['bidang' => 'persuratan']),
+            'icon' => 'fa-file-invoice',
+            'color' => '#ec4899',
+            'bg' => 'rgba(236, 72, 153, 0.15)',
+            'group' => 'laporan',
+            'can' => ['menu_laporan_tendik'],
+        ],
+        [
+            'label' => 'Agenda Masuk',
+            'title' => 'Cetak Buku Agenda Surat Masuk',
+            'route' => route('dashboard.persuratan.masuk.agenda.cetak'),
+            'icon' => 'fa-file-lines',
+            'color' => 'var(--primary, #3b82f6)',
+            'bg' => 'rgba(59, 130, 246, 0.15)',
+            'group' => 'laporan',
+            'can' => ['menu_surat_masuk', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Agenda Keluar',
+            'title' => 'Cetak Buku Agenda Surat Keluar',
+            'route' => route('dashboard.persuratan.keluar.agenda.cetak'),
+            'icon' => 'fa-print',
+            'color' => 'var(--success, #10b981)',
+            'bg' => 'rgba(16, 185, 129, 0.15)',
+            'group' => 'laporan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
+        [
+            'label' => 'Cetak Ekspedisi',
+            'title' => 'Cetak Buku Ekspedisi Surat Keluar',
+            'route' => route('dashboard.persuratan.keluar.ekspedisi.cetak'),
+            'icon' => 'fa-file-export',
+            'color' => 'var(--info, #0ea5e9)',
+            'bg' => 'rgba(14, 165, 233, 0.15)',
+            'group' => 'laporan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
+    ];
+@endphp
 
-    <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--success, #10b981);" title="Buku Agenda Surat Keluar">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
-            <i class="fas fa-paper-plane"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Surat Keluar</span>
-    </a>
-
-    <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--warning, #f59e0b);" title="Pengaturan &amp; Kearsipan HDD">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
-            <i class="fas fa-sliders"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Pengaturan &amp; Arsip</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
-        style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
-            <i class="fas fa-bullseye"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Target Capaian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
-    </a>
-
-    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
-            <i class="fas fa-file-invoice"></i>
-        </div>
-        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
-    </a>
+<div class="kepegawaian-quick-grid" style="margin-bottom: 24px;" data-quick-title="Menu Cepat Persuratan">
+    @foreach ($quickItems as $item)
+        @continue(!collect($item['can'])->contains(fn($key) => $can($key)))
+        <a href="{{ $item['route'] }}" class="kepegawaian-quick-btn"
+            style="--quick-color: {{ $item['color'] }};" title="{{ $item['title'] }}"
+            data-quick-group="{{ $item['group'] ?? '' }}">
+            <div class="kepegawaian-quick-icon" style="background: {{ $item['bg'] }}; color: {{ $item['color'] }};">
+                <i class="fas {{ $item['icon'] }}"></i>
+            </div>
+            <span class="kepegawaian-quick-label">{{ $item['label'] }}</span>
+        </a>
+    @endforeach
 </div>
 
 
