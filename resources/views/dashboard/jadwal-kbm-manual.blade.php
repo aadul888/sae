@@ -29,41 +29,11 @@
                 gap: 12px !important;
             }
 
-            .dash-banner-actions {
-                width: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 10px !important;
-            }
-
             .pemberlakuan-badge-wrap {
                 display: flex !important;
-                flex-direction: column !important;
+                flex-wrap: wrap !important;
                 width: 100% !important;
                 gap: 6px !important;
-            }
-
-            .pemberlakuan-badge-wrap .badge,
-            .pemberlakuan-badge-wrap .btn {
-                width: 100% !important;
-                text-align: center !important;
-                justify-content: center !important;
-            }
-
-            .banner-action-buttons {
-                display: flex !important;
-                width: 100% !important;
-                gap: 6px !important;
-            }
-
-            .banner-action-buttons>* {
-                flex: 1 !important;
-                min-width: 0 !important;
-                padding: 8px 6px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                font-size: var(--text-sm, 0.8125rem) !important;
             }
 
             .jadwal-subnav-desktop {
@@ -85,7 +55,7 @@
 @section('content')
     <!-- Header Banner -->
     <div class="dash-banner">
-        <div>
+        <div style="flex: 1; min-width: 280px;">
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-calendar-plus text-primary me-2"></i> Input Jadwal KBM Manual
                 @if ($activeRombel)
@@ -95,109 +65,109 @@
                     </span>
                 @endif
             </h2>
-            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+            <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin-bottom: 8px;">
                 Modul khusus Wali Kelas / Koordinator Kelas untuk menyusun jam dan mata pelajaran sesuai guru pengampu
                 secara terstruktur dan anti-bentrok.
             </p>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <!-- Pemberlakuan Jadwal Aktif oleh Admin (Eksklusif: Otomatis vs Manual) -->
+                @if ($isAdmin)
+                    <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
+                        @if ($isManualAktif)
+                            <span class="badge"
+                                style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-check-circle"></i> Jadwal Manual Diberlakukan (Aktif)
+                            </span>
+                            <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="manual"
+                                data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                                onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                                title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
+                                style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: var(--warning, #f59e0b); cursor: pointer;">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                        @elseif ($isOtomatisAktif)
+                            <span class="badge"
+                                style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-clock"></i> Status Draft (Jadwal Otomatis Aktif)
+                            </span>
+                            <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
+                                data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                                onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                                title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Otomatis)"
+                                style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        @else
+                            <span class="badge"
+                                style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
+                            </span>
+                            <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
+                                data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                                onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                                title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa"
+                                style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Selector Rombel (Admin, Wali Kelas, & Guru Mapel) -->
+                @if (($isAdmin || !$isLockedRombel || $rombelList->count() > 1) && $rombelList->isNotEmpty())
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <label for="adminSelectRombel"
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                            Kelas:</label>
+                        <select id="adminSelectRombel" class="per-page-select"
+                            style="padding: 6px 12px; font-weight: 700; border-radius: var(--radius-md, 8px);">
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->rombongan_belajar_id }}"
+                                    {{ $activeRombel && $activeRombel->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                    {{ $r->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <!-- Pemberlakuan Jadwal Aktif oleh Admin (Eksklusif: Otomatis vs Manual) -->
-            @if ($isAdmin)
-                <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
-                    @if ($isManualAktif)
-                        <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-check-circle"></i> Jadwal Manual Diberlakukan (Aktif)
-                        </span>
-                        <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="manual"
-                            data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
-                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
-                            title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: var(--warning, #f59e0b); cursor: pointer;">
-                            <i class="fas fa-pause"></i>
-                        </button>
-                    @elseif ($isOtomatisAktif)
-                        <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-clock"></i> Status Draft (Jadwal Otomatis Aktif)
-                        </span>
-                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
-                            data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
-                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
-                            title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Otomatis)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    @else
-                        <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
-                        </span>
-                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
-                            data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
-                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
-                            title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    @endif
-                </div>
-            @endif
 
-            <!-- Selector Rombel (Admin, Wali Kelas, & Guru Mapel) -->
-            @if (($isAdmin || !$isLockedRombel || $rombelList->count() > 1) && $rombelList->isNotEmpty())
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <label for="adminSelectRombel"
-                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
-                        Kelas:</label>
-                    <select id="adminSelectRombel" class="per-page-select"
-                        style="padding: 6px 12px; font-weight: 700; border-radius: var(--radius-md, 8px);">
-                        @foreach ($rombelList as $r)
-                            <option value="{{ $r->rombongan_belajar_id }}"
-                                {{ $activeRombel && $activeRombel->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                                {{ $r->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
-
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($activeRombel)
-                <div class="banner-action-buttons" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    @if (!empty($hasOtomatisSchedule) && ($isAdmin || !empty($isWaliKelas) || !empty($isGuru)))
-                        <button type="button" class="btn btn-outline" id="btnSalinOtomatis"
-                            data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
-                            data-rombel-name="{{ $activeRombel->nama }}"
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-color: rgba(99,102,241,0.35); color: var(--primary);"
-                            title="Salin seluruh susunan mata pelajaran dari Jadwal Induk (Otomatis) ke kelas ini agar seluruh baris JP terisi padat">
-                            <i class="fas fa-wand-magic-sparkles"></i>
-                            <span class="d-none d-sm-inline">Penuhi dari Jadwal Induk</span>
-                        </button>
-                    @endif
-
-                    <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
-                        target="_blank" class="btn btn-outline"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
-                        title="Cetak Jadwal Kelas Ini (Format Siap Tempel)">
-                        <i class="fas fa-print text-primary"></i>
-                    </a>
-
-                    @if ($isAdmin || !empty($isWaliKelas))
-                        <button type="button" class="btn btn-outline" id="btnResetRombel"
-                            data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
-                            data-rombel-name="{{ $activeRombel->nama }}"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239,68,68,0.4); color: var(--danger, #ef4444);"
-                            title="Kosongkan Seluruh Jadwal Kelas Ini">
-                            <i class="fas fa-rotate-left"></i>
-                        </button>
-                    @endif
-
-                    <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Tambah Slot Pelajaran Baru">
-                        <i class="fas fa-plus"></i>
+                @if (!empty($hasOtomatisSchedule) && ($isAdmin || !empty($isWaliKelas) || !empty($isGuru)))
+                    <button type="button" class="btn btn-outline" id="btnSalinOtomatis"
+                        data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
+                        data-rombel-name="{{ $activeRombel->nama }}"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(99,102,241,0.35); color: var(--primary);"
+                        title="Salin seluruh susunan mata pelajaran dari Jadwal Induk (Otomatis) ke kelas ini agar seluruh baris JP terisi padat"
+                        aria-label="Penuhi dari Jadwal Induk">
+                        <i class="fas fa-wand-magic-sparkles"></i>
                     </button>
-                </div>
+                @endif
+
+                <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
+                    target="_blank" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                    title="Cetak Jadwal Kelas Ini (Format Siap Tempel)" aria-label="Cetak Jadwal Kelas Ini">
+                    <i class="fas fa-print text-primary"></i>
+                </a>
+
+                @if ($isAdmin || !empty($isWaliKelas))
+                    <button type="button" class="btn btn-outline" id="btnResetRombel"
+                        data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
+                        data-rombel-name="{{ $activeRombel->nama }}"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239,68,68,0.4); color: var(--danger, #ef4444);"
+                        title="Kosongkan Seluruh Jadwal Kelas Ini" aria-label="Kosongkan Seluruh Jadwal Kelas Ini">
+                        <i class="fas fa-rotate-left"></i>
+                    </button>
+                @endif
+
+                <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    title="Tambah Slot Pelajaran Baru" aria-label="Tambah Slot Pelajaran Baru">
+                    <i class="fas fa-plus"></i>
+                </button>
             @endif
         </div>
     </div>
