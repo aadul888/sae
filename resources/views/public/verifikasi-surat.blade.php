@@ -43,19 +43,25 @@
                         <div>
                             <div class="meta-item-label">Nomor Surat</div>
                             <div class="meta-item-value code">
-                                {{ $suratKet->nomor_surat ?? ($suratUmum->nomor_surat ?? '-') }}
+                                {{ $suratKet->nomor_surat ?? ($spt->nomor_spt ?? ($suratUmum->nomor_surat ?? '-')) }}
                             </div>
                         </div>
                         <div>
                             <div class="meta-item-label">Tanggal Terbit</div>
                             <div class="meta-item-value">
-                                {{ date('d F Y', strtotime($suratKet->tanggal_surat ?? ($suratUmum->tanggal_surat ?? now()))) }}
+                                {{ date('d F Y', strtotime($suratKet->tanggal_surat ?? ($spt->tanggal_berangkat ?? ($suratUmum->tanggal_surat ?? now())))) }}
                             </div>
                         </div>
                         <div>
                             <div class="meta-item-label">Jenis Dokumen</div>
                             <div class="meta-item-value">
-                                {{ $suratKet ? 'Surat Keterangan Siswa Aktif' : 'Surat Dinas / Keputusan Resmi' }}
+                                @if ($suratKet)
+                                    Surat Keterangan Resmi
+                                @elseif ($spt)
+                                    Surat Perintah Tugas (SPT &amp; SPPD)
+                                @else
+                                    Surat Dinas / Keputusan Resmi
+                                @endif
                             </div>
                         </div>
                         <div>
@@ -110,6 +116,46 @@
                                         <i class="fas fa-circle" style="font-size: var(--text-2xs, 0.6875rem);"></i> Siswa Aktif Terdaftar
                                     </span>
                                 </td>
+                            </tr>
+                        </table>
+                    @elseif ($spt)
+                        <!-- Identitas SPT / SPPD -->
+                        <div class="section-title">Rincian Penugasan &amp; Perjalanan Dinas</div>
+                        <table class="data-table">
+                            <tr>
+                                <td class="label-col">Nama Kegiatan</td>
+                                <td class="val-col" style="font-weight: 700; color: var(--primary-dark);">{{ $spt->nama_kegiatan }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Dasar Penugasan</td>
+                                <td class="val-col">{{ $spt->dasar_penugasan ?: '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Tempat Berangkat / Tujuan</td>
+                                <td class="val-col">{{ $spt->tempat_berangkat ?: ($sekolah->nama ?? 'Sekolah') }} &rarr; <strong>{{ $spt->lokasi_tujuan }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Waktu Pelaksanaan</td>
+                                <td class="val-col">
+                                    {{ date('d F Y', strtotime($spt->tanggal_berangkat)) }}
+                                    @if ($spt->tanggal_kembali && $spt->tanggal_kembali !== $spt->tanggal_berangkat)
+                                        s.d. {{ date('d F Y', strtotime($spt->tanggal_kembali)) }} ({{ $spt->lama_hari }} hari)
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Pegawai Ditugaskan</td>
+                                <td class="val-col">
+                                    @forelse ($sptGtkList as $idx => $g)
+                                        <div>{{ $idx + 1 }}. <strong>{{ $g->nama }}</strong> (NIP: {{ $g->nip ?: ($g->nuptk ?: '-') }}) - {{ $g->jabatan_ptk_id_str ?: ($g->jenis_ptk_id_str ?: 'Guru') }}</div>
+                                    @empty
+                                        -
+                                    @endforelse
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Beban Anggaran</td>
+                                <td class="val-col">{{ $spt->beban_anggaran ?: '-' }}</td>
                             </tr>
                         </table>
                     @elseif ($suratUmum)

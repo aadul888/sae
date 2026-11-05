@@ -57,20 +57,18 @@ class SuratKeluarService
 
         $latestKet = SuratKeteranganPd::orderByDesc('id')->value('nomor_surat') ?: '-';
         $latestSpt = (Table::exists('gtk_spt') ? DB::table('gtk_spt')->orderByDesc('id')->value('nomor_spt') : null) ?: '-';
-        $latestTmpl = (Table::exists('persuratan_templates') ? DB::table('persuratan_templates')->orderByDesc('id')->value('nomor_surat') : null) ?: '-';
 
         return [
             'total'                     => Persuratan::where('jenis_surat', 'keluar')->count(),
             'surat_keterangan'          => SuratKeteranganPd::count(),
             'spt'                       => Table::exists('gtk_spt') ? DB::table('gtk_spt')->count() : 0,
-            'template'                  => Table::exists('persuratan_templates') ? DB::table('persuratan_templates')->count() : 0,
+            'template'                  => DB::table('ref_indeks_surat')->where('is_active', true)->count(),
             'ekspedisi'                 => Persuratan::where('jenis_surat', 'keluar')->count(),
             'bulan_ini'                 => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
             'selesai'                   => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
             'nomor_terakhir'            => $nomorTerakhirKeluar ?: '-',
             'nomor_terakhir_keterangan' => $latestKet,
             'nomor_terakhir_spt'        => $latestSpt,
-            'nomor_terakhir_template'   => $latestTmpl,
         ];
     }
 
@@ -101,17 +99,19 @@ class SuratKeluarService
         $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
         if ($tab === 'template') {
-            $tmplQuery = DB::table('persuratan_templates');
+            $indeksQuery = DB::table('ref_indeks_surat')->where('is_active', true);
             if ($q !== '') {
-                $tmplQuery->where(function ($b) use ($q) {
-                    $b->where('nomor_surat', 'like', "%{$q}%")
-                      ->orWhere('perihal', 'like', "%{$q}%")
-                      ->orWhere('tujuan_penerima', 'like', "%{$q}%")
-                      ->orWhere('template_type', 'like', "%{$q}%");
+                $indeksQuery->where(function ($b) use ($q) {
+                    $b->where('kode', 'like', "%{$q}%")
+                      ->orWhere('judul', 'like', "%{$q}%")
+                      ->orWhere('kategori', 'like', "%{$q}%")
+                      ->orWhere('keterangan', 'like', "%{$q}%");
                 });
             }
-            self::applyPeriodeFilter($tmplQuery, $bulan, $tglMulai, $tglSelesai);
-            $items = $tmplQuery->orderBy('tanggal_surat', 'desc')->orderByDesc('id')->paginate($perPage)->withQueryString();
+            if ($kodeIndeks !== '') {
+                $indeksQuery->where('kode', $kodeIndeks);
+            }
+            $items = $indeksQuery->orderBy('kode')->paginate($perPage)->withQueryString();
         } else {
             $query = Persuratan::where('jenis_surat', 'keluar')
                 ->with(['suratKeterangan.siswa', 'sarprasAset', 'spt']);

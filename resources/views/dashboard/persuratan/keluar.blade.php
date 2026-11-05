@@ -167,75 +167,67 @@
                     'border' => 'rgba(245,158,11,0.25)',
                     'gradient' => 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(16,185,129,0.03) 100%)',
                 ],
-                'template' => [
-                    'label' => 'Nomor Surat Terakhir dari Template',
-                    'nomor' => $stats['nomor_terakhir_template'] ?? '-',
-                    'badge' => 'Buat Surat',
-                    'icon' => 'fas fa-wand-magic-sparkles',
-                    'color' => '#7c3aed',
-                    'bg' => 'rgba(124,58,237,0.12)',
-                    'border' => 'rgba(124,58,237,0.25)',
-                    'gradient' => 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(99,102,241,0.03) 100%)',
-                ],
             ];
             $curCfg = $tabConfigs[$activeTab] ?? $tabConfigs['keluar'];
         @endphp
 
         <!-- Card Interaktif: Nomor Surat Terakhir (Diatas Datatable) -->
-        <div class="card card-nomor-terakhir"
-            style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid {{ $curCfg['border'] }}; background: {{ $curCfg['gradient'] }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-            <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
-                <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
-                    <i class="{{ $curCfg['icon'] }}"></i>
-                </div>
-                <div style="min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span
-                            style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-                            {{ $curCfg['label'] }}
-                        </span>
-                        <span class="badge"
-                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
-                            {{ $curCfg['badge'] }}
-                        </span>
-                        @if ($activeTab === 'keluar')
-                            <span class="badge"
-                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
-                                SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
+        @if ($activeTab !== 'template')
+            <div class="card card-nomor-terakhir"
+                style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid {{ $curCfg['border'] }}; background: {{ $curCfg['gradient'] }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
+                    <div
+                        style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                        <i class="{{ $curCfg['icon'] }}"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                {{ $curCfg['label'] }}
                             </span>
                             <span class="badge"
-                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);">
-                                SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
+                                {{ $curCfg['badge'] }}
                             </span>
-                        @endif
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
-                        <span id="labelNomorSuratKeluar"
-                            style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: {{ $curCfg['color'] }}; background: {{ $curCfg['bg'] }}; padding: 4px 12px; border-radius: var(--radius-md, 8px); border: 1px solid {{ $curCfg['border'] }}; letter-spacing: 0.5px;">
-                            {{ $curCfg['nomor'] }}
-                        </span>
+                            @if ($activeTab === 'keluar')
+                                <span class="badge"
+                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                    SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
+                                </span>
+                                <span class="badge"
+                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);">
+                                    SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
+                                </span>
+                            @endif
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                            <span id="labelNomorSuratKeluar"
+                                style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: {{ $curCfg['color'] }}; background: {{ $curCfg['bg'] }}; padding: 4px 12px; border-radius: var(--radius-md, 8px); border: 1px solid {{ $curCfg['border'] }}; letter-spacing: 0.5px;">
+                                {{ $curCfg['nomor'] }}
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-outline" onclick="copyNomorSurat(this, '{{ $curCfg['nomor'] }}')"
-                    style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);"
-                    title="Salin nomor surat ke clipboard">
-                    <i class="fas fa-copy" style="color: {{ $curCfg['color'] }};"></i> <span>Salin Nomor</span>
-                </button>
-
-                @if ($curCfg['nomor'] !== '-')
-                    <button type="button" class="btn btn-primary"
-                        onclick="filterByNomorSurat('{{ $curCfg['nomor'] }}')"
-                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: {{ $curCfg['color'] }}; border-color: {{ $curCfg['color'] }};"
-                        title="Filter / temukan nomor ini pada datatable">
-                        <i class="fas fa-search"></i> <span>Cari di Datatable</span>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline" onclick="copyNomorSurat(this, '{{ $curCfg['nomor'] }}')"
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);"
+                        title="Salin nomor surat ke clipboard">
+                        <i class="fas fa-copy" style="color: {{ $curCfg['color'] }};"></i> <span>Salin Nomor</span>
                     </button>
-                @endif
+
+                    @if ($curCfg['nomor'] !== '-')
+                        <button type="button" class="btn btn-primary"
+                            onclick="filterByNomorSurat('{{ $curCfg['nomor'] }}')"
+                            style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 7px; background: {{ $curCfg['color'] }}; border-color: {{ $curCfg['color'] }};"
+                            title="Filter / temukan nomor ini pada datatable">
+                            <i class="fas fa-search"></i> <span>Cari di Datatable</span>
+                        </button>
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
 
         <!-- Unified Datatable Surat Keluar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
         <div class="card datatable-card-wrapper" id="tableDataContainer">
@@ -254,15 +246,17 @@
                             <span>entri</span>
                         </div>
 
-                        @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
+                        @if (($tab ?? '') !== 'spt')
                             <select id="filterKodeIndeks" name="kode_indeks" class="toolbar-filter-select"
                                 style="height: 38px;">
-                                <option value="">Semua Indeks</option>
+                                <option value="">Semua Kategori Indeks</option>
                                 @foreach ($indeksList as $idx)
                                     <option value="{{ $idx->kode }}" {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
                                 @endforeach
                             </select>
+                        @endif
 
+                        @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
                             <select id="filterStatus" name="status" class="toolbar-filter-select"
                                 style="height: 38px;">
                                 <option value="">Semua Status</option>
@@ -272,26 +266,28 @@
                             </select>
                         @endif
 
-                        <select id="filterBulan" name="bulan" class="toolbar-filter-select"
-                            style="height: 38px; min-width: 120px;" title="Filter Bulan Surat">
-                            <option value="">Semua Bulan</option>
-                            @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
-                                <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>{{ $mName }}</option>
-                            @endforeach
-                        </select>
+                        @if (($tab ?? '') !== 'template')
+                            <select id="filterBulan" name="bulan" class="toolbar-filter-select"
+                                style="height: 38px; min-width: 120px;" title="Filter Bulan Surat">
+                                <option value="">Semua Bulan</option>
+                                @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
+                                    <option value="{{ $mNum }}" {{ (string) ($bulan ?? '') === (string) $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                                @endforeach
+                            </select>
 
-                        <div
-                            style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                            <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
-                                title="Rentang Tanggal Surat"></i>
-                            <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
-                                value="{{ $tglMulai ?? '' }}" title="Tanggal Mulai"
-                                style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
-                            <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">s.d.</span>
-                            <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
-                                value="{{ $tglSelesai ?? '' }}" title="Tanggal Selesai"
-                                style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
-                        </div>
+                            <div
+                                style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                                <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
+                                    title="Rentang Tanggal Surat"></i>
+                                <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
+                                    value="{{ $tglMulai ?? '' }}" title="Tanggal Mulai"
+                                    style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
+                                <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">s.d.</span>
+                                <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
+                                    value="{{ $tglSelesai ?? '' }}" title="Tanggal Selesai"
+                                    style="border: none; background: transparent; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); outline: none; width: 122px;">
+                            </div>
+                        @endif
 
                         @if (!empty($q) || !empty($status) || !empty($kodeIndeks) || !empty($bulan) || !empty($tglMulai) || !empty($tglSelesai))
                             <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
@@ -315,7 +311,7 @@
                     <div class="live-search-wrap" style="height: 38px;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="liveSearch" name="q"
-                            placeholder="{{ ($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...' }}"
+                            placeholder="{{ ($tab ?? '') === 'template' ? 'Cari template naskah, kode indeks...' : (($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...') }}"
                             value="{{ $q ?? '' }}" autocomplete="off">
                         <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                             title="Hapus pencarian">
@@ -327,26 +323,26 @@
 
             <!-- 2. Konten Datatable Sesuai Tab Aktif -->
             @if (($tab ?? '') === 'template')
-                <!-- Container Datatable: Surat Keluar dari Template Autocrat -->
+                <!-- Container Datatable: Katalog Template Naskah Dinas -->
                 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                                 <th
-                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                                     No</th>
                                 <th
-                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Nomor Surat &amp; Indeks</th>
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                    Kode Indeks</th>
                                 <th
                                     style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Jenis Template &amp; Perihal</th>
+                                    Nama Naskah / Template</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                    Kategori</th>
                                 <th
                                     style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Tujuan Penerima</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Tanggal &amp; Penandatangan</th>
+                                    Deskripsi Naskah Dinas</th>
                                 <th
                                     style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
                                     Aksi</th>
@@ -359,88 +355,44 @@
                                         data-label="No">
                                         {{ $items->firstItem() + $idx }}
                                     </td>
-                                    <td style="padding: 12px 16px;" data-label="Nomor Surat">
-                                        <div
-                                            style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
-                                            {{ $tmpl->nomor_surat }}</div>
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                            Indeks: <span class="badge-compact"
-                                                style="background: rgba(99,102,241,0.1); color: var(--primary);">{{ $tmpl->kode_indeks ?: '-' }}</span>
-                                        </div>
+                                    <td style="padding: 12px 16px;" data-label="Kode Indeks">
+                                        <span class="badge-compact"
+                                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-family: monospace; font-weight: 700; font-size: 0.8125rem;">
+                                            <i class="fas fa-hashtag me-1"></i> {{ $tmpl->kode }}
+                                        </span>
                                     </td>
-                                    <td style="padding: 12px 16px;" data-label="Template &amp; Perihal">
+                                    <td style="padding: 12px 16px;" data-label="Nama Naskah">
                                         <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
-                                            {{ $tmpl->perihal }}</div>
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                            <span class="badge-compact"
-                                                style="background: rgba(16,185,129,0.1); color: var(--success, #10b981); text-transform: uppercase;">
-                                                <i class="fas fa-wand-magic-sparkles me-1"></i>
-                                                {{ ucfirst($tmpl->template_type) }}
-                                            </span>
-                                            @if ($tmpl->lampiran && $tmpl->lampiran !== '-')
-                                                <span style="margin-left: 6px;">Lampiran: {{ $tmpl->lampiran }}</span>
-                                            @endif
+                                            {{ $tmpl->judul }}
                                         </div>
                                     </td>
-                                    <td style="padding: 12px 16px;" data-label="Tujuan">
-                                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
-                                            <i class="fas fa-location-arrow text-success me-1"></i>
-                                            {{ $tmpl->tujuan_penerima }}
-                                        </div>
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                            {{ $tmpl->tujuan_lokasi ?: 'Di Tempat' }}
-                                        </div>
+                                    <td style="padding: 12px 16px;" data-label="Kategori">
+                                        <span class="badge-compact"
+                                            style="background: rgba(16,185,129,0.1); color: var(--success, #10b981); text-transform: capitalize; font-weight: 600;">
+                                            <i class="fas fa-folder me-1"></i> {{ $tmpl->kategori }}
+                                        </span>
                                     </td>
-                                    <td style="padding: 12px 16px;" data-label="Tanggal &amp; Pejabat">
-                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-color);">
-                                            <i class="far fa-calendar-alt text-muted me-1"></i>
-                                            {{ \Carbon\Carbon::parse($tmpl->tanggal_surat)->translatedFormat('d F Y') }}
-                                        </div>
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                            TTD: {{ $tmpl->pejabat_nama ?: 'Kepala Sekolah' }}
-                                        </div>
+                                    <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4;" data-label="Deskripsi">
+                                        {{ $tmpl->keterangan ?: 'Format baku naskah dinas kedinasan sekolah.' }}
                                     </td>
                                     <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                        <div class="table-actions"
-                                            style="display: flex; gap: 4px; justify-content: center;">
-                                            <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmpl->id) }}"
-                                                target="_blank" class="btn-icon" style="color: var(--primary-hover, #2563eb);"
-                                                title="Cetak Lembar Resmi A4 (Print / PDF)">
-                                                <i class="fas fa-print"></i>
-                                            </a>
-                                            <a href="{{ url('/v/doc/' . $tmpl->doc_id) }}" target="_blank"
-                                                class="btn-icon text-info" title="Halaman Verifikasi Publik (QR Code)">
-                                                <i class="fas fa-qrcode"></i>
-                                            </a>
-                                            @if ($canDelete)
-                                                <form
-                                                    action="{{ route('dashboard.persuratan.keluar.template.delete', $tmpl->id) }}"
-                                                    method="POST" style="display: inline;" data-confirm="delete"
-                                                    data-name="{{ $tmpl->nomor_surat }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn-icon text-danger"
-                                                        title="Hapus Dokumen Template">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
+                                        @if ($canCreate)
+                                            <button type="button" class="btn btn-sm btn-primary btn-trigger-template-row"
+                                                data-code="{{ $tmpl->kode }}" data-judul="{{ $tmpl->judul }}" data-kategori="{{ $tmpl->kategori }}"
+                                                style="padding: 5px 12px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 5px; border-radius: var(--radius-sm, 6px);"
+                                                title="Buat Surat Menggunakan Template Ini">
+                                                <i class="fas fa-pen-to-square"></i> Buat Surat
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="6"
                                         style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                        <i class="fas fa-wand-magic-sparkles mb-2"
+                                        <i class="fas fa-search mb-2"
                                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5; display: block;"></i>
-                                        <div>Belum ada surat keluar yang dibuat dari template.</div>
-                                        @if ($canCreate)
-                                            <button type="button" class="btn btn-outline btn-sm mt-3"
-                                                onclick="document.getElementById('btnOpenPilihJenisSurat')?.click()">
-                                                <i class="fas fa-plus me-1"></i> Buat Surat Sekarang
-                                            </button>
-                                        @endif
+                                        <div>Tidak ada template naskah dinas yang sesuai dengan kata kunci pencarian.</div>
                                     </td>
                                 </tr>
                             @endforelse

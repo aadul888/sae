@@ -15,7 +15,7 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 10mm 12mm;
+            margin: 1.5cm;
         }
 
         .sched-head {

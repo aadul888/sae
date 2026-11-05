@@ -76,3 +76,19 @@
         </td>
     </tr>
 </table>
+
+@if (!empty($qrUri))
+    <div class="spt-footer-verify">
+        <div class="qr-box">
+            <img src="{{ $qrUri }}" alt="QR Code Verifikasi">
+            <div>
+                <strong>Laporan Perjalanan Dinas — Sistem Aplikasi Edukasi (SAE)</strong><br>
+                ID Dokumen: <code>{{ $docId }}</code> &bull; Pindai QR Code untuk verifikasi keabsahan laporan.
+            </div>
+        </div>
+        <div style="text-align: right;">
+            Halaman 3 / 3<br>
+            Format Kertas: A4 Portrait
+        </div>
+    </div>
+@endif

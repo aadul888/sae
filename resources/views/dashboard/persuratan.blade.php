@@ -91,6 +91,9 @@
         </div>
     </div>
 
+    <!-- Tab Navigasi Modul Persuratan -->
+    @include('dashboard.persuratan.partials.tab-nav')
+
     <!-- 4. Main Data Card & Table -->
     <div class="card"
         style="padding: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); margin-bottom: 20px;">

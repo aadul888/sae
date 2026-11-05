@@ -14,11 +14,11 @@
         href="{{ asset('css/cetak-laboran.css') }}?v={{ file_exists(public_path('css/cetak-laboran.css')) ? filemtime(public_path('css/cetak-laboran.css')) : time() }}">
     @if ($orientasi === 'landscape')
         <style>
-            @page { size: A4 landscape; margin: 8mm 10mm; }
+            @page { size: A4 landscape; margin: 1.5cm; }
         </style>
     @else
         <style>
-            @page { size: A4 portrait; margin: 10mm 12mm; }
+            @page { size: A4 portrait; margin: 1.5cm; }
         </style>
     @endif
 </head>

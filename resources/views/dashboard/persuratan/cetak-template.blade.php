@@ -11,6 +11,16 @@
         {{-- Kop Surat Sekolah Resmi --}}
         @include('partials.kop-surat')
 
+        @php
+            $isDraft = ($doc->status ?? '') === 'draft' || str_starts_with($doc->nomor_surat ?? '', 'DRAFT/');
+        @endphp
+
+        @if ($isDraft)
+            <div style="background: rgba(245,158,11,0.12); border: 1px dashed #d97706; color: #b45309; padding: 6px 12px; border-radius: 6px; text-align: center; font-size: 9.5pt; font-weight: 700; margin-bottom: 12px;">
+                PRATINJAU DRAF NASKAH DINAS — NOMOR RESMI DITERBITKAN SAAT DIKIRIM KE SURAT KELUAR
+            </div>
+        @endif
+
         {{-- Meta Surat Keluar (Nomor, Lampiran, Hal di kiri; Tempat & Tanggal di kanan) --}}
         <div
             style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; font-size: 11pt; line-height: 1.5;">
@@ -19,7 +29,13 @@
                     <tr>
                         <td style="width: 85px; vertical-align: top;">Nomor</td>
                         <td style="width: 15px; vertical-align: top;">:</td>
-                        <td style="font-weight: 700; vertical-align: top;">{{ $doc->nomor_surat }}</td>
+                        <td style="font-weight: 700; vertical-align: top;">
+                            @if ($isDraft)
+                                <span style="color: #dc2626; font-style: italic;">— (DRAFT - BELUM DITERBITKAN) —</span>
+                            @else
+                                {{ $doc->nomor_surat }}
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <td style="vertical-align: top;">Lampiran</td>

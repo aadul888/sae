@@ -85,7 +85,7 @@ class PersuratanTemplate extends Model
                 'penutup' => 'Demikian surat rekomendasi ini kami berikan dengan penuh tanggung jawab untuk dipergunakan sesuai ketentuan yang berlaku.',
             ],
             'kustom' => [
-                'label'   => 'Format Bebas / Autocrat Merge',
+                'label'   => 'Format Bebas / Fleksibel Dinamis',
                 'icon'    => 'fa-wand-magic-sparkles',
                 'indeks'  => 'HM.01.01',
                 'perihal' => 'Surat Resmi Sekolah',

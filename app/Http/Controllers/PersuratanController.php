@@ -311,6 +311,10 @@ class PersuratanController extends Controller
             ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
             ->first();
 
+        $docId = 'SAE-DISP-' . $surat->id;
+        $qrVerifyUrl = url('/v/doc/' . $docId);
+        $qrUri = \App\Services\QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
+
         return view('dashboard.persuratan.cetak-disposisi', compact(
             'surat',
             'sekolah',
@@ -322,7 +326,9 @@ class PersuratanController extends Controller
             'disposisiInstruksi',
             'disposisiCatatan',
             'kepsek',
-            'kepalaTas'
+            'kepalaTas',
+            'docId',
+            'qrUri'
         ));
     }
 

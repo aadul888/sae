@@ -26,7 +26,7 @@
     <style>
         @page {
             size: A4 {{ $orientasi === 'landscape' ? 'landscape' : 'portrait' }};
-            margin: 12mm 14mm;
+            margin: 1.5cm;
         }
 
         .lap-page {

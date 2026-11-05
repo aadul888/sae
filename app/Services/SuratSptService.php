@@ -72,7 +72,7 @@ class SuratSptService
             'tujuan_penerima' => trim($request->lokasi_tujuan),
             'tanggal_surat'   => $request->tanggal_berangkat,
             'status'          => 'selesai',
-            'keterangan'      => "SPT Kegiatan {$request->nama_kegiatan}. Dasar: {$request->dasar_penugasan}. Beban: {$request->beban_anggaran}.",
+            'keterangan'      => "SPT Kegiatan {$request->nama_kegiatan}. Dasar: {$request->dasar_penugasan}. Beban: {$request->beban_anggaran}. Doc ID: SAE-SPT-{$sptId}",
             'created_by'      => $createdBy,
         ]);
 
@@ -117,12 +117,19 @@ class SuratSptService
               ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
         })->first();
 
+        $docId = 'SAE-SPT-' . $spt->id;
+        $qrVerifyUrl = url('/v/doc/' . $docId);
+        $qrUri = QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
+
         return compact(
             'spt',
             'gtkList',
             'sekolah',
             'sekolahMeta',
-            'kepsek'
+            'kepsek',
+            'docId',
+            'qrVerifyUrl',
+            'qrUri'
         );
     }
 }

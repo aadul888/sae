@@ -3,12 +3,50 @@
 @php
     $sekolah = $sekolah ?? \App\Models\Sekolah::first();
     $sekolahMeta = $sekolahMeta ?? \App\Models\SekolahMeta::first();
-    $kotaTtd = $sekolah?->kabupaten_kota ?: ($sekolahMeta?->kabupaten_kota ?? 'Cianjur');
+    $rawKota = $sekolah?->kabupaten_kota ?: ($sekolahMeta?->kabupaten_kota ?? 'Cianjur');
+    $kotaTtd = preg_replace('/^(kabupaten|kab\.|kota)\s+/i', '', trim($rawKota));
     $tglBerangkat = \Carbon\Carbon::parse($spt->tanggal_berangkat);
     $tglKembali = \Carbon\Carbon::parse($spt->tanggal_kembali);
     $hariTanggal = $tglBerangkat->translatedFormat('l, d F Y');
-    $namaKepsek = $spt->pejabat_nama ?: ($kepsek?->nama ?? 'Kepala Sekolah');
-    $nipKepsek = $kepsek?->nip ?: ($kepsek?->nuptk ?? '-');
+
+    // Pejabat penandatangan SPT & KPA SPPD: utamakan PTK yang dipilih saat input SPT
+    $pejabatPtk = null;
+    if (!empty($spt->pejabat_penandatangan_ptk_id)) {
+        $pejabatPtk = \App\Models\Gtk::where('ptk_id', $spt->pejabat_penandatangan_ptk_id)->first();
+    }
+    if (!$pejabatPtk) {
+        $pejabatPtk = $kepsek;
+    }
+
+    $namaKepsek = $spt->pejabat_nama ?: ($pejabatPtk?->nama ?? ($kepsek?->nama ?? 'Kepala Sekolah'));
+    $nipKepsek = $pejabatPtk?->nip ?: ($kepsek?->nip ?: ($pejabatPtk?->nuptk ?: ($kepsek?->nuptk ?? '-')));
+
+    $pangkatMap = [
+        'I/a'   => 'Juru Muda/ I.a',
+        'I/b'   => 'Juru Muda Tk.I/ I.b',
+        'I/c'   => 'Juru/ I.c',
+        'I/d'   => 'Juru Tk.I/ I.d',
+        'II/a'  => 'Pengatur Muda/ II.a',
+        'II/b'  => 'Pengatur Muda Tk.I/ II.b',
+        'II/c'  => 'Pengatur/ II.c',
+        'II/d'  => 'Pengatur Tk.I/ II.d',
+        'III/a' => 'Penata Muda/ III.a',
+        'III/b' => 'Penata Muda Tk.I/ III.b',
+        'III/c' => 'Penata/ III.c',
+        'III/d' => 'Penata Tk.I/ III.d',
+        'IV/a'  => 'Pembina/ IV.a',
+        'IV/b'  => 'Pembina Tk.I/ IV.b',
+        'IV/c'  => 'Pembina Utama Muda/ IV.c',
+        'IV/d'  => 'Pembina Utama Madya/ IV.d',
+        'IV/e'  => 'Pembina Utama/ IV.e',
+        'IX'    => 'Ahli Pertama/ IX',
+        'X'     => 'Ahli Muda/ X',
+        'XI'    => 'Ahli Madya/ XI',
+    ];
+
+    $rawGol = trim($pejabatPtk?->pangkat_golongan_terakhir ?: ($kepsek?->pangkat_golongan_terakhir ?? ''));
+    $pangkatGolKepsek = $pangkatMap[$rawGol] ?? $rawGol;
+    $tempatBerangkat = $spt->tempat_berangkat ?: ($sekolah?->nama ?? 'SMKN 1 Pagelaran');
 @endphp
 
 <head>
@@ -112,22 +150,32 @@
         /* Halaman 2 (SPPD) dicetak landscape, halaman lain portrait. */
         @page sp-landscape {
             size: A4 landscape;
+            margin: 1.5cm;
         }
 
         @page sp-portrait {
             size: A4 portrait;
+            margin: 1.5cm;
         }
 
         .sp-landscape {
             page: sp-landscape;
         }
 
-        /* `.cetak-page.landscape` memaksa min-height 210mm dengan !important
-           (spesifisitas lebih tinggi dari aturan print). Netralkan saat cetak
-           agar isi tidak meluber ke halaman kedua. */
+        .cetak-page.sp-landscape {
+            padding: 1.5cm !important;
+            max-width: 297mm !important;
+            box-sizing: border-box !important;
+        }
+
         @media print {
             .cetak-page.sp-landscape {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: none !important;
+                width: 100% !important;
                 min-height: 0 !important;
+                height: auto !important;
             }
         }
 
@@ -135,51 +183,143 @@
             page: sp-portrait;
         }
 
-        /* Halaman SPPD landscape: rapatkan agar tetap 1 halaman. */
-        .sp-landscape {
-            line-height: 1.1;
-            font-size: 8.5pt;
-            padding-bottom: 0 !important;
+        /* 2-Kolom Layout SPPD Landscape */
+        .sppd-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 7mm;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
+            color: #000;
         }
 
-        .sp-landscape .kop-container,
-        .sp-landscape .kop-surat {
-            padding-bottom: 4px !important;
+        .sppd-col {
+            flex: 1 1 50%;
+            width: calc(50% - 3.5mm);
+            box-sizing: border-box;
+        }
+
+        .sppd-col .kop-container,
+        .sppd-col .kop-surat {
+            width: 100% !important;
+            padding-bottom: 2px !important;
             margin-bottom: 6px !important;
+            border-bottom: 1.5px solid #000 !important;
         }
 
-        .sp-landscape .kop-container img,
-        .sp-landscape .kop-surat img {
-            max-height: 64px !important;
-            width: auto !important;
+        .sppd-col .kop-container img,
+        .sppd-col .kop-surat img {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: block !important;
         }
 
-        .sp-landscape .sp-title {
-            font-size: 10.5pt;
-            margin: 0;
-            line-height: 1.1;
+        .sppd-col .kop-title {
+            font-size: 8pt !important;
+            line-height: 1.1 !important;
+            font-weight: 700;
         }
 
-        .sp-landscape .sp-subtitle {
-            display: none;
+        .sppd-col .kop-subtitle {
+            font-size: 6.5pt !important;
+            line-height: 1.1 !important;
         }
 
-        .sp-landscape .sp-table {
+        .sppd-meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            line-height: 1.25;
+            margin-bottom: 8px; /* spasi enter setelah nomor surat */
+        }
+
+        .sppd-meta-table td {
+            border: none !important;
+            padding: 0 !important;
+            vertical-align: top;
+        }
+
+        .sppd-title {
+            text-align: center;
+            font-weight: 700;
             font-size: 8.5pt;
+            line-height: 1.25;
+            text-decoration: underline;
+            margin: 8px 0; /* spasi enter setelah judul SPPD */
+            text-transform: uppercase;
         }
 
-        .sp-landscape .sp-table th,
-        .sp-landscape .sp-table td {
-            padding: 1px 4px;
+        .sppd-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+            line-height: 1.25;
         }
 
-        .sp-landscape .sp-ttd {
-            margin-top: 4px;
-            font-size: 8.5pt;
+        .sppd-table th,
+        .sppd-table td {
+            border: 1px solid #000 !important;
+            padding: 2.5px 4px;
+            vertical-align: top;
         }
 
-        .sp-landscape .sp-space {
-            height: 6px;
+        .sppd-table-visum {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+            line-height: 1.2;
+        }
+
+        .sppd-table-visum tr.visum-row {
+            height: 104px;
+        }
+
+        .sppd-table-visum tr.visum-row-compact {
+            height: 92px; /* Row I dan V dikurangi tingginya sedikit */
+        }
+
+        .sppd-table-visum td {
+            border: 1px solid #000 !important;
+            padding: 3px 5px;
+            vertical-align: top;
+        }
+
+        .sppd-ttd-kpa {
+            margin-left: 45%;
+            margin-top: 18px; /* jarak setelah tabel ke tanda tangan dikeluarkan bla bla */
+            font-size: 8pt;
+            line-height: 1.25;
+        }
+
+        .spt-footer-verify {
+            margin-top: 24px;
+            padding-top: 8px;
+            border-top: 1px dashed #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 7.5pt;
+            color: #475569;
+            page-break-inside: avoid;
+        }
+
+        .spt-footer-verify .qr-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spt-footer-verify img {
+            width: 38px;
+            height: 38px;
+            border: 1px solid #cbd5e1;
+            padding: 1.5px;
+            background: #fff;
+            border-radius: 3px;
         }
     </style>
 </head>

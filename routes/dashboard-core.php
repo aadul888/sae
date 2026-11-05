@@ -243,6 +243,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/persuratan/keluar/import/template', [\App\Http\Controllers\SuratKeluarController::class, 'templateImport'])->name('persuratan.keluar.import.template')->middleware('permission:menu_surat_keluar,read');
     Route::post('/persuratan/keluar/import', [\App\Http\Controllers\SuratKeluarController::class, 'importExcel'])->name('persuratan.keluar.import')->middleware('permission:menu_surat_keluar,create');
     Route::post('/persuratan/keluar/template', [\App\Http\Controllers\SuratKeluarController::class, 'storeTemplate'])->name('persuratan.keluar.template.store')->middleware('permission:menu_surat_keluar,create');
+    Route::post('/persuratan/keluar/template/{id}/kirim', [\App\Http\Controllers\SuratKeluarController::class, 'kirimTemplateKeSuratKeluar'])->name('persuratan.keluar.template.kirim')->middleware('permission:menu_surat_keluar,create')->whereNumber('id');
     Route::delete('/persuratan/keluar/template/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteTemplate'])->name('persuratan.keluar.template.delete')->middleware('permission:menu_surat_keluar,delete')->whereNumber('id');
     Route::get('/persuratan/keluar/template/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakTemplate'])->name('persuratan.keluar.template.cetak')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');
 

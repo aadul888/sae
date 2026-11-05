@@ -13,15 +13,17 @@ use App\Models\SekolahMeta;
 class SuratTemplateService
 {
     /**
-     * Simpan Surat Keluar dari Template Autocrat dan Catat ke Persuratan Keluar
+     * Buat dan Terbitkan Surat dari Template ke Surat Keluar dengan Penomoran Otomatis Berdasarkan Indeks
      */
     public static function store(Request $request, $user): array
     {
         $kodeIndeks = $request->kode_indeks ?: 'HM.01.02';
-        $isAuto = empty($request->nomor_surat);
-        $nomorSurat = $isAuto
-            ? PersuratanHddService::generateNomorSuratKeluar($kodeIndeks)
-            : trim($request->nomor_surat);
+        $manualNomor = trim($request->nomor_surat ?? '');
+
+        $isManual = !empty($manualNomor);
+        $nomorSurat = $isManual
+            ? $manualNomor
+            : PersuratanHddService::generateNomorSuratKeluar($kodeIndeks);
 
         $kepsek = Gtk::where(function ($q) {
             $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
@@ -63,21 +65,23 @@ class SuratTemplateService
             'created_by'       => $userName,
         ]);
 
-        // Catat juga ke buku agenda persuratan keluar agar terindeks di master keluar
-        Persuratan::create([
-            'nomor_surat'     => $nomorSurat,
-            'jenis_surat'     => 'keluar',
-            'kode_indeks'     => $kodeIndeks,
-            'perihal'         => trim($request->perihal),
-            'pengirim_asal'   => $sekolah?->nama ?? 'SMK SAE',
-            'tujuan_penerima' => trim($request->tujuan_penerima),
-            'tanggal_surat'   => $request->tanggal_surat,
-            'status'          => 'selesai',
-            'keterangan'      => "Penerbitan surat keluar via Template Autocrat [{$request->template_type}]. Doc ID: {$docId}",
-            'created_by'      => $userName,
-        ]);
+        // Catat langsung ke master buku agenda persuratan keluar
+        Persuratan::updateOrCreate(
+            ['nomor_surat' => $nomorSurat],
+            [
+                'jenis_surat'     => 'keluar',
+                'kode_indeks'     => $kodeIndeks,
+                'perihal'         => trim($request->perihal),
+                'pengirim_asal'   => $sekolah?->nama ?? 'SMK SAE',
+                'tujuan_penerima' => trim($request->tujuan_penerima),
+                'tanggal_surat'   => $request->tanggal_surat,
+                'status'          => 'selesai',
+                'keterangan'      => "Penerbitan surat keluar dari Buat Surat [{$request->template_type}]. Doc ID: {$docId}",
+                'created_by'      => $userName,
+            ]
+        );
 
-        if ($isAuto) {
+        if (!$isManual) {
             PersuratanHddService::incrementNomorCounter('keluar');
         }
 
@@ -88,12 +92,58 @@ class SuratTemplateService
     }
 
     /**
-     * Hapus Dokumen Template Autocrat beserta relasinya di persuratan keluar
+     * Terbitkan Draf Template ke Surat Keluar & Berikan Nomor Surat Resmi Otomatis
+     */
+    public static function kirimKeSuratKeluar($id, $user): array
+    {
+        $doc = PersuratanTemplate::findOrFail($id);
+        $sekolah = Sekolah::first();
+        $userName = is_array($user) ? ($user['nama'] ?? 'Petugas Persuratan') : ($user->nama ?? 'Petugas Persuratan');
+
+        // Jika nomor surat masih draf atau belum resmi, generate nomor surat keluar resmi
+        $nomorSurat = $doc->nomor_surat;
+        if (empty($nomorSurat) || str_starts_with($nomorSurat, 'DRAFT/')) {
+            $nomorSurat = PersuratanHddService::generateNomorSuratKeluar($doc->kode_indeks ?: 'HM.01.02');
+            PersuratanHddService::incrementNomorCounter('keluar');
+        }
+
+        // Update status template menjadi selesai / resmi
+        $doc->update([
+            'nomor_surat' => $nomorSurat,
+            'status'      => 'selesai',
+        ]);
+
+        // Catat ke buku agenda persuratan keluar resmi agar masuk ke Surat Keluar
+        $persuratan = Persuratan::updateOrCreate(
+            ['nomor_surat' => $nomorSurat],
+            [
+                'jenis_surat'     => 'keluar',
+                'kode_indeks'     => $doc->kode_indeks,
+                'perihal'         => $doc->perihal,
+                'pengirim_asal'   => $sekolah?->nama ?? 'SMK SAE',
+                'tujuan_penerima' => $doc->tujuan_penerima,
+                'tanggal_surat'   => $doc->tanggal_surat,
+                'status'          => 'selesai',
+                'keterangan'      => "Penerbitan surat keluar dari Buat Surat [{$doc->template_type}]. Doc ID: {$doc->doc_id}",
+                'created_by'      => $userName,
+            ]
+        );
+
+        return [
+            'doc'        => $doc,
+            'nomorSurat' => $nomorSurat,
+        ];
+    }
+
+    /**
+     * Hapus Dokumen Template beserta relasinya di persuratan keluar (jika ada)
      */
     public static function delete($id): bool
     {
         $doc = PersuratanTemplate::findOrFail($id);
-        Persuratan::where('nomor_surat', $doc->nomor_surat)->delete();
+        if ($doc->nomor_surat && !str_starts_with($doc->nomor_surat, 'DRAFT/')) {
+            Persuratan::where('nomor_surat', $doc->nomor_surat)->delete();
+        }
         $doc->delete();
 
         return true;

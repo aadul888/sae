@@ -24,7 +24,7 @@
         /* Buku agenda selalu 8 kolom → wajib mendatar agar tidak terpotong. */
         @page {
             size: A4 landscape;
-            margin: 8mm 10mm;
+            margin: 1.5cm;
         }
 
         .filter-form-bar {

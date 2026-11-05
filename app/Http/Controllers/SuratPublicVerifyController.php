@@ -27,6 +27,8 @@ class SuratPublicVerifyController extends Controller
         $rombelNama = '-';
         $jurusanNama = '-';
         $suratUmum = null;
+        $spt = null;
+        $sptGtkList = collect();
         $sekolah = DB::table('sekolah')->first();
         $sekolahMeta = \App\Models\SekolahMeta::first();
 
@@ -42,21 +44,43 @@ class SuratPublicVerifyController extends Controller
             $rombelNama = $anggotaRombel?->rombel_nama ?: '-';
             $jurusanNama = $anggotaRombel?->jurusan_id_str ?: '-';
         } else {
-            // 2. Cek apakah ini surat umum di tabel persuratan
-            $suratUmum = Persuratan::where('nomor_surat', $cleanDocId)
-                ->orWhere('keterangan', 'like', "%{$cleanDocId}%")
-                ->first();
+            // 2. Cek apakah ini SPT (Surat Perintah Tugas & SPPD)
+            if (str_starts_with($cleanDocId, 'SAE-SPT-')) {
+                $sptId = (int) str_replace('SAE-SPT-', '', $cleanDocId);
+                $spt = DB::table('gtk_spt')->where('id', $sptId)->first();
+            } else {
+                $spt = DB::table('gtk_spt')->where('nomor_spt', $cleanDocId)->first();
+            }
+
+            if ($spt) {
+                $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
+                $sptGtkList = \App\Models\Gtk::whereIn('ptk_id', $ptkIds)->orderBy('nama', 'asc')->get();
+            }
+
+            // 3. Cek apakah ini lembar disposisi surat masuk
+            if (str_starts_with($cleanDocId, 'SAE-DISP-')) {
+                $dispSuratId = (int) str_replace('SAE-DISP-', '', $cleanDocId);
+                $suratUmum = Persuratan::where('id', $dispSuratId)->first();
+            }
+
+            // 4. Cek apakah ini surat umum / template di tabel persuratan
+            if (!$suratUmum) {
+                $suratUmum = Persuratan::where('nomor_surat', $cleanDocId)
+                    ->orWhere('keterangan', 'like', "%{$cleanDocId}%")
+                    ->first();
+            }
         }
 
-        $isValid = ($suratKet !== null || $suratUmum !== null);
+        $isValid = ($suratKet !== null || $suratUmum !== null || $spt !== null);
 
         // Penandatangan
-        $penandatanganNama = $suratKet?->penandatangan_nama;
-        $penandatanganJabatan = $suratKet?->penandatangan_jabatan ?: 'Kepala Sekolah';
+        $penandatanganNama = $suratKet?->penandatangan_nama ?: ($spt?->pejabat_nama ?? null);
+        $penandatanganJabatan = $suratKet?->penandatangan_jabatan ?: ($spt?->pejabat_jabatan ?: 'Kepala Sekolah');
         $penandatanganNip = '-';
 
-        if ($suratKet?->penandatangan_ptk_id) {
-            $gtk = DB::table('gtk')->where('ptk_id', $suratKet->penandatangan_ptk_id)->first();
+        $pejabatPtkId = $suratKet?->penandatangan_ptk_id ?: ($spt?->pejabat_penandatangan_ptk_id ?? null);
+        if ($pejabatPtkId) {
+            $gtk = DB::table('gtk')->where('ptk_id', $pejabatPtkId)->first();
             if ($gtk) {
                 $penandatanganNip = $gtk->nip ?: ($gtk->nuptk ?: '-');
             }
@@ -77,6 +101,8 @@ class SuratPublicVerifyController extends Controller
             'doc_id',
             'suratKet',
             'suratUmum',
+            'spt',
+            'sptGtkList',
             'siswa',
             'rombelNama',
             'jurusanNama',

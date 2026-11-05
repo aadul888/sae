@@ -25,7 +25,7 @@
         /* Ekspedisi: lembar per-surat = tegak; buku kolektif = mendatar. */
         @page {
             size: A4 {{ $orientasi }};
-            margin: 8mm 10mm;
+            margin: 1.5cm;
         }
 
         .filter-form-bar {

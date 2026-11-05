@@ -417,9 +417,28 @@ class SuratKeluarController extends Controller
 
         $res = SuratTemplateService::store($request, $user);
 
-        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template'])
-            ->with('success', "Surat keluar nomor {$res['nomorSurat']} berhasil dibuat dari template.")
+        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'keluar'])
+            ->with('success', "Surat resmi nomor {$res['nomorSurat']} berhasil diterbitkan ke Surat Keluar.")
             ->with('cetak_template_id', $res['templateDoc']->id);
+    }
+
+    /**
+     * Terbitkan Draf Surat ke Surat Keluar & Berikan Nomor Otomatis
+     */
+    public function kirimTemplateKeSuratKeluar($id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'create')) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses menerbitkan surat.');
+        }
+
+        $res = SuratTemplateService::kirimKeSuratKeluar($id, $user);
+
+        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template'])
+            ->with('success', "Surat resmi berhasil diterbitkan ke Surat Keluar dengan nomor: {$res['nomorSurat']}.");
     }
 
     /**

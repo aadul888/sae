@@ -773,6 +773,13 @@
                         <span class="nav-label">Dashboard Persuratan</span>
                     </a>
                 @endif
+                @if ($can('menu_surat_keluar') || $can('menu_persuratan'))
+                    <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.persuratan.keluar*') && (request('tab') === 'template' || request('tab') === 'autocrat') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-wand-magic-sparkles"></i></span>
+                        <span class="nav-label">Buat Surat</span>
+                    </a>
+                @endif
                 @if ($can('menu_surat_masuk') || $can('menu_persuratan'))
                     <a href="{{ route('dashboard.persuratan.masuk.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.persuratan.masuk*') ? 'active' : '' }}">
@@ -790,11 +797,6 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') === 'ekspedisi' ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-truck-fast"></i></span>
                         <span class="nav-label">Buku Ekspedisi</span>
-                    </a>
-                    <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
-                        class="dash-nav-sublink {{ request()->routeIs('dashboard.persuratan.keluar*') && (request('tab') === 'template' || request('tab') === 'autocrat') ? 'active' : '' }}">
-                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-wand-magic-sparkles"></i></span>
-                        <span class="nav-label">Autocrat</span>
                     </a>
                 @endif
                 @if ($can('menu_pengaturan_persuratan') || $can('menu_persuratan'))

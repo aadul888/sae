@@ -12,7 +12,7 @@
 body {
     background-color: #f1f5f9;
     color: #111827;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
     padding: 20px;
     font-size: 11pt;
     line-height: 1.4;
@@ -27,6 +27,7 @@ body {
 .print-toolbar,
 .print-control-bar,
 .action-toolbar {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     position: fixed !important;
     top: 14px !important;
     bottom: auto !important;
@@ -211,13 +212,14 @@ body {
 .cetak-page, .paper {
     background: #fff;
     margin: 0 auto 28px auto;
-    padding: 20mm 20mm;
+    padding: 1.5cm;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     border-radius: var(--radius-md, 8px);
     position: relative;
     overflow: hidden;
     max-width: 850px;
     min-height: 297mm;
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
 }
 
 .cetak-page.landscape, .paper.landscape {
@@ -431,7 +433,7 @@ body {
             padding: 0;
         }
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #000;
             background: #f1f5f9;
             padding: 24px;
@@ -1861,7 +1863,7 @@ body {
    ========================================================================== */
 
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #000;
             line-height: 1.5;
             margin: 0;
@@ -1942,7 +1944,7 @@ body {
    ========================================================================== */
 
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #000;
             line-height: 1.4;
             margin: 0;
@@ -2035,7 +2037,7 @@ body {
    ========================================================================== */
 
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #000;
             line-height: 1.5;
             margin: 0;
@@ -2439,7 +2441,7 @@ body {
             print-color-adjust: exact !important;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             font-size: 11pt;
             line-height: 1.5;
             color: #1f2937;
@@ -2450,7 +2452,7 @@ body {
         .page-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm 20mm;
+            padding: 1.5cm;
             margin: 0 auto;
             background: #ffffff;
             position: relative;
@@ -2898,7 +2900,7 @@ body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111827;
         }
 
@@ -2911,7 +2913,7 @@ body {
         .cetak-page {
             background: #fff;
             margin: 0 auto 28px auto;
-            padding: 24px 30px;
+            padding: 1.5cm;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-radius: var(--radius-md, 8px);
             position: relative;
@@ -3212,7 +3214,7 @@ body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111827;
         }
 
@@ -3225,7 +3227,7 @@ body {
             background: #fff;
             max-width: 900px;
             margin: 0 auto 28px auto;
-            padding: 24px 30px;
+            padding: 1.5cm;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border-radius: var(--radius-md, 8px);
             position: relative;
@@ -3470,7 +3472,7 @@ body {
    ========================================================================== */
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111;
             margin: 0;
             padding: 15px;
@@ -3562,7 +3564,7 @@ body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111827;
         }
 
@@ -3644,7 +3646,7 @@ body {
             max-width: 297mm;
             min-height: 210mm;
             margin: 50px auto 30px auto;
-            padding: 12mm 15mm 15mm 15mm;
+            padding: 1.5cm;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border-radius: var(--radius-xs, 4px);
             position: relative;
@@ -3961,7 +3963,7 @@ body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111827;
         }
 
@@ -3974,7 +3976,7 @@ body {
         .cetak-page {
             background: #fff;
             margin: 0 auto 28px auto;
-            padding: 24px 30px;
+            padding: 1.5cm;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-radius: var(--radius-md, 8px);
             position: relative;
@@ -4429,7 +4431,7 @@ body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
             color: #111827;
         }
 
@@ -4442,7 +4444,7 @@ body {
         .cetak-page {
             background: #fff;
             margin: 0 auto 28px auto;
-            padding: 24px 30px;
+            padding: 1.5cm;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-radius: var(--radius-md, 8px);
             position: relative;
@@ -4830,7 +4832,7 @@ body {
    ========================================================================== */
 * {
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', serif;
         }
         
         body {
@@ -5048,7 +5050,7 @@ body {
 }
 @page {
     size: auto;
-    margin: 8mm 10mm;
+    margin: 1.5cm;
 }
 
 @media print {

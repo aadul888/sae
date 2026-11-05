@@ -16,14 +16,14 @@
         <style>
             @page {
                 size: A4 landscape;
-                margin: 8mm 10mm;
+                margin: 1.5cm;
             }
         </style>
     @else
         <style>
             @page {
                 size: A4 portrait;
-                margin: 12mm 15mm;
+                margin: 1.5cm;
             }
         </style>
     @endif

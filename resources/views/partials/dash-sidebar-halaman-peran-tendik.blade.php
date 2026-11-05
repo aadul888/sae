@@ -72,6 +72,12 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                     <span class="nav-label">Dashboard Persuratan</span>
                 </a>
+                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && (request('tab') === 'template' || request('tab') === 'autocrat') ? 'active' : '' }}">
+                    <span class="nav-icon nested-icon"><i
+                            class="fas fa-fw fa-wand-magic-sparkles"></i></span>
+                    <span class="nav-label">Buat Surat</span>
+                </a>
                 <a href="{{ route('dashboard.persuratan.masuk.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.masuk*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-inbox"></i></span>
@@ -86,12 +92,6 @@
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') === 'ekspedisi' ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-truck-fast"></i></span>
                     <span class="nav-label">Buku Ekspedisi</span>
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && (request('tab') === 'template' || request('tab') === 'autocrat') ? 'active' : '' }}">
-                    <span class="nav-icon nested-icon"><i
-                            class="fas fa-fw fa-wand-magic-sparkles"></i></span>
-                    <span class="nav-label">Autocrat</span>
                 </a>
                 <a href="{{ route('dashboard.persuratan.pengaturan.index') }}"
                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.pengaturan*') ? 'active' : '' }}">

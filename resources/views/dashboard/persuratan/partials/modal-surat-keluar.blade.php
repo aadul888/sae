@@ -370,7 +370,7 @@
                         </button>
                         <button type="submit" class="btn btn-primary"
                             style="padding: 8px 18px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                            <i class="fas fa-check-circle me-1"></i> Terbitkan &amp; Cetak
+                            <i class="fas fa-floppy-disk me-1"></i> Simpan Surat Keterangan
                         </button>
                     </div>
                 </form>
@@ -432,116 +432,132 @@
 
                 <form action="{{ route('dashboard.persuratan.keluar.spt.store') }}" method="POST" id="formSpt">
                     @csrf
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                            Kegiatan / Tugas Dinas <span style="color: var(--danger, #ef4444);">*</span></label>
-                        <input type="text" name="nama_kegiatan" class="form-control"
-                            placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
-                            / Tempat Tujuan <span style="color: var(--danger, #ef4444);">*</span></label>
-                        <input type="text" name="lokasi_tujuan" class="form-control"
-                            placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
+                    <!-- Seksi 1: Dasar Penugasan -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-scale-balanced"></i> 1. Dasar Penugasan Dinas
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
                             <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Berangkat <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="date" name="tanggal_berangkat" class="form-control" required
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">Dasar
+                                Surat / Landasan Penugasan (Opsional)</label>
+                            <textarea name="dasar_penugasan" class="form-control" rows="2"
+                                placeholder="Contoh: Surat Undangan Kepala Cabang Dinas Pendidikan Wilayah XIII Nomor 421/123-Cadisdik.Wil.XIII tanggal 15 September 2026..."
+                                style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
                         </div>
-                        <div>
+                    </div>
+
+                    <!-- Seksi 2: Tujuan & Rincian Tugas -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-bullseye"></i> 2. Pokok Tugas &amp; Tujuan Penugasan
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
                             <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Kembali <span style="color: var(--danger, #ef4444);">*</span></label>
-                            <input type="date" name="tanggal_kembali" class="form-control" required
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
+                                Kegiatan / Tugas Dinas <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <input type="text" name="nama_kegiatan" class="form-control"
+                                placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
+                                / Tempat Tujuan <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <input type="text" name="lokasi_tujuan" class="form-control"
+                                placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                    Berangkat <span style="color: var(--danger, #ef4444);">*</span></label>
+                                <input type="date" name="tanggal_berangkat" class="form-control" required
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                    Kembali <span style="color: var(--danger, #ef4444);">*</span></label>
+                                <input type="date" name="tanggal_kembali" class="form-control" required
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
-                            Anggaran <span style="color: var(--danger, #ef4444);">*</span></label>
-                        <select name="beban_anggaran" class="form-control" required data-searchable
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                            <option value="BOS Reguler">BOS Reguler</option>
-                            <option value="BOS Kinerja">BOS Kinerja</option>
-                            <option value="Komite Sekolah">Komite Sekolah</option>
-                            <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
-                            <option value="Mandiri">Mandiri</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Detail
-                            Perjalanan Dinas (SPPD) <span
-                                style="font-weight: 400; color: var(--text-muted);">— opsional, mengisi lembar SPPD</span></label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                            <input type="text" name="waktu_pelaksanaan" class="form-control"
-                                placeholder="Waktu: 11.00 WIB s.d. selesai"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                            <input type="text" name="alat_angkutan" class="form-control"
-                                placeholder="Alat angkutan: Kendaraan Darat"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                            <input type="text" name="tingkat_biaya" class="form-control"
-                                placeholder="Tingkat biaya perjalanan dinas"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                            <input type="text" name="tempat_berangkat" class="form-control"
-                                placeholder="Tempat berangkat (default: sekolah)"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                    <!-- Seksi 3: Personel & Administrasi SPPD -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 10px); padding: 12px 14px; margin-bottom: 18px;">
+                        <div style="font-weight: 700; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-users"></i> 3. Personel Ditugaskan &amp; Beban Anggaran
                         </div>
-                    </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
+                                GTK Yang Ditugaskan <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <input type="search" id="searchGtkSpt" class="form-control"
+                                placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
+                                data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
+                                data-people-multiple-target="#selectedGtkSpt" data-people-multiple-name="daftar_ptk_id[]"
+                                data-people-multiple-required="true"
+                                style="background: var(--card-bg);">
+                            <div id="selectedGtkSpt" class="people-autocomplete-selected-list"></div>
+                        </div>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <input type="text" name="alamat_tujuan" class="form-control"
-                            placeholder="Alamat lengkap lokasi tujuan (opsional)"
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                    </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
+                                Anggaran <span style="color: var(--danger, #ef4444);">*</span></label>
+                            <select name="beban_anggaran" class="form-control" required data-searchable
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                <option value="BOS Reguler">BOS Reguler</option>
+                                <option value="BOS Kinerja">BOS Kinerja</option>
+                                <option value="Komite Sekolah">Komite Sekolah</option>
+                                <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
+                                <option value="Mandiri">Mandiri</option>
+                            </select>
+                        </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <input type="text" name="instansi_pembebanan" class="form-control"
-                            placeholder="Instansi pembebanan anggaran (default: sekolah)"
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        <input type="text" name="akun_kodering" class="form-control"
-                            placeholder="Akun / kodering anggaran"
-                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <textarea name="pengikut" class="form-control" rows="2"
-                            placeholder="Pengikut (nama & tanggal lahir, satu per baris) — opsional"
-                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                            GTK Yang Ditugaskan <span style="color: var(--danger, #ef4444);">*</span></label>
-                        <input type="search" id="searchGtkSpt" class="form-control"
-                            placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
-                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
-                            data-people-multiple-target="#selectedGtkSpt" data-people-multiple-name="daftar_ptk_id[]"
-                            data-people-multiple-required="true">
-                        <div id="selectedGtkSpt" class="people-autocomplete-selected-list"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Dasar
-                            Penugasan (Opsional)</label>
-                        <textarea name="dasar_penugasan" class="form-control" rows="2"
-                            placeholder="Contoh: Surat Undangan Dinas Pendidikan No. 421/123/2026 tanggal 15 September 2026..."
-                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label
+                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Detail
+                                Perjalanan Dinas (SPPD) <span
+                                    style="font-weight: 400; color: var(--text-muted);">— opsional, mengisi lembar SPPD</span></label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" name="waktu_pelaksanaan" class="form-control"
+                                    placeholder="Waktu: 11.00 WIB s.d. selesai"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                <input type="text" name="alat_angkutan" class="form-control"
+                                    placeholder="Alat angkutan: Kendaraan Darat"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                <input type="text" name="tingkat_biaya" class="form-control"
+                                    placeholder="Tingkat biaya perjalanan dinas"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                <input type="text" name="tempat_berangkat" class="form-control"
+                                    placeholder="Tempat berangkat (default: sekolah)"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="text" name="alamat_tujuan" class="form-control"
+                                    placeholder="Alamat lengkap lokasi tujuan (opsional)"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" name="instansi_pembebanan" class="form-control"
+                                    placeholder="Instansi pembebanan anggaran (default: sekolah)"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                <input type="text" name="akun_kodering" class="form-control"
+                                    placeholder="Akun / kodering anggaran"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <textarea name="pengikut" class="form-control" rows="2"
+                                    placeholder="Pengikut (nama & tanggal lahir, satu per baris) — opsional"
+                                    style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
+                            </div>
+                        </div>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -549,13 +565,13 @@
                             style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">Batal</button>
                         <button type="submit" class="btn btn-primary"
                             style="padding: 8px 18px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"><i
-                                class="fas fa-check-circle me-1"></i> Terbitkan SPT</button>
+                                class="fas fa-floppy-disk me-1"></i> Simpan SPT</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Modal 5: Buat Surat Keluar dari Template (Autocrat Merge) -->
+        <!-- Modal 5: Buat Surat Keluar dari Template Dinamis -->
         <div class="modal-overlay" id="modalTemplateSurat"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
             <div class="modal-container"
@@ -577,179 +593,201 @@
                 <form action="{{ route('dashboard.persuratan.keluar.template.store') }}" method="POST"
                     id="formTemplateSurat">
                     @csrf
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Pilihan Template Naskah <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <select name="template_type" id="selectTemplateType" class="form-control" required data-searchable
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                                @foreach ($templatePresets as $tKey => $tVal)
-                                    <option value="{{ $tKey }}" data-indeks="{{ $tVal['indeks'] }}"
-                                        data-perihal="{{ $tVal['perihal'] }}" data-salam="{{ $tVal['salam'] }}"
-                                        data-pembuka="{{ $tVal['pembuka'] }}" data-penutup="{{ $tVal['penutup'] }}">{{ $tVal['label'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Kode Indeks Klasifikasi <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required data-searchable
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                                @foreach ($indeksList as $idx)
-                                    <option value="{{ $idx->kode }}" {{ $idx->kode === 'HM.01.02' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
 
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Nomor Surat Resmi (Auto / Manual)
-                            </label>
-                            <input type="text" name="nomor_surat" id="inputTmplNomorSurat" class="form-control"
-                                value="{{ $suggestedTemplateNumber }}" placeholder="Kosongkan untuk auto-generate..."
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-family: monospace;">
+                    <!-- 1. Dasar Surat / Klasifikasi & Template -->
+                    <div style="background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 16px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-layer-group"></i> 1. Dasar Klasifikasi &amp; Naskah
                         </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Tanggal Surat <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <input type="date" name="tanggal_surat" class="form-control"
-                                value="{{ date('Y-m-d') }}" required
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Hal / Perihal Surat <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <input type="text" name="perihal" id="inputTmplPerihal" class="form-control" required
-                                value="{{ $templatePresets['undangan']['perihal'] ?? '' }}"
-                                placeholder="Contoh: Undangan Rapat Evaluasi Belajar Semester Genap"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Lampiran
-                            </label>
-                            <input type="text" name="lampiran" class="form-control" value="-"
-                                placeholder="Misal: 1 Berkas"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Kepada Yth. (Tujuan Penerima) <span style="color: var(--danger, #ef4444);">*</span>
-                            </label>
-                            <input type="text" name="tujuan_penerima" class="form-control" required
-                                placeholder="Contoh: Bapak / Ibu Orang Tua / Wali Murid Kelas X"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        </div>
-                        <div>
-                            <label
-                                style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Lokasi / Alamat Tujuan
-                            </label>
-                            <input type="text" name="tujuan_lokasi" class="form-control" value="Di Tempat"
-                                placeholder="Contoh: Di Tempat / Pandeglang"
-                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                            Salam &amp; Paragraf Pembuka
-                        </label>
-                        <input type="text" name="salam_pembuka" id="inputTmplSalam" class="form-control mb-2"
-                            value="Dengan hormat,"
-                            style="width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
-                        <textarea name="paragraf_pembuka" id="inputTmplPembuka" class="form-control" rows="2"
-                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">{{ $templatePresets['undangan']['pembuka'] ?? '' }}</textarea>
-                    </div>
-
-                    {{-- Form Rincian Acara / Kegiatan (Autocrat Merge Fields) --}}
-                    <div id="sectionRincianKegiatanTemplate"
-                        style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 14px;">
-                        <div
-                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
-                            <i class="fas fa-calendar-check text-primary me-1"></i> Rincian Agenda / Kegiatan / Berkas
-                            (Opsional)
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                             <div>
                                 <label
-                                    style="display: block; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 4px;">Hari
-                                    / Tanggal</label>
-                                <input type="text" name="hari_tanggal_kegiatan"
-                                    placeholder="Contoh: Senin, 20 Oktober 2026"
-                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Pilihan Template Naskah <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <select name="template_type" id="selectTemplateType" class="form-control" required data-searchable
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                    @foreach ($templatePresets as $tKey => $tVal)
+                                        <option value="{{ $tKey }}" data-indeks="{{ $tVal['indeks'] }}"
+                                            data-perihal="{{ $tVal['perihal'] }}" data-salam="{{ $tVal['salam'] }}"
+                                            data-pembuka="{{ $tVal['pembuka'] }}" data-penutup="{{ $tVal['penutup'] }}">{{ $tVal['label'] }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label
-                                    style="display: block; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 4px;">Waktu
-                                    / Pukul</label>
-                                <input type="text" name="waktu_kegiatan"
-                                    placeholder="Contoh: 08.00 WIB s.d. Selesai"
-                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Kode Indeks Klasifikasi <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required data-searchable
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                    @foreach ($indeksList as $idx)
+                                        <option value="{{ $idx->kode }}" {{ $idx->kode === 'HM.01.02' ? 'selected' : '' }}>{{ $idx->kode }} - {{ $idx->judul }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
                             <div>
                                 <label
-                                    style="display: block; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 4px;">Tempat
-                                    Pelaksanaan</label>
-                                <input type="text" name="tempat_kegiatan"
-                                    placeholder="Contoh: Aula Serbaguna Sekolah"
-                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Nomor Surat Resmi
+                                </label>
+                                <input type="text" name="nomor_surat" id="inputTmplNomorSurat" class="form-control"
+                                    placeholder="Diterbitkan otomatis saat naskah dikirim ke Surat Keluar..." readonly
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.03); color: var(--text-muted); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-family: monospace; cursor: not-allowed;">
+                                <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-top: 3px;">
+                                    <i class="fas fa-info-circle me-1"></i> Disimpan sebagai <strong>Draf</strong>. Nomor resmi terbit saat dikirim ke Surat Keluar.
+                                </div>
                             </div>
                             <div>
                                 <label
-                                    style="display: block; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 4px;">Agenda
-                                    / Acara</label>
-                                <input type="text" name="agenda_kegiatan"
-                                    placeholder="Contoh: Rapat Komite &amp; Sosialisasi Program"
-                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Tanggal Surat <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <input type="date" name="tanggal_surat" class="form-control"
+                                    value="{{ date('Y-m-d') }}" required
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                            Isi Tambahan / Uraian Bebas (Opsional)
-                        </label>
-                        <textarea name="isi_surat" class="form-control" rows="2"
-                            placeholder="Tuliskan poin-poin tambahan atau isi bebas lainnya jika diperlukan..."
-                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
+                    <!-- 2. Tujuan & Pokok Surat -->
+                    <div style="background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.18); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 16px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-location-arrow"></i> 2. Tujuan &amp; Pokok Perihal
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Kepada Yth. (Tujuan Penerima) <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <input type="text" name="tujuan_penerima" class="form-control" required
+                                    placeholder="Contoh: Bapak / Ibu Orang Tua / Wali Murid Kelas X"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Lokasi / Alamat Tujuan
+                                </label>
+                                <input type="text" name="tujuan_lokasi" class="form-control" value="Di Tempat"
+                                    placeholder="Contoh: Di Tempat / Pandeglang"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 12px;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Hal / Perihal Surat <span style="color: var(--danger, #ef4444);">*</span>
+                                </label>
+                                <input type="text" name="perihal" id="inputTmplPerihal" class="form-control" required
+                                    value="{{ $templatePresets['undangan']['perihal'] ?? '' }}"
+                                    placeholder="Contoh: Undangan Rapat Evaluasi Belajar Semester Genap"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                    Lampiran
+                                </label>
+                                <input type="text" name="lampiran" class="form-control" value="-"
+                                    placeholder="Misal: 1 Berkas"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                            Paragraf Penutup
-                        </label>
-                        <textarea name="paragraf_penutup" id="inputTmplPenutup" class="form-control" rows="2"
-                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">{{ $templatePresets['undangan']['penutup'] ?? '' }}</textarea>
+                    <!-- 3. Isi Naskah & Rincian Agenda -->
+                    <div style="background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.2); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 16px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-file-lines"></i> 3. Isi Naskah &amp; Pelaksanaan
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                Salam &amp; Paragraf Pembuka
+                            </label>
+                            <input type="text" name="salam_pembuka" id="inputTmplSalam" class="form-control mb-2"
+                                value="Dengan hormat,"
+                                style="width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            <textarea name="paragraf_pembuka" id="inputTmplPembuka" class="form-control" rows="2"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">{{ $templatePresets['undangan']['pembuka'] ?? '' }}</textarea>
+                        </div>
+
+                        {{-- Form Rincian Acara / Kegiatan --}}
+                        <div id="sectionRincianKegiatanTemplate"
+                            style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
+                            <div
+                                style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
+                                <i class="fas fa-calendar-check text-primary me-1"></i> Rincian Hari, Waktu &amp; Tempat Kegiatan (Jika Ada)
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                                <div>
+                                    <label
+                                        style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 4px;">Hari
+                                        / Tanggal</label>
+                                    <input type="text" name="hari_tanggal_kegiatan"
+                                        placeholder="Contoh: Senin, 20 Oktober 2026"
+                                        style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 4px;">Waktu
+                                        / Pukul</label>
+                                    <input type="text" name="waktu_kegiatan"
+                                        placeholder="Contoh: 08.00 WIB s.d. Selesai"
+                                        style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <label
+                                        style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 4px;">Tempat
+                                        Pelaksanaan</label>
+                                    <input type="text" name="tempat_kegiatan"
+                                        placeholder="Contoh: Aula Serbaguna Sekolah"
+                                        style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 4px;">Agenda
+                                        / Acara</label>
+                                    <input type="text" name="agenda_kegiatan"
+                                        placeholder="Contoh: Rapat Komite &amp; Sosialisasi Program"
+                                        style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                Isi Tambahan / Uraian Bebas (Opsional)
+                            </label>
+                            <textarea name="isi_surat" class="form-control" rows="2"
+                                placeholder="Tuliskan poin-poin tambahan atau isi bebas lainnya jika diperlukan..."
+                                style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label
+                                style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 5px; color: var(--text-color);">
+                                Paragraf Penutup
+                            </label>
+                            <textarea name="paragraf_penutup" id="inputTmplPenutup" class="form-control" rows="2"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">{{ $templatePresets['undangan']['penutup'] ?? '' }}</textarea>
+                        </div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label
-                            style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
                             Tembusan (Opsional)
                         </label>
                         <textarea name="tembusan" class="form-control" rows="1" placeholder="1. Ketua Komite Sekolah&#10;2. Arsip"
@@ -761,7 +799,7 @@
                             style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">Batal</button>
                         <button type="submit" class="btn btn-primary"
                             style="padding: 8px 20px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #4f46e5 0%, var(--purple, #7c3aed) 100%); border: none;">
-                            <i class="fas fa-wand-magic-sparkles me-1"></i> Terbitkan &amp; Cetak Surat
+                            <i class="fas fa-floppy-disk me-1"></i> Simpan Draf Surat
                         </button>
                     </div>
                 </form>

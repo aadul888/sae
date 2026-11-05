@@ -46,11 +46,24 @@
 <!-- Tab bidang tugas (desktop: tab, mobile: dropdown) -->
 @include('dashboard.tendik.partials.domain-tabs')
 
+<!-- Tab Navigasi Modul Persuratan -->
+@include('dashboard.persuratan.partials.tab-nav')
+
 
 <!-- 3. Akses Cepat Menu Persuratan (selaras submenu sidebar & tupoksi) -->
 @php
     $can = $can ?? fn(string $key) => \App\Models\RolePermission::canAccess(session('user') ?: 'tendik', $key, 'read');
     $quickItems = [
+        [
+            'label' => 'Buat Surat',
+            'title' => 'Buat Surat Otomatis dari Template',
+            'route' => route('dashboard.persuratan.keluar.index', ['tab' => 'template']),
+            'icon' => 'fa-wand-magic-sparkles',
+            'color' => 'var(--purple, #8b5cf6)',
+            'bg' => 'rgba(139, 92, 246, 0.15)',
+            'group' => 'layanan',
+            'can' => ['menu_surat_keluar', 'menu_persuratan'],
+        ],
         [
             'label' => 'Surat Masuk',
             'title' => 'Buku Agenda Surat Masuk',
@@ -78,16 +91,6 @@
             'icon' => 'fa-truck-fast',
             'color' => 'var(--info, #0ea5e9)',
             'bg' => 'rgba(14, 165, 233, 0.15)',
-            'group' => 'layanan',
-            'can' => ['menu_surat_keluar', 'menu_persuratan'],
-        ],
-        [
-            'label' => 'Autocrat',
-            'title' => 'Template Surat Otomatis Autocrat',
-            'route' => route('dashboard.persuratan.keluar.index', ['tab' => 'template']),
-            'icon' => 'fa-wand-magic-sparkles',
-            'color' => 'var(--purple, #8b5cf6)',
-            'bg' => 'rgba(139, 92, 246, 0.15)',
             'group' => 'layanan',
             'can' => ['menu_surat_keluar', 'menu_persuratan'],
         ],

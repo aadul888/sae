@@ -354,12 +354,18 @@ class SuratMasukController extends Controller
             })
             ->first();
 
+        $docId = 'SAE-DISP-' . $surat->id;
+        $qrVerifyUrl = url('/v/doc/' . $docId);
+        $qrUri = \App\Services\QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
+
         return view('dashboard.persuratan.cetak-disposisi', compact(
             'surat',
             'disposisi',
             'sekolah',
             'sekolahMeta',
-            'kepsek'
+            'kepsek',
+            'docId',
+            'qrUri'
         ));
     }
 

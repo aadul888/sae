@@ -268,8 +268,8 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'Surat ini';
 
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\" beserta berkas arsipnya di harddisk? Tindakan ini permanen.", "Hapus Surat Masuk?", 'warning', "Ya, Hapus", "Batal").then(result => {
-                if (result.isConfirmed) {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${name}" beserta berkas arsipnya di harddisk? Tindakan ini permanen.`, "Hapus Surat Masuk?", 'warning', "Ya, Hapus", "Batal").then(confirmed => {
+                if (confirmed) {
                     form.submit();
                 }
             });
