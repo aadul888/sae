@@ -11,11 +11,9 @@
                 alt="SAE Logo" class="dash-brand-full" style="height: 36px; max-width: 140px; object-fit: contain;"
                 onerror="this.onerror=null; this.src='/img/logo-dark.png';">
             <img id="dashLogoMini" src="{{ $dashLogoIcon }}" alt="SAE Logo" class="dash-brand-mini"
-                style="height: 30px; width: 30px; object-fit: contain; display: none;"
+                style="height: 32px; width: 32px; object-fit: contain; display: none;"
                 onerror="this.onerror=null; this.src='/img/logo-icon.png';">
         </a>
-        <button type="button" class="dash-sidebar-toggle-btn" id="btnToggleSidebarMini"
-            title="Kecilkan Sidebar (Minimize)" aria-label="Toggle Minimize Sidebar">
-            <i class="fas fa-angles-left" id="iconToggleSidebarMini"></i>
-        </button>
+        <span class="badge badge-primary dash-sidebar-version"
+            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.5' }}</span>
     </div>

@@ -7,51 +7,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById("dashToggleBtn");
     const backdrop = document.getElementById("dashBackdrop");
 
-    if (toggleBtn && sidebar && backdrop) {
-        toggleBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("open");
-            backdrop.classList.toggle("open");
-        });
-
-        backdrop.addEventListener("click", () => {
-            sidebar.classList.remove("open");
-            backdrop.classList.remove("open");
-        });
-    }
-
-    // Sidebar Minimize / Maximize Desktop & Mobile Drawer Close
-    const btnToggleMini = document.getElementById("btnToggleSidebarMini");
-    const iconToggleMini = document.getElementById("iconToggleSidebarMini");
-
-    function updateMiniSidebarUI(isMini) {
-        if (!iconToggleMini) return;
-        if (isMini) {
-            iconToggleMini.className = "fas fa-angles-right";
-            if (btnToggleMini) btnToggleMini.title = "Perbesar Sidebar (Maximize)";
+    function updateSidebarToggleTooltip(isMini) {
+        if (!toggleBtn) return;
+        if (window.innerWidth > 1024) {
+            toggleBtn.title = isMini ? "Perbesar Sidebar (Maximize)" : "Kecilkan Sidebar (Minimize)";
         } else {
-            iconToggleMini.className = "fas fa-angles-left";
-            if (btnToggleMini) btnToggleMini.title = "Kecilkan Sidebar (Minimize)";
+            toggleBtn.title = "Buka/Tutup Menu";
         }
     }
 
-    if (btnToggleMini) {
-        btnToggleMini.addEventListener("click", () => {
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener("click", () => {
             if (window.innerWidth <= 1024) {
-                if (sidebar) sidebar.classList.remove("open");
-                if (backdrop) backdrop.classList.remove("open");
+                sidebar.classList.toggle("open");
+                if (backdrop) backdrop.classList.toggle("open");
             } else {
                 const isMini = document.documentElement.classList.toggle("sidebar-mini");
                 try {
                     localStorage.setItem("sae_sidebar_mini", isMini ? "1" : "0");
                 } catch (e) {}
-                updateMiniSidebarUI(isMini);
+                updateSidebarToggleTooltip(isMini);
             }
         });
+
+        if (backdrop) {
+            backdrop.addEventListener("click", () => {
+                sidebar.classList.remove("open");
+                backdrop.classList.remove("open");
+            });
+        }
     }
 
-    if (document.documentElement.classList.contains("sidebar-mini")) {
-        updateMiniSidebarUI(true);
-    }
+    updateSidebarToggleTooltip(document.documentElement.classList.contains("sidebar-mini"));
 
     // Auto title tooltip untuk ikon saat sidebar mini
     document.querySelectorAll(".dash-sidebar .dash-nav-link, .dash-sidebar .dash-nav-toggle").forEach((el) => {
@@ -75,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     localStorage.setItem("sae_sidebar_mini", "0");
                 } catch (e) {}
-                updateMiniSidebarUI(false);
+                updateSidebarToggleTooltip(false);
             }
 
             const isOpen = group.classList.contains("open");

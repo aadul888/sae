@@ -3,7 +3,7 @@
     <div class="dash-dropdown-backdrop" id="dashDropdownBackdrop"></div>
 
     <div class="dash-header-left">
-        <button type="button" class="dash-toggle-btn" id="dashToggleBtn" aria-label="Toggle Sidebar">
+        <button type="button" class="dash-toggle-btn" id="dashToggleBtn" aria-label="Toggle Sidebar" title="Kecilkan/Perbesar Sidebar">
             <i class="fas fa-bars-staggered"></i>
         </button>
         <div class="dash-breadcrumb">
