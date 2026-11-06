@@ -58,9 +58,11 @@ class PerpusEbookController extends Controller
             ? (int) DB::table('perpus_koleksi_buku')->where('format', 'ebook')->sum('total_dibaca')
             : 0;
 
+        $totalTersediaRepo = count(PerpustakaanEbookService::katalogMaster());
+
         return view('dashboard.perpus.ebook-tarik', compact(
             'items', 'q', 'kelas', 'kategori', 'sumber', 'daftarKategori', 'daftarSumber',
-            'totalEbookKatalog', 'totalDibaca'
+            'totalEbookKatalog', 'totalDibaca', 'totalTersediaRepo'
         ));
     }
 

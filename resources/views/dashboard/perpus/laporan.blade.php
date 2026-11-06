@@ -62,7 +62,7 @@
             </form>
         </div>
 
-        <!-- 4. Stat Grid Ringkasan -->
+        <!-- 4. Stat Grid Ringkasan (Baku SAE: 4 Kartu Rekap) -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);"><i class="fas fa-book"></i></div>
@@ -89,14 +89,7 @@
                 <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);"><i class="fas fa-users-line"></i></div>
                 <div class="dash-stat-info">
                     <div class="dash-stat-value">{{ number_format($totalKunjungan, 0, ',', '.') }} Orang</div>
-                    <div class="dash-stat-label">Kunjungan Periode</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(236,72,153,0.12); color: #ec4899;"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value">Rp {{ number_format($dendaTerkumpul, 0, ',', '.') }}</div>
-                    <div class="dash-stat-label">Denda Terkumpul</div>
+                    <div class="dash-stat-label">Kunjungan (Denda Rp {{ number_format($dendaTerkumpul, 0, ',', '.') }})</div>
                 </div>
             </div>
         </div>

@@ -38,33 +38,42 @@
             <div class="alert alert-success" style="margin-bottom:16px;"><i class="fas fa-circle-check"></i> {{ session('success') }}</div>
         @endif
 
-        {{-- Statistik Ringkas --}}
-        <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px;margin-bottom:20px;">
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
+        {{-- Statistik Ringkas Baku SAE: 4 Kartu Rekap --}}
+        <div class="dash-stat-grid" style="margin-bottom: 20px;">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
-                <div>
-                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">E-Book di Katalog</div>
-                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ number_format($totalEbookKatalog, 0, ',', '.') }} Judul</div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value">{{ number_format($totalEbookKatalog, 0, ',', '.') }}</div>
+                    <div class="dash-stat-label">E-Book di Katalog</div>
                 </div>
             </div>
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(16,185,129,0.12);color:var(--success,#10b981);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-eye"></i>
                 </div>
-                <div>
-                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Total Dibaca Siswa/Guru</div>
-                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ number_format($totalDibaca, 0, ',', '.') }} Kali</div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value">{{ number_format($totalDibaca, 0, ',', '.') }}</div>
+                    <div class="dash-stat-label">Total Dibaca Siswa/Guru</div>
                 </div>
             </div>
-            <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(245,158,11,0.12);color:var(--warning,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
                     <i class="fas fa-layer-group"></i>
                 </div>
-                <div>
-                    <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:700;text-transform:uppercase;">Tersedia di Repositori</div>
-                    <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);">{{ count($items) }} Judul Siap Tarik</div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value">{{ number_format($totalTersediaRepo ?? count($items), 0, ',', '.') }}</div>
+                    <div class="dash-stat-label">Master di Repositori</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
+                    <i class="fas fa-cloud-arrow-down"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value">{{ number_format(count($items), 0, ',', '.') }}</div>
+                    <div class="dash-stat-label">Hasil Filter Siap Tarik</div>
                 </div>
             </div>
         </div>
