@@ -398,55 +398,78 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Action: Tandai Sudah Selesai ke Dapodik
+    // Action: Tandai Sudah Selesai ke Dapodik (modal & tombol pada tabel usulan)
+    async function markDapodik(pdId, btn) {
+        if (!pdId) return;
+
+        // SAE.confirm mengembalikan boolean.
+        const ok = await window.SAE.confirm(
+            "Status usulan ini akan ditandai telah selesai di-input / disinkronkan ke aplikasi Dapodik.",
+            "Tandai Selesai di Dapodik?",
+            'info',
+            "Ya, Tandai Selesai",
+            "Batal"
+        );
+        if (!ok) return;
+
+        const original = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/dapodik`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            });
+
+            const json = await res.json();
+            if (json.status !== 'success') throw new Error(json.message || 'Gagal menandai status.');
+
+            Swal.fire({
+                title: 'Sinkronisasi Selesai',
+                text: json.message,
+                icon: 'success',
+                timer: 1600,
+                showConfirmButton: false
+            });
+
+            window.closeModalPengelolaanUsulan();
+            if (typeof window.refreshLiveTable === 'function') {
+                window.refreshLiveTable();
+            } else {
+                location.reload();
+            }
+        } catch (err) {
+            Swal.fire('Gagal', err.message, 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        }
+    }
+
     const btnDapodik = document.getElementById('btnTandaiDapodikUsulan');
     if (btnDapodik) {
-        btnDapodik.addEventListener('click', async function () {
+        btnDapodik.addEventListener('click', function () {
             const modal = document.getElementById('modalPengelolaanUsulan');
-            const pdId = modal.getAttribute('data-pd-id');
-
-            const confirm = await window.SAE.confirm("Status usulan ini akan ditandai telah selesai di-input / disinkronkan ke aplikasi Dapodik.", "Tandai Selesai di Dapodik?", 'info', "Ya, Tandai Selesai", "Batal");
-
-            if (!confirm.isConfirmed) return;
-
-            btnDapodik.disabled = true;
-            btnDapodik.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
-
-            try {
-                const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/dapodik`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    }
-                });
-
-                const json = await res.json();
-                if (json.status !== 'success') throw new Error(json.message || 'Gagal menandai status.');
-
-                Swal.fire({
-                    title: 'Sinkronisasi Selesai',
-                    text: json.message,
-                    icon: 'success',
-                    timer: 1600,
-                    showConfirmButton: false
-                });
-
-                window.closeModalPengelolaanUsulan();
-                if (typeof window.refreshLiveTable === 'function') {
-                    window.refreshLiveTable();
-                } else {
-                    location.reload();
-                }
-            } catch (err) {
-                Swal.fire('Gagal', err.message, 'error');
-            } finally {
-                btnDapodik.disabled = false;
-                btnDapodik.innerHTML = '<i class="fas fa-cloud-arrow-up me-1"></i> Tandai Sudah Selesai ke Dapodik';
-            }
+            markDapodik(modal ? modal.getAttribute('data-pd-id') : null, btnDapodik);
         });
     }
+
+    document.addEventListener('click', function (e) {
+        const b = e.target.closest('.btn-mark-dapodik');
+        if (b) {
+            e.preventDefault();
+            markDapodik(b.getAttribute('data-id'), b);
+        }
+    });
 
     function escapeHtml(str) {
         if (!str) return '';

@@ -387,16 +387,18 @@
                                 <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 26%;">Data Awal</th>
                                 <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 28%;">Data Baru</th>
                                 <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 16%;">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: center;">
+                                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                                         <span>Verifikasi</span>
-                                        <button type="button" id="btnCeklisSemuaUsulan" class="btn-icon" title="Tandai semua Setujui"
-                                            style="width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.1); color: #10b981; cursor: pointer;">
-                                            <i class="fas fa-check" style="font-size: 0.68rem;"></i>
-                                        </button>
-                                        <button type="button" id="btnXSemuaUsulan" class="btn-icon" title="Tandai semua Tolak"
-                                            style="width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1); color: #ef4444; cursor: pointer;">
-                                            <i class="fas fa-xmark" style="font-size: 0.68rem;"></i>
-                                        </button>
+                                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                            <button type="button" id="btnCeklisSemuaUsulan" class="btn-icon" title="Tandai semua Setujui"
+                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(16,185,129,0.4); background: transparent; color: #10b981; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
+                                                <i class="fas fa-check" style="font-size: 0.65rem;"></i>
+                                            </button>
+                                            <button type="button" id="btnXSemuaUsulan" class="btn-icon" title="Tandai semua Tolak"
+                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(239,68,68,0.4); background: transparent; color: #ef4444; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
+                                                <i class="fas fa-xmark" style="font-size: 0.65rem;"></i>
+                                            </button>
+                                        </span>
                                     </div>
                                 </th>
                             </tr>
