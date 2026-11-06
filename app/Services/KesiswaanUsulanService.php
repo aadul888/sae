@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AdminAktivitas;
+use App\Models\NotifikasiTransaksi;
 use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikMeta;
@@ -17,6 +18,33 @@ use App\Support\Table;
 
 class KesiswaanUsulanService
 {
+    /**
+     * Kirim notifikasi in-app ke peserta didik terkait hasil verifikasi usulan identitas.
+     */
+    private function notifyStudent(string|int $pdId, string $judul, string $pesan, string $tipe, string $icon): void
+    {
+        try {
+            if (!Table::exists('notifikasi_transaksi')) return;
+
+            $user = \App\Models\User::where('peserta_didik_id', $pdId)->first();
+            $penggunaId = $user?->pengguna_id;
+
+            NotifikasiTransaksi::create([
+                'pengguna_id'      => $penggunaId,
+                'peserta_didik_id' => (string) $pdId,
+                'kategori'         => 'usulan_identitas',
+                'judul'            => $judul,
+                'pesan'            => $pesan,
+                'tipe'             => $tipe,
+                'icon'             => $icon,
+                'url'              => route('dashboard.identitas.index'),
+                'is_read'          => false,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi usulan: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Simpan Usulan Perubahan Data Siswa.
      */
@@ -321,12 +349,32 @@ class KesiswaanUsulanService
                 $identitasUpdates['status_konfirmasi'] = 'diverifikasi';
                 $identitasUpdates['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
             } elseif ($status === 'ditolak') {
+                // Buka kembali formulir agar siswa dapat mengusulkan ulang.
+                $identitasUpdates['status_konfirmasi'] = 'perlu_perbaikan';
                 $identitasUpdates['catatan_kesiswaan'] = "Usulan perubahan data ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
             }
 
             if (!empty($identitasUpdates)) {
                 DB::table('peserta_didik_identitas')->where('peserta_didik_id', $pdId)->update($identitasUpdates);
             }
+        }
+
+        if ($status === 'ditolak') {
+            $this->notifyStudent(
+                $pdId,
+                'Usulan Perubahan Data Ditolak',
+                'Usulan perubahan data Anda ditolak oleh Tim Kesiswaan. Alasan: ' . ($catatan ?: 'Dokumen pendukung tidak sesuai.') . ' Silakan perbaiki dan ajukan ulang melalui formulir identitas.',
+                'danger',
+                'fas fa-circle-xmark'
+            );
+        } else {
+            $this->notifyStudent(
+                $pdId,
+                'Usulan Perubahan Data Disetujui',
+                'Usulan perubahan data Anda telah disetujui Tim Kesiswaan dan menunggu di-input ke aplikasi Dapodik.',
+                'success',
+                'fas fa-circle-check'
+            );
         }
 
         if (class_exists(AdminAktivitas::class)) {
@@ -387,6 +435,14 @@ class KesiswaanUsulanService
                         'status_konfirmasi' => 'disinkronkan_dapodik',
                         'catatan_kesiswaan' => 'Seluruh usulan perubahan data siswa telah selesai di-input ke aplikasi Dapodik.',
                     ]);
+
+                $this->notifyStudent(
+                    $pdId,
+                    'Perubahan Data Berhasil ke Dapodik',
+                    'Usulan perubahan data Anda telah diterima dan datanya telah disesuaikan/diperbarui ke aplikasi Dapodik sesuai usulan yang disetujui.',
+                    'success',
+                    'fas fa-cloud-arrow-up'
+                );
             }
         }
 

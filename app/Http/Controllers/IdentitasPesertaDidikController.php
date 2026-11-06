@@ -45,6 +45,28 @@ class IdentitasPesertaDidikController extends Controller
         return $normalized === '' ? null : $normalized;
     }
 
+    /**
+     * Nilai asli untuk disimpan & ditampilkan (bukan bentuk huruf kecil).
+     * Hanya dinormalisasi spasi/placeholder; huruf besar-kecil dipertahankan.
+     */
+    private function displayValue($value): string
+    {
+        if ($value === null) {
+            return '(Kosong)';
+        }
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        }
+
+        $normalized = trim((string) $value);
+        $normalized = preg_replace('/[\x{00A0}\x{200B}\x{FEFF}]/u', '', $normalized);
+
+        return $normalized === '' ? '(Kosong)' : $normalized;
+    }
+
     private function hasMeaningfulDifference($oldValue, $newValue): bool
     {
         $oldNormalized = $this->normalizeComparableValue($oldValue);
@@ -185,8 +207,14 @@ class IdentitasPesertaDidikController extends Controller
         $statusKonfirmasi = $identitas->status_konfirmasi ?? 'belum_konfirmasi';
         $berkasPrereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
 
-        // Formulir secara default terkunci. Terbuka HANYA jika siswa memilih 'perlu_perbaikan' DAN berkas KK & Ijazah sudah valid
-        $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan') && $berkasPrereq['is_valid'];
+        $pendingUsulanCount = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->where('status', 'menunggu')
+            ->count();
+        $hasPendingUsulan = $pendingUsulanCount > 0;
+
+        // Formulir secara default terkunci. Terbuka HANYA jika siswa memilih 'perlu_perbaikan',
+        // berkas KK & Ijazah sudah valid, DAN tidak ada usulan yang masih menunggu review.
+        $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan') && $berkasPrereq['is_valid'] && !$hasPendingUsulan;
         $isFormLocked = !$isFormEditable;
 
         return view('dashboard.identitas-peserta-didik', compact(
@@ -202,7 +230,9 @@ class IdentitasPesertaDidikController extends Controller
             'statusKonfirmasi',
             'berkasPrereq',
             'isFormLocked',
-            'isFormEditable'
+            'isFormEditable',
+            'hasPendingUsulan',
+            'pendingUsulanCount'
         ));
     }
 
@@ -288,6 +318,14 @@ class IdentitasPesertaDidikController extends Controller
                 if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah / SKL SMP';
 
                 return back()->with('error', 'Gagal mengajukan usulan perubahan data: Dokumen ' . implode(' dan ', $missing) . ' wajib berstatus Valid / Sesuai dari Tim Kesiswaan terlebih dahulu.');
+            }
+
+            // Usulan yang masih menunggu review tidak boleh ditumpuk; tunggu hasil verifikasi.
+            $pendingCount = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->where('status', 'menunggu')
+                ->count();
+            if ($pendingCount > 0) {
+                return back()->with('warning', "Usulan perubahan Anda ({$pendingCount} butir) masih menunggu review Tim Kesiswaan. Tunggu hasil verifikasi sebelum mengajukan perubahan baru.");
             }
         }
 
@@ -563,8 +601,8 @@ class IdentitasPesertaDidikController extends Controller
             $newVal = $identitas->{$col} ?? null;
 
             if ($this->hasMeaningfulDifference($oldVal, $newVal)) {
-                $oldValForRecord = $this->normalizeComparableValue($oldVal) ?? '(Kosong)';
-                $newValForRecord = $this->normalizeComparableValue($newVal) ?? '(Kosong)';
+                $oldValForRecord = $this->displayValue($oldVal);
+                $newValForRecord = $this->displayValue($newVal);
 
                 // Update atau buat usulan baru
                 SiswaUsulanPerubahan::create([

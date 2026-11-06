@@ -136,6 +136,59 @@
             </div>
         </div>
 
+        {{-- Banner Hasil Verifikasi Usulan (ditujukan ke peserta didik / orang tua) --}}
+        @php
+            $latestDitolak = $usulanList->where('status', 'ditolak')->first();
+            $latestDapodik = $usulanList->where('status', 'sudah_ke_dapodik')->first();
+        @endphp
+
+        @if ($hasPendingUsulan)
+            <div class="card"
+                style="margin-bottom: 24px; padding: 16px 20px; border-radius: var(--radius-xl, 16px); border: 1.5px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); display: flex; gap: 12px; align-items: flex-start;">
+                <i class="fas fa-hourglass-half" style="color: var(--warning, #f59e0b); font-size: var(--text-xl, 1.25rem); margin-top: 2px;"></i>
+                <div>
+                    <div style="font-weight: 800; color: var(--text-color); margin-bottom: 2px;">Usulan Perubahan Sedang Direview</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5;">
+                        Terdapat <strong>{{ $pendingUsulanCount }} butir</strong> usulan perubahan data Anda yang sedang menunggu verifikasi
+                        Tim Kesiswaan. Formulir dikunci sementara sampai proses review selesai. Anda akan menerima notifikasi setelah
+                        usulan disetujui atau ditolak.
+                    </div>
+                </div>
+            </div>
+        @elseif ($statusKonfirmasi === 'disinkronkan_dapodik' && $latestDapodik)
+            <div class="card"
+                style="margin-bottom: 24px; padding: 16px 20px; border-radius: var(--radius-xl, 16px); border: 1.5px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.08); display: flex; gap: 12px; align-items: flex-start;">
+                <i class="fas fa-cloud-arrow-up" style="color: var(--success, #10b981); font-size: var(--text-xl, 1.25rem); margin-top: 2px;"></i>
+                <div>
+                    <div style="font-weight: 800; color: var(--text-color); margin-bottom: 2px;">Usulan Diterima &amp; Data Diperbarui</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5;">
+                        Usulan perubahan data Anda telah <strong>diterima</strong> oleh Tim Kesiswaan dan datanya telah
+                        disesuaikan serta diperbarui ke aplikasi Dapodik sesuai usulan yang diterima.
+                    </div>
+                </div>
+            </div>
+        @elseif ($statusKonfirmasi === 'perlu_perbaikan' && $latestDitolak)
+            <div class="card"
+                style="margin-bottom: 24px; padding: 16px 20px; border-radius: var(--radius-xl, 16px); border: 1.5px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); display: flex; gap: 12px; align-items: flex-start;">
+                <i class="fas fa-circle-xmark" style="color: var(--danger, #ef4444); font-size: var(--text-xl, 1.25rem); margin-top: 2px;"></i>
+                <div>
+                    <div style="font-weight: 800; color: var(--text-color); margin-bottom: 2px;">Usulan Perubahan Ditolak</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.5;">
+                        Usulan perubahan data Anda <strong>ditolak</strong> oleh Tim Kesiswaan.
+                        @if ($latestDitolak->catatan_verifikasi)
+                            Alasan: <strong>{{ $latestDitolak->catatan_verifikasi }}</strong>.
+                        @endif
+                        Usulan <strong>dapat diajukan kembali</strong>.
+                        @if ($berkasPrereq['is_valid'])
+                            Formulir telah terbuka kembali — perbaiki data lalu kirim ulang.
+                        @else
+                            Formulir terbuka setelah dokumen Kartu Keluarga &amp; Ijazah SMP berstatus Valid.
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- 2. Progress Stepper Progres Usulan Perubahan Data -->
         @php
             $step1Done = $statusKonfirmasi !== 'belum_konfirmasi';
@@ -317,7 +370,11 @@
                                 <i class="fas fa-cloud-arrow-up me-1"></i> Selesai Di-update ke Dapodik
                             </span>
                         @elseif ($statusKonfirmasi === 'perlu_perbaikan')
-                            @if ($berkasPrereq['is_valid'])
+                            @if ($hasPendingUsulan)
+                                <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px;">
+                                    <i class="fas fa-hourglass-half me-1"></i> Menunggu Review Kesiswaan
+                                </span>
+                            @elseif ($berkasPrereq['is_valid'])
                                 <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px;">
                                     <i class="fas fa-lock-open me-1"></i> Formulir Terbuka: Mode Usulan Perubahan
                                 </span>
@@ -339,7 +396,10 @@
                             {{ $identitas->dikonfirmasi_pada ? $identitas->dikonfirmasi_pada->translatedFormat('d F Y, H:i') : '-' }}
                             WIB oleh {{ $identitas->dikonfirmasi_oleh ?: 'Siswa' }}. Seluruh data terkunci aman.
                         @elseif ($statusKonfirmasi === 'perlu_perbaikan')
-                            @if ($berkasPrereq['is_valid'])
+                            @if ($hasPendingUsulan)
+                                Usulan perubahan data Anda sedang <strong>menunggu review</strong> Tim Kesiswaan. Formulir
+                                dikunci sementara hingga proses verifikasi selesai.
+                            @elseif ($berkasPrereq['is_valid'])
                                 Berkas Kartu Keluarga dan Ijazah SMP telah berstatus <strong>Valid / Sesuai</strong>.
                                 Formulir sekarang <strong>terbuka</strong>. Silakan periksa dan perbaiki kolom data di
                                 bawah, lalu klik <strong>"Simpan &amp; Ajukan Usulan Perubahan Data"</strong>.

@@ -334,8 +334,15 @@ function initWilayahCascade() {
             .replace(/[^A-Z0-9]/g, '');
     };
 
+    // Ubah "KABUPATEN CIANJUR" -> "Kabupaten Cianjur"; akronim wilayah tetap huruf besar.
+    const toTitleCase = (str) => {
+        const keepUpper = { DKI: 1, DIY: 1, DI: 1 };
+        return String(str || '').toLowerCase().replace(/\p{L}[\p{L}'\u2019]*/gu, (w) =>
+            keepUpper[w.toUpperCase()] ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)
+        );
+    };
+
     const matchOption = (list, targetName) => {
-        if (!targetName) return null;
         const normTarget = normalize(targetName);
         if (!normTarget) return null;
 
@@ -365,9 +372,10 @@ function initWilayahCascade() {
 
         selProv.innerHTML = '<option value="">-- Pilih Provinsi --</option>';
         list.forEach(p => {
+            const nm = toTitleCase(p.name);
             const opt = document.createElement('option');
-            opt.value = p.name;
-            opt.textContent = p.name;
+            opt.value = nm;
+            opt.textContent = nm;
             opt.dataset.id = p.id;
             selProv.appendChild(opt);
         });
@@ -380,7 +388,7 @@ function initWilayahCascade() {
         if (initProv) {
             const matched = matchOption(list, initProv);
             if (matched) {
-                selProv.value = matched.name;
+                selProv.value = toTitleCase(matched.name);
                 await loadRegencies(matched.id, initKab);
             } else {
                 // Pertahankan nilai awal yang tersimpan di database
@@ -410,9 +418,10 @@ function initWilayahCascade() {
         const list = await fetchApi(`/dashboard/wilayah/regencies/${provId}`);
         selKab.innerHTML = '<option value="">-- Pilih Kabupaten / Kota --</option>';
         list.forEach(k => {
+            const nm = toTitleCase(k.name);
             const opt = document.createElement('option');
-            opt.value = k.name;
-            opt.textContent = k.name;
+            opt.value = nm;
+            opt.textContent = nm;
             opt.dataset.id = k.id;
             selKab.appendChild(opt);
         });
@@ -427,7 +436,7 @@ function initWilayahCascade() {
         if (targetKab) {
             const matched = matchOption(list, targetKab);
             if (matched) {
-                selKab.value = matched.name;
+                selKab.value = toTitleCase(matched.name);
                 await loadDistricts(matched.id, initKec);
             } else if (selectedKabName) {
                 const optCustom = document.createElement('option');
@@ -454,9 +463,10 @@ function initWilayahCascade() {
         const list = await fetchApi(`/dashboard/wilayah/districts/${kabId}`);
         selKec.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
         list.forEach(k => {
+            const nm = toTitleCase(k.name);
             const opt = document.createElement('option');
-            opt.value = k.name;
-            opt.textContent = k.name;
+            opt.value = nm;
+            opt.textContent = nm;
             opt.dataset.id = k.id;
             selKec.appendChild(opt);
         });
@@ -471,7 +481,7 @@ function initWilayahCascade() {
         if (targetKec) {
             const matched = matchOption(list, targetKec);
             if (matched) {
-                selKec.value = matched.name;
+                selKec.value = toTitleCase(matched.name);
                 await loadVillages(matched.id, initDesa);
             } else if (selectedKecName) {
                 const optCustom = document.createElement('option');
@@ -496,9 +506,10 @@ function initWilayahCascade() {
         const list = await fetchApi(`/dashboard/wilayah/villages/${kecId}`);
         selDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
         list.forEach(v => {
+            const nm = toTitleCase(v.name);
             const opt = document.createElement('option');
-            opt.value = v.name;
-            opt.textContent = v.name;
+            opt.value = nm;
+            opt.textContent = nm;
             opt.dataset.id = v.id;
             selDesa.appendChild(opt);
         });
@@ -513,7 +524,7 @@ function initWilayahCascade() {
         if (targetDesa) {
             const matched = matchOption(list, targetDesa);
             if (matched) {
-                selDesa.value = matched.name;
+                selDesa.value = toTitleCase(matched.name);
             } else if (selectedDesaName) {
                 const optCustom = document.createElement('option');
                 optCustom.value = selectedDesaName;
@@ -530,8 +541,8 @@ function initWilayahCascade() {
             const manual = prompt('Masukkan Nama Provinsi:');
             if (manual && manual.trim()) {
                 const opt = document.createElement('option');
-                opt.value = manual.trim().toUpperCase();
-                opt.textContent = manual.trim().toUpperCase();
+                opt.value = manual.trim();
+                opt.textContent = manual.trim();
                 opt.selected = true;
                 this.insertBefore(opt, this.lastElementChild);
             } else {
@@ -552,8 +563,8 @@ function initWilayahCascade() {
             const manual = prompt('Masukkan Nama Kabupaten / Kota:');
             if (manual && manual.trim()) {
                 const opt = document.createElement('option');
-                opt.value = manual.trim().toUpperCase();
-                opt.textContent = manual.trim().toUpperCase();
+                opt.value = manual.trim();
+                opt.textContent = manual.trim();
                 opt.selected = true;
                 this.insertBefore(opt, this.lastElementChild);
             } else {
@@ -574,8 +585,8 @@ function initWilayahCascade() {
             const manual = prompt('Masukkan Nama Kecamatan:');
             if (manual && manual.trim()) {
                 const opt = document.createElement('option');
-                opt.value = manual.trim().toUpperCase();
-                opt.textContent = manual.trim().toUpperCase();
+                opt.value = manual.trim();
+                opt.textContent = manual.trim();
                 opt.selected = true;
                 this.insertBefore(opt, this.lastElementChild);
             } else {
@@ -596,8 +607,8 @@ function initWilayahCascade() {
             const manual = prompt('Masukkan Nama Desa / Kelurahan:');
             if (manual && manual.trim()) {
                 const opt = document.createElement('option');
-                opt.value = manual.trim().toUpperCase();
-                opt.textContent = manual.trim().toUpperCase();
+                opt.value = manual.trim();
+                opt.textContent = manual.trim();
                 opt.selected = true;
                 this.insertBefore(opt, this.lastElementChild);
             } else {
