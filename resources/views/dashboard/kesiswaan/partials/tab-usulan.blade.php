@@ -77,42 +77,17 @@
                                     </span>
                                 </td>
                                 <td style="padding: 12px 18px;" data-label="Usulan">
-                                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                                        <div style="display: flex; align-items: center; gap: 6px;">
-                                            <span class="badge badge-primary"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
-                                                {{ $item->total_usulan }} Data
-                                            </span>
-                                        </div>
-                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 260px;">
-                                            @foreach (array_slice($item->kolom_list ?? [], 0, 3) as $kItem)
-                                                <span class="badge badge-outline"
-                                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">
-                                                    {{ $kItem['label'] }}
-                                                </span>
-                                            @endforeach
-                                            @if (count($item->kolom_list ?? []) > 3)
-                                                <span class="badge badge-outline"
-                                                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; opacity: 0.7;">
-                                                    +{{ count($item->kolom_list) - 3 }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <span class="badge badge-primary"
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
+                                        {{ $item->total_usulan }} Data
+                                    </span>
                                 </td>
                                 <td style="padding: 12px 18px; text-align: center;" data-label="Berkas">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;">
-                                        <span
-                                            class="badge {{ ($item->kk_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
-                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;"
-                                            title="Status KK: {{ ($item->kk_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}">
-                                            KK
-                                        </span>
-                                        <span
-                                            class="badge {{ ($item->ijazah_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
-                                            style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;"
-                                            title="Status Ijazah: {{ ($item->ijazah_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}">
-                                            Ijazah
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: center;">
+                                        <span class="badge {{ $item->berkas_valid ? 'badge-success' : 'badge-danger' }}"
+                                            style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"
+                                            title="KK: {{ ucwords(str_replace('_', ' ', $item->kk_status)) }} • Ijazah: {{ ucwords(str_replace('_', ' ', $item->ijazah_status)) }}">
+                                            {{ $item->berkas_valid ? 'Valid' : 'Tidak Valid' }}
                                         </span>
                                         @if (!empty($item->berkas_bukti_path))
                                             <button type="button" class="btn-icon btn-preview-pdf-inline"

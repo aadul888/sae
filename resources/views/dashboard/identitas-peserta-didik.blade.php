@@ -517,8 +517,8 @@
             </div>
         </form>
 
-        <!-- 5. Riwayat Usulan Perubahan Siswa (Tab Progress) -->
-        @if ($usulanList->isNotEmpty())
+        <!-- 5. Riwayat Usulan Perubahan Siswa (Tab Progress) - PER TRANSAKSI / PENGAJUAN -->
+        @if ($riwayatBatches->isNotEmpty())
             @php
                 $fmtUsulanVal = function ($val) {
                     if ($val === null) return '-';
@@ -526,6 +526,14 @@
                     if ($s === '' || in_array($s, ['(Kosong)', '(Belum Terisi / Kosong)'], true)) return '-';
                     if (preg_match('/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/', $s, $m)) return $m[1];
                     return $s;
+                };
+                $statusBadge = function ($status) {
+                    return match ($status) {
+                        'disetujui' => ['badge-success', 'fa-check', 'DISETUJUI'],
+                        'ditolak' => ['badge-danger', 'fa-xmark', 'DITOLAK'],
+                        'sudah_ke_dapodik' => ['badge-primary', 'fa-cloud-arrow-up', 'DAPODIK'],
+                        default => ['badge-warning', 'fa-clock', 'MENUNGGU'],
+                    };
                 };
             @endphp
             <div class="card table-responsive-stack identitas-panel-progress" style="margin-bottom: 16px; padding: 0;">
@@ -535,7 +543,7 @@
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Pengajuan Usulan Revisi Data
                     </h3>
-                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">{{ $usulanList->count() }}
+                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">{{ $riwayatBatches->count() }}
                         Pengajuan</span>
                 </div>
 
@@ -545,66 +553,120 @@
                         <thead>
                             <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
                                 <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Waktu Usulan</th>
-                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Kolom Data</th>
-                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Awal</th>
-                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Baru</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Usulan</th>
                                 <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
                                 <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Catatan</th>
-                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diverifikasi / Dapodik</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diverifikasi</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($usulanList as $u)
-                                @php
-                                    $vLama = $fmtUsulanVal($u->nilai_lama);
-                                    $vBaru = $fmtUsulanVal($u->nilai_baru);
-                                @endphp
+                            @foreach ($riwayatBatches as $i => $batch)
+                                @php ($sb = $statusBadge($batch['status']))
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td data-label="Waktu Usulan" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
-                                        {{ $u->created_at ? $u->created_at->translatedFormat('d M Y, H:i') : '-' }}</td>
-                                    <td data-label="Kolom Data" style="padding: 8px 12px;">
-                                        <strong style="color: var(--text-color);">{{ $u->kolom_label }}</strong>
-                                    </td>
-                                    <td data-label="Data Awal" style="padding: 8px 12px; color: var(--text-muted); word-break: break-word;">
-                                        {{ $vLama }}
-                                    </td>
-                                    <td data-label="Data Baru" style="padding: 8px 12px; word-break: break-word;">
-                                        @if ($vBaru === '-')
-                                            -
-                                        @else
-                                            <span class="copyable" data-copy="{{ $vBaru }}" data-label="{{ $u->kolom_label }}"
-                                                title="Klik untuk salin"
-                                                style="font-weight: 700; color: var(--success, #10b981); cursor: pointer;">{{ $vBaru }}</span>
-                                        @endif
+                                        {{ $batch['waktu'] ? $batch['waktu']->translatedFormat('d M Y, H:i') : '-' }}</td>
+                                    <td data-label="Usulan" style="padding: 8px 12px; text-align: center;">
+                                        <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">{{ $batch['jumlah'] }} Data</span>
                                     </td>
                                     <td data-label="Status" style="padding: 8px 12px; text-align: center;">
-                                        @if ($u->status === 'disetujui')
-                                            <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-check me-1"></i>DISETUJUI</span>
-                                        @elseif ($u->status === 'ditolak')
-                                            <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-times me-1"></i>DITOLAK</span>
-                                        @elseif ($u->status === 'sudah_ke_dapodik')
-                                            <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-cloud-arrow-up me-1"></i>DAPODIK</span>
-                                        @else
-                                            <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-clock me-1"></i>MENUNGGU</span>
-                                        @endif
+                                        <span class="badge {{ $sb[0] }}" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas {{ $sb[1] }} me-1"></i>{{ $sb[2] }}</span>
                                     </td>
                                     <td data-label="Catatan" style="padding: 8px 12px; color: var(--text-muted); word-break: break-word; max-width: 260px;">
-                                        {{ $u->catatan_verifikasi ?: '-' }}
+                                        {{ $batch['catatan'] ?: '-' }}
                                     </td>
-                                    <td data-label="Diverifikasi / Dapodik" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
-                                        @if ($u->verified_at)
-                                            <i class="fas fa-circle-check text-success me-1"></i>{{ $u->verified_at->translatedFormat('d M Y, H:i') }}
-                                            @if ($u->verified_by)
-                                                <div style="font-size: var(--text-xs, 0.7rem); opacity: 0.75;">oleh {{ $u->verified_by }}</div>
+                                    <td data-label="Diverifikasi" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
+                                        @if ($batch['verified_at'])
+                                            <i class="fas fa-circle-check text-success me-1"></i>{{ $batch['verified_at']->translatedFormat('d M Y, H:i') }}
+                                            @if ($batch['verified_by'])
+                                                <div style="font-size: var(--text-xs, 0.7rem); opacity: 0.75;">oleh {{ $batch['verified_by'] }}</div>
                                             @endif
                                         @else
                                             <span style="opacity: 0.6;">-</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Aksi" style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                                        <button type="button" class="btn-icon btn-riwayat-detail" data-tpl="riwayatTpl{{ $i }}"
+                                            title="Lihat rincian data usulan"
+                                            style="width: 28px; height: 28px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); cursor: pointer;">
+                                            <i class="fas fa-magnifying-glass" style="font-size: 0.75rem;"></i>
+                                        </button>
+                                        @if ($batch['ditolak_count'] > 0 && $isFormEditable)
+                                            <button type="button" class="btn-icon btn-riwayat-ulang"
+                                                data-kolom="{{ implode(',', $batch['kolom_ditolak']) }}"
+                                                title="Perbaiki & ajukan ulang data yang ditolak"
+                                                style="width: 28px; height: 28px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); cursor: pointer;">
+                                                <i class="fas fa-pen-to-square" style="font-size: 0.75rem;"></i>
+                                            </button>
                                         @endif
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {{-- Template rincian per transaksi (dibaca oleh modal) --}}
+            <div style="display: none;">
+                @foreach ($riwayatBatches as $i => $batch)
+                    <template id="riwayatTpl{{ $i }}">
+                        <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                            <span><i class="fas fa-calendar-day me-1"></i>{{ $batch['waktu'] ? $batch['waktu']->translatedFormat('d F Y, H:i') : '-' }}</span>
+                            <span>{{ $batch['jumlah'] }} data @if ($batch['ditolak_count'] > 0) • <span style="color:#ef4444;">{{ $batch['ditolak_count'] }} ditolak</span> @endif</span>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="table table-pd mb-0" style="width: 100%; border-collapse: collapse; font-size: var(--text-xs, 0.75rem);">
+                                <thead>
+                                    <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                                        <th style="padding: 8px 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data</th>
+                                        <th style="padding: 8px 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Awal</th>
+                                        <th style="padding: 8px 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Baru</th>
+                                        <th style="padding: 8px 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
+                                        <th style="padding: 8px 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($batch['items'] as $u)
+                                        @php ($isb = $statusBadge($u->status))
+                                        <tr style="border-bottom: 1px solid var(--border-color);" @class(['fw-bold' => $u->status === 'ditolak'])>
+                                            <td style="padding: 8px 10px; color: var(--text-color);">{{ $u->kolom_label }}</td>
+                                            <td style="padding: 8px 10px; color: var(--text-muted); word-break: break-word;">{{ $fmtUsulanVal($u->nilai_lama) }}</td>
+                                            <td style="padding: 8px 10px; word-break: break-word;">
+                                                @if ($fmtUsulanVal($u->nilai_baru) === '-')
+                                                    -
+                                                @else
+                                                    <span class="copyable" data-copy="{{ $fmtUsulanVal($u->nilai_baru) }}" data-label="{{ $u->kolom_label }}" title="Klik untuk salin" style="font-weight: 700; color: var(--success, #10b981); cursor: pointer;">{{ $fmtUsulanVal($u->nilai_baru) }}</span>
+                                                @endif
+                                            </td>
+                                            <td style="padding: 8px 10px; text-align: center;">
+                                                <span class="badge {{ $isb[0] }}" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas {{ $isb[1] }} me-1"></i>{{ $isb[2] }}</span>
+                                            </td>
+                                            <td style="padding: 8px 10px; color: var(--text-muted); word-break: break-word; max-width: 240px;">{{ $u->catatan_verifikasi ?: '-' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                @endforeach
+            </div>
+
+            <!-- Modal Rincian Riwayat Usulan per Transaksi -->
+            <div id="modalRiwayatUsulan" class="modal-backdrop"
+                style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <div class="card"
+                    style="max-width: 760px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                        <h3 style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-clock-rotate-left text-primary"></i> Rincian Usulan
+                        </h3>
+                        <button type="button" class="close-modal" data-target="#modalRiwayatUsulan"
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px;" aria-label="Tutup">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="modalRiwayatUsulanBody" style="overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px);"></div>
                 </div>
             </div>
         @endif

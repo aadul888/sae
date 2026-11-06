@@ -198,11 +198,44 @@ class IdentitasPesertaDidikController extends Controller
             'kesejahteraan' => RefDapodikHelper::getKesejahteraan(),
         ];
 
-        // Riwayat usulan perubahan data siswa ini
+        // Riwayat usulan perubahan data siswa ini (dikelompokkan per transaksi/pengajuan)
         $usulanList = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
-            ->latest()
-            ->limit(15)
+            ->orderByDesc('created_at')
+            ->limit(200)
             ->get();
+
+        $riwayatBatches = $usulanList
+            ->groupBy(fn ($u) => $u->batch_id ?: 'legacy-' . ($u->created_at?->format('YmdHi') ?? '') . '-' . $u->created_by)
+            ->map(function ($rows) {
+                $menunggu = $rows->where('status', 'menunggu')->count();
+                $disetujui = $rows->where('status', 'disetujui')->count();
+                $dapodik = $rows->where('status', 'sudah_ke_dapodik')->count();
+
+                $status = 'ditolak';
+                if ($menunggu > 0) {
+                    $status = 'menunggu';
+                } elseif ($disetujui > 0) {
+                    $status = 'disetujui';
+                } elseif ($dapodik > 0) {
+                    $status = 'sudah_ke_dapodik';
+                }
+
+                return [
+                    'batch_id' => $rows->first()->batch_id ?: ('b' . $rows->first()->id),
+                    'waktu' => $rows->max('created_at'),
+                    'jumlah' => $rows->count(),
+                    'status' => $status,
+                    'ditolak_count' => $rows->where('status', 'ditolak')->count(),
+                    'items' => $rows->sortBy('id')->values(),
+                    'catatan' => $rows->first(fn ($r) => !empty($r->catatan_verifikasi))?->catatan_verifikasi,
+                    'verified_at' => $rows->max('verified_at'),
+                    'verified_by' => $rows->first(fn ($r) => !empty($r->verified_by))?->verified_by,
+                    'kolom_ditolak' => $rows->where('status', 'ditolak')->pluck('kolom_perubahan')->values()->all(),
+                ];
+            })
+            ->sortByDesc(fn ($b) => $b['waktu']?->timestamp ?? 0)
+            ->take(20)
+            ->values();
 
         $statusKonfirmasi = $identitas->status_konfirmasi ?? 'belum_konfirmasi';
         $berkasPrereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
@@ -227,6 +260,7 @@ class IdentitasPesertaDidikController extends Controller
             'allPdList',
             'ref',
             'usulanList',
+            'riwayatBatches',
             'statusKonfirmasi',
             'berkasPrereq',
             'isFormLocked',
@@ -596,6 +630,7 @@ class IdentitasPesertaDidikController extends Controller
         // agar muncul di dashboard kesiswaan (kesiswaan/peserta-didik?tab=usulan)
         // -----------------------------------------------------------------
         $totalUsulanCreated = 0;
+        $batchId = (string) \Illuminate\Support\Str::uuid();
         foreach ($trackedColumns as $col => $colLabel) {
             $oldVal = $oldSnapshot[$col] ?? null;
             $newVal = $identitas->{$col} ?? null;
@@ -607,6 +642,7 @@ class IdentitasPesertaDidikController extends Controller
                 // Update atau buat usulan baru
                 SiswaUsulanPerubahan::create([
                     'peserta_didik_id' => $pd->peserta_didik_id,
+                    'batch_id' => $batchId,
                     'kolom_perubahan' => $col,
                     'nilai_lama' => $oldValForRecord,
                     'nilai_baru' => $newValForRecord,

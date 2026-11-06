@@ -153,15 +153,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Tidak ada daftar butir perubahan data.</td></tr>';
                 } else {
                     items.forEach((item) => {
+                        // Kolom verifikasi: ceklis ✓ setujui / ✕ tolak per butir data.
                         let statusHtml = '';
-                        if (item.status === 'disetujui') {
-                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(16,185,129,0.15); color:#10b981;"><i class="fas fa-check"></i> Disetujui</span>';
-                        } else if (item.status === 'ditolak') {
-                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(239,68,68,0.15); color:#ef4444;"><i class="fas fa-times"></i> Ditolak</span>';
-                        } else if (item.status === 'sudah_ke_dapodik') {
-                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(59,130,246,0.15); color:#3b82f6;"><i class="fas fa-cloud-arrow-up"></i> Dapodik</span>';
+                        if (item.status === 'menunggu') {
+                            statusHtml = `
+                                <div class="usulan-decision-group" data-usulan-id="${item.id}" data-decision=""
+                                    style="display:inline-flex; align-items:center; gap:8px;">
+                                    <button type="button" class="usulan-decision" data-decision="disetujui" title="Setujui"
+                                        style="width:28px; height:28px; border-radius:50%; border:1.5px solid rgba(16,185,129,0.4); background:transparent; color:#10b981; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="usulan-decision" data-decision="ditolak" title="Tolak / Tidak Sesuai"
+                                        style="width:28px; height:28px; border-radius:50%; border:1.5px solid rgba(239,68,68,0.4); background:transparent; color:#ef4444; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-xmark"></i>
+                                    </button>
+                                </div>`;
                         } else {
-                            statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; background:rgba(245,158,11,0.15); color:#f59e0b;"><i class="fas fa-clock"></i> Menunggu</span>';
+                            const iconMap = {
+                                disetujui: ['check', '#10b981', 'rgba(16,185,129,0.15)'],
+                                ditolak: ['xmark', '#ef4444', 'rgba(239,68,68,0.15)'],
+                                sudah_ke_dapodik: ['cloud-arrow-up', '#3b82f6', 'rgba(59,130,246,0.15)'],
+                            };
+                            const m = iconMap[item.status] || ['clock', '#f59e0b', 'rgba(245,158,11,0.15)'];
+                            statusHtml = `<span title="${item.status}" style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:${m[2]}; color:${m[1]};"><i class="fas fa-${m[0]}"></i></span>`;
                         }
 
                         let buktiHtml = '';
@@ -229,16 +243,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            const btnSetujuiSemua = document.getElementById('btnSetujuiSemuaUsulan');
-            const btnTolakSemua = document.getElementById('btnTolakSemuaUsulan');
+            const btnSimpanVerifikasi = document.getElementById('btnSimpanVerifikasiUsulan');
+            const btnCeklisSemua = document.getElementById('btnCeklisSemuaUsulan');
+            const btnXSemua = document.getElementById('btnXSemuaUsulan');
             const btnTandaiDapodik = document.getElementById('btnTandaiDapodikUsulan');
 
             const hasMenunggu = items.some(i => i.status === 'menunggu');
             const hasDisetujui = items.some(i => i.status === 'disetujui');
 
-            if (btnSetujuiSemua) btnSetujuiSemua.style.display = hasMenunggu ? 'inline-flex' : 'none';
-            if (btnTolakSemua) btnTolakSemua.style.display = hasMenunggu ? 'inline-flex' : 'none';
-            if (btnTandaiDapodik) btnTandaiDapodik.style.display = hasDisetujui ? 'inline-flex' : 'none';
+            const toggleBtn = (el, on) => { if (el) el.style.display = on ? 'inline-flex' : 'none'; };
+            toggleBtn(btnSimpanVerifikasi, hasMenunggu);
+            toggleBtn(btnCeklisSemua, hasMenunggu);
+            toggleBtn(btnXSemua, hasMenunggu);
+            toggleBtn(btnTandaiDapodik, hasDisetujui);
+
+            // Pilih semua: terapkan keputusan ke seluruh butir yang masih menunggu.
+            const bulkSelect = (decision) => {
+                document.querySelectorAll('#modalUsulanTableBody .usulan-decision-group').forEach((group) => {
+                    applyDecision(group, decision);
+                });
+            };
+            if (btnCeklisSemua) btnCeklisSemua.onclick = () => bulkSelect('disetujui');
+            if (btnXSemua) btnXSemua.onclick = () => bulkSelect('ditolak');
 
             loading.style.display = 'none';
             content.style.display = 'block';
@@ -270,89 +296,76 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Action: Setujui Semua
-    const btnSetujui = document.getElementById('btnSetujuiSemuaUsulan');
-    if (btnSetujui) {
-        btnSetujui.addEventListener('click', async function () {
-            const modal = document.getElementById('modalPengelolaanUsulan');
-            const pdId = modal.getAttribute('data-pd-id');
-            const catatan = (document.getElementById('catatanVerifikasiUsulanInput')?.value || '').trim();
-
-            const confirm = await window.SAE.confirm("Data identitas peserta didik akan langsung diperbarui ke database sesuai pengajuan yang dipilih.", "Setujui Seluruh Usulan?", 'info', "Ya, Setujui", "Batal");
-
-            if (!confirm.isConfirmed) return;
-
-            btnSetujui.disabled = true;
-            btnSetujui.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
-
-            try {
-                const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/verifikasi`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({
-                        status: 'disetujui',
-                        catatan_verifikasi: catatan
-                    })
-                });
-
-                const json = await res.json();
-                if (json.status !== 'success') throw new Error(json.message || 'Gagal menyimpan verifikasi.');
-
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: json.message,
-                    icon: 'success',
-                    timer: 1600,
-                    showConfirmButton: false
-                });
-
-                window.closeModalPengelolaanUsulan();
-                if (typeof window.refreshLiveTable === 'function') {
-                    window.refreshLiveTable();
-                } else {
-                    location.reload();
-                }
-            } catch (err) {
-                Swal.fire('Gagal', err.message, 'error');
-            } finally {
-                btnSetujui.disabled = false;
-                btnSetujui.innerHTML = '<i class="fas fa-check-double me-1"></i> Setujui Seluruh Usulan';
-            }
+    // Pilih keputusan per butir usulan (ceklis ✓ setujui / ✕ tolak)
+    function applyDecision(group, decision) {
+        group.dataset.decision = decision || '';
+        group.querySelectorAll('.usulan-decision').forEach((btn) => {
+            const on = btn.getAttribute('data-decision') === decision;
+            btn.style.background = on ? (decision === 'disetujui' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)') : 'transparent';
+            btn.style.borderStyle = on ? 'solid' : '1.5px solid';
+            btn.style.fontWeight = on ? '900' : '400';
         });
     }
 
-    // Action: Tolak Seluruh Usulan
-    const btnTolak = document.getElementById('btnTolakSemuaUsulan');
-    if (btnTolak) {
-        btnTolak.addEventListener('click', async function () {
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.usulan-decision');
+        if (!btn) return;
+        const group = btn.closest('.usulan-decision-group');
+        if (!group) return;
+        const decision = btn.getAttribute('data-decision');
+        applyDecision(group, group.dataset.decision === decision ? '' : decision);
+    });
+
+    // Action: Simpan Verifikasi (per butir / sesuai pilihan ceklis)
+    const btnSimpan = document.getElementById('btnSimpanVerifikasiUsulan');
+    if (btnSimpan) {
+        btnSimpan.addEventListener('click', async function () {
             const modal = document.getElementById('modalPengelolaanUsulan');
             const pdId = modal.getAttribute('data-pd-id');
             const catatan = (document.getElementById('catatanVerifikasiUsulanInput')?.value || '').trim();
 
-            if (!catatan) {
-                Swal.fire('Catatan Wajib', 'Tuliskan atau pilih rekomendasi alasan penolakan terlebih dahulu agar siswa memahami perbaikannya.', 'warning');
+            const groups = Array.from(document.querySelectorAll('#modalUsulanTableBody .usulan-decision-group'));
+            if (groups.length === 0) {
+                Swal.fire('Tidak Ada Butir', 'Tidak ada usulan berstatus menunggu yang dapat diverifikasi.', 'info');
+                return;
+            }
+
+            const items = [];
+            const belumDipilih = [];
+            groups.forEach((g) => {
+                const id = parseInt(g.getAttribute('data-usulan-id'), 10);
+                const decision = g.dataset.decision;
+                if (decision === 'disetujui' || decision === 'ditolak') {
+                    items.push({ id, status: decision });
+                } else {
+                    belumDipilih.push(id);
+                }
+            });
+
+            if (belumDipilih.length > 0) {
+                Swal.fire('Belum Lengkap', 'Tentukan keputusan (✓ setujui / ✕ tolak) untuk setiap butir usulan terlebih dahulu.', 'warning');
+                return;
+            }
+
+            const adaTolak = items.some(i => i.status === 'ditolak');
+            if (adaTolak && !catatan) {
+                Swal.fire('Catatan Wajib', 'Tuliskan atau pilih rekomendasi alasan penolakan agar siswa memahami perbaikannya.', 'warning');
                 document.getElementById('catatanVerifikasiUsulanInput')?.focus();
                 return;
             }
 
             const confirm = await Swal.fire({
-                title: 'Tolak Seluruh Usulan?',
-                text: 'Pengajuan perubahan data ini akan ditolak dengan alasan: "' + catatan + '"',
-                icon: 'warning',
+                title: 'Simpan Verifikasi?',
+                text: `${items.filter(i => i.status === 'disetujui').length} disetujui, ${items.filter(i => i.status === 'ditolak').length} ditolak. Data yang disetujui langsung diperbarui ke database.`,
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, Tolak',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#ef4444'
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
             });
-
             if (!confirm.isConfirmed) return;
 
-            btnTolak.disabled = true;
-            btnTolak.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
                 const res = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(pdId)}/verifikasi`, {
@@ -362,22 +375,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                     },
-                    body: JSON.stringify({
-                        status: 'ditolak',
-                        catatan_verifikasi: catatan
-                    })
+                    body: JSON.stringify({ items, catatan_verifikasi: catatan })
                 });
 
                 const json = await res.json();
-                if (json.status !== 'success') throw new Error(json.message || 'Gagal menyimpan penolakan.');
+                if (json.status !== 'success') throw new Error(json.message || 'Gagal menyimpan verifikasi.');
 
-                Swal.fire({
-                    title: 'Ditolak',
-                    text: json.message,
-                    icon: 'info',
-                    timer: 1600,
-                    showConfirmButton: false
-                });
+                Swal.fire({ title: 'Tersimpan', text: json.message, icon: 'success', timer: 1600, showConfirmButton: false });
 
                 window.closeModalPengelolaanUsulan();
                 if (typeof window.refreshLiveTable === 'function') {
@@ -388,8 +392,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 Swal.fire('Gagal', err.message, 'error');
             } finally {
-                btnTolak.disabled = false;
-                btnTolak.innerHTML = '<i class="fas fa-times-circle me-1"></i> Tolak Pengajuan';
+                btnSimpan.disabled = false;
+                btnSimpan.innerHTML = '<i class="fas fa-save"></i>';
             }
         });
     }

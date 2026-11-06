@@ -606,6 +606,7 @@ class KesiswaanQueryService
             $item->kk_status = $bList->firstWhere('jenis_berkas', 'kartu_keluarga')?->status ?? 'belum_unggah';
             $item->ijazah_status = $bList->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? 'belum_unggah';
             $item->akta_status = $bList->firstWhere('jenis_berkas', 'akta_kelahiran')?->status ?? 'belum_unggah';
+            $item->berkas_valid = ($item->kk_status === 'valid' && $item->ijazah_status === 'valid');
             $item->berkas_bukti_path = $items->first(fn($u) => !empty($u->berkas_bukti))?->berkas_bukti;
 
             return $item;

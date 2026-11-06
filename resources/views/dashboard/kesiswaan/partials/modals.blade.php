@@ -383,10 +383,22 @@
                     <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
                             <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 28%;">Data</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 28%;">Data Awal</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 30%;">Data Baru</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 14%;">Status</th>
+                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 30%;">Data</th>
+                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 26%;">Data Awal</th>
+                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 28%;">Data Baru</th>
+                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 16%;">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: center;">
+                                        <span>Verifikasi</span>
+                                        <button type="button" id="btnCeklisSemuaUsulan" class="btn-icon" title="Tandai semua Setujui"
+                                            style="width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.1); color: #10b981; cursor: pointer;">
+                                            <i class="fas fa-check" style="font-size: 0.68rem;"></i>
+                                        </button>
+                                        <button type="button" id="btnXSemuaUsulan" class="btn-icon" title="Tandai semua Tolak"
+                                            style="width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.1); color: #ef4444; cursor: pointer;">
+                                            <i class="fas fa-xmark" style="font-size: 0.68rem;"></i>
+                                        </button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="modalUsulanTableBody">
@@ -417,16 +429,14 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <button type="button" id="btnTandaiDapodikUsulan" class="btn btn-outline"
-                        style="display: none; border-color: var(--primary); color: var(--primary); border-radius: var(--radius-md, 8px); padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
-                        <i class="fas fa-cloud-arrow-up me-1"></i> Selesai di Dapodik
+                        style="display: none; border-color: var(--primary); color: var(--primary); border-radius: var(--radius-md, 8px); padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;"
+                        title="Tandai selesai di-input ke Dapodik">
+                        <i class="fas fa-cloud-arrow-up"></i>
                     </button>
-                    <button type="button" id="btnTolakSemuaUsulan" class="btn btn-outline"
-                        style="display: none; border-color: #ef4444; color: #ef4444; border-radius: var(--radius-md, 8px); padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
-                        <i class="fas fa-times me-1"></i> Tolak Pengajuan
-                    </button>
-                    <button type="button" id="btnSetujuiSemuaUsulan" class="btn btn-primary"
-                        style="display: none; border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
-                        <i class="fas fa-check me-1"></i> Setujui Seluruh Usulan
+                    <button type="button" id="btnSimpanVerifikasiUsulan" class="btn btn-primary"
+                        style="display: none; border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;"
+                        title="Simpan keputusan verifikasi">
+                        <i class="fas fa-save"></i>
                     </button>
                     <button type="button" class="btn btn-outline close-modal close-modal-pengelolaan-usulan" data-target="#modalPengelolaanUsulan"
                         style="border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-base, 0.875rem);">

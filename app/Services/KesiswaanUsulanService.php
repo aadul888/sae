@@ -73,6 +73,7 @@ class KesiswaanUsulanService
 
         $usulan = SiswaUsulanPerubahan::create([
             'peserta_didik_id'   => $validated['peserta_didik_id'],
+            'batch_id'           => (string) \Illuminate\Support\Str::uuid(),
             'kolom_perubahan'    => $validated['kolom_perubahan'],
             'nilai_lama'         => $validated['nilai_lama'] ?? null,
             'nilai_baru'         => $validated['nilai_baru'],
@@ -281,16 +282,31 @@ class KesiswaanUsulanService
     public function verifikasiUsulan(Request $request, string|int $id, mixed $user): array
     {
         $validated = $request->validate([
-            'status'             => 'required|string|in:disetujui,ditolak',
+            'status'             => 'nullable|string|in:disetujui,ditolak',
             'catatan_verifikasi' => 'nullable|string',
             'usulan_ids'         => 'nullable|array',
             'usulan_ids.*'       => 'integer',
+            'items'              => 'nullable|array',
+            'items.*.id'         => 'required|integer',
+            'items.*.status'     => 'required|string|in:disetujui,ditolak',
         ]);
 
-        $status = $validated['status'];
         $catatan = trim((string)($validated['catatan_verifikasi'] ?? ''));
 
-        if ($status === 'ditolak' && empty($catatan)) {
+        // Keputusan per butir usulan: { id => disetujui|ditolak }.
+        $decisions = [];
+        foreach ($validated['items'] ?? [] as $it) {
+            $decisions[(int) $it['id']] = $it['status'];
+        }
+
+        $status = $validated['status'] ?? null;
+        $hasRejected = in_array('ditolak', $decisions, true) || $status === 'ditolak';
+
+        if ($status === null && empty($decisions)) {
+            return ['status' => 'error', 'message' => 'Tidak ada keputusan verifikasi yang dikirim.', 'status_code' => 422];
+        }
+
+        if ($hasRejected && $catatan === '') {
             return [
                 'status' => 'error',
                 'message' => 'Alasan atau catatan penolakan wajib diisi jika usulan perubahan data ditolak.',
@@ -305,8 +321,9 @@ class KesiswaanUsulanService
 
         if ($isPd) {
             $query = SiswaUsulanPerubahan::where('peserta_didik_id', $id);
-            if (!empty($validated['usulan_ids'])) {
-                $query->whereIn('id', $validated['usulan_ids']);
+            $targetIds = !empty($validated['usulan_ids']) ? $validated['usulan_ids'] : array_keys($decisions);
+            if (!empty($targetIds)) {
+                $query->whereIn('id', $targetIds);
             }
             $usulanList = $query->get();
             $pdId = $id;
@@ -320,13 +337,14 @@ class KesiswaanUsulanService
         $identitasUpdates = [];
 
         foreach ($usulanList as $usulan) {
-            $usulan->status = $status;
+            $rowStatus = $decisions[(int) $usulan->id] ?? $status ?? 'disetujui';
+            $usulan->status = $rowStatus;
             $usulan->catatan_verifikasi = $catatan ?: null;
             $usulan->verified_by = $userName;
             $usulan->verified_at = now();
             $usulan->save();
 
-            if ($status === 'disetujui') {
+            if ($rowStatus === 'disetujui') {
                 if (Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
                     $pdUpdates[$usulan->kolom_perubahan] = $usulan->nilai_baru;
                 }
@@ -340,18 +358,22 @@ class KesiswaanUsulanService
             DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->update($pdUpdates);
         }
 
+        $remainingPending = 0;
+
         if (Table::exists('peserta_didik_identitas')) {
             $remainingPending = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
                 ->where('status', 'menunggu')
                 ->count();
 
-            if ($remainingPending === 0 && $status === 'disetujui') {
-                $identitasUpdates['status_konfirmasi'] = 'diverifikasi';
-                $identitasUpdates['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
-            } elseif ($status === 'ditolak') {
-                // Buka kembali formulir agar siswa dapat mengusulkan ulang.
-                $identitasUpdates['status_konfirmasi'] = 'perlu_perbaikan';
-                $identitasUpdates['catatan_kesiswaan'] = "Usulan perubahan data ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
+            if ($remainingPending === 0) {
+                if ($hasRejected) {
+                    // Buka kembali formulir agar siswa dapat mengusulkan ulang.
+                    $identitasUpdates['status_konfirmasi'] = 'perlu_perbaikan';
+                    $identitasUpdates['catatan_kesiswaan'] = "Usulan perubahan data ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
+                } else {
+                    $identitasUpdates['status_konfirmasi'] = 'diverifikasi';
+                    $identitasUpdates['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
+                }
             }
 
             if (!empty($identitasUpdates)) {
@@ -359,7 +381,7 @@ class KesiswaanUsulanService
             }
         }
 
-        if ($status === 'ditolak') {
+        if ($hasRejected) {
             $this->notifyStudent(
                 $pdId,
                 'Usulan Perubahan Data Ditolak',
@@ -367,7 +389,7 @@ class KesiswaanUsulanService
                 'danger',
                 'fas fa-circle-xmark'
             );
-        } else {
+        } elseif ($remainingPending === 0) {
             $this->notifyStudent(
                 $pdId,
                 'Usulan Perubahan Data Disetujui',
@@ -379,19 +401,19 @@ class KesiswaanUsulanService
 
         if (class_exists(AdminAktivitas::class)) {
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
-            $labelStatus = $status === 'disetujui' ? 'Disetujui' : 'Ditolak';
+            $labelStatus = $hasRejected ? 'Disetujui/Ditolak Sebagian' : 'Disetujui';
             $count = count($usulanList);
             AdminAktivitas::record(
                 "Verifikasi Usulan Data Siswa: {$pd?->nama} ({$count} butir usulan) [{$labelStatus}]",
                 'Kesiswaan',
-                $status === 'ditolak' ? "Alasan Penolakan: {$catatan}" : "Usulan perubahan data disetujui dan data siswa diperbarui.",
-                $status === 'disetujui' ? 'success' : 'warning'
+                $hasRejected ? "Alasan Penolakan: {$catatan}" : "Usulan perubahan data disetujui dan data siswa diperbarui.",
+                $hasRejected ? 'warning' : 'success'
             );
         }
 
         return [
             'status' => 'success',
-            'message' => "Usulan perubahan data (" . count($usulanList) . " butir) berhasil " . ($status === 'disetujui' ? 'disetujui' : 'ditolak') . ".",
+            'message' => "Verifikasi {$usulanList->count()} butir usulan berhasil disimpan.",
             'data' => $usulanList,
         ];
     }

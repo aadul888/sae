@@ -27,7 +27,60 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 8. Inisialisasi Lipat/Buka Seksi Formulir per Header (khususnya mode responsif)
     initSectionCollapse();
+
+    // 9. Inisialisasi Riwayat Usulan per Transaksi (rincian + ajukan ulang)
+    initRiwayatUsulan();
 });
+
+/**
+ * Riwayat usulan per transaksi: buka rincian data via modal, dan aksi
+ * "ajukan ulang" untuk memfokuskan kembali field yang ditolak pada formulir.
+ */
+function initRiwayatUsulan() {
+    const modal = document.getElementById('modalRiwayatUsulan');
+    const body = document.getElementById('modalRiwayatUsulanBody');
+    if (!modal) return;
+
+    const closeModal = () => { modal.style.display = 'none'; };
+    modal.querySelectorAll('.close-modal').forEach((b) => b.addEventListener('click', closeModal));
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    document.addEventListener('click', (e) => {
+        const detailBtn = e.target.closest('.btn-riwayat-detail');
+        if (detailBtn && body) {
+            const tpl = document.getElementById(detailBtn.getAttribute('data-tpl'));
+            if (tpl) {
+                body.innerHTML = tpl.innerHTML;
+                modal.style.display = 'flex';
+            }
+            return;
+        }
+
+        const ulangBtn = e.target.closest('.btn-riwayat-ulang');
+        if (ulangBtn) {
+            const kolom = (ulangBtn.getAttribute('data-kolom') || '').split(',').map(s => s.trim()).filter(Boolean);
+            if (!kolom.length) return;
+
+            document.querySelector('.identitas-page-tab[data-ptab="identitas"]')?.click();
+
+            const selector = kolom.map(k => `[name="${k}"]`).join(',');
+            let firstField = null;
+            document.querySelectorAll('.identitas-form-section').forEach((sec) => {
+                if (!sec.querySelector(selector)) return;
+                sec.classList.remove('is-collapsed');
+                sec.querySelector('.identitas-section-header')?.setAttribute('aria-expanded', 'true');
+                if (!firstField) firstField = sec.querySelector(selector);
+            });
+
+            if (firstField) {
+                firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstField.focus({ preventScroll: true });
+                firstField.style.outline = '2px solid #ef4444';
+                setTimeout(() => { firstField.style.outline = ''; }, 2500);
+            }
+        }
+    });
+}
 
 /**
  * Toggle fieldset data wali jika mempunyai wali dipilih

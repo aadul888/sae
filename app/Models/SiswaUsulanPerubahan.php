@@ -13,6 +13,7 @@ class SiswaUsulanPerubahan extends Model
 
     protected $fillable = [
         'peserta_didik_id',
+        'batch_id',
         'kolom_perubahan',
         'nilai_lama',
         'nilai_baru',
