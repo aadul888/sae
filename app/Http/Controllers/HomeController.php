@@ -162,7 +162,100 @@ class HomeController extends Controller
                 ->toArray();
         }
 
-        return view('home', compact('stats', 'running_info', 'major_data', 'chart_detail'));
+        // Data Progres Pengiriman & Kualitas Data per Rombel
+        $progres_rombel = [];
+        if (Table::exists('rombongan_belajar') && Table::exists('peserta_didik')) {
+            $hasGtk = Table::exists('gtk');
+            $hasIdentitas = Table::exists('peserta_didik_identitas');
+            $hasBerkas = Table::exists('peserta_didik_berkas');
+
+            $progresQuery = DB::table('rombongan_belajar as rb')
+                ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id');
+
+            if ($hasGtk) {
+                $progresQuery->leftJoin('gtk', 'rb.ptk_id', '=', 'gtk.ptk_id');
+            }
+
+            if ($hasIdentitas) {
+                $progresQuery->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id');
+            }
+
+            $selects = [
+                'rb.rombongan_belajar_id',
+                'rb.nama as nama_rombel',
+                'rb.tingkat_pendidikan_id as tingkat',
+                'rb.jurusan_id_str as jurusan',
+                DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as total_siswa'),
+            ];
+
+            if ($hasGtk) {
+                $selects[] = 'gtk.nama as wali_kelas';
+            } else {
+                $selects[] = DB::raw('NULL as wali_kelas');
+            }
+
+            if ($hasIdentitas) {
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IS NOT NULL AND pdi.status_konfirmasi != 'belum_konfirmasi' THEN pd.peserta_didik_id END) as siswa_kirim");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik') THEN pd.peserta_didik_id END) as identitas_valid");
+            } else {
+                $selects[] = DB::raw('0 as siswa_kirim');
+                $selects[] = DB::raw('0 as identitas_valid');
+            }
+
+            $groupBy = ['rb.rombongan_belajar_id', 'rb.nama', 'rb.tingkat_pendidikan_id', 'rb.jurusan_id_str'];
+            if ($hasGtk) {
+                $groupBy[] = 'gtk.nama';
+            }
+
+            $rows = $progresQuery
+                ->select($selects)
+                ->where('rb.jenis_rombel', '1') // rombel reguler
+                ->groupBy($groupBy)
+                ->orderBy('rb.nama')
+                ->get();
+
+            // Hitung siswa dengan berkas valid jika tabel berkas ada
+            $berkasMap = collect();
+            if ($hasBerkas) {
+                $berkasMap = DB::table('peserta_didik_berkas as pdb')
+                    ->join('peserta_didik as pd', 'pdb.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                    ->where('pdb.status', 'valid')
+                    ->select('pd.rombongan_belajar_id', DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as siswa_berkas_valid'))
+                    ->groupBy('pd.rombongan_belajar_id')
+                    ->pluck('siswa_berkas_valid', 'pd.rombongan_belajar_id');
+            }
+
+            $progres_rombel = $rows->map(function ($r) use ($berkasMap) {
+                $total = (int) $r->total_siswa;
+                $kirim = (int) $r->siswa_kirim;
+                $idValid = (int) $r->identitas_valid;
+                $bValid = (int) ($berkasMap[$r->rombongan_belajar_id] ?? 0);
+
+                $persenKirim = $total > 0 ? round(($kirim / $total) * 100, 1) : 0;
+                $persenValid = $total > 0 ? round(($idValid / $total) * 100, 1) : 0;
+
+                $tg = (string) $r->tingkat;
+                if ($tg === '10') $tg = 'X';
+                elseif ($tg === '11') $tg = 'XI';
+                elseif ($tg === '12') $tg = 'XII';
+
+                return [
+                    'id'            => $r->rombongan_belajar_id,
+                    'rombel'        => $r->nama_rombel,
+                    'tingkat'       => $tg,
+                    'jurusan'       => $r->jurusan ?? '-',
+                    'wali_kelas'    => $r->wali_kelas ?? 'Belum Ditentukan',
+                    'total_siswa'   => $total,
+                    'siswa_kirim'   => $kirim,
+                    'persen_kirim'  => $persenKirim,
+                    'id_valid'      => $idValid,
+                    'persen_valid'  => $persenValid,
+                    'berkas_valid'  => $bValid,
+                ];
+            })->values()->toArray();
+        }
+
+        return view('home', compact('stats', 'running_info', 'major_data', 'chart_detail', 'progres_rombel'));
     }
 
     public function about()

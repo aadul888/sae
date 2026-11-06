@@ -111,35 +111,169 @@
             </div>
         </section>
 
-        {{-- Modul Utama --}}
+        {{-- Modul & Layanan Utama Terintegrasi --}}
         <section id="modul">
             <div class="section-header">
-                <span class="section-kicker">Cakupan Sistem</span>
-                <h2 class="section-title">Modul Utama</h2>
-                <p class="section-desc">Fitur inti yang tersedia di dalam ekosistem SAE.</p>
+                <span class="section-kicker">Cakupan Sistem &amp; Ekosistem</span>
+                <h2 class="section-title">Layanan &amp; Modul Utama Terintegrasi</h2>
+                <p class="section-desc">Katalog lengkap modul dan layanan modular yang mempermudah seluruh operasional sekolah Anda.</p>
             </div>
             <div class="services-grid">
-                @php
-                    $modul = [
-                        ['fa-fingerprint', 'Presensi &amp; RFID', 'Absensi peserta didik dan GTK berbasis kartu RFID, mesin tap, serta scanner webcam.'],
-                        ['fa-user-graduate', 'Manajemen Peserta Didik', 'Master data, identitas, riwayat, berkas, serta kartu pelajar digital.'],
-                        ['fa-id-badge', 'Manajemen GTK', 'Data guru dan tenaga kependidikan, tugas tambahan, dan kepegawaian.'],
-                        ['fa-envelope-open-text', 'Persuratan', 'Surat masuk, surat keluar, ekspedisi, disposisi, dan template otomatis.'],
-                        ['fa-book-open', 'Perpustakaan Digital', 'Katalog koleksi, sirkulasi, kartu anggota, dan kunjungan harian.'],
-                        ['fa-building', 'Sarana &amp; Prasarana', 'Ruang, inventaris, bahan habis pakai, dan peminjaman aset.'],
-                        ['fa-clipboard-list', 'Formulir &amp; Survei', 'Formulir publik maupun internal dengan rekap respon otomatis.'],
-                        ['fa-award', 'Kelulusan &amp; Dokumen', 'Pengumuman kelulusan, SKL digital, dan verifikasi keaslian dokumen.'],
-                    ];
-                @endphp
-                @foreach ($modul as [$icon, $title, $desc])
-                    <div class="service-card">
-                        <div>
-                            <div class="service-icon"><i class="fas {{ $icon }}"></i></div>
-                            <h3 class="service-title">{!! $title !!}</h3>
-                            <p class="service-list">{!! $desc !!}</p>
-                        </div>
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fas fa-fingerprint"></i></div>
+                        <h3 class="service-title">Sistem Absensi Terpadu</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Integrasi Mesin RFID Tap</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Notifikasi WhatsApp Terjadwal</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Rekap Kehadiran Realtime</li>
+                        </ul>
                     </div>
-                @endforeach
+                    <a href="{{ route('login') }}" class="service-cta">Akses Presensi <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <a href="{{ route('e-izin.public') }}" class="service-card">
+                    <div>
+                        <div class="service-icon" style="color:var(--accent);"><i class="fas fa-door-open"></i></div>
+                        <h3 class="service-title">e-Izin &amp; Pos Gerbang</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pengajuan Dispensasi Mandiri</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Approval Wali Kelas &amp; Piket</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Scan Barcode Gerbang Satpam</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Form Izin Siswa <i class="fas fa-chevron-right"></i></span>
+                </a>
+
+                <a href="{{ route('tamu.public') }}" class="service-card" target="_blank">
+                    <div>
+                        <div class="service-icon" style="color:var(--success);"><i class="fas fa-address-book"></i></div>
+                        <h3 class="service-title">Buku Tamu (e-Tamu)</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pindai KTP / QR Digital</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Deteksi Siswa Terintegrasi</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Cetak Tiket Pos Keamanan</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Buka Portal Tamu <i class="fas fa-chevron-right"></i></span>
+                </a>
+
+                <a href="{{ route('perpustakaan.index') }}" class="service-card" target="_blank">
+                    <div>
+                        <div class="service-icon" style="color:var(--purple);"><i class="fas fa-book-open"></i></div>
+                        <h3 class="service-title">Perpustakaan Digital</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Katalog Koleksi &amp; E-Book</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Kiosk Mandiri Kartu Pelajar</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Sirkulasi Cepat Tanpa Antre</li>
+                        </ul>
+                    </div>
+                    <span class="service-cta">Katalog Buku <i class="fas fa-chevron-right"></i></span>
+                </a>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color:#0ea5e9;"><i class="fas fa-award"></i></div>
+                        <h3 class="service-title">Kelulusan &amp; Legalisir</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pengumuman Kelulusan Online</li>
+                            <li><i class="fas fa-check text-success me-2"></i> SKL Digital dengan QR-Sign</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Verifikasi Keaslian Dokumen</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Cek Dokumen <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color:#8b5cf6;"><i class="fas fa-calendar-days"></i></div>
+                        <h3 class="service-title">Agenda &amp; Akademik</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Jadwal Pelajaran Dinamis</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Kalender Event Sekolah</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Broadcast Informasi Internal</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Jadwal Belajar <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color:var(--warning);"><i class="fas fa-chart-line"></i></div>
+                        <h3 class="service-title">Monitoring Mutu Data</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Kualitas Data Dapodik</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Sinkronisasi NISN &amp; NIK</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Validasi Berkas Peserta Didik</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Buka Monitoring <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color:var(--success);"><i class="fas fa-sliders"></i></div>
+                        <h3 class="service-title">Pusat Administrasi &amp; GTK</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Master Data Peserta Didik &amp; GTK</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Cetak Kartu Pelajar Otomatis</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Manajemen Akses Role (RBAC)</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Dashboard Admin <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fas fa-network-wired"></i></div>
+                        <h3 class="service-title">Rest API &amp; SSO Hub</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Single Sign On Akun Google</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Integrasi Webhook Eksternal</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Otentikasi Terpusat Berkecepatan Tinggi</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Dokumentasi API <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color: #ec4899;"><i class="fas fa-envelope-open-text"></i></div>
+                        <h3 class="service-title">Tata Persuratan Digital</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Registrasi Surat Masuk &amp; Keluar</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Buku Ekspedisi &amp; Tracking Distribusi</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Disposisi Berjenjang Pejabat</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Akses Persuratan <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color: #f59e0b;"><i class="fas fa-building-circle-check"></i></div>
+                        <h3 class="service-title">Sarana &amp; Prasarana</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Inventaris Ruang &amp; Barang Habis Pakai</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Peminjaman Aset &amp; Pencatatan Kondisi</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Manajemen Pemeliharaan Fasilitas</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Kelola Sarpras <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon" style="color: #10b981;"><i class="fas fa-clipboard-question"></i></div>
+                        <h3 class="service-title">Formulir &amp; Survei</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check text-success me-2"></i> Pembuat Formulir Dinamis Tanpa Koding</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Rekap &amp; Ekspor Respon Otomatis</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Pembatasan Akses Publik &amp; Internal</li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('login') }}" class="service-cta">Buka Formulir <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
         </section>
 

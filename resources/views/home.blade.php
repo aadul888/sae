@@ -120,120 +120,180 @@
             </div>
         </section>
 
-        <!-- Features & Services Grid -->
-        <section id="fitur">
-            <div class="section-header">
-                <span class="section-kicker">Modul &amp; Ekosistem</span>
-                <h2 class="section-title">Layanan Utama Terintegrasi</h2>
-                <p class="section-desc">Platform modular yang mempermudah seluruh operasional sekolah Anda.</p>
+        <!-- Progres Pengiriman & Kualitas Data per Rombel -->
+        <section id="progres-data" class="analytics-card" style="margin-bottom: clamp(2.5rem, 5vw, 4rem);">
+            <div class="analytics-head" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                <div>
+                    <span class="section-kicker"><i class="fas fa-chart-pie me-1"></i> Transparansi Data Mutu</span>
+                    <h3 style="font-size: clamp(1.15rem, 3vw, 1.4rem); font-weight: 800; margin-bottom: 4px;">Progres Pengiriman &amp; Kualitas Data per Rombel</h3>
+                    <p style="color: var(--text-muted); font-size: clamp(0.75rem, 2vw, 0.875rem); margin: 0;">
+                        Pemantauan realtime status konfirmasi identitas siswa dan validitas berkas wajib (KK, Ijazah, Akta) per rombongan belajar.
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <a href="{{ route('about') }}#modul" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-layer-group text-primary"></i> Seluruh Layanan &amp; Modul
+                    </a>
+                </div>
             </div>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div>
-                        <div class="service-icon"><i class="fas fa-fingerprint"></i></div>
-                        <h3 class="service-title">Sistem Absensi Terpadu</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Integrasi Mesin RFID Tap</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Notifikasi WhatsApp Terjadwal</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Rekap Kehadiran Realtime</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Akses Presensi <i class="fas fa-chevron-right"></i></span>
+
+            <!-- Ringkasan Global Progress -->
+            @php
+                $totSemuaSiswa = array_sum(array_column($progres_rombel, 'total_siswa'));
+                $totSemuaKirim = array_sum(array_column($progres_rombel, 'siswa_kirim'));
+                $totSemuaIdValid = array_sum(array_column($progres_rombel, 'id_valid'));
+                $totSemuaBerkasValid = array_sum(array_column($progres_rombel, 'berkas_valid'));
+                $persenTotalKirim = $totSemuaSiswa > 0 ? round(($totSemuaKirim / $totSemuaSiswa) * 100, 1) : 0;
+                $persenTotalValid = $totSemuaSiswa > 0 ? round(($totSemuaIdValid / $totSemuaSiswa) * 100, 1) : 0;
+            @endphp
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
+                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Sasaran Siswa</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaSiswa) }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">siswa ({{ count($progres_rombel) }} rombel)</span></div>
                 </div>
-
-                <a href="{{ route('e-izin.public') }}" class="service-card">
-                    <div>
-                        <div class="service-icon" style="color:var(--accent);"><i class="fas fa-door-open"></i></div>
-                        <h3 class="service-title">e-Izin &amp; Pos Gerbang</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Pengajuan Izin Siswa Mandiri</li>
-                            <li><i class="fas fa-check text-success me-2"></i> SOP Persetujuan Wali &amp; Piket</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Scan Barcode &amp; RFID Gerbang</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Buka Layanan <i class="fas fa-chevron-right"></i></span>
-                </a>
-
-                <a href="{{ route('tamu.public') }}" class="service-card" target="_blank">
-                    <div>
-                        <div class="service-icon" style="color:var(--warning, #f59e0b);"><i class="fas fa-clipboard-user"></i></div>
-                        <h3 class="service-title">Buku Tamu (e-Tamu)</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Pindai QR Pengisian Mandiri</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Deteksi Siswa untuk Orang Tua</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Tiket Visitor Pos Keamanan</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Isi Buku Tamu <i class="fas fa-chevron-right"></i></span>
-                </a>
-
-                <a href="{{ route('perpustakaan.index') }}" class="service-card" target="_blank">
-                    <div>
-                        <div class="service-icon" style="color:var(--purple);"><i class="fas fa-book-open"></i></div>
-                        <h3 class="service-title">Perpustakaan Digital</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Katalog Buku &amp; E-Book Publik</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Kiosk Kunjungan Kartu Anggota</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Peminjaman Mandiri Berbasis QR</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Buka Perpustakaan <i class="fas fa-chevron-right"></i></span>
-                </a>
-
-                <div class="service-card">
-                    <div>
-                        <div class="service-icon" style="color:var(--accent);"><i class="fas fa-award"></i></div>
-                        <h3 class="service-title">Kelulusan &amp; Legalisir</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Pengumuman Kelulusan Online</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Unduh SKL Digital (QR-Sign)</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Verifikasi Keaslian Dokumen</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Lihat Kelulusan <i class="fas fa-chevron-right"></i></span>
+                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
+                    <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Sudah Terkirim / Konfirmasi</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaKirim) }} <span style="font-size: 0.8rem; font-weight: 600;">({{ $persenTotalKirim }}%)</span></div>
                 </div>
-
-                <div class="service-card">
-                    <div>
-                        <div class="service-icon" style="color:var(--purple);"><i class="fas fa-calendar-check"></i>
-                        </div>
-                        <h3 class="service-title">Agenda &amp; Akademik</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Jadwal Pelajaran Mingguan</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Kalender Event Sekolah</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Broadcast Pengumuman</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Cek Jadwal <i class="fas fa-chevron-right"></i></span>
+                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
+                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Identitas Sesuai / Terverifikasi</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaIdValid) }} <span style="font-size: 0.8rem; font-weight: 600;">({{ $persenTotalValid }}%)</span></div>
                 </div>
-
-                <div class="service-card">
-                    <div>
-                        <div class="service-icon" style="color:var(--warning);"><i class="fas fa-chart-line"></i></div>
-                        <h3 class="service-title">Monitoring Data Mutu</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Kualitas Data Dapodik</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Sinkronisasi NISN &amp; NIK</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Kelengkapan Berkas Peserta Didik</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Buka Monitoring <i class="fas fa-chevron-right"></i></span>
+                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
+                    <div style="font-size: 0.75rem; color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Siswa Berkas Valid</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaBerkasValid) }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">siswa lolos</span></div>
                 </div>
+            </div>
 
-                <a href="{{ route('login') }}" class="service-card" style="border-style: dashed; border-color: rgba(99,102,241,0.4);">
-                    <div>
-                        <div class="service-icon" style="color:var(--primary);"><i class="fas fa-grid-2-plus"></i></div>
-                        <h3 class="service-title">Layanan Lainnya</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Pusat Administrasi &amp; Akses Role</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Rest API &amp; Google SSO Hub</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Kelulusan, Legalisir &amp; SKL Digital</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Lihat Semua Modul <i class="fas fa-chevron-right"></i></span>
-                </a>
+            <!-- Toolbar Filter & Search -->
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <input type="text" id="rombelSearch" placeholder="Cari rombel atau wali kelas..." 
+                        style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 12px; font-size: 0.85rem; min-width: 240px; outline: none;">
+                    
+                    <select id="rombelTingkat" style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 10px; font-size: 0.85rem; outline: none;">
+                        <option value="">Semua Tingkat</option>
+                        <option value="X">Kelas X</option>
+                        <option value="XI">Kelas XI</option>
+                        <option value="XII">Kelas XII</option>
+                    </select>
+
+                    <span id="rombelCountBadge" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 6px;">
+                        Menampilkan {{ count($progres_rombel) }} rombel
+                    </span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
+                    <i class="fas fa-arrows-rotate me-1 text-primary"></i> Data terhubung langsung dari Dapodik &amp; SAE
+                </div>
+            </div>
+
+            <!-- Tabel Progres Rombel -->
+            <div style="overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px);">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;" id="tableProgresRombel">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="padding: 10px 14px; width: 45px; text-align: center;">No</th>
+                            <th style="padding: 10px 14px; min-width: 150px;">Rombel / Tingkat</th>
+                            <th style="padding: 10px 14px; min-width: 180px;">Wali Kelas</th>
+                            <th style="padding: 10px 14px; text-align: center; width: 85px;">Siswa</th>
+                            <th style="padding: 10px 14px; min-width: 190px;">Pengiriman Konfirmasi</th>
+                            <th style="padding: 10px 14px; min-width: 190px;">Identitas Valid</th>
+                            <th style="padding: 10px 14px; text-align: center; min-width: 110px;">Berkas Valid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($progres_rombel as $idx => $r)
+                            <tr class="rombel-row" 
+                                data-rombel="{{ strtolower($r['rombel']) }}" 
+                                data-wali="{{ strtolower($r['wali_kelas']) }}" 
+                                data-tingkat="{{ $r['tingkat'] }}"
+                                style="border-bottom: 1px solid var(--border-glass); transition: background 0.15s ease;">
+                                <td style="padding: 10px 14px; text-align: center; color: var(--text-muted); font-weight: 600;">{{ $idx + 1 }}</td>
+                                <td style="padding: 10px 14px;">
+                                    <div style="font-weight: 700; color: var(--text-main);">{{ $r['rombel'] }}</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r['jurusan'] }}</div>
+                                </td>
+                                <td style="padding: 10px 14px; color: var(--text-main);">
+                                    <i class="fas fa-chalkboard-user me-1 text-primary" style="font-size: 0.75rem;"></i>
+                                    {{ $r['wali_kelas'] }}
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center; font-weight: 700; color: var(--text-main);">
+                                    {{ $r['total_siswa'] }}
+                                </td>
+                                <td style="padding: 10px 14px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; color: var(--text-main);">{{ $r['siswa_kirim'] }} / {{ $r['total_siswa'] }}</span>
+                                        <span style="font-weight: 700; color: var(--primary);">{{ $r['persen_kirim'] }}%</span>
+                                    </div>
+                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_kirim'] }}%; height: 100%; background: var(--primary); border-radius: 99px;"></div>
+                                    </div>
+                                </td>
+                                <td style="padding: 10px 14px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; color: var(--text-main);">{{ $r['id_valid'] }} / {{ $r['total_siswa'] }}</span>
+                                        <span style="font-weight: 700; color: var(--success);">{{ $r['persen_valid'] }}%</span>
+                                    </div>
+                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_valid'] }}%; height: 100%; background: var(--success); border-radius: 99px;"></div>
+                                    </div>
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center;">
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                                        <i class="fas fa-file-circle-check"></i> {{ $r['berkas_valid'] }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" style="padding: 24px; text-align: center; color: var(--text-muted);">
+                                    Belum ada data rombongan belajar aktif yang terdata.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </section>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('rombelSearch');
+                const tingkatSelect = document.getElementById('rombelTingkat');
+                const badge = document.getElementById('rombelCountBadge');
+                const rows = document.querySelectorAll('.rombel-row');
+
+                function filterRows() {
+                    if (!rows.length) return;
+                    const query = (searchInput.value || '').trim().toLowerCase();
+                    const tingkat = (tingkatSelect.value || '').trim();
+                    let count = 0;
+
+                    rows.forEach(function(row) {
+                        const rombel = row.getAttribute('data-rombel') || '';
+                        const wali = row.getAttribute('data-wali') || '';
+                        const rTingkat = row.getAttribute('data-tingkat') || '';
+
+                        const matchQuery = !query || rombel.indexOf(query) !== -1 || wali.indexOf(query) !== -1;
+                        const matchTingkat = !tingkat || rTingkat === tingkat;
+
+                        if (matchQuery && matchTingkat) {
+                            row.style.display = '';
+                            count++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    if (badge) {
+                        badge.textContent = 'Menampilkan ' + count + ' rombel';
+                    }
+                }
+
+                if (searchInput) searchInput.addEventListener('input', filterRows);
+                if (tingkatSelect) tingkatSelect.addEventListener('change', filterRows);
+            });
+        </script>
 
         <!-- Interactive Data Analytics -->
         <section id="statistik" class="analytics-card">
