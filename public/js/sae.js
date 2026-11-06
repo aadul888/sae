@@ -451,38 +451,45 @@ window.SAE = {
         if (!text) return false;
         let success = false;
 
-        // 1. Coba Modern Clipboard API jika di secure context (HTTPS / localhost)
-        if (window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        // 1. Fallback textarea + execCommand (wajib synchronous di dalam event click handler browser)
+        try {
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            tempTextArea.setAttribute("readonly", "");
+            tempTextArea.style.contain = "strict";
+            tempTextArea.style.position = "absolute";
+            tempTextArea.style.left = "-9999px";
+            tempTextArea.style.top = (window.pageYOffset || document.documentElement.scrollTop || 0) + "px";
+            tempTextArea.style.fontSize = "12pt";
+            tempTextArea.style.border = "0";
+            tempTextArea.style.padding = "0";
+            tempTextArea.style.margin = "0";
+            document.body.appendChild(tempTextArea);
+
+            const selection = document.getSelection();
+            const originalRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+            tempTextArea.focus();
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, tempTextArea.value.length);
+
+            success = document.execCommand("copy");
+            document.body.removeChild(tempTextArea);
+
+            if (originalRange && selection) {
+                selection.removeAllRanges();
+                selection.addRange(originalRange);
+            }
+        } catch (_) {
+            success = false;
+        }
+
+        // 2. Jika execCommand gagal atau tidak didukung, coba Modern Clipboard API
+        if (!success && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
             try {
                 await navigator.clipboard.writeText(text);
                 success = true;
-            } catch (err) {
-                success = false;
-            }
-        }
-
-        // 2. Synchronous fallback textarea + execCommand untuk HTTP / non-HTTPS domain
-        if (!success) {
-            try {
-                const tempTextArea = document.createElement("textarea");
-                tempTextArea.value = text;
-                tempTextArea.style.position = "fixed";
-                tempTextArea.style.top = "0";
-                tempTextArea.style.left = "-9999px";
-                tempTextArea.style.width = "2em";
-                tempTextArea.style.height = "2em";
-                tempTextArea.style.padding = "0";
-                tempTextArea.style.border = "none";
-                tempTextArea.style.outline = "none";
-                tempTextArea.style.boxShadow = "none";
-                tempTextArea.style.background = "transparent";
-                document.body.appendChild(tempTextArea);
-                tempTextArea.focus();
-                tempTextArea.select();
-                tempTextArea.setSelectionRange(0, 99999);
-                success = document.execCommand("copy");
-                document.body.removeChild(tempTextArea);
-            } catch (err) {
+            } catch (_) {
                 success = false;
             }
         }

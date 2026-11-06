@@ -258,6 +258,52 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', window.closeModalPengelolaanUsulan);
     });
 
+    // Delegasi Salin / Copy Khusus Modal Usulan (Direct synchronous click-to-copy)
+    document.addEventListener('click', function (e) {
+        const copyEl = e.target.closest('#modalUsulanTableBody .copyable');
+        if (!copyEl) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rawVal = copyEl.getAttribute('data-copy') || copyEl.innerText.trim();
+        const label = copyEl.getAttribute('data-label') || 'Data';
+        if (!rawVal || rawVal === '-') return;
+
+        let success = false;
+        try {
+            const temp = document.createElement('textarea');
+            temp.value = rawVal;
+            temp.setAttribute('readonly', '');
+            temp.style.position = 'absolute';
+            temp.style.left = '-9999px';
+            temp.style.top = (window.pageYOffset || document.documentElement.scrollTop || 0) + 'px';
+            temp.style.fontSize = '12pt';
+            document.body.appendChild(temp);
+            temp.focus();
+            temp.select();
+            temp.setSelectionRange(0, temp.value.length);
+            success = document.execCommand('copy');
+            document.body.removeChild(temp);
+        } catch (_) {
+            success = false;
+        }
+
+        if (!success && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(rawVal).then(() => {
+                if (window.SAE && typeof window.SAE.toast === 'function') {
+                    window.SAE.toast(`${label} berhasil disalin!`, 'success');
+                }
+            }).catch(() => {});
+        } else if (success) {
+            if (window.SAE && typeof window.SAE.toast === 'function') {
+                window.SAE.toast(`${label} berhasil disalin!`, 'success');
+            }
+        }
+
+        copyEl.classList.add('copied');
+        setTimeout(() => copyEl.classList.remove('copied'), 1500);
+    });
+
     // Preview Lampiran Dokumen dari Usulan
     document.addEventListener('click', function (e) {
         const previewBtn = e.target.closest('.btn-preview-lampiran-usulan, #docKkPreviewBtn, #docIjazahPreviewBtn, #docAktaPreviewBtn');
