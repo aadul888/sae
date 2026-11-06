@@ -189,6 +189,7 @@
                                     <div class="news-sub-meta">
                                         <span class="badge badge-accent" style="font-size: var(--text-2xs); padding: 2px 6px;">{{ $bKecil->kategori }}</span>
                                         <span class="news-sub-date"><i class="fas fa-calendar-alt me-1"></i>{{ $bKecil->created_at ? $bKecil->created_at->translatedFormat('d M Y') : '-' }}</span>
+                                        <span class="news-sub-date"><i class="fas fa-eye me-1"></i>{{ number_format($bKecil->views) }}</span>
                                     </div>
                                     <h4 class="news-sub-title">
                                         <a href="{{ route('berita.show', $bKecil->slug) }}">{{ $bKecil->judul }}</a>
