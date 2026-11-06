@@ -137,10 +137,10 @@
         </div>
 
         {{-- Form Tarik Banyak --}}
-        <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.tarik-banyak') }}" id="formTarikBanyak">
+        <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.tarik-banyak') }}" id="formTarikBanyak" style="min-width:0;width:100%;box-sizing:border-box;">
             @csrf
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;min-width:0;box-sizing:border-box;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;">
                     <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);cursor:pointer;user-select:none;font-weight:700;margin:0;">
                         <input type="checkbox" id="checkAllEbook" onchange="togglePilihSemua(this)" style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
                         <span>Pilih Semua</span>
@@ -161,7 +161,7 @@
                     <span id="labelTerpilih" style="font-size:var(--text-xs);color:var(--primary);font-weight:700;display:none;"></span>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0;">
                     <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);cursor:pointer;margin:0;user-select:none;" title="Centang untuk sekaligus mengunduh berkas fisik PDF ke penyimpanan server sekolah">
                         <input type="checkbox" name="unduh_pdf" value="1" id="checkBatchUnduhPdf" style="accent-color:var(--success,#10b981);width:16px;height:16px;cursor:pointer;">
                         <span style="color:var(--text-color);font-weight:600;"><i class="fas fa-hard-drive text-success me-1"></i> Unduh Berkas PDF ke Server (Offline)</span>
@@ -175,7 +175,7 @@
             </div>
 
             {{-- Grid E-Book Responsif --}}
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;margin-bottom:30px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:16px;margin-bottom:30px;min-width:0;width:100%;box-sizing:border-box;">
                 @forelse ($items as $item)
                     @php
                         $sudahAda = $item['sudah_ada'] ?? false;
@@ -195,15 +195,15 @@
                         };
                     @endphp
                     <div class="card"
-                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:14px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};">
-                        <div>
-                            {{-- Cover / Thumbnail Buku --}}
-                            <div style="height:115px;background:{{ $theme['gradient'] }};border-radius:var(--radius-md);margin-bottom:12px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 4px 0 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.08);color:#fff;">
+                        style="display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius-lg);border:1px solid {{ $sudahAda ? 'rgba(16,185,129,0.35)' : 'var(--border-color)' }};padding:14px;position:relative;background:{{ $sudahAda ? 'rgba(16,185,129,0.02)' : 'var(--card-bg)' }};min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden;word-break:break-word;overflow-wrap:anywhere;">
+                        <div style="min-width:0;">
+                            {{-- Cover / Thumbnail Buku Ringkas & Proporsional --}}
+                            <div style="height:82px;background:{{ $theme['gradient'] }};border-radius:var(--radius-md);margin-bottom:12px;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 4px 0 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.08);color:#fff;min-width:0;">
                                 {{-- Background watermark icon --}}
-                                <i class="fas {{ $theme['icon'] }}" style="position:absolute;right:-10px;bottom:-10px;font-size:var(--text-5xl);opacity:0.18;pointer-events:none;"></i>
+                                <i class="fas {{ $theme['icon'] }}" style="position:absolute;right:-6px;bottom:-6px;font-size:var(--text-4xl);opacity:0.18;pointer-events:none;"></i>
 
-                                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
-                                    <div style="display:flex;align-items:center;gap:6px;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;gap:6px;min-width:0;">
+                                    <div style="display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;">
                                         <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
                                             class="check-ebook"
                                             data-sudah-ada="{{ $sudahAda ? '1' : '0' }}"
@@ -225,23 +225,20 @@
                                             <i class="fas fa-bolt me-1 text-warning"></i>E-BOOK
                                         </span>
                                     </div>
-                                    <span style="font-size:var(--text-2xs);font-weight:700;background:rgba(255,255,255,0.92);color:#0f172a;padding:2px 8px;border-radius:var(--radius-pill);">
+                                    <span style="font-size:var(--text-2xs);font-weight:700;background:rgba(255,255,255,0.92);color:#0f172a;padding:2px 8px;border-radius:var(--radius-pill);flex-shrink:0;">
                                         Kelas {{ $item['kelas'] ?? 'Umum' }}
                                     </span>
                                 </div>
 
-                                <div style="position:relative;z-index:2;">
-                                    <div style="font-size:var(--text-2xs);text-transform:uppercase;letter-spacing:0.05em;opacity:0.85;font-weight:700;">
+                                <div style="position:relative;z-index:2;min-width:0;">
+                                    <div style="font-size:var(--text-2xs);text-transform:uppercase;letter-spacing:0.05em;opacity:0.9;font-weight:700;">
                                         <i class="fas {{ $theme['icon'] }} me-1"></i>{{ $theme['label'] }}
-                                    </div>
-                                    <div style="font-size:var(--text-xs);font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,0.3);">
-                                        {{ $item['judul'] }}
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Sub-Header: Badge Sumber & DDC --}}
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;min-width:0;flex-wrap:wrap;">
                                 <span class="badge {{ $badgeClass }}"
                                     style="font-size:var(--text-2xs);font-weight:700;padding:2px 8px;">
                                     {{ $labelSumber }}
@@ -254,16 +251,16 @@
                             </div>
 
                             {{-- Judul & Penulis --}}
-                            <h4 style="margin:0 0 6px;font-size:var(--text-sm);font-weight:800;color:var(--text-color);line-height:1.35;">
+                            <h4 style="margin:0 0 6px;font-size:var(--text-sm);font-weight:800;color:var(--text-color);line-height:1.35;word-break:break-word;overflow-wrap:anywhere;">
                                 {{ $item['judul'] }}
                             </h4>
-                            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:8px;">
+                            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:8px;word-break:break-word;">
                                 <i class="fas fa-user-pen me-1"></i> {{ $item['penulis'] ?: 'Penyusun Resmi' }} &bull;
                                 <span>{{ $item['tahun_terbit'] ?? '-' }}</span>
                             </div>
 
                             {{-- Tag Kategori & Jurusan --}}
-                            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-width:0;">
                                 <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(59,130,246,0.08);color:var(--primary);font-weight:700;">
                                     <i class="fas fa-tag"></i> {{ $item['kategori'] ?? 'Pelajaran' }}
                                 </span>
@@ -281,24 +278,24 @@
 
                             {{-- Sinopsis singkat --}}
                             @if (!empty($item['sinopsis']))
-                                <p style="font-size:var(--text-xs);color:var(--text-muted);margin:0 0 12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+                                <p style="font-size:var(--text-xs);color:var(--text-muted);margin:0 0 12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;">
                                     {{ $item['sinopsis'] }}
                                 </p>
                             @endif
                         </div>
 
-                        {{-- Footer Aksi (Mobile Responsive) --}}
-                        <div style="border-top:1px solid var(--border-color);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                        {{-- Footer Aksi (Mobile Responsive & Anti Overflow) --}}
+                        <div style="border-top:1px solid var(--border-color);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;min-width:0;">
                             @if (!empty($item['tautan_baca']))
                                 <a href="{{ $item['tautan_baca'] }}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-outline" style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:5px;">
+                                    class="btn btn-outline" style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;">
                                     <i class="fas fa-arrow-up-right-from-square"></i> Preview
                                 </a>
                             @else
                                 <span></span>
                             @endif
 
-                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:0;">
                                 @if ($sudahAda)
                                     @if ($hasFileEbook)
                                         <span style="font-size:var(--text-2xs);font-weight:700;color:var(--success,#10b981);background:rgba(16,185,129,0.1);padding:4px 9px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:4px;" title="Berkas PDF tersimpan lokal di server">
