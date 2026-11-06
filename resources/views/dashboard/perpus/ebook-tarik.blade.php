@@ -4,27 +4,28 @@
 
 @section('content')
     <div class="dash-content-inner">
+        <!-- 1. Header Banner & Actions (Baku SAE) -->
         <div class="dash-banner"
-            style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:14px;min-width:0;flex:1 1 280px;">
+            style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; padding: 16px 20px;">
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
                 <div
-                    style="width:48px;height:48px;border-radius:var(--radius-lg);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-2xl);flex-shrink:0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-cloud-arrow-down"></i>
                 </div>
                 <div>
-                    <h2 style="font-size:var(--text-xl);font-weight:800;color:var(--text-color);margin:0;">
+                    <h2 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
                         Tarik E-Book Gratis &amp; Terbuka
                     </h2>
-                    <div style="font-size:var(--text-sm);color:var(--text-muted);margin-top:2px;">
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                         Integrasi repositori resmi bebas royalti Kemendikbudristek, Ditjen Vokasi SMK, Kemenag RI, dan Perpusnas.
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <button type="button" class="btn btn-outline" onclick="openModalEbookManual()"
-                    style="height:38px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--radius-md,8px);font-size:var(--text-xs);"
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary" onclick="openModalEbookManual()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah E-Book Mandiri" aria-label="Tambah E-Book Mandiri">
-                    <i class="fas fa-file-circle-plus"></i> <span class="d-none d-sm-inline">Tambah Mandiri</span>
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -139,23 +140,36 @@
         <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.tarik-banyak') }}" id="formTarikBanyak">
             @csrf
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;">
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                    <label style="display:inline-flex;align-items:center;gap:8px;font-size:var(--text-xs);cursor:pointer;user-select:none;font-weight:700;margin:0;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);cursor:pointer;user-select:none;font-weight:700;margin:0;">
                         <input type="checkbox" id="checkAllEbook" onchange="togglePilihSemua(this)" style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
-                        <span>Pilih Semua Belum Terdaftar</span>
+                        <span>Pilih Semua</span>
                     </label>
+
+                    <button type="button" class="btn btn-outline" onclick="pilihKhusus('belum_pdf')"
+                        style="font-size:var(--text-2xs);padding:3px 9px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:4px;"
+                        title="Pilih semua e-book yang berkas PDF-nya belum tersimpan di server sekolah">
+                        <i class="fas fa-file-arrow-down text-warning"></i> Belum Ada PDF Server
+                    </button>
+
+                    <button type="button" class="btn btn-outline" onclick="pilihKhusus('belum_katalog')"
+                        style="font-size:var(--text-2xs);padding:3px 9px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:4px;"
+                        title="Pilih semua e-book yang belum masuk katalog perpustakaan">
+                        <i class="fas fa-plus text-primary"></i> Belum Masuk Katalog
+                    </button>
+
                     <span id="labelTerpilih" style="font-size:var(--text-xs);color:var(--primary);font-weight:700;display:none;"></span>
                 </div>
 
                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                     <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);cursor:pointer;margin:0;user-select:none;" title="Centang untuk sekaligus mengunduh berkas fisik PDF ke penyimpanan server sekolah">
-                        <input type="checkbox" name="unduh_pdf" value="1" id="checkBatchUnduhPdf" style="accent-color:var(--success,#10b981);width:15px;height:15px;cursor:pointer;">
-                        <span style="color:var(--text-color);"><i class="fas fa-hard-drive text-success me-1"></i> Unduh Berkas PDF ke Server (Offline)</span>
+                        <input type="checkbox" name="unduh_pdf" value="1" id="checkBatchUnduhPdf" style="accent-color:var(--success,#10b981);width:16px;height:16px;cursor:pointer;">
+                        <span style="color:var(--text-color);font-weight:600;"><i class="fas fa-hard-drive text-success me-1"></i> Unduh Berkas PDF ke Server (Offline)</span>
                     </label>
 
                     <button type="submit" id="btnTarikTerpilih" class="btn btn-success" disabled
-                        style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 14px;">
-                        <i class="fas fa-cloud-arrow-down"></i> Tarik Terpilih ke Katalog
+                        style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:7px 16px;">
+                        <i class="fas fa-cloud-arrow-down"></i> <span id="textBtnTarik">Tarik Terpilih ke Katalog</span>
                     </button>
                 </div>
             </div>
@@ -190,13 +204,21 @@
 
                                 <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;">
                                     <div style="display:flex;align-items:center;gap:6px;">
-                                        @if (!$sudahAda)
-                                            <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
-                                                class="check-ebook" onchange="hitungTerpilih()"
-                                                style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
-                                        @else
-                                            <span style="background:rgba(255,255,255,0.95);color:#059669;font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);font-weight:800;display:inline-flex;align-items:center;gap:3px;">
-                                                <i class="fas fa-circle-check"></i> Siap
+                                        <input type="checkbox" name="kode_buku[]" value="{{ $item['kode_buku'] }}"
+                                            class="check-ebook"
+                                            data-sudah-ada="{{ $sudahAda ? '1' : '0' }}"
+                                            data-has-file="{{ $hasFileEbook ? '1' : '0' }}"
+                                            data-has-pdf="{{ $hasPdfUrl ? '1' : '0' }}"
+                                            onchange="hitungTerpilih()"
+                                            style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
+
+                                        @if ($hasFileEbook)
+                                            <span style="background:rgba(255,255,255,0.95);color:#059669;font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);font-weight:800;display:inline-flex;align-items:center;gap:3px;" title="Berkas PDF sudah tersimpan offline di server">
+                                                <i class="fas fa-circle-check"></i> PDF Server
+                                            </span>
+                                        @elseif ($sudahAda)
+                                            <span style="background:rgba(255,255,255,0.95);color:#0284c7;font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);font-weight:800;display:inline-flex;align-items:center;gap:3px;" title="Sudah ada di katalog sebagai tautan baca online (PDF belum di server)">
+                                                <i class="fas fa-link"></i> Di Katalog
                                             </span>
                                         @endif
                                         <span style="font-size:var(--text-2xs);font-weight:800;letter-spacing:0.04em;background:rgba(0,0,0,0.35);backdrop-filter:blur(4px);padding:2px 7px;border-radius:var(--radius-pill);color:#fff;">
@@ -449,21 +471,83 @@
                 hitungTerpilih();
             }
 
+            function pilihKhusus(mode) {
+                var checkboxes = document.querySelectorAll('.check-ebook');
+                checkboxes.forEach(function (cb) {
+                    if (mode === 'belum_pdf') {
+                        cb.checked = (cb.dataset.hasFile === '0' && cb.dataset.hasPdf === '1');
+                    } else if (mode === 'belum_katalog') {
+                        cb.checked = (cb.dataset.sudahAda === '0');
+                    }
+                });
+
+                if (mode === 'belum_pdf') {
+                    var optUnduh = document.getElementById('checkBatchUnduhPdf');
+                    if (optUnduh) optUnduh.checked = true;
+                }
+
+                hitungTerpilih();
+            }
+
             function hitungTerpilih() {
                 var checked = document.querySelectorAll('.check-ebook:checked');
+                var totalBoxes = document.querySelectorAll('.check-ebook');
                 var count = checked.length;
                 var btn = document.getElementById('btnTarikTerpilih');
                 var label = document.getElementById('labelTerpilih');
+                var textBtn = document.getElementById('textBtnTarik');
+                var checkAll = document.getElementById('checkAllEbook');
+                var unduhPdfChecked = document.getElementById('checkBatchUnduhPdf') ? document.getElementById('checkBatchUnduhPdf').checked : false;
+
+                if (checkAll) {
+                    checkAll.checked = (totalBoxes.length > 0 && count === totalBoxes.length);
+                }
 
                 if (count > 0) {
                     btn.disabled = false;
                     label.style.display = 'inline';
                     label.textContent = count + ' e-book dipilih';
+
+                    if (unduhPdfChecked) {
+                        textBtn.textContent = 'Unduh PDF & Tarik (' + count + ')';
+                    } else {
+                        textBtn.textContent = 'Tarik Terpilih (' + count + ')';
+                    }
                 } else {
                     btn.disabled = true;
                     label.style.display = 'none';
+                    if (unduhPdfChecked) {
+                        textBtn.textContent = 'Unduh PDF Terpilih ke Server';
+                    } else {
+                        textBtn.textContent = 'Tarik Terpilih ke Katalog';
+                    }
                 }
             }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var checkUnduhPdf = document.getElementById('checkBatchUnduhPdf');
+                if (checkUnduhPdf) {
+                    checkUnduhPdf.addEventListener('change', function () {
+                        var checkedCount = document.querySelectorAll('.check-ebook:checked').length;
+                        if (this.checked && checkedCount === 0) {
+                            pilihKhusus('belum_pdf');
+                        } else {
+                            hitungTerpilih();
+                        }
+                    });
+                }
+
+                var form = document.getElementById('formTarikBanyak');
+                if (form) {
+                    form.addEventListener('submit', function () {
+                        var btn = document.getElementById('btnTarikTerpilih');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses Unduhan...';
+                        }
+                    });
+                }
+            });
         </script>
     @endpush
 @endsection

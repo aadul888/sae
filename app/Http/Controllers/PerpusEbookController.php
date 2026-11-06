@@ -122,9 +122,9 @@ class PerpusEbookController extends Controller
         $unduhPdf = $request->boolean('unduh_pdf');
         $hasil = PerpustakaanEbookService::imporBanyak($kodeList, $unduhPdf);
 
-        $msg = "Berhasil menarik {$hasil['sukses']} e-book ke katalog perpustakaan.";
+        $msg = "Berhasil memproses {$hasil['sukses']} e-book ke katalog perpustakaan.";
         if ($unduhPdf) {
-            $msg .= " Berkas PDF yang tersedia telah diunduh ke server.";
+            $msg .= " Berkas PDF yang tersedia telah diunduh dan disimpan ke server sekolah (offline).";
         }
 
         return redirect()->back()->with('success', $msg);

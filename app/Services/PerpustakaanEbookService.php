@@ -946,14 +946,21 @@ class PerpustakaanEbookService
         $sumber = $item['sumber_ebook'] ?? 'publik';
 
         $fileEbook = $existing->file_ebook ?? ($item['file_ebook'] ?? null);
-        if ($unduhPdf && !empty($item['file_pdf_url'])) {
-            $unduh = self::unduhBerkasPdf($item['file_pdf_url'], $item['kode_buku']);
-            if ($unduh) {
-                $fileEbook = $unduh;
+        $urlPdf = $item['file_pdf_url'] ?? null;
+        if (empty($urlPdf) && !empty($item['tautan_baca']) && Str::endsWith(Str::lower((string) $item['tautan_baca']), ['.pdf'])) {
+            $urlPdf = $item['tautan_baca'];
+        }
+
+        if ($unduhPdf && !empty($urlPdf)) {
+            if (!$fileEbook || !Storage::disk('public')->exists($fileEbook)) {
+                $unduh = self::unduhBerkasPdf($urlPdf, $item['kode_buku']);
+                if ($unduh) {
+                    $fileEbook = $unduh;
+                }
             }
         }
 
-        $tautanBaca = !empty($item['file_pdf_url']) ? $item['file_pdf_url'] : ($item['tautan_baca'] ?? null);
+        $tautanBaca = !empty($urlPdf) ? $urlPdf : ($item['tautan_baca'] ?? null);
 
         $payload = [
             'kode_buku'          => $item['kode_buku'],
@@ -999,6 +1006,7 @@ class PerpustakaanEbookService
      */
     public static function imporBanyak(array $kodeList, bool $unduhPdf = false): array
     {
+        @set_time_limit(300);
         $katalog = collect(self::katalogMaster())->keyBy('kode_buku');
         $sukses = 0;
         $dilewati = 0;

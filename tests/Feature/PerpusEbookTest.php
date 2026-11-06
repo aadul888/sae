@@ -353,6 +353,51 @@ class PerpusEbookTest extends TestCase
         }
     }
 
+    public function test_aksi_tarik_banyak_dengan_opsi_unduh_pdf_memperbarui_koleksi_yang_sudah_ada(): void
+    {
+        Storage::fake('public');
+        Http::fake([
+            '*' => Http::response("%PDF-1.4\n%dummy pdf content batch", 200, [
+                'Content-Type' => 'application/pdf',
+            ]),
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $master = PerpustakaanEbookService::katalogMaster();
+            $target1 = $master[0];
+            $target2 = $master[1];
+
+            // 1 sudah ada di katalog tapi belum ada file PDF
+            $id1 = PerpustakaanEbookService::imporKeKatalog($target1, unduhPdf: false);
+            DB::table('perpus_koleksi_buku')->where('id', $id1)->update(['file_ebook' => null]);
+
+            // Eksekusi tarik banyak dengan unduh_pdf = 1
+            $res = $this->withSession($this->adminSession())
+                ->post(route('dashboard.perpustakaan.ebook.tarik-banyak'), [
+                    'kode_buku' => [$target1['kode_buku'], $target2['kode_buku']],
+                    'unduh_pdf' => '1',
+                ]);
+
+            $res->assertRedirect();
+            $res->assertSessionHas('success');
+
+            // Cek buku yang sebelumnya sudah ada kini terisi file_ebook
+            $buku1 = DB::table('perpus_koleksi_buku')->where('id', $id1)->first();
+            $this->assertNotNull($buku1->file_ebook);
+            Storage::disk('public')->assertExists($buku1->file_ebook);
+
+            // Cek buku kedua yang baru ditarik juga terisi file_ebook
+            $buku2 = DB::table('perpus_koleksi_buku')->where('kode_buku', $target2['kode_buku'])->first();
+            $this->assertNotNull($buku2);
+            $this->assertNotNull($buku2->file_ebook);
+            Storage::disk('public')->assertExists($buku2->file_ebook);
+        } finally {
+            DB::rollBack();
+        }
+    }
+
     public function test_endpoint_unduh_pdf_koleksi_dari_dashboard(): void
     {
         Storage::fake('public');
