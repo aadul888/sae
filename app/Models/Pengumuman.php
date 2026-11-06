@@ -10,6 +10,7 @@ class Pengumuman extends Model
     protected $table = 'pengumuman';
 
     protected $fillable = [
+        'tipe',
         'judul',
         'isi',
         'target',
@@ -33,12 +34,34 @@ class Pengumuman extends Model
     }
 
     /**
+     * Scope khusus pengumuman (bukan teks berjalan broadcast)
+     */
+    public function scopePengumuman(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->where('tipe', 'pengumuman')
+              ->orWhereNull('tipe');
+        });
+    }
+
+    /**
+     * Scope khusus info broadcast (teks berjalan)
+     */
+    public function scopeBroadcast(Builder $query): Builder
+    {
+        return $query->where('tipe', 'broadcast');
+    }
+
+    /**
      * Scope pengumuman untuk portal publik (teks berjalan)
      */
     public function scopeForPublic(Builder $query): Builder
     {
         return $query->where('is_active', true)
-            ->whereIn('target', ['publik', 'semua'])
+            ->where(function ($q) {
+                $q->where('tipe', 'broadcast')
+                  ->orWhereIn('target', ['publik', 'semua']);
+            })
             ->orderByDesc('created_at');
     }
 

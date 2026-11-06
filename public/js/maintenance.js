@@ -85,34 +85,56 @@ document.addEventListener("DOMContentLoaded", function () {
             this.style.pointerEvents = "none";
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan...';
 
+            const targetUrl = this.href;
+            const backupType = this.dataset.backupType || "full";
+
             try {
-                const res = await fetch(backupUrl, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken,
-                        "Accept": "application/json",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ type: this.dataset.backupType || "full" }),
-                });
+                if (backupUrl) {
+                    const res = await fetch(backupUrl, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": csrfToken,
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ type: backupType }),
+                    });
 
-                const { data, raw } = await readJson(res);
-                if (!res.ok || !data || data.status !== "success") {
-                    throw new Error(errorMessage(res, data, raw, "Gagal membuat paket arsip."));
+                    const { data, raw } = await readJson(res);
+                    if (!res.ok || !data || data.status !== "success") {
+                        throw new Error(errorMessage(res, data, raw, "Gagal membuat paket arsip."));
+                    }
+
+                    startDownload(data.download_url);
+
+                    window.SAE.alert(
+                        `${data.message}<br><br><small style="color:#6b7280;">Berkas: <b>${data.filename}</b></small>`,
+                        "Backup Berhasil",
+                        "success"
+                    ).then(function () {
+                        window.location.reload();
+                    });
+                } else if (targetUrl) {
+                    // Fallback direct download stream
+                    window.location.href = targetUrl;
                 }
-
-                startDownload(data.download_url);
-
-                window.SAE.alert(
-                    `${data.message}<br><br><small style="color:#6b7280;">Berkas: <b>${data.filename}</b></small>`,
-                    "Backup Berhasil",
-                    "success"
-                ).then(function () {
-                    window.location.reload();
-                });
             } catch (error) {
-                if (window.SAE && typeof window.SAE.alert === "function") {
-                    window.SAE.alert(error.message || "Gagal memproses paket arsip.", "Backup Gagal", "error");
+                // Bila AJAX timeout (mis. Cloudflare 524) atau gagal network, beri opsi unduh langsung
+                const errMsg = error.message || "Gagal memproses paket arsip.";
+                if (targetUrl && (errMsg.includes("524") || errMsg.includes("504") || errMsg.includes("Failed to fetch"))) {
+                    const retryDirect = await window.SAE.confirm(
+                        errMsg + "<br><br>Koneksi AJAX terputus oleh proxy/Cloudflare. Coba unduh langsung melalui browser stream?",
+                        "Koneksi Terputus",
+                        "warning",
+                        "Unduh Langsung",
+                        "Batal"
+                    );
+                    if (retryDirect) {
+                        window.location.href = targetUrl;
+                        return;
+                    }
+                } else if (window.SAE && typeof window.SAE.alert === "function") {
+                    window.SAE.alert(errMsg, "Backup Gagal", "error");
                 }
             } finally {
                 this.dataset.busy = "";

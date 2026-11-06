@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pengumuman;
+use App\Models\Berita;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class PengumumanController extends Controller
 {
     /**
-     * Halaman daftar & manajemen pengumuman (Admin & Staff Berwenang)
+     * Halaman daftar & manajemen pengumuman, broadcast, dan berita (Admin & Staff Berwenang)
      */
     public function index(Request $request)
     {
@@ -36,65 +39,130 @@ class PengumumanController extends Controller
             return redirect()->route('dashboard.' . $role)->with('error', 'Akses dibatasi.');
         }
 
+        $activeTab = $request->get('tab', 'pengumuman');
+        if (!in_array($activeTab, ['pengumuman', 'broadcast', 'berita'], true)) {
+            $activeTab = 'pengumuman';
+        }
+
         $q = trim($request->get('q', ''));
         $targetFilter = $request->get('target', '');
         $targetPeranFilter = $request->get('target_peran', '');
+        $kategoriFilter = $request->get('kategori', '');
         $statusFilter = $request->get('status', '');
         $perPage = (int) $request->get('perPage', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
 
-        $query = Pengumuman::query();
-
-        if ($q !== '') {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('judul', 'like', "%{$q}%")
-                    ->orWhere('isi', 'like', "%{$q}%")
-                    ->orWhere('penulis_nama', 'like', "%{$q}%");
-            });
-        }
-
-        if ($targetFilter !== '' && in_array($targetFilter, ['publik', 'pengguna', 'semua'], true)) {
-            $query->where('target', $targetFilter);
-        }
-
-        if ($targetPeranFilter !== '' && in_array($targetPeranFilter, ['semua', 'admin', 'guru', 'tendik', 'peserta_didik'], true)) {
-            $query->where('target_peran', $targetPeranFilter);
-        }
-
-        if ($statusFilter !== '') {
-            $query->where('is_active', $statusFilter === '1');
-        }
-
-        $sort    = $request->get('sort', 'created_at');
+        $sort = $request->get('sort', 'created_at');
         $sortDir = $request->get('sort_dir', 'desc');
-        $allowedSorts = ['judul', 'target', 'target_peran', 'is_active', 'created_at'];
-        if (!in_array($sort, $allowedSorts, true)) {
-            $sort = 'created_at';
-        }
         if (!in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'desc';
         }
 
-        $query->orderBy($sort, $sortDir);
+        if ($activeTab === 'berita') {
+            $allowedSorts = ['judul', 'kategori', 'views', 'is_active', 'created_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'created_at';
+            }
 
-        $list = $query->paginate($perPage)->appends($request->query());
+            $query = Berita::query();
+
+            if ($q !== '') {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('judul', 'like', "%{$q}%")
+                        ->orWhere('ringkasan', 'like', "%{$q}%")
+                        ->orWhere('isi', 'like', "%{$q}%")
+                        ->orWhere('penulis_nama', 'like', "%{$q}%");
+                });
+            }
+
+            if ($kategoriFilter !== '' && $kategoriFilter !== 'Semua') {
+                $query->where('kategori', $kategoriFilter);
+            }
+
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter === '1');
+            }
+
+            $query->orderBy($sort, $sortDir);
+            $list = $query->paginate($perPage)->appends($request->query());
+        } elseif ($activeTab === 'broadcast') {
+            $allowedSorts = ['judul', 'isi', 'is_active', 'created_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'created_at';
+            }
+
+            $query = Pengumuman::broadcast();
+
+            if ($q !== '') {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('judul', 'like', "%{$q}%")
+                        ->orWhere('isi', 'like', "%{$q}%")
+                        ->orWhere('penulis_nama', 'like', "%{$q}%");
+                });
+            }
+
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter === '1');
+            }
+
+            $query->orderBy($sort, $sortDir);
+            $list = $query->paginate($perPage)->appends($request->query());
+        } else {
+            // Tab 'pengumuman'
+            $allowedSorts = ['judul', 'target', 'target_peran', 'is_active', 'created_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'created_at';
+            }
+
+            $query = Pengumuman::pengumuman();
+
+            if ($q !== '') {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('judul', 'like', "%{$q}%")
+                        ->orWhere('isi', 'like', "%{$q}%")
+                        ->orWhere('penulis_nama', 'like', "%{$q}%");
+                });
+            }
+
+            if ($targetFilter !== '' && in_array($targetFilter, ['publik', 'pengguna', 'semua'], true)) {
+                $query->where('target', $targetFilter);
+            }
+
+            if ($targetPeranFilter !== '' && in_array($targetPeranFilter, ['semua', 'admin', 'guru', 'tendik', 'peserta_didik'], true)) {
+                $query->where('target_peran', $targetPeranFilter);
+            }
+
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter === '1');
+            }
+
+            $query->orderBy($sort, $sortDir);
+            $list = $query->paginate($perPage)->appends($request->query());
+        }
 
         // Ringkasan statistik
         $summary = [
-            'total'   => Pengumuman::count(),
-            'aktif'   => Pengumuman::where('is_active', true)->count(),
-            'publik'  => Pengumuman::whereIn('target', ['publik', 'semua'])->where('is_active', true)->count(),
-            'lonceng' => Pengumuman::whereIn('target', ['pengguna', 'semua'])->where('is_active', true)->count(),
+            'total_pengumuman' => Pengumuman::pengumuman()->count(),
+            'aktif_pengumuman' => Pengumuman::pengumuman()->where('is_active', true)->count(),
+            'total_broadcast'  => Pengumuman::broadcast()->count(),
+            'aktif_broadcast'  => Pengumuman::broadcast()->where('is_active', true)->count(),
+            'total_berita'     => Berita::count(),
+            'aktif_berita'     => Berita::where('is_active', true)->count(),
         ];
+
+        $kategoriList = ['Umum', 'Akademik', 'Kegiatan', 'Prestasi', 'Pengumuman'];
 
         return view('dashboard.pengumuman', compact(
             'list',
             'summary',
+            'activeTab',
             'q',
             'targetFilter',
             'targetPeranFilter',
+            'kategoriFilter',
+            'kategoriList',
             'statusFilter',
             'perPage',
             'sort',
@@ -342,10 +410,16 @@ class PengumumanController extends Controller
             return back()->with('error', 'Anda tidak memiliki hak untuk menambah pengumuman.');
         }
 
+        $tipe = $request->get('tipe', 'pengumuman');
+        if (!in_array($tipe, ['pengumuman', 'broadcast'], true)) {
+            $tipe = 'pengumuman';
+        }
+
         $validated = $request->validate([
+            'tipe' => 'nullable|string|in:pengumuman,broadcast',
             'judul' => 'required|string|max:255',
             'isi' => 'required|string',
-            'target' => 'required|in:publik,pengguna,semua',
+            'target' => 'nullable|in:publik,pengguna,semua',
             'target_peran' => 'nullable|string|in:semua,admin,guru,tendik,peserta_didik',
             'penulis_nama' => 'nullable|string|max:100',
             'is_active' => 'nullable|boolean',
@@ -354,11 +428,15 @@ class PengumumanController extends Controller
         $defaultAuthor = (string) data_get($user, 'name', data_get($user, 'nama', 'Staff'));
         $authorName = !empty($validated['penulis_nama']) ? trim($validated['penulis_nama']) : $defaultAuthor;
 
+        $target = $tipe === 'broadcast' ? 'publik' : ($validated['target'] ?? 'pengguna');
+        $targetPeran = $tipe === 'broadcast' ? 'semua' : ($validated['target_peran'] ?? 'semua');
+
         $pengumuman = Pengumuman::create([
+            'tipe' => $tipe,
             'judul' => $validated['judul'],
             'isi' => $validated['isi'],
-            'target' => $validated['target'],
-            'target_peran' => $validated['target_peran'] ?? 'semua',
+            'target' => $target,
+            'target_peran' => $targetPeran,
             'is_active' => $request->boolean('is_active', true),
             'penulis_nama' => $authorName,
         ]);
@@ -374,12 +452,14 @@ class PengumumanController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pengumuman berhasil diterbitkan.',
+                'message' => $tipe === 'broadcast' ? 'Info broadcast berhasil diterbitkan.' : 'Pengumuman berhasil diterbitkan.',
                 'data' => $pengumuman,
             ]);
         }
 
-        return back()->with('success', 'Pengumuman berhasil diterbitkan.');
+        $redirectTab = $tipe === 'broadcast' ? 'broadcast' : 'pengumuman';
+        return redirect()->route('dashboard.pengumuman.index', ['tab' => $redirectTab])
+            ->with('success', $tipe === 'broadcast' ? 'Info broadcast berhasil diterbitkan.' : 'Pengumuman berhasil diterbitkan.');
     }
 
     /**
@@ -410,22 +490,31 @@ class PengumumanController extends Controller
             return back()->with('error', 'Pengumuman tidak ditemukan.');
         }
 
+        $tipe = $request->get('tipe', $pengumuman->tipe ?: 'pengumuman');
+        if (!in_array($tipe, ['pengumuman', 'broadcast'], true)) {
+            $tipe = 'pengumuman';
+        }
+
         $validated = $request->validate([
+            'tipe' => 'nullable|string|in:pengumuman,broadcast',
             'judul' => 'required|string|max:255',
             'isi' => 'required|string',
-            'target' => 'required|in:publik,pengguna,semua',
+            'target' => 'nullable|in:publik,pengguna,semua',
             'target_peran' => 'nullable|string|in:semua,admin,guru,tendik,peserta_didik',
             'penulis_nama' => 'nullable|string|max:100',
             'is_active' => 'nullable|boolean',
         ]);
 
         $authorName = !empty($validated['penulis_nama']) ? trim($validated['penulis_nama']) : $pengumuman->penulis_nama;
+        $target = $tipe === 'broadcast' ? 'publik' : ($validated['target'] ?? $pengumuman->target);
+        $targetPeran = $tipe === 'broadcast' ? 'semua' : ($validated['target_peran'] ?? $pengumuman->target_peran);
 
         $pengumuman->update([
+            'tipe' => $tipe,
             'judul' => $validated['judul'],
             'isi' => $validated['isi'],
-            'target' => $validated['target'],
-            'target_peran' => $validated['target_peran'] ?? 'semua',
+            'target' => $target,
+            'target_peran' => $targetPeran,
             'penulis_nama' => $authorName,
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -438,12 +527,14 @@ class PengumumanController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pengumuman berhasil diperbarui.',
+                'message' => $tipe === 'broadcast' ? 'Info broadcast berhasil diperbarui.' : 'Pengumuman berhasil diperbarui.',
                 'data' => $pengumuman,
             ]);
         }
 
-        return back()->with('success', 'Pengumuman berhasil diperbarui.');
+        $redirectTab = $tipe === 'broadcast' ? 'broadcast' : 'pengumuman';
+        return redirect()->route('dashboard.pengumuman.index', ['tab' => $redirectTab])
+            ->with('success', $tipe === 'broadcast' ? 'Info broadcast berhasil diperbarui.' : 'Pengumuman berhasil diperbarui.');
     }
 
     /**
@@ -524,5 +615,235 @@ class PengumumanController extends Controller
         }
 
         return back()->with('success', 'Pengumuman berhasil dihapus.');
+    }
+
+    /**
+     * Simpan berita baru (Admin & Staff)
+     */
+    public function storeBerita(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401)
+                : redirect()->route('login');
+        }
+
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'create')) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk menambah berita.'], 403)
+                : back()->with('error', 'Anda tidak memiliki hak untuk menambah berita.');
+        }
+
+        $validated = $request->validate([
+            'judul'        => 'required|string|max:255',
+            'kategori'     => 'required|string|max:100',
+            'ringkasan'    => 'nullable|string',
+            'isi'          => 'required|string',
+            'gambar'       => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:3072',
+            'penulis_nama' => 'nullable|string|max:100',
+            'is_active'    => 'nullable|boolean',
+        ]);
+
+        $defaultAuthor = (string) data_get($user, 'name', data_get($user, 'nama', 'Humas Sekolah'));
+        $authorName = !empty($validated['penulis_nama']) ? trim($validated['penulis_nama']) : $defaultAuthor;
+
+        $gambarPath = null;
+        if ($request->hasFile('gambar')) {
+            $file = $request->file('gambar');
+            $uploadDir = public_path('uploads/berita');
+            File::ensureDirectoryExists($uploadDir);
+            $fileName = 'berita_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move($uploadDir, $fileName);
+            $gambarPath = 'uploads/berita/' . $fileName;
+        }
+
+        $isActive = $request->boolean('is_active', false);
+        $berita = Berita::create([
+            'judul'        => $validated['judul'],
+            'slug'         => Berita::createUniqueSlug($validated['judul']),
+            'kategori'     => $validated['kategori'],
+            'ringkasan'    => $validated['ringkasan'] ?? null,
+            'isi'          => $validated['isi'],
+            'gambar'       => $gambarPath,
+            'penulis_nama' => $authorName,
+            'is_active'    => $isActive,
+            'published_at' => $isActive ? now() : null,
+        ]);
+
+        $statusMsg = $isActive ? 'Berita berhasil diterbitkan.' : 'Berita berhasil disimpan sebagai draft.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => $statusMsg,
+                'data'    => $berita,
+            ]);
+        }
+
+        return redirect()->route('dashboard.pengumuman.index', ['tab' => 'berita'])
+            ->with('success', $statusMsg);
+    }
+
+    /**
+     * Perbarui berita
+     */
+    public function updateBerita(Request $request, int $id)
+    {
+        $user = session('user');
+        if (!$user) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401)
+                : redirect()->route('login');
+        }
+
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'update')) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk mengubah berita.'], 403)
+                : back()->with('error', 'Anda tidak memiliki hak untuk mengubah berita.');
+        }
+
+        $berita = Berita::find($id);
+        if (!$berita) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Berita tidak ditemukan.'], 404)
+                : back()->with('error', 'Berita tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'judul'        => 'required|string|max:255',
+            'kategori'     => 'required|string|max:100',
+            'ringkasan'    => 'nullable|string',
+            'isi'          => 'required|string',
+            'gambar'       => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:3072',
+            'penulis_nama' => 'nullable|string|max:100',
+            'is_active'    => 'nullable|boolean',
+        ]);
+
+        $authorName = !empty($validated['penulis_nama']) ? trim($validated['penulis_nama']) : $berita->penulis_nama;
+
+        $gambarPath = $berita->gambar;
+        if ($request->hasFile('gambar')) {
+            $file = $request->file('gambar');
+            $uploadDir = public_path('uploads/berita');
+            File::ensureDirectoryExists($uploadDir);
+            $fileName = 'berita_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move($uploadDir, $fileName);
+
+            if ($gambarPath && File::exists(public_path($gambarPath))) {
+                @unlink(public_path($gambarPath));
+            }
+            $gambarPath = 'uploads/berita/' . $fileName;
+        } elseif ($request->boolean('hapus_gambar')) {
+            if ($gambarPath && File::exists(public_path($gambarPath))) {
+                @unlink(public_path($gambarPath));
+            }
+            $gambarPath = null;
+        }
+
+        $slug = $berita->slug;
+        if ($berita->judul !== $validated['judul']) {
+            $slug = Berita::createUniqueSlug($validated['judul'], $berita->id);
+        }
+
+        $isNowActive = $request->boolean('is_active');
+        $publishedAt = $berita->published_at;
+        if ($isNowActive && !$publishedAt) {
+            $publishedAt = now();
+        }
+
+        $berita->update([
+            'judul'        => $validated['judul'],
+            'slug'         => $slug,
+            'kategori'     => $validated['kategori'],
+            'ringkasan'    => $validated['ringkasan'] ?? null,
+            'isi'          => $validated['isi'],
+            'gambar'       => $gambarPath,
+            'penulis_nama' => $authorName,
+            'is_active'    => $isNowActive,
+            'published_at' => $publishedAt,
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Berita berhasil diperbarui.',
+                'data'    => $berita,
+            ]);
+        }
+
+        return redirect()->route('dashboard.pengumuman.index', ['tab' => 'berita'])
+            ->with('success', 'Berita berhasil diperbarui.');
+    }
+
+    /**
+     * Toggle status aktif berita (AJAX)
+     */
+    public function toggleBerita(Request $request, int $id)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+        }
+
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $berita = Berita::find($id);
+        if (!$berita) {
+            return response()->json(['status' => 'error', 'message' => 'Berita tidak ditemukan.'], 404);
+        }
+
+        $berita->is_active = !$berita->is_active;
+        $berita->save();
+
+        return response()->json([
+            'status'    => 'success',
+            'message'   => 'Status berita berhasil diubah.',
+            'is_active' => (bool) $berita->is_active,
+        ]);
+    }
+
+    /**
+     * Hapus berita
+     */
+    public function destroyBerita(Request $request, int $id)
+    {
+        $user = session('user');
+        if (!$user) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401)
+                : redirect()->route('login');
+        }
+
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'delete')) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk menghapus berita.'], 403)
+                : back()->with('error', 'Anda tidak memiliki hak untuk menghapus berita.');
+        }
+
+        $berita = Berita::find($id);
+        if (!$berita) {
+            return $request->expectsJson()
+                ? response()->json(['status' => 'error', 'message' => 'Berita tidak ditemukan.'], 404)
+                : back()->with('error', 'Berita tidak ditemukan.');
+        }
+
+        if ($berita->gambar && File::exists(public_path($berita->gambar))) {
+            @unlink(public_path($berita->gambar));
+        }
+
+        $berita->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Berita berhasil dihapus.',
+            ]);
+        }
+
+        return redirect()->route('dashboard.pengumuman.index', ['tab' => 'berita'])
+            ->with('success', 'Berita berhasil dihapus.');
     }
 }

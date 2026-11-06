@@ -257,14 +257,13 @@
                                     </span>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
-                                    @if ($canUpdate)
-                                        <label class="switch-container" style="position: relative; display: inline-block; width: 38px; height: 20px; margin: 0; cursor: pointer;">
-                                            <input type="checkbox" class="toggle-berita-status" data-id="{{ $item->id }}" {{ $item->is_active ? 'checked' : '' }} style="opacity: 0; width: 0; height: 0;">
-                                            <span class="slider-toggle-crud" style="position: absolute; inset: 0; background-color: {{ $item->is_active ? 'var(--success, #10b981)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl);"></span>
-                                        </label>
+                                    @if ($item->is_active)
+                                        <span class="badge badge-success" style="font-size: var(--text-2xs); padding: 3px 8px;">
+                                            <i class="fas fa-check-circle me-1"></i> Terbit
+                                        </span>
                                     @else
-                                        <span class="badge {{ $item->is_active ? 'badge-success' : 'badge-outline' }}">
-                                            {{ $item->is_active ? 'Aktif' : 'Nonaktif' }}
+                                        <span class="badge badge-outline" style="font-size: var(--text-2xs); padding: 3px 8px; color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.3);">
+                                            <i class="fas fa-file-lines me-1"></i> Draft
                                         </span>
                                     @endif
                                 </td>
@@ -274,6 +273,13 @@
                                 </td>
                                 <td style="padding: 12px 16px; text-align: right;">
                                     <div class="table-actions" style="display: inline-flex; align-items: center; gap: 6px;">
+                                        @if ($canUpdate)
+                                            <button type="button" class="btn-icon btn-toggle-publish-berita" data-id="{{ $item->id }}" data-status="{{ $item->is_active ? 1 : 0 }}"
+                                                title="{{ $item->is_active ? 'Tarik Kembali ke Draft' : 'Terbitkan Sekarang' }}"
+                                                style="{{ $item->is_active ? 'color: var(--success, #10b981);' : 'color: var(--warning, #f59e0b);' }}">
+                                                <i class="fas {{ $item->is_active ? 'fa-paper-plane' : 'fa-upload' }}"></i>
+                                            </button>
+                                        @endif
                                         <a href="{{ route('berita.show', $item->slug) }}" target="_blank" class="btn-icon" title="Lihat di Web Publik">
                                             <i class="fas fa-eye"></i>
                                         </a>
@@ -645,8 +651,8 @@
 
     <!-- Modal Form Create/Edit Berita (Artikel Publik) -->
     <div id="beritaModal" class="modal-backdrop">
-        <div class="card" style="max-width: 640px; width: 92%; margin: auto; padding: 22px; border-radius: var(--radius-xl); box-shadow: 0 16px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div class="card modal-card-wide" style="margin: auto; padding: 26px; border-radius: var(--radius-xl); box-shadow: 0 20px 50px rgba(0,0,0,0.45); max-height: 92vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
                 <h3 id="beritaModalTitle" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-color); margin: 0;">
                     <i class="fas fa-newspaper text-warning me-2"></i> Tulis Berita Baru
                 </h3>
@@ -664,7 +670,7 @@
                     <input type="text" name="judul" id="inputBeritaJudul" required placeholder="Contoh: Siswa Raih Medali Emas Olimpiade Riset" maxlength="255">
                 </div>
 
-                <div class="modal-form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div class="modal-form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-group-compact">
                         <label>Kategori Berita <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="kategori" id="inputBeritaKategori" required>
@@ -684,12 +690,31 @@
 
                 <div class="form-group-compact" style="margin-bottom: 14px;">
                     <label>Foto Sampul (Opsional)</label>
-                    <input type="file" name="gambar" id="inputBeritaGambar" accept="image/jpeg,image/png,image/webp,image/svg+xml">
-                    <div id="beritaCurrentGambarWrap" style="display: none; margin-top: 8px; align-items: center; gap: 10px;">
-                        <img id="beritaCurrentGambar" src="" alt="Sampul" style="width: 70px; height: 50px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                        <label style="font-size: var(--text-xs); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin: 0;">
-                            <input type="checkbox" name="hapus_gambar" value="1"> Hapus foto sampul saat ini
-                        </label>
+                    <div id="beritaDropZone" class="drag-drop-zone">
+                        <i class="fas fa-cloud-arrow-up drag-drop-icon"></i>
+                        <div class="drag-drop-title">Tarik &amp; lepas gambar ke sini, atau <span style="color: var(--primary); text-decoration: underline;">pilih file</span></div>
+                        <div class="drag-drop-hint">Format didukung: JPG, PNG, WEBP, SVG (Maks. 3 MB)</div>
+                        <input type="file" name="gambar" id="inputBeritaGambar" accept="image/jpeg,image/png,image/webp,image/svg+xml" style="position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+                    </div>
+                    <!-- Preview Foto Terpilih / Baru -->
+                    <div id="beritaNewGambarPreview" style="display: none; margin-top: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(99,102,241,0.06); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                            <img id="beritaNewGambarImg" src="" alt="Pratinjau Foto" style="width: 50px; height: 38px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <div style="font-size: var(--text-xs); color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="beritaNewGambarName"></div>
+                        </div>
+                        <button type="button" id="btnHapusNewGambar" style="background: none; border: none; color: var(--danger, #ef4444); cursor: pointer; font-size: var(--text-sm);" title="Batal Pilih Foto">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                    <!-- Foto Saat Ini (Jika Mode Edit) -->
+                    <div id="beritaCurrentGambarWrap" style="display: none; margin-top: 10px; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <img id="beritaCurrentGambar" src="" alt="Sampul Saat Ini" style="width: 60px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                        <div>
+                            <div style="font-size: var(--text-xs); font-weight: 600; color: var(--text-muted); margin-bottom: 2px;">Foto Sampul Saat Ini:</div>
+                            <label style="font-size: var(--text-xs); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin: 0;">
+                                <input type="checkbox" name="hapus_gambar" id="cbHapusGambarSaatIni" value="1"> Hapus foto sampul saat ini
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -699,22 +724,53 @@
                         style="width: 100%; padding: 10px 12px; font-size: var(--text-base); border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); resize: vertical; box-sizing: border-box; line-height: 1.5;"></textarea>
                 </div>
 
-                <div class="form-group-compact" style="margin-bottom: 14px;">
+                <!-- Editor Lengkap Fitur Office / Word -->
+                <div class="form-group-compact" style="margin-bottom: 16px;">
                     <label>Isi Lengkap Berita <span style="color: var(--danger, #ef4444);">*</span></label>
-                    <textarea name="isi" id="inputBeritaIsi" required rows="6" placeholder="Tuliskan isi berita secara lengkap dan runtut..."
-                        style="width: 100%; padding: 10px 12px; font-size: var(--text-base); border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); resize: vertical; box-sizing: border-box; line-height: 1.6;"></textarea>
+                    <div class="rich-editor-wrap">
+                        <div class="rich-editor-toolbar" id="beritaEditorToolbar">
+                            <button type="button" class="tb-btn" data-command="bold" title="Tebal (Ctrl+B)"><i class="fas fa-bold"></i></button>
+                            <button type="button" class="tb-btn" data-command="italic" title="Miring (Ctrl+I)"><i class="fas fa-italic"></i></button>
+                            <button type="button" class="tb-btn" data-command="underline" title="Garis Bawah (Ctrl+U)"><i class="fas fa-underline"></i></button>
+                            <button type="button" class="tb-btn" data-command="strikeThrough" title="Coret"><i class="fas fa-strikethrough"></i></button>
+                            <span class="tb-sep"></span>
+                            <button type="button" class="tb-btn" data-command="formatBlock" data-val="h2" title="Judul Besar (Heading 2)"><i class="fas fa-heading"></i><sub style="font-weight:700;">1</sub></button>
+                            <button type="button" class="tb-btn" data-command="formatBlock" data-val="h3" title="Sub Judul (Heading 3)"><i class="fas fa-heading"></i><sub style="font-weight:700;">2</sub></button>
+                            <button type="button" class="tb-btn" data-command="formatBlock" data-val="p" title="Paragraf Biasa"><i class="fas fa-paragraph"></i></button>
+                            <span class="tb-sep"></span>
+                            <button type="button" class="tb-btn" data-command="justifyLeft" title="Rata Kiri"><i class="fas fa-align-left"></i></button>
+                            <button type="button" class="tb-btn" data-command="justifyCenter" title="Rata Tengah"><i class="fas fa-align-center"></i></button>
+                            <button type="button" class="tb-btn" data-command="justifyRight" title="Rata Kiri"><i class="fas fa-align-right"></i></button>
+                            <button type="button" class="tb-btn" data-command="justifyFull" title="Rata Kanan Kiri (Justify)"><i class="fas fa-align-justify"></i></button>
+                            <span class="tb-sep"></span>
+                            <button type="button" class="tb-btn" data-command="insertUnorderedList" title="Daftar Bullet"><i class="fas fa-list-ul"></i></button>
+                            <button type="button" class="tb-btn" data-command="insertOrderedList" title="Daftar Angka"><i class="fas fa-list-ol"></i></button>
+                            <button type="button" class="tb-btn" data-command="formatBlock" data-val="blockquote" title="Kutipan (Blockquote)"><i class="fas fa-quote-left"></i></button>
+                            <button type="button" class="tb-btn" data-command="insertHorizontalRule" title="Garis Pemisah"><i class="fas fa-minus"></i></button>
+                            <span class="tb-sep"></span>
+                            <button type="button" class="tb-btn" id="btnEditorInsertLink" title="Sisipkan Tautan Web"><i class="fas fa-link"></i></button>
+                            <button type="button" class="tb-btn" data-command="unlink" title="Hapus Tautan"><i class="fas fa-link-slash"></i></button>
+                            <button type="button" class="tb-btn" data-command="removeFormat" title="Hapus Format"><i class="fas fa-eraser"></i></button>
+                            <span class="tb-sep"></span>
+                            <button type="button" class="tb-btn" data-command="undo" title="Urungkan (Undo)"><i class="fas fa-rotate-left"></i></button>
+                            <button type="button" class="tb-btn" data-command="redo" title="Ulangi (Redo)"><i class="fas fa-rotate-right"></i></button>
+                        </div>
+                        <div id="beritaEditorContent" class="rich-editor-content" contenteditable="true" data-placeholder="Tuliskan isi berita secara lengkap, format tata letak, dan runtut seperti di dokumen Word..."></div>
+                        <!-- Input hidden penampung HTML untuk dikirim ke backend -->
+                        <textarea name="isi" id="inputBeritaIsi" required style="display: none;"></textarea>
+                    </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <input type="checkbox" name="is_active" id="inputBeritaIsActive" value="1" checked style="width: 16px; height: 16px; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <input type="checkbox" name="is_active" id="inputBeritaIsActive" value="1" style="width: 16px; height: 16px; cursor: pointer;">
                     <label for="inputBeritaIsActive" style="font-size: var(--text-sm); font-weight: 600; color: var(--text-color); cursor: pointer; margin: 0;">
-                        Publikasikan berita ini di halaman utama &amp; portal publik
+                        Langsung terbitkan sekarang ke beranda &amp; portal publik (Jika tidak dicentang, disimpan sebagai <strong style="color: var(--warning, #f59e0b);">Draft</strong>)
                     </label>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                     <button type="button" id="btnCancelBeritaModal" class="btn btn-outline">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="font-weight: 600;">Terbitkan</button>
+                    <button type="submit" id="btnSubmitBerita" class="btn btn-primary" style="font-weight: 600;">Simpan Berita</button>
                 </div>
             </form>
         </div>

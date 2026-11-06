@@ -312,7 +312,7 @@ class HomeController extends Controller
         }
 
         $beritaList = $query->paginate(9)->appends($request->query());
-        $kategoriList = Berita::active()->whereNotNull('kategori')->distinct()->pluck('kategori')->toArray();
+        $kategoriList = Berita::active()->reorder()->whereNotNull('kategori')->distinct()->pluck('kategori')->toArray();
 
         return view('berita.index', compact('beritaList', 'kategoriList', 'q', 'kategori'));
     }

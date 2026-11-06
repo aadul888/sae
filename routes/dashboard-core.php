@@ -166,6 +166,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'update'])->name('pengumuman.update')->middleware('permission:menu_pengumuman,update');
     Route::delete('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'destroy'])->name('pengumuman.destroy')->middleware('permission:menu_pengumuman,delete');
     Route::post('/pengumuman/{id}/toggle', [\App\Http\Controllers\PengumumanController::class, 'toggle'])->name('pengumuman.toggle')->middleware('permission:menu_pengumuman,update');
+    Route::post('/pengumuman/berita', [\App\Http\Controllers\PengumumanController::class, 'storeBerita'])->name('pengumuman.berita.store')->middleware('permission:menu_pengumuman,create');
+    Route::post('/pengumuman/berita/{id}', [\App\Http\Controllers\PengumumanController::class, 'updateBerita'])->name('pengumuman.berita.update')->middleware('permission:menu_pengumuman,update');
+    Route::delete('/pengumuman/berita/{id}', [\App\Http\Controllers\PengumumanController::class, 'destroyBerita'])->name('pengumuman.berita.destroy')->middleware('permission:menu_pengumuman,delete');
+    Route::post('/pengumuman/berita/{id}/toggle', [\App\Http\Controllers\PengumumanController::class, 'toggleBerita'])->name('pengumuman.berita.toggle')->middleware('permission:menu_pengumuman,update');
 
     // Layanan Digital — Formulir & Survei (SAE Form / OpnForm)
     Route::get('/formulir', [\App\Http\Controllers\FormulirController::class, 'index'])->name('formulir.index')->middleware('permission:menu_formulir,read');

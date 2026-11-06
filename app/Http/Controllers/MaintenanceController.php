@@ -132,6 +132,11 @@ class MaintenanceController extends Controller
 
         $type = (string) $request->input('type', 'full');
 
+        // Tutup file session PHP agar request concurrent/SSE tidak deadlock atau worker starvation
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         // Proses arsip bisa memakan waktu/memori; pastikan tidak dibunuh batas server.
         @set_time_limit(0);
         @ini_set('memory_limit', '1024M');

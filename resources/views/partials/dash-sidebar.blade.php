@@ -1592,7 +1592,7 @@
                         <a href="{{ route('dashboard.pengumuman.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.pengumuman*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-bullhorn"></i></span>
-                            <span class="nav-label">Pengumuman &amp; Broadcast</span>
+                            <span class="nav-label">Pengumuman &amp; Berita</span>
                         </a>
                     @else
                         <a href="{{ route('dashboard.informasi.index') }}"
