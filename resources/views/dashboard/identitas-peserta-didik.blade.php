@@ -189,6 +189,18 @@
             </div>
         @endif
 
+        <!-- TAB UTAMA: Identitas | Progress & Riwayat -->
+        <div class="identitas-page-tabs" style="margin-bottom: 16px;">
+                <button type="button" class="btn btn-primary identitas-page-tab active" data-ptab="identitas"
+                    style="padding: 9px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
+                    <i class="fas fa-id-card me-1"></i> Identitas
+                </button>
+                <button type="button" class="btn btn-outline identitas-page-tab" data-ptab="progress"
+                    style="padding: 9px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
+                    <i class="fas fa-diagram-project me-1"></i> Progress &amp; Riwayat
+                </button>
+        </div>
+
         <!-- 2. Progress Stepper Progres Usulan Perubahan Data -->
         @php
             $step1Done = $statusKonfirmasi !== 'belum_konfirmasi';
@@ -203,9 +215,9 @@
             $step5Done = $statusKonfirmasi === 'disinkronkan_dapodik' || $dapodikUsulanCount > 0;
         @endphp
 
-        <div class="card" style="margin-bottom: 24px; padding: 20px; border-radius: var(--radius-xl, 16px);">
+        <div class="card identitas-panel-progress" style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px);">
             <div
-                style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-diagram-project text-primary"></i> Progres Usulan &amp; Verifikasi Data Siswa
                 </div>
@@ -214,10 +226,10 @@
                 </span>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
                 <!-- Step 1 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step1Done ? 'var(--success, #10b981)' : '#f59e0b' }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 9px 11px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step1Done ? 'var(--success, #10b981)' : '#f59e0b' }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -242,7 +254,7 @@
 
                 <!-- Step 2 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step2Done ? '#10b981' : ($statusKonfirmasi === 'sesuai' ? 'var(--border-color)' : '#ef4444') }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 9px 11px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step2Done ? '#10b981' : ($statusKonfirmasi === 'sesuai' ? 'var(--border-color)' : '#ef4444') }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -266,7 +278,7 @@
 
                 <!-- Step 3 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step3Done ? '#10b981' : ($isFormEditable ? '#f59e0b' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 9px 11px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step3Done ? '#10b981' : ($isFormEditable ? '#f59e0b' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -293,7 +305,7 @@
 
                 <!-- Step 4 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step4Done ? '#10b981' : ($pendingUsulanCount > 0 ? '#f59e0b' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 9px 11px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step4Done ? '#10b981' : ($pendingUsulanCount > 0 ? '#f59e0b' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -320,7 +332,7 @@
 
                 <!-- Step 5 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step5Done ? '#10b981' : ($approvedUsulanCount > 0 ? 'var(--primary)' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 9px 11px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step5Done ? '#10b981' : ($approvedUsulanCount > 0 ? 'var(--primary)' : 'var(--border-color)') }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -348,9 +360,9 @@
         </div>
 
         <!-- 3. Status Konfirmasi Siswa & Quick Action Card -->
-        <div class="card"
-            style="margin-bottom: 24px; padding: 20px 24px; border-radius: var(--radius-xl, 16px); border: 1.5px solid {{ $statusKonfirmasi === 'sesuai' ? '#10b981' : ($statusKonfirmasi === 'perlu_perbaikan' ? ($berkasPrereq['is_valid'] ? 'var(--primary)' : '#ef4444') : '#f59e0b') }}; background: var(--card-bg);">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div class="card identitas-panel-progress"
+            style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px); border: 1.5px solid {{ $statusKonfirmasi === 'sesuai' ? '#10b981' : ($statusKonfirmasi === 'perlu_perbaikan' ? ($berkasPrereq['is_valid'] ? 'var(--primary)' : '#ef4444') : '#f59e0b') }}; background: var(--card-bg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="flex: 1; min-width: 280px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
                         <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
@@ -447,7 +459,7 @@
         </form>
 
         <!-- 4. Navigation Tabs Filter Seksi Formulir -->
-        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+        <div class="periode-nav-wrapper identitas-panel-identitas" style="margin-bottom: 16px;">
             <div class="periode-nav-desktop" style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary identitas-tab-btn active" data-target="all"
                     style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
@@ -477,7 +489,8 @@
         </div>
 
         <!-- 5. FORMULIR IDENTITAS LENGKAP PESERTA DIDIK -->
-        <form action="{{ route('dashboard.identitas.update') }}" method="POST" id="formIdentitasPesertaDidik">
+        <form action="{{ route('dashboard.identitas.update') }}" method="POST" id="formIdentitasPesertaDidik"
+            class="identitas-panel-identitas">
             @csrf
             <input type="hidden" name="peserta_didik_id" value="{{ $pd->peserta_didik_id }}">
 
@@ -529,13 +542,22 @@
             </div>
         </form>
 
-        <!-- 5. Riwayat Usulan Perubahan Siswa -->
+        <!-- 5. Riwayat Usulan Perubahan Siswa (Tab Progress) -->
         @if ($usulanList->isNotEmpty())
-            <div class="card table-responsive-stack" style="margin-bottom: 24px; padding: 0;">
+            @php
+                $fmtUsulanVal = function ($val) {
+                    if ($val === null) return '-';
+                    $s = trim((string) $val);
+                    if ($s === '' || in_array($s, ['(Kosong)', '(Belum Terisi / Kosong)'], true)) return '-';
+                    if (preg_match('/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/', $s, $m)) return $m[1];
+                    return $s;
+                };
+            @endphp
+            <div class="card table-responsive-stack identitas-panel-progress" style="margin-bottom: 16px; padding: 0;">
                 <div
-                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <h3
-                        style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Pengajuan Usulan Revisi Data
                     </h3>
                     <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">{{ $usulanList->count() }}
@@ -544,52 +566,64 @@
 
                 <div style="overflow-x: auto;">
                     <table class="table table-pd mb-0"
-                        style="width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.8125rem);">
+                        style="width: 100%; border-collapse: collapse; font-size: var(--text-xs, 0.75rem);">
                         <thead>
                             <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
-                                <th
-                                    style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Waktu</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Kolom Data</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Nilai Lama</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Usulan Nilai Baru</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Status Review Kesiswaan</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Waktu Usulan</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Kolom Data</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Awal</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Data Baru</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Catatan</th>
+                                <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diverifikasi / Dapodik</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($usulanList as $u)
+                                @php
+                                    $vLama = $fmtUsulanVal($u->nilai_lama);
+                                    $vBaru = $fmtUsulanVal($u->nilai_baru);
+                                @endphp
                                 <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td style="padding: 10px 14px;">
-                                        {{ $u->created_at ? $u->created_at->format('d/m/Y H:i') : '-' }}</td>
-                                    <td style="padding: 10px 14px;"><strong
-                                            style="text-transform: uppercase; font-family: monospace;">{{ str_replace('_', ' ', $u->kolom_perubahan) }}</strong>
+                                    <td data-label="Waktu Usulan" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
+                                        {{ $u->created_at ? $u->created_at->translatedFormat('d M Y, H:i') : '-' }}</td>
+                                    <td data-label="Kolom Data" style="padding: 8px 12px;">
+                                        <strong style="color: var(--text-color);">{{ $u->kolom_label }}</strong>
                                     </td>
-                                    <td style="padding: 10px 14px; color: var(--text-muted);">
-                                        {{ $u->nilai_lama ?: '-' }}
+                                    <td data-label="Data Awal" style="padding: 8px 12px; color: var(--text-muted); word-break: break-word;">
+                                        {{ $vLama }}
                                     </td>
-                                    <td style="padding: 10px 14px; font-weight: 700; color: var(--primary);">
-                                        {{ $u->nilai_baru }}</td>
-                                    <td style="padding: 10px 14px;">
-                                        @if ($u->status === 'disetujui')
-                                            <span class="badge badge-success"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i
-                                                    class="fas fa-check me-1"></i>DISETUJUI</span>
-                                        @elseif ($u->status === 'ditolak')
-                                            <span class="badge badge-danger"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i
-                                                    class="fas fa-times me-1"></i>DITOLAK</span>
+                                    <td data-label="Data Baru" style="padding: 8px 12px; word-break: break-word;">
+                                        @if ($vBaru === '-')
+                                            -
                                         @else
-                                            <span class="badge badge-warning"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i
-                                                    class="fas fa-clock me-1"></i>MENUNGGU REVIEW</span>
+                                            <span class="copyable" data-copy="{{ $vBaru }}" data-label="{{ $u->kolom_label }}"
+                                                title="Klik untuk salin"
+                                                style="font-weight: 700; color: var(--success, #10b981); cursor: pointer;">{{ $vBaru }}</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Status" style="padding: 8px 12px; text-align: center;">
+                                        @if ($u->status === 'disetujui')
+                                            <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-check me-1"></i>DISETUJUI</span>
+                                        @elseif ($u->status === 'ditolak')
+                                            <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-times me-1"></i>DITOLAK</span>
+                                        @elseif ($u->status === 'sudah_ke_dapodik')
+                                            <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-cloud-arrow-up me-1"></i>DAPODIK</span>
+                                        @else
+                                            <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 7px;"><i class="fas fa-clock me-1"></i>MENUNGGU</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Catatan" style="padding: 8px 12px; color: var(--text-muted); word-break: break-word; max-width: 260px;">
+                                        {{ $u->catatan_verifikasi ?: '-' }}
+                                    </td>
+                                    <td data-label="Diverifikasi / Dapodik" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
+                                        @if ($u->verified_at)
+                                            <i class="fas fa-circle-check text-success me-1"></i>{{ $u->verified_at->translatedFormat('d M Y, H:i') }}
+                                            @if ($u->verified_by)
+                                                <div style="font-size: var(--text-xs, 0.7rem); opacity: 0.75;">oleh {{ $u->verified_by }}</div>
+                                            @endif
+                                        @else
+                                            <span style="opacity: 0.6;">-</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -685,6 +719,33 @@
 @push('styles')
     <link rel="stylesheet"
         href="{{ asset('css/kartu-pelajar.css') }}?v={{ file_exists(public_path('css/kartu-pelajar.css')) ? filemtime(public_path('css/kartu-pelajar.css')) : '1' }}">
+    <style>
+        .identitas-page-tabs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 6px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl, 16px);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .identitas-page-tabs::-webkit-scrollbar { display: none; }
+        .identitas-page-tabs .btn { flex: 0 0 auto; white-space: nowrap; }
+
+        .identitas-section-header { cursor: pointer; user-select: none; }
+        .identitas-section-chevron { margin-left: 8px; transition: transform .2s ease; font-size: .8rem; opacity: .7; }
+        .identitas-form-section.is-collapsed .identitas-section-chevron { transform: rotate(-90deg); }
+        .identitas-form-section.is-collapsed .identitas-section-body { display: none; }
+
+        @media (max-width: 768px) {
+            .identitas-form-section { padding: 14px 16px !important; margin-bottom: 14px !important; }
+            .identitas-panel-progress .card, .identitas-panel-progress.card { margin-bottom: 12px !important; }
+        }
+    </style>
 @endpush
 
 @push('scripts')

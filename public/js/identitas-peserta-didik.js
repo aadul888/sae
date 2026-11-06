@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 6. Inisialisasi Dropdown Bertingkat Wilayah Indonesia (Provinsi -> Kab/Kota -> Kecamatan -> Desa/Kelurahan)
     initWilayahCascade();
+
+    // 7. Inisialisasi Tab Utama (Identitas | Progress & Riwayat)
+    initIdentitasPageTabs();
+
+    // 8. Inisialisasi Lipat/Buka Seksi Formulir per Header (khususnya mode responsif)
+    initSectionCollapse();
 });
 
 /**
@@ -619,4 +625,89 @@ function initWilayahCascade() {
 
     // Jalankan inisialisasi awal
     loadProvinces();
+}
+
+/**
+ * Tab utama halaman identitas: "Identitas" (formulir) dan "Progress & Riwayat".
+ * Menggunakan kelas panel agar bisa menampilkan 1 tab tanpa membungkus DOM.
+ */
+function initIdentitasPageTabs() {
+    const tabs = document.querySelectorAll('.identitas-page-tab');
+    if (!tabs.length) return;
+
+    const panels = {
+        identitas: document.querySelectorAll('.identitas-panel-identitas'),
+        progress: document.querySelectorAll('.identitas-panel-progress'),
+    };
+
+    const show = (key) => {
+        Object.keys(panels).forEach((k) => {
+            panels[k].forEach((el) => { el.style.display = (k === key ? '' : 'none'); });
+        });
+        tabs.forEach((t) => {
+            const on = t.getAttribute('data-ptab') === key;
+            t.classList.toggle('active', on);
+            t.classList.toggle('btn-primary', on);
+            t.classList.toggle('btn-outline', !on);
+        });
+        try { history.replaceState(null, '', key === 'progress' ? '#progress' : '#identitas'); } catch (e) {}
+    };
+
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.getAttribute('data-ptab'))));
+
+    const hash = (location.hash || '').replace('#', '');
+    show(hash === 'progress' ? 'progress' : 'identitas');
+}
+
+/**
+ * Lipat/buka setiap seksi formulir lewat header-nya.
+ * Di layar kecil (<=768px) seksi otomatis terlipat agar ringkas.
+ */
+function initSectionCollapse() {
+    const sections = document.querySelectorAll('.identitas-form-section');
+    if (!sections.length) return;
+
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    sections.forEach((sec) => {
+        const header = sec.firstElementChild;
+        if (!header) return;
+
+        const body = document.createElement('div');
+        body.className = 'identitas-section-body';
+        while (header.nextSibling) {
+            body.appendChild(header.nextSibling);
+        }
+        sec.appendChild(body);
+
+        const chev = document.createElement('i');
+        chev.className = 'fas fa-chevron-down identitas-section-chevron';
+        chev.setAttribute('aria-hidden', 'true');
+        header.appendChild(chev);
+
+        header.classList.add('identitas-section-header');
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.setAttribute('aria-expanded', isMobile ? 'false' : 'true');
+
+        const toggle = () => {
+            const collapsed = sec.classList.toggle('is-collapsed');
+            header.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        };
+        header.addEventListener('click', (e) => {
+            if (e.target.closest('input, label, button, a, select, textarea')) return;
+            toggle();
+        });
+        header.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
+            }
+        });
+
+        // Jangan lipat seksi yang memuat error validasi agar pesan tetap terlihat.
+        if (isMobile && !sec.querySelector('.is-invalid, .invalid-feedback, .text-danger')) {
+            sec.classList.add('is-collapsed');
+        }
+    });
 }
