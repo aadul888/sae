@@ -6,5 +6,9 @@
         } else {
             document.documentElement.removeAttribute('data-theme');
         }
+
+        if (localStorage.getItem('sae_sidebar_mini') === '1' && window.innerWidth > 1024) {
+            document.documentElement.classList.add('sidebar-mini');
+        }
     } catch (e) {}
 })();

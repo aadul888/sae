@@ -19,6 +19,48 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Sidebar Minimize / Maximize Desktop & Mobile Drawer Close
+    const btnToggleMini = document.getElementById("btnToggleSidebarMini");
+    const iconToggleMini = document.getElementById("iconToggleSidebarMini");
+
+    function updateMiniSidebarUI(isMini) {
+        if (!iconToggleMini) return;
+        if (isMini) {
+            iconToggleMini.className = "fas fa-angles-right";
+            if (btnToggleMini) btnToggleMini.title = "Perbesar Sidebar (Maximize)";
+        } else {
+            iconToggleMini.className = "fas fa-angles-left";
+            if (btnToggleMini) btnToggleMini.title = "Kecilkan Sidebar (Minimize)";
+        }
+    }
+
+    if (btnToggleMini) {
+        btnToggleMini.addEventListener("click", () => {
+            if (window.innerWidth <= 1024) {
+                if (sidebar) sidebar.classList.remove("open");
+                if (backdrop) backdrop.classList.remove("open");
+            } else {
+                const isMini = document.documentElement.classList.toggle("sidebar-mini");
+                try {
+                    localStorage.setItem("sae_sidebar_mini", isMini ? "1" : "0");
+                } catch (e) {}
+                updateMiniSidebarUI(isMini);
+            }
+        });
+    }
+
+    if (document.documentElement.classList.contains("sidebar-mini")) {
+        updateMiniSidebarUI(true);
+    }
+
+    // Auto title tooltip untuk ikon saat sidebar mini
+    document.querySelectorAll(".dash-sidebar .dash-nav-link, .dash-sidebar .dash-nav-toggle").forEach((el) => {
+        if (!el.getAttribute("title")) {
+            const text = el.querySelector(".nav-label, span:not(.nav-icon):not(.arrow-icon)")?.textContent?.trim();
+            if (text) el.setAttribute("title", text);
+        }
+    });
+
     // Sidebar Submenu Accordion Handler (Level 1 & Nested Level 2)
     // Standar SAE: Hanya membuka menu yang dibuka saat ini saja (Accordion Single-Open)
     document.querySelectorAll(".dash-nav-toggle").forEach((btn) => {
@@ -26,6 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const group = this.closest(".dash-nav-group");
             if (!group) return;
+
+            // Jika dalam mode mini sidebar, otomatis perbesar sidebar agar submenu terlihat
+            if (document.documentElement.classList.contains("sidebar-mini")) {
+                document.documentElement.classList.remove("sidebar-mini");
+                try {
+                    localStorage.setItem("sae_sidebar_mini", "0");
+                } catch (e) {}
+                updateMiniSidebarUI(false);
+            }
 
             const isOpen = group.classList.contains("open");
 
