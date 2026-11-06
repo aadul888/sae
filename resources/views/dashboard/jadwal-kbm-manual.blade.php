@@ -187,26 +187,6 @@
         </div>
     </div>
 
-    <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual vs Jadwal Mengajar) -->
-    <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-        <div class="jadwal-subnav-desktop">
-            @if ($role === 'guru' || $isAdmin)
-                <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}" class="periode-nav-tab">
-                    <i class="fas fa-calendar-days me-1"></i> Jadwal Mengajar Saya
-                </a>
-            @endif
-            @if ($isAdmin || \App\Models\RolePermission::canAccess(session('user'), 'menu_jadwal_kbm', 'read'))
-                <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab">
-                    <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
-                </a>
-            @endif
-            <a href="{{ route('dashboard.jadwal-kbm.manual.index', $activeRombel ? ['rombel_id' => $activeRombel->rombongan_belajar_id] : []) }}"
-                class="periode-nav-tab active">
-                <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
-            </a>
-        </div>
-    </div>
-
     <!-- Banner Integrasi Kalender Pendidikan -->
     <div class="card"
         style="padding: 12px 18px; margin-bottom: 18px; border-radius: var(--radius-lg, 12px); background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
@@ -285,7 +265,7 @@
             </p>
         </div>
     @elseif ($activeRombel)
-        <!-- Summary Stats Grid & Progress Bar -->
+        <!-- Summary Stats Grid & Progress Bar (Tepat 4 Card Baku SAE) -->
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 16px;">
             <div class="dash-stat-card">
@@ -336,6 +316,26 @@
                     </div>
                     <div class="dash-stat-label">Mapel Lengkap Terisi</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Sub-Menu Navigasi Jadwal KBM (Di Bawah Card Rekap) -->
+        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+            <div class="jadwal-subnav-desktop">
+                @if ($role === 'guru' || $isAdmin)
+                    <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}" class="periode-nav-tab">
+                        <i class="fas fa-calendar-days me-1"></i> Jadwal Mengajar Saya
+                    </a>
+                @endif
+                @if ($isAdmin || \App\Models\RolePermission::canAccess(session('user'), 'menu_jadwal_kbm', 'read'))
+                    <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab">
+                        <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
+                    </a>
+                @endif
+                <a href="{{ route('dashboard.jadwal-kbm.manual.index', $activeRombel ? ['rombel_id' => $activeRombel->rombongan_belajar_id] : []) }}"
+                    class="periode-nav-tab active">
+                    <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
+                </a>
             </div>
         </div>
 

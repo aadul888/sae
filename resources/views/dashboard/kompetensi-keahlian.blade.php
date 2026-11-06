@@ -59,6 +59,18 @@
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
         </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summary['rata_siswa'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Rata-rata Siswa/Rombel</div>
+            </div>
+        </div>
     </div>
 
     <!-- Unified Datatable Keahlian (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->

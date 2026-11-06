@@ -344,33 +344,13 @@
                             </a>
                         @endif
 
-                        {{-- Nested Submenu: Rombel --}}
+                        {{-- Rombel (Direct Sublink dengan Tab di Halaman) --}}
                         @if ($can('menu_rombel'))
-                            @php
-                                $isRombelActive = request()->routeIs('dashboard.rombel*');
-                            @endphp
-                            <div class="dash-nav-nested-group {{ $isRombelActive ? 'open active-group' : '' }}">
-                                <button type="button" class="dash-nav-nested-toggle">
-                                    <div class="dash-nav-nested-toggle-main">
-                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-school"></i></span>
-                                        <span class="nav-label">Rombel</span>
-                                    </div>
-                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
-                                </button>
-                                <div class="dash-nav-nested-menu">
-                                    <a href="{{ route('dashboard.rombel.reguler') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.reguler') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? 'reguler') === 'reguler') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i
-                                                class="fas fa-fw fa-users-rectangle"></i></span>
-                                        <span class="nav-label">Kelas (Reguler)</span>
-                                    </a>
-                                    <a href="{{ route('dashboard.rombel.matpel') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.matpel') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? '') === 'matpel') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-open"></i></span>
-                                        <span class="nav-label">Matpel Pilihan</span>
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="{{ route('dashboard.rombel.reguler') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.rombel*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-school"></i></span>
+                                <span class="nav-label">Rombel</span>
+                            </a>
                         @endif
 
                         @if ($can('menu_pembelajaran'))
@@ -381,33 +361,13 @@
                             </a>
                         @endif
 
+                        {{-- Jadwal KBM (Direct Sublink dengan Tab di Halaman) --}}
                         @if ($can('menu_jadwal_kbm'))
-                            @php
-                                $isJadwalKbmActive = request()->routeIs('dashboard.jadwal-kbm*');
-                            @endphp
-                            <div class="dash-nav-nested-group {{ $isJadwalKbmActive ? 'open active-group' : '' }}">
-                                <button type="button" class="dash-nav-nested-toggle">
-                                    <div class="dash-nav-nested-toggle-main">
-                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
-                                        <span class="nav-label">Jadwal KBM</span>
-                                    </div>
-                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
-                                </button>
-                                <div class="dash-nav-nested-menu">
-                                    <a href="{{ route('dashboard.jadwal-kbm.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-kbm.index') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i
-                                                class="fas fa-fw fa-wand-magic-sparkles"></i></span>
-                                        <span class="nav-label">Generate Jadwal</span>
-                                    </a>
-                                    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-kbm.manual*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i
-                                                class="fas fa-fw fa-pen-to-square"></i></span>
-                                        <span class="nav-label">Jadwal Manual</span>
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="{{ route('dashboard.jadwal-kbm.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
+                                <span class="nav-label">Jadwal KBM</span>
+                            </a>
                         @endif
 
                         @if ($can('menu_kalender_pendidikan'))

@@ -33,7 +33,7 @@ class KompetensiKeahlianController extends Controller
             return view('dashboard.kompetensi-keahlian', [
                 'list' => collect(),
                 'total' => 0,
-                'summary' => ['jurusan' => 0, 'rombel' => 0, 'peserta_didik' => 0],
+                'summary' => ['jurusan' => 0, 'rombel' => 0, 'peserta_didik' => 0, 'rata_siswa' => 0],
                 'q' => $q,
                 'perPage' => $perPage,
                 'sort' => $sort,
@@ -71,10 +71,13 @@ class KompetensiKeahlianController extends Controller
         $total = $allResults->count();
 
         // Summary metrics
+        $totalRombel = $allResults->sum('total_rombel');
+        $totalPesertaDidik = $allResults->sum('total_peserta_didik');
         $summary = [
             'jurusan' => $total,
-            'rombel' => $allResults->sum('total_rombel'),
-            'peserta_didik' => $allResults->sum('total_peserta_didik'),
+            'rombel' => $totalRombel,
+            'peserta_didik' => $totalPesertaDidik,
+            'rata_siswa' => $totalRombel > 0 ? round($totalPesertaDidik / $totalRombel, 1) : 0,
         ];
 
         // Sorting collection

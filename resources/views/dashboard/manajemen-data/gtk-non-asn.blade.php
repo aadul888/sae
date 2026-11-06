@@ -106,22 +106,14 @@
         </div>
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
-                <i class="fas fa-mars"></i>
+                <i class="fas fa-venus-mars"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ number_format($summary['laki'], 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Laki-laki</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(236,72,153,0.15); color: #ec4899;">
-                <i class="fas fa-venus"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ number_format($summary['perempuan'], 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Perempuan</div>
+                    {{ number_format($summary['laki'], 0, ',', '.') }} <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">L</span> /
+                    {{ number_format($summary['perempuan'], 0, ',', '.') }} <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">P</span>
+                </div>
+                <div class="dash-stat-label">Laki-laki / Perempuan</div>
             </div>
         </div>
         <div class="dash-stat-card">

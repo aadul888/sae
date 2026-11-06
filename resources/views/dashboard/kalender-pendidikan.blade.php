@@ -170,9 +170,9 @@
         </div>
     </div>
 
-    <!-- Summary Stats Grid Baku SAE (Mendukung Realtime refreshLiveTable) -->
+    <!-- Summary Stats Grid Baku SAE (Tepat 4 Card) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
-        <!-- Card 1: Hari Efektif Belajar (Baru) -->
+        <!-- Card 1: Hari Efektif Belajar -->
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-check"></i>
@@ -197,14 +197,14 @@
                 <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($totalAgenda) }}
                 </div>
-                <div class="dash-stat-label">Total Agenda</div>
+                <div class="dash-stat-label">Total Agenda Kegiatan</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                    {{ $periode['label'] ?? 'Periode Terpilih' }}
+                    <i class="fas fa-file-signature me-1"></i> {{ number_format($totalUjian) }} agenda evaluasi/ujian
                 </div>
             </div>
         </div>
 
-        <!-- Card 3: Libur Peserta Didik -->
+        <!-- Card 3: Libur Sekolah (Siswa & GTK) -->
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-umbrella-beach"></i>
@@ -213,9 +213,9 @@
                 <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                     {{ number_format($totalLiburPd) }}
                 </div>
-                <div class="dash-stat-label">Libur Peserta Didik</div>
+                <div class="dash-stat-label">Libur Siswa (GTK: {{ number_format($totalLiburGtk) }})</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                    Bebas Presensi Siswa
+                    Bebas Presensi KBM
                 </div>
             </div>
         </div>
@@ -232,38 +232,6 @@
                 <div class="dash-stat-label">Agenda Daring (PJJ)</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Belajar dari Rumah
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 5: Libur Guru / Tendik -->
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                <i class="fas fa-id-badge"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                    {{ number_format($totalLiburGtk) }}
-                </div>
-                <div class="dash-stat-label">Libur Guru / Tendik</div>
-                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                    Bebas Presensi GTK
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 6: Agenda Asesmen / Ujian -->
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(168,85,247,0.15); color: #a855f7;">
-                <i class="fas fa-file-signature"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #a855f7;">
-                    {{ number_format($totalUjian) }}
-                </div>
-                <div class="dash-stat-label">Agenda Asesmen / Ujian</div>
-                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                    Evaluasi Akademik
                 </div>
             </div>
         </div>

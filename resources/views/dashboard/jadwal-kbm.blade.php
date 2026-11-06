@@ -291,38 +291,6 @@
         </div>
     </div>
 
-    <!-- Sub-Menu Navigasi & View Mode Switcher -->
-    <div class="periode-nav-wrapper" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
-        <div class="jadwal-subnav-desktop">
-            <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab active">
-                <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
-            </a>
-            <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="periode-nav-tab">
-                <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
-            </a>
-        </div>
-
-        <div class="jadwal-view-switcher"
-            style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
-            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'grid', 'hari' => $selectedHari])) }}"
-                class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-outline' }}"
-                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
-                <i class="fas fa-table-cells me-1"></i> Matriks Grid
-            </a>
-            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'table'])) }}"
-                class="btn {{ $viewMode === 'table' ? 'btn-primary' : 'btn-outline' }}"
-                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
-                <i class="fas fa-list me-1"></i> Rekap Tabel
-            </a>
-            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'pekan'])) }}"
-                class="btn {{ $viewMode === 'pekan' ? 'btn-primary' : 'btn-outline' }}"
-                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;"
-                title="Pemberlakuan jadwal per pekan (mingguan)">
-                <i class="fas fa-calendar-week me-1"></i> Pekan
-            </a>
-        </div>
-    </div>
-
     <!-- Banner Integrasi Kalender Pendidikan -->
     <div class="card"
         style="padding: 12px 18px; margin-bottom: 18px; border-radius: var(--radius-lg, 12px); background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
@@ -392,21 +360,8 @@
         </div>
     </div>
 
-    <!-- Summary Stats Grid -->
+    <!-- Summary Stats Grid (Tepat 4 Card Baku SAE) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
-                <i class="fas fa-calendar-days"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
-                    {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span
-                        style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span>
-                </div>
-                <div class="dash-stat-label">HEB Semester (Jalan: {{ $summary['hari_efektif_berjalan'] ?? 0 }})</div>
-            </div>
-        </div>
-
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-calendar-check"></i>
@@ -415,7 +370,7 @@
                 <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
                     {{ number_format($summary['total_jadwal'], 0, ',', '.') }}
                 </div>
-                <div class="dash-stat-label">Total Jadwal KBM</div>
+                <div class="dash-stat-label">Total Jadwal ({{ number_format($summary['total_jp'], 0, ',', '.') }} JP)</div>
             </div>
         </div>
 
@@ -445,14 +400,47 @@
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ number_format($summary['total_jp'], 0, ',', '.') }} JP
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
+                    {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span
+                        style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span>
                 </div>
-                <div class="dash-stat-label">Total Jam Pelajaran</div>
+                <div class="dash-stat-label">HEB Semester (Jalan: {{ $summary['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Sub-Menu Navigasi & View Mode Switcher (Di Bawah Card Rekap) -->
+    <div class="periode-nav-wrapper" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div class="jadwal-subnav-desktop">
+            <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab active">
+                <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
+            </a>
+            <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="periode-nav-tab">
+                <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
+            </a>
+        </div>
+
+        <div class="jadwal-view-switcher"
+            style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
+            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'grid', 'hari' => $selectedHari])) }}"
+                class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-outline' }}"
+                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
+                <i class="fas fa-table-cells me-1"></i> Matriks Grid
+            </a>
+            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'table'])) }}"
+                class="btn {{ $viewMode === 'table' ? 'btn-primary' : 'btn-outline' }}"
+                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;">
+                <i class="fas fa-list me-1"></i> Rekap Tabel
+            </a>
+            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'pekan'])) }}"
+                class="btn {{ $viewMode === 'pekan' ? 'btn-primary' : 'btn-outline' }}"
+                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border: none; border-radius: var(--radius-sm, 6px); box-shadow: none;"
+                title="Pemberlakuan jadwal per pekan (mingguan)">
+                <i class="fas fa-calendar-week me-1"></i> Pekan
+            </a>
         </div>
     </div>
 
