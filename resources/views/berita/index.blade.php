@@ -4,47 +4,67 @@
 @section('meta_description', 'Kumpulan berita resmi, agenda kegiatan, prestasi peserta didik, dan informasi akademik satuan pendidikan.')
 
 @section('content')
-    <div class="container" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
-        <!-- Breadcrumb & Header Banner -->
-        <div style="margin-bottom: var(--space-8);">
-            <div style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-3);">
-                <a href="{{ url('/') }}" style="color: var(--text-muted); text-decoration: none;"><i class="fas fa-house"></i> Beranda</a>
-                <span>/</span>
-                <span style="color: var(--primary); font-weight: 600;">Warta &amp; Berita</span>
-            </div>
-
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-6);">
-                <div>
-                    <span class="section-kicker"><i class="fas fa-newspaper me-1"></i> Portal Publikasi Sekolah</span>
-                    <h1 style="font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 800; color: var(--text-color); margin: 0 0 var(--space-2) 0; letter-spacing: -0.5px;">
-                        Warta &amp; Berita Terkini
-                    </h1>
-                    <p style="color: var(--text-muted); font-size: var(--text-base); margin: 0; max-width: 600px; line-height: 1.5;">
-                        Informasi resmi, agenda kegiatan sekolah, prestasi siswa, dan publikasi edukasi terpadu.
-                    </p>
+    <div class="container">
+        {{-- ===== Hero Warta & Berita (Konsisten dengan Portal SAE) ===== --}}
+        <section class="hero" style="padding-bottom: clamp(1.5rem, 3vw, 2.5rem);">
+            <div>
+                <span class="hero-kicker"><i class="fas fa-newspaper"></i> Portal Publikasi &amp; Warta Sekolah</span>
+                <h1 class="hero-title">Warta &amp; Berita Terkini</h1>
+                <p class="hero-desc">
+                    Akses liputan resmi, pengumuman agenda kegiatan, pencapaian prestasi peserta didik, dan rilis warta edukasi satuan pendidikan terintegrasi realtime.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url('/') }}#berita" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
+                        <i class="fas fa-star"></i> Berita Utama
+                    </a>
+                    <a href="{{ url('/') }}" class="btn btn-outline" style="display:inline-flex;align-items:center;gap:8px;">
+                        <i class="fas fa-house"></i> Beranda Publik
+                    </a>
                 </div>
-
-                <!-- Form Pencarian Cepat -->
-                <form action="{{ route('berita.index') }}" method="GET" style="display: flex; gap: var(--space-2); min-width: 280px; max-width: 380px; width: 100%;">
-                    @if ($kategori)
-                        <input type="hidden" name="kategori" value="{{ $kategori }}">
-                    @endif
-                    <div style="position: relative; flex: 1;">
-                        <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul atau topik berita..."
-                            style="width: 100%; height: 42px; padding: 0 var(--space-8) 0 38px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: var(--text-sm); box-sizing: border-box;">
-                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 13px; color: var(--text-muted); font-size: var(--text-sm);"></i>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 var(--space-6); border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 600;">
-                        Cari
-                    </button>
-                    @if ($q || $kategori)
-                        <a href="{{ route('berita.index') }}" class="btn btn-outline" style="height: 42px; width: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-lg);" title="Reset filter">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    @endif
-                </form>
+                <div class="hero-badges">
+                    <span class="tech-pill"><i class="fas fa-bullhorn"></i> Informasi Terverifikasi</span>
+                    <span class="tech-pill"><i class="fas fa-eye"></i> Analitik Tayangan</span>
+                    <span class="tech-pill"><i class="fas fa-share-nodes"></i> Multi Kanal Media</span>
+                </div>
             </div>
-        </div>
+
+            {{-- Kartu Ringkasan & Form Pencarian Cepat --}}
+            <div class="card-nisn">
+                <div class="card-nisn-head">
+                    <span class="card-nisn-title"><i class="fas fa-magnifying-glass text-primary"></i> Telusuri Berita</span>
+                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--accent); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: var(--radius-sm, 6px);">
+                        {{ $beritaList->total() }} Artikel
+                    </span>
+                </div>
+                <div>
+                    <form action="{{ route('berita.index') }}" method="GET" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: 4px;">
+                        @if ($kategori)
+                            <input type="hidden" name="kategori" value="{{ $kategori }}">
+                        @endif
+                        <div style="position: relative;">
+                            <input type="text" name="q" value="{{ $q }}" placeholder="Ketik kata kunci judul berita..."
+                                style="width: 100%; height: 44px; padding: 0 var(--space-8) 0 38px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: var(--text-sm); box-sizing: border-box;">
+                            <i class="fas fa-search" style="position: absolute; left: 14px; top: 14px; color: var(--text-muted); font-size: var(--text-sm);"></i>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" class="btn btn-primary" style="flex: 1; height: 42px; border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                                <i class="fas fa-magnifying-glass"></i> Cari Artikel
+                            </button>
+                            @if ($q || $kategori)
+                                <a href="{{ route('berita.index') }}" class="btn btn-outline" style="height: 42px; width: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-lg);" title="Reset Filter">
+                                    <i class="fas fa-rotate-left"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+
+                    <div style="margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-color); font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
+                        <span>Kategori Aktif:</span>
+                        <strong style="color: var(--primary);">{{ $kategori ?: 'Semua Kategori' }}</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Filter Kategori Kancing (Pills) -->
         <div style="display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-4); margin-bottom: var(--space-8); scrollbar-width: none;">

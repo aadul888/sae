@@ -757,7 +757,7 @@
                         </div>
                         <div id="beritaEditorContent" class="rich-editor-content" contenteditable="true" data-placeholder="Tuliskan isi berita secara lengkap, format tata letak, dan runtut seperti di dokumen Word..."></div>
                         <!-- Input hidden penampung HTML untuk dikirim ke backend -->
-                        <textarea name="isi" id="inputBeritaIsi" required style="display: none;"></textarea>
+                        <textarea name="isi" id="inputBeritaIsi" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;"></textarea>
                     </div>
                 </div>
 

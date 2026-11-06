@@ -221,11 +221,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Sync isi contenteditable ke hidden textarea saat form submit
+    // Sync isi contenteditable ke hidden textarea saat input & form submit
+    const syncEditorContent = () => {
+        if (beritaEditorContent && inputBeritaIsi) {
+            inputBeritaIsi.value = beritaEditorContent.innerHTML.trim();
+        }
+    };
+
+    if (beritaEditorContent) {
+        beritaEditorContent.addEventListener("input", syncEditorContent);
+        beritaEditorContent.addEventListener("blur", syncEditorContent);
+    }
+
     if (formBerita) {
-        formBerita.addEventListener("submit", function () {
-            if (beritaEditorContent && inputBeritaIsi) {
-                inputBeritaIsi.value = beritaEditorContent.innerHTML.trim();
+        formBerita.addEventListener("submit", function (e) {
+            syncEditorContent();
+            const textOnly = (beritaEditorContent ? beritaEditorContent.innerText : "").trim();
+            if (!textOnly) {
+                e.preventDefault();
+                alert("Isi Lengkap Berita tidak boleh kosong!");
+                if (beritaEditorContent) beritaEditorContent.focus();
+                return false;
             }
         });
     }

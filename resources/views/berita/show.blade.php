@@ -4,14 +4,19 @@
 @section('meta_description', Str::limit(strip_tags($berita->excerpt), 150))
 
 @section('content')
-    <div class="container" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
-        <!-- Breadcrumb -->
-        <div style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-6); flex-wrap: wrap;">
-            <a href="{{ url('/') }}" style="color: var(--text-muted); text-decoration: none;"><i class="fas fa-house"></i> Beranda</a>
-            <span>/</span>
-            <a href="{{ route('berita.index') }}" style="color: var(--text-muted); text-decoration: none;">Warta &amp; Berita</a>
-            <span>/</span>
-            <span style="color: var(--primary); font-weight: 600;">{{ $berita->kategori }}</span>
+    <div class="container" style="padding-top: var(--space-4); padding-bottom: var(--space-12);">
+        <!-- Breadcrumb Navigasi Portal -->
+        <div style="margin-bottom: var(--space-6); background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-muted); flex-wrap: wrap;">
+                <a href="{{ url('/') }}" style="color: var(--text-muted); text-decoration: none;"><i class="fas fa-house"></i> Beranda</a>
+                <span>/</span>
+                <a href="{{ route('berita.index') }}" style="color: var(--text-muted); text-decoration: none;">Warta &amp; Berita</a>
+                <span>/</span>
+                <span style="color: var(--primary); font-weight: 600;">{{ $berita->kategori }}</span>
+            </div>
+            <a href="{{ route('berita.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: var(--text-2xs); border-radius: var(--radius-pill); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fas fa-arrow-left"></i> Semua Warta
+            </a>
         </div>
 
         <div class="berita-show-layout" style="display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-10); align-items: start;">
