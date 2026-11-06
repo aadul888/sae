@@ -26,22 +26,98 @@ class KesiswaanUsulanService
         try {
             if (!Table::exists('notifikasi_transaksi')) return;
 
-            $user = \App\Models\User::where('peserta_didik_id', $pdId)->first();
-            $penggunaId = $user?->pengguna_id;
+            $url = route('dashboard.identitas.index', ['peserta_didik_id' => $pdId]);
 
-            NotifikasiTransaksi::create([
-                'pengguna_id'      => $penggunaId,
-                'peserta_didik_id' => (string) $pdId,
-                'kategori'         => 'usulan_identitas',
-                'judul'            => $judul,
-                'pesan'            => $pesan,
-                'tipe'             => $tipe,
-                'icon'             => $icon,
-                'url'              => route('dashboard.identitas.index'),
-                'is_read'          => false,
-            ]);
+            $siswaUser = \App\Models\User::where('peserta_didik_id', $pdId)->first();
+            if ($siswaUser) {
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $siswaUser->pengguna_id,
+                    'peserta_didik_id' => (string) $pdId,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => $pesan,
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
+
+            // Wali / orang tua yang menautkan anak (peserta_didik_id sama)
+            $waliUsers = \App\Models\User::where('peserta_didik_id', $pdId)
+                ->where(function ($q) {
+                    $q->where('peran_id_str', 'like', '%orang%')
+                        ->orWhere('peran_id_str', 'like', '%wali%');
+                })
+                ->get();
+
+            foreach ($waliUsers as $wali) {
+                if ($siswaUser && (string) $wali->pengguna_id === (string) $siswaUser->pengguna_id) {
+                    continue;
+                }
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $wali->pengguna_id,
+                    'peserta_didik_id' => (string) $pdId,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => str_replace(['Anda', 'anda'], ['putra/putri Anda', 'putra/putri Anda'], $pesan),
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi usulan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim notifikasi in-app ke seluruh pengguna yang berhak mengelola
+     * (menu Kesiswaan → Peserta Didik) terkait transaksi usulan identitas.
+     */
+    private function notifyKesiswaanAdmins(string $judul, string $pesan, string $tipe, string $icon, ?string $excludePenggunaId = null): void
+    {
+        try {
+            if (!Table::exists('notifikasi_transaksi') || !Table::exists('pengguna')) return;
+
+            $kandidat = \App\Models\User::query()
+                ->where(function ($q) {
+                    $q->whereNotNull('ptk_id')
+                        ->orWhere('peran_id_str', 'like', '%admin%')
+                        ->orWhere('peran_id_str', 'like', '%tendik%');
+                })
+                ->get();
+
+            $url = route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']);
+
+            foreach ($kandidat as $admin) {
+                if ($excludePenggunaId && (string) $admin->pengguna_id === (string) $excludePenggunaId) {
+                    continue;
+                }
+
+                try {
+                    if (!\App\Models\RolePermission::canAccess($admin, 'menu_kesiswaan_peserta_didik', 'read')) {
+                        continue;
+                    }
+                } catch (\Throwable $e) {
+                    continue;
+                }
+
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $admin->pengguna_id,
+                    'peserta_didik_id' => null,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => $pesan,
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi admin usulan: ' . $e->getMessage());
         }
     }
 
@@ -82,6 +158,22 @@ class KesiswaanUsulanService
             'status'             => 'menunggu',
             'created_by'         => $userName,
         ]);
+
+        // Notifikasi transaksi: siswa + admin kesiswaan
+        $this->notifyStudent(
+            $validated['peserta_didik_id'],
+            'Pengajuan Usulan Data Terkirim',
+            'Pengajuan perubahan data Anda telah terkirim dan menunggu verifikasi Tim Kesiswaan.',
+            'info',
+            'fas fa-paper-plane'
+        );
+        $this->notifyKesiswaanAdmins(
+            'Usulan Baru: ' . ($usulan->peserta_didik_id),
+            'Pengajuan usulan perubahan data baru oleh ' . $userName . ' menunggu verifikasi.',
+            'warning',
+            'fas fa-file-pen',
+            is_array($user) ? ($user['pengguna_id'] ?? null) : ($user->pengguna_id ?? null)
+        );
 
         return [
             'status' => 'success',
@@ -399,6 +491,17 @@ class KesiswaanUsulanService
             );
         }
 
+        // Notifikasi ke Tim Kesiswaan/Admin lain bahwa verifikasi telah dilakukan.
+        $pdNamaAdmin = PesertaDidik::where('peserta_didik_id', $pdId)->value('nama');
+        $this->notifyKesiswaanAdmins(
+            'Verifikasi Usulan: ' . ($pdNamaAdmin ?: ('Siswa #' . $pdId)),
+            ($pdNamaAdmin ?: 'Seorang siswa') . " — verifikasi usulan selesai oleh {$userName}. "
+                . count($usulanList) . ' butir: ' . ($hasRejected ? 'ada yang ditolak' : 'disetujui') . '.',
+            $hasRejected ? 'warning' : 'success',
+            'fas fa-clipboard-check',
+            is_array($user) ? ($user['pengguna_id'] ?? null) : ($user->pengguna_id ?? null)
+        );
+
         if (class_exists(AdminAktivitas::class)) {
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
             $labelStatus = $hasRejected ? 'Disetujui/Ditolak Sebagian' : 'Disetujui';
@@ -467,6 +570,16 @@ class KesiswaanUsulanService
                 );
             }
         }
+
+        // Notifikasi ke Tim Kesiswaan/Admin lain bahwa data telah disinkronkan ke Dapodik.
+        $pdNamaDapodik = PesertaDidik::where('peserta_didik_id', $pdId)->value('nama');
+        $this->notifyKesiswaanAdmins(
+            'Dapodik Diperbarui: ' . ($pdNamaDapodik ?: ('Siswa #' . $pdId)),
+            ($pdNamaDapodik ?: 'Seorang siswa') . " — usulan identitas telah ditandai selesai di-input ke Dapodik oleh {$userName}.",
+            'success',
+            'fas fa-cloud-arrow-up',
+            is_array($user) ? ($user['pengguna_id'] ?? null) : ($user->pengguna_id ?? null)
+        );
 
         if (class_exists(AdminAktivitas::class)) {
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();

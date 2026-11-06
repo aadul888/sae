@@ -447,6 +447,7 @@ class IdentitasPesertaDidikController extends Controller
         $pd = $ctx['pd'];
         $userName = $ctx['userName'];
         $userRole = $ctx['userRole'];
+        $actorUser = $ctx['user'] ?? null;
 
         if (!$pd) {
             return back()->with('error', 'Peserta didik tidak ditemukan.');
@@ -775,10 +776,10 @@ class IdentitasPesertaDidikController extends Controller
 
             // Notifikasi ke Tim Kesiswaan/Admin yang berhak: ada pengajuan baru
             $actorId = null;
-            if (is_array($ctx['user'] ?? null)) {
-                $actorId = $ctx['user']['pengguna_id'] ?? null;
-            } elseif (!empty($ctx['user'])) {
-                $actorId = $ctx['user']->pengguna_id ?? null;
+            if (is_array($actorUser)) {
+                $actorId = $actorUser['pengguna_id'] ?? null;
+            } elseif (!empty($actorUser)) {
+                $actorId = $actorUser->pengguna_id ?? null;
             }
 
             $this->notifyKesiswaanAdmins(
