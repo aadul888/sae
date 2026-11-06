@@ -120,6 +120,95 @@
             </div>
         </section>
 
+        <!-- Warta & Berita Terkini (1 Berita Utama Diperbesar + Berita-berita Kecil) -->
+        @if ($beritaUtama)
+            <section id="berita" class="news-root-section" style="margin-bottom: clamp(2.5rem, 5vw, 4rem);">
+                <div class="section-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; text-align: left; gap: var(--space-6); margin-bottom: var(--space-8);">
+                    <div>
+                        <span class="section-kicker"><i class="fas fa-newspaper me-1"></i> Warta &amp; Kabar Sekolah</span>
+                        <h2 class="section-title" style="margin-bottom: var(--space-2);">Berita &amp; Informasi Terkini</h2>
+                        <p class="section-desc" style="margin: 0;">Ikuti perkembangan agenda akademik, prestasi siswa, dan publikasi resmi sekolah.</p>
+                    </div>
+                    <a href="{{ route('berita.index') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: var(--space-2); height: 38px; padding: 0 var(--space-8); border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 600; text-decoration: none;">
+                        <span>Semua Berita</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="news-root-grid">
+                    <!-- 1 Berita Utama yang Diperbesar -->
+                    <article class="news-hero-card card">
+                        <a href="{{ route('berita.show', $beritaUtama->slug) }}" class="news-hero-image-wrap" style="text-decoration: none;">
+                            @if ($beritaUtama->gambar)
+                                <img src="{{ asset($beritaUtama->gambar) }}" alt="{{ $beritaUtama->judul }}" class="news-hero-img" loading="lazy">
+                            @else
+                                <div class="news-placeholder-banner">
+                                    <i class="fas fa-newspaper news-placeholder-icon"></i>
+                                    <span class="news-placeholder-tag">{{ $beritaUtama->kategori }}</span>
+                                </div>
+                            @endif
+                            <span class="news-badge-category">{{ $beritaUtama->kategori }}</span>
+                        </a>
+                        <div class="news-hero-body">
+                            <div class="news-meta-row">
+                                <span><i class="fas fa-calendar-day me-1"></i> {{ $beritaUtama->created_at ? $beritaUtama->created_at->translatedFormat('d M Y') : '-' }}</span>
+                                <span>&bull;</span>
+                                <span><i class="fas fa-user-pen me-1"></i> {{ $beritaUtama->penulis_nama ?: 'Redaksi' }}</span>
+                                <span>&bull;</span>
+                                <span><i class="fas fa-eye me-1"></i> {{ number_format($beritaUtama->views) }} kali</span>
+                            </div>
+                            <h3 class="news-hero-title">
+                                <a href="{{ route('berita.show', $beritaUtama->slug) }}">{{ $beritaUtama->judul }}</a>
+                            </h3>
+                            <p class="news-hero-excerpt">
+                                {{ $beritaUtama->excerpt }}
+                            </p>
+                            <div class="news-hero-action">
+                                <a href="{{ route('berita.show', $beritaUtama->slug) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);">
+                                    <span>Baca Selengkapnya</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Berita-berita Kecil Setelahnya -->
+                    <div class="news-sub-list">
+                        @forelse ($beritaLainnya as $bKecil)
+                            <article class="news-sub-card card">
+                                <a href="{{ route('berita.show', $bKecil->slug) }}" class="news-sub-thumb-wrap" style="text-decoration: none;">
+                                    @if ($bKecil->gambar)
+                                        <img src="{{ asset($bKecil->gambar) }}" alt="{{ $bKecil->judul }}" class="news-sub-thumb" loading="lazy">
+                                    @else
+                                        <div class="news-sub-placeholder">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </div>
+                                    @endif
+                                </a>
+                                <div class="news-sub-content">
+                                    <div class="news-sub-meta">
+                                        <span class="badge badge-accent" style="font-size: var(--text-2xs); padding: 2px 6px;">{{ $bKecil->kategori }}</span>
+                                        <span class="news-sub-date"><i class="fas fa-calendar-alt me-1"></i>{{ $bKecil->created_at ? $bKecil->created_at->translatedFormat('d M Y') : '-' }}</span>
+                                    </div>
+                                    <h4 class="news-sub-title">
+                                        <a href="{{ route('berita.show', $bKecil->slug) }}">{{ $bKecil->judul }}</a>
+                                    </h4>
+                                    <p class="news-sub-desc">
+                                        {{ Str::limit($bKecil->excerpt, 80) }}
+                                    </p>
+                                </div>
+                            </article>
+                        @empty
+                            <div class="card" style="padding: var(--space-8); text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                <i class="fas fa-info-circle mb-2" style="font-size: var(--text-2xl); opacity: 0.5;"></i>
+                                <p style="margin: 0; font-size: var(--text-sm);">Nantikan publikasi dan artikel berita sekolah berikutnya.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
+        @endif
+
         <!-- Progres Pengiriman & Kualitas Data per Rombel -->
         <section id="progres-data" class="analytics-card" style="margin-bottom: clamp(2.5rem, 5vw, 4rem);">
             <div class="analytics-head" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem;">
@@ -140,35 +229,43 @@
             <!-- Ringkasan Global Progress -->
             @php
                 $totSemuaSiswa = array_sum(array_column($progres_rombel, 'total_siswa'));
-                $totSemuaKirim = array_sum(array_column($progres_rombel, 'siswa_kirim'));
-                $totSemuaIdValid = array_sum(array_column($progres_rombel, 'id_valid'));
-                $totSemuaBerkasValid = array_sum(array_column($progres_rombel, 'berkas_valid'));
-                $persenTotalKirim = $totSemuaSiswa > 0 ? round(($totSemuaKirim / $totSemuaSiswa) * 100, 1) : 0;
-                $persenTotalValid = $totSemuaSiswa > 0 ? round(($totSemuaIdValid / $totSemuaSiswa) * 100, 1) : 0;
+                $totSesuai = array_sum(array_column($progres_rombel, 'sesuai'));
+                $totTidakSesuai = array_sum(array_column($progres_rombel, 'tidak_sesuai'));
+                $totBelum = array_sum(array_column($progres_rombel, 'belum_konfirmasi'));
+                $totBerkas = array_sum(array_column($progres_rombel, 'berkas_valid'));
+
+                $persenTotSesuai = $totSemuaSiswa > 0 ? round(($totSesuai / $totSemuaSiswa) * 100, 1) : 0;
+                $persenTotTidak = $totSemuaSiswa > 0 ? round(($totTidakSesuai / $totSemuaSiswa) * 100, 1) : 0;
+                $persenTotBelum = $totSemuaSiswa > 0 ? round(($totBelum / $totSemuaSiswa) * 100, 1) : 0;
+                $persenTotBerkas = $totSemuaSiswa > 0 ? round(($totBerkas / $totSemuaSiswa) * 100, 1) : 0;
             @endphp
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Sasaran Siswa</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaSiswa) }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">siswa ({{ count($progres_rombel) }} rombel)</span></div>
+                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Konfirmasi Sesuai</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ $persenTotSesuai }}%</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totSesuai) }} siswa terverifikasi</div>
                 </div>
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Sudah Terkirim / Konfirmasi</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaKirim) }} <span style="font-size: 0.8rem; font-weight: 600;">({{ $persenTotalKirim }}%)</span></div>
+                    <div style="font-size: 0.75rem; color: var(--warning, #f59e0b); font-weight: 700; text-transform: uppercase;">Perlu Perbaikan</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--warning, #f59e0b); line-height: 1.2; margin-top: 4px;">{{ $persenTotTidak }}%</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totTidakSesuai) }} data tidak sesuai</div>
                 </div>
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Identitas Sesuai / Terverifikasi</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaIdValid) }} <span style="font-size: 0.8rem; font-weight: 600;">({{ $persenTotalValid }}%)</span></div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Belum Konfirmasi</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 4px;">{{ $persenTotBelum }}%</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totBelum) }} siswa belum lapor</div>
                 </div>
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
                     <div style="font-size: 0.75rem; color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Siswa Berkas Valid</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ number_format($totSemuaBerkasValid) }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">siswa lolos</span></div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ $persenTotBerkas }}%</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
                 </div>
             </div>
 
             <!-- Toolbar Filter & Search -->
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                    <input type="text" id="rombelSearch" placeholder="Cari rombel atau wali kelas..." 
+                    <input type="text" id="rombelSearch" placeholder="Cari rombel atau jurusan..." 
                         style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 12px; font-size: 0.85rem; min-width: 240px; outline: none;">
                     
                     <select id="rombelTingkat" style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 10px; font-size: 0.85rem; outline: none;">
@@ -182,8 +279,11 @@
                         Menampilkan {{ count($progres_rombel) }} rombel
                     </span>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
-                    <i class="fas fa-arrows-rotate me-1 text-primary"></i> Data terhubung langsung dari Dapodik &amp; SAE
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: var(--text-muted); flex-wrap: wrap;">
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Sesuai</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></span> Belum</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Berkas Valid</span>
                 </div>
             </div>
 
@@ -193,54 +293,84 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
                             <th style="padding: 10px 14px; width: 45px; text-align: center;">No</th>
-                            <th style="padding: 10px 14px; min-width: 150px;">Rombel / Tingkat</th>
-                            <th style="padding: 10px 14px; min-width: 180px;">Wali Kelas</th>
-                            <th style="padding: 10px 14px; text-align: center; width: 85px;">Siswa</th>
-                            <th style="padding: 10px 14px; min-width: 190px;">Pengiriman Konfirmasi</th>
-                            <th style="padding: 10px 14px; min-width: 190px;">Identitas Valid</th>
-                            <th style="padding: 10px 14px; text-align: center; min-width: 110px;">Berkas Valid</th>
+                            <th class="th-sortable" data-col="rombel" style="padding: 10px 14px; min-width: 180px; cursor: pointer; user-select: none;">
+                                <span>Rombel / Jurusan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            </th>
+                            <th class="th-sortable" data-col="sesuai" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                                <span>Konfirmasi Sesuai</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            </th>
+                            <th class="th-sortable" data-col="tidak_sesuai" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                                <span>Perlu Perbaikan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            </th>
+                            <th class="th-sortable" data-col="belum" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                                <span>Belum Konfirmasi</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            </th>
+                            <th class="th-sortable" data-col="berkas" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                                <span>Berkas Valid</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            </th>
+                            <th class="th-sortable sorted-desc" data-col="kualitas" style="padding: 10px 14px; min-width: 120px; text-align: center; cursor: pointer; user-select: none; background: rgba(16, 185, 129, 0.04);">
+                                <span>Kualitas Data</span> <i class="fas fa-sort-down ms-1 sort-icon" style="color: var(--success);"></i>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tbodyProgresRombel">
                         @forelse ($progres_rombel as $idx => $r)
                             <tr class="rombel-row" 
                                 data-rombel="{{ strtolower($r['rombel']) }}" 
-                                data-wali="{{ strtolower($r['wali_kelas']) }}" 
+                                data-jurusan="{{ strtolower($r['jurusan']) }}"
                                 data-tingkat="{{ $r['tingkat'] }}"
+                                data-val-rombel="{{ $r['rombel'] }}"
+                                data-val-sesuai="{{ $r['persen_sesuai'] }}"
+                                data-val-tidak_sesuai="{{ $r['persen_tidak_sesuai'] }}"
+                                data-val-belum="{{ $r['persen_belum'] }}"
+                                data-val-berkas="{{ $r['persen_berkas'] }}"
+                                data-val-kualitas="{{ $r['kualitas'] }}"
                                 style="border-bottom: 1px solid var(--border-glass); transition: background 0.15s ease;">
-                                <td style="padding: 10px 14px; text-align: center; color: var(--text-muted); font-weight: 600;">{{ $idx + 1 }}</td>
+                                <td class="row-num" style="padding: 10px 14px; text-align: center; color: var(--text-muted); font-weight: 600;">{{ $idx + 1 }}</td>
                                 <td style="padding: 10px 14px;">
                                     <div style="font-weight: 700; color: var(--text-main);">{{ $r['rombel'] }}</div>
                                     <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r['jurusan'] }}</div>
                                 </td>
-                                <td style="padding: 10px 14px; color: var(--text-main);">
-                                    <i class="fas fa-chalkboard-user me-1 text-primary" style="font-size: 0.75rem;"></i>
-                                    {{ $r['wali_kelas'] }}
-                                </td>
-                                <td style="padding: 10px 14px; text-align: center; font-weight: 700; color: var(--text-main);">
-                                    {{ $r['total_siswa'] }}
-                                </td>
+                                <!-- Bar 1: Konfirmasi Sesuai -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                        <span style="font-weight: 600; color: var(--text-main);">{{ $r['siswa_kirim'] }} / {{ $r['total_siswa'] }}</span>
-                                        <span style="font-weight: 700; color: var(--primary);">{{ $r['persen_kirim'] }}%</span>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--success);">
+                                        <span>{{ $r['persen_sesuai'] }}%</span>
                                     </div>
                                     <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_kirim'] }}%; height: 100%; background: var(--primary); border-radius: 99px;"></div>
+                                        <div style="width: {{ $r['persen_sesuai'] }}%; height: 100%; background: var(--success); border-radius: 99px;"></div>
                                     </div>
                                 </td>
+                                <!-- Bar 2: Perlu Perbaikan (Tidak Sesuai) -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                        <span style="font-weight: 600; color: var(--text-main);">{{ $r['id_valid'] }} / {{ $r['total_siswa'] }}</span>
-                                        <span style="font-weight: 700; color: var(--success);">{{ $r['persen_valid'] }}%</span>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--warning, #f59e0b);">
+                                        <span>{{ $r['persen_tidak_sesuai'] }}%</span>
                                     </div>
                                     <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_valid'] }}%; height: 100%; background: var(--success); border-radius: 99px;"></div>
+                                        <div style="width: {{ $r['persen_tidak_sesuai'] }}%; height: 100%; background: var(--warning, #f59e0b); border-radius: 99px;"></div>
                                     </div>
                                 </td>
-                                <td style="padding: 10px 14px; text-align: center;">
-                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
-                                        <i class="fas fa-file-circle-check"></i> {{ $r['berkas_valid'] }}
+                                <!-- Bar 3: Belum Konfirmasi -->
+                                <td style="padding: 10px 14px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--text-muted);">
+                                        <span>{{ $r['persen_belum'] }}%</span>
+                                    </div>
+                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_belum'] }}%; height: 100%; background: rgba(148, 163, 184, 0.6); border-radius: 99px;"></div>
+                                    </div>
+                                </td>
+                                <!-- Bar 4: Berkas Valid -->
+                                <td style="padding: 10px 14px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: #8b5cf6;">
+                                        <span>{{ $r['persen_berkas'] }}%</span>
+                                    </div>
+                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_berkas'] }}%; height: 100%; background: #8b5cf6; border-radius: 99px;"></div>
+                                    </div>
+                                </td>
+                                <!-- Kualitas Data -->
+                                <td style="padding: 10px 14px; text-align: center; background: rgba(16, 185, 129, 0.03);">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 4px 8px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
+                                        {{ $r['kualitas'] }}%
                                     </span>
                                 </td>
                             </tr>
@@ -261,9 +391,25 @@
                 const searchInput = document.getElementById('rombelSearch');
                 const tingkatSelect = document.getElementById('rombelTingkat');
                 const badge = document.getElementById('rombelCountBadge');
-                const rows = document.querySelectorAll('.rombel-row');
+                const tbody = document.getElementById('tbodyProgresRombel');
+                const headers = document.querySelectorAll('.th-sortable');
+
+                let currentSortCol = 'kualitas';
+                let currentSortAsc = false; // default desc kualitas data
+
+                function renumberVisibleRows() {
+                    let num = 1;
+                    const rows = tbody.querySelectorAll('.rombel-row');
+                    rows.forEach(function(row) {
+                        if (row.style.display !== 'none') {
+                            const numCell = row.querySelector('.row-num');
+                            if (numCell) numCell.textContent = num++;
+                        }
+                    });
+                }
 
                 function filterRows() {
+                    const rows = tbody.querySelectorAll('.rombel-row');
                     if (!rows.length) return;
                     const query = (searchInput.value || '').trim().toLowerCase();
                     const tingkat = (tingkatSelect.value || '').trim();
@@ -271,10 +417,10 @@
 
                     rows.forEach(function(row) {
                         const rombel = row.getAttribute('data-rombel') || '';
-                        const wali = row.getAttribute('data-wali') || '';
+                        const jurusan = row.getAttribute('data-jurusan') || '';
                         const rTingkat = row.getAttribute('data-tingkat') || '';
 
-                        const matchQuery = !query || rombel.indexOf(query) !== -1 || wali.indexOf(query) !== -1;
+                        const matchQuery = !query || rombel.indexOf(query) !== -1 || jurusan.indexOf(query) !== -1;
                         const matchTingkat = !tingkat || rTingkat === tingkat;
 
                         if (matchQuery && matchTingkat) {
@@ -288,7 +434,63 @@
                     if (badge) {
                         badge.textContent = 'Menampilkan ' + count + ' rombel';
                     }
+                    renumberVisibleRows();
                 }
+
+                function sortTable(col) {
+                    if (currentSortCol === col) {
+                        currentSortAsc = !currentSortAsc;
+                    } else {
+                        currentSortCol = col;
+                        currentSortAsc = (col === 'rombel'); // text default asc, angka default desc
+                    }
+
+                    // Update header icons
+                    headers.forEach(function(th) {
+                        const hCol = th.getAttribute('data-col');
+                        const icon = th.querySelector('.sort-icon');
+                        th.classList.remove('sorted-asc', 'sorted-desc');
+                        if (icon) {
+                            icon.className = 'fas fa-sort ms-1 sort-icon';
+                            icon.style.opacity = '0.4';
+                            icon.style.color = '';
+                        }
+                        if (hCol === currentSortCol) {
+                            th.classList.add(currentSortAsc ? 'sorted-asc' : 'sorted-desc');
+                            if (icon) {
+                                icon.className = currentSortAsc ? 'fas fa-sort-up ms-1 sort-icon' : 'fas fa-sort-down ms-1 sort-icon';
+                                icon.style.opacity = '1';
+                                icon.style.color = 'var(--primary)';
+                            }
+                        }
+                    });
+
+                    // Sort rows in DOM
+                    const rowsArray = Array.from(tbody.querySelectorAll('.rombel-row'));
+                    rowsArray.sort(function(a, b) {
+                        let valA = a.getAttribute('data-val-' + currentSortCol) || '';
+                        let valB = b.getAttribute('data-val-' + currentSortCol) || '';
+
+                        if (currentSortCol === 'rombel') {
+                            const cmp = valA.localeCompare(valB, 'id', { numeric: true, sensitivity: 'base' });
+                            return currentSortAsc ? cmp : -cmp;
+                        } else {
+                            const numA = parseFloat(valA) || 0;
+                            const numB = parseFloat(valB) || 0;
+                            return currentSortAsc ? (numA - numB) : (numB - numA);
+                        }
+                    });
+
+                    rowsArray.forEach(function(r) { tbody.appendChild(r); });
+                    renumberVisibleRows();
+                }
+
+                headers.forEach(function(th) {
+                    th.addEventListener('click', function() {
+                        const col = this.getAttribute('data-col');
+                        if (col) sortTable(col);
+                    });
+                });
 
                 if (searchInput) searchInput.addEventListener('input', filterRows);
                 if (tingkatSelect) tingkatSelect.addEventListener('change', filterRows);

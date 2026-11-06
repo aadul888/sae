@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\Table;
+use App\Models\Berita;
+use App\Models\Pengumuman;
 
 class HomeController extends Controller
 {
@@ -195,11 +197,13 @@ class HomeController extends Controller
             }
 
             if ($hasIdentitas) {
-                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IS NOT NULL AND pdi.status_konfirmasi != 'belum_konfirmasi' THEN pd.peserta_didik_id END) as siswa_kirim");
-                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik') THEN pd.peserta_didik_id END) as identitas_valid");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik') THEN pd.peserta_didik_id END) as konfirm_sesuai");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi = 'perlu_perbaikan' THEN pd.peserta_didik_id END) as konfirm_tidak_sesuai");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IS NULL OR pdi.status_konfirmasi = 'belum_konfirmasi' THEN pd.peserta_didik_id END) as belum_konfirmasi");
             } else {
-                $selects[] = DB::raw('0 as siswa_kirim');
-                $selects[] = DB::raw('0 as identitas_valid');
+                $selects[] = DB::raw('0 as konfirm_sesuai');
+                $selects[] = DB::raw('0 as konfirm_tidak_sesuai');
+                $selects[] = DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as belum_konfirmasi');
             }
 
             $groupBy = ['rb.rombongan_belajar_id', 'rb.nama', 'rb.tingkat_pendidikan_id', 'rb.jurusan_id_str'];
@@ -227,12 +231,18 @@ class HomeController extends Controller
 
             $progres_rombel = $rows->map(function ($r) use ($berkasMap) {
                 $total = (int) $r->total_siswa;
-                $kirim = (int) $r->siswa_kirim;
-                $idValid = (int) $r->identitas_valid;
+                $sesuai = (int) $r->konfirm_sesuai;
+                $tidakSesuai = (int) $r->konfirm_tidak_sesuai;
+                $belum = (int) $r->belum_konfirmasi;
                 $bValid = (int) ($berkasMap[$r->rombongan_belajar_id] ?? 0);
 
-                $persenKirim = $total > 0 ? round(($kirim / $total) * 100, 1) : 0;
-                $persenValid = $total > 0 ? round(($idValid / $total) * 100, 1) : 0;
+                $persenSesuai = $total > 0 ? round(($sesuai / $total) * 100, 1) : 0;
+                $persenTidakSesuai = $total > 0 ? round(($tidakSesuai / $total) * 100, 1) : 0;
+                $persenBelum = $total > 0 ? round(($belum / $total) * 100, 1) : 0;
+                $persenBerkas = $total > 0 ? round(($bValid / $total) * 100, 1) : 0;
+
+                // Skor kualitas data komposit: rata-rata presentase sesuai + berkas valid
+                $skorKualitas = round(($persenSesuai + $persenBerkas) / 2, 1);
 
                 $tg = (string) $r->tingkat;
                 if ($tg === '10') $tg = 'X';
@@ -240,22 +250,92 @@ class HomeController extends Controller
                 elseif ($tg === '12') $tg = 'XII';
 
                 return [
-                    'id'            => $r->rombongan_belajar_id,
-                    'rombel'        => $r->nama_rombel,
-                    'tingkat'       => $tg,
-                    'jurusan'       => $r->jurusan ?? '-',
-                    'wali_kelas'    => $r->wali_kelas ?? 'Belum Ditentukan',
-                    'total_siswa'   => $total,
-                    'siswa_kirim'   => $kirim,
-                    'persen_kirim'  => $persenKirim,
-                    'id_valid'      => $idValid,
-                    'persen_valid'  => $persenValid,
-                    'berkas_valid'  => $bValid,
+                    'id'                  => $r->rombongan_belajar_id,
+                    'rombel'              => $r->nama_rombel,
+                    'tingkat'             => $tg,
+                    'jurusan'             => $r->jurusan ?? '-',
+                    'wali_kelas'          => $r->wali_kelas ?? 'Belum Ditentukan',
+                    'total_siswa'         => $total,
+                    'sesuai'              => $sesuai,
+                    'persen_sesuai'       => $persenSesuai,
+                    'tidak_sesuai'        => $tidakSesuai,
+                    'persen_tidak_sesuai' => $persenTidakSesuai,
+                    'belum_konfirmasi'    => $belum,
+                    'persen_belum'        => $persenBelum,
+                    'berkas_valid'        => $bValid,
+                    'persen_berkas'       => $persenBerkas,
+                    'kualitas'            => $skorKualitas,
                 ];
-            })->values()->toArray();
+            })
+            // Default sort: kualitas data tertinggi
+            ->sortByDesc('kualitas')
+            ->values()
+            ->toArray();
         }
 
-        return view('home', compact('stats', 'running_info', 'major_data', 'chart_detail', 'progres_rombel'));
+        // Berita untuk Tampilan Halaman Utama (1 berita utama diperbesar, sisanya lebih kecil)
+        try {
+            $beritaUtama = Berita::active()->first();
+            $beritaLainnya = Berita::active()
+                ->when($beritaUtama, fn($q) => $q->where('id', '!=', $beritaUtama->id))
+                ->take(4)
+                ->get();
+        } catch (\Throwable $e) {
+            $beritaUtama = null;
+            $beritaLainnya = collect();
+        }
+
+        return view('home', compact('stats', 'running_info', 'major_data', 'chart_detail', 'progres_rombel', 'beritaUtama', 'beritaLainnya'));
+    }
+
+    /**
+     * Halaman Publik: Kumpulan Berita & Warta Sekolah
+     */
+    public function beritaIndex(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+        $kategori = trim($request->get('kategori', ''));
+
+        $query = Berita::active();
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('judul', 'like', "%{$q}%")
+                    ->orWhere('ringkasan', 'like', "%{$q}%")
+                    ->orWhere('isi', 'like', "%{$q}%")
+                    ->orWhere('penulis_nama', 'like', "%{$q}%");
+            });
+        }
+
+        if ($kategori !== '' && $kategori !== 'Semua') {
+            $query->where('kategori', $kategori);
+        }
+
+        $beritaList = $query->paginate(9)->appends($request->query());
+        $kategoriList = Berita::active()->whereNotNull('kategori')->distinct()->pluck('kategori')->toArray();
+
+        return view('berita.index', compact('beritaList', 'kategoriList', 'q', 'kategori'));
+    }
+
+    /**
+     * Halaman Publik: Detail Baca Berita
+     */
+    public function beritaShow(string $slug)
+    {
+        $berita = Berita::where('slug', $slug)->firstOrFail();
+
+        // Tambah jumlah tayangan
+        try {
+            $berita->increment('views');
+        } catch (\Throwable $e) {
+        }
+
+        $beritaTerkait = Berita::active()
+            ->where('id', '!=', $berita->id)
+            ->take(4)
+            ->get();
+
+        return view('berita.show', compact('berita', 'beritaTerkait'));
     }
 
     public function about()
