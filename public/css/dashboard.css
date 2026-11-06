@@ -6634,3 +6634,357 @@ input:disabled + .slider-toggle-crud {
     }
 }
 
+
+/* ==========================================================================
+   DATATABLE MOBILE - GESER HORIZONTAL (menggantikan mode kartu/dropdown)
+   Mode kartu ringkas (public/js/datatable-cards.js) sudah dihapus. Pada layar
+   kecil semua tabel data tetap berupa tabel: lebar mengikuti isi, teks satu
+   baris (tidak tumpang tindih), dan bisa digeser ke kanan/kiri.
+   Blok ini sengaja diletakkan paling akhir dengan specificity lebih tinggi
+   (prefix .dashboard-wrapper .dash-main .dash-body) agar menimpa aturan mode
+   kartu lama di dashboard.css/presensi.css/wali-kelas.css dan style halaman.
+   ========================================================================== */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack > div[style*="overflow-x"] {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack table,
+    .dashboard-wrapper .dash-main .dash-body table.table-pd,
+    .dashboard-wrapper .dash-main .dash-body table.table-keahlian {
+        display: table !important;
+        width: auto !important;
+        min-width: 100% !important;
+        max-width: none !important;
+        border-collapse: collapse !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack thead,
+    .dashboard-wrapper .dash-main .dash-body .table-pd thead,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian thead {
+        display: table-header-group !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody {
+        display: table-row-group !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr:not(.d-none):not([hidden]):not([style*="display: none"]),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody tr:not(.d-none):not([hidden]):not([style*="display: none"]),
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody tr:not(.d-none):not([hidden]):not([style*="display: none"]) {
+        display: table-row !important;
+        position: static !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr:hover,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody tr:hover,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody tr:hover {
+        background: var(--bg-hover) !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile),
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td:not(.d-none):not(.d-none-mobile) {
+        display: table-cell !important;
+        position: static !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        padding: 12px 16px !important;
+        margin: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        order: 0 !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan]:not(.d-none),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan]:not(.d-none) {
+        text-align: center !important;
+        white-space: normal !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td::before,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td::before,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td > * {
+        max-width: none !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .dt-card-toggle {
+        display: none !important;
+    }
+}
+/* Tindak lanjut: tombol aksi pada baris tabel mobile juga tidak boleh menumpuk.
+   Paksa deretan aksi tetap satu baris (inline-flex, tanpa wrap) dan ukuran
+   tombol tetap, apa pun aturan lama di dashboard.css/presensi.css/wali-kelas.css. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .table-actions,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .table-actions,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td .table-actions {
+        display: inline-flex !important;
+        flex-flow: row nowrap !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 6px !important;
+        width: auto !important;
+        max-width: none !important;
+        white-space: nowrap !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .table-actions > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .table-actions > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td .table-actions > * {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .table-actions .btn-icon,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .table-actions .btn-icon,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td .table-actions .btn-icon {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        max-width: 34px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Sel aksi tetap satu sel tabel biasa, rata kanan, tidak melebar penuh. */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-pd-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Aksi"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-pd-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Aksi"] {
+        width: auto !important;
+        max-width: none !important;
+        text-align: right !important;
+        border-top: none !important;
+        margin-top: 0 !important;
+        padding: 12px 16px !important;
+    }
+}
+/* Cakupan aksi lain (rfid-actions, izin-actions, ma-actions, dst.) di dalam sel tabel. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td [class*="actions"] {
+        display: inline-flex !important;
+        flex-flow: row nowrap !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 6px !important;
+        width: auto !important;
+        max-width: none !important;
+        white-space: nowrap !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td [class*="actions"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td [class*="actions"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td [class*="actions"] > * {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+}
+/* Koreksi akhir: teks boleh melipat (target maksimal 2 baris) dan rata kiri.
+   Tombol tetap rapat namun boleh melipat baris, label tombol sendiri tetap
+   satu baris. Blok ini sengaja paling akhir agar menimpa aturan nowrap di atas. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile),
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td:not(.d-none):not(.d-none-mobile) {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td > * {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        text-align: inherit !important;
+    }
+
+    /* Nama/judul utama: boleh melipat, teks tetap utuh (tanpa clamp/ellipsis). */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .pd-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .pd-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td .pd-nama {
+        display: block !important;
+        -webkit-line-clamp: unset !important;
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    /* Kolom "col-right" jangan memaksa rata kanan lagi. */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td .cell-col-right {
+        align-items: flex-start !important;
+        text-align: left !important;
+    }
+
+    /* Deretan tombol aksi: boleh melipat, tapi label tombol tetap satu baris. */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td [class*="actions"] {
+        flex-flow: row wrap !important;
+        flex-wrap: wrap !important;
+        white-space: normal !important;
+        justify-content: flex-start !important;
+        width: auto !important;
+        max-width: 100% !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td [class*="actions"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td [class*="actions"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td [class*="actions"] > * {
+        white-space: nowrap !important;
+    }
+
+    /* Sel aksi: rata kiri juga (bukan kanan). */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-pd-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Aksi"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-pd-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Aksi"] {
+        text-align: left !important;
+    }
+}
+/* Lebar kolom wajar: cukup untuk 1-2 baris, sisanya digeser horizontal. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile) {
+        min-width: 104px !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-pd-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Nama"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Nama Lengkap"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Peserta Didik"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Siswa"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Jurusan"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-pd-nama {
+        min-width: 200px !important;
+        max-width: 320px !important;
+    }
+}
+/* Kompak: rapatkan baris, batasi teks 2 baris, tombol aksi tetap SATU baris. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack thead th,
+    .dashboard-wrapper .dash-main .dash-body .table-pd thead th,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian thead th {
+        padding: 9px 12px !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile) {
+        padding: 9px 12px !important;
+    }
+
+    /* Teks isi sel boleh melipat seperlunya — TIDAK dipotong (tanpa clamp/ellipsis). */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .pd-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .jurusan-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .kurikulum-text,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .pd-meta-row,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .jurusan-rombel-sub,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-right > div,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td > div:not([class*="actions"]):not(.pd-main-wrapper):not(.jurusan-main-wrapper):not(.pd-info):not(.cell-col-right):not(.tingkat-wrap):not(.d-flex),
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td > span:not(.badge),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .pd-nama,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td > span:not(.badge) {
+        display: block !important;
+        -webkit-line-clamp: unset !important;
+        -webkit-box-orient: initial !important;
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    /* Tombol aksi: satu baris, kolom melebar sesuai jumlah tombol. */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td [class*="actions"],
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td [class*="actions"] {
+        display: inline-flex !important;
+        flex-flow: row nowrap !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+        width: auto !important;
+        max-width: none !important;
+        gap: 6px !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-pd-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-log-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-rfid-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-izin-aksi,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Aksi"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-pd-aksi {
+        min-width: 150px !important;
+        max-width: none !important;
+    }
+
+    /* Thumbnail lebih ramping agar baris ringkas. */
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td.cell-jurusan-main .jurusan-logo-thumb,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-pd-nama .pd-foto-thumb {
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+/* Kolom Kompetensi Keahlian: nama + badge singkatan rapi sebaris. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td.cell-jurusan-main .jurusan-title-row {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 6px !important;
+        min-width: 0 !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td.cell-jurusan-main .jurusan-nama {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td.cell-jurusan-main .jurusan-title-row > span:last-child {
+        flex: 0 0 auto !important;
+    }
+}

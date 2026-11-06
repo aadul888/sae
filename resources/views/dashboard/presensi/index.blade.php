@@ -113,27 +113,36 @@
         </div>
     </div>
 
-    <!-- Desktop Navigation Tabs -->
-    <div class="dash-desktop-tabs presensi-tabs">
-        <button type="button" class="presensi-tab-btn {{ $activeTab === 'log' ? 'active' : '' }}" data-tab="log">
-            <i class="fas fa-list-check"></i> Log Presensi Hari Ini
+    <!-- Segmented Navigation Tabs Baku SAE (Di Bawah Card Rekap) -->
+    <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
+        <button type="button"
+            class="tab-btn btn presensi-tab-btn {{ $activeTab === 'log' ? 'btn-primary active' : 'btn-outline' }}"
+            data-tab="log">
+            <i class="fas fa-list-check me-1"></i> Log Presensi Hari Ini
         </button>
-        <button type="button" class="presensi-tab-btn {{ $activeTab === 'rekap' ? 'active' : '' }}" data-tab="rekap">
-            <i class="fas fa-chart-column"></i> Rekapitulasi &amp; Laporan
+        <button type="button"
+            class="tab-btn btn presensi-tab-btn {{ $activeTab === 'rekap' ? 'btn-primary active' : 'btn-outline' }}"
+            data-tab="rekap">
+            <i class="fas fa-chart-column me-1"></i> Rekapitulasi &amp; Laporan
         </button>
-        <button type="button" class="presensi-tab-btn {{ $activeTab === 'rfid' ? 'active' : '' }}" data-tab="rfid">
-            <i class="fas fa-id-card"></i> Manajemen Kartu RFID
+        <button type="button"
+            class="tab-btn btn presensi-tab-btn {{ $activeTab === 'rfid' ? 'btn-primary active' : 'btn-outline' }}"
+            data-tab="rfid">
+            <i class="fas fa-id-card me-1"></i> Manajemen Kartu RFID
         </button>
-        <button type="button" class="presensi-tab-btn {{ $activeTab === 'izin' ? 'active' : '' }}" data-tab="izin">
-            <i class="fas fa-envelope-open-text"></i> Pengajuan E-Izin
+        <button type="button"
+            class="tab-btn btn presensi-tab-btn {{ $activeTab === 'izin' ? 'btn-primary active' : 'btn-outline' }}"
+            data-tab="izin">
+            <i class="fas fa-envelope-open-text me-1"></i> Pengajuan E-Izin
             @if ($izinPending->count() > 0)
                 <span class="badge badge-danger"
-                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">{{ $izinPending->count() }}</span>
+                    style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; margin-left: 4px;">{{ $izinPending->count() }}</span>
             @endif
         </button>
-        <button type="button" class="presensi-tab-btn {{ $activeTab === 'pengaturan' ? 'active' : '' }}"
+        <button type="button"
+            class="tab-btn btn presensi-tab-btn {{ $activeTab === 'pengaturan' ? 'btn-primary active' : 'btn-outline' }}"
             data-tab="pengaturan">
-            <i class="fas fa-sliders"></i> Pengaturan Jam &amp; Jadwal
+            <i class="fas fa-sliders me-1"></i> Pengaturan Jam &amp; Jadwal
         </button>
     </div>
 

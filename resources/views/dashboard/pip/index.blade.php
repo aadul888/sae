@@ -107,7 +107,20 @@
     <!-- 3. Banner Hitung Mundur Realtime & Status Batas Waktu PIP -->
     @include('dashboard.pip.partials.countdown-banner')
 
-    <!-- 4. Segmented Navigation Tabs -->
+    <!-- 4. Stat Grid Baku SAE (4 Card Rekap Sesuai Tab Aktif - Di Atas Tab Navigasi) -->
+    @if ($tab === 'dashboard')
+        @include('dashboard.pip.partials.cards-dashboard')
+    @elseif ($tab === 'usulan')
+        @include('dashboard.pip.partials.cards-usulan')
+    @elseif ($tab === 'kuota' && $isAdmin)
+        @include('dashboard.pip.partials.cards-kuota')
+    @elseif ($tab === 'riwayat_alumni' && $isAdmin)
+        @include('dashboard.pip.partials.cards-riwayat-alumni')
+    @elseif ($tab === 'riwayat')
+        @include('dashboard.pip.partials.cards-riwayat')
+    @endif
+
+    <!-- 5. Segmented Navigation Tabs Baku SAE (Di Bawah Card Rekap) -->
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'dashboard'])) }}"
             class="tab-btn btn {{ $tab === 'dashboard' ? 'btn-primary active' : 'btn-outline' }}">
@@ -139,6 +152,7 @@
         @endif
     </div>
 
+    <!-- 6. Konten Tab Aktif (Di Bawah Segmented Tabs) -->
     @if ($tab === 'dashboard')
         @include('dashboard.pip.partials.tab-dashboard')
     @elseif ($tab === 'usulan')

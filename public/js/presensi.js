@@ -21,9 +21,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function switchTab(targetTab) {
         // Desktop tabs update
-        tabButtons.forEach(b => b.classList.remove('active'));
+        tabButtons.forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-outline');
+        });
         const activeBtn = document.querySelector(`.presensi-tab-btn[data-tab="${targetTab}"]`);
-        if (activeBtn) activeBtn.classList.add('active');
+        if (activeBtn) {
+            activeBtn.classList.add('active', 'btn-primary');
+            activeBtn.classList.remove('btn-outline');
+        }
 
         // Mobile dropdown items update
         tabDropdownItems.forEach(item => item.classList.remove('active'));

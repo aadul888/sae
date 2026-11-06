@@ -193,12 +193,6 @@
                                                 @endif
                                             </span>
                                         </div>
-                                        @if (!empty($item->rombel_list))
-                                            <div class="jurusan-rombel-sub"
-                                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                                {{ implode(', ', array_slice($item->rombel_list, 0, 4)) }}{{ count($item->rombel_list) > 4 ? ' +' . (count($item->rombel_list) - 4) . ' lainnya' : '' }}
-                                            </div>
-                                        @endif
                                     </div>
                                 </div>
                             </td>

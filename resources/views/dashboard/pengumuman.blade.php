@@ -91,31 +91,31 @@
         </div>
     </div>
 
-    <!-- 3 Navigasi Tab Baku SAE (Pengumuman | Info Broadcast | Berita) -->
-    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); border-bottom: 2px solid var(--border-color); overflow-x: auto; scrollbar-width: none;">
+    <!-- Segmented Navigation Tabs Baku SAE (Di Bawah Card Rekap) -->
+    <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
         <a href="{{ route('dashboard.pengumuman.index', ['tab' => 'pengumuman']) }}"
-            style="padding: 10px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-decoration: none; border-bottom: 2px solid {{ $activeTab === 'pengumuman' ? 'var(--primary)' : 'transparent' }}; margin-bottom: -2px; color: {{ $activeTab === 'pengumuman' ? 'var(--primary)' : 'var(--text-muted)' }}; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <i class="fas fa-bullhorn"></i>
-            <span>Pengumuman</span>
-            <span class="badge {{ $activeTab === 'pengumuman' ? 'badge-primary' : 'badge-outline' }}" style="font-size: var(--text-2xs); padding: 2px 7px;">
+            class="tab-btn btn {{ $activeTab === 'pengumuman' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-bullhorn me-1"></i> Pengumuman
+            <span class="badge {{ $activeTab === 'pengumuman' ? 'badge-primary' : 'badge-outline' }}"
+                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; margin-left: 4px; {{ $activeTab === 'pengumuman' ? 'background: rgba(255,255,255,0.25); color: #fff; border: 1px solid rgba(255,255,255,0.35);' : '' }}">
                 {{ $summary['total_pengumuman'] }}
             </span>
         </a>
 
         <a href="{{ route('dashboard.pengumuman.index', ['tab' => 'broadcast']) }}"
-            style="padding: 10px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-decoration: none; border-bottom: 2px solid {{ $activeTab === 'broadcast' ? 'var(--accent)' : 'transparent' }}; margin-bottom: -2px; color: {{ $activeTab === 'broadcast' ? 'var(--accent)' : 'var(--text-muted)' }}; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <i class="fas fa-tower-broadcast"></i>
-            <span>Info Broadcast</span>
-            <span class="badge {{ $activeTab === 'broadcast' ? 'badge-accent' : 'badge-outline' }}" style="font-size: var(--text-2xs); padding: 2px 7px;">
+            class="tab-btn btn {{ $activeTab === 'broadcast' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-tower-broadcast me-1"></i> Info Broadcast
+            <span class="badge {{ $activeTab === 'broadcast' ? 'badge-primary' : 'badge-outline' }}"
+                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; margin-left: 4px; {{ $activeTab === 'broadcast' ? 'background: rgba(255,255,255,0.25); color: #fff; border: 1px solid rgba(255,255,255,0.35);' : '' }}">
                 {{ $summary['total_broadcast'] }}
             </span>
         </a>
 
         <a href="{{ route('dashboard.pengumuman.index', ['tab' => 'berita']) }}"
-            style="padding: 10px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-decoration: none; border-bottom: 2px solid {{ $activeTab === 'berita' ? 'var(--warning, #f59e0b)' : 'transparent' }}; margin-bottom: -2px; color: {{ $activeTab === 'berita' ? 'var(--warning, #f59e0b)' : 'var(--text-muted)' }}; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <i class="fas fa-newspaper"></i>
-            <span>Berita</span>
-            <span class="badge {{ $activeTab === 'berita' ? 'badge-warning' : 'badge-outline' }}" style="font-size: var(--text-2xs); padding: 2px 7px;">
+            class="tab-btn btn {{ $activeTab === 'berita' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-newspaper me-1"></i> Berita
+            <span class="badge {{ $activeTab === 'berita' ? 'badge-primary' : 'badge-outline' }}"
+                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; margin-left: 4px; {{ $activeTab === 'berita' ? 'background: rgba(255,255,255,0.25); color: #fff; border: 1px solid rgba(255,255,255,0.35);' : '' }}">
                 {{ $summary['total_berita'] }}
             </span>
         </a>

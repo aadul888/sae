@@ -53,7 +53,18 @@
         </div>
     @endif
 
-    <!-- Segmented Navigation Tabs -->
+    <!-- 3. Stat Grid Baku SAE (4 Card Rekap Sesuai Tab Aktif - Di Atas Tab Navigasi) -->
+    @if ($tab === 'keuangan')
+        @include('dashboard.kartu-pelajar.partials.cards-keuangan')
+    @elseif ($tab === 'request')
+        @include('dashboard.kartu-pelajar.partials.cards-request')
+    @elseif (in_array($tab, ['siswa', 'berhasil-cetak', 'berhasil_cetak']))
+        @include('dashboard.kartu-pelajar.partials.cards-berhasil-cetak')
+    @elseif ($tab === 'garansi')
+        @include('dashboard.kartu-pelajar.partials.cards-garansi')
+    @endif
+
+    <!-- 4. Segmented Navigation Tabs Baku SAE (Di Bawah Card Rekap) -->
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']) }}"
             class="tab-btn btn {{ $tab === 'keuangan' ? 'btn-primary active' : 'btn-outline' }}">
@@ -81,6 +92,7 @@
         </a>
     </div>
 
+    <!-- 5. Dynamic Tab Content (Di Bawah Segmented Tabs) -->
     @if ($tab === 'keuangan')
         @include('dashboard.kartu-pelajar.partials.tab-keuangan')
     @elseif ($tab === 'request')
