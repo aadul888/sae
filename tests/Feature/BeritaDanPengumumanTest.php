@@ -23,7 +23,8 @@ class BeritaDanPengumumanTest extends TestCase
     {
         $response = $this->get('/berita');
         $response->assertStatus(200);
-        $response->assertSee('Warta &amp; Berita Terkini', false);
+        $response->assertSee('Warta &amp;', false);
+        $response->assertSee('Berita Terkini');
         $response->assertSee('Semua Kategori');
     }
 

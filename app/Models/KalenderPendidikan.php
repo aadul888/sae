@@ -160,6 +160,16 @@ class KalenderPendidikan extends Model
      */
     public static function isDaring(string $date): bool
     {
+        $dCarbon = \Carbon\Carbon::parse($date);
+
+        // HARD LOCK: akhir pekan / hari non-aktif skema tidak pernah menjadi hari daring
+        $isHariAktif = class_exists(JadwalPengaturan::class)
+            ? JadwalPengaturan::isHariAktif($dCarbon)
+            : !in_array($dCarbon->dayOfWeekIso, [6, 7], true);
+        if (!$isHariAktif) {
+            return false;
+        }
+
         return static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
             ->where(function ($q) {
@@ -180,6 +190,42 @@ class KalenderPendidikan extends Model
         $isHariAktifSekolah = class_exists(JadwalPengaturan::class)
             ? JadwalPengaturan::isHariAktif($dCarbon)
             : !in_array($dCarbon->dayOfWeekIso, [6, 7], true);
+
+        // ==========================================================================
+        // HARD LOCK AKHIR PEKAN (WAJIB LIBUR)
+        // Hari non-aktif sesuai Skema Hari KBM (Sabtu & Minggu untuk skema 5 hari,
+        // Minggu untuk skema 6 hari) SELALU libur dan TIDAK BOLEH ditimpa agenda
+        // apa pun. Agenda yang bersinggungan tetap boleh tercatat, tetapi status
+        // presensi/KBM pada hari ini dikunci menjadi libur (bebas presensi PD & GTK).
+        // ==========================================================================
+        if (!$isHariAktifSekolah) {
+            $agendaWeekend = static::where('tanggal_mulai', '<=', $date)
+                ->where('tanggal_selesai', '>=', $date)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $skema = class_exists(JadwalPengaturan::class)
+                ? (JadwalPengaturan::getSettings()->skema_hari ?? '5_hari')
+                : '5_hari';
+            $skemaLabel = ($skema === '6_hari')
+                ? '6 Hari Sekolah (Senin - Sabtu)'
+                : '5 Hari Sekolah (Senin - Jumat)';
+
+            return [
+                'mode'        => 'libur',
+                'is_libur'    => true,
+                'is_weekend'  => true,
+                'label'       => "Libur Akhir Pekan ({$namaHari})",
+                'badge'       => '<span class="badge badge-secondary" style="background: rgba(148,163,184,0.18); color: #64748b; border: 1px solid rgba(148,163,184,0.3);"><i class="fas fa-bed me-1"></i> Libur Akhir Pekan</span>',
+                'agenda'      => $agendaWeekend,
+                'nama_agenda' => $agendaWeekend
+                    ? ($agendaWeekend->nama_kegiatan ?: "Libur Akhir Pekan ({$namaHari})")
+                    : "Libur Akhir Pekan ({$namaHari})",
+                'keterangan'  => $agendaWeekend
+                    ? 'Akhir pekan wajib libur. Agenda "' . $agendaWeekend->nama_kegiatan . '" tercatat pada tanggal ini, namun tidak mengaktifkan presensi/KBM.'
+                    : "Bukan hari operasional sekolah ({$skemaLabel}) — wajib libur.",
+            ];
+        }
 
         // 1. Cek apakah ada agenda libur pada tanggal tersebut dari database kalender
         $column = match (strtolower($role)) {
@@ -233,36 +279,8 @@ class KalenderPendidikan extends Model
             ->orderBy('id', 'desc')
             ->first();
 
-        // 3. Jika bukan hari aktif sesuai skema hari sekolah dan tidak ada agenda sekolah khusus
-        if (!$isHariAktifSekolah) {
-            // Jika ada agenda sekolah yang berlangsung di akhir pekan (misal Lomba / Upacara Hari Besar)
-            if ($agenda && ($agenda->mode_presensi === 'daring' || $agenda->tipe === 'pembelajaran_daring')) {
-                return [
-                    'mode'        => 'daring',
-                    'is_libur'    => false,
-                    'is_weekend'  => true,
-                    'label'       => 'Pembelajaran Daring (PJJ)',
-                    'badge'       => self::MODE_PRESENSI_BADGES['daring'] ?? '<span class="badge badge-info"><i class="fas fa-laptop-code me-1"></i> Daring</span>',
-                    'agenda'      => $agenda,
-                    'nama_agenda' => $agenda->nama_kegiatan ?: ($agenda->nama_agenda ?: ''),
-                    'keterangan'  => $agenda->keterangan ?? null,
-                ];
-            }
-
-            $skema = class_exists(JadwalPengaturan::class) ? (JadwalPengaturan::getSettings()->skema_hari ?? '5_hari') : '5_hari';
-            $skemaLabel = ($skema === '6_hari') ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)';
-
-            return [
-                'mode'        => 'libur',
-                'is_libur'    => true,
-                'is_weekend'  => true,
-                'label'       => "Libur Akhir Pekan ({$namaHari})",
-                'badge'       => '<span class="badge badge-secondary" style="background: rgba(148,163,184,0.18); color: #64748b; border: 1px solid rgba(148,163,184,0.3);"><i class="fas fa-bed me-1"></i> Libur Akhir Pekan</span>',
-                'agenda'      => $agenda,
-                'nama_agenda' => $agenda ? ($agenda->nama_kegiatan ?: "Libur Akhir Pekan ({$namaHari})") : "Libur Akhir Pekan ({$namaHari})",
-                'keterangan'  => $agenda ? ($agenda->keterangan ?: "Kegiatan pada akhir pekan: {$agenda->nama_kegiatan}") : "Bukan hari operasional sekolah ({$skemaLabel})",
-            ];
-        }
+        // 3. Jika bukan hari aktif sudah ditangani oleh HARD LOCK akhir pekan di atas,
+        //    sehingga pada titik ini $isHariAktifSekolah selalu bernilai true.
 
         // 4. Hari aktif sekolah tanpa agenda: Efektif Luring Normal
         if (!$agenda) {

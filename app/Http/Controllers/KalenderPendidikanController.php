@@ -7,10 +7,66 @@ use App\Models\RolePermission;
 use App\Services\RealtimeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class KalenderPendidikanController extends Controller
 {
     private const SORTABLE = ['nama_kegiatan', 'tipe', 'mode_presensi', 'tanggal_mulai', 'tanggal_selesai'];
+
+    /**
+     * Pastikan agenda tidak memaksa hari aktif (luring/daring) pada rentang yang
+     * SELURUHNYA adalah akhir pekan / hari non-aktif skema KBM. Hari Sabtu & Minggu
+     * (skema 5 hari) atau Minggu (skema 6 hari) WAJIB libur dan tidak boleh "dipakai"
+     * sebagai hari efektif/daring. Agenda boleh disimpan sebagai penanda, tetapi harus
+     * berstatus libur agar tidak menimpa aturan libur akhir pekan.
+     */
+    private function enforceWeekendLock(Request $request): void
+    {
+        $mulai = $request->input('tanggal_mulai');
+        $selesai = $request->input('tanggal_selesai');
+        if (!$mulai || !$selesai) {
+            return;
+        }
+
+        $start = Carbon::parse($mulai)->startOfDay();
+        $end = Carbon::parse($selesai)->startOfDay();
+        if ($end->lt($start)) {
+            $end = $start->copy();
+        }
+
+        // Cek apakah ada minimal satu hari aktif (Sekolah/KBM) dalam rentang.
+        $adaHariAktif = false;
+        $cursor = $start->copy();
+        while ($cursor->lte($end)) {
+            $isAktif = class_exists(\App\Models\JadwalPengaturan::class)
+                ? \App\Models\JadwalPengaturan::isHariAktif($cursor)
+                : !in_array($cursor->dayOfWeekIso, [6, 7], true);
+            if ($isAktif) {
+                $adaHariAktif = true;
+                break;
+            }
+            $cursor->addDay();
+        }
+
+        if ($adaHariAktif) {
+            return; // Ada hari kerja, agenda sah-sah saja.
+        }
+
+        // Rentang murni akhir pekan/libur skema: larang memaksa mode aktif.
+        $mode = $request->input('mode_presensi');
+        $isLiburPd = (bool) $request->input('libur_pd', false);
+        $tipe = (string) $request->input('tipe', '');
+        $effectiveMode = $mode ?: ($isLiburPd ? 'libur' : ($tipe === 'pembelajaran_daring' ? 'daring' : 'luring'));
+
+        if (in_array($effectiveMode, ['luring', 'daring'], true)) {
+            throw ValidationException::withMessages([
+                'tanggal_mulai' => 'Rentang tanggal yang dipilih seluruhnya adalah akhir pekan (hari non-aktif KBM). '
+                    . 'Sabtu & Minggu wajib libur, sehingga agenda tidak dapat diberi mode Luring/Daring. '
+                    . 'Silakan pilih rentang yang memuat hari sekolah, atau gunakan mode Libur.',
+            ]);
+        }
+    }
 
     public function index(Request $request)
     {
@@ -248,6 +304,9 @@ class KalenderPendidikanController extends Controller
             'libur_tendik'    => 'nullable|boolean',
         ]);
 
+        // Kunci akhir pekan: cegah agenda memaksa hari aktif pada rentang yang murni Sabtu/Minggu.
+        $this->enforceWeekendLock($request);
+
         $userName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'User')) : ($user->nama ?? ($user->username ?? 'User'));
 
         $isLiburPd = (bool) ($request->input('libur_pd', false));
@@ -352,6 +411,9 @@ class KalenderPendidikanController extends Controller
             'libur_guru'      => 'nullable|boolean',
             'libur_tendik'    => 'nullable|boolean',
         ]);
+
+        // Kunci akhir pekan: cegah agenda memaksa hari aktif pada rentang yang murni Sabtu/Minggu.
+        $this->enforceWeekendLock($request);
 
         $isLiburPd = (bool) ($request->input('libur_pd', false));
         $modePresensi = $validated['mode_presensi'] ?? ($isLiburPd ? 'libur' : ($validated['tipe'] === 'pembelajaran_daring' ? 'daring' : 'luring'));

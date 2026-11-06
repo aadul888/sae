@@ -9,7 +9,7 @@
         <section class="hero" style="padding-bottom: clamp(1.5rem, 3vw, 2.5rem);">
             <div>
                 <span class="hero-kicker"><i class="fas fa-newspaper"></i> Portal Publikasi &amp; Warta Sekolah</span>
-                <h1 class="hero-title">Warta &amp; Berita Terkini</h1>
+                <h1 class="hero-title">Warta &amp;<br><span>Berita Terkini</span></h1>
                 <p class="hero-desc">
                     Akses liputan resmi, pengumuman agenda kegiatan, pencapaian prestasi peserta didik, dan rilis warta edukasi satuan pendidikan terintegrasi realtime.
                 </p>

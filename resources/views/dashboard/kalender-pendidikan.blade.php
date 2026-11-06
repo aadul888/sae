@@ -523,12 +523,13 @@
                                                                 : '#3b82f6';
                                                     }
 
-                                                    if ($isWeekend && !$pEv) {
-                                                        $bgColor = 'rgba(239, 68, 68, 0.04)';
-                                                        $borderColor = 'rgba(239, 68, 68, 0.15)';
-                                                    }
-
-                                                    if ($pEv) {
+                                                    // HARD LOCK akhir pekan: selalu tampil sebagai libur.
+                                                    // Agenda yang kebetulan bertepatan TIDAK boleh mewarnai/menimpa hari ini.
+                                                    if ($isWeekend) {
+                                                        $bgColor = 'rgba(239, 68, 68, 0.10)';
+                                                        $borderColor = 'rgba(239, 68, 68, 0.35)';
+                                                        $textColor = '#ef4444';
+                                                    } elseif ($pEv) {
                                                         if ($pEv->libur_pd || $pEv->mode_presensi === 'libur') {
                                                             $bgColor = 'rgba(239, 68, 68, 0.2)';
                                                             $borderColor = '#ef4444';
@@ -563,7 +564,7 @@
                                                         </span>
                                                         @if ($evCount > 0)
                                                             <span
-                                                                style="display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: {{ $pEv->warna ?? 'var(--primary, #3b82f6)' }}; margin-top: 2px;"></span>
+                                                                style="display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: {{ $isWeekend ? '#ef4444' : ($pEv->warna ?? 'var(--primary, #3b82f6)') }}; margin-top: 2px;"></span>
                                                         @endif
                                                     </div>
                                                 </td>
