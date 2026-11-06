@@ -24,7 +24,6 @@
             ],
         ];
     @endphp
-    @include('partials.manajemen-data-tabs', ['tabs' => $pdTabs])
     <div class="dash-banner">
         <div>
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -111,6 +110,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Tab Navigasi Sub-Modul Peserta Didik (Di Bawah Summary Cards) -->
+    @include('partials.manajemen-data-tabs', ['tabs' => $pdTabs])
 
     <!-- Unified Datatable Peserta Didik Tidak Aktif (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">

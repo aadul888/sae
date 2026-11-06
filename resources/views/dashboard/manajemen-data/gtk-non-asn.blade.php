@@ -32,7 +32,6 @@
             ],
         ];
     @endphp
-    @include('partials.manajemen-data-tabs', ['tabs' => $gtkTabs])
 
     <div class="dash-banner">
         <div>
@@ -136,6 +135,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Tab Navigasi Sub-Modul GTK (Di Bawah Summary Cards) -->
+    @include('partials.manajemen-data-tabs', ['tabs' => $gtkTabs])
 
     {{-- Datatable --}}
     <div class="card datatable-card-wrapper" id="tableDataContainer">
