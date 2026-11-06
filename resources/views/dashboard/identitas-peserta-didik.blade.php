@@ -9,31 +9,6 @@
         $statusKonfirmasi = $identitas->status_konfirmasi ?? 'belum_konfirmasi';
     @endphp
 
-    {{-- Switcher Siswa Khusus Administrator & Tim Kesiswaan --}}
-    @if (in_array($userRole, ['admin', 'tendik'], true) && !empty($allPdList) && $allPdList->isNotEmpty())
-        <div class="card"
-            style="margin-bottom: 20px; padding: 12px 18px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3);">
-            <form method="GET" action="{{ route('dashboard.identitas.index') }}"
-                style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                <div
-                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-user-shield"></i> Mode Pengelola: Pilih Siswa untuk Meninjau Formulir Lengkap
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <select name="peserta_didik_id" onchange="this.form.submit()" class="form-select"
-                        style="font-size: var(--text-sm, 0.8125rem); height: 36px; border-radius: var(--radius-md, 8px); min-width: 260px;">
-                        @foreach ($allPdList as $item)
-                            <option value="{{ $item->peserta_didik_id }}"
-                                {{ $pd && $pd->peserta_didik_id === $item->peserta_didik_id ? 'selected' : '' }}>
-                                {{ $item->nama }} ({{ $item->nama_rombel ?: 'Tanpa Kelas' }}) - NISN: {{ $item->nisn }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </form>
-        </div>
-    @endif
-
     <!-- Alert Notifikasi Flash -->
     @if (session('success'))
         <div class="alert alert-success"
