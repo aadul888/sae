@@ -287,28 +287,28 @@
                 </div>
             </div>
 
-            <!-- Tabel Progres Rombel -->
-            <div style="overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px);">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;" id="tableProgresRombel">
-                    <thead>
-                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <th style="padding: 10px 14px; width: 45px; text-align: center;">No</th>
-                            <th class="th-sortable" data-col="rombel" style="padding: 10px 14px; min-width: 180px; cursor: pointer; user-select: none;">
+            <!-- Tabel Progres Rombel (Maksimal 10 Baris Default, Dapat Discroll) -->
+            <div style="max-height: 540px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); position: relative;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: left;" id="tableProgresRombel">
+                    <thead style="position: sticky; top: 0; z-index: 5;">
+                        <tr style="background: var(--bg-card, #ffffff); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <th style="padding: 12px 14px; width: 45px; text-align: center; background: inherit; border-bottom: 2px solid var(--border-glass);">No</th>
+                            <th class="th-sortable" data-col="rombel" style="padding: 12px 14px; min-width: 180px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Rombel / Jurusan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="sesuai" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                            <th class="th-sortable" data-col="sesuai" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Konfirmasi Sesuai</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="tidak_sesuai" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                            <th class="th-sortable" data-col="tidak_sesuai" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Perlu Perbaikan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="belum" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                            <th class="th-sortable" data-col="belum" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Belum Konfirmasi</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="berkas" style="padding: 10px 14px; min-width: 170px; cursor: pointer; user-select: none;">
+                            <th class="th-sortable" data-col="berkas" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Berkas Valid</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable sorted-desc" data-col="kualitas" style="padding: 10px 14px; min-width: 120px; text-align: center; cursor: pointer; user-select: none; background: rgba(16, 185, 129, 0.04);">
+                            <th class="th-sortable sorted-desc" data-col="kualitas" style="padding: 12px 14px; min-width: 120px; text-align: center; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Kualitas Data</span> <i class="fas fa-sort-down ms-1 sort-icon" style="color: var(--success);"></i>
                             </th>
                         </tr>
