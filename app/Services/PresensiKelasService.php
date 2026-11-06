@@ -51,77 +51,131 @@ class PresensiKelasService
             }
         }
 
-        $hariIni = match (now()->dayOfWeekIso) {
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $tanggalHariIni = now()->toDateString();
+        $isToday = ($tanggal === $tanggalHariIni);
+        $carbonTanggal = Carbon::parse($tanggal);
+        $hariTanggal = match ($carbonTanggal->dayOfWeekIso) {
             1 => 'Senin',
             2 => 'Selasa',
             3 => 'Rabu',
             4 => 'Kamis',
             5 => 'Jumat',
             6 => 'Sabtu',
-            7 => 'Minggu',
+            default => 'Minggu',
         };
         $nowHi = now()->format('H:i');
         $modeAktif = JadwalPengaturan::getModeAktif();
 
         $activeJadwal = null;
-        if ($ptkId && Table::exists('jadwal_kbm')) {
-            $jq = DB::table('jadwal_kbm')
-                ->where('is_active', true)
-                ->where('ptk_id', $ptkId)
-                ->where('hari', $hariIni);
-            if ($modeAktif) {
-                $jq->where('sumber', $modeAktif);
-            }
-            $todaySchedules = $jq->orderBy('jam_ke_mulai', 'asc')->get();
+        $activeRombelIds = [];
+        $isGuru = (!$canViewAllClasses && $ptkId);
+        $isJamMengajarAktif = true;
+        $pesanTidakAktif = null;
 
-            foreach ($todaySchedules as $j) {
-                if (!empty($j->jam_mulai) && !empty($j->jam_selesai)) {
-                    $jm = substr($j->jam_mulai, 0, 5);
-                    $js = substr($j->jam_selesai, 0, 5);
-                    if ($nowHi >= $jm && $nowHi <= $js) {
-                        $activeJadwal = $j;
-                        break;
+        $nextJadwalInfo = null;
+
+        if ($isGuru) {
+            $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+            $isLibur = (($statusKalender['mode'] ?? '') === 'libur' || ($statusKalender['is_libur'] ?? false));
+
+            if ($isLibur) {
+                $isJamMengajarAktif = false;
+                $alasanLibur = $statusKalender['nama_agenda'] ?: 'Hari Libur Sekolah / Non-Aktif Belajar';
+                $pesanTidakAktif = "Hari ini adalah {$alasanLibur}. Presensi KBM kelas dinonaktifkan.";
+            } elseif (!$isToday) {
+                $isJamMengajarAktif = false;
+                $pesanTidakAktif = "Data presensi siswa per kelas hanya ditampilkan pada hari dan jam mengajar aktif (hari ini). Tanggal {$tanggal} bukan jadwal aktif saat ini.";
+            } else {
+                if (Table::exists('jadwal_kbm')) {
+                    $jq = DB::table('jadwal_kbm as j')
+                        ->leftJoin('rombongan_belajar as rb', 'j.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                        ->where('j.is_active', true)
+                        ->where('j.ptk_id', $ptkId)
+                        ->where('j.hari', $hariTanggal)
+                        ->select('j.*', 'rb.nama as nama_rombel');
+                    if ($modeAktif) {
+                        $jq->where('j.sumber', $modeAktif);
                     }
+                    $todaySchedules = $jq->orderBy('j.jam_ke_mulai', 'asc')->get();
+
+                    $activeSchedules = $todaySchedules->filter(function ($j) use ($nowHi) {
+                        if (empty($j->jam_mulai) || empty($j->jam_selesai)) return false;
+                        $jm = substr($j->jam_mulai, 0, 5);
+                        $js = substr($j->jam_selesai, 0, 5);
+                        $jsGrace = Carbon::createFromFormat('H:i', $js)->addMinutes(15)->format('H:i');
+                        return ($nowHi >= $jm && $nowHi <= $jsGrace);
+                    });
+
+                    if ($activeSchedules->isNotEmpty()) {
+                        $isJamMengajarAktif = true;
+                        $activeJadwal = $activeSchedules->first();
+                        $activeRombelIds = $activeSchedules->pluck('rombongan_belajar_id')->filter()->unique()->toArray();
+                    } else {
+                        $isJamMengajarAktif = false;
+                        $pesanTidakAktif = "Saat ini (pukul {$nowHi}) bukan jam mengajar aktif Anda. Data presensi siswa hanya akan muncul saat jadwal mengajar Anda berlangsung.";
+
+                        $nextJadwal = $todaySchedules->first(function ($j) use ($nowHi) {
+                            return !empty($j->jam_mulai) && substr($j->jam_mulai, 0, 5) > $nowHi;
+                        });
+
+                        if ($nextJadwal) {
+                            $rombelLabel = $nextJadwal->nama_rombel ?: $nextJadwal->rombongan_belajar_id;
+                            $nextJadwalInfo = "Jadwal berikutnya hari ini: {$nextJadwal->nama_mata_pelajaran} (Kelas {$rombelLabel}) pukul " . substr($nextJadwal->jam_mulai, 0, 5) . " - " . substr($nextJadwal->jam_selesai, 0, 5) . " WIB.";
+                        } else {
+                            $nextJadwalInfo = "Tidak ada jadwal mengajar KBM lagi untuk Anda hari ini.";
+                        }
+                    }
+                } else {
+                    $isJamMengajarAktif = false;
+                    $pesanTidakAktif = "Data jadwal KBM belum dikonfigurasi.";
                 }
             }
+        } else {
+            // Admin / Piket
+            if (Table::exists('jadwal_kbm')) {
+                $jq = DB::table('jadwal_kbm')
+                    ->where('is_active', true)
+                    ->where('hari', $hariTanggal);
+                if ($modeAktif) {
+                    $jq->where('sumber', $modeAktif);
+                }
+                $todaySchedules = $jq->orderBy('jam_ke_mulai', 'asc')->get();
 
-            if (!$activeJadwal) {
                 foreach ($todaySchedules as $j) {
-                    if (!empty($j->jam_selesai) && substr($j->jam_selesai, 0, 5) >= $nowHi) {
-                        $activeJadwal = $j;
-                        break;
+                    if (!empty($j->jam_mulai) && !empty($j->jam_selesai)) {
+                        $jm = substr($j->jam_mulai, 0, 5);
+                        $js = substr($j->jam_selesai, 0, 5);
+                        if ($nowHi >= $jm && $nowHi <= $js) {
+                            $activeJadwal = $j;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!$activeJadwal && $todaySchedules->isNotEmpty()) {
-                $activeJadwal = $todaySchedules->first();
+                if (!$activeJadwal) {
+                    foreach ($todaySchedules as $j) {
+                        if (!empty($j->jam_selesai) && substr($j->jam_selesai, 0, 5) >= $nowHi) {
+                            $activeJadwal = $j;
+                            break;
+                        }
+                    }
+                }
+
+                if (!$activeJadwal && $todaySchedules->isNotEmpty()) {
+                    $activeJadwal = $todaySchedules->first();
+                }
             }
         }
 
         $rombelQuery = \App\Support\RombelScope::query();
 
-        if (!$canViewAllClasses && $ptkId) {
-            $pembelajaranRombelIds = DB::table('pembelajaran')
-                ->where('ptk_id', $ptkId)
-                ->pluck('rombongan_belajar_id')
-                ->filter()
-                ->unique()
-                ->toArray();
-
-            $jadwalRombelIds = DB::table('jadwal_kbm')
-                ->where('ptk_id', $ptkId)
-                ->pluck('rombongan_belajar_id')
-                ->filter()
-                ->unique()
-                ->toArray();
-
-            $guruRombelIds = array_values(array_unique(array_filter(array_merge(
-                $pembelajaranRombelIds,
-                $jadwalRombelIds
-            ))));
-
-            $rombelQuery->whereIn('rombongan_belajar_id', $guruRombelIds);
+        if ($isGuru) {
+            if ($isJamMengajarAktif && !empty($activeRombelIds)) {
+                $rombelQuery->whereIn('rombongan_belajar_id', $activeRombelIds);
+            } else {
+                $rombelQuery->whereRaw('1 = 0');
+            }
         } else {
             $rombelQuery->where('jenis_rombel', '1');
         }
@@ -142,8 +196,6 @@ class PresensiKelasService
         } else {
             $selectedRombelId = $rombelList->first()?->rombongan_belajar_id ?? '';
         }
-
-        $tanggal = $request->input('tanggal', now()->toDateString());
 
         $defaultJamKe = '';
         if ($activeJadwal && ($selectedRombelId === $activeJadwal->rombongan_belajar_id)) {
@@ -486,7 +538,10 @@ class PresensiKelasService
             'activeTab',
             'isPiket',
             'canViewAllClasses',
-            'isAdmin'
+            'isAdmin',
+            'isJamMengajarAktif',
+            'pesanTidakAktif',
+            'nextJadwalInfo'
         );
     }
 
@@ -521,6 +576,18 @@ class PresensiKelasService
         }
 
         $targetRombelId = $rombelId ?: $siswa->rombongan_belajar_id;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum', 'waka_kesiswaan'], true);
+        $isPiket = $isAdmin || RolePermission::canAccess($user, 'menu_piket') || RolePermission::canAccess($user, 'menu_piket_presensi_kelas');
+        $canViewAllClasses = $isAdmin || $isPiket;
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+
+        $guard = self::checkGuruJamMengajarAktif($ptkId, $tanggal, $targetRombelId, $canViewAllClasses);
+        if ($guard) {
+            return $guard;
+        }
 
         $pembelajaran = null;
         if ($pembelajaranId) {
@@ -609,8 +676,17 @@ class PresensiKelasService
         $jamKe = $request->input('jam_ke');
 
         $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum', 'waka_kesiswaan'], true);
+        $isPiket = $isAdmin || RolePermission::canAccess($user, 'menu_piket') || RolePermission::canAccess($user, 'menu_piket_presensi_kelas');
+        $canViewAllClasses = $isAdmin || $isPiket;
         $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Guru Mapel') : ($user->nama ?? 'Guru Mapel');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+
+        $guard = self::checkGuruJamMengajarAktif($ptkId, $tanggal, $rombelId, $canViewAllClasses);
+        if ($guard) {
+            return $guard;
+        }
 
         $pembelajaran = null;
         if ($pembelajaranId) {
@@ -680,6 +756,18 @@ class PresensiKelasService
         $rombelId = $request->input('rombongan_belajar_id');
         $tanggal = $request->input('tanggal');
         $pembelajaranId = $request->input('pembelajaran_id');
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum', 'waka_kesiswaan'], true);
+        $isPiket = $isAdmin || RolePermission::canAccess($user, 'menu_piket') || RolePermission::canAccess($user, 'menu_piket_presensi_kelas');
+        $canViewAllClasses = $isAdmin || $isPiket;
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+
+        $guard = self::checkGuruJamMengajarAktif($ptkId, $tanggal, $rombelId, $canViewAllClasses);
+        if ($guard) {
+            return $guard;
+        }
 
         $query = PresensiMapel::where('rombongan_belajar_id', $rombelId)
             ->where('tanggal', $tanggal);
@@ -838,5 +926,78 @@ class PresensiKelasService
             'waliKelas',
             'tanggalCetak'
         ));
+    }
+
+    /**
+     * Cek apakah guru sedang dalam jam mengajar aktif untuk kelas dan tanggal KBM.
+     */
+    public static function checkGuruJamMengajarAktif(?string $ptkId, string $tanggal, ?string $rombelId, bool $canViewAllClasses): ?array
+    {
+        if ($canViewAllClasses || !$ptkId) {
+            return null;
+        }
+
+        $tanggalHariIni = now()->toDateString();
+        if ($tanggal !== $tanggalHariIni) {
+            return [
+                'status'  => 'error',
+                'code'    => 403,
+                'message' => 'Presensi kelas hanya dapat diakses/dicatat pada hari ini saat jam mengajar aktif.',
+            ];
+        }
+
+        $nowHi = now()->format('H:i');
+        $carbonTanggal = Carbon::parse($tanggal);
+        $hariTanggal = match ($carbonTanggal->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            default => 'Minggu',
+        };
+        $modeAktif = JadwalPengaturan::getModeAktif();
+
+        if (Table::exists('jadwal_kbm')) {
+            $jq = DB::table('jadwal_kbm')
+                ->where('is_active', true)
+                ->where('ptk_id', $ptkId)
+                ->where('hari', $hariTanggal);
+            if ($rombelId) {
+                $jq->where('rombongan_belajar_id', $rombelId);
+            }
+            if ($modeAktif) {
+                $jq->where('sumber', $modeAktif);
+            }
+            $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+            if (($statusKalender['mode'] ?? '') === 'libur' || ($statusKalender['is_libur'] ?? false)) {
+                $alasan = $statusKalender['nama_agenda'] ?: 'Hari Libur / Non-Aktif Belajar';
+                return [
+                    'status'  => 'error',
+                    'code'    => 422,
+                    'message' => "Presensi mapel tidak dapat dicatat karena tanggal {$tanggal} adalah {$alasan}.",
+                ];
+            }
+
+            $schedules = $jq->get();
+            $isAktif = $schedules->contains(function ($j) use ($nowHi) {
+                if (empty($j->jam_mulai) || empty($j->jam_selesai)) return false;
+                $jm = substr($j->jam_mulai, 0, 5);
+                $js = substr($j->jam_selesai, 0, 5);
+                $jsGrace = Carbon::createFromFormat('H:i', $js)->addMinutes(15)->format('H:i');
+                return ($nowHi >= $jm && $nowHi <= $jsGrace);
+            });
+
+            if (!$isAktif) {
+                return [
+                    'status'  => 'error',
+                    'code'    => 403,
+                    'message' => "Saat ini (pukul {$nowHi}) bukan jam mengajar aktif Anda untuk kelas ini.",
+                ];
+            }
+        }
+
+        return null;
     }
 }
