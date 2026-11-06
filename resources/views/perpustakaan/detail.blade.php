@@ -29,7 +29,7 @@
         </div>
 
         {{-- ===== Detail Utama ===== --}}
-        <section class="hero" style="grid-template-columns:.85fr 1.15fr;align-items:start;padding-bottom:clamp(1.5rem,3vw,2rem);">
+        <section class="hero hero-detail" style="align-items:start;padding-bottom:clamp(1.5rem,3vw,2rem);">
             {{-- Cover --}}
             <div class="card-nisn" style="padding:0;overflow:hidden;">
                 <div
@@ -188,13 +188,22 @@
                 {{-- Aksi --}}
                 <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
                     @if ($isEbook)
-                        <a href="{{ route('perpustakaan.buku.baca', $buku->id) }}" class="btn btn-primary"
-                            style="display:inline-flex;align-items:center;gap:8px;">
-                            <i class="fas fa-book-open-reader"></i> Baca E-Book Sekarang
-                        </a>
-                        @if (!empty($buku->file_ebook))
-                            <a href="{{ asset('storage/' . $buku->file_ebook) }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                        @if ($member)
+                            <a href="{{ route('perpustakaan.buku.baca', $buku->id) }}" class="btn btn-primary"
+                                style="display:inline-flex;align-items:center;gap:8px;">
+                                <i class="fas fa-book-open-reader"></i> Baca E-Book Sekarang
+                            </a>
+                            <a href="{{ route('perpustakaan.buku.unduh', $buku->id) }}" class="btn btn-outline"
                                 style="display:inline-flex;align-items:center;gap:8px;" title="Unduh berkas PDF untuk dibaca offline di perangkat">
+                                <i class="fas fa-download"></i> Unduh PDF Offline
+                            </a>
+                        @else
+                            <a href="{{ route('perpustakaan.buku.baca', $buku->id) }}" class="btn btn-primary"
+                                style="display:inline-flex;align-items:center;gap:8px;" title="Masuk dengan kartu anggota untuk membaca e-book">
+                                <i class="fas fa-lock"></i> Masuk Anggota untuk Membaca
+                            </a>
+                            <a href="{{ route('perpustakaan.buku.unduh', $buku->id) }}" class="btn btn-outline"
+                                style="display:inline-flex;align-items:center;gap:8px;" title="Unduh berkas PDF memerlukan kartu anggota">
                                 <i class="fas fa-download"></i> Unduh PDF Offline
                             </a>
                         @endif

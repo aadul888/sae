@@ -12,6 +12,7 @@ use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -430,10 +431,15 @@ class PerpusPublicController extends Controller
 
     /**
      * Membuka reader e-book, mencatat kunjungan digital, dan memberikan reward poin literasi.
+     * Hanya dapat diakses oleh anggota aktif yang memiliki kartu anggota.
      */
     public function baca(int $id)
     {
-        $member = $this->currentMember();
+        $member = $this->requireMember('Akses membaca e-book hanya untuk anggota aktif yang memiliki kartu anggota. Silakan masuk atau pindai kartu anggota terlebih dahulu.');
+        if (!$member->is_active || empty($member->nomor_anggota)) {
+            return redirect()->route('perpustakaan.login')
+                ->with('error', 'Kartu anggota perpustakaan Anda tidak aktif. Silakan hubungi petugas perpustakaan.');
+        }
 
         if (!Table::exists('perpus_koleksi_buku')) {
             return redirect()->route('perpustakaan.katalog');
@@ -463,6 +469,66 @@ class PerpusPublicController extends Controller
         }
 
         return view('perpustakaan.baca', compact('buku', 'member', 'urlBaca', 'hasil'));
+    }
+
+    /**
+     * Unduh berkas fisik PDF untuk dibaca offline di perangkat.
+     * Mewajibkan login anggota aktif dengan kartu anggota.
+     * Berkas disajikan langsung sebagai unduhan attachment.
+     */
+    public function unduh(int $id)
+    {
+        $member = $this->requireMember('Akses unduh e-book offline hanya untuk anggota aktif yang memiliki kartu anggota. Silakan masuk atau pindai kartu anggota terlebih dahulu.');
+        if (!$member->is_active || empty($member->nomor_anggota)) {
+            return redirect()->route('perpustakaan.login')
+                ->with('error', 'Kartu anggota perpustakaan Anda tidak aktif. Silakan hubungi petugas perpustakaan.');
+        }
+
+        if (!Table::exists('perpus_koleksi_buku')) {
+            return redirect()->route('perpustakaan.katalog');
+        }
+
+        $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+        if (!$buku) {
+            return redirect()->route('perpustakaan.katalog')->with('error', 'Buku tidak ditemukan.');
+        }
+
+        if (($buku->format ?? 'fisik') !== 'ebook' && empty($buku->tautan_baca) && empty($buku->file_ebook)) {
+            return redirect()->route('perpustakaan.buku.detail', $id)
+                ->with('error', 'Buku ini adalah buku fisik dan tidak memiliki berkas digital untuk diunduh.');
+        }
+
+        // Cari atau sinkronisasi berkas PDF lokal ke storage
+        $disk = Storage::disk('public');
+        $localPath = null;
+        if (!empty($buku->file_ebook) && $disk->exists($buku->file_ebook)) {
+            $localPath = $disk->path($buku->file_ebook);
+        } else {
+            $success = \App\Services\PerpustakaanEbookService::unduhPdfUntukKoleksi($id);
+            if ($success) {
+                $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+                if (!empty($buku->file_ebook) && $disk->exists($buku->file_ebook)) {
+                    $localPath = $disk->path($buku->file_ebook);
+                }
+            }
+        }
+
+        $cleanSlug = Str::slug($buku->judul) ?: ('ebook-' . $buku->id);
+        $downloadName = "{$cleanSlug}.pdf";
+
+        if ($localPath && file_exists($localPath)) {
+            return response()->download($localPath, $downloadName, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $downloadName . '"',
+            ]);
+        }
+
+        if (!empty($buku->tautan_baca)) {
+            return redirect()->away($buku->tautan_baca);
+        }
+
+        return redirect()->route('perpustakaan.buku.detail', $id)
+            ->with('error', 'Berkas PDF untuk e-book ini belum dapat diunduh.');
     }
 
     public function detail(int $id)
@@ -751,12 +817,12 @@ class PerpusPublicController extends Controller
         return $id ? PerpusAnggota::find($id) : null;
     }
 
-    private function requireMember(): PerpusAnggota
+    private function requireMember(?string $customMessage = null): PerpusAnggota
     {
         $member = $this->currentMember();
         if (!$member) {
             abort(redirect()->route('perpustakaan.login')
-                ->with('error', 'Silakan masuk sebagai anggota terlebih dahulu.'));
+                ->with('error', $customMessage ?? 'Silakan masuk sebagai anggota terlebih dahulu.'));
         }
         return $member;
     }

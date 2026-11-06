@@ -66,7 +66,7 @@
                         <label class="input-label" for="ppTokenInput">Kartu Anggota (QR / Token)</label>
                         <div style="position:relative;display:flex;align-items:center;">
                             <input type="text" id="ppTokenInput" name="token" class="input-field"
-                                placeholder="Arahkan scanner ke QR kartu..." autocomplete="off" autofocus
+                                placeholder="Arahkan scanner ke QR kartu..." autocomplete="off"
                                 style="font-family:var(--font-family-mono,monospace);letter-spacing:1.2px;font-weight:600;padding-right:36px;">
                             <span id="ppScanDot"
                                 style="position:absolute;right:12px;width:9px;height:9px;border-radius:50%;background:var(--success,#10b981);box-shadow:0 0 8px var(--success,#10b981);"></span>
@@ -377,21 +377,10 @@
                                 </div>
 
                                 <div style="margin-top:14px;display:flex;gap:6px;">
-                                    @if ($isEb)
-                                        <a href="{{ route('perpustakaan.buku.baca', $b->id) }}" class="btn btn-primary"
-                                            style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:7px 10px;">
-                                            <i class="fas fa-book-open-reader"></i> Baca Online
-                                        </a>
-                                        <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
-                                            style="display:inline-flex;align-items:center;justify-content:center;padding:7px 11px;font-size:var(--text-xs);" title="Detail Buku">
-                                            <i class="fas fa-circle-info"></i>
-                                        </a>
-                                    @else
-                                        <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
-                                            style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:7px 10px;">
-                                            <i class="fas fa-circle-info"></i> Detail Buku
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
+                                        style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:8px 12px;">
+                                        <i class="fas fa-circle-info"></i> Lihat Detail Koleksi
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -456,16 +445,17 @@
             }
         })();
 
-        // Gerbang scan: auto-focus + auto-submit saat scanner mengisi (burst)
+        // Gerbang scan: tangani scan barcode/QR tanpa polling autofocus paksa
         (function () {
             var input = document.getElementById('ppTokenInput');
             var form = document.getElementById('ppScanForm');
             var hint = document.getElementById('ppScanHint');
             if (!input || !form) return;
 
-            setInterval(function () {
-                if (document.activeElement !== input && document.activeElement.tagName !== 'SELECT') input.focus();
-            }, 2500);
+            // Fokus santai saat halaman pertama kali dibuka hanya jika user masih di posisi paling atas
+            if (window.scrollY < 100 && window.innerWidth > 768) {
+                try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+            }
 
             var timer = null;
             input.addEventListener('input', function () {

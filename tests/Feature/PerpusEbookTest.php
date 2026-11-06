@@ -259,7 +259,20 @@ class PerpusEbookTest extends TestCase
             $res->assertOk();
             $res->assertSee('E-Book Khusus Filter Digital Test');
             $res->assertSee('E-BOOK');
-            $res->assertSee('Baca Online');
+            $res->assertSee('Detail E-Book');
+
+            // Dengan sesi anggota aktif, tombol Baca Online muncul
+            $anggota = PerpusAnggota::create([
+                'nomor_anggota' => 'ANG-EB-FILTER-01',
+                'token_kartu'   => \Illuminate\Support\Str::random(32),
+                'tipe'          => 'siswa',
+                'nama'          => 'Anggota Filter Test',
+                'is_active'     => true,
+            ]);
+            $resMember = $this->withSession(['perpus_anggota_id' => $anggota->id])
+                ->get(route('perpustakaan.katalog', ['format' => 'ebook', 'q' => 'Digital Test']));
+            $resMember->assertOk();
+            $resMember->assertSee('Baca Online');
         } finally {
             DB::rollBack();
         }
@@ -393,18 +406,45 @@ class PerpusEbookTest extends TestCase
                 'updated_at'         => now(),
             ]);
 
-            // Cek Reader
-            $resBaca = $this->get(route('perpustakaan.buku.baca', $bukuId));
+            // 1. Tanpa sesi anggota, akses baca dan unduh dialihkan ke login
+            $resGuestBaca = $this->get(route('perpustakaan.buku.baca', $bukuId));
+            $resGuestBaca->assertRedirect(route('perpustakaan.login'));
+
+            $resGuestUnduh = $this->get(route('perpustakaan.buku.unduh', $bukuId));
+            $resGuestUnduh->assertRedirect(route('perpustakaan.login'));
+
+            // 2. Siapkan anggota aktif
+            $anggota = PerpusAnggota::create([
+                'nomor_anggota' => 'ANG-EB-LOCAL-01',
+                'token_kartu'   => \Illuminate\Support\Str::random(32),
+                'tipe'          => 'siswa',
+                'nama'          => 'Anggota Local Test',
+                'is_active'     => true,
+            ]);
+
+            // Cek Reader dengan sesi anggota
+            $resBaca = $this->withSession(['perpus_anggota_id' => $anggota->id])
+                ->get(route('perpustakaan.buku.baca', $bukuId));
             $resBaca->assertOk();
             $resBaca->assertSee('storage/ebooks/eb-local-test.pdf', false);
             $resBaca->assertSee('Offline Server');
             $resBaca->assertSee('Unduh PDF');
 
-            // Cek Detail
+            // Cek Unduh PDF offline dengan sesi anggota
+            Storage::disk('public')->put('ebooks/eb-local-test.pdf', '%PDF-1.4 dummy offline ebook test');
+            $resUnduh = $this->withSession(['perpus_anggota_id' => $anggota->id])
+                ->get(route('perpustakaan.buku.unduh', $bukuId));
+            $resUnduh->assertOk();
+            $this->assertStringContainsString('application/pdf', (string) $resUnduh->headers->get('Content-Type'));
+            $this->assertStringContainsString('attachment', (string) $resUnduh->headers->get('Content-Disposition'));
+
+            // Cek Detail sebagai guest tanpa sesi
+            $this->flushSession();
             $resDetail = $this->get(route('perpustakaan.buku.detail', $bukuId));
             $resDetail->assertOk();
             $resDetail->assertSee('PDF Lokal Server');
             $resDetail->assertSee('Unduh PDF Offline');
+            $resDetail->assertSee('Masuk Anggota untuk Membaca');
         } finally {
             DB::rollBack();
         }

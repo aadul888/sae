@@ -40,7 +40,7 @@
                 @endif
 
                 @if ($isPdf)
-                    <a href="{{ $urlBaca }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                    <a href="{{ route('perpustakaan.buku.unduh', $buku->id) }}" class="btn btn-outline"
                         style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 12px;" title="Unduh Berkas PDF ke Perangkat">
                         <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Unduh PDF</span>
                     </a>
@@ -70,7 +70,7 @@
                     <span>Tampilan frame PDF di HP terasa sempit? Anda dapat membuka <strong>Layar Penuh</strong> atau <strong>Unduh Berkas PDF</strong> untuk dibaca di aplikasi pembaca bawaan.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <a href="{{ $urlBaca }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                    <a href="{{ route('perpustakaan.buku.unduh', $buku->id) }}" class="btn btn-outline"
                         style="font-size:var(--text-xs);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
                         <i class="fas fa-download"></i> Unduh File PDF
                     </a>

@@ -154,7 +154,7 @@
                                 </ul>
                             </div>
                             <div style="display:flex;gap:6px;margin-top:14px;">
-                                @if ($isEb)
+                                @if ($isEb && $member)
                                     <a href="{{ route('perpustakaan.buku.baca', $b->id) }}" class="btn btn-primary"
                                         style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:var(--text-xs);padding:7px 10px;">
                                         <i class="fas fa-book-open-reader"></i> Baca Online
@@ -166,7 +166,7 @@
                                 @else
                                     <a href="{{ route('perpustakaan.buku.detail', $b->id) }}" class="btn btn-outline"
                                         style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:var(--text-xs);padding:7px 10px;">
-                                        <i class="fas fa-circle-info"></i> Detail Buku
+                                        <i class="fas fa-circle-info"></i> Detail {{ $isEb ? 'E-Book' : 'Buku' }}
                                     </a>
                                 @endif
                             </div>
