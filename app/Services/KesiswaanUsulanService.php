@@ -160,6 +160,7 @@ class KesiswaanUsulanService
         ]);
 
         // Notifikasi transaksi: siswa + admin kesiswaan
+        $pdNama = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->value('nama');
         $this->notifyStudent(
             $validated['peserta_didik_id'],
             'Pengajuan Usulan Data Terkirim',
@@ -168,8 +169,8 @@ class KesiswaanUsulanService
             'fas fa-paper-plane'
         );
         $this->notifyKesiswaanAdmins(
-            'Usulan Baru: ' . ($usulan->peserta_didik_id),
-            'Pengajuan usulan perubahan data baru oleh ' . $userName . ' menunggu verifikasi.',
+            'Usulan Baru: ' . ($pdNama ?: 'Peserta Didik'),
+            'Pengajuan usulan perubahan data baru oleh ' . $userName . ($pdNama ? " untuk {$pdNama}" : '') . ' menunggu verifikasi.',
             'warning',
             'fas fa-file-pen',
             is_array($user) ? ($user['pengguna_id'] ?? null) : ($user->pengguna_id ?? null)
