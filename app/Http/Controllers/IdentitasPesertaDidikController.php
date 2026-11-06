@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminAktivitas;
+use App\Models\NotifikasiTransaksi;
 use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikIdentitas;
@@ -18,6 +19,113 @@ use App\Support\Table;
 class IdentitasPesertaDidikController extends Controller
 {
     use ChecksAuthenticatedSession;
+
+    /**
+     * Kirim notifikasi in-app ke seluruh pengguna yang berhak mengelola
+     * (menu Kesiswaan → Peserta Didik) ketika ada pengajuan usulan baru.
+     */
+    private function notifyKesiswaanAdmins(string $judul, string $pesan, string $tipe, string $icon, ?string $excludePenggunaId = null): void
+    {
+        if (!Table::exists('notifikasi_transaksi') || !Table::exists('pengguna')) {
+            return;
+        }
+
+        try {
+            $kandidat = \App\Models\User::query()
+                ->where(function ($q) {
+                    $q->whereNotNull('ptk_id')
+                        ->orWhere('peran_id_str', 'like', '%admin%')
+                        ->orWhere('peran_id_str', 'like', '%tendik%');
+                })
+                ->get();
+
+            $url = route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']);
+
+            foreach ($kandidat as $admin) {
+                if ($excludePenggunaId && (string) $admin->pengguna_id === (string) $excludePenggunaId) {
+                    continue;
+                }
+
+                try {
+                    if (!RolePermission::canAccess($admin, 'menu_kesiswaan_peserta_didik', 'read')) {
+                        continue;
+                    }
+                } catch (\Throwable $e) {
+                    continue;
+                }
+
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $admin->pengguna_id,
+                    'peserta_didik_id' => null,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => $pesan,
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi admin usulan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim notifikasi in-app ke peserta didik (dan wali/orang tua terkait).
+     */
+    private function notifyStudent(string $pdId, string $judul, string $pesan, string $tipe, string $icon): void
+    {
+        if (!Table::exists('notifikasi_transaksi') || !Table::exists('pengguna')) {
+            return;
+        }
+
+        try {
+            $url = route('dashboard.identitas.index', ['peserta_didik_id' => $pdId]);
+
+            $siswaUser = \App\Models\User::where('peserta_didik_id', $pdId)->first();
+            if ($siswaUser) {
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $siswaUser->pengguna_id,
+                    'peserta_didik_id' => $pdId,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => $pesan,
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
+
+            // Wali / orang tua yang menautkan anak (peserta_didik_id sama)
+            $waliUsers = \App\Models\User::where('peserta_didik_id', $pdId)
+                ->where(function ($q) {
+                    $q->where('peran_id_str', 'like', '%orang%')
+                        ->orWhere('peran_id_str', 'like', '%wali%');
+                })
+                ->get();
+
+            foreach ($waliUsers as $wali) {
+                if ($siswaUser && (string) $wali->pengguna_id === (string) $siswaUser->pengguna_id) {
+                    continue;
+                }
+                NotifikasiTransaksi::create([
+                    'pengguna_id'      => $wali->pengguna_id,
+                    'peserta_didik_id' => $pdId,
+                    'kategori'         => 'usulan_identitas',
+                    'judul'            => $judul,
+                    'pesan'            => str_replace(['Anda', 'anda'], ['putra/putri Anda', 'putra/putri Anda'], $pesan),
+                    'tipe'             => $tipe,
+                    'icon'             => $icon,
+                    'url'              => $url,
+                    'is_read'          => false,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi siswa usulan: ' . $e->getMessage());
+        }
+    }
 
     private function normalizeComparableValue($value): ?string
     {
@@ -127,6 +235,7 @@ class IdentitasPesertaDidikController extends Controller
         return [
             'userRole' => $userRole,
             'userName' => $userName,
+            'user' => $user,
             'pd' => $pd,
             'pdId' => $pdId,
             'allPdList' => $allPdList,

@@ -220,31 +220,18 @@
                     <span class="service-cta">Buka Monitoring <i class="fas fa-chevron-right"></i></span>
                 </div>
 
-                <div class="service-card">
+                <a href="{{ route('login') }}" class="service-card" style="border-style: dashed; border-color: rgba(99,102,241,0.4);">
                     <div>
-                        <div class="service-icon"><i class="fas fa-network-wired"></i></div>
-                        <h3 class="service-title">Rest API &amp; SSO Hub</h3>
+                        <div class="service-icon" style="color:var(--primary);"><i class="fas fa-grid-2-plus"></i></div>
+                        <h3 class="service-title">Layanan Lainnya</h3>
                         <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Single Sign On Akun Google</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Integrasi Webhook Eksternal</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Otentikasi Terpusat</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Pusat Administrasi &amp; Akses Role</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Rest API &amp; Google SSO Hub</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Kelulusan, Legalisir &amp; SKL Digital</li>
                         </ul>
                     </div>
-                    <span class="service-cta">Dokumentasi API <i class="fas fa-chevron-right"></i></span>
-                </div>
-
-                <div class="service-card">
-                    <div>
-                        <div class="service-icon" style="color:var(--success);"><i class="fas fa-sliders"></i></div>
-                        <h3 class="service-title">Pusat Administrasi</h3>
-                        <ul class="service-list">
-                            <li><i class="fas fa-check text-success me-2"></i> Master Data Peserta Didik &amp; GTK</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Cetak Kartu Pelajar Otomatis</li>
-                            <li><i class="fas fa-check text-success me-2"></i> Manajemen Akses Role</li>
-                        </ul>
-                    </div>
-                    <span class="service-cta">Dashboard Admin <i class="fas fa-chevron-right"></i></span>
-                </div>
+                    <span class="service-cta">Lihat Semua Modul <i class="fas fa-chevron-right"></i></span>
+                </a>
             </div>
         </section>
 
