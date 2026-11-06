@@ -457,5 +457,18 @@
         @endif
     </div>
 
+    @if ($activeTab === 'alumni')
+        {{-- Modal alumni dirender DI LUAR .card datatable (yang ber-overflow:hidden +
+             backdrop-filter) agar position:fixed tidak relative ke kartu & tidak terpotong. --}}
+        @include('dashboard.kesiswaan.partials.modal-nilai')
+        @include('dashboard.kesiswaan.partials.modal-alumni')
+        @if ($canCreate)
+            @include('dashboard.kesiswaan.partials.modal-import-pd-keluar', [
+                'importAction' => route('dashboard.kesiswaan.peserta-didik.alumni.import-excel'),
+                'templateUrl' => route('dashboard.kesiswaan.peserta-didik.alumni.download-template'),
+            ])
+        @endif
+    @endif
+
     @include('dashboard.kesiswaan.partials.modals')
 @endsection

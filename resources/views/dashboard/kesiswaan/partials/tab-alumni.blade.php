@@ -163,17 +163,9 @@
                 </div>
             @endif
 
-            {{-- Modal Atur Nilai + skrip (untuk input nilai & cetak buku induk alumni) --}}
-            @include('dashboard.kesiswaan.partials.modal-nilai')
-            {{-- Modal input manual / edit data alumni --}}
-            @include('dashboard.kesiswaan.partials.modal-alumni')
-            {{-- Modal import Excel format Dapodik 43 kolom --}}
-            @if ($canCreate)
-                @include('dashboard.kesiswaan.partials.modal-import-pd-keluar', [
-                    'importAction' => route('dashboard.kesiswaan.peserta-didik.alumni.import-excel'),
-                    'templateUrl' => route('dashboard.kesiswaan.peserta-didik.alumni.download-template'),
-                ])
-            @endif
+            {{-- Modal alumni (nilai, ubah data, import) dirender DI LUAR kartu datatable
+                 (yang ber-overflow:hidden + backdrop-filter) di peserta-didik.blade.php,
+                 agar position:fixed modal tidak terpotong/terbungkus. --}}
             @push('scripts')
                 <script
                     src="{{ asset('js/buku-induk-nilai.js') }}?v={{ file_exists(public_path('js/buku-induk-nilai.js')) ? filemtime(public_path('js/buku-induk-nilai.js')) : time() }}">
