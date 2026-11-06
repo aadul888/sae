@@ -763,6 +763,33 @@ class IdentitasPesertaDidikController extends Controller
             }
         }
 
+        if ($totalUsulanCreated > 0) {
+            // Notifikasi ke peserta didik & wali: pengajuan terkirim
+            $this->notifyStudent(
+                $pd->peserta_didik_id,
+                'Pengajuan Usulan Data Terkirim',
+                "Pengajuan perubahan data Anda ({$totalUsulanCreated} butir) telah terkirim dan menunggu verifikasi Tim Kesiswaan.",
+                'info',
+                'fas fa-paper-plane'
+            );
+
+            // Notifikasi ke Tim Kesiswaan/Admin yang berhak: ada pengajuan baru
+            $actorId = null;
+            if (is_array($ctx['user'] ?? null)) {
+                $actorId = $ctx['user']['pengguna_id'] ?? null;
+            } elseif (!empty($ctx['user'])) {
+                $actorId = $ctx['user']->pengguna_id ?? null;
+            }
+
+            $this->notifyKesiswaanAdmins(
+                'Usulan Baru: ' . $pd->nama,
+                "{$pd->nama} (NISN: {$pd->nisn}) mengajukan {$totalUsulanCreated} butir perubahan data identitas. Menunggu verifikasi.",
+                'warning',
+                'fas fa-file-pen',
+                $actorId
+            );
+        }
+
         if (class_exists(AdminAktivitas::class)) {
             AdminAktivitas::record(
                 "Pengajuan Usulan Revisi Identitas Siswa: {$pd->nama} (NISN: {$pd->nisn})",

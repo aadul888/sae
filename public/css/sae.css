@@ -729,7 +729,7 @@ select:autofill {
     align-items: center;
     gap: 28px;
     flex-shrink: 0;
-    animation: marqueeContinuous 35s linear infinite;
+    animation: marqueeContinuous 20s linear infinite;
     color: var(--text-muted);
     font-size: var(--text-sm, 0.8125rem);
     padding-right: 28px;
