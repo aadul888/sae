@@ -55,7 +55,7 @@
         </div>
     @endif
 
-    <!-- 3. Stat Grid Ringkasan Penerima MBG -->
+    <!-- 3. Stat Grid Ringkasan Penerima MBG (Tepat 4 Card Baku SAE) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: var(--space-10);">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.12); color: var(--primary);">
@@ -67,30 +67,12 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6, 182, 212, 0.12); color: var(--accent);">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['kelas_10'] ?? 0) }}</div>
-                <div class="dash-stat-label">Siswa Kelas 10</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success);">
-                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['kelas_11'] ?? 0) }}</div>
-                <div class="dash-stat-label">Siswa Kelas 11</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.12); color: var(--purple);">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['kelas_12'] ?? 0) }}</div>
-                <div class="dash-stat-label">Siswa Kelas 12</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_siswa'] ?? (($stats['kelas_10'] ?? 0) + ($stats['kelas_11'] ?? 0) + ($stats['kelas_12'] ?? 0))) }}</div>
+                <div class="dash-stat-label">Total Siswa (Peserta Didik)</div>
             </div>
         </div>
         <div class="dash-stat-card">
@@ -100,6 +82,17 @@
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['gtk_total'] ?? 0) }}</div>
                 <div class="dash-stat-label">Guru &amp; Tendik (GTK)</div>
+            </div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.12); color: var(--purple);">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-base); font-weight: 800;">
+                    X: {{ number_format($stats['kelas_10'] ?? 0) }} &bull; XI: {{ number_format($stats['kelas_11'] ?? 0) }} &bull; XII: {{ number_format($stats['kelas_12'] ?? 0) }}
+                </div>
+                <div class="dash-stat-label">Rincian Siswa Per Tingkat</div>
             </div>
         </div>
     </div>
