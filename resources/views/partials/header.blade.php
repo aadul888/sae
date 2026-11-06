@@ -14,6 +14,8 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="nav-links" id="navLinks">
+            <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Beranda</a>
+            <a href="{{ route('berita.index') }}" class="nav-link {{ request()->routeIs('berita.*') ? 'active' : '' }}">Berita</a>
             <a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">Tentang</a>
             <button type="button" class="btn-mega-dropdown" id="btnMegaLayanan" onclick="toggleMegaLayanan(event)">
                 <span>Layanan</span>
