@@ -66,15 +66,15 @@
         </div>
     @endif
 
-    <!-- Summary Stats Grid (4x2 Sejajar Rapi) -->
-    <div class="dash-stat-grid presensi-stat-grid-4x2">
+    <!-- Summary Stats Grid (Tepat 4 Card Sejajar Baku SAE) -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary);">
                 <i class="fas fa-users"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($totalSiswa) }}</div>
-                <div class="dash-stat-label">Total Peserta Didik</div>
+                <div class="dash-stat-label">Total Siswa (Hadir: {{ $persenHadir }}%)</div>
             </div>
         </div>
 
@@ -83,8 +83,8 @@
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countHadir) }}</div>
-                <div class="dash-stat-label">Tepat Waktu</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success);">{{ number_format($countHadir) }}</div>
+                <div class="dash-stat-label">Hadir Tepat Waktu</div>
             </div>
         </div>
 
@@ -93,58 +93,22 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countTerlambat) }}</div>
-                <div class="dash-stat-label">Terlambat</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
-                <i class="fas fa-file-signature"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countIzin) }}</div>
-                <div class="dash-stat-label">Izin</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: var(--purple);">
-                <i class="fas fa-notes-medical"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countSakit) }}</div>
-                <div class="dash-stat-label">Sakit</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning);">{{ number_format($countTerlambat) }}</div>
+                <div class="dash-stat-label">Terlambat Masuk</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger);">
-                <i class="fas fa-times-circle"></i>
+                <i class="fas fa-file-circle-exclamation"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countAlpha) }}</div>
-                <div class="dash-stat-label">Alpha</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: var(--text-muted);">
-                <i class="fas fa-hourglass-start"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($countBelumAbsen) }}</div>
-                <div class="dash-stat-label">Belum Presensi</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success);">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ $persenHadir }}%</div>
-                <div class="dash-stat-label">Tingkat Hadir</div>
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger);">
+                    {{ number_format($countIzin + $countSakit + $countAlpha) }}
+                </div>
+                <div class="dash-stat-label">
+                    Tidak Hadir (I: {{ $countIzin }} &bull; S: {{ $countSakit }} &bull; A: {{ $countAlpha }})
+                </div>
             </div>
         </div>
     </div>
