@@ -80,9 +80,32 @@ class PerpusEbookController extends Controller
             return redirect()->back()->with('error', 'E-Book tidak ditemukan dalam master repositori terbuka.');
         }
 
-        $id = PerpustakaanEbookService::imporKeKatalog($item);
+        $unduhPdf = $request->boolean('unduh_pdf');
+        $id = PerpustakaanEbookService::imporKeKatalog($item, $unduhPdf);
+
+        $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+        if ($unduhPdf && $buku && !empty($buku->file_ebook)) {
+            return redirect()->back()->with('success', "E-Book \"{$item['judul']}\" berhasil ditarik dan berkas PDF disimpan di server sekolah.");
+        }
 
         return redirect()->back()->with('success', "E-Book \"{$item['judul']}\" berhasil ditarik ke katalog perpustakaan.");
+    }
+
+    public function unduhPdf(int $id)
+    {
+        if ($r = $this->guard('create')) return $r;
+
+        $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+        if (!$buku) {
+            return redirect()->back()->with('error', 'Buku tidak ditemukan.');
+        }
+
+        $sukses = PerpustakaanEbookService::unduhPdfUntukKoleksi($id);
+        if ($sukses) {
+            return redirect()->back()->with('success', "Berkas PDF \"{$buku->judul}\" berhasil diunduh ke server sekolah. Pemustaka kini dapat membaca offline langsung di web.");
+        }
+
+        return redirect()->back()->with('error', "Gagal mengunduh berkas PDF untuk \"{$buku->judul}\". Periksa koneksi internet server atau berkas PDF belum tersedia.");
     }
 
     public function tarikBanyak(Request $request)
@@ -94,9 +117,15 @@ class PerpusEbookController extends Controller
             return redirect()->back()->with('error', 'Pilih minimal satu e-book untuk ditarik ke katalog.');
         }
 
-        $hasil = PerpustakaanEbookService::imporBanyak($kodeList);
+        $unduhPdf = $request->boolean('unduh_pdf');
+        $hasil = PerpustakaanEbookService::imporBanyak($kodeList, $unduhPdf);
 
-        return redirect()->back()->with('success', "Berhasil menarik {$hasil['sukses']} e-book ke katalog perpustakaan.");
+        $msg = "Berhasil menarik {$hasil['sukses']} e-book ke katalog perpustakaan.";
+        if ($unduhPdf) {
+            $msg .= " Berkas PDF yang tersedia telah diunduh ke server.";
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 
     public function storeManual(Request $request)

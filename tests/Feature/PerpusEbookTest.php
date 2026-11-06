@@ -6,6 +6,8 @@ use App\Models\PerpusAnggota;
 use App\Services\PerpustakaanEbookService;
 use App\Services\PerpustakaanMemberService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -286,6 +288,125 @@ class PerpusEbookTest extends TestCase
             $this->assertStringNotContainsString('budi.kemdikbud.go.id', $url);
             $this->assertStringNotContainsString('gln.kemdikbud.go.id', $url);
             $this->assertStringNotContainsString('khazanah.perpusnas.go.id', $url);
+        }
+    }
+
+    public function test_unduh_berkas_pdf_dan_simpan_di_server(): void
+    {
+        Storage::fake('public');
+        Http::fake([
+            'https://example.com/buku.pdf' => Http::response("%PDF-1.4\n%dummy pdf content", 200, [
+                'Content-Type' => 'application/pdf',
+            ]),
+        ]);
+
+        $path = PerpustakaanEbookService::unduhBerkasPdf('https://example.com/buku.pdf', 'EB-TEST-PDF-01');
+
+        $this->assertNotNull($path);
+        $this->assertSame('ebooks/eb-test-pdf-01.pdf', $path);
+        Storage::disk('public')->assertExists('ebooks/eb-test-pdf-01.pdf');
+    }
+
+    public function test_aksi_tarik_dengan_opsi_unduh_pdf_menyimpan_file_ke_database(): void
+    {
+        Storage::fake('public');
+        Http::fake([
+            '*' => Http::response("%PDF-1.4\n%dummy pdf content", 200, [
+                'Content-Type' => 'application/pdf',
+            ]),
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $master = PerpustakaanEbookService::katalogMaster();
+            $target = $master[0];
+
+            $res = $this->withSession($this->adminSession())
+                ->post(route('dashboard.perpustakaan.ebook.tarik'), [
+                    'kode_buku' => $target['kode_buku'],
+                    'unduh_pdf' => '1',
+                ]);
+
+            $res->assertRedirect();
+            $res->assertSessionHas('success');
+
+            $buku = DB::table('perpus_koleksi_buku')->where('kode_buku', $target['kode_buku'])->first();
+            $this->assertNotNull($buku);
+            $this->assertNotNull($buku->file_ebook);
+            Storage::disk('public')->assertExists($buku->file_ebook);
+        } finally {
+            DB::rollBack();
+        }
+    }
+
+    public function test_endpoint_unduh_pdf_koleksi_dari_dashboard(): void
+    {
+        Storage::fake('public');
+        Http::fake([
+            '*' => Http::response("%PDF-1.4\n%dummy pdf content", 200, [
+                'Content-Type' => 'application/pdf',
+            ]),
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $master = PerpustakaanEbookService::katalogMaster();
+            $target = $master[0];
+
+            // Masukkan tanpa file_ebook
+            $bukuId = PerpustakaanEbookService::imporKeKatalog($target, unduhPdf: false);
+            DB::table('perpus_koleksi_buku')->where('id', $bukuId)->update(['file_ebook' => null]);
+
+            $res = $this->withSession($this->adminSession())
+                ->post(route('dashboard.perpustakaan.ebook.unduh-pdf', $bukuId));
+
+            $res->assertRedirect();
+            $res->assertSessionHas('success');
+
+            $bukuAfter = DB::table('perpus_koleksi_buku')->where('id', $bukuId)->first();
+            $this->assertNotNull($bukuAfter->file_ebook);
+            Storage::disk('public')->assertExists($bukuAfter->file_ebook);
+        } finally {
+            DB::rollBack();
+        }
+    }
+
+    public function test_reader_dan_detail_prioritaskan_berkas_pdf_lokal(): void
+    {
+        DB::beginTransaction();
+
+        try {
+            $bukuId = DB::table('perpus_koleksi_buku')->insertGetId([
+                'kode_buku'          => 'EB-LOCAL-TEST-01',
+                'judul'              => 'E-Book Offline PDF Server',
+                'format'             => 'ebook',
+                'tautan_baca'        => 'https://example.com/fallback-link',
+                'file_ebook'         => 'ebooks/eb-local-test.pdf',
+                'jumlah_eksemplar'   => 999,
+                'eksemplar_tersedia' => 999,
+                'kategori'           => 'Buku Pelajaran',
+                'total_dibaca'       => 0,
+                'harga_perolehan'    => 0,
+                'created_at'         => now(),
+                'updated_at'         => now(),
+            ]);
+
+            // Cek Reader
+            $resBaca = $this->get(route('perpustakaan.buku.baca', $bukuId));
+            $resBaca->assertOk();
+            $resBaca->assertSee('storage/ebooks/eb-local-test.pdf', false);
+            $resBaca->assertSee('Offline Server');
+            $resBaca->assertSee('Unduh PDF');
+
+            // Cek Detail
+            $resDetail = $this->get(route('perpustakaan.buku.detail', $bukuId));
+            $resDetail->assertOk();
+            $resDetail->assertSee('PDF Lokal Server');
+            $resDetail->assertSee('Unduh PDF Offline');
+        } finally {
+            DB::rollBack();
         }
     }
 }

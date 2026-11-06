@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\PerpusAnggota;
 use App\Support\Table;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -43,7 +46,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/matematika-untuk-smasmk-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Matematika_BS_KLS_X_Rev.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Matematika_BS_KLS_X_Rev.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Matematika_BS_KLS_X_Rev_Cover.png',
                 'sinopsis'        => 'Buku teks matematika siswa kelas X Kurikulum Merdeka. Membahas Eksponen dan Logaritma, Barisan dan Deret, Vektor dan Operasinya, Trigonometri, Sistem Persamaan dan Pertidaksamaan Linear, Fungsi Kuadrat, Statistika, dan Peluang.',
             ],
             [
@@ -59,7 +64,9 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/matematika-tingkat-lanjut-untuk-smasmk-kelas-xi',
+                'tautan_baca'     => 'https://static.sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Matematika_BS_KLS_XI_Rev.pdf',
+                'file_pdf_url'    => 'https://static.sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Matematika_BS_KLS_XI_Rev.pdf',
+                'cover_url'       => 'https://static.sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Matematika_BS_KLS_XI_Rev_Cover.PNG',
                 'sinopsis'        => 'Buku teks matematika siswa kelas XI Kurikulum Merdeka Fase F. Memuat materi Bilangan Kompleks, Polinomial, Matriks, Transformasi Geometri, dan Fungsi Trigonometri untuk penguatan kompetensi sains dan kejuruan teknik.',
             ],
             [
@@ -75,7 +82,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/cerdas-cergas-berbahasa-dan-bersastra-indonesia-untuk-smasmk-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa_Indonesia_BS_KLS_X_Rev.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa_Indonesia_BS_KLS_X_Rev.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Bahasa_Indonesia_BS_KLS_X_Rev_Cover.png',
                 'sinopsis'        => 'Buku teks Bahasa Indonesia Fase E dengan pendekatan literasi kritis, analisis teks laporan hasil observasi, anekdot, hikayat, negosiasi, biografi, dan karya puisi terapan.',
             ],
             [
@@ -91,7 +100,9 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/cerdas-cergas-berbahasa-dan-bersastra-indonesia-untuk-smasmk-kelas-xi',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Indonesia_BS_KLS_XI_Rev.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Indonesia_BS_KLS_XI_Rev.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Indonesia_BS_KLS_XI_Rev_Cover.png',
                 'sinopsis'        => 'Buku Bahasa Indonesia Fase F tingkat lanjut. Membahas penulisan karya ilmiah, proposal kegiatan kejuruan, teks prosedur teknis, resensi buku, dan drama pementasan sekolah.',
             ],
             [
@@ -107,7 +118,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/work-in-progress-untuk-smasmkma-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa-Inggris-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa-Inggris-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Bahasa-Inggris-BS-KLS-X-cover.png',
                 'sinopsis'        => 'Materi pembelajaran Bahasa Inggris kontekstual Fase E meliputi Great Athletes, Sports Events, Healthy Food, Descriptive and Narrative texts untuk persiapan komunikasi kerja internasional.',
             ],
             [
@@ -123,7 +136,9 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/bahasa-inggris-tingkat-lanjut-train-of-thoughts-untuk-smasma-luar-biasasmk-kelas-xi',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa-Inggris-BS-KLS-XI-efc.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Bahasa-Inggris-BS-KLS-XI-efc.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Bahasa-inggris-BS-KLS-XI-efc-Cover.png',
                 'sinopsis'        => 'Materi Bahasa Inggris terapan Fase F berfokus pada hortatory exposition, report texts, digital safety, dan business professional communication untuk lulusan SMK.',
             ],
             [
@@ -139,7 +154,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/informatika-untuk-smasmk-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Informatika_BS_KLS_X_Rev.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Informatika_BS_KLS_X_Rev.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Informatika_BS_KLS_X_Rev_Cover.PNG',
                 'sinopsis'        => 'Materi Informatika Fase E mencakup Berpikir Komputasional, Teknologi Informasi dan Komunikasi, Sistem Komputer, Jaringan Komputer & Internet, Analisis Data, Algoritma Pemrograman, dan Dampak Sosial Informatika.',
             ],
             [
@@ -155,7 +172,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/pendidikan-pancasila-untuk-smasmkmak-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Pendidikan-Pancasila-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Pendidikan-Pancasila-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Pendidikan-Pancasila-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Pembahasan Pancasila sebagai dasar negara, pandangan hidup bangsa, Undang-Undang Dasar NRI 1945, Bhinneka Tunggal Ika, dan NKRI dengan penekanan profil pelajar Pancasila berakhlak mulia.',
             ],
             [
@@ -171,7 +190,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/ilmu-pengetahuan-sosial-sejarah-untuk-smasmk-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Sejarah-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Sejarah-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Sejarah-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Pengantar ilmu sejarah, manusia ruang dan waktu, sejarah lokal nusantara, jalur rempah, dan perkembangan kebudayaan Indonesia dari masa praaksara hingga modern.',
             ],
             [
@@ -187,7 +208,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'sibi',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog/projek-ipas-rumpun-teknologi-untuk-smkmak-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/IPA_BS_KLS_X_Rev.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/IPA_BS_KLS_X_Rev.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/IPA_BS_KLS_X_Rev_Cover.png',
                 'sinopsis'        => 'Materi IPAS integratif khusus siswa SMK: Makhluk Hidup & Lingkungannya, Zat & Perubahannya, Energi & Perubahannya, Bumi & Antariksa, Keruangan & Konektivitas, Interaksi Sosial, serta Perilaku Ekonomi & Kesejahteraan.',
             ],
 
@@ -207,7 +230,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Jaringan Komputer dan Telekomunikasi',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+jaringan+komputer',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Teknik-Jaringan-Komputer-dan-Telekomunikasi-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Teknik-Jaringan-Komputer-dan-Telekomunikasi-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Teknik-Jaringan-Komputer-dan-Telekomunikasi-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Buku kejuruan dasar TJKT/TKJ: Proses bisnis bidang teknik jaringan komputer, wawasan perkembangan teknologi 5G/IoT, profesi teknisi jaringan, K3LH industri telekomunikasi, dan dasar perakitan serta konfigurasi LAN.',
             ],
             [
@@ -223,7 +248,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Pengembangan Perangkat Lunak dan Gim',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+pengembangan+perangkat+lunak+gim',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Pengembangan-Perangkat-Lunak-dan-Gim-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Pengembangan-Perangkat-Lunak-dan-Gim-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Pengembangan-Perangkat-Lunak-dan-Gim-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Dasar pemrograman kejuruan RPL: Proses bisnis industri software, SDLC (System Development Life Cycle), Git version control, logika algoritma, dasar HTML/CSS/JavaScript, dan dasar pemrograman berorientasi objek (OOP).',
             ],
             [
@@ -239,7 +266,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Otomotif',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+otomotif',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Teknik-Otomotif-KLS-X-Sem-1.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Teknik-Otomotif-KLS-X-Sem-1.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Teknik-Otomotif-KLS-X-Sem-1-Cover.png',
                 'sinopsis'        => 'Buku kejuruan dasar otomotif: Proses bisnis bengkel otomotif, perkembangan teknologi mobil listrik (EV), K3LH bengkel, penggunaan alat ukur vernier caliper/micrometer, dan prinsip kerja motor 2 langkah & 4 langkah.',
             ],
             [
@@ -255,7 +284,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Mesin',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+teknik+mesin',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Teknik-Mesin-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Teknik-Mesin-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Teknik-Mesin-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Materi dasar teknik permesinan: Gambar teknik manufaktur, proses pemotongan logam, kerja bangku, prinsip pengoperasian mesin bubut dan frais, serta standar keselamatan kerja industri manufaktur.',
             ],
             [
@@ -271,7 +302,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Teknik Ketenagalistrikan',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+ketenagalistrikan+elektronika',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Teknik-Ketenagalistrikan-Semester-2-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Teknik-Ketenagalistrikan-Semester-2-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Dasar-Teknik-Ketenagalistrikan-Semester-2-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Pengenalan hukum Ohm dan Kirchhoff, instalasi penerangan gedung, komponen elektronika pasif dan aktif, sensor, aktuator, dan standar keselamatan instalasi listrik tegangan rendah.',
             ],
             [
@@ -287,7 +320,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Akuntansi dan Keuangan Lembaga',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+akuntansi+keuangan+lembaga',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Akuntansi-dan-Lembaga-Keuangan-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Akuntansi-dan-Lembaga-Keuangan-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Akuntansi-dan-Lembaga-Keuangan-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Membahas siklus akuntansi perusahaan jasa dan dagang, persamaan dasar akuntansi, jurnal umum, buku besar, neraca saldo, jurnal penyesuaian, dan etika profesi teknisi akuntansi yunior.',
             ],
             [
@@ -303,7 +338,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Manajemen Perkantoran dan Layanan Bisnis',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+manajemen+perkantoran+bisnis',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Manajemen-Perkantoran-dan-Layanan-Bisnis-Semester-2-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Manajemen-Perkantoran-dan-Layanan-Bisnis-Semester-2-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Dasar-Manajemen-Perkantoran-dan-Layanan-Bisnis-Semester-2-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Konsep kantor modern digital, otomasi tata kelola perkantoran, penanganan surat/dokumen elektronik, layanan prima (service excellence), komunikasi telepon bisnis, dan etika humas.',
             ],
             [
@@ -319,7 +356,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Desain Komunikasi Visual',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+desain+komunikasi+visual',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Desain-Komunikasi-Visual-Semester-2-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Dasar-Desain-Komunikasi-Visual-Semester-2-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Dasar-Desain-Komunikasi-Visual-Semester-2-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Prinsip desain grafis: Nirmana dwimatra dan trimatra, tipografi, teori warna, fotografi dasar, ilustrasi digital berbasis vektor dan raster, serta hak cipta karya visual.',
             ],
             [
@@ -335,7 +374,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Pemasaran dan Bisnis Digital',
                 'sumber_ebook'    => 'ditjen_smk',
-                'tautan_baca'     => 'https://buku.kemendikdasmen.go.id/katalog?find=dasar+pemasaran+bisnis+digital',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Pemasaran-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Dasar-Pemasaran-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Dasar-Pemasaran-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Ekosistem e-commerce dan marketplace, digital marketing via social media, copywriting produk, riset kata kunci, visual merchandising toko fisik dan virtual, serta pembayaran nontunai QRIS.',
             ],
             [
@@ -451,7 +492,9 @@ class PerpustakaanEbookService
                 'kelas'           => '10',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'kemenag',
-                'tautan_baca'     => 'https://cendikia.kemenag.go.id/katalog/buku-pai-smk-kelas-x',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Islam-BS-KLS-X.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Islam-BS-KLS-X.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Islam-BS-KLS-X-Cover.png',
                 'sinopsis'        => 'Buku teks PAI & Budi Pekerti Fase E: Meraih kesuksesan dengan kompetisi dalam kebaikan, syu\'abul iman (cabang-cabang iman), menghindari pergaulan bebas, asuransi syariah, perbankan syariah, dan dakwah Islam rahmatan lil alamin.',
             ],
             [
@@ -467,7 +510,9 @@ class PerpustakaanEbookService
                 'kelas'           => '11',
                 'jurusan'         => 'Umum',
                 'sumber_ebook'    => 'kemenag',
-                'tautan_baca'     => 'https://cendikia.kemenag.go.id/katalog/buku-pai-smk-kelas-xi',
+                'tautan_baca'     => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Islam-BS-KLS-XI.pdf',
+                'file_pdf_url'    => 'https://static-sc.cloudapp.web.id/content/pdf/bukuteks/kurikulum21/Islam-BS-KLS-XI.pdf',
+                'cover_url'       => 'https://static-sc.cloudapp.web.id/content/image/coverteks/coverkurikulum21/Islam-BS-KLS-XI-cover.png',
                 'sinopsis'        => 'Buku teks PAI & Budi Pekerti Fase F: Berpikir kritis mencintai iptek, menjaga martabat manusia dengan menjauhi zina, menguatkan kerukunan melalui toleransi, serta peran ulama nusantara dalam peradaban Islam.',
             ],
             [
@@ -784,7 +829,7 @@ class PerpustakaanEbookService
                 $query->whereIn('kode_buku', $kodeList)
                     ->orWhereIn('judul', $judulList);
             })
-            ->select('id', 'kode_buku', 'judul')
+            ->select('id', 'kode_buku', 'judul', 'file_ebook', 'tautan_baca')
             ->get();
 
         $byKode = $existing->keyBy('kode_buku');
@@ -794,15 +839,100 @@ class PerpustakaanEbookService
             $found = $byKode->get($item['kode_buku']) ?? $byJudul->get($item['judul']);
             $item['sudah_ada'] = (bool) $found;
             $item['koleksi_id'] = $found ? $found->id : null;
+            $item['has_file_ebook'] = (bool) ($found && !empty($found->file_ebook));
             return $item;
         }, $items);
+    }
+
+    /**
+     * Unduh berkas fisik PDF dari URL eksternal ke storage/app/public/ebooks.
+     */
+    public static function unduhBerkasPdf(string $url, string $kodeBuku): ?string
+    {
+        if (empty($url) || !Str::startsWith($url, ['http://', 'https://'])) {
+            return null;
+        }
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(45)
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept'     => 'application/pdf,*/*',
+                ])
+                ->get($url);
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $body = $response->body();
+            if (!str_starts_with($body, '%PDF-')) {
+                return null;
+            }
+
+            $cleanKode = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $kodeBuku));
+            $filename = 'ebooks/' . $cleanKode . '.pdf';
+
+            Storage::disk('public')->put($filename, $body);
+
+            return $filename;
+        } catch (\Throwable $e) {
+            Log::warning("Gagal mengunduh berkas PDF [{$kodeBuku}]: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Unduh PDF untuk buku yang sudah ada di tabel perpus_koleksi_buku.
+     */
+    public static function unduhPdfUntukKoleksi(int $id): bool
+    {
+        if (!Table::exists('perpus_koleksi_buku')) {
+            return false;
+        }
+
+        $buku = DB::table('perpus_koleksi_buku')->where('id', $id)->first();
+        if (!$buku) {
+            return false;
+        }
+
+        $target = null;
+        foreach (self::katalogMaster() as $k) {
+            if ($k['kode_buku'] === $buku->kode_buku || strcasecmp($k['judul'], $buku->judul) === 0) {
+                $target = $k;
+                break;
+            }
+        }
+
+        $urlPdf = $target['file_pdf_url'] ?? null;
+        if (!$urlPdf && Str::endsWith(Str::lower((string) $buku->tautan_baca), ['.pdf'])) {
+            $urlPdf = $buku->tautan_baca;
+        }
+
+        if (!$urlPdf) {
+            return false;
+        }
+
+        $path = self::unduhBerkasPdf($urlPdf, $buku->kode_buku ?: 'EB-KOL-' . $buku->id);
+        if (!$path) {
+            return false;
+        }
+
+        DB::table('perpus_koleksi_buku')->where('id', $id)->update([
+            'file_ebook' => $path,
+            'format'     => 'ebook',
+            'updated_at' => now(),
+        ]);
+
+        return true;
     }
 
     /**
      * Impor satu e-book resmi ke tabel perpus_koleksi_buku.
      * Idempoten: jika sudah ada, update tautan_baca & sinopsis.
      */
-    public static function imporKeKatalog(array $item): int
+    public static function imporKeKatalog(array $item, bool $unduhPdf = false): int
     {
         if (!Table::exists('perpus_koleksi_buku')) {
             return 0;
@@ -814,6 +944,16 @@ class PerpustakaanEbookService
             ->first();
 
         $sumber = $item['sumber_ebook'] ?? 'publik';
+
+        $fileEbook = $existing->file_ebook ?? ($item['file_ebook'] ?? null);
+        if ($unduhPdf && !empty($item['file_pdf_url'])) {
+            $unduh = self::unduhBerkasPdf($item['file_pdf_url'], $item['kode_buku']);
+            if ($unduh) {
+                $fileEbook = $unduh;
+            }
+        }
+
+        $tautanBaca = !empty($item['file_pdf_url']) ? $item['file_pdf_url'] : ($item['tautan_baca'] ?? null);
 
         $payload = [
             'kode_buku'          => $item['kode_buku'],
@@ -831,8 +971,9 @@ class PerpustakaanEbookService
             'sumber_dana'        => 'Akses Bebas Royalti',
             'harga_perolehan'    => 0,
             'tgl_pembelian'      => now()->toDateString(),
-            'tautan_baca'        => $item['tautan_baca'] ?? null,
-            'file_ebook'         => $item['file_ebook'] ?? null,
+            'tautan_baca'        => $tautanBaca,
+            'file_ebook'         => $fileEbook,
+            'cover_buku'         => $item['cover_url'] ?? ($existing->cover_buku ?? null),
             'sumber_ebook'       => $sumber,
             'sinopsis'           => $item['sinopsis'] ?? null,
             'jenjang'            => $item['jenjang'] ?? 'SMK',
@@ -856,7 +997,7 @@ class PerpustakaanEbookService
      *
      * @return array{sukses:int, dilewati:int, total:int}
      */
-    public static function imporBanyak(array $kodeList): array
+    public static function imporBanyak(array $kodeList, bool $unduhPdf = false): array
     {
         $katalog = collect(self::katalogMaster())->keyBy('kode_buku');
         $sukses = 0;
@@ -868,15 +1009,11 @@ class PerpustakaanEbookService
                 $dilewati++;
                 continue;
             }
-            self::imporKeKatalog($item);
+            self::imporKeKatalog($item, $unduhPdf);
             $sukses++;
         }
 
-        return [
-            'sukses'   => $sukses,
-            'dilewati' => $dilewati,
-            'total'    => count($kodeList),
-        ];
+        return ['sukses' => $sukses, 'dilewati' => $dilewati, 'total' => count($kodeList)];
     }
 
     /**

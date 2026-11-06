@@ -5,27 +5,29 @@
 
 @section('content')
     @php
-        $isExternal = \Illuminate\Support\Str::startsWith((string) $urlBaca, ['http://', 'https://'])
-            && !\Illuminate\Support\Str::contains((string) $urlBaca, request()->getHost());
-        $isLocalPdf = !$isExternal && (!empty($buku->file_ebook) || \Illuminate\Support\Str::endsWith(\Illuminate\Support\Str::lower((string) $urlBaca), ['.pdf']));
+        $isPdf = !empty($buku->file_ebook) || \Illuminate\Support\Str::endsWith(\Illuminate\Support\Str::lower((string) $urlBaca), ['.pdf']);
+        $hasLocalFile = !empty($buku->file_ebook);
         $theme = \App\Services\PerpustakaanEbookService::coverTheme($buku->kategori ?? '', $buku->judul ?? '');
         $sumberLabel = \App\Services\PerpustakaanEbookService::labelSumber($buku->sumber_ebook ?? 'sibi');
     @endphp
 
     <div class="container" style="max-width:1200px;padding-top:1rem;padding-bottom:2rem;">
-        {{-- Toolbar Pembaca --}}
+        {{-- Toolbar Pembaca (Mobile Responsive) --}}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:1rem;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);">
-            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 280px;">
                 <a href="{{ route('perpustakaan.buku.detail', $buku->id) }}" class="btn btn-outline"
-                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 12px;">
-                    <i class="fas fa-arrow-left"></i> Kembali
+                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 12px;flex-shrink:0;">
+                    <i class="fas fa-arrow-left"></i> <span class="d-none d-sm-inline">Kembali</span>
                 </a>
-                <div style="min-width:0;">
-                    <h1 style="margin:0;font-size:var(--text-sm);font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:480px;">
+                <div style="min-width:0;flex:1;">
+                    <h1 style="margin:0;font-size:var(--text-sm);font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ $buku->judul }}">
                         {{ $buku->judul }}
                     </h1>
-                    <div style="font-size:var(--text-2xs);color:var(--text-muted);">
-                        {{ $buku->penulis ?: 'Penyusun Resmi' }} &bull; E-Book Digital &bull; {{ $sumberLabel }}
+                    <div style="font-size:var(--text-2xs);color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        {{ $buku->penulis ?: 'Penyusun Resmi' }} &bull; {{ $sumberLabel }}
+                        @if ($hasLocalFile)
+                            &bull; <span class="text-success font-weight-bold"><i class="fas fa-hard-drive me-1"></i>Offline Server</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -36,25 +38,51 @@
                         <i class="fas fa-crown"></i> +{{ $hasil['poin'] }} Poin Literasi
                     </span>
                 @endif
+
+                @if ($isPdf)
+                    <a href="{{ $urlBaca }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                        style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 12px;" title="Unduh Berkas PDF ke Perangkat">
+                        <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Unduh PDF</span>
+                    </a>
+                @endif
+
                 <a href="{{ $urlBaca }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
                     style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 14px;">
-                    <i class="fas fa-arrow-up-right-from-square"></i> Buka di Tab Baru
+                    <i class="fas fa-arrow-up-right-from-square"></i> <span class="d-none d-sm-inline">Layar Penuh</span><span class="d-inline d-sm-none">Buka</span>
                 </a>
             </div>
         </div>
 
-        @if ($isLocalPdf)
-            {{-- Frame Pembaca PDF Berkas Internal Sekolah --}}
-            <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);overflow:hidden;position:relative;height:78vh;min-height:540px;">
-                <iframe src="{{ $urlBaca }}"
+        @if ($isPdf)
+            {{-- Frame Pembaca PDF Responsif (Lokal Server atau Direct Stream Bebas Blokir) --}}
+            <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);overflow:hidden;position:relative;height:clamp(520px, 78vh, 880px);box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+                <iframe src="{{ $urlBaca }}#toolbar=1&navpanes=0"
                     style="width:100%;height:100%;border:none;"
                     allow="fullscreen"
                     title="Pembaca E-Book: {{ $buku->judul }}">
                 </iframe>
             </div>
+
+            {{-- Bantuan Pembaca Mobile (Jika browser HP membatasi render inline iframe PDF) --}}
+            <div style="margin-top:12px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:var(--text-xs);color:var(--text-muted);">
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 260px;">
+                    <i class="fas fa-mobile-screen-button text-primary" style="font-size:var(--text-base);flex-shrink:0;"></i>
+                    <span>Tampilan frame PDF di HP terasa sempit? Anda dapat membuka <strong>Layar Penuh</strong> atau <strong>Unduh Berkas PDF</strong> untuk dibaca di aplikasi pembaca bawaan.</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <a href="{{ $urlBaca }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                        style="font-size:var(--text-xs);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
+                        <i class="fas fa-download"></i> Unduh File PDF
+                    </a>
+                    <a href="{{ $urlBaca }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
+                        style="font-size:var(--text-xs);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
+                        <i class="fas fa-arrow-up-right-from-square"></i> Tab Penuh
+                    </a>
+                </div>
+            </div>
         @else
-            {{-- Stasiun Baca Digital untuk Repositori Resmi Terbuka (Tanpa Embed Frame Rusak) --}}
-            <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);padding:clamp(1.5rem, 3vw, 2.5rem);margin-bottom:1rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;align-items:center;">
+            {{-- Stasiun Baca Digital untuk Repositori Resmi yang Memerlukan Portal Eksternal --}}
+            <div style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-lg);padding:clamp(1.25rem, 3vw, 2.5rem);margin-bottom:1rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));gap:24px;align-items:center;">
                 {{-- Mockup Sampul Buku Digital --}}
                 <div style="max-width:320px;margin:0 auto;width:100%;">
                     <div style="height:280px;background:{{ $theme['gradient'] }};border-radius:var(--radius-lg);padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:inset 6px 0 0 rgba(255,255,255,0.25), 0 8px 24px rgba(0,0,0,0.15);color:#fff;">
@@ -119,9 +147,9 @@
                         </div>
                     </div>
 
-                    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;">
+                    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;width:100%;">
                         <a href="{{ $urlBaca }}" id="btnBukaPortal" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
-                            style="font-size:var(--text-base);font-weight:800;padding:12px 24px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(59,130,246,0.35);">
+                            style="font-size:var(--text-base);font-weight:800;padding:12px 24px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 14px rgba(59,130,246,0.35);width:100%;max-width:360px;">
                             <i class="fas fa-arrow-up-right-from-square"></i> Buka &amp; Baca E-Book di Portal Resmi
                         </a>
                         <div id="notifAutoOpen" style="font-size:var(--text-2xs);color:var(--text-muted);display:flex;align-items:center;gap:6px;">
@@ -138,7 +166,7 @@
         </div>
     </div>
 
-    @if (!$isLocalPdf)
+    @if (!$isPdf)
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', function () {

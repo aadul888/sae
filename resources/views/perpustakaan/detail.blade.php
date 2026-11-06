@@ -106,6 +106,11 @@
                         <span style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(59,130,246,0.12);color:var(--primary);">
                             <i class="fas fa-bolt me-1"></i>E-BOOK
                         </span>
+                        @if (!empty($buku->file_ebook))
+                            <span style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(16,185,129,0.12);color:var(--success,#10b981);">
+                                <i class="fas fa-hard-drive me-1"></i>PDF Lokal Server
+                            </span>
+                        @endif
                         @if (!empty($buku->kelas))
                             <span style="font-size:var(--text-2xs,0.6875rem);font-weight:700;padding:3px 9px;border-radius:var(--radius-pill,999px);background:rgba(100,116,139,0.1);color:var(--text-muted);">
                                 Kelas {{ $buku->kelas }}
@@ -187,10 +192,16 @@
                             style="display:inline-flex;align-items:center;gap:8px;">
                             <i class="fas fa-book-open-reader"></i> Baca E-Book Sekarang
                         </a>
+                        @if (!empty($buku->file_ebook))
+                            <a href="{{ asset('storage/' . $buku->file_ebook) }}" download="{{ \Illuminate\Support\Str::slug($buku->judul) }}.pdf" class="btn btn-outline"
+                                style="display:inline-flex;align-items:center;gap:8px;" title="Unduh berkas PDF untuk dibaca offline di perangkat">
+                                <i class="fas fa-download"></i> Unduh PDF Offline
+                            </a>
+                        @endif
                         @if (!empty($buku->tautan_baca))
                             <a href="{{ $buku->tautan_baca }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline"
                                 style="display:inline-flex;align-items:center;gap:8px;">
-                                <i class="fas fa-arrow-up-right-from-square"></i> Sumber Asli Kemendikbud
+                                <i class="fas fa-arrow-up-right-from-square"></i> Sumber Dokumen
                             </a>
                         @endif
                     @elseif ($member)

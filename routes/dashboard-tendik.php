@@ -378,6 +378,7 @@ return function () {
         Route::get('/ebook', [\App\Http\Controllers\PerpusEbookController::class, 'index'])->name('ebook.index')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,read');
         Route::post('/ebook/tarik', [\App\Http\Controllers\PerpusEbookController::class, 'tarik'])->name('ebook.tarik')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
         Route::post('/ebook/tarik-banyak', [\App\Http\Controllers\PerpusEbookController::class, 'tarikBanyak'])->name('ebook.tarik-banyak')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
+        Route::post('/ebook/{id}/unduh-pdf', [\App\Http\Controllers\PerpusEbookController::class, 'unduhPdf'])->name('ebook.unduh-pdf')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
         Route::post('/ebook/manual', [\App\Http\Controllers\PerpusEbookController::class, 'storeManual'])->name('ebook.manual')->middleware('permission:menu_perpustakaan|menu_perpustakaan_koleksi,create');
     });
 

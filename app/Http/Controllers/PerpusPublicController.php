@@ -450,10 +450,11 @@ class PerpusPublicController extends Controller
         }
 
         $hasil = \App\Services\PerpustakaanEbookService::catatMembaca($id, $member);
-        $urlBaca = $hasil['tautan_baca'] ?? $buku->tautan_baca;
 
-        if (!$urlBaca && $buku->file_ebook) {
+        if (!empty($buku->file_ebook)) {
             $urlBaca = asset('storage/' . $buku->file_ebook);
+        } else {
+            $urlBaca = $hasil['tautan_baca'] ?? $buku->tautan_baca;
         }
 
         if (!$urlBaca) {

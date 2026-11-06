@@ -6,7 +6,7 @@
     <div class="dash-content-inner">
         <div class="dash-banner"
             style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:14px;">
+            <div style="display:flex;align-items:center;gap:14px;min-width:0;flex:1 1 280px;">
                 <div
                     style="width:48px;height:48px;border-radius:var(--radius-lg);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-2xl);flex-shrink:0;">
                     <i class="fas fa-cloud-arrow-down"></i>
@@ -16,15 +16,15 @@
                         Tarik E-Book Gratis &amp; Terbuka
                     </h2>
                     <div style="font-size:var(--text-sm);color:var(--text-muted);margin-top:2px;">
-                        Integrasi repositori resmi bebas royalti Kemendikbudristek, Ditjen Vokasi SMK, Kemenag RI, Badan Bahasa GLN, Perpusnas, dan BSE.
+                        Integrasi repositori resmi bebas royalti Kemendikbudristek, Ditjen Vokasi SMK, Kemenag RI, dan Perpusnas.
                     </div>
                 </div>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="dash-banner-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 <button type="button" class="btn btn-outline" onclick="openModalEbookManual()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                    style="height:38px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--radius-md,8px);font-size:var(--text-xs);"
                     title="Tambah E-Book Mandiri" aria-label="Tambah E-Book Mandiri">
-                    <i class="fas fa-file-circle-plus"></i>
+                    <i class="fas fa-file-circle-plus"></i> <span class="d-none d-sm-inline">Tambah Mandiri</span>
                 </button>
             </div>
         </div>
@@ -40,9 +40,9 @@
         @endif
 
         {{-- Statistik Ringkas --}}
-        <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px;margin-bottom:20px;">
             <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(59,130,246,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
                 <div>
@@ -51,7 +51,7 @@
                 </div>
             </div>
             <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(16,185,129,0.12);color:var(--success,#10b981);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(16,185,129,0.12);color:var(--success,#10b981);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
                     <i class="fas fa-eye"></i>
                 </div>
                 <div>
@@ -60,7 +60,7 @@
                 </div>
             </div>
             <div class="dash-stat-card" style="padding:14px 18px;border-radius:var(--radius-lg);background:var(--card-bg);border:1px solid var(--border-color);display:flex;align-items:center;gap:14px;">
-                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(245,158,11,0.12);color:var(--warning,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);">
+                <div style="width:42px;height:42px;border-radius:var(--radius-md);background:rgba(245,158,11,0.12);color:var(--warning,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-xl);flex-shrink:0;">
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div>
@@ -73,7 +73,7 @@
         {{-- Filter & Pencarian --}}
         <div class="card" style="padding:16px 20px;margin-bottom:20px;border-radius:var(--radius-lg);">
             <form method="GET" action="{{ route('dashboard.perpustakaan.ebook.index') }}"
-                style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end;">
+                style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;align-items:end;">
                 <div>
                     <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;color:var(--text-muted);">
                         Kata Kunci Pencarian:
@@ -130,25 +130,35 @@
         {{-- Form Tarik Banyak --}}
         <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.tarik-banyak') }}" id="formTarikBanyak">
             @csrf
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-sm);cursor:pointer;user-select:none;">
-                        <input type="checkbox" id="checkAllEbook" onchange="togglePilihSemua(this)">
-                        <strong>Pilih Semua Belum Terdaftar</strong>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <label style="display:inline-flex;align-items:center;gap:8px;font-size:var(--text-xs);cursor:pointer;user-select:none;font-weight:700;margin:0;">
+                        <input type="checkbox" id="checkAllEbook" onchange="togglePilihSemua(this)" style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;">
+                        <span>Pilih Semua Belum Terdaftar</span>
                     </label>
-                    <span id="labelTerpilih" style="font-size:var(--text-xs);color:var(--text-muted);display:none;"></span>
+                    <span id="labelTerpilih" style="font-size:var(--text-xs);color:var(--primary);font-weight:700;display:none;"></span>
                 </div>
-                <button type="submit" id="btnTarikTerpilih" class="btn btn-success" disabled
-                    style="display:inline-flex;align-items:center;gap:6px;">
-                    <i class="fas fa-cloud-arrow-down"></i> Tarik Terpilih ke Katalog
-                </button>
+
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <label style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);cursor:pointer;margin:0;user-select:none;" title="Centang untuk sekaligus mengunduh berkas fisik PDF ke penyimpanan server sekolah">
+                        <input type="checkbox" name="unduh_pdf" value="1" id="checkBatchUnduhPdf" style="accent-color:var(--success,#10b981);width:15px;height:15px;cursor:pointer;">
+                        <span style="color:var(--text-color);"><i class="fas fa-hard-drive text-success me-1"></i> Unduh Berkas PDF ke Server (Offline)</span>
+                    </label>
+
+                    <button type="submit" id="btnTarikTerpilih" class="btn btn-success" disabled
+                        style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);padding:6px 14px;">
+                        <i class="fas fa-cloud-arrow-down"></i> Tarik Terpilih ke Katalog
+                    </button>
+                </div>
             </div>
 
-            {{-- Grid E-Book --}}
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-bottom:30px;">
+            {{-- Grid E-Book Responsif --}}
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;margin-bottom:30px;">
                 @forelse ($items as $item)
                     @php
                         $sudahAda = $item['sudah_ada'] ?? false;
+                        $hasFileEbook = $item['has_file_ebook'] ?? false;
+                        $hasPdfUrl = !empty($item['file_pdf_url']);
                         $sumberKey = $item['sumber_ebook'] ?? '';
                         $theme = \App\Services\PerpustakaanEbookService::coverTheme($item['kategori'] ?? '', $item['judul'] ?? '');
                         $labelSumber = \App\Services\PerpustakaanEbookService::labelSumber($sumberKey);
@@ -232,6 +242,11 @@
                                         <i class="fas fa-graduation-cap"></i> {{ $item['jurusan'] }}
                                     </span>
                                 @endif
+                                @if ($hasPdfUrl)
+                                    <span style="font-size:var(--text-2xs);padding:2px 7px;border-radius:var(--radius-pill);background:rgba(16,185,129,0.08);color:var(--success,#10b981);font-weight:700;">
+                                        <i class="fas fa-file-pdf"></i> PDF Siap Unduh
+                                    </span>
+                                @endif
                             </div>
 
                             {{-- Sinopsis singkat --}}
@@ -242,27 +257,55 @@
                             @endif
                         </div>
 
-                        {{-- Footer Aksi --}}
+                        {{-- Footer Aksi (Mobile Responsive) --}}
                         <div style="border-top:1px solid var(--border-color);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
                             @if (!empty($item['tautan_baca']))
                                 <a href="{{ $item['tautan_baca'] }}" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-outline" style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:5px;">
-                                    <i class="fas fa-arrow-up-right-from-square"></i> Baca Daring
+                                    <i class="fas fa-arrow-up-right-from-square"></i> Preview
                                 </a>
                             @else
                                 <span></span>
                             @endif
 
-                            @if ($sudahAda)
-                                <span style="font-size:var(--text-xs);font-weight:700;color:var(--success,#10b981);display:inline-flex;align-items:center;gap:4px;">
-                                    <i class="fas fa-check-double"></i> Ada di Katalog
-                                </span>
-                            @else
-                                <button type="button" class="btn btn-primary" onclick="tarikSatu('{{ $item['kode_buku'] }}')"
-                                    style="font-size:var(--text-xs);padding:5px 12px;display:inline-flex;align-items:center;gap:5px;">
-                                    <i class="fas fa-plus"></i> Tarik
-                                </button>
-                            @endif
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                @if ($sudahAda)
+                                    @if ($hasFileEbook)
+                                        <span style="font-size:var(--text-2xs);font-weight:700;color:var(--success,#10b981);background:rgba(16,185,129,0.1);padding:4px 9px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:4px;" title="Berkas PDF tersimpan lokal di server">
+                                            <i class="fas fa-hard-drive"></i> PDF di Server
+                                        </span>
+                                    @else
+                                        <span style="font-size:var(--text-2xs);font-weight:700;color:var(--primary);background:rgba(59,130,246,0.1);padding:4px 9px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:4px;">
+                                            <i class="fas fa-link"></i> Link di Katalog
+                                        </span>
+                                        @if ($hasPdfUrl && !empty($item['koleksi_id']))
+                                            <button type="button" class="btn btn-outline" onclick="unduhPdfKoleksi({{ $item['koleksi_id'] }})"
+                                                style="font-size:var(--text-2xs);padding:4px 8px;display:inline-flex;align-items:center;gap:4px;"
+                                                title="Unduh fisik PDF ke server sekolah untuk pembacaan offline">
+                                                <i class="fas fa-download"></i> Unduh PDF
+                                            </button>
+                                        @endif
+                                    @endif
+                                @else
+                                    <button type="button" class="btn btn-outline" onclick="tarikSatu('{{ $item['kode_buku'] }}', 0)"
+                                        style="font-size:var(--text-xs);padding:5px 9px;display:inline-flex;align-items:center;gap:4px;"
+                                        title="Tarik tautan ke katalog sekolah tanpa unduh file PDF">
+                                        <i class="fas fa-link"></i> Tarik Link
+                                    </button>
+                                    @if ($hasPdfUrl)
+                                        <button type="button" class="btn btn-primary" onclick="tarikSatu('{{ $item['kode_buku'] }}', 1)"
+                                            style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:4px;"
+                                            title="Tarik ke katalog dan langsung unduh berkas PDF ke server">
+                                            <i class="fas fa-cloud-arrow-down"></i> Tarik &amp; Unduh PDF
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-primary" onclick="tarikSatu('{{ $item['kode_buku'] }}', 0)"
+                                            style="font-size:var(--text-xs);padding:5px 10px;display:inline-flex;align-items:center;gap:4px;">
+                                            <i class="fas fa-plus"></i> Tarik
+                                        </button>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -278,6 +321,12 @@
         <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.tarik') }}" id="formTarikSatu" style="display:none;">
             @csrf
             <input type="hidden" name="kode_buku" id="inputKodeBukuSatu" value="">
+            <input type="hidden" name="unduh_pdf" id="inputUnduhPdfSatu" value="0">
+        </form>
+
+        {{-- Form Hidden untuk Unduh PDF Koleksi --}}
+        <form method="POST" action="" id="formUnduhPdfKoleksi" style="display:none;">
+            @csrf
         </form>
     </div>
 
@@ -301,7 +350,7 @@
                     </label>
                     <input type="text" name="judul" class="form-control" required placeholder="Contoh: Modul Praktikum Perakitan Komputer">
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px;margin-bottom:12px;">
                     <div>
                         <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Penulis / Penyusun</label>
                         <input type="text" name="penulis" class="form-control" placeholder="Nama Guru / Tim MGMP">
@@ -311,7 +360,7 @@
                         <input type="text" name="penerbit" class="form-control" placeholder="Internal Sekolah">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:12px;margin-bottom:12px;">
                     <div>
                         <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Kategori <span style="color:var(--danger,#ef4444);">*</span></label>
                         <select name="kategori" class="form-control" required>
@@ -324,28 +373,28 @@
                         <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Tingkat / Kelas</label>
                         <select name="kelas" class="form-control">
                             <option value="Semua Kelas">Semua Kelas</option>
-                            <option value="10">Kelas 10 (Fase E)</option>
-                            <option value="11">Kelas 11 (Fase F)</option>
-                            <option value="12">Kelas 12 (Fase F)</option>
+                            <option value="10">Kelas 10</option>
+                            <option value="11">Kelas 11</option>
+                            <option value="12">Kelas 12</option>
                         </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Konsentrasi / Jurusan</label>
+                        <input type="text" name="jurusan" class="form-control" placeholder="Umum / TJKT / RPL / TKRO">
                     </div>
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Jurusan / Program Keahlian</label>
-                    <input type="text" name="jurusan" class="form-control" placeholder="Contoh: TJKT, Otomotif, Akuntansi, Umum">
+                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
+                        Berkas PDF (Upload Langsung ke Server)
+                    </label>
+                    <input type="file" name="berkas_pdf" class="form-control" accept="application/pdf">
+                    <small style="color:var(--text-muted);font-size:var(--text-2xs);">Format: PDF, maks. 25 MB.</small>
                 </div>
                 <div style="margin-bottom:12px;">
                     <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
-                        Tautan Baca Online (URL)
+                        Atau Tautan Baca Eksternal (URL)
                     </label>
-                    <input type="url" name="tautan_baca" class="form-control" placeholder="https://drive.google.com/... atau tautan PDF eksternal">
-                    <span style="font-size:var(--text-2xs);color:var(--text-muted);">Gunakan tautan resmi online jika file di-host di luar.</span>
-                </div>
-                <div style="margin-bottom:14px;">
-                    <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
-                        Atau Unggah Berkas PDF (Maks. 20 MB)
-                    </label>
-                    <input type="file" name="file_pdf" class="form-control" accept="application/pdf">
+                    <input type="url" name="tautan_baca" class="form-control" placeholder="https://drive.google.com/... atau https://...">
                 </div>
                 <div style="margin-bottom:16px;">
                     <label style="display:block;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">Sinopsis / Deskripsi Singkat</label>
@@ -371,9 +420,17 @@
                 if (modal) modal.style.display = 'none';
             }
 
-            function tarikSatu(kodeBuku) {
+            function tarikSatu(kodeBuku, unduhPdf) {
                 document.getElementById('inputKodeBukuSatu').value = kodeBuku;
+                document.getElementById('inputUnduhPdfSatu').value = unduhPdf ? '1' : '0';
                 document.getElementById('formTarikSatu').submit();
+            }
+
+            function unduhPdfKoleksi(id) {
+                if (!id) return;
+                var form = document.getElementById('formUnduhPdfKoleksi');
+                form.action = '{{ url('/dashboard/perpustakaan/ebook') }}/' + id + '/unduh-pdf';
+                form.submit();
             }
 
             function togglePilihSemua(el) {
