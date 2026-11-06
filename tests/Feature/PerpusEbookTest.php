@@ -120,8 +120,8 @@ class PerpusEbookTest extends TestCase
 
         $res->assertOk();
         $res->assertSee('Tarik E-Book Gratis &amp; Terbuka', false);
-        $res->assertSee('Daftar Katalog');
-        $res->assertSee('Tarik E-Book Gratis');
+        $res->assertSee('Katalog Buku');
+        $res->assertSee('Tarik E-Book');
     }
 
     public function test_aksi_tarik_satu_dari_dashboard(): void

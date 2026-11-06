@@ -30,7 +30,6 @@
         </div>
 
         @include('dashboard.perpus.partials.tab-nav')
-        @include('dashboard.perpus.partials.sub-nav-koleksi')
 
         @if (session('error'))
             <div class="alert alert-danger" style="margin-bottom:16px;"><i class="fas fa-circle-exclamation"></i> {{ session('error') }}</div>

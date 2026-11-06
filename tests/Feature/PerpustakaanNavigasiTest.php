@@ -38,17 +38,26 @@ class PerpustakaanNavigasiTest extends TestCase
     {
         $html = $this->halaman('/dashboard/perpustakaan/koleksi');
 
+        // Batasi pengecekan pada kontainer tab navigasi perpustakaan agar tidak tertukar teks sidebar
+        if (preg_match('/<div class="periode-nav-desktop"[^>]*>(.*?)<\/div>/s', $html, $matches)) {
+            $tabHtml = $matches[1];
+        } else {
+            $tabHtml = $html;
+        }
+
         $label = [
-            'Katalog &amp; Koleksi',
+            'Katalog Buku',
+            'Tarik E-Book',
+            'Import &amp; Scan',
             'Anggota &amp; Kartu',
             'Sirkulasi &amp; Denda',
             'Buku Kunjungan',
             'Laporan &amp; Rekap',
         ];
 
-        $posisi = array_map(function (string $teks) use ($html) {
-            $pos = strpos($html, $teks);
-            $this->assertNotFalse($pos, "Tab \"{$teks}\" tidak ditemukan di halaman katalog.");
+        $posisi = array_map(function (string $teks) use ($tabHtml) {
+            $pos = strpos($tabHtml, $teks);
+            $this->assertNotFalse($pos, "Tab \"{$teks}\" tidak ditemukan di navigasi tab.");
 
             return $pos;
         }, $label);
@@ -61,11 +70,13 @@ class PerpustakaanNavigasiTest extends TestCase
     public function test_setiap_tab_utama_menandai_dirinya_sendiri_sebagai_aktif(): void
     {
         $peta = [
-            '/dashboard/perpustakaan/koleksi' => 'Katalog &amp; Koleksi',
-            '/dashboard/perpustakaan/anggota' => 'Anggota &amp; Kartu',
+            '/dashboard/perpustakaan/koleksi'   => 'Katalog Buku',
+            '/dashboard/perpustakaan/ebook'     => 'Tarik E-Book',
+            '/dashboard/perpustakaan/import'    => 'Import &amp; Scan',
+            '/dashboard/perpustakaan/anggota'   => 'Anggota &amp; Kartu',
             '/dashboard/perpustakaan/sirkulasi' => 'Sirkulasi &amp; Denda',
             '/dashboard/perpustakaan/kunjungan' => 'Buku Kunjungan',
-            '/dashboard/perpustakaan/laporan' => 'Laporan &amp; Rekap',
+            '/dashboard/perpustakaan/laporan'   => 'Laporan &amp; Rekap',
         ];
 
         foreach ($peta as $path => $teks) {
@@ -79,33 +90,20 @@ class PerpustakaanNavigasiTest extends TestCase
         }
     }
 
-    public function test_halaman_import_menandai_tab_katalog_sebagai_induk(): void
+    public function test_navigasi_utama_satu_baris_ringkas_tanpa_subtab_ganda(): void
     {
-        $html = $this->halaman('/dashboard/perpustakaan/import');
-
-        $this->assertMatchesRegularExpression(
-            '/class="periode-nav-tab active">\s*<i[^>]*><\/i>\s*Katalog &amp; Koleksi/',
-            $html,
-            'Halaman import harus tetap berada di bawah tab Katalog & Koleksi.'
-        );
-    }
-
-    public function test_sub_tab_katalog_tersedia_di_katalog_dan_import(): void
-    {
-        foreach (['/dashboard/perpustakaan/koleksi', '/dashboard/perpustakaan/import'] as $path) {
+        foreach (['/dashboard/perpustakaan/koleksi', '/dashboard/perpustakaan/ebook', '/dashboard/perpustakaan/import'] as $path) {
             $html = $this->halaman($path);
 
-            foreach (['Daftar Katalog', 'Import Massal', 'Input Scan Barcode'] as $sub) {
-                $this->assertStringContainsString($sub, $html, "Sub-tab \"{$sub}\" hilang di {$path}.");
-            }
-        }
+            // Sub-tab lama yang bertumpuk & redundan sudah tidak muncul
+            $this->assertStringNotContainsString('Daftar Katalog', $html);
+            $this->assertStringNotContainsString('Input Scan Barcode', $html);
 
-        $katalog = $this->halaman('/dashboard/perpustakaan/koleksi');
-        $this->assertMatchesRegularExpression(
-            '/class="periode-nav-tab active">\s*<i[^>]*><\/i>\s*Daftar Katalog/',
-            $katalog,
-            'Sub-tab Daftar Katalog harus aktif di halaman katalog.'
-        );
+            // Tab 1 baris utama ada di semua halaman
+            $this->assertStringContainsString('Katalog Buku', $html);
+            $this->assertStringContainsString('Tarik E-Book', $html);
+            $this->assertStringContainsString('Import &amp; Scan', $html);
+        }
     }
 
     public function test_sub_tab_laporan_tersedia_dan_menandai_tahun_ajaran(): void

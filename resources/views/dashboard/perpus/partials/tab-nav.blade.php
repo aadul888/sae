@@ -8,11 +8,27 @@
 
     $tabPerpus = [
         [
-            'label' => 'Katalog & Koleksi',
-            'ringkas' => 'Katalog & Koleksi',
+            'label' => 'Katalog Buku',
+            'ringkas' => 'Katalog Buku',
             'icon' => 'fas fa-book',
             'url' => route('dashboard.perpustakaan.koleksi.index'),
-            'aktif' => request()->routeIs('dashboard.perpustakaan.koleksi*') || request()->routeIs('dashboard.perpustakaan.import*'),
+            'aktif' => request()->routeIs('dashboard.perpustakaan.koleksi*'),
+            'izin' => 'menu_perpustakaan_koleksi',
+        ],
+        [
+            'label' => 'Tarik E-Book',
+            'ringkas' => 'Tarik E-Book',
+            'icon' => 'fas fa-cloud-arrow-down',
+            'url' => route('dashboard.perpustakaan.ebook.index'),
+            'aktif' => request()->routeIs('dashboard.perpustakaan.ebook*'),
+            'izin' => 'menu_perpustakaan_koleksi',
+        ],
+        [
+            'label' => 'Import & Scan',
+            'ringkas' => 'Import & Scan',
+            'icon' => 'fas fa-file-import',
+            'url' => route('dashboard.perpustakaan.import.form'),
+            'aktif' => request()->routeIs('dashboard.perpustakaan.import*'),
             'izin' => 'menu_perpustakaan_koleksi',
         ],
         [
