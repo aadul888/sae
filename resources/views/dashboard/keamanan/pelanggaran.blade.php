@@ -2,6 +2,29 @@
 
 @section('title', 'Pencatatan Pelanggaran Siswa - Keamanan')
 
+@push('styles')
+    <style>
+        .periode-nav-desktop {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        .periode-nav-desktop::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        @media (max-width: 768px) {
+            .periode-nav-desktop {
+                display: none !important;
+            }
+            .periode-nav-mobile {
+                display: block !important;
+                margin-bottom: 16px !important;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="content-wrapper">
         <!-- 1. Header Banner & Actions Standar SAE -->
@@ -23,22 +46,35 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button type="button" class="btn btn-outline" onclick="openModalCetakKeamanan()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Cetak Pelanggaran (pilih periode)" aria-label="Cetak Pelanggaran">
-                    <i class="fas fa-print"></i>
-                </button>
-                @if ($canCreate)
-                    <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                @if ($tab === 'pelanggaran')
+                    <button type="button" class="btn btn-outline" onclick="openModalCetakKeamanan()"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Import Pelanggaran Siswa via Excel" aria-label="Import Pelanggaran Siswa via Excel">
-                        <i class="fas fa-file-excel text-success"></i>
+                        title="Cetak Pelanggaran (pilih periode)" aria-label="Cetak Pelanggaran">
+                        <i class="fas fa-print"></i>
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="openModalPelanggaran()"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                        title="Catat Pelanggaran Siswa">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                    @if ($canCreate)
+                        <button type="button" class="btn btn-outline" id="btnOpenImportKeamanan"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Import Pelanggaran Siswa via Excel" aria-label="Import Pelanggaran Siswa via Excel">
+                            <i class="fas fa-file-excel text-success"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="openModalPelanggaran()"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Catat Pelanggaran Siswa">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    @endif
+                @else
+                    <span class="badge badge-outline" style="font-size: 0.75rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-shield-halved text-primary"></i> Panduan Readonly Tata Tertib
+                    </span>
+                    @if ($canCreate)
+                        <button type="button" class="btn btn-primary" onclick="openModalPelanggaran()"
+                            style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
+                            title="Catat Pelanggaran Siswa">
+                            <i class="fas fa-plus"></i> Catat Pelanggaran
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -70,7 +106,7 @@
                     <i class="fas fa-scale-balanced"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ number_format(count($tataTertibList)) }}</div>
+                    <div class="dash-stat-value">{{ number_format($totalTatibAktif) }}</div>
                     <div class="dash-stat-label">Aturan Tata Tertib Aktif</div>
                 </div>
             </div>
@@ -86,144 +122,341 @@
             </div>
         </div>
 
-        {{-- Unified Datatable Keamanan Pelanggaran --}}
-        <div class="card datatable-card-wrapper" id="tableDataContainer">
-            {{-- 1. Toolbar Header (Entries, Filters & Live Search) --}}
-            <div class="datatable-toolbar">
-                <form method="GET" action="{{ route('dashboard.keamanan.pelanggaran.index') }}" id="filterForm"
-                    style="margin: 0;">
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                            <div class="toolbar-entries">
-                                <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                                <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
-                                    @foreach ([10, 15, 25, 50, 100] as $n)
-                                        <option value="{{ $n }}"
-                                            {{ request('perPage', 15) == $n ? 'selected' : '' }}>
-                                            {{ $n }}</option>
-                                    @endforeach
+        <!-- 3. Navigation Tabs Wrapper -->
+        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+            <div class="periode-nav-desktop">
+                <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'pelanggaran']) }}"
+                    class="periode-nav-tab {{ $tab === 'pelanggaran' ? 'active' : '' }}">
+                    <i class="fas fa-triangle-exclamation"></i> Catatan Pelanggaran
+                    <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ number_format($totalSemua) }}</span>
+                </a>
+                <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'tata_tertib']) }}"
+                    class="periode-nav-tab {{ $tab === 'tata_tertib' ? 'active' : '' }}">
+                    <i class="fas fa-book-bookmark"></i> Tata Tertib &amp; Poin
+                    <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ number_format($totalTatibAktif) }} Aturan</span>
+                </a>
+            </div>
+
+            {{-- Mobile Responsive Dropdown Switcher --}}
+            <div class="periode-nav-mobile">
+                <div class="periode-mobile-select-box" style="margin-bottom: 0;">
+                    <label><i class="fas fa-layer-group text-primary me-1"></i> Pilih Tampilan:</label>
+                    <select class="periode-mobile-select form-select"
+                        onchange="if(this.value) window.location.href=this.value;"
+                        style="font-size: var(--text-base, 0.875rem); height: 42px; border-radius: var(--radius-md, 8px);">
+                        <option value="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'pelanggaran']) }}"
+                            {{ $tab === 'pelanggaran' ? 'selected' : '' }}>
+                            Catatan Pelanggaran ({{ number_format($totalSemua) }})
+                        </option>
+                        <option value="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'tata_tertib']) }}"
+                            {{ $tab === 'tata_tertib' ? 'selected' : '' }}>
+                            Tata Tertib &amp; Poin ({{ number_format($totalTatibAktif) }} Aturan)
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        @if ($tab === 'pelanggaran')
+            {{-- Unified Datatable Keamanan Pelanggaran --}}
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                {{-- 1. Toolbar Header (Entries, Filters & Live Search) --}}
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.keamanan.pelanggaran.index') }}" id="filterForm"
+                        style="margin: 0;">
+                        <input type="hidden" name="tab" value="pelanggaran">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;" onchange="this.form.submit()">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
+                                                {{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
+
+                                <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
+                                    style="height: 38px; width: auto; min-width: 140px; padding: 4px 10px;" onchange="this.form.submit()">
+
+                                <select name="kategori" class="toolbar-filter-select" style="height: 38px; min-width: 170px;" onchange="this.form.submit()">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="kehadiran" {{ $kategori === 'kehadiran' ? 'selected' : '' }}>Kehadiran / Jam Belajar</option>
+                                    <option value="kerapian" {{ $kategori === 'kerapian' ? 'selected' : '' }}>Kerapian Seragam</option>
+                                    <option value="perilaku" {{ $kategori === 'perilaku' ? 'selected' : '' }}>Perilaku &amp; Ketertiban</option>
+                                    <option value="larangan_berat" {{ $kategori === 'larangan_berat' ? 'selected' : '' }}>Larangan Berat</option>
                                 </select>
-                                <span>entri</span>
+
+                                @if ($q || $kategori || $tanggal)
+                                    <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'pelanggaran']) }}"
+                                        class="btn btn-outline btn-reset-filter"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                                        title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                @endif
                             </div>
 
-                            <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
-                                style="height: 38px; width: auto; min-width: 140px; padding: 4px 10px;">
-
-                            <select name="kategori" class="toolbar-filter-select" style="height: 38px; min-width: 170px;">
-                                <option value="">Semua Kategori</option>
-                                <option value="kehadiran" {{ $kategori === 'kehadiran' ? 'selected' : '' }}>Kehadiran / Jam Belajar</option>
-                                <option value="kerapian" {{ $kategori === 'kerapian' ? 'selected' : '' }}>Kerapian Seragam</option>
-                                <option value="perilaku" {{ $kategori === 'perilaku' ? 'selected' : '' }}>Perilaku &amp; Ketertiban</option>
-                                <option value="larangan_berat" {{ $kategori === 'larangan_berat' ? 'selected' : '' }}>Larangan Berat</option>
-                            </select>
-
-                            @if ($q || $kategori || $tanggal)
-                                <a href="{{ route('dashboard.keamanan.pelanggaran.index') }}"
-                                    class="btn btn-outline btn-reset-filter"
-                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
-                                    title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
-                            @endif
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="q" id="searchPelanggaran" value="{{ $q }}"
+                                    placeholder="Cari nama siswa, NISN, aturan..." autocomplete="off">
+                                <button type="button" id="clearSearch"
+                                    class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
-
-                        <div class="live-search-wrap" style="height: 38px;">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" name="q" id="searchPelanggaran" value="{{ $q }}"
-                                placeholder="Cari nama siswa, NISN, aturan..." autocomplete="off">
-                            <button type="button" id="clearSearch"
-                                class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            {{-- 2. Data Table --}}
-            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Tanggal</th>
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Siswa</th>
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Aturan Dilanggar</th>
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">Lokasi Kejadian</th>
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">Poin</th>
-                            <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; text-align: center;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($pelanggaranList as $item)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem);">
-                                    {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}
-                                </td>
-                                <td style="padding: 12px 16px;">
-                                    <div style="font-weight: 700; color: var(--text-color);">
-                                        {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
-                                    </div>
-                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                        NISN: {{ $item->siswa?->nisn ?: '-' }}
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;">
-                                    <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran' }}</strong>
-                                    @if ($item->aturan?->tingkat)
-                                        <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem; margin-left: 4px;">
-                                            {{ strtoupper($item->aturan->tingkat) }}
-                                        </span>
-                                    @endif
-                                    @if ($item->keterangan)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                            Ket: {{ $item->keterangan }}
-                                        </div>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                                    <i class="fas fa-location-dot me-1"></i> {{ $item->tempat_kejadian }}
-                                </td>
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    @if ($item->sanggah_status)
-                                        <span style="text-decoration: line-through; font-size: 0.75rem; color: var(--text-muted);">+{{ $item->poin }}</span>
-                                        <div style="font-weight: 800; color: #059669; font-size: 0.875rem;">+{{ $item->poin_netto }}</div>
-                                    @else
-                                        <span style="font-weight: 800; color: var(--danger, #ef4444); font-size: 1rem;">+{{ $item->poin }}</span>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    @if ($item->sanggah_status)
-                                        <span class="badge badge-success" style="font-size: 0.7rem;"><i class="fas fa-check"></i> DISANGGAH</span>
-                                    @else
-                                        @php
-                                            $badgeSt = match ($item->status_tindak_lanjut) {
-                                                'selesai' => 'badge-success',
-                                                'proses'  => 'badge-warning',
-                                                default   => 'badge-danger',
-                                            };
-                                        @endphp
-                                        <span class="badge {{ $badgeSt }}" style="font-size: 0.7rem;">{{ strtoupper($item->status_tindak_lanjut) }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                    <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                    Belum ada catatan pelanggaran siswa dari pos satpam.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- 3. Footer Paginasi Terpadu Datatable --}}
-            @if ($pelanggaranList->hasPages())
-                <div class="datatable-footer">
-                    @include('partials.datatable-pagination', ['paginator' => $pelanggaranList])
+                    </form>
                 </div>
-            @endif
-        </div>
+
+                {{-- 2. Data Table Pelanggaran --}}
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Tanggal</th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Siswa</th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Aturan Dilanggar</th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">Lokasi Kejadian</th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">Poin</th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($pelanggaranList as $item)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem);" data-label="Tanggal">
+                                        {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Siswa">
+                                        <div style="font-weight: 700; color: var(--text-color);">
+                                            {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
+                                        </div>
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                            NISN: {{ $item->siswa?->nisn ?: '-' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Aturan Dilanggar">
+                                        <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran' }}</strong>
+                                        @if ($item->aturan?->tingkat)
+                                            <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem; margin-left: 4px;">
+                                                {{ strtoupper($item->aturan->tingkat) }}
+                                            </span>
+                                        @endif
+                                        @if ($item->keterangan)
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
+                                                Ket: {{ $item->keterangan }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);" data-label="Lokasi">
+                                        <i class="fas fa-location-dot me-1"></i> {{ $item->tempat_kejadian }}
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center;" data-label="Poin">
+                                        @if ($item->sanggah_status)
+                                            <span style="text-decoration: line-through; font-size: 0.75rem; color: var(--text-muted);">+{{ $item->poin }}</span>
+                                            <div style="font-weight: 800; color: #059669; font-size: 0.875rem;">+{{ $item->poin_netto }}</div>
+                                        @else
+                                            <span style="font-weight: 800; color: var(--danger, #ef4444); font-size: 1rem;">+{{ $item->poin }}</span>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center;" data-label="Status">
+                                        @if ($item->sanggah_status)
+                                            <span class="badge badge-success" style="font-size: 0.7rem;"><i class="fas fa-check"></i> DISANGGAH</span>
+                                        @else
+                                            @php
+                                                $badgeSt = match ($item->status_tindak_lanjut) {
+                                                    'selesai' => 'badge-success',
+                                                    'proses'  => 'badge-warning',
+                                                    default   => 'badge-danger',
+                                                };
+                                            @endphp
+                                            <span class="badge {{ $badgeSt }}" style="font-size: 0.7rem;">{{ strtoupper($item->status_tindak_lanjut) }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        Belum ada catatan pelanggaran siswa dari pos satpam.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- 3. Footer Paginasi Pelanggaran --}}
+                @if (method_exists($pelanggaranList, 'hasPages') && $pelanggaranList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $pelanggaranList])
+                    </div>
+                @endif
+            </div>
+        @else
+            {{-- TAB: MASTER TATA TERTIB READONLY --}}
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                {{-- 1. Toolbar Header Tata Tertib --}}
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.keamanan.pelanggaran.index') }}" id="filterFormTatib"
+                        style="margin: 0;">
+                        <input type="hidden" name="tab" value="tata_tertib">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelectTatib" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelectTatib" name="perPage" class="per-page-select" style="height: 38px;" onchange="this.form.submit()">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
+                                                {{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
+
+                                <select name="tingkat" class="toolbar-filter-select" style="height: 38px; min-width: 150px;" onchange="this.form.submit()">
+                                    <option value="">Semua Tingkat</option>
+                                    <option value="ringan" {{ ($tingkat ?? '') === 'ringan' ? 'selected' : '' }}>Ringan</option>
+                                    <option value="sedang" {{ ($tingkat ?? '') === 'sedang' ? 'selected' : '' }}>Sedang</option>
+                                    <option value="berat" {{ ($tingkat ?? '') === 'berat' ? 'selected' : '' }}>Berat</option>
+                                </select>
+
+                                <select name="kategori" class="toolbar-filter-select" style="height: 38px; min-width: 170px;" onchange="this.form.submit()">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="kerapian" {{ ($kategori ?? '') === 'kerapian' ? 'selected' : '' }}>Kerapian</option>
+                                    <option value="kehadiran" {{ ($kategori ?? '') === 'kehadiran' ? 'selected' : '' }}>Kehadiran</option>
+                                    <option value="perilaku" {{ ($kategori ?? '') === 'perilaku' ? 'selected' : '' }}>Perilaku</option>
+                                    <option value="larangan_berat" {{ ($kategori ?? '') === 'larangan_berat' ? 'selected' : '' }}>Larangan Berat</option>
+                                </select>
+
+                                @if ($q || $kategori || $tingkat)
+                                    <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'tata_tertib']) }}"
+                                        class="btn btn-outline btn-reset-filter"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                                        title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                @endif
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="q" id="searchTatib" value="{{ $q }}"
+                                    placeholder="Cari aturan, kode, atau sanksi..." autocomplete="off">
+                                <button type="button" id="clearSearchTatib"
+                                    class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- 2. Data Table Master Tata Tertib Readonly --}}
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Uraian Tata Tertib &amp; Pelanggaran
+                                </th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 95px;">
+                                    Kode
+                                </th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
+                                    Tingkat
+                                </th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                    Kategori
+                                </th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                    Bobot Poin
+                                </th>
+                                <th style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
+                                    Sanksi Rekomendasi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($tataTertibList as $item)
+                                @php
+                                    $itemTingkat = $item->tingkat;
+                                    $tingkatStyle = match ($itemTingkat) {
+                                        'ringan' => 'background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);',
+                                        'sedang' => 'background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25);',
+                                        'berat'  => 'background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25);',
+                                        default  => 'background: rgba(100, 116, 139, 0.12); color: #475569; border: 1px solid rgba(100, 116, 139, 0.25);',
+                                    };
+                                    $tingkatIcon = match ($itemTingkat) {
+                                        'ringan' => 'fa-circle-check',
+                                        'sedang' => 'fa-triangle-exclamation',
+                                        'berat'  => 'fa-circle-radiation',
+                                        default  => 'fa-circle',
+                                    };
+                                    $borderAccent = match ($itemTingkat) {
+                                        'ringan' => 'border-left: 3px solid #10b981;',
+                                        'sedang' => 'border-left: 3px solid #f59e0b;',
+                                        'berat'  => 'border-left: 3px solid #ef4444;',
+                                        default  => '',
+                                    };
+                                    $katColor = match ($item->kategori) {
+                                        'kerapian' => 'badge-outline',
+                                        'kehadiran' => 'badge-primary',
+                                        'perilaku' => 'badge-warning',
+                                        'larangan_berat' => 'badge-danger',
+                                        default => 'badge-outline',
+                                    };
+                                @endphp
+                                <tr style="border-bottom: 1px solid var(--border-color); {{ $borderAccent }}">
+                                    <td class="cell-card-header" style="padding: 12px 16px; font-weight: 700; color: var(--text-color);" data-label="Uraian Aturan">
+                                        {{ $item->nama_aturan }}
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 500; font-family: monospace; margin-top: 2px;">
+                                            Kode: <strong style="color: var(--primary);">{{ $item->kode }}</strong>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: var(--primary);" data-label="Kode">
+                                        {{ $item->kode }}
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center;" data-label="Tingkat">
+                                        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
+                                            <i class="fas {{ $tingkatIcon }}"></i> {{ $itemTingkat }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Kategori">
+                                        <span class="badge {{ $katColor }}">{{ strtoupper(str_replace('_', ' ', $item->kategori)) }}</span>
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center; font-weight: 800; font-size: var(--text-lg, 1.125rem); {{ $itemTingkat === 'berat' ? 'color: var(--danger, #ef4444);' : ($itemTingkat === 'sedang' ? 'color: var(--warning, #f59e0b);' : 'color: var(--success, #10b981);') }}"
+                                        data-label="Bobot Poin">
+                                        +{{ $item->bobot_poin }}
+                                    </td>
+                                    <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);" data-label="Sanksi Rekomendasi">
+                                        {{ $item->sanksi_rekomendasi ?: '-' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        Tidak ada aturan tata tertib yang sesuai kriteria pencarian.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- 3. Footer Paginasi Tata Tertib --}}
+                @if (method_exists($tataTertibList, 'hasPages') && $tataTertibList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $tataTertibList])
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <!-- Modal Form Pencatatan Pelanggaran Siswa -->
@@ -504,6 +737,23 @@
                 searchInput.value = '';
                 clearBtn.classList.remove('visible');
                 document.getElementById('filterForm').submit();
+            });
+        }
+
+        const searchTatib = document.getElementById('searchTatib');
+        const clearBtnTatib = document.getElementById('clearSearchTatib');
+        if (searchTatib && clearBtnTatib) {
+            searchTatib.addEventListener('input', function() {
+                if (this.value) {
+                    clearBtnTatib.classList.add('visible');
+                } else {
+                    clearBtnTatib.classList.remove('visible');
+                }
+            });
+            clearBtnTatib.addEventListener('click', function() {
+                searchTatib.value = '';
+                clearBtnTatib.classList.remove('visible');
+                document.getElementById('filterFormTatib').submit();
             });
         }
     });

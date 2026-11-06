@@ -170,4 +170,30 @@ class KedisiplinanSanggahAndKeamananTest extends TestCase
         $response->assertJsonPath('status', 'success');
         $this->assertDatabaseMissing('kedisiplinan_pelanggaran', ['id' => $pelanggaran->id]);
     }
+
+    public function test_keamanan_pelanggaran_tata_tertib_tab_readonly(): void
+    {
+        $session = [
+            'user' => [
+                'id' => 1,
+                'role' => 'admin',
+                'nama' => 'Pak Joko Satpam',
+                'permissions' => ['menu_keamanan' => ['read' => true]],
+            ],
+        ];
+
+        // 1. Tab Pelanggaran default
+        $response = $this->withSession($session)->get(route('dashboard.keamanan.pelanggaran.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Catatan Pelanggaran');
+        $response->assertSee('Tata Tertib &amp; Poin', false);
+
+        // 2. Tab Tata Tertib readonly
+        $responseTatib = $this->withSession($session)->get(route('dashboard.keamanan.pelanggaran.index', ['tab' => 'tata_tertib']));
+        $responseTatib->assertStatus(200);
+        $responseTatib->assertSee('Panduan Readonly Tata Tertib');
+        $responseTatib->assertSee('Uraian Tata Tertib &amp; Pelanggaran', false);
+        $responseTatib->assertSee('Bobot Poin');
+        $responseTatib->assertSee('Sanksi Rekomendasi');
+    }
 }

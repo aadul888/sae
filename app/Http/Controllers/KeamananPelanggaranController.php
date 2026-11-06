@@ -53,12 +53,21 @@ class KeamananPelanggaranController extends Controller
         $canCreate = RolePermission::canAccess($user, 'menu_keamanan', 'create')
             || in_array($role, ['admin', 'satpam', 'tendik']);
 
+        $tab = $request->get('tab', 'pelanggaran');
+        if (!in_array($tab, ['pelanggaran', 'tata_tertib'], true)) {
+            $tab = 'pelanggaran';
+        }
+
         $q = trim($request->get('q', ''));
         $kategori = trim($request->get('kategori', ''));
+        $tingkat = trim($request->get('tingkat', ''));
         $tanggal = trim($request->get('tanggal', ''));
         $perPage = (int) $request->get('perPage', 15);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
+            $perPage = 15;
+        }
 
-        // Pelanggaran yang dicatat satpam/pos gerbang
+        // 1. Pelanggaran yang dicatat satpam/pos gerbang
         $query = KedisiplinanPelanggaran::with(['siswa', 'aturan'])
             ->where(function ($b) {
                 $b->where('pelapor_nama', 'like', '%Satpam%')
@@ -70,34 +79,58 @@ class KeamananPelanggaranController extends Controller
             ->latest('tanggal_kejadian')
             ->latest('id');
 
-        if ($q !== '') {
-            $query->where(function ($sub) use ($q) {
-                $sub->whereHas('siswa', function ($s) use ($q) {
-                    $s->where('nama', 'like', "%{$q}%")
-                        ->orWhere('nisn', 'like', "%{$q}%");
-                })->orWhereHas('aturan', function ($a) use ($q) {
-                    $a->where('nama_aturan', 'like', "%{$q}%")
-                        ->orWhere('kode', 'like', "%{$q}%");
-                })->orWhere('keterangan', 'like', "%{$q}%");
-            });
+        if ($tab === 'pelanggaran') {
+            if ($q !== '') {
+                $query->where(function ($sub) use ($q) {
+                    $sub->whereHas('siswa', function ($s) use ($q) {
+                        $s->where('nama', 'like', "%{$q}%")
+                            ->orWhere('nisn', 'like', "%{$q}%");
+                    })->orWhereHas('aturan', function ($a) use ($q) {
+                        $a->where('nama_aturan', 'like', "%{$q}%")
+                            ->orWhere('kode', 'like', "%{$q}%");
+                    })->orWhere('keterangan', 'like', "%{$q}%");
+                });
+            }
+
+            if ($tanggal !== '') {
+                $query->whereDate('tanggal_kejadian', $tanggal);
+            }
+
+            if ($kategori !== '') {
+                $query->whereHas('aturan', function ($a) use ($kategori) {
+                    $a->where('kategori', $kategori);
+                });
+            }
         }
 
-        if ($tanggal !== '') {
-            $query->whereDate('tanggal_kejadian', $tanggal);
+        $pelanggaranList = $query->paginate($perPage, ['*'], 'pelanggaran_page')->withQueryString();
+
+        // 2. Tab Tata Tertib (Readonly untuk acuan Satpam / Keamanan)
+        $tatibQuery = KedisiplinanTataTertib::where('is_active', true)
+            ->orderByRaw("FIELD(tingkat, 'ringan', 'sedang', 'berat')")
+            ->orderBy('kategori')
+            ->orderBy('kode');
+
+        if ($tab === 'tata_tertib') {
+            if ($q !== '') {
+                $tatibQuery->where(function ($w) use ($q) {
+                    $w->where('nama_aturan', 'like', "%{$q}%")
+                        ->orWhere('kode', 'like', "%{$q}%")
+                        ->orWhere('sanksi_rekomendasi', 'like', "%{$q}%");
+                });
+            }
+
+            if ($kategori !== '') {
+                $tatibQuery->where('kategori', $kategori);
+            }
+
+            if ($tingkat !== '') {
+                $tatibQuery->where('tingkat', $tingkat);
+            }
         }
 
-        if ($kategori !== '') {
-            $query->whereHas('aturan', function ($a) use ($kategori) {
-                $a->where('kategori', $kategori);
-            });
-        }
-
-        $pelanggaranList = $query->paginate($perPage)->withQueryString();
-
-        // Aturan tata tertib untuk dropdown form
-        $tataTertibList = KedisiplinanTataTertib::where('is_active', true)
-            ->orderBy('bobot_poin')
-            ->get();
+        $tataTertibList = $tatibQuery->paginate($perPage, ['*'], 'tatib_page')->withQueryString();
+        $totalTatibAktif = KedisiplinanTataTertib::where('is_active', true)->count();
 
         // Ringkasan statistik satpam
         $today = date('Y-m-d');
@@ -123,15 +156,18 @@ class KeamananPelanggaranController extends Controller
         })->count();
 
         return view('dashboard.keamanan.pelanggaran', compact(
+            'tab',
             'pelanggaranList',
             'tataTertibList',
             'q',
             'kategori',
+            'tingkat',
             'tanggal',
             'perPage',
             'totalHariIni',
             'totalBulanIni',
             'totalSemua',
+            'totalTatibAktif',
             'canCreate'
         ));
     }
