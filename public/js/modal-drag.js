@@ -38,8 +38,8 @@
 
         var handle = e.target.closest('.modal-backdrop > .card > div, .modal-backdrop > .card > header, .modal-backdrop > .modal-card > div');
         if (!handle) return;
-        // Jangan seret saat menekan tombol / input di dalam header
-        if (e.target.closest('button, a, input, select, textarea')) return;
+        // Jangan seret saat menekan tombol / input / elemen interaktif (klik-salin) di dalam modal
+        if (e.target.closest('button, a, input, select, textarea, .copyable, [data-copy]')) return;
 
         var backdrop = handle.closest('.modal-backdrop');
         var box = getBox(backdrop);

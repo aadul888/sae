@@ -258,63 +258,6 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', window.closeModalPengelolaanUsulan);
     });
 
-    function copyTextToClipboard(text) {
-        if (!text) return false;
-
-        // 1. Coba Modern Clipboard API jika secure / localhost
-        if (navigator.clipboard && (window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-            try {
-                navigator.clipboard.writeText(text);
-            } catch (_) {}
-        }
-
-        // 2. Fallback input/textarea sinkron di dalam modal container
-        let ok = false;
-        try {
-            const container = document.getElementById('modalPengelolaanUsulan') || document.body;
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = text;
-            input.style.position = 'absolute';
-            input.style.opacity = '0.01';
-            input.style.pointerEvents = 'none';
-            input.style.left = '0';
-            input.style.top = '0';
-            container.appendChild(input);
-
-            input.focus();
-            input.select();
-            input.setSelectionRange(0, text.length);
-
-            ok = document.execCommand('copy');
-            container.removeChild(input);
-        } catch (_) {
-            ok = false;
-        }
-
-        return ok;
-    }
-
-    // Delegasi Salin / Copy Khusus Modal Usulan
-    document.addEventListener('click', function (e) {
-        const copyEl = e.target.closest('#modalUsulanTableBody .copyable');
-        if (!copyEl) return;
-        e.preventDefault();
-
-        const rawVal = copyEl.getAttribute('data-copy') || copyEl.innerText.trim();
-        const label = copyEl.getAttribute('data-label') || 'Data';
-        if (!rawVal || rawVal === '-') return;
-
-        copyTextToClipboard(rawVal);
-
-        if (window.SAE && typeof window.SAE.toast === 'function') {
-            window.SAE.toast(`${label} berhasil disalin!`, 'success');
-        }
-
-        copyEl.classList.add('copied');
-        setTimeout(() => copyEl.classList.remove('copied'), 1500);
-    });
-
     // Preview Lampiran Dokumen dari Usulan
     document.addEventListener('click', function (e) {
         const previewBtn = e.target.closest('.btn-preview-lampiran-usulan, #docKkPreviewBtn, #docIjazahPreviewBtn, #docAktaPreviewBtn');
