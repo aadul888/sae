@@ -461,9 +461,18 @@
                     {{ $pesanTidakAktif ?? 'Data presensi siswa per kelas hanya ditampilkan pada hari dan jam mengajar aktif Anda.' }}
                 </p>
                 @if (!empty($nextJadwalInfo))
-                    <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.08); color: var(--primary); padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
-                        <i class="fas fa-calendar-day"></i>
-                        <span>{{ $nextJadwalInfo }}</span>
+                    <div style="margin-top: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 6px;">
+                        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.08); color: var(--primary); padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>{{ $nextJadwalInfo }}</span>
+                        </div>
+                        @if (!empty($nextJadwalStart))
+                            <div id="pkAutoCountdown" data-target-time="{{ $nextJadwalStart }}"
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-hourglass-half text-warning"></i>
+                                <span>Mulai dalam <strong id="pkCountdownText" style="color: var(--warning, #f59e0b);">--:--</strong> (Otomatis memuat ulang saat jam KBM dimulai)</span>
+                            </div>
+                        @endif
                     </div>
                 @endif
                 <div style="margin-top: 16px;">

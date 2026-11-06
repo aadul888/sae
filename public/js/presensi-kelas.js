@@ -442,4 +442,43 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // 8. Auto Countdown & Auto Refresh saat Jam Mengajar Berikutnya Dimulai
+    const countdownEl = document.getElementById('pkAutoCountdown');
+    const countdownText = document.getElementById('pkCountdownText');
+    if (countdownEl && countdownText) {
+        const targetTimeStr = countdownEl.getAttribute('data-target-time'); // e.g. "10:00"
+        if (targetTimeStr) {
+            const [targetH, targetM] = targetTimeStr.split(':').map(Number);
+            function updateCountdown() {
+                const now = new Date();
+                const target = new Date();
+                target.setHours(targetH, targetM, 0, 0);
+
+                const diffMs = target - now;
+                if (diffMs <= 0) {
+                    countdownText.textContent = 'Memulai sesi...';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    return;
+                }
+
+                const totalSec = Math.floor(diffMs / 1000);
+                const hours = Math.floor(totalSec / 3600);
+                const minutes = Math.floor((totalSec % 3600) / 60);
+                const seconds = totalSec % 60;
+
+                let displayStr = '';
+                if (hours > 0) {
+                    displayStr += `${hours} jam `;
+                }
+                displayStr += `${minutes} menit ${seconds < 10 ? '0' : ''}${seconds} detik`;
+                countdownText.textContent = displayStr;
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+    }
 });

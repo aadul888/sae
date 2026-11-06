@@ -74,6 +74,7 @@ class PresensiKelasService
         $pesanTidakAktif = null;
 
         $nextJadwalInfo = null;
+        $nextJadwalStart = null;
 
         if ($isGuru) {
             $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
@@ -115,12 +116,14 @@ class PresensiKelasService
                         $isJamMengajarAktif = false;
                         $pesanTidakAktif = "Saat ini (pukul {$nowHi}) bukan jam mengajar aktif Anda. Data presensi siswa hanya akan muncul saat jadwal mengajar Anda berlangsung.";
 
+                        $nextJadwalStart = null;
                         $nextJadwal = $todaySchedules->first(function ($j) use ($nowHi) {
                             return !empty($j->jam_mulai) && substr($j->jam_mulai, 0, 5) > $nowHi;
                         });
 
                         if ($nextJadwal) {
                             $rombelLabel = $nextJadwal->nama_rombel ?: $nextJadwal->rombongan_belajar_id;
+                            $nextJadwalStart = substr($nextJadwal->jam_mulai, 0, 5);
                             $nextJadwalInfo = "Jadwal berikutnya hari ini: {$nextJadwal->nama_mata_pelajaran} (Kelas {$rombelLabel}) pukul " . substr($nextJadwal->jam_mulai, 0, 5) . " - " . substr($nextJadwal->jam_selesai, 0, 5) . " WIB.";
                         } else {
                             $nextJadwalInfo = "Tidak ada jadwal mengajar KBM lagi untuk Anda hari ini.";
@@ -541,7 +544,8 @@ class PresensiKelasService
             'isAdmin',
             'isJamMengajarAktif',
             'pesanTidakAktif',
-            'nextJadwalInfo'
+            'nextJadwalInfo',
+            'nextJadwalStart'
         );
     }
 
