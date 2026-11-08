@@ -815,6 +815,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 5. Preview Foto Snapshot Presensi Modal (Event Delegation: Tahan Banting AJAX / Pindah Halaman)
+    function closeFotoSnapshotModal() {
+        const modalFoto = document.getElementById('modalFotoSnapshot');
+        const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
+        if (modalFoto) {
+            modalFoto.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        if (imgFotoSnapshot) {
+            imgFotoSnapshot.src = '';
+        }
+    }
+
     document.addEventListener('click', function (e) {
         // Tombol Snapshot Foto Masuk / Pulang
         const btnSnapshot = e.target.closest('.btn-preview-snapshot');
@@ -828,6 +840,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
 
             if (imgFotoSnapshot && modalFoto && url) {
+                imgFotoSnapshot.src = '';
                 imgFotoSnapshot.src = url;
                 if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = title;
                 modalFoto.style.display = 'flex';
@@ -843,6 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
             const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
             if (imgFotoSnapshot && modalFoto) {
+                imgFotoSnapshot.src = '';
                 imgFotoSnapshot.src = avatar.src;
                 const nama = avatar.alt || 'Peserta Didik';
                 if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = 'Foto Profil — ' + nama;
@@ -856,19 +870,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnClose = e.target.closest('#btnCloseFotoModal');
         if (btnClose) {
             e.preventDefault();
-            const modalFoto = document.getElementById('modalFotoSnapshot');
-            if (modalFoto) {
-                modalFoto.style.display = 'none';
-                document.body.style.overflow = '';
-            }
+            closeFotoSnapshotModal();
             return;
         }
 
         // Klik di Luar Modal (Backdrop) untuk Menutup
         const modalFoto = document.getElementById('modalFotoSnapshot');
         if (modalFoto && e.target === modalFoto) {
-            modalFoto.style.display = 'none';
-            document.body.style.overflow = '';
+            closeFotoSnapshotModal();
             return;
         }
     });
@@ -878,8 +887,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Escape') {
             const modalFoto = document.getElementById('modalFotoSnapshot');
             if (modalFoto && modalFoto.style.display !== 'none') {
-                modalFoto.style.display = 'none';
-                document.body.style.overflow = '';
+                closeFotoSnapshotModal();
             }
         }
     });
