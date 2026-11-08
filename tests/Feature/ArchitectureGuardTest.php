@@ -184,4 +184,117 @@ class ArchitectureGuardTest extends TestCase
             );
         }
     }
+
+    /**
+     * Telusuri tag HTML dengan menghormati ekspresi Blade {{ ... }} yang
+     * dapat memuat karakter '>' (mis. {{ $row->foto_url }}).
+     *
+     * @return array<int, array{tag: string, body: string}>
+     */
+    private function findTags(string $src, string $tagName): array
+    {
+        $result = [];
+        $len = strlen($src);
+        $pos = 0;
+        $needle = '<' . $tagName;
+        $closing = '</' . $tagName . '>';
+
+        while (($start = stripos($src, $needle, $pos)) !== false) {
+            $charAfter = $start + strlen($needle) < $len ? $src[$start + strlen($needle)] : '';
+            if ($charAfter !== '' && !ctype_space($charAfter) && $charAfter !== '/' && $charAfter !== '>') {
+                $pos = $start + strlen($needle);
+                continue;
+            }
+
+            $i = $start + strlen($needle);
+            $inBlade = 0;
+
+            while ($i < $len) {
+                if ($i + 1 < $len && substr($src, $i, 2) === '{{') {
+                    $inBlade++;
+                    $i += 2;
+                    continue;
+                }
+                if ($i + 1 < $len && substr($src, $i, 2) === '}}' && $inBlade > 0) {
+                    $inBlade--;
+                    $i += 2;
+                    continue;
+                }
+                if ($inBlade === 0 && $src[$i] === '>') {
+                    break;
+                }
+                $i++;
+            }
+
+            $openTag = substr($src, $start, $i - $start + 1);
+            $bodyStart = $i + 1;
+            if ($bodyStart >= $len) {
+                break;
+            }
+
+            $close = stripos($src, $closing, $bodyStart);
+            $body = $close === false ? '' : substr($src, $bodyStart, $close - $bodyStart);
+            $pos = $close === false ? $bodyStart + 1 : $close + strlen($closing);
+
+            $result[] = ['tag' => $openTag, 'body' => $body];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Seluruh tombol aksi pada Header Banner (.dash-banner-actions) wajib icon-only
+     * (38x38px) dan dilarang menyisipkan teks label di dalam tag tombol/link.
+     */
+    public function test_dash_banner_actions_buttons_are_icon_only(): void
+    {
+        $viewPath = resource_path('views');
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($viewPath));
+        $offenders = [];
+
+        foreach ($it as $file) {
+            if (!$file->isFile() || !str_ends_with($file->getFilename(), '.blade.php')) {
+                continue;
+            }
+
+            $content = file_get_contents($file->getPathname());
+            if (!str_contains($content, 'dash-banner-actions')) {
+                continue;
+            }
+
+            // Ekstrak blok .dash-banner-actions
+            if (preg_match_all('/<div\s+class=["\'][^"\']*dash-banner-actions[^"\']*["\'][^>]*>(.*?)<\/div>/is', $content, $matches)) {
+                foreach ($matches[1] as $block) {
+                    $buttons = array_merge(
+                        $this->findTags($block, 'button'),
+                        $this->findTags($block, 'a')
+                    );
+
+                    foreach ($buttons as $btn) {
+                        $inner = $btn['body'];
+
+                        // Hapus komentar blade/html, directive blade, tag ikon/svg, dan badge
+                        $cleanInner = preg_replace('/\{\{--.*?--\}\}/s', '', $inner);
+                        $cleanInner = preg_replace('/<!--.*?-->/s', '', $cleanInner);
+                        $cleanInner = preg_replace('/<i\b[^>]*>.*?<\/i>/is', '', $cleanInner);
+                        $cleanInner = preg_replace('/<svg\b[^>]*>.*?<\/svg>/is', '', $cleanInner);
+                        $cleanInner = preg_replace('/<span\s+class=["\'][^"\']*badge[^"\']*["\'][^>]*>.*?<\/span>/is', '', $cleanInner);
+                        $cleanInner = preg_replace('/@[a-zA-Z]+(?:\([^)]*\))?/', '', $cleanInner);
+
+                        $textOnly = trim(strip_tags($cleanInner));
+                        if ($textOnly !== '') {
+                            $rel = str_replace($viewPath . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                            $offenders[] = "{$rel}: tombol memuat teks '{$textOnly}'";
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            'Tombol pada header banner (.dash-banner-actions) wajib icon-only tanpa teks label: ' . PHP_EOL . implode(PHP_EOL, $offenders)
+        );
+    }
 }

@@ -232,7 +232,7 @@
                                 data-label="Kurikulum">
                                 <div class="kurikulum-text">
                                     @if (!empty($item->kurikulum_list))
-                                        {{ Str::limit(implode(', ', $item->kurikulum_list), 45) }}
+                                        {{ implode(', ', $item->kurikulum_list) }}
                                     @else
                                         -
                                     @endif

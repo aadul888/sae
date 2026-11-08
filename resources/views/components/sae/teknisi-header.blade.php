@@ -59,8 +59,8 @@
         <div class="dash-banner-actions dash-banner-access">
             @if ($teknisiRelation)
                 <a href="{{ route($teknisiRelation['route'], $teknisiRelation['params'] ?? []) }}"
-                    class="btn btn-outline" title="Lanjut ke menu terkait">
-                    <i class="fas fa-arrow-right-long me-1"></i>{{ $teknisiRelation['label'] }}
+                    class="btn btn-outline" title="{{ $teknisiRelation['label'] }}" aria-label="{{ $teknisiRelation['label'] }}">
+                    <i class="fas fa-arrow-right-long"></i>
                 </a>
             @endif
             @if ($cetakRoute)

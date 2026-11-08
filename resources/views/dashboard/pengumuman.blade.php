@@ -16,30 +16,33 @@
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('berita.index') }}" target="_blank" class="btn btn-outline"
-                style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                title="Buka Portal Berita Publik">
-                <i class="fas fa-globe text-primary"></i> <span>Portal Berita</span>
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                title="Buka Portal Berita Publik" aria-label="Buka Portal Berita Publik">
+                <i class="fas fa-globe text-primary"></i>
             </a>
             <a href="{{ route('dashboard.informasi.index') }}" class="btn btn-outline"
-                style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); text-decoration: none;"
-                title="Tampilan Feed Pengguna">
-                <i class="fas fa-bell text-warning"></i> <span>Feed Notif</span>
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
+                title="Tampilan Feed Pengguna" aria-label="Tampilan Feed Pengguna">
+                <i class="fas fa-bell text-warning"></i>
             </a>
             @if ($canCreate)
                 @if ($activeTab === 'berita')
                     <button type="button" class="btn btn-primary" id="btnOpenBeritaModal"
-                        style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
-                        <i class="fas fa-plus"></i> <span>Tulis Berita</span>
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Tulis Berita" aria-label="Tulis Berita">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @elseif ($activeTab === 'broadcast')
                     <button type="button" class="btn btn-primary" id="btnOpenBroadcastModal"
-                        style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
-                        <i class="fas fa-plus"></i> <span>Buat Broadcast</span>
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Buat Broadcast" aria-label="Buat Broadcast">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @else
                     <button type="button" class="btn btn-primary" id="btnOpenCreateModal"
-                        style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);">
-                        <i class="fas fa-plus"></i> <span>Buat Pengumuman</span>
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                        title="Buat Pengumuman" aria-label="Buat Pengumuman">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @endif
             @endif

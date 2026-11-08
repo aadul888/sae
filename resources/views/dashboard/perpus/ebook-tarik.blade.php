@@ -366,7 +366,7 @@
                 <h3 style="margin:0;font-size:var(--text-md);font-weight:800;color:var(--text-color);">
                     <i class="fas fa-file-circle-plus text-primary me-2"></i>Tambah E-Book Mandiri
                 </h3>
-                <button type="button" class="btn-icon" onclick="closeModalEbookManual()" style="color:var(--text-muted);"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="btn-icon" onclick="closeModalEbookManual()" style="color:var(--text-muted);" title="Tutup Modal" aria-label="Tutup"><i class="fas fa-xmark"></i></button>
             </div>
 
             <form method="POST" action="{{ route('dashboard.perpustakaan.ebook.manual') }}" enctype="multipart/form-data">

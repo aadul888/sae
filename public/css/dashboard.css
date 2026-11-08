@@ -6988,3 +6988,23 @@ input:disabled + .slider-toggle-crud {
         flex: 0 0 auto !important;
     }
 }
+/* Teks isi sel TIDAK boleh dipotong: netralkan clamp/ellipsis dari aturan lama
+   maupun inline style pada tabel data (mobile). Thumbnail/gambar dikecualikan
+   agar tetap terpotong rapi di dalam kotaknya. */
+@media (max-width: 768px) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        -webkit-line-clamp: unset !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td *:not(img):not(svg):not(i):not(.pd-foto-thumb):not(.jurusan-logo-thumb),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td *:not(img):not(svg):not(i):not(.pd-foto-thumb):not(.jurusan-logo-thumb),
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td *:not(img):not(svg):not(i):not(.pd-foto-thumb):not(.jurusan-logo-thumb) {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        -webkit-line-clamp: unset !important;
+    }
+}

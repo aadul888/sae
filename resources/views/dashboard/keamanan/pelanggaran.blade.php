@@ -21,6 +21,15 @@
                 display: block !important;
                 margin-bottom: 16px !important;
             }
+            .tatib-readonly-badge {
+                width: 100% !important;
+                flex-basis: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                text-align: center !important;
+                order: -1 !important;
+                margin-bottom: 4px !important;
+            }
         }
     </style>
 @endpush
@@ -65,14 +74,14 @@
                         </button>
                     @endif
                 @else
-                    <span class="badge badge-outline" style="font-size: 0.75rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="badge badge-outline tatib-readonly-badge" style="font-size: var(--text-xs, 0.75rem); padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-shield-halved text-primary"></i> Panduan Readonly Tata Tertib
                     </span>
                     @if ($canCreate)
                         <button type="button" class="btn btn-primary" onclick="openModalPelanggaran()"
-                            style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem);"
-                            title="Catat Pelanggaran Siswa">
-                            <i class="fas fa-plus"></i> Catat Pelanggaran
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                            title="Catat Pelanggaran Siswa" aria-label="Catat Pelanggaran Siswa">
+                            <i class="fas fa-plus"></i>
                         </button>
                     @endif
                 @endif
@@ -623,7 +632,8 @@
                         <span style="font-weight: 800; color: var(--danger);">+${item.bobot_poin} Poin</span>
                     </div>
                     <button type="button" class="btn-remove-tatib" data-id="${id}"
-                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 6px; font-size: 0.875rem;">
+                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 6px; font-size: 0.875rem;"
+                        title="Hapus Aturan" aria-label="Hapus Aturan">
                         <i class="fas fa-trash-can"></i>
                     </button>
                 `;
