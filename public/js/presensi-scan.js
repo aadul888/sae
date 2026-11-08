@@ -355,15 +355,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initCamera();
 
+    function isCameraReady() {
+        return !!(videoEl && videoStream && videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0);
+    }
+
     function captureSnapshot() {
-        if (!videoEl || !canvasEl || !videoStream) return null;
+        if (!isCameraReady()) return null;
         try {
-            const width = videoEl.videoWidth || 640;
-            const height = videoEl.videoHeight || 480;
+            const width = videoEl.videoWidth;
+            const height = videoEl.videoHeight;
             canvasEl.width = width;
             canvasEl.height = height;
 
             const ctx = canvasEl.getContext('2d');
+            ctx.clearRect(0, 0, width, height);
             ctx.save();
             // Un-mirror snapshot hanya jika kamera depan
             if (currentFacingMode === 'user') {
@@ -582,6 +587,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         'warning'
                     );
                     speakGreeting('Input manual dinonaktifkan. Silakan tempelkan kartu pada pemindai.');
+                } else if (!isCameraReady()) {
+                    playSound('error');
+                    showNoticeCard(
+                        'Kamera Belum Siap',
+                        'Perangkat kamera tidak aktif atau belum siap. Presensi mewajibkan verifikasi snapshot live kamera.',
+                        'error'
+                    );
+                    speakGreeting('Kamera belum siap. Pastikan izin kamera aktif.');
                 } else {
                     if (rfidBadge) {
                         rfidBadge.className = 'badge-status-icon status-ok';
@@ -704,6 +717,20 @@ document.addEventListener('DOMContentLoaded', function () {
         unlockAudioGesture();
         if (isProcessing) return;
         isProcessing = true;
+
+        // Validasi Kesiapan Kamera: Presensi dilarang jika kamera belum ready / tidak ada
+        if (!isCameraReady()) {
+            playSound('error');
+            showNoticeCard(
+                'Kamera Belum Siap',
+                'Perangkat kamera tidak aktif atau belum siap. Presensi mewajibkan verifikasi snapshot live kamera.',
+                'error'
+            );
+            speakGreeting('Kamera belum siap. Pastikan izin kamera aktif.');
+            isProcessing = false;
+            ensureFocus();
+            return;
+        }
 
         // Validasi Geolokasi jika diwajibkan oleh sekolah
         if (requireLocation) {
