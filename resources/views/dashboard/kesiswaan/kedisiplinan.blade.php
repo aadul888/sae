@@ -1410,10 +1410,11 @@
     <!-- MODAL 2: CATAT PELANGGARAN POIN -->
     <div id="modalPoin" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
+        <div class="card" style="width: 100%; max-width: 560px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">Catat Pelanggaran
-                    Poin Siswa</h3>
+                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-triangle-exclamation text-danger"></i> Catat Pelanggaran Poin Siswa
+                </h3>
                 <button type="button" class="close-modal" data-target="#modalPoin"
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;" aria-label="Tutup"><i
                         class="fas fa-times"></i></button>
@@ -1432,18 +1433,29 @@
                         style="width: 100%; border-radius: var(--radius-md, 8px);">
                     <input type="hidden" id="poinSiswaId" name="peserta_didik_id">
                 </div>
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
-                        Pelanggaran Tata Tertib <span class="text-danger">*</span></label>
-                    <select name="tata_tertib_id" class="form-control" required style="width: 100%; border-radius: var(--radius-md, 8px);">
-                        <option value="">-- Pilih Jenis Pelanggaran --</option>
-                        @foreach ($tataTertibList as $tt)
-                            <option value="{{ $tt->id }}">[{{ strtoupper($tt->tingkat) }}] [{{ $tt->kode }}] {{ $tt->nama_aturan }}
-                                (+{{ $tt->bobot_poin }} Poin)
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Aturan Tata Tertib (Bisa Pilih Multi Aturan dengan Pencarian Ketik) -->
+                <div class="form-group" style="margin-bottom: 14px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">Aturan Tata Tertib (Bisa > 1 Aturan) <span class="text-danger">*</span></label>
+                        <span id="poin_tatib_total_label" style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--danger, #ef4444);">0 Poin Terpilih</span>
+                    </div>
+                    <input type="search" id="poin_tatib_search" class="form-control"
+                        placeholder="Ketik kode atau nama aturan untuk menambahkan..." autocomplete="off"
+                        data-search-url="{{ route('dashboard.kesiswaan.kedisiplinan.tatib.search') }}"
+                        style="width: 100%; border-radius: var(--radius-md, 8px);">
+
+                    <!-- Dropdown Hasil Pencarian Aturan -->
+                    <div id="poin_tatib_results"
+                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--card-bg, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); max-height: 220px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                    </div>
+
+                    <!-- Container Daftar Aturan Terpilih (Chips / Tags Multi Aturan) -->
+                    <div id="poin_tatib_selected_container"
+                        style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                    </div>
+                    <!-- Hidden input penampung array ID -->
+                    <div id="poin_tatib_hidden_inputs"></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
