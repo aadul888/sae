@@ -39,7 +39,7 @@
                         @endif
                         @if ($can('menu_surat_keluar') || $can('menu_persuratan'))
                             <a href="{{ route('dashboard.persuratan.keluar.index') }}"
-                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') !== 'ekspedisi' && request('tab') !== 'template' ? 'active' : '' }}">
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') !== 'ekspedisi' && request('tab') !== 'template' && request('tab') !== 'autocrat' ? 'active' : '' }}">
                                 <span class="nav-icon nested-icon"><i
                                         class="fas fa-fw fa-paper-plane"></i></span>
                                 <span class="nav-label">Surat Keluar</span>

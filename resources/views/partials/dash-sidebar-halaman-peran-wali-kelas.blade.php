@@ -4,7 +4,8 @@
         request()->routeIs('dashboard.wali-kelas.*') ||
         request()->routeIs('dashboard.wali-kelas') ||
         (request()->routeIs('dashboard.tugas-tambahan.show') && request()->route('kode') === 'wali-kelas') ||
-        request()->routeIs('dashboard.jadwal-kbm.manual*');
+        request()->routeIs('dashboard.jadwal-kbm.manual*') ||
+        (request()->routeIs('dashboard.e-izin*') && request('tab') === 'wali');
 @endphp
 <div class="dash-nav-group {{ $isAdminWaliKelasActive ? 'open active-group' : '' }}">
     <button type="button" class="dash-nav-toggle">
@@ -51,7 +52,7 @@
             <span class="nav-label">Validasi Data</span>
         </a>
         <a href="{{ route('dashboard.e-izin.index', ['tab' => 'wali']) }}"
-            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') && request('tab') === 'wali' ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
             <span class="nav-label">e-Izin Siswa</span>
         </a>

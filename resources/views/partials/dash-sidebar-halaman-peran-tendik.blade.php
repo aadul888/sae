@@ -1,9 +1,8 @@
 {{-- 3. Peran: Tendik (Dengan Sub-menu per Bidang) --}}
 @php
     $isAdminTendikActive =
-        (request()->routeIs('dashboard.tendik*') &&
-            !request()->routeIs('dashboard.tendik-aktif*') &&
-            !request()->routeIs('dashboard.tendik-tidak-aktif*')) ||
+        request()->routeIs('dashboard.tendik.*') ||
+        request()->routeIs('dashboard.tendik') ||
         request()->routeIs('dashboard.persuratan.*') ||
         request()->routeIs('dashboard.kesiswaan.*') ||
         request()->routeIs('dashboard.kepegawaian.*') ||
@@ -84,7 +83,7 @@
                     <span class="nav-label">Surat Masuk</span>
                 </a>
                 <a href="{{ route('dashboard.persuratan.keluar.index') }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') !== 'ekspedisi' && request('tab') !== 'template' ? 'active' : '' }}">
+                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.persuratan.keluar*') && request('tab') !== 'ekspedisi' && request('tab') !== 'template' && request('tab') !== 'autocrat' ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-paper-plane"></i></span>
                     <span class="nav-label">Surat Keluar</span>
                 </a>
@@ -227,7 +226,7 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
                     <span class="nav-label">Inventaris &amp; Aset</span>
                 </a>
-                @if ($can('menu_sarpras') || $can('menu_laboran'))
+                @if ($can('menu_sarpras') && !$can('menu_laboran'))
                     <a href="{{ route('dashboard.laboran.bhp.index') }}"
                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.bhp*') ? 'active' : '' }}">
                         <span class="nav-icon nested-icon"><i class="fas fa-fw fa-vials"></i></span>
@@ -239,7 +238,7 @@
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
                     <span class="nav-label">Peminjaman Sarpras</span>
                 </a>
-                @if ($can('menu_teknisi'))
+                @if ($can('menu_teknisi') && !$can('menu_kepala_tas') && !collect($userDuties ?? [])->contains('kode', 'TEKNISI_IT'))
                     <a href="{{ route('dashboard.teknisi.work-order') }}"
                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
                         <span class="nav-icon nested-icon"><i
@@ -247,7 +246,7 @@
                         <span class="nav-label">Perbaikan &amp; Work Order</span>
                     </a>
                 @endif
-                @if ($can('menu_penjaga'))
+                @if ($can('menu_penjaga') && !$can('menu_kepala_tas') && !collect($userDuties ?? [])->contains('kode', 'PENJAGA_SEKOLAH'))
                     <a href="{{ route('dashboard.penjaga.kebersihan.index') }}"
                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.penjaga.kebersihan*') ? 'active' : '' }}">
                         <span class="nav-icon nested-icon"><i class="fas fa-fw fa-broom"></i></span>

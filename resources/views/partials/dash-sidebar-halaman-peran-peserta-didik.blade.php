@@ -3,10 +3,12 @@
     $isAdminPdActive =
         request()->routeIs('dashboard.peserta-didik') ||
         request()->routeIs('dashboard.peserta_didik') ||
-        request()->routeIs('dashboard.identitas*') ||
+        request()->routeIs('dashboard.identitas.*') ||
+        request()->routeIs('dashboard.identitas') ||
         request()->routeIs('dashboard.peserta-didik.identitas*') ||
         request()->routeIs('dashboard.peserta-didik.izin.*') ||
         request()->routeIs('dashboard.peserta-didik.izin') ||
+        (request()->routeIs('dashboard.e-izin*') && request('tab') === 'saya') ||
         request()->routeIs('dashboard.peserta-didik.presensi.*') ||
         request()->routeIs('dashboard.peserta-didik.presensi') ||
         request()->routeIs('dashboard.berkas.*') ||
@@ -29,12 +31,12 @@
             <span class="nav-label">Dashboard Peserta Didik</span>
         </a>
         <a href="{{ route('dashboard.identitas.index') }}"
-            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas*') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas.*') || request()->routeIs('dashboard.identitas') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
             <span class="nav-label">Identitas Lengkap</span>
         </a>
         <a href="{{ route('dashboard.berkas.index') }}"
-            class="dash-nav-sublink {{ request()->routeIs('dashboard.berkas*') || request()->routeIs('dashboard.validasi-berkas*') ? 'active' : '' }}">
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.berkas.*') || request()->routeIs('dashboard.berkas') || request()->routeIs('dashboard.validasi-berkas*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
             <span class="nav-label">Validasi Berkas</span>
         </a>
@@ -44,7 +46,7 @@
             <span class="nav-label">Surat Izin &amp; Sakit</span>
         </a>
         <a href="{{ route('dashboard.e-izin.index', ['tab' => 'saya']) }}"
-            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') ? 'active' : '' }}">
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') && request('tab') === 'saya' ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
             <span class="nav-label">e-Izin (Keluar &amp; Pulang)</span>
         </a>

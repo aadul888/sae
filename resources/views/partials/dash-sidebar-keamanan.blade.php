@@ -28,7 +28,7 @@
             {{-- 3. Verifikasi e-Izin Gerbang Siswa --}}
             @if ($can('menu_keamanan_izin') || $can('menu_keamanan') || $can('menu_e_izin'))
                 <a href="{{ route('dashboard.e-izin.index', ['tab' => 'security']) }}"
-                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.e-izin*') || request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
+                    class="dash-nav-nested-link {{ (request()->routeIs('dashboard.e-izin*') && request('tab') === 'security') || request()->routeIs('dashboard.keamanan.izin*') ? 'active' : '' }}">
                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-door-open"></i></span>
                     <span class="nav-label">Verifikasi e-Izin</span>
                 </a>

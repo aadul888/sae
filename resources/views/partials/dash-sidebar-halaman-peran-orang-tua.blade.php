@@ -41,7 +41,7 @@
             <span class="nav-label">e-Izin &amp; Surat Sakit</span>
         </a>
         <a href="{{ route('dashboard.identitas.index') }}"
-            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas*') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
+            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas.*') || request()->routeIs('dashboard.identitas') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
             <span class="nav-label">Identitas Lengkap Siswa</span>
         </a>
