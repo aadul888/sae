@@ -684,4 +684,164 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     handleFormSubmit('formSanggah', 'Menyimpan dan memvalidasi sanggahan...');
+    // Inisialisasi Pencarian Interaktif Tata Tertib pada Modal Catat Pelanggaran Poin
+    const inputTatib = document.getElementById('poin_tatib_search');
+    const resultsTatib = document.getElementById('poin_tatib_results');
+    const containerSelected = document.getElementById('poin_tatib_selected_container');
+    const hiddenInputsWrap = document.getElementById('poin_tatib_hidden_inputs');
+    const totalPoinLabel = document.getElementById('poin_tatib_total_label');
+
+    if (inputTatib && resultsTatib && containerSelected && hiddenInputsWrap) {
+        const selectedTatibMap = new Map();
+        const searchUrl = inputTatib.getAttribute('data-search-url') || '/dashboard/kesiswaan/kedisiplinan/tatib/search';
+
+        function renderSelectedTatib() {
+            containerSelected.innerHTML = '';
+            hiddenInputsWrap.innerHTML = '';
+            let sumPoin = 0;
+
+            selectedTatibMap.forEach((item, id) => {
+                sumPoin += parseInt(item.bobot_poin || 0, 10);
+
+                // Hidden input array
+                const hInput = document.createElement('input');
+                hInput.type = 'hidden';
+                hInput.name = 'tata_tertib_ids[]';
+                hInput.value = id;
+                hiddenInputsWrap.appendChild(hInput);
+
+                // Chip Card
+                const chip = document.createElement('div');
+                chip.style.display = 'flex';
+                chip.style.alignItems = 'center';
+                chip.style.justifyContent = 'space-between';
+                chip.style.padding = '8px 12px';
+                chip.style.background = 'rgba(239,68,68,0.06)';
+                chip.style.border = '1px solid rgba(239,68,68,0.2)';
+                chip.style.borderRadius = 'var(--radius-sm, 6px)';
+                chip.style.fontSize = 'var(--text-sm, 0.8125rem)';
+                const badgeClass = item.tingkat === 'berat' ? 'badge-danger' : (item.tingkat === 'sedang' ? 'badge-warning' : 'badge-success');
+                chip.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-weight: 800; color: var(--primary);">[${item.kode}]</span>
+                        <span style="font-weight: 600; color: var(--text-color);">${item.nama_aturan}</span>
+                        <span class="badge ${badgeClass}" style="font-size: var(--text-2xs, 0.6875rem);">
+                            ${(item.tingkat || 'ringan').toUpperCase()}
+                        </span>
+                        <span style="font-weight: 800; color: var(--danger);">+${item.bobot_poin} Poin</span>
+                    </div>
+                    <button type="button" class="btn-remove-tatib" data-id="${id}"
+                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 6px; font-size: var(--text-base, 0.875rem);" aria-label="Hapus aturan">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                `;
+                containerSelected.appendChild(chip);
+            });
+
+            if (totalPoinLabel) {
+                totalPoinLabel.textContent = `${selectedTatibMap.size} Aturan (+${sumPoin} Poin Terpilih)`;
+            }
+
+            if (selectedTatibMap.size > 0) {
+                inputTatib.removeAttribute('required');
+                inputTatib.setCustomValidity('');
+            } else {
+                inputTatib.setAttribute('required', 'required');
+                inputTatib.setCustomValidity('Pilih minimal satu aturan tata tertib.');
+            }
+        }
+
+        containerSelected.addEventListener('click', function(e) {
+            const btnRemove = e.target.closest('.btn-remove-tatib');
+            if (btnRemove) {
+                const id = parseInt(btnRemove.getAttribute('data-id'), 10);
+                selectedTatibMap.delete(id);
+                renderSelectedTatib();
+            }
+        });
+
+        function fetchAndShowTatib(query) {
+            fetch(`${searchUrl}?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultsTatib.innerHTML = '';
+                    if (!data.length) {
+                        resultsTatib.innerHTML = '<div style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Aturan tidak ditemukan.</div>';
+                    } else {
+                        data.forEach(item => {
+                            const isSelected = selectedTatibMap.has(item.id);
+                            const opt = document.createElement('div');
+                            opt.style.padding = '10px 14px';
+                            opt.style.cursor = isSelected ? 'default' : 'pointer';
+                            opt.style.opacity = isSelected ? '0.5' : '1';
+                            opt.style.borderBottom = '1px solid var(--border-color)';
+                            opt.style.fontSize = 'var(--text-sm, 0.8125rem)';
+                            const badgeClass = item.tingkat === 'berat' ? 'badge-danger' : (item.tingkat === 'sedang' ? 'badge-warning' : 'badge-success');
+                            opt.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: var(--primary);">[${item.kode}]</strong>
+                                        <span style="font-weight: 600; color: var(--text-color); margin-left: 4px;">${item.nama_aturan}</span>
+                                        ${isSelected ? '<span class="badge badge-success" style="font-size: var(--text-2xs, 0.6875rem); margin-left: 6px;">Sudah Dipilih</span>' : ''}
+                                    </div>
+                                    <span style="font-weight: 800; color: var(--danger); font-size: var(--text-xs, 0.75rem);">+${item.bobot_poin} Poin</span>
+                                </div>
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
+                                    Kategori: ${item.kategori || '-'} &bull; Tingkat: ${(item.tingkat || 'ringan').toUpperCase()}
+                                </div>
+                            `;
+                            if (!isSelected) {
+                                opt.addEventListener('mouseover', () => opt.style.background = 'rgba(59,130,246,0.06)');
+                                opt.addEventListener('mouseout', () => opt.style.background = 'transparent');
+                                opt.addEventListener('click', () => {
+                                    selectedTatibMap.set(item.id, item);
+                                    renderSelectedTatib();
+                                    inputTatib.value = '';
+                                    resultsTatib.style.display = 'none';
+                                    inputTatib.focus();
+                                });
+                            }
+                            resultsTatib.appendChild(opt);
+                        });
+                    }
+                    resultsTatib.style.display = 'block';
+                })
+                .catch(() => {
+                    resultsTatib.style.display = 'none';
+                });
+        }
+
+        let tatibDebounce;
+        inputTatib.addEventListener('input', function () {
+            clearTimeout(tatibDebounce);
+            const query = this.value.trim();
+            tatibDebounce = setTimeout(() => {
+                fetchAndShowTatib(query);
+            }, 250);
+        });
+
+        inputTatib.addEventListener('focus', function () {
+            if (resultsTatib.style.display !== 'block') {
+                fetchAndShowTatib(this.value.trim());
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (resultsTatib && !resultsTatib.contains(e.target) && e.target !== inputTatib) {
+                resultsTatib.style.display = 'none';
+            }
+        });
+
+        // Reset tatib selection on form reset
+        const formPoin = document.getElementById('formPoin');
+        if (formPoin) {
+            formPoin.addEventListener('reset', function () {
+                selectedTatibMap.clear();
+                setTimeout(renderSelectedTatib, 10);
+            });
+        }
+
+        renderSelectedTatib();
+    }
 });
+

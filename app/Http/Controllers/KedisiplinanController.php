@@ -650,22 +650,53 @@ class KedisiplinanController extends Controller
     }
 
     /**
+     * Pencarian interaktif aturan tata tertib (JSON) untuk autocomplete / dropdown filter.
+     */
+    public function searchTatib(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+
+        $query = KedisiplinanTataTertib::where('is_active', true);
+
+        if ($q !== '') {
+            $query->where(function ($b) use ($q) {
+                $b->where('nama_aturan', 'like', "%{$q}%")
+                    ->orWhere('kode', 'like', "%{$q}%")
+                    ->orWhere('kategori', 'like', "%{$q}%")
+                    ->orWhere('tingkat', 'like', "%{$q}%");
+            });
+        }
+
+        $items = $query->orderBy('bobot_poin', 'desc')
+            ->orderBy('kode', 'asc')
+            ->limit(20)
+            ->get(['id', 'kode', 'nama_aturan', 'bobot_poin', 'tingkat', 'kategori']);
+
+        return response()->json($items);
+    }
+
+    /**
      * Simpan Entri Pelanggaran Poin Siswa Baru.
      */
     public function storePoin(Request $request)
     {
         $user = session('user');
 
+        // Dukung single tata_tertib_id maupun multiple tata_tertib_ids[]
+        if ($request->filled('tata_tertib_id') && !$request->has('tata_tertib_ids')) {
+            $request->merge(['tata_tertib_ids' => [$request->tata_tertib_id]]);
+        }
+
         $validated = $request->validate([
-            'peserta_didik_id' => 'required|string',
-            'tata_tertib_id'   => 'required|exists:kedisiplinan_tata_tertib,id',
-            'tanggal_kejadian' => 'required|date',
-            'tempat_kejadian'  => 'nullable|string|max:190',
-            'keterangan'       => 'nullable|string',
-            'foto_bukti'       => 'nullable|image|max:3072',
+            'peserta_didik_id'  => 'required|string',
+            'tata_tertib_ids'   => 'required|array|min:1',
+            'tata_tertib_ids.*' => 'required|exists:kedisiplinan_tata_tertib,id',
+            'tanggal_kejadian'  => 'required|date',
+            'tempat_kejadian'   => 'nullable|string|max:190',
+            'keterangan'        => 'nullable|string',
+            'foto_bukti'        => 'nullable|image|max:5120',
         ]);
 
-        $aturan = KedisiplinanTataTertib::findOrFail($validated['tata_tertib_id']);
         $siswa = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->firstOrFail();
 
         $filePath = null;
@@ -681,23 +712,39 @@ class KedisiplinanController extends Controller
         $pelaporNama = is_array($user) ? ($user['nama'] ?? 'Guru/Staf') : ($user->nama ?? 'Guru/Staf');
         $pelaporPtk = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
-        $pelanggaran = KedisiplinanPelanggaran::create([
-            'peserta_didik_id'     => $siswa->peserta_didik_id,
-            'tata_tertib_id'       => $aturan->id,
-            'tanggal_kejadian'     => $validated['tanggal_kejadian'],
-            'tempat_kejadian'      => $validated['tempat_kejadian'] ?? null,
-            'poin'                 => $aturan->bobot_poin,
-            'keterangan'           => $validated['keterangan'] ?? null,
-            'pelapor_ptk_id'       => $pelaporPtk,
-            'pelapor_nama'         => $pelaporNama,
-            'foto_bukti'           => $filePath,
-            'status_tindak_lanjut' => 'pending',
-        ]);
+        $totalPoin = 0;
+        $count = 0;
+        $lastPelanggaran = null;
+
+        foreach ($validated['tata_tertib_ids'] as $tatibId) {
+            $aturan = KedisiplinanTataTertib::find($tatibId);
+            if (!$aturan) continue;
+
+            $lastPelanggaran = KedisiplinanPelanggaran::create([
+                'peserta_didik_id'     => $siswa->peserta_didik_id,
+                'tata_tertib_id'       => $aturan->id,
+                'tanggal_kejadian'     => $validated['tanggal_kejadian'],
+                'tempat_kejadian'      => $validated['tempat_kejadian'] ?? null,
+                'poin'                 => $aturan->bobot_poin,
+                'keterangan'           => $validated['keterangan'] ?? null,
+                'pelapor_ptk_id'       => $pelaporPtk,
+                'pelapor_nama'         => $pelaporNama,
+                'foto_bukti'           => $filePath,
+                'status_tindak_lanjut' => 'pending',
+            ]);
+
+            $totalPoin += (int) $aturan->bobot_poin;
+            $count++;
+        }
+
+        $pesan = $count > 1
+            ? "{$count} pelanggaran siswa {$siswa->nama} (total +{$totalPoin} poin) berhasil dicatat."
+            : "Pelanggaran siswa {$siswa->nama} (+{$totalPoin} poin) berhasil dicatat.";
 
         return response()->json([
             'status' => 'success',
-            'message' => "Pelanggaran siswa {$siswa->nama} ({$aturan->bobot_poin} poin) berhasil dicatat.",
-            'data' => $pelanggaran,
+            'message' => $pesan,
+            'data' => $lastPelanggaran,
         ]);
     }
 

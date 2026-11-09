@@ -576,14 +576,17 @@
                 </div>
             @else
                 <div style="margin-bottom: var(--space-3, 12px);">
-                    <label for="selectSiswaModal" style="display: block; font-weight: 700; font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">
+                    <label for="eizin_cari_siswa" style="display: block; font-weight: 700; font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">
                         Pilih Peserta Didik <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
-                    <select id="selectSiswaModal" name="peserta_didik_id" class="form-control" required style="width: 100%; height: 38px; border-radius: var(--radius-md, 8px);">
-                        <option value="">-- Pilih Siswa --</option>
-                    </select>
+                    <input type="search" id="eizin_cari_siswa" class="form-control"
+                        placeholder="Ketik nama siswa atau NISN..." autocomplete="off"
+                        data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
+                        data-people-target="#eizin_peserta_didik_id" data-people-require-selection="true" required
+                        style="width: 100%; height: 38px; border-radius: var(--radius-md, 8px);">
+                    <input type="hidden" name="peserta_didik_id" id="eizin_peserta_didik_id" required>
                     <div style="font-size: var(--text-xs, 0.6875rem); color: var(--text-muted); margin-top: 2px;">
-                        Ketik nama atau NISN siswa untuk mencari.
+                        Ketik nama atau NISN siswa untuk mencari dan memilih dari hasil pencarian.
                     </div>
                 </div>
             @endif
