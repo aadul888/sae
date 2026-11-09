@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputJamRencanaKembali = document.getElementById('inputJamRencanaKembali');
     const wrapRencanaKembali = document.getElementById('wrapRencanaKembali');
     const selectSiswaModal = document.getElementById('selectSiswaModal');
+    const eizinCariSiswa = document.getElementById('eizin_cari_siswa');
 
     // Helper: Hitung default rencana kembali +10 menit
     const updateDefaultRencanaKembali = () => {
@@ -105,28 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnOpenAjukan && modalAjukan) {
         btnOpenAjukan.addEventListener('click', () => {
             const form = document.getElementById('formAjukanEIzin');
-            if (form) form.reset();
+            if (form) {
+                form.reset();
+                const hiddenSiswa = document.getElementById('eizin_peserta_didik_id');
+                if (hiddenSiswa) hiddenSiswa.value = '';
+                const searchSiswa = document.getElementById('eizin_cari_siswa');
+                if (searchSiswa) searchSiswa.value = '';
+            }
             if (wrapRencanaKembali) wrapRencanaKembali.style.display = 'block';
             updateDefaultRencanaKembali();
             openModal(modalAjukan);
-
-            // Load daftar siswa jika belum ada dan elemen dropdown tersedia
-            if (selectSiswaModal && selectSiswaModal.options.length <= 1) {
-                fetch('/dashboard/e-izin/search-siswa', {
-                    headers: { 'Accept': 'application/json' }
-                })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        selectSiswaModal.innerHTML = '<option value="">-- Pilih Peserta Didik --</option>';
-                        data.forEach((s) => {
-                            const opt = document.createElement('option');
-                            opt.value = s.peserta_didik_id;
-                            opt.textContent = `${s.nama} (${s.nama_rombel ?? 'Tanpa Rombel'} - NISN: ${s.nisn ?? '-'})`;
-                            selectSiswaModal.appendChild(opt);
-                        });
-                    })
-                    .catch((err) => console.error('Gagal memuat siswa:', err));
-            }
         });
     }
 
