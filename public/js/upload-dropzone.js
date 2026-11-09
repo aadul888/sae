@@ -1,15 +1,23 @@
 /**
- * Upload Dropzone Global
- * - Aktifkan drag & drop file untuk semua area bertanda [data-upload-dropzone].
- * - Tombol bertanda [data-upload-trigger] otomatis membuka dialog file.
- * - Input file biasa (tampil) tetap bisa menerima drop.
- * Tidak mengganggu dropzone khusus yang sudah punya skrip sendiri (gtk-foto, identitas-sekolah, dll).
+ * Upload Dropzone Global SAE
+ * - Aktifkan drag & drop file untuk semua area bertanda [data-upload-dropzone], class dropzone, maupun id dropzone.
+ * - Mencegah browser membuka/mengunduh file saat file di-drag & drop di luar area target (drop-out safety).
+ * - Mencegah recursive double-trigger saat input file berada di dalam elemen dropzone.
+ * - Tombol bertanda [data-upload-trigger] otomatis membuka dialog file picker.
+ * - Menyediakan helper universal window.SAE.assignFilesToInput(input, fileList).
  */
 (function () {
     "use strict";
 
+    window.SAE = window.SAE || {};
+
     function findInput(zone) {
-        return zone ? zone.querySelector('input[type="file"]') : null;
+        if (!zone) return null;
+        var direct = zone.querySelector ? zone.querySelector('input[type="file"]') : null;
+        if (direct) return direct;
+        var targetId = zone.getAttribute ? zone.getAttribute("data-upload-target") : null;
+        if (targetId) return document.getElementById(targetId);
+        return null;
     }
 
     function setActive(zone, on) {
@@ -21,24 +29,65 @@
     }
 
     function assignFiles(input, fileList) {
-        if (!fileList || !fileList.length) return false;
+        if (!input || !fileList || !fileList.length) return false;
         var count = input.multiple ? fileList.length : 1;
         try {
             var dt = new DataTransfer();
             for (var i = 0; i < count; i++) dt.items.add(fileList[i]);
             input.files = dt.files;
         } catch (err) {
-            // Fallback: langsung set (beberapa browser lama menolak FileList read-only)
-            try { input.files = fileList; } catch (e2) { return false; }
+            // Fallback: langsung set
+            try {
+                input.files = fileList;
+            } catch (e2) {
+                return false;
+            }
         }
         input.dispatchEvent(new Event("change", { bubbles: true }));
         return true;
     }
 
+    window.SAE.assignFilesToInput = assignFiles;
+
     var CUSTOM_ZONE =
         '[data-upload-dropzone], [data-upload-skip], .file-dropzone, [class*="dropzone" i], [id*="dropzone" i]';
 
-    // Tandai otomatis area unggah untuk input file biasa (tanpa dropzone khusus).
+    // 1. Cegah browser membuka file secara default saat di-drag ke seluruh jendela
+    window.addEventListener(
+        "dragover",
+        function (e) {
+            e.preventDefault();
+        },
+        false,
+    );
+
+    window.addEventListener(
+        "drop",
+        function (e) {
+            var zone = e.target.closest
+                ? e.target.closest(
+                      '[data-upload-dropzone], .file-dropzone, [class*="dropzone" i], [id*="dropzone" i], [id*="previewcontainer" i]',
+                  )
+                : null;
+            if (!zone && !isFileInput(e.target)) {
+                e.preventDefault();
+            }
+        },
+        false,
+    );
+
+    // 2. Cegah event bubbling dari input file agar tidak memicu click ganda pada parent dropzone
+    document.addEventListener(
+        "click",
+        function (e) {
+            if (e.target && e.target.tagName === "INPUT" && e.target.type === "file") {
+                e.stopPropagation();
+            }
+        },
+        true,
+    );
+
+    // 3. Tandai otomatis area unggah untuk input file biasa (tanpa dropzone khusus)
     function decorate() {
         document.querySelectorAll('input[type="file"]').forEach(function (input) {
             if (input.dataset.uploadEnhanced) return;
@@ -60,13 +109,18 @@
             subtree: true,
         });
     } catch (e) {
-        // Browser tanpa MutationObserver: input dinamis ditangani langsung saat drop.
+        // Fallback browser tanpa MutationObserver
     }
 
+    // 4. Dragover universal
     document.addEventListener(
         "dragover",
         function (e) {
-            var zone = e.target.closest ? e.target.closest("[data-upload-dropzone]") : null;
+            var zone = e.target.closest
+                ? e.target.closest(
+                      '[data-upload-dropzone], .file-dropzone, [class*="dropzone" i], [id*="dropzone" i], [id*="previewcontainer" i]',
+                  )
+                : null;
             if (!zone && isFileInput(e.target)) zone = e.target;
             if (!zone) return;
             e.preventDefault();
@@ -76,19 +130,29 @@
         false,
     );
 
+    // 5. Dragleave universal
     document.addEventListener(
         "dragleave",
         function (e) {
-            var zone = e.target.closest ? e.target.closest("[data-upload-dropzone]") : null;
+            var zone = e.target.closest
+                ? e.target.closest(
+                      '[data-upload-dropzone], .file-dropzone, [class*="dropzone" i], [id*="dropzone" i], [id*="previewcontainer" i]',
+                  )
+                : null;
             if (zone) setActive(zone, false);
         },
         false,
     );
 
+    // 6. Drop universal
     document.addEventListener(
         "drop",
         function (e) {
-            var zone = e.target.closest ? e.target.closest("[data-upload-dropzone]") : null;
+            var zone = e.target.closest
+                ? e.target.closest(
+                      '[data-upload-dropzone], .file-dropzone, [class*="dropzone" i], [id*="dropzone" i], [id*="previewcontainer" i]',
+                  )
+                : null;
             var directInput = isFileInput(e.target) ? e.target : null;
             if (!zone && !directInput) return;
 
@@ -96,13 +160,14 @@
             if (!input) return;
 
             e.preventDefault();
+            e.stopPropagation();
             if (zone) setActive(zone, false);
             assignFiles(input, e.dataTransfer ? e.dataTransfer.files : null);
         },
         false,
     );
 
-    // Buka dialog file saat tombol pemicu diklik (input boleh display:none).
+    // 7. Buka dialog file saat tombol pemicu diklik [data-upload-trigger]
     document.addEventListener(
         "click",
         function (e) {

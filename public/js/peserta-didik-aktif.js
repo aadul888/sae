@@ -251,10 +251,12 @@ function handleFilePreview(file) {
     if (!file) return;
 
     // Validasi ekstensi dan MIME khusus PNG
-    const ext = file.name.split(".").pop().toLowerCase();
+    const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
     if (
         ext !== "png" ||
-        (file.type && file.type !== "image/png" && file.type !== "image/x-png")
+        (file.type &&
+            !file.type.includes("png") &&
+            file.type !== "application/octet-stream")
     ) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast(

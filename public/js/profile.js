@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 dropZone.style.borderColor = 'var(--primary)';
                 dropZone.style.background = 'rgba(99, 102, 241, 0.08)';
             });
@@ -218,14 +219,67 @@ document.addEventListener('DOMContentLoaded', () => {
         ['dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 dropZone.style.borderColor = 'rgba(99, 102, 241, 0.4)';
                 dropZone.style.background = 'rgba(255, 255, 255, 0.01)';
             });
         });
 
         dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const dt = e.dataTransfer;
             if (dt && dt.files && dt.files.length > 0) {
+                if (fileInput) {
+                    try {
+                        fileInput.files = dt.files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(dt.files[0]);
+                        fileInput.files = dtx.files;
+                    }
+                }
+                handleSelectedFile(dt.files[0]);
+            }
+        });
+    }
+
+    const previewContainer = document.getElementById('modalFotoPreviewContainer');
+    if (previewContainer) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            previewContainer.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = '#6366f1';
+                previewContainer.style.boxShadow = '0 0 16px rgba(99,102,241,0.45)';
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            previewContainer.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = 'var(--primary, #4f6ef7)';
+                previewContainer.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+            });
+        });
+
+        previewContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.style.borderColor = 'var(--primary, #4f6ef7)';
+            previewContainer.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files.length > 0) {
+                if (fileInput) {
+                    try {
+                        fileInput.files = dt.files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(dt.files[0]);
+                        fileInput.files = dtx.files;
+                    }
+                }
                 handleSelectedFile(dt.files[0]);
             }
         });
@@ -234,8 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSelectedFile(file) {
         if (!file) return;
 
-        const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-        if (!validTypes.includes(file.type.toLowerCase())) {
+        const ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
+        const validExts = ['png', 'jpg', 'jpeg'];
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/x-png', 'image/pjpeg'];
+        const isTypeValid = !file.type || validTypes.includes(file.type.toLowerCase()) || file.type === 'application/octet-stream';
+
+        if (!validExts.includes(ext) || !isTypeValid) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',

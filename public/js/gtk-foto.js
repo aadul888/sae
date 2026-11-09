@@ -83,8 +83,13 @@
     function previewFile(file) {
         if (!file) return;
 
-        const ext = file.name.split(".").pop().toLowerCase();
-        if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+        const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
+        if (
+            ext !== "png" ||
+            (file.type &&
+                !file.type.includes("png") &&
+                file.type !== "application/octet-stream")
+        ) {
             toast("Pasfoto GTK wajib berformat PNG (.png).", "warning");
             const input = document.getElementById("gtkFotoFileInput");
             if (input) input.value = "";
@@ -276,11 +281,60 @@
                 });
             });
             dropZone.addEventListener("drop", function (e) {
-                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.style.borderColor = "rgba(99,102,241,0.4)";
+                dropZone.style.background = "rgba(255,255,255,0.01)";
+
+                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
                 if (file && fileInput) {
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    fileInput.files = dt.files;
+                    try {
+                        fileInput.files = e.dataTransfer.files;
+                    } catch (err) {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        fileInput.files = dt.files;
+                    }
+                    previewFile(file);
+                }
+            });
+        }
+
+        const previewContainer = document.getElementById("gtkFotoPreviewContainer");
+        if (previewContainer) {
+            ["dragenter", "dragover"].forEach(function (ev) {
+                previewContainer.addEventListener(ev, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    previewContainer.style.borderColor = "#6366f1";
+                    previewContainer.style.boxShadow = "0 0 16px rgba(99,102,241,0.45)";
+                });
+            });
+
+            ["dragleave", "drop"].forEach(function (ev) {
+                previewContainer.addEventListener(ev, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    previewContainer.style.borderColor = "var(--border-color)";
+                    previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
+                });
+            });
+
+            previewContainer.addEventListener("drop", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = "var(--border-color)";
+                previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
+
+                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file && fileInput) {
+                    try {
+                        fileInput.files = e.dataTransfer.files;
+                    } catch (err) {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        fileInput.files = dt.files;
+                    }
                     previewFile(file);
                 }
             });

@@ -547,7 +547,9 @@
                                 Pratinjau Foto Profil
                             </div>
                             <div id="modalFotoPreviewContainer"
-                                style="width: 130px; height: 130px; margin: 0 auto; border-radius: 50%; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 3px solid var(--primary, #4f6ef7); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
+                                style="width: 130px; height: 130px; margin: 0 auto; border-radius: 50%; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 3px solid var(--primary, #4f6ef7); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35); cursor: pointer;"
+                                onclick="if (event.target !== document.getElementById('modalFotoFileInput')) document.getElementById('modalFotoFileInput').click()"
+                                title="Klik untuk memilih foto profil">
                                 <img id="modalFotoPreviewImg" src="{{ $profileDetails['foto_url'] ?? '' }}"
                                     alt="Pratinjau Foto"
                                     style="{{ !empty($profileDetails['foto_url']) ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: cover;">
@@ -568,7 +570,7 @@
                             @csrf
                             <div id="modalFotoDropZone"
                                 style="border: 2px dashed rgba(99,102,241,0.4); border-radius: var(--radius-lg, 12px); padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
-                                onclick="document.getElementById('modalFotoFileInput').click()">
+                                onclick="if (event.target !== document.getElementById('modalFotoFileInput')) document.getElementById('modalFotoFileInput').click()">
                                 <i class="fas fa-cloud-arrow-up"
                                     style="font-size: var(--text-3xl, 1.875rem); color: var(--primary); margin-bottom: 8px;"></i>
                                 <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
@@ -578,7 +580,7 @@
                                     PNG, JPG, JPEG (Maks. 5 MB)
                                 </div>
                                 <input type="file" id="modalFotoFileInput" name="foto"
-                                    accept=".png,.jpg,.jpeg,image/png,image/jpeg" style="display: none;">
+                                    accept=".png,.jpg,.jpeg,image/png,image/jpeg" style="display: none;" onclick="event.stopPropagation()">
                             </div>
                         </form>
                     </div>

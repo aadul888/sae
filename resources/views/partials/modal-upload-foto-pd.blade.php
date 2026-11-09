@@ -51,7 +51,9 @@
                     Pratinjau Pasfoto (Aspek Rasio 3:4)
                 </div>
                 <div id="fotoPreviewContainer"
-                    style="width: 126px; height: 168px; margin: 0 auto; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
+                    style="width: 126px; height: 168px; margin: 0 auto; border-radius: var(--radius-lg, 12px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35); cursor: pointer;"
+                    onclick="if (event.target !== document.getElementById('fotoFileInput')) document.getElementById('fotoFileInput').click()"
+                    title="Klik atau seret file PNG ke sini untuk memilih pasfoto">
                     <img id="fotoPreviewImg" src="" alt="Pratinjau Foto"
                         style="display: none; width: 100%; height: 100%; object-fit: cover;">
                     <div id="fotoPreviewPlaceholder"
@@ -71,7 +73,7 @@
                 @csrf
                 <div id="fotoDropZone"
                     style="border: 2px dashed rgba(99,102,241,0.4); border-radius: var(--radius-lg, 12px); padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
-                    onclick="document.getElementById('fotoFileInput').click()">
+                    onclick="if (event.target !== document.getElementById('fotoFileInput')) document.getElementById('fotoFileInput').click()">
                     <i class="fas fa-file-image"
                         style="font-size: var(--text-3xl, 1.875rem); color: var(--primary); margin-bottom: 8px;"></i>
                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
@@ -81,7 +83,7 @@
                         Hanya file <strong>.PNG</strong> (Maks. 5 MB)
                     </div>
                     <input type="file" id="fotoFileInput" name="foto" accept=".png,image/png"
-                        style="display: none;">
+                        style="display: none;" onclick="event.stopPropagation()">
                 </div>
             </form>
         </div>

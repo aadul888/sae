@@ -45,8 +45,13 @@ function handleSekolahFilePreview(file) {
     if (!file) return;
 
     // Validasi ekstensi dan tipe file khusus PNG
-    const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+    const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    if (
+        ext !== "png" ||
+        (file.type &&
+            !file.type.includes("png") &&
+            file.type !== "application/octet-stream")
+    ) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Logo sekolah wajib berformat PNG (.png) untuk kebutuhan kartu pelajar dan dokumen resmi.", "warning");
         } else {
@@ -283,8 +288,13 @@ function updateSekolahLogoUI(logoUrl, logoSize) {
 function handleSekolahKopPreview(file) {
     if (!file) return;
 
-    const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+    const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    if (
+        ext !== "png" ||
+        (file.type &&
+            !file.type.includes("png") &&
+            file.type !== "application/octet-stream")
+    ) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Kop surat sekolah wajib berformat PNG (.png) untuk kebutuhan surat resmi, rapor, dan cetak.", "warning");
         } else {

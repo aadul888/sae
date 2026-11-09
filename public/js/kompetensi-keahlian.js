@@ -175,8 +175,13 @@ function handleFilePreview(file) {
     if (!file) return;
 
     // Validasi ekstensi dan tipe file
-    const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+    const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    if (
+        ext !== "png" ||
+        (file.type &&
+            !file.type.includes("png") &&
+            file.type !== "application/octet-stream")
+    ) {
         window.SAE.toast("Logo jurusan wajib berformat PNG (.png) untuk transparansi kartu pelajar.", "warning");
         document.getElementById("logoFileInput").value = "";
         return;
@@ -563,10 +568,65 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         dropZone.addEventListener("drop", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.style.borderColor = "rgba(99,102,241,0.4)";
+            dropZone.style.background = "rgba(255,255,255,0.01)";
+
             const dt = e.dataTransfer;
-            const files = dt.files;
+            const files = dt?.files;
             if (files && files.length > 0) {
-                fileInput.files = files;
+                if (fileInput) {
+                    try {
+                        fileInput.files = files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(files[0]);
+                        fileInput.files = dtx.files;
+                    }
+                }
+                handleFilePreview(files[0]);
+            }
+        });
+    }
+
+    const previewContainer = document.getElementById("logoPreviewContainer");
+    if (previewContainer) {
+        ["dragenter", "dragover"].forEach((eventName) => {
+            previewContainer.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = "#6366f1";
+                previewContainer.style.boxShadow = "0 0 16px rgba(99,102,241,0.45)";
+            });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            previewContainer.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = "var(--border-color)";
+                previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.3)";
+            });
+        });
+
+        previewContainer.addEventListener("drop", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.style.borderColor = "var(--border-color)";
+            previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.3)";
+
+            const files = e.dataTransfer?.files;
+            if (files && files.length > 0) {
+                if (fileInput) {
+                    try {
+                        fileInput.files = files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(files[0]);
+                        fileInput.files = dtx.files;
+                    }
+                }
                 handleFilePreview(files[0]);
             }
         });
@@ -647,6 +707,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("liveSearch") || document.getElementById("searchTable");
         const perPageSelect = document.getElementById("perPageSelect");
 
+        const filterBidang = document.getElementById("filterBidang");
+        const filterDurasi = document.getElementById("filterDurasi");
+
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
         } else {
@@ -655,6 +718,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (perPageSelect && perPageSelect.value) {
             url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        if (filterBidang && filterBidang.value) {
+            url.searchParams.set("bidang", filterBidang.value);
+        } else {
+            url.searchParams.delete("bidang");
+        }
+
+        if (filterDurasi && filterDurasi.value) {
+            url.searchParams.set("durasi", filterDurasi.value);
+        } else {
+            url.searchParams.delete("durasi");
         }
 
         Object.keys(overrideParams).forEach((k) => {
@@ -672,12 +747,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Delegated Change Handler untuk perPageSelect
+    // Delegated Change Handler untuk perPageSelect & toolbar filters
     document.addEventListener("change", function (e) {
         if (!e.target || e.target.tagName !== "SELECT") return;
         if (
             e.target.closest("#tableDataContainer, .datatable-toolbar") &&
-            e.target.id === "perPageSelect"
+            (e.target.id === "perPageSelect" || e.target.id === "filterBidang" || e.target.id === "filterDurasi")
         ) {
             e.preventDefault();
             e.stopPropagation();
@@ -695,7 +770,8 @@ document.addEventListener("DOMContentLoaded", function () {
         e.stopPropagation();
 
         const url = new URL(window.location.href);
-        const currentSort = url.searchParams.get("sort") || "nama";
+        const isRef = url.searchParams.get("tab") === "referensi";
+        const currentSort = url.searchParams.get("sort") || (isRef ? "kode_konsentrasi" : "nama");
         const currentDir = url.searchParams.get("sort_dir") || "asc";
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });

@@ -59,9 +59,10 @@
     @if ($cardChunks->isNotEmpty())
         <div class="kp-sheet-wrapper">
             @foreach ($cardChunks as $chunkIdx => $chunk)
+                @php $isSingleCard = $chunk->count() === 1; @endphp
                 <div class="kp-a4-sheet" data-page="{{ $chunkIdx + 1 }}">
-                    <!-- Baris Atas: Sisi Depan Kartu (Maksimal 5 Sisi) -->
-                    <div class="kp-sheet-row kp-row-front">
+                    <!-- Baris Atas: Sisi Depan Kartu (Maksimal 5 Sisi). 1 kartu → rata kanan. -->
+                    <div class="kp-sheet-row kp-row-front {{ $isSingleCard ? 'kp-row-single' : '' }}">
                         @foreach ($chunk as $card)
                             @include('kartu-pelajar.card-front', ['card' => $card])
                         @endforeach
@@ -72,8 +73,8 @@
                         <div class="kp-cut-line"></div>
                     </div>
 
-                    <!-- Baris Bawah: Sisi Belakang Kartu (Maksimal 5 Sisi) -->
-                    <div class="kp-sheet-row kp-row-back">
+                    <!-- Baris Bawah: Sisi Belakang Kartu (Maksimal 5 Sisi). 1 kartu → rata kanan. -->
+                    <div class="kp-sheet-row kp-row-back {{ $isSingleCard ? 'kp-row-single' : '' }}">
                         @foreach ($chunk as $card)
                             @include('kartu-pelajar.card-back', ['card' => $card])
                         @endforeach

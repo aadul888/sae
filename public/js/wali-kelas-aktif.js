@@ -358,12 +358,62 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const dt = e.dataTransfer;
             if (dt && dt.files && dt.files[0]) {
                 if (fileInput) {
-                    fileInput.files = dt.files;
+                    try {
+                        fileInput.files = dt.files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(dt.files[0]);
+                        fileInput.files = dtx.files;
+                    }
                 }
                 handleFilePreview(dt.files[0]);
+            }
+        });
+    }
+
+    const previewContainer = document.getElementById("fotoPreviewContainer");
+    if (previewContainer) {
+        ["dragenter", "dragover"].forEach((eventName) => {
+            previewContainer.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = "#6366f1";
+                previewContainer.style.boxShadow = "0 0 16px rgba(99,102,241,0.45)";
+            });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            previewContainer.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                previewContainer.style.borderColor = "var(--border-color)";
+                previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
+            });
+        });
+
+        previewContainer.addEventListener("drop", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.style.borderColor = "var(--border-color)";
+            previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
+
+            const files = e.dataTransfer?.files;
+            if (files && files.length > 0) {
+                if (fileInput) {
+                    try {
+                        fileInput.files = files;
+                    } catch (err) {
+                        const dtx = new DataTransfer();
+                        dtx.items.add(files[0]);
+                        fileInput.files = dtx.files;
+                    }
+                }
+                handleFilePreview(files[0]);
             }
         });
     }
@@ -445,8 +495,13 @@ window.closeUploadFotoModal = function () {
 function handleFilePreview(file) {
     if (!file) return;
 
-    const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+    const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
+    if (
+        ext !== "png" ||
+        (file.type &&
+            !file.type.includes("png") &&
+            file.type !== "application/octet-stream")
+    ) {
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast("Pasfoto peserta didik wajib berformat PNG (.png).", "warning");
         } else {

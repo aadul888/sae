@@ -775,22 +775,42 @@ document.addEventListener("DOMContentLoaded", function () {
     const bulkFilesInput = document.getElementById("bulkFilesInput");
 
     if (bulkDropZone && bulkFilesInput) {
+        bulkDropZone.addEventListener("click", function (e) {
+            if (
+                e.target.closest("#btnClearBulkMatches") ||
+                e.target.closest("label") ||
+                e.target === bulkFilesInput
+            ) {
+                return;
+            }
+            bulkFilesInput.click();
+        });
+
         bulkDropZone.addEventListener("dragover", function (e) {
             e.preventDefault();
+            e.stopPropagation();
             bulkDropZone.style.borderColor = "var(--primary)";
             bulkDropZone.style.background = "rgba(99,102,241,0.12)";
         });
 
-        bulkDropZone.addEventListener("dragleave", function () {
+        bulkDropZone.addEventListener("dragleave", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             bulkDropZone.style.borderColor = "rgba(99,102,241,0.45)";
             bulkDropZone.style.background = "rgba(99,102,241,0.03)";
         });
 
         bulkDropZone.addEventListener("drop", function (e) {
             e.preventDefault();
+            e.stopPropagation();
             bulkDropZone.style.borderColor = "rgba(99,102,241,0.45)";
             bulkDropZone.style.background = "rgba(99,102,241,0.03)";
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                try {
+                    bulkFilesInput.files = e.dataTransfer.files;
+                } catch (err) {
+                    // Fallback browser jika direct assignment read-only
+                }
                 handleBulkFilesSelection(e.dataTransfer.files);
             }
         });

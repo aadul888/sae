@@ -7,22 +7,83 @@
     <div class="dash-banner">
         <div>
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-laptop-code text-primary me-2"></i> Master Data — Kompetensi Keahlian
+                <i class="fas {{ ($tab ?? 'dapodik') === 'referensi' ? 'fa-book-bookmark' : 'fa-laptop-code' }} text-primary me-2"></i> Master Data — {{ ($tab ?? 'dapodik') === 'referensi' ? 'Referensi Jurusan Nasional' : 'Kompetensi Keahlian' }}
             </h2>
             <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
-                Data kompetensi keahlian / jurusan disinkronkan otomatis dari tabel <strong>Rombongan Belajar</strong>
-                (Dapodik).
+                @if (($tab ?? 'dapodik') === 'referensi')
+                    Daftar rujukan nasional <strong>Spektrum Keahlian SMK/MAK (Kurikulum Merdeka)</strong> mencakup Bidang Keahlian, Program Keahlian, dan Konsentrasi Keahlian.
+                @else
+                    Data kompetensi keahlian / jurusan disinkronkan otomatis dari tabel <strong>Rombongan Belajar</strong> (Dapodik).
+                @endif
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);"
-                title="Tarik Data Rombel">
-                <i class="fas fa-cloud-arrow-down"></i>
-            </a>
+            @if (($tab ?? 'dapodik') === 'referensi')
+                <div class="badge badge-primary" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); font-weight: 700;">
+                    <i class="fas fa-certificate me-1"></i> Kurikulum Merdeka
+                </div>
+            @else
+                <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: var(--text-base, 0.875rem);"
+                    title="Tarik Data Rombel">
+                    <i class="fas fa-cloud-arrow-down"></i>
+                </a>
+            @endif
         </div>
     </div>
 
-    <!-- Summary Stats Grid -->
+@if (($tab ?? 'dapodik') === 'referensi')
+    <!-- Summary Stats Grid Referensi Nasional -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_konsentrasi'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Konsentrasi Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
+                <i class="fas fa-diagram-project"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_program'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Program Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
+                <i class="fas fa-shapes"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_bidang'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Bidang Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
+                <i class="fas fa-calendar-days"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['durasi_3'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(3 Th)</span> / {{ $summaryRef['durasi_4'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(4 Th)</span>
+                </div>
+                <div class="dash-stat-label">Distribusi Durasi Program</div>
+            </div>
+        </div>
+    </div>
+@else
+    <!-- Summary Stats Grid Dapodik -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
@@ -72,7 +133,262 @@
             </div>
         </div>
     </div>
+@endif
 
+    <!-- Tab Navigasi Master Data Jurusan (Wajib DI BAWAH Card Statistik, DI ATAS Datatable) -->
+    <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+        <div class="periode-nav-desktop">
+            <a href="{{ route('dashboard.kompetensi-keahlian.index', ['tab' => 'dapodik']) }}"
+                class="periode-nav-tab {{ ($tab ?? 'dapodik') === 'dapodik' ? 'active' : '' }}">
+                <i class="fas fa-school"></i> Jurusan Sekolah (Dapodik)
+                <span class="badge {{ ($tab ?? 'dapodik') === 'dapodik' ? 'badge-primary' : 'badge-outline' }}" style="margin-left: 6px; font-size: var(--text-xs, 0.75rem);">
+                    {{ $countDapodik ?? 0 }}
+                </span>
+            </a>
+            <a href="{{ route('dashboard.kompetensi-keahlian.index', ['tab' => 'referensi']) }}"
+                class="periode-nav-tab {{ ($tab ?? 'dapodik') === 'referensi' ? 'active' : '' }}">
+                <i class="fas fa-book-bookmark"></i> Master Referensi Jurusan
+                <span class="badge {{ ($tab ?? 'dapodik') === 'referensi' ? 'badge-primary' : 'badge-outline' }}" style="margin-left: 6px; font-size: var(--text-xs, 0.75rem);">
+                    {{ $countReferensi ?? 0 }}
+                </span>
+            </a>
+        </div>
+        <div class="periode-nav-mobile">
+            <div class="periode-mobile-select-box" style="margin-bottom: 0;">
+                <label><i class="fas fa-filter text-primary me-1"></i> Pilih Kategori Data:</label>
+                <select class="periode-mobile-select form-select" onchange="if(this.value) window.location.href=this.value;"
+                    style="font-size: var(--text-base, 0.875rem); height: 42px; border-radius: var(--radius-lg, 12px); width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
+                    <option value="{{ route('dashboard.kompetensi-keahlian.index', ['tab' => 'dapodik']) }}"
+                        {{ ($tab ?? 'dapodik') === 'dapodik' ? 'selected' : '' }}>
+                        Jurusan Sekolah (Dapodik) ({{ $countDapodik ?? 0 }})
+                    </option>
+                    <option value="{{ route('dashboard.kompetensi-keahlian.index', ['tab' => 'referensi']) }}"
+                        {{ ($tab ?? 'dapodik') === 'referensi' ? 'selected' : '' }}>
+                        Master Referensi Jurusan ({{ $countReferensi ?? 0 }})
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+@if (($tab ?? 'dapodik') === 'referensi')
+    <!-- Summary Stats Grid Referensi Nasional -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_konsentrasi'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Konsentrasi Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
+                <i class="fas fa-diagram-project"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_program'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Program Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
+                <i class="fas fa-shapes"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['total_bidang'] ?? 0 }}
+                </div>
+                <div class="dash-stat-label">Bidang Keahlian</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
+                <i class="fas fa-calendar-days"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
+                    {{ $summaryRef['durasi_3'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(3 Th)</span> / {{ $summaryRef['durasi_4'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(4 Th)</span>
+                </div>
+                <div class="dash-stat-label">Distribusi Durasi Program</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Datatable Referensi Jurusan -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header (Entries & Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100, 150] as $n)
+                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                        <span class="badge badge-outline" style="margin-left: 8px; font-size: var(--text-xs, 0.75rem);">Total:
+                            {{ $refList->total() }}</span>
+                    </div>
+
+                    {{-- Filter Bidang Keahlian --}}
+                    <div style="display: inline-block;">
+                        <select id="filterBidang" name="bidang" class="toolbar-filter-select"
+                            style="height: 38px; padding: 0 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); max-width: 240px;">
+                            <option value="">-- Semua Bidang Keahlian --</option>
+                            @foreach ($bidangList as $b)
+                                <option value="{{ $b->kode_bidang }}" {{ ($bidang ?? '') == $b->kode_bidang ? 'selected' : '' }}>
+                                    {{ $b->kode_bidang }}. {{ $b->nama_bidang }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Filter Durasi --}}
+                    <div style="display: inline-block;">
+                        <select id="filterDurasi" name="durasi" class="toolbar-filter-select"
+                            style="height: 38px; padding: 0 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
+                            <option value="">-- Semua Durasi --</option>
+                            <option value="3" {{ ($durasi ?? '') === '3' ? 'selected' : '' }}>3 Tahun</option>
+                            <option value="4" {{ ($durasi ?? '') === '4' ? 'selected' : '' }}>4 Tahun</option>
+                        </select>
+                    </div>
+
+                    @if ($q || $bidang || $durasi)
+                        <a href="{{ route('dashboard.kompetensi-keahlian.index', ['tab' => 'referensi']) }}"
+                            class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                            title="Reset filter" data-live-reset>
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari kode, konsentrasi, program..."
+                        value="{{ $q }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Konten Datatable Responsive Stack -->
+        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        @php
+                            $refCols = [
+                                ['kode_konsentrasi', 'Kode'],
+                                ['nama_konsentrasi', 'Konsentrasi Keahlian'],
+                                ['nama_program', 'Program Keahlian'],
+                                ['nama_bidang', 'Bidang Keahlian'],
+                                ['durasi', 'Durasi'],
+                            ];
+                        @endphp
+                        @foreach ($refCols as [$key, $label])
+                            <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; user-select: none; {{ $key === 'durasi' ? 'text-align: center;' : '' }}"
+                                data-sort="{{ $key }}">
+                                {{ $label }}
+                                <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                        @endforeach
+                        <th style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Kurikulum
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($refList as $item)
+                        @php
+                            $isAtSchool = in_array(mb_strtolower(trim($item->nama_konsentrasi)), $schoolJurusanNames ?? [], true);
+                        @endphp
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                            <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-family: monospace;" data-label="Kode">
+                                <span class="badge badge-primary copyable" data-copy="{{ $item->kode_konsentrasi }}"
+                                    data-label="Kode Konsentrasi" title="Klik untuk salin kode"
+                                    style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; font-family: monospace;">
+                                    {{ $item->kode_konsentrasi }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color);" data-label="Konsentrasi Keahlian">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; font-size: var(--text-base, 0.875rem);">{{ $item->nama_konsentrasi }}</span>
+                                    @if ($isAtSchool)
+                                        <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;" title="Konsentrasi keahlian ini ada di sekolah">
+                                            <i class="fas fa-check-circle me-1"></i>Di Sekolah
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-color); font-size: var(--text-sm, 0.8125rem);" data-label="Program Keahlian">
+                                <span class="badge badge-outline" style="font-family: monospace; font-size: var(--text-xs, 0.75rem); margin-right: 4px;">{{ $item->kode_program }}</span>
+                                <span>{{ $item->nama_program }}</span>
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);" data-label="Bidang Keahlian">
+                                <div>
+                                    <span class="badge badge-outline" style="font-family: monospace; font-size: var(--text-xs, 0.75rem); margin-right: 4px;">{{ $item->kode_bidang }}</span>
+                                    <span style="font-weight: 600; color: var(--text-color);">{{ $item->nama_bidang }}</span>
+                                </div>
+                                @if (!empty($item->bidang_k13))
+                                    <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 3px;" title="Bidang Asal pada Kurikulum 2013 (Konversi)">
+                                        <span style="opacity: 0.7;">K13:</span> {{ $item->bidang_k13 }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td style="padding: 14px 18px; text-align: center;" data-label="Durasi">
+                                @if ($item->durasi == 4)
+                                    <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-weight: 700; font-size: var(--text-xs, 0.75rem); padding: 4px 9px;">
+                                        <i class="fas fa-calendar-check me-1"></i>4 Tahun
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-weight: 700; font-size: var(--text-xs, 0.75rem); padding: 4px 9px;">
+                                        <i class="fas fa-calendar-days me-1"></i>3 Tahun
+                                    </span>
+                                @endif
+                            </td>
+                            <td style="padding: 14px 18px;" data-label="Kurikulum">
+                                <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
+                                    {{ $item->kurikulum }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
+                                <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
+                                <div>Tidak ditemukan data referensi jurusan yang sesuai.</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
+        @if ($refList->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $refList])
+            </div>
+        @endif
+    </div>
+@else
     <!-- Unified Datatable Keahlian (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <!-- 1. Toolbar Header (Entries & Live Search) -->
@@ -285,6 +601,7 @@
             </div>
         @endif
     </div>
+@endif
 
     {{-- Detail Rombel Modal --}}
     <div id="rombelModal" class="modal-backdrop"
@@ -393,7 +710,9 @@
                         Pratinjau Transparansi Logo
                     </div>
                     <div id="logoPreviewContainer"
-                        style="width: 140px; height: 140px; margin: 0 auto; border-radius: var(--radius-xl, 16px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 12px 12px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                        style="width: 140px; height: 140px; margin: 0 auto; border-radius: var(--radius-xl, 16px); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 12px 12px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.3); cursor: pointer;"
+                        onclick="if (event.target !== document.getElementById('logoFileInput')) document.getElementById('logoFileInput').click()"
+                        title="Klik atau seret berkas PNG logo ke sini">
                         <img id="logoPreviewImg" src="" alt="Pratinjau Logo"
                             style="display: none; max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
                         <div id="logoPreviewPlaceholder"
@@ -415,7 +734,7 @@
 
                     <div id="logoDropZone"
                         style="border: 2px dashed rgba(99,102,241,0.4); border-radius: var(--radius-lg, 12px); padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
-                        onclick="document.getElementById('logoFileInput').click()">
+                        onclick="if (event.target !== document.getElementById('logoFileInput')) document.getElementById('logoFileInput').click()">
                         <i class="fas fa-file-image"
                             style="font-size: var(--text-3xl, 1.875rem); color: var(--primary); margin-bottom: 8px;"></i>
                         <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
@@ -425,7 +744,7 @@
                             Hanya file <strong>.PNG</strong> (Maks. 5 MB)
                         </div>
                         <input type="file" id="logoFileInput" name="logo" accept=".png,image/png"
-                            style="display: none;">
+                            style="display: none;" onclick="event.stopPropagation()">
                     </div>
                 </form>
             </div>

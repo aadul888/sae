@@ -661,7 +661,7 @@
                             </button>
                         </div>
                         <input type="file" id="bulkFilesInput" multiple accept="image/png,.png,application/zip,.zip"
-                            style="display: none;">
+                            style="display: none;" onclick="event.stopPropagation()">
                     </div>
                 </div>
 

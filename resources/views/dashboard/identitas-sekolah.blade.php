@@ -447,7 +447,9 @@
             <!-- Preview Box + Dropzone in Card -->
             <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
                 <div id="cardLogoPreviewContainer"
-                    style="width: 120px; height: 120px; border-radius: var(--radius-xl, 16px); border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 14px 14px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
+                    style="width: 120px; height: 120px; border-radius: var(--radius-xl, 16px); border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 14px 14px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s; cursor: pointer;"
+                    onclick="if (event.target !== document.getElementById('cardLogoFileInput')) document.getElementById('cardLogoFileInput').click()"
+                    title="Klik atau seret berkas PNG logo ke sini">
                     <img id="cardLogoPreviewImg" src="{{ $schoolLogoUrl ? $schoolLogoUrl . '?v=' . time() : '' }}"
                         alt="Preview Logo"
                         style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; display: {{ $schoolLogoUrl ? 'block' : 'none' }};">
@@ -462,8 +464,8 @@
                 <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
                     <div id="cardLogoDropZone"
                         style="border: 2px dashed rgba(99,102,241,0.35); background: rgba(255,255,255,0.015); border-radius: var(--radius-lg, 12px); padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.2s;"
-                        onclick="document.getElementById('cardLogoFileInput').click()">
-                        <input type="file" id="cardLogoFileInput" accept=".png,image/png" style="display: none;">
+                        onclick="if (event.target !== document.getElementById('cardLogoFileInput')) document.getElementById('cardLogoFileInput').click()">
+                        <input type="file" id="cardLogoFileInput" accept=".png,image/png" style="display: none;" onclick="event.stopPropagation()">
                         <i class="fas fa-cloud-arrow-up"
                             style="font-size: var(--text-xl, 1.25rem); color: var(--primary); margin-bottom: 4px;"></i>
                         <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color);">
@@ -538,7 +540,9 @@
             <!-- Preview Box (Wide) + Dropzone in Card -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div id="cardKopPreviewContainer"
-                    style="width: 100%; height: 95px; border-radius: var(--radius-lg, 12px); border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 12px 12px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
+                    style="width: 100%; height: 95px; border-radius: var(--radius-lg, 12px); border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 12px 12px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s; cursor: pointer;"
+                    onclick="if (event.target !== document.getElementById('cardKopFileInput')) document.getElementById('cardKopFileInput').click()"
+                    title="Klik atau seret berkas PNG kop surat ke sini">
                     <img id="cardKopPreviewImg" src="{{ $schoolKopUrl ? $schoolKopUrl . '?v=' . time() : '' }}"
                         alt="Preview Kop Surat"
                         style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 4px; display: {{ $schoolKopUrl ? 'block' : 'none' }};">
@@ -553,8 +557,8 @@
                 <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     <div id="cardKopDropZone"
                         style="flex: 1; min-width: 200px; border: 2px dashed rgba(99,102,241,0.35); background: rgba(255,255,255,0.015); border-radius: var(--radius-lg, 12px); padding: 12px 10px; text-align: center; cursor: pointer; transition: all 0.2s;"
-                        onclick="document.getElementById('cardKopFileInput').click()">
-                        <input type="file" id="cardKopFileInput" accept=".png,image/png" style="display: none;">
+                        onclick="if (event.target !== document.getElementById('cardKopFileInput')) document.getElementById('cardKopFileInput').click()">
+                        <input type="file" id="cardKopFileInput" accept=".png,image/png" style="display: none;" onclick="event.stopPropagation()">
                         <i class="fas fa-cloud-arrow-up"
                             style="font-size: var(--text-xl, 1.25rem); color: var(--primary); margin-bottom: 2px;"></i>
                         <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color);">

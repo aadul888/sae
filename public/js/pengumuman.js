@@ -146,8 +146,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEditorInsertLink = document.getElementById("btnEditorInsertLink");
 
     // Drag and Drop foto sampul
+    const isImageFile = (file) => {
+        if (!file) return false;
+        if (file.type && file.type.startsWith("image/")) return true;
+        return /\.(jpe?g|png|webp|svg|gif|bmp)$/i.test(file.name || "");
+    };
+
     const handleFilePreview = (file) => {
-        if (!file || !file.type.startsWith("image/")) return;
+        if (!isImageFile(file)) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             if (beritaNewGambarImg) beritaNewGambarImg.src = e.target.result;
@@ -181,11 +187,21 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
         beritaDropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const dt = e.dataTransfer;
             if (dt && dt.files && dt.files[0]) {
                 const file = dt.files[0];
-                if (file.type.startsWith("image/")) {
-                    inputBeritaGambar.files = dt.files;
+                if (isImageFile(file)) {
+                    if (inputBeritaGambar) {
+                        try {
+                            inputBeritaGambar.files = dt.files;
+                        } catch (err) {
+                            const dtx = new DataTransfer();
+                            dtx.items.add(file);
+                            inputBeritaGambar.files = dtx.files;
+                        }
+                    }
                     handleFilePreview(file);
                 }
             }

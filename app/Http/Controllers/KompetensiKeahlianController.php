@@ -9,6 +9,7 @@ use App\Support\Table;
 class KompetensiKeahlianController extends Controller
 {
     private const SORTABLE = ['kode', 'nama', 'total_rombel', 'total_peserta_didik'];
+    private const SORTABLE_REF = ['kode_konsentrasi', 'nama_konsentrasi', 'kode_bidang', 'nama_bidang', 'kode_program', 'nama_program', 'durasi'];
 
     public function index(Request $request)
     {
@@ -24,6 +25,87 @@ class KompetensiKeahlianController extends Controller
         $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'update');
         $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'delete');
 
+        $tab = $request->get('tab', 'dapodik');
+        if (!in_array($tab, ['dapodik', 'referensi'], true)) {
+            $tab = 'dapodik';
+        }
+
+        $countDapodik = Table::exists('rombongan_belajar')
+            ? DB::table('rombongan_belajar')
+                ->whereNotNull('jurusan_id_str')
+                ->where('jurusan_id_str', '<>', '')
+                ->distinct('jurusan_id')
+                ->count('jurusan_id')
+            : 0;
+
+        $countReferensi = Table::exists('referensi_jurusan')
+            ? \App\Models\ReferensiJurusan::count()
+            : 0;
+
+        // TAB MASTER REFERENSI JURUSAN (SPEKTRUM SMK NASIONAL)
+        if ($tab === 'referensi') {
+            $q       = trim($request->get('q', ''));
+            $bidang  = trim($request->get('bidang', ''));
+            $durasi  = trim($request->get('durasi', ''));
+            $perPage = (int) $request->get('perPage', 15);
+            $sort    = in_array($request->get('sort'), self::SORTABLE_REF, true) ? $request->get('sort') : 'kode_konsentrasi';
+            $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+            $query = \App\Models\ReferensiJurusan::query()
+                ->search($q)
+                ->bidang($bidang)
+                ->durasi($durasi)
+                ->orderBy($sort, $sortDir);
+
+            $refList = $query->paginate($perPage)->withQueryString();
+
+            $summaryRef = [
+                'total_konsentrasi' => $countReferensi,
+                'total_program'     => Table::exists('referensi_jurusan') ? \App\Models\ReferensiJurusan::distinct('kode_program')->count('kode_program') : 0,
+                'total_bidang'      => Table::exists('referensi_jurusan') ? \App\Models\ReferensiJurusan::distinct('kode_bidang')->count('kode_bidang') : 0,
+                'durasi_4'          => Table::exists('referensi_jurusan') ? \App\Models\ReferensiJurusan::where('durasi', 4)->count() : 0,
+                'durasi_3'          => Table::exists('referensi_jurusan') ? \App\Models\ReferensiJurusan::where('durasi', 3)->count() : 0,
+            ];
+
+            $bidangList = Table::exists('referensi_jurusan')
+                ? \App\Models\ReferensiJurusan::select('kode_bidang', 'nama_bidang')
+                    ->distinct()
+                    ->orderByRaw('CAST(kode_bidang AS UNSIGNED) ASC')
+                    ->get()
+                : collect();
+
+            $schoolJurusanNames = Table::exists('rombongan_belajar')
+                ? DB::table('rombongan_belajar')
+                    ->whereNotNull('jurusan_id_str')
+                    ->where('jurusan_id_str', '<>', '')
+                    ->pluck('jurusan_id_str')
+                    ->map(fn($v) => mb_strtolower(trim($v)))
+                    ->unique()
+                    ->toArray()
+                : [];
+
+            return view('dashboard.kompetensi-keahlian', compact(
+                'tab',
+                'countDapodik',
+                'countReferensi',
+                'refList',
+                'summaryRef',
+                'bidangList',
+                'schoolJurusanNames',
+                'q',
+                'bidang',
+                'durasi',
+                'perPage',
+                'sort',
+                'sortDir',
+                'canCreate',
+                'canRead',
+                'canUpdate',
+                'canDelete'
+            ));
+        }
+
+        // TAB JURUSAN SEKOLAH (DAPODIK)
         $q       = trim($request->get('q', ''));
         $perPage = (int) $request->get('perPage', 15);
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
@@ -31,6 +113,9 @@ class KompetensiKeahlianController extends Controller
 
         if (!Table::exists('rombongan_belajar')) {
             return view('dashboard.kompetensi-keahlian', [
+                'tab' => $tab,
+                'countDapodik' => $countDapodik,
+                'countReferensi' => $countReferensi,
                 'list' => collect(),
                 'total' => 0,
                 'summary' => ['jurusan' => 0, 'rombel' => 0, 'peserta_didik' => 0, 'rata_siswa' => 0],
@@ -38,6 +123,10 @@ class KompetensiKeahlianController extends Controller
                 'perPage' => $perPage,
                 'sort' => $sort,
                 'sortDir' => $sortDir,
+                'canCreate' => $canCreate,
+                'canRead' => $canRead,
+                'canUpdate' => $canUpdate,
+                'canDelete' => $canDelete,
             ]);
         }
 
@@ -143,6 +232,9 @@ class KompetensiKeahlianController extends Controller
         );
 
         return view('dashboard.kompetensi-keahlian', compact(
+            'tab',
+            'countDapodik',
+            'countReferensi',
             'list',
             'total',
             'summary',

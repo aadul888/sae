@@ -242,8 +242,11 @@ class KartuPelajarTest extends TestCase
             // 10. Test Cetak Berdasarkan Antrean Request Terpilih / Diceklist
             $selectedReqPrintRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-antrean', [
                 'ids' => $req->id,
+                'hanya_ada_foto' => 0,
             ]));
             $selectedReqPrintRes->assertOk();
+            // 1 kartu per lembar → baris dicetak rata kanan (sisi sebaliknya kosong).
+            $selectedReqPrintRes->assertSee('kp-row-single', false);
 
             $req->refresh();
             $this->assertEquals('diproses', $req->status);
