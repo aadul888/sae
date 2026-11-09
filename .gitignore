@@ -30,6 +30,14 @@ yarn-error.log
 /scratch
 audit_permissions.php
 base.txt
+clashes.json
+group_clashes.php
+overlaps.json
+parse_menu_items.php
+scan_routes.php
+sidebar_menu_items.json
+simulate_clashes.php
+simulate_real_clashes.php
 *.sql
 *.sql.gz
 *.bak

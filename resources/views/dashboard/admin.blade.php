@@ -520,10 +520,10 @@
         </div>
 
         <!-- Right: Status Perangkat & Sistem (Sesuai Permintaan) -->
-        <div class="card" style="margin-bottom: 0;">
+        <div class="card" style="margin-bottom: 0; min-width: 0; box-sizing: border-box; overflow: hidden;">
             <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                <div>
+                style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="min-width: 0; flex: 1 1 200px;">
                     <h3
                         style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-server text-accent"></i> Status Sistem &amp; Pembaruan
@@ -533,21 +533,21 @@
                     </p>
                 </div>
                 @if (!empty($updateStatus['updates_available']))
-                    <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
+                    <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px); flex-shrink: 0;">
                         <i class="fas fa-circle-exclamation me-1"></i> Update Tersedia
                     </span>
                 @else
-                    <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
+                    <span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px); flex-shrink: 0;">
                         <i class="fas fa-circle-check me-1"></i> Normal
                     </span>
                 @endif
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
                 <!-- 1. Sinkron Dapodik Terakhir -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); flex-wrap: wrap; gap: 8px;">
-                    <div style="flex: 1; min-width: 150px;">
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); flex-wrap: wrap; gap: 10px; min-width: 0;">
+                    <div style="flex: 1 1 180px; min-width: 0;">
                         <div
                             style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-cloud-arrow-up text-warning"></i> Sinkron Dapodik Terakhir
@@ -556,15 +556,16 @@
                             Sinkronisasi lokal data pokok satuan pendidikan
                         </div>
                     </div>
-                    <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); white-space: nowrap;">
+                    <span class="badge"
+                        style="background: rgba(245, 158, 11, 0.12); color: var(--warning, #f59e0b); font-weight: 700; font-size: var(--text-xs, 0.75rem); padding: 5px 10px; border-radius: var(--radius-md, 8px); white-space: nowrap; flex-shrink: 0;">
                         {{ $stats['sync_dapodik'] }}
                     </span>
                 </div>
 
                 <!-- 2. Versi Aplikasi -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); flex-wrap: wrap; gap: 8px;">
-                    <div style="flex: 1; min-width: 150px;">
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); flex-wrap: wrap; gap: 10px; min-width: 0;">
+                    <div style="flex: 1 1 180px; min-width: 0;">
                         <div
                             style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-code-commit text-primary"></i> Versi Aplikasi SAE
@@ -574,7 +575,7 @@
                         </div>
                     </div>
                     <span class="badge"
-                        style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-md, 8px); white-space: nowrap;">
+                        style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: var(--text-xs, 0.75rem); padding: 5px 10px; border-radius: var(--radius-md, 8px); white-space: nowrap; flex-shrink: 0;">
                         v{{ $stats['app_version'] }}
                     </span>
                 </div>
@@ -582,18 +583,18 @@
                 <!-- 3. Informasi & Tombol Update Sistem -->
                 @if (!empty($updateStatus['updates_available']))
                     <div
-                        style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); margin-top: 4px;">
-                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                        style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); margin-top: 4px; min-width: 0;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
                             <div
                                 style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245, 158, 11, 0.2); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
                                 <i class="fas fa-bell"></i>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b);">
+                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b); word-break: break-word;">
                                     Pembaruan Sistem Tersedia!
                                 </div>
                                 <div
-                                    style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px; line-height: 1.4;">
+                                    style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 3px; line-height: 1.4; word-break: break-word;">
                                     Tersedia <strong>{{ $updateStatus['behind_count'] }} pembaruan baru</strong> dari
                                     repositori resmi SAE untuk stabilitas dan fitur terkini.
                                 </div>
@@ -607,30 +608,30 @@
                         </div>
 
                         <a href="{{ route('dashboard.update') }}" class="btn btn-primary"
-                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 10px 16px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px);">
+                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 10px 16px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); box-sizing: border-box; text-decoration: none;">
                             <i class="fas fa-circle-arrow-up"></i> Buka Halaman Update Sistem
                         </a>
                     </div>
                 @else
                     <div
-                        style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); margin-top: 4px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); margin-top: 4px; min-width: 0;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
                             <div
                                 style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(16, 185, 129, 0.18); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
                                 <i class="fas fa-circle-check"></i>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981);">
+                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981); word-break: break-word;">
                                     Sistem Berjalan pada Versi Terbaru
                                 </div>
-                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px; line-height: 1.4; word-break: break-word;">
                                     Seluruh berkas, dependensi, dan skema database dalam keadaan mutakhir.
                                 </div>
                             </div>
                         </div>
 
                         <a href="{{ route('dashboard.update') }}" class="btn btn-outline"
-                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 9px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
+                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 9px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); box-sizing: border-box; text-decoration: none;">
                             <i class="fas fa-rotate"></i> Cek Pembaruan Sistem
                         </a>
                     </div>

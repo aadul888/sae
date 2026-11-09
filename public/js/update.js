@@ -16,6 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const migrationList = document.getElementById("migrationList");
     const migUl = document.getElementById("migUl");
 
+    function formatDateTime(str) {
+        if (!str) return "Belum Ada";
+        try {
+            const d = new Date(str.replace(/-/g, "/"));
+            if (!isNaN(d.getTime())) {
+                const pad = (n) => String(n).padStart(2, "0");
+                return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+        } catch (_) {}
+        return str;
+    }
+
     function appendLog(text, color = "#94a3b8") {
         if (!logBox) return;
         const line = document.createElement("div");
@@ -58,7 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const s = data.data;
                 pendingMigCount.textContent = s.pending_migrations.length;
                 if (s.last_update_at) {
-                    lastUpdateText.textContent = s.last_update_at;
+                    lastUpdateText.title = "Riwayat Update Terakhir: " + s.last_update_at;
+                    lastUpdateText.textContent = formatDateTime(s.last_update_at);
                 }
 
                 if (s.pending_migrations.length > 0) {
@@ -159,7 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 pendingMigCount.textContent = "0";
                 migrationList.classList.add("hidden");
                 if (data.data.timestamp) {
-                    lastUpdateText.textContent = data.data.timestamp;
+                    lastUpdateText.title = "Riwayat Update Terakhir: " + data.data.timestamp;
+                    lastUpdateText.textContent = formatDateTime(data.data.timestamp);
                 }
 
                 if (window.SAE && typeof window.SAE.toast === "function") {
