@@ -673,8 +673,8 @@
 
             <!-- 3. Datatable Presensi Kelas Baku SAE -->
             <div class="card table-responsive-stack" id="tableDataContainer"
-                style="padding: 0; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: var(--radius-xl, 16px); overflow: hidden;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                style="padding: 0; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: var(--radius-xl, 16px); overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table class="table table-pd" style="width: 100%; min-width: 800px; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <th
@@ -682,7 +682,7 @@
                                 No
                             </th>
                             <th class="sortable-th {{ ($sort ?? 'nama') === 'nama' ? 'sorted' : '' }}" data-sort="nama"
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; min-width: 200px;">
                                 Peserta Didik
                                 <span class="sort-icon">{!! ($sort ?? 'nama') === 'nama' ? (($sortDir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
@@ -707,7 +707,7 @@
                                 Catatan Mapel
                             </th>
                             <th
-                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 160px;">
+                                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 130px; min-width: 120px;">
                                 Aksi Presensi
                             </th>
                         </tr>
@@ -830,8 +830,8 @@
                                 <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;"
                                     data-label="Aksi">
                                     <div class="cell-col-right" style="align-items: flex-end;">
-                                        <div class="table-actions"
-                                            style="justify-content: flex-end; gap: 4px; display: inline-flex;">
+                                        <div class="table-actions presensi-btn-group"
+                                            style="justify-content: flex-end; gap: 4px;">
                                             <button type="button"
                                                 class="btn-status-toggle {{ $s->mapel_status === 'H' ? 'active-H' : '' }}"
                                                 data-id="{{ $s->peserta_didik_id }}" data-nama="{{ $s->nama }}"

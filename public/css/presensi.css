@@ -944,59 +944,56 @@ input[type="month"] {
         display: none !important;
     }
 
+    /* Standarisasi Datatable Presensi pada Mobile: Format Tabel Utuh & Formasi Aksi Maksimal 3x2 */
     .table-responsive-stack tbody td.cell-pd-nama {
-        order: 1 !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        padding-bottom: 6px !important;
-        margin-bottom: 4px !important;
+        min-width: 220px !important;
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
         text-align: left !important;
-    }
-
-    .table-responsive-stack tbody td.cell-pd-nisn {
-        order: 2 !important;
-    }
-
-    .table-responsive-stack tbody td.cell-pd-status {
-        order: 3 !important;
-    }
-
-    .table-responsive-stack tbody td.cell-pd-waktu {
-        order: 4 !important;
-    }
-
-    .table-responsive-stack tbody td.cell-pd-gerbang {
-        order: 5 !important;
-    }
-
-    .table-responsive-stack tbody td.cell-pd-ket {
-        order: 6 !important;
+        vertical-align: middle !important;
     }
 
     .table-responsive-stack tbody td.cell-pd-aksi {
-        order: 7 !important;
-        border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
-        border-bottom: none !important;
-        padding-top: 6px !important;
-        margin-top: 4px !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        display: table-cell !important;
+        text-align: right !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+        width: max-content !important;
+        min-width: 120px !important;
+        padding: 10px 14px !important;
     }
 
-    .table-responsive-stack tbody td.cell-pd-aksi .table-actions {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        gap: 5px !important;
+    .table-responsive-stack tbody td.cell-pd-aksi .table-actions,
+    .cell-pd-aksi .table-actions,
+    .presensi-btn-group {
+        display: inline-grid !important;
+        grid-template-columns: repeat(3, 32px) !important;
+        grid-auto-flow: row !important;
+        gap: 4px !important;
         justify-content: flex-end !important;
-        max-width: 100% !important;
+        align-items: center !important;
+        justify-items: center !important;
+        width: max-content !important;
+        max-width: none !important;
+        margin-left: auto !important;
     }
 
-    .table-responsive-stack tbody td.cell-pd-aksi .btn-status-toggle {
+    .table-responsive-stack tbody td.cell-pd-aksi .btn-status-toggle,
+    .btn-status-toggle {
         width: 32px !important;
         min-width: 32px !important;
+        max-width: 32px !important;
         height: 32px !important;
         padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         font-size: var(--text-sm, 0.8125rem) !important;
+        font-weight: 700 !important;
         border-radius: var(--radius-md, 8px) !important;
+        box-sizing: border-box !important;
+        flex: 0 0 32px !important;
     }
 }
 
