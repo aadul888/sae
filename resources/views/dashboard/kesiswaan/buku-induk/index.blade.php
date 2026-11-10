@@ -98,7 +98,7 @@
         <div class="datatable-toolbar">
             <form method="GET" action="{{ route('dashboard.kesiswaan.buku-induk.index') }}" class="datatable-filter-form"
                 style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; width: 100%;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                         <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
