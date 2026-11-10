@@ -359,15 +359,60 @@ document.addEventListener('DOMContentLoaded', function () {
         return !!(videoEl && videoStream && videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0);
     }
 
-    function captureSnapshot() {
+    // Kanvas kecil untuk mendeteksi frame kosong / beku (blank / frozen).
+    // Frame beku menghasilkan snapshot identik untuk semua siswa.
+    let blankProbeCanvas = null;
+
+    function frameLooksBlank(sourceCanvas) {
+        try {
+            if (!blankProbeCanvas) blankProbeCanvas = document.createElement('canvas');
+            blankProbeCanvas.width = 16;
+            blankProbeCanvas.height = 16;
+            const probe = blankProbeCanvas.getContext('2d', { willReadFrequently: true });
+            probe.drawImage(sourceCanvas, 0, 0, 16, 16);
+            const data = probe.getImageData(0, 0, 16, 16).data;
+
+            let min = 255;
+            let max = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                if (lum < min) min = lum;
+                if (lum > max) max = lum;
+            }
+            return (max - min) < 6;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function captureSnapshot() {
         if (!isCameraReady()) return null;
         try {
+            // Pastikan stream benar-benar berjalan (bukan frame terakhir yang beku).
+            if (videoEl.paused) {
+                try {
+                    await videoEl.play();
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Tunggu satu frame baru benar-benar ter-render sebelum diambil.
+            await new Promise((resolve) => {
+                if (typeof videoEl.requestVideoFrameCallback === 'function') {
+                    videoEl.requestVideoFrameCallback(() => resolve());
+                    setTimeout(resolve, 250);
+                } else {
+                    requestAnimationFrame(() => requestAnimationFrame(resolve));
+                }
+            });
+
             const width = videoEl.videoWidth;
             const height = videoEl.videoHeight;
             canvasEl.width = width;
             canvasEl.height = height;
 
-            const ctx = canvasEl.getContext('2d');
+            const ctx = canvasEl.getContext('2d', { willReadFrequently: true });
             ctx.clearRect(0, 0, width, height);
             ctx.save();
             // Un-mirror snapshot hanya jika kamera depan
@@ -377,6 +422,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             ctx.drawImage(videoEl, 0, 0, width, height);
             ctx.restore();
+
+            // Tolak frame kosong / seragam: simpan hanya snapshot yang benar-benar berbeda.
+            if (frameLooksBlank(canvasEl)) return null;
 
             return canvasEl.toDataURL('image/jpeg', 0.82);
         } catch (e) {
@@ -761,7 +809,20 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        const snapshot = captureSnapshot();
+        const snapshot = await captureSnapshot();
+        if (!snapshot) {
+            playSound('error');
+            showNoticeCard(
+                'Snapshot Kamera Gagal',
+                'Gambar kamera belum tertangkap (frame kosong / kamera beku). Arahkan kamera lalu coba pindai ulang.',
+                'error'
+            );
+            speakGreeting('Snapshot kamera gagal. Silakan pindai ulang.');
+            isProcessing = false;
+            ensureFocus();
+            return;
+        }
+
         const modeEl = document.querySelector('input[name="kiosk_mode"]:checked');
         const modeVal = modeEl ? modeEl.value : 'auto';
 
