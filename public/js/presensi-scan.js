@@ -363,6 +363,28 @@ document.addEventListener('DOMContentLoaded', function () {
     // Frame beku menghasilkan snapshot identik untuk semua siswa.
     let blankProbeCanvas = null;
 
+    // Simpan hash capture terakhir agar frame beku (identik) langsung ditolak.
+    let lastSnapshotDataUrl = null;
+
+    // Gate wajah. FaceDetector tidak tersedia di semua browser; bila tidak ada
+    // API-nya, jangan blokir presensi (hanya jadi lapis tambahan bila didukung).
+    async function frameHasFace(sourceCanvas) {
+        if (typeof window.FaceDetector !== 'function') {
+            return true;
+        }
+        try {
+            const detector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 5 });
+            const faces = await detector.detect(sourceCanvas);
+            const usable = (faces || []).filter((f) => {
+                const box = f.boundingBox || {};
+                return (box.width || 0) >= 40 && (box.height || 0) >= 40;
+            });
+            return usable.length > 0;
+        } catch (e) {
+            return true;
+        }
+    }
+
     function frameLooksBlank(sourceCanvas) {
         try {
             if (!blankProbeCanvas) blankProbeCanvas = document.createElement('canvas');
@@ -424,11 +446,27 @@ document.addEventListener('DOMContentLoaded', function () {
             ctx.restore();
 
             // Tolak frame kosong / seragam: simpan hanya snapshot yang benar-benar berbeda.
-            if (frameLooksBlank(canvasEl)) return null;
+            if (frameLooksBlank(canvasEl)) {
+                return { ok: false, reason: 'blank' };
+            }
 
-            return canvasEl.toDataURL('image/jpeg', 0.82);
+            // Gate wajah: bila browser mendukung FaceDetector, wajib ada wajah terdeteksi.
+            const faceOk = await frameHasFace(canvasEl);
+            if (!faceOk) {
+                return { ok: false, reason: 'noface' };
+            }
+
+            const dataUrl = canvasEl.toDataURL('image/jpeg', 0.82);
+
+            // Tolak frame identik dengan capture sebelumnya (kamera beku / frame lama).
+            if (dataUrl === lastSnapshotDataUrl) {
+                return { ok: false, reason: 'duplicate' };
+            }
+            lastSnapshotDataUrl = dataUrl;
+
+            return { ok: true, dataUrl };
         } catch (e) {
-            return null;
+            return { ok: false, reason: 'error' };
         }
     }
 
@@ -809,19 +847,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        const snapshot = await captureSnapshot();
-        if (!snapshot) {
+        const shot = await captureSnapshot();
+        if (!shot || !shot.ok) {
+            const reason = shot ? shot.reason : 'error';
+            const pesan = reason === 'noface'
+                ? 'Wajah tidak terdeteksi pada kamera. Pastikan wajah siswa terlihat jelas menghadap kamera, lalu pindai ulang.'
+                : reason === 'duplicate'
+                    ? 'Gambar kamera tidak berubah dari pemindaian sebelumnya (kamera beku). Arahkan ulang kamera lalu pindai ulang.'
+                    : 'Gambar kamera belum tertangkap (frame kosong / kamera beku). Arahkan kamera lalu coba pindai ulang.';
+
             playSound('error');
-            showNoticeCard(
-                'Snapshot Kamera Gagal',
-                'Gambar kamera belum tertangkap (frame kosong / kamera beku). Arahkan kamera lalu coba pindai ulang.',
-                'error'
-            );
+            showNoticeCard('Snapshot Kamera Gagal', pesan, 'error');
             speakGreeting('Snapshot kamera gagal. Silakan pindai ulang.');
             isProcessing = false;
             ensureFocus();
             return;
         }
+        const snapshot = shot.dataUrl;
 
         const modeEl = document.querySelector('input[name="kiosk_mode"]:checked');
         const modeVal = modeEl ? modeEl.value : 'auto';
