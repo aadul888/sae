@@ -57,6 +57,37 @@ class PipQueryService
         $hasKuotaTable = Table::exists('pip_kuota_rombel');
         $hasRiwayatTable = Table::exists('pip_riwayat');
 
+        $tahunSkFilter = trim((string) $request->get('tahun_sk', ''));
+        if (!preg_match('/^\d{4}$/', $tahunSkFilter)) {
+            $tahunSkFilter = '';
+        }
+
+        // Opsi filter tahap memakai nilai tahap_id apa adanya
+        $riwayatTahapOpsi = [];
+        $riwayatTahunSkList = [];
+        if ($hasRiwayatTable) {
+            $riwayatTahapOpsi = DB::table('pip_riwayat')
+                ->whereNotNull('tahap_id')
+                ->where('tahap_id', '!=', '')
+                ->distinct()
+                ->orderBy('tahap_id')
+                ->pluck('tahap_id')
+                ->map(fn($id) => ['id' => (string) $id, 'label' => (string) $id])
+                ->values()
+                ->all();
+
+            $riwayatTahunSkList = DB::table('pip_riwayat')
+                ->whereNotNull('tanggal_sk')
+                ->where('tanggal_sk', '!=', '')
+                ->pluck('tanggal_sk')
+                ->map(fn($v) => preg_match('/(\d{4})/', (string) $v, $m) ? $m[1] : null)
+                ->filter()
+                ->unique()
+                ->sortDesc()
+                ->values()
+                ->all();
+        }
+
         // 0. Data Tab: Dashboard Overview PIP
         $dashboardData = null;
         if ($tab === 'dashboard') {
@@ -417,12 +448,7 @@ class PipQueryService
                     'total_nominal'       => $totalNominal,
                 ];
 
-                $riwayatTahapList = DB::table('pip_riwayat')
-                    ->whereNotNull('tahap')
-                    ->where('tahap', '!=', '')
-                    ->distinct()
-                    ->pluck('tahap')
-                    ->all();
+                $riwayatTahapList = $riwayatTahapOpsi;
 
                 $hasUsulan = Table::exists('pip_usulan');
 
@@ -655,9 +681,16 @@ class PipQueryService
                         });
                     }
 
-                    $tahapFilter = trim((string) $request->get('tahap', ''));
+                    $tahapFilter = trim((string) $request->get('tahap_id', ''));
                     if ($tahapFilter !== '') {
-                        $riwayatQuery->where('r.tahap', $tahapFilter);
+                        $riwayatQuery->where('r.tahap_id', $tahapFilter);
+                    }
+
+                    if ($tahunSkFilter !== '') {
+                        $riwayatQuery->where(function ($s) use ($tahunSkFilter) {
+                            $s->where('r.tanggal_sk', 'like', $tahunSkFilter . '%')
+                              ->orWhere('r.tanggal_sk', 'like', '%' . $tahunSkFilter);
+                        });
                     }
 
                     if ($hasJenisSk && $jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
@@ -758,9 +791,16 @@ class PipQueryService
                     }
                 }
 
-                $tahapFilter = trim((string) $request->get('tahap', ''));
+                $tahapFilter = trim((string) $request->get('tahap_id', ''));
                 if ($tahapFilter !== '') {
-                    $riwayatAlumniQuery->where('r.tahap', $tahapFilter);
+                    $riwayatAlumniQuery->where('r.tahap_id', $tahapFilter);
+                }
+
+                if ($tahunSkFilter !== '') {
+                    $riwayatAlumniQuery->where(function ($s) use ($tahunSkFilter) {
+                        $s->where('r.tanggal_sk', 'like', $tahunSkFilter . '%')
+                          ->orWhere('r.tanggal_sk', 'like', '%' . $tahunSkFilter);
+                    });
                 }
 
                 $hasJenisSk = Schema::hasColumn('pip_riwayat', 'jenis_sk');
@@ -779,12 +819,7 @@ class PipQueryService
                     : 0;
                 $riwayatAlumniStats['total_nominal'] = (float) (clone $statAlumniQuery)->sum('r.nominal');
 
-                $riwayatAlumniTahapList = DB::table('pip_riwayat')
-                    ->whereNotNull('tahap')
-                    ->where('tahap', '!=', '')
-                    ->distinct()
-                    ->pluck('tahap')
-                    ->all();
+                $riwayatAlumniTahapList = $riwayatTahapOpsi;
 
                 if ($hasPdta) {
                     $alumniStatusList = DB::table('peserta_didik_tidak_aktif')
@@ -857,6 +892,8 @@ class PipQueryService
             'kuotaStats',
             'riwayatList',
             'riwayatTahapList',
+            'riwayatTahunSkList',
+            'tahunSkFilter',
             'riwayatStats',
             'riwayatAlumniList',
             'riwayatAlumniTahapList',

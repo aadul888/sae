@@ -69,11 +69,22 @@
                 @endif
 
                 @if (($statusPipFilter ?? 'penerima') !== 'belum')
-                    <select id="filterTahap" name="tahap" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterTahap" name="tahap_id" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Tahap</option>
                         @foreach ($riwayatTahapList as $th)
-                            <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
-                                {{ $th }}
+                            <option value="{{ $th['id'] }}"
+                                {{ request('tahap_id') === (string) $th['id'] ? 'selected' : '' }}>
+                                {{ $th['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <select id="filterTahunSk" name="tahun_sk" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Tahun SK</option>
+                        @foreach ($riwayatTahunSkList as $thnSk)
+                            <option value="{{ $thnSk }}"
+                                {{ request('tahun_sk') === (string) $thnSk ? 'selected' : '' }}>
+                                {{ $thnSk }}
                             </option>
                         @endforeach
                     </select>
@@ -81,7 +92,8 @@
 
                 @if (
                     $q ||
-                        request('tahap') ||
+                        request('tahap_id') ||
+                        request('tahun_sk') ||
                         ($jenisSkFilter ?? '') ||
                         ($isAdmin && $activeRombel) ||
                         ($statusPipFilter ?? 'penerima') !== 'penerima')

@@ -80,6 +80,18 @@ class PipService
                     $table->string('no_kps', 50)->nullable();
                     $table->string('virtual_acc', 50)->nullable();
                     $table->text('keterangan_pencairan')->nullable();
+                    $table->string('sekolah_id', 50)->nullable();
+                    $table->string('npsn', 20)->nullable();
+                    $table->string('nomenklatur', 150)->nullable();
+                    $table->string('nik', 20)->nullable();
+                    $table->string('tahap_id', 50)->nullable()->index();
+                    $table->string('tahap_keterangan', 150)->nullable();
+                    $table->string('nama_rekening', 150)->nullable();
+                    $table->string('nama_kartu', 100)->nullable();
+                    $table->string('semester_id', 20)->nullable();
+                    $table->string('layak_pip', 20)->nullable();
+                    $table->text('confirmation_text')->nullable();
+                    $table->string('nama_pengusul', 150)->nullable();
                     $table->longText('raw_data')->nullable();
                     $table->timestamps();
                 });
@@ -90,6 +102,26 @@ class PipService
                     }
                     if (!Schema::hasColumn('pip_riwayat', 'tanggal_aktivasi')) {
                         $table->string('tanggal_aktivasi', 30)->nullable()->after('tanggal_cair');
+                    }
+                    foreach ([
+                        'sekolah_id'       => 50,
+                        'npsn'             => 20,
+                        'nomenklatur'      => 150,
+                        'nik'              => 20,
+                        'tahap_id'         => 50,
+                        'tahap_keterangan' => 150,
+                        'nama_rekening'    => 150,
+                        'nama_kartu'       => 100,
+                        'semester_id'      => 20,
+                        'layak_pip'        => 20,
+                        'nama_pengusul'    => 150,
+                    ] as $col => $len) {
+                        if (!Schema::hasColumn('pip_riwayat', $col)) {
+                            $table->string($col, $len)->nullable();
+                        }
+                    }
+                    if (!Schema::hasColumn('pip_riwayat', 'confirmation_text')) {
+                        $table->text('confirmation_text')->nullable();
                     }
                 });
             }
@@ -373,8 +405,11 @@ class PipService
             $nominal = self::parseNominal($row['nominal'] ?? '');
             $nomorSk = trim((string) ($row['nomor_sk'] ?? ''));
             $tglSk = self::parseTanggal($row['tanggal_sk'] ?? '');
-            $tahap = trim((string) ($row['tahap_keterangan'] ?? ($row['tahap_id'] ?? ($row['tahap'] ?? ''))));
-            $tahun = trim((string) ($row['semester_id'] ?? date('Y')));
+            $tahapId = trim((string) ($row['tahap_id'] ?? ''));
+            $tahapKet = trim((string) ($row['tahap_keterangan'] ?? ''));
+            $tahap = $tahapKet !== '' ? $tahapKet : ($tahapId !== '' ? $tahapId : trim((string) ($row['tahap'] ?? '')));
+            $semesterId = trim((string) ($row['semester_id'] ?? ''));
+            $tahun = $semesterId !== '' ? $semesterId : trim((string) ($row['tahun'] ?? date('Y')));
             if (strlen($tahun) >= 4) {
                 $tahun = substr($tahun, 0, 4);
             }
@@ -417,17 +452,23 @@ class PipService
             if ($nomorSk !== '') {
                 $criteria['nomor_sk'] = $nomorSk;
             }
-            if ($tahap !== '') {
+            if ($tahapId !== '') {
+                $criteria['tahap_id'] = $tahapId;
+            } elseif ($tahap !== '') {
                 $criteria['tahap'] = $tahap;
             }
 
             $recordData = [
                 'peserta_didik_id'     => $pdId ?: null,
                 'nisn'                 => $nisn ?: null,
+                'nik'                  => trim((string) ($row['nik'] ?? '')) ?: null,
                 'nama_pd'              => $nama,
                 'kelas'                => $kelas ?: null,
                 'rombel'               => $rombel ?: null,
                 'rombongan_belajar_id' => $rombelId,
+                'sekolah_id'           => trim((string) ($row['sekolah_id'] ?? '')) ?: null,
+                'npsn'                 => trim((string) ($row['npsn'] ?? '')) ?: null,
+                'nomenklatur'          => trim((string) ($row['nomenklatur'] ?? '')) ?: null,
                 'nama_ibu_kandung'     => $ibu ?: null,
                 'nama_ayah'            => $ayah ?: null,
                 'tanggal_lahir'        => $tglLahir ?: null,
@@ -438,16 +479,24 @@ class PipService
                 'jenis_sk'             => $jenisSk,
                 'tanggal_sk'           => $tglSk ?: null,
                 'tahap'                => $tahap ?: null,
+                'tahap_id'             => $tahapId ?: null,
+                'tahap_keterangan'     => $tahapKet ?: null,
                 'tahun'                => $tahun ?: date('Y'),
+                'semester_id'          => $semesterId ?: null,
+                'layak_pip'            => trim((string) ($row['layak_pip'] ?? '')) ?: null,
                 'status_cair'          => $statusCair ?: null,
                 'tanggal_cair'         => $tglCair ?: null,
                 'tanggal_aktivasi'     => $tglAktivasi ?: null,
                 'no_rekening'          => $rekening ?: null,
+                'nama_rekening'        => trim((string) ($row['nama_rekening'] ?? '')) ?: null,
                 'no_kip'               => $noKip ?: null,
                 'no_kks'               => $noKks ?: null,
                 'no_kps'               => $noKps ?: null,
                 'virtual_acc'          => $virtualAcc ?: null,
+                'nama_kartu'           => trim((string) ($row['nama_kartu'] ?? '')) ?: null,
                 'keterangan_pencairan' => $ketCair ?: null,
+                'confirmation_text'    => trim((string) ($row['confirmation_text'] ?? '')) ?: null,
+                'nama_pengusul'        => trim((string) ($row['nama_pengusul'] ?? '')) ?: null,
                 'raw_data'             => $row,
             ];
 

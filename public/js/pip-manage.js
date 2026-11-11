@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterFase: "fase", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
+        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterFase: "fase", filterTahap: "tahap_id", filterTahunSk: "tahun_sk", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);

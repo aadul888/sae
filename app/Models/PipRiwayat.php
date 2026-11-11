@@ -25,6 +25,8 @@ class PipRiwayat extends Model
         'jenis_sk', // 'pemberian', 'nominasi'
         'tanggal_sk',
         'tahap',
+        'tahap_id',
+        'tahap_keterangan',
         'fase',
         'tahun',
         'tahun_pelajaran',
@@ -38,6 +40,16 @@ class PipRiwayat extends Model
         'no_kps',
         'virtual_acc',
         'keterangan_pencairan',
+        'sekolah_id',
+        'npsn',
+        'nomenklatur',
+        'nik',
+        'nama_rekening',
+        'nama_kartu',
+        'semester_id',
+        'layak_pip',
+        'confirmation_text',
+        'nama_pengusul',
         'raw_data',
     ];
 

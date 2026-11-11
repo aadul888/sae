@@ -41,16 +41,32 @@
                     @endif
                 </select>
 
-                <select id="filterTahap" name="tahap" class="toolbar-filter-select" style="height: 38px;">
+                <select id="filterTahap" name="tahap_id" class="toolbar-filter-select" style="height: 38px;">
                     <option value="">Semua Tahap</option>
                     @foreach ($riwayatAlumniTahapList as $th)
-                        <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
-                            {{ $th }}
+                        <option value="{{ $th['id'] }}"
+                            {{ request('tahap_id') === (string) $th['id'] ? 'selected' : '' }}>
+                            {{ $th['label'] }}
                         </option>
                     @endforeach
                 </select>
 
-                @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($statusKeluarFilter ?? ''))
+                <select id="filterTahunSk" name="tahun_sk" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Tahun SK</option>
+                    @foreach ($riwayatTahunSkList as $thnSk)
+                        <option value="{{ $thnSk }}"
+                            {{ request('tahun_sk') === (string) $thnSk ? 'selected' : '' }}>
+                            {{ $thnSk }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @if (
+                    $q ||
+                        request('tahap_id') ||
+                        request('tahun_sk') ||
+                        ($jenisSkFilter ?? '') ||
+                        ($statusKeluarFilter ?? ''))
                     <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat_alumni']) }}"
                         class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
