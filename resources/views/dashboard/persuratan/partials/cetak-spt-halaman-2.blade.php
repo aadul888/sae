@@ -48,8 +48,7 @@
                     <td colspan="2">
                         @php
                             $firstGtk = $gtkList->first();
-                            $rawGolGtk = trim($firstGtk?->pangkat_golongan_terakhir ?? '');
-                            $golGtk = $pangkatMap[$rawGolGtk] ?? ($rawGolGtk ?: '-');
+                            $golGtk = \App\Services\SuratSptService::resolveGtkPangkat($firstGtk);
                             $jabGtk = $firstGtk?->jabatan_ptk_id_str ?: ($firstGtk?->jenis_ptk_id_str ?: 'Guru');
                         @endphp
                         a. {{ $golGtk }}<br>

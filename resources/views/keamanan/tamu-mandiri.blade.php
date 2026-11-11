@@ -161,9 +161,9 @@
                             placeholder="Ketik nama lengkap Anda..." required>
                     </div>
                     <div>
-                        <label class="input-label" for="tamu_kontak">Nomor WhatsApp / HP <span style="color:var(--danger, #ef4444);">*</span></label>
+                        <label class="input-label" for="tamu_kontak">Nomor WhatsApp / HP <small style="color: var(--text-muted); font-weight: normal;">(Opsional)</small></label>
                         <input type="tel" name="nomor_kontak" id="tamu_kontak" class="input-field"
-                            placeholder="08xxxxxxxxxx" inputmode="tel" required>
+                            placeholder="08xxxxxxxxxx (opsional)" inputmode="tel">
                     </div>
                 </div>
 

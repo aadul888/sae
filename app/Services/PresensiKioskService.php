@@ -134,7 +134,7 @@ class PresensiKioskService
     /**
      * Simpan snapshot foto webcam dari base64 string.
      */
-    public static function saveSnapshotImage(string $base64Data, string $identifier, Carbon $now): string
+    public static function saveSnapshotImage(string $base64Data, string $identifier, Carbon $now, array $meta = []): string
     {
         if (!preg_match('/^data:image\/\w+;base64,/', $base64Data)) {
             throw new \Exception('Data URI tidak valid');
@@ -144,6 +144,8 @@ class PresensiKioskService
         if ($data === false) {
             throw new \Exception('Gagal mendecode base64 image');
         }
+
+        $data = self::watermarkSnapshot($data, $now, $meta);
 
         $folder = 'presensi/foto/' . $now->format('Y-m');
         $hasil = app(ImageOptimizerService::class)->optimizeAndSaveBinary(
@@ -155,6 +157,81 @@ class PresensiKioskService
         );
 
         return $folder . '/' . $hasil['filename'];
+    }
+
+    /**
+     * Bakar watermark bukti (nama, NISN, waktu, koordinat GPS) langsung ke piksel snapshot.
+     * Memakai font bawaan GD agar tidak bergantung pada berkas TTF.
+     */
+    private static function watermarkSnapshot(string $binary, Carbon $now, array $meta): string
+    {
+        if (!function_exists('imagecreatefromstring') || !function_exists('imagestring')) {
+            return $binary;
+        }
+
+        try {
+            $img = @imagecreatefromstring($binary);
+            if (!$img) {
+                return $binary;
+            }
+
+            $w = imagesx($img);
+            $h = imagesy($img);
+            if ($w < 60 || $h < 60) {
+                imagedestroy($img);
+                return $binary;
+            }
+
+            $font = 3; // font bawaan GD (tanpa dependensi eksternal)
+            $charW = max(1, imagefontwidth($font));
+            $lineH = imagefontheight($font) + 3;
+
+            $nama = trim((string) ($meta['nama'] ?? ''));
+            $nisn = trim((string) ($meta['nisn'] ?? ''));
+
+            $lines = [];
+            $lines[] = $nama !== ''
+                ? 'SAE | ' . $nama . ($nisn !== '' ? ' (' . $nisn . ')' : '')
+                : 'SAE | Presensi Sekolah';
+            $lines[] = $now->format('d/m/Y H:i:s') . ' WIB';
+
+            $lat = $meta['latitude'] ?? null;
+            $lon = $meta['longitude'] ?? null;
+            if ($lat !== null && $lon !== null && $lat !== '' && $lon !== '') {
+                $lines[] = 'GPS ' . round((float) $lat, 6) . ', ' . round((float) $lon, 6);
+            }
+
+            $barH = min(($lineH * count($lines)) + 8, (int) round($h * 0.45));
+            $top = $h - $barH;
+
+            // Panel gelap semi-transparan agar teks tetap terbaca di latar terang.
+            $bar = imagecreatetruecolor($w, $barH);
+            $dark = imagecolorallocate($bar, 0, 0, 0);
+            imagefill($bar, 0, 0, $dark);
+            @imagecopymerge($img, $bar, 0, $top, 0, 0, $w, $barH, 62);
+            imagedestroy($bar);
+
+            $white = imagecolorallocate($img, 255, 255, 255);
+            $y = $top + 4;
+            $maxChars = max(10, (int) floor(($w - 16) / $charW));
+
+            foreach ($lines as $line) {
+                if (mb_strlen($line) > $maxChars) {
+                    $line = mb_substr($line, 0, $maxChars - 1) . '...';
+                }
+                imagestring($img, $font, 8, $y, $line, $white);
+                $y += $lineH;
+            }
+
+            ob_start();
+            imagejpeg($img, null, 82);
+            $encoded = ob_get_clean();
+            imagedestroy($img);
+
+            return (is_string($encoded) && $encoded !== '') ? $encoded : $binary;
+        } catch (\Throwable $e) {
+            return $binary;
+        }
     }
 
     /**
@@ -351,7 +428,17 @@ class PresensiKioskService
 
             if ($hasSnapshot) {
                 try {
-                    $presensi->foto_pulang = self::saveSnapshotImage($snapshotBase64, $siswa->nisn ?: $siswa->peserta_didik_id, $now);
+                    $presensi->foto_pulang = self::saveSnapshotImage(
+                        $snapshotBase64,
+                        $siswa->nisn ?: $siswa->peserta_didik_id,
+                        $now,
+                        [
+                            'nama'      => $siswa->nama ?? null,
+                            'nisn'      => $siswa->nisn ?? null,
+                            'latitude'  => $userLat,
+                            'longitude' => $userLon,
+                        ]
+                    );
                 } catch (\Throwable $e) {}
             }
 
@@ -393,7 +480,17 @@ class PresensiKioskService
 
             if ($hasSnapshot) {
                 try {
-                    $presensi->foto_masuk = self::saveSnapshotImage($snapshotBase64, $siswa->nisn ?: $siswa->peserta_didik_id, $now);
+                    $presensi->foto_masuk = self::saveSnapshotImage(
+                        $snapshotBase64,
+                        $siswa->nisn ?: $siswa->peserta_didik_id,
+                        $now,
+                        [
+                            'nama'      => $siswa->nama ?? null,
+                            'nisn'      => $siswa->nisn ?? null,
+                            'latitude'  => $userLat,
+                            'longitude' => $userLon,
+                        ]
+                    );
                 } catch (\Throwable $e) {}
             }
 

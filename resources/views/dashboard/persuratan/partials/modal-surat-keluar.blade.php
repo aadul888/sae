@@ -555,6 +555,43 @@
                             </select>
                         </div>
 
+                        <!-- Pejabat Penandatangan / Kepala Sekolah (Otomatis & Bisa Disesuaikan) -->
+                        <div style="background: rgba(0,0,0,0.02); border: 1px dashed var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 12px;">
+                            <div style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-signature text-primary"></i> Pejabat Penandatangan / KPA (SPPD)
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                                <div>
+                                    <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                        Nama Pejabat:
+                                    </label>
+                                    <input type="text" name="pejabat_nama" id="sptPejabatNama" class="form-control"
+                                        placeholder="Nama Kepala Sekolah / Pejabat..."
+                                        value="{{ $defaultKepsek->nama ?? '' }}"
+                                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                    <input type="hidden" name="pejabat_penandatangan_ptk_id" value="{{ $defaultKepsek->ptk_id ?? '' }}">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                        NIP Pejabat:
+                                    </label>
+                                    <input type="text" name="pejabat_nip" id="sptPejabatNip" class="form-control"
+                                        placeholder="NIP Pejabat (Contoh: 19700101...)"
+                                        value="{{ $defaultKepsek->nip ?? '' }}"
+                                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                    Pangkat / Golongan Pejabat:
+                                </label>
+                                <input type="text" name="pejabat_pangkat_golongan" id="sptPejabatPangkat" class="form-control"
+                                    placeholder="Contoh: Pembina/ IV.a atau Penata Tk.I/ III.d"
+                                    value="{{ !empty($defaultKepsekPangkat) && $defaultKepsekPangkat !== '-' ? $defaultKepsekPangkat : '' }}"
+                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                            </div>
+                        </div>
+
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Detail

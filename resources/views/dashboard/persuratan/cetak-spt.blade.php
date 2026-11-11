@@ -9,43 +9,38 @@
     $tglKembali = \Carbon\Carbon::parse($spt->tanggal_kembali);
     $hariTanggal = $tglBerangkat->translatedFormat('l, d F Y');
 
-    // Pejabat penandatangan SPT & KPA SPPD: utamakan PTK yang dipilih saat input SPT
-    $pejabatPtk = null;
-    if (!empty($spt->pejabat_penandatangan_ptk_id)) {
+    // Resolusi Kepala Sekolah & Pejabat Penandatangan
+    $kepsek = $kepsek ?? \App\Services\SuratSptService::resolveKepalaSekolah();
+    $pejabatPtk = $pejabatPtk ?? null;
+    if (!$pejabatPtk && !empty($spt->pejabat_penandatangan_ptk_id) && \App\Support\Table::exists('gtk')) {
         $pejabatPtk = \App\Models\Gtk::where('ptk_id', $spt->pejabat_penandatangan_ptk_id)->first();
     }
     if (!$pejabatPtk) {
         $pejabatPtk = $kepsek;
     }
 
-    $namaKepsek = $spt->pejabat_nama ?: ($pejabatPtk?->nama ?? ($kepsek?->nama ?? 'Kepala Sekolah'));
-    $nipKepsek = $pejabatPtk?->nip ?: ($kepsek?->nip ?: ($pejabatPtk?->nuptk ?: ($kepsek?->nuptk ?? '-')));
+    $namaKepsek = !empty($namaKepsek)
+        ? $namaKepsek
+        : (!empty($spt->pejabat_nama) && $spt->pejabat_nama !== 'Kepala Sekolah'
+            ? $spt->pejabat_nama
+            : ($pejabatPtk?->nama ?? ($kepsek?->nama ?? 'Kepala Sekolah')));
 
-    $pangkatMap = [
-        'I/a'   => 'Juru Muda/ I.a',
-        'I/b'   => 'Juru Muda Tk.I/ I.b',
-        'I/c'   => 'Juru/ I.c',
-        'I/d'   => 'Juru Tk.I/ I.d',
-        'II/a'  => 'Pengatur Muda/ II.a',
-        'II/b'  => 'Pengatur Muda Tk.I/ II.b',
-        'II/c'  => 'Pengatur/ II.c',
-        'II/d'  => 'Pengatur Tk.I/ II.d',
-        'III/a' => 'Penata Muda/ III.a',
-        'III/b' => 'Penata Muda Tk.I/ III.b',
-        'III/c' => 'Penata/ III.c',
-        'III/d' => 'Penata Tk.I/ III.d',
-        'IV/a'  => 'Pembina/ IV.a',
-        'IV/b'  => 'Pembina Tk.I/ IV.b',
-        'IV/c'  => 'Pembina Utama Muda/ IV.c',
-        'IV/d'  => 'Pembina Utama Madya/ IV.d',
-        'IV/e'  => 'Pembina Utama/ IV.e',
-        'IX'    => 'Ahli Pertama/ IX',
-        'X'     => 'Ahli Muda/ X',
-        'XI'    => 'Ahli Madya/ XI',
-    ];
+    $nipKepsek = (!empty($nipKepsek) && $nipKepsek !== '-')
+        ? $nipKepsek
+        : (!empty($spt->pejabat_nip)
+            ? $spt->pejabat_nip
+            : ($pejabatPtk?->nip ?: ($kepsek?->nip ?: ($pejabatPtk?->nuptk ?: ($kepsek?->nuptk ?? '-')))));
 
-    $rawGol = trim($pejabatPtk?->pangkat_golongan_terakhir ?: ($kepsek?->pangkat_golongan_terakhir ?? ''));
-    $pangkatGolKepsek = $pangkatMap[$rawGol] ?? $rawGol;
+    $pangkatMap = \App\Services\SuratSptService::$pangkatMap;
+
+    $pangkatGolKepsek = (!empty($pangkatGolKepsek) && $pangkatGolKepsek !== '-')
+        ? $pangkatGolKepsek
+        : (!empty($spt->pejabat_pangkat_golongan)
+            ? \App\Services\SuratSptService::formatPangkatGolongan($spt->pejabat_pangkat_golongan)
+            : \App\Services\SuratSptService::resolveGtkPangkat($pejabatPtk ?: $kepsek));
+    if ($pangkatGolKepsek === '-') {
+        $pangkatGolKepsek = '';
+    }
     $tempatBerangkat = $spt->tempat_berangkat ?: ($sekolah?->nama ?? 'SMKN 1 Pagelaran');
 @endphp
 
@@ -327,15 +322,21 @@
 
         .sp-doc.portrait {
             position: relative;
-            padding-bottom: 2.2cm !important; /* ruang agar isi dokumen tidak bertabrakan dengan footer statis */
             box-sizing: border-box;
         }
 
+        .cetak-page.sp-portrait {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            min-height: 297mm !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            padding: 1.5cm 1.5cm 1.5cm 1.5cm !important;
+        }
+
         .spt-footer-verify {
-            position: absolute;
-            bottom: 1.2cm;
-            left: 1.5cm;
-            right: 1.5cm;
+            margin-top: auto !important;
             padding-top: 8px;
             border-top: 1px dashed #cbd5e1;
             display: flex;
@@ -343,14 +344,27 @@
             align-items: center;
             font-size: 7.5pt;
             color: #475569;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         @media print {
+            .cetak-page.sp-portrait {
+                min-height: 265mm !important;
+                height: 265mm !important;
+                max-height: 265mm !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+            }
+
             .spt-footer-verify {
-                position: absolute;
-                bottom: 0.5cm;
-                left: 0;
-                right: 0;
+                margin-top: auto !important;
+                width: 100% !important;
+                padding-bottom: 0 !important;
             }
         }
 

@@ -840,8 +840,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
 
             if (imgFotoSnapshot && modalFoto && url) {
+                // Cache-busting: tanpa ini browser bisa menampilkan gambar lama
+                // sehingga semua snapshot terlihat sama.
+                const bustUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
                 imgFotoSnapshot.src = '';
-                imgFotoSnapshot.src = url;
+                imgFotoSnapshot.src = bustUrl;
                 if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = title;
                 modalFoto.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -856,8 +859,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
             const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
             if (imgFotoSnapshot && modalFoto) {
+                const bustAvatar = avatar.src + (avatar.src.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
                 imgFotoSnapshot.src = '';
-                imgFotoSnapshot.src = avatar.src;
+                imgFotoSnapshot.src = bustAvatar;
                 const nama = avatar.alt || 'Peserta Didik';
                 if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = 'Foto Profil — ' + nama;
                 modalFoto.style.display = 'flex';
