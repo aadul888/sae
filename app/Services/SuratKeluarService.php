@@ -163,6 +163,9 @@ class SuratKeluarService
         $suggestedKetNumber = PersuratanHddService::generateNomorSuratKeterangan('KS.02.23');
         $suggestedTemplateNumber = PersuratanHddService::generateNomorSuratKeluar('HM.01.02');
         $templatePresets = PersuratanTemplate::getTemplatePresets();
+        $defaultKepsek = SuratSptService::resolveKepalaSekolah();
+        $defaultKepsekPangkat = SuratSptService::resolveGtkPangkat($defaultKepsek);
+        if ($defaultKepsekPangkat === '-') $defaultKepsekPangkat = '';
 
         return compact(
             'stats',
@@ -183,7 +186,9 @@ class SuratKeluarService
             'suggestedNumber',
             'suggestedKetNumber',
             'suggestedTemplateNumber',
-            'templatePresets'
+            'templatePresets',
+            'defaultKepsek',
+            'defaultKepsekPangkat'
         );
     }
 

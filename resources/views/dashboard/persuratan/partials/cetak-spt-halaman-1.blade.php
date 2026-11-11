@@ -33,7 +33,7 @@
                     <strong>{{ $g->nama }}</strong><br>
                     <small class="sp-muted">NIP. {{ $g->nip ?: ($g->nuptk ?: '-') }}</small>
                 </td>
-                <td class="sp-center">{{ $g->pangkat_golongan_terakhir ?: '-' }}</td>
+                <td class="sp-center">{{ \App\Services\SuratSptService::resolveGtkPangkat($g) }}</td>
                 <td>{{ $g->jabatan_ptk_id_str ?: ($g->jenis_ptk_id_str ?: 'Guru') }}</td>
             </tr>
         @empty
@@ -81,6 +81,9 @@
     Kepala Sekolah,
     <div class="sp-space"></div>
     <div class="sp-sign">{{ $namaKepsek }}</div>
+    @if (!empty($pangkatGolKepsek))
+        <div>{{ $pangkatGolKepsek }}</div>
+    @endif
     <div>NIP. {{ $nipKepsek }}</div>
 </div>
 

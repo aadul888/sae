@@ -9,14 +9,19 @@
 <table class="sp-table sp-table--plain" style="margin-bottom: 12px;">
     @forelse ($gtkList as $g)
         <tr>
-            <td style="width: 120px;">Nama</td>
+            <td style="width: 140px;">Nama</td>
             <td style="width: 14px;">:</td>
-            <td>{{ $g->nama }}</td>
+            <td><strong>{{ $g->nama }}</strong></td>
         </tr>
         <tr>
             <td>NIP / NUPTK</td>
             <td>:</td>
             <td>{{ $g->nip ?: ($g->nuptk ?: '-') }}</td>
+        </tr>
+        <tr>
+            <td>Pangkat / Golongan</td>
+            <td>:</td>
+            <td>{{ \App\Services\SuratSptService::resolveGtkPangkat($g) }}</td>
         </tr>
         <tr>
             <td>Jabatan</td>
@@ -50,7 +55,7 @@
 
 <table class="sp-table">
     <tr>
-        <td style="height: 210px;">&nbsp;</td>
+        <td style="height: 350px;">&nbsp;</td>
     </tr>
 </table>
 
@@ -65,14 +70,22 @@
             Kepala Sekolah,
             <div class="sp-space"></div>
             <div class="sp-sign">{{ $namaKepsek }}</div>
+            @if (!empty($pangkatGolKepsek))
+                <div>{{ $pangkatGolKepsek }}</div>
+            @endif
             <div>NIP. {{ $nipKepsek }}</div>
         </td>
         <td style="width: 50%; text-align: center; vertical-align: top;">
             {{ $kotaTtd }}, {{ $tglKembali->translatedFormat('d F Y') }}<br>
             Yang melaksanakan tugas,
             <div class="sp-space"></div>
-            <div class="sp-sign">{{ $gtkList->first()->nama ?? '-' }}</div>
-            <div>NIP. {{ $gtkList->first()->nip ?? ($gtkList->first()->nuptk ?? '-') }}</div>
+            @php $firstGtk = $gtkList->first(); @endphp
+            <div class="sp-sign">{{ $firstGtk->nama ?? '-' }}</div>
+            @php $firstPangkat = \App\Services\SuratSptService::resolveGtkPangkat($firstGtk); @endphp
+            @if (!empty($firstPangkat) && $firstPangkat !== '-')
+                <div>{{ $firstPangkat }}</div>
+            @endif
+            <div>NIP. {{ $firstGtk->nip ?? ($firstGtk->nuptk ?? '-') }}</div>
         </td>
     </tr>
 </table>

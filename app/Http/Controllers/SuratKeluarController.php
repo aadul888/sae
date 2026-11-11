@@ -337,6 +337,10 @@ class SuratKeluarController extends Controller
             'instansi_pembebanan' => 'nullable|string|max:150',
             'akun_kodering'     => 'nullable|string|max:100',
             'tingkat_biaya'     => 'nullable|string|max:100',
+            'pejabat_nama'      => 'nullable|string|max:150',
+            'pejabat_nip'       => 'nullable|string|max:50',
+            'pejabat_pangkat_golongan' => 'nullable|string|max:100',
+            'pejabat_penandatangan_ptk_id' => 'nullable|string|max:50',
         ], [
             'nama_kegiatan.required' => 'Nama kegiatan penugasan wajib diisi.',
             'lokasi_tujuan.required' => 'Lokasi tujuan penugasan wajib diisi.',
