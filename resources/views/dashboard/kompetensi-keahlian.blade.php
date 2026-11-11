@@ -171,58 +171,6 @@
         </div>
     </div>
 
-@if (($tab ?? 'dapodik') === 'referensi')
-    <!-- Summary Stats Grid Referensi Nasional -->
-    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ $summaryRef['total_konsentrasi'] ?? 0 }}
-                </div>
-                <div class="dash-stat-label">Konsentrasi Keahlian</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
-                <i class="fas fa-diagram-project"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ $summaryRef['total_program'] ?? 0 }}
-                </div>
-                <div class="dash-stat-label">Program Keahlian</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
-                <i class="fas fa-shapes"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ $summaryRef['total_bidang'] ?? 0 }}
-                </div>
-                <div class="dash-stat-label">Bidang Keahlian</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                <i class="fas fa-calendar-days"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">
-                    {{ $summaryRef['durasi_3'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(3 Th)</span> / {{ $summaryRef['durasi_4'] ?? 0 }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">(4 Th)</span>
-                </div>
-                <div class="dash-stat-label">Distribusi Durasi Program</div>
-            </div>
-        </div>
-    </div>
-
     <!-- Unified Datatable Referensi Jurusan -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <!-- 1. Toolbar Header (Entries & Filters & Live Search) -->

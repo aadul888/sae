@@ -109,15 +109,22 @@ class PresensiController extends Controller
 
         $sortLog    = $request->input('sort', 'jam_masuk');
         $sortLogDir = $request->input('sort_dir', 'desc');
-        $allowedLogSorts = ['nama_siswa', 'nama_rombel', 'jam_masuk', 'jam_pulang', 'status'];
-        if (!in_array($sortLog, $allowedLogSorts, true)) {
+        $sortLogMap = [
+            'nama_siswa'  => 'pd.nama',
+            'nama_rombel' => 'rb.nama',
+            'jam_masuk'   => 'ph.jam_masuk',
+            'jam_pulang'  => 'ph.jam_pulang',
+            'status'      => 'ph.status',
+        ];
+
+        if (!array_key_exists($sortLog, $sortLogMap)) {
             $sortLog = 'jam_masuk';
         }
         if (!in_array($sortLogDir, ['asc', 'desc'], true)) {
             $sortLogDir = 'desc';
         }
 
-        $logs = $logsQuery->orderBy('ph.' . $sortLog, $sortLogDir)->paginate($perPageLog)->withQueryString();
+        $logs = $logsQuery->orderBy($sortLogMap[$sortLog], $sortLogDir)->paginate($perPageLog)->withQueryString();
 
         // Format foto URL untuk siswa di logs
         $logs->getCollection()->transform(function ($item) {
