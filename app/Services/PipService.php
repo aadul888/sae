@@ -345,14 +345,13 @@ class PipService
     }
 
     /**
-     * Deteksi jenis SK dari isi berkas impor (header & nilai).
+     * Deteksi jenis SK dari isi berkas impor (header & nilai baris).
      *
-     * Kolom SK Pemberian dan SK Nominasi berbeda:
-     * - Pemberian: tanggal_cair, virtual_acc, nama_rekening, keterangan_pencairan.
-     * - Nominasi : tanggal_aktivasi (+ status "aktivasi").
-     *
-     * Deteksi memakai signature kolom lebih dulu, bukan sekadar skor nilai.
-     * Kembalikan null bila tidak dapat dipastikan.
+     * Berkas SiPintar:
+     * - SK Nominasi: punya kolom/data aktivasi (tanggal_aktivasi, status_cair berisi "Aktivasi").
+     *                TIDAK PERNAH memiliki tanggal pencairan (tanggal_cair) atau data pencairan.
+     * - SK Pemberian: punya kolom/data pencairan (tanggal_cair, virtual_acc, keterangan_pencairan).
+     *                 Status cair berisi "Sudah Cair" / "Dana Sudah Masuk".
      */
     public static function detectJenisSk(array $rows): ?string
     {
@@ -378,49 +377,44 @@ class PipService
         $aktivasiRows = 0;
         $cairRows = 0;
         $virtualRows = 0;
+        $statusAktivasiCount = 0;
+        $statusCairCount = 0;
 
         foreach ($rows as $row) {
-            $status = strtolower(trim((string) ($row[$headers['statuscair'] ?? ''] ?? '')));
-            if (self::rowHasAktivasi($row, $headers) || str_contains($status, 'aktivasi')) {
+            $status = strtolower(trim((string) ($row['status_cair'] ?? ($row[$headers['statuscair'] ?? ''] ?? ''))));
+            if (str_contains($status, 'aktivasi')) {
+                $statusAktivasiCount++;
+            } elseif (str_contains($status, 'cair') || str_contains($status, 'dana')) {
+                $statusCairCount++;
+            }
+
+            if (self::rowHasAktivasi($row, $headers)) {
                 $aktivasiRows++;
             }
             if (self::rowHasTanggalCair($row, $headers)) {
                 $cairRows++;
             }
-            if (trim((string) ($row[$headers['virtualacc'] ?? ''] ?? '')) !== '') {
+            $va = trim((string) ($row['virtual_acc'] ?? ($row[$headers['virtualacc'] ?? ''] ?? '')));
+            if ($va !== '') {
                 $virtualRows++;
             }
         }
 
-        $pencairanRows = $cairRows + $virtualRows;
+        $totalNominasiSignals = ($hasNominasiCol ? 2 : 0) + ($aktivasiRows > 0 ? 3 : 0) + ($statusAktivasiCount > 0 ? 3 : 0);
+        $totalPemberianSignals = ($hasPemberianCol ? 2 : 0) + ($cairRows > 0 ? 3 : 0) + ($virtualRows > 0 ? 2 : 0) + ($statusCairCount > 0 ? 3 : 0);
 
-        if ($hasNominasiCol && !$hasPemberianCol) {
+        // Jika salah satu sinyal sangat dominan
+        if ($totalNominasiSignals > 0 && $totalPemberianSignals === 0) {
             return 'nominasi';
         }
-        if ($hasPemberianCol && !$hasNominasiCol) {
+        if ($totalPemberianSignals > 0 && $totalNominasiSignals === 0) {
             return 'pemberian';
         }
 
-        if ($hasNominasiCol && $hasPemberianCol) {
-            if ($aktivasiRows > 0 && $pencairanRows === 0) {
-                return 'nominasi';
-            }
-            if ($pencairanRows > 0 && $aktivasiRows === 0) {
-                return 'pemberian';
-            }
-            if ($aktivasiRows > $pencairanRows) {
-                return 'nominasi';
-            }
-            if ($pencairanRows > $aktivasiRows) {
-                return 'pemberian';
-            }
-            return null;
-        }
-
-        if ($aktivasiRows > 0 && $pencairanRows === 0) {
+        if ($totalNominasiSignals > $totalPemberianSignals) {
             return 'nominasi';
         }
-        if ($pencairanRows > 0 && $aktivasiRows === 0) {
+        if ($totalPemberianSignals > $totalNominasiSignals) {
             return 'pemberian';
         }
 
@@ -428,12 +422,14 @@ class PipService
     }
 
     /**
-     * Validasi ketat kolom wajib sesuai jenis SK yang dipilih.
-     * Mengembalikan pesan error bila berkas tidak memiliki kolom khas jenis SK tsb.
+     * Validasi ketat format berkas impor terhadap pilihan jenis SK.
+     * Mencegah berkas SK Nominasi diimpor sebagai SK Pemberian (dan sebaliknya),
+     * baik dinilai dari kolom header maupun nilai baris data (status_cair, tgl aktivasi, dsb).
      */
     public static function jenisSkKolomError(array $rows, string $jenisSk): ?string
     {
-        $keys = array_keys(self::normalizedHeaderMap($rows));
+        $headers = self::normalizedHeaderMap($rows);
+        $keys = array_keys($headers);
 
         $hasPemberianCol = false;
         $hasNominasiCol = false;
@@ -446,11 +442,55 @@ class PipService
             }
         }
 
-        if ($jenisSk === 'pemberian' && !$hasPemberianCol) {
-            return 'Berkas tidak memiliki kolom pencairan dana (tanggal_cair / virtual_acc / keterangan_pencairan). Berkas ini terindikasi SK Nominasi; pilih SK Nominasi atau unggah berkas SK Pemberian.';
+        $hasAktivasiValue = false;
+        $hasStatusAktivasi = false;
+        $hasCairValue = false;
+        $hasStatusCairValue = false;
+
+        foreach ($rows as $row) {
+            if (!$hasAktivasiValue && self::rowHasAktivasi($row, $headers)) {
+                $hasAktivasiValue = true;
+            }
+            if (!$hasCairValue && self::rowHasTanggalCair($row, $headers)) {
+                $hasCairValue = true;
+            }
+            $status = strtolower(trim((string) ($row['status_cair'] ?? ($row[$headers['statuscair'] ?? ''] ?? ''))));
+            if (!$hasStatusAktivasi && str_contains($status, 'aktivasi')) {
+                $hasStatusAktivasi = true;
+            }
+            if (!$hasStatusCairValue && (str_contains($status, 'sudah cair') || str_contains($status, 'dana sudah masuk'))) {
+                $hasStatusCairValue = true;
+            }
+            if ($hasAktivasiValue && $hasStatusAktivasi && $hasCairValue && $hasStatusCairValue) {
+                break;
+            }
         }
-        if ($jenisSk === 'nominasi' && !$hasNominasiCol) {
-            return 'Berkas tidak memiliki kolom aktivasi rekening (tanggal_aktivasi). Berkas ini terindikasi SK Pemberian; pilih SK Pemberian atau unggah berkas SK Nominasi.';
+
+        // Cek jika berkas SK Nominasi diunggah sebagai SK Pemberian
+        if ($jenisSk === 'pemberian') {
+            if ($hasNominasiCol || $hasAktivasiValue || $hasStatusAktivasi) {
+                // Berkas ini memiliki jejak SK Nominasi
+                if (!$hasPemberianCol && !$hasCairValue) {
+                    return 'Berkas yang diunggah terdeteksi sebagai SK Nominasi (memuat kolom/status aktivasi rekening, tanpa tanggal pencairan). Pilih opsi "SK Nominasi" pada pilihan Jenis SK.';
+                }
+            }
+
+            if (!$hasPemberianCol && !$hasCairValue) {
+                return 'Berkas tidak memiliki kolom pencairan dana PIP (tanggal_cair / virtual_acc / keterangan_pencairan). Pastikan berkas yang diunggah adalah unduhan SK Pemberian dari SiPintar.';
+            }
+        }
+
+        // Cek jika berkas SK Pemberian diunggah sebagai SK Nominasi
+        if ($jenisSk === 'nominasi') {
+            if ($hasPemberianCol || $hasCairValue || $hasStatusCairValue) {
+                if (!$hasNominasiCol && !$hasAktivasiValue) {
+                    return 'Berkas yang diunggah terdeteksi sebagai SK Pemberian (memuat data tanggal/status pencairan dana). Pilih opsi "SK Pemberian" pada pilihan Jenis SK.';
+                }
+            }
+
+            if (!$hasNominasiCol && !$hasAktivasiValue && !$hasStatusAktivasi) {
+                return 'Berkas tidak memiliki indikator SK Nominasi (kolom tanggal_aktivasi atau status aktivasi rekening). Pastikan berkas yang diunggah adalah SK Nominasi SiPintar.';
+            }
         }
 
         return null;

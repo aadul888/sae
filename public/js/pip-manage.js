@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function post(url, payload, isForm = false) {
+        const headers = { "X-CSRF-TOKEN": csrf, "X-Requested-With": "XMLHttpRequest", Accept: "application/json" };
         if (!isForm) headers["Content-Type"] = "application/json";
         const res = await fetch(url, { method: "POST", headers, body: isForm ? payload : JSON.stringify(payload || {}) });
         let data = {};

@@ -67,6 +67,17 @@ class PipDetectJenisSkTest extends TestCase
         $this->assertNull(PipService::jenisSkKolomError($rows, 'pemberian'));
     }
 
+    public function test_guard_rejects_nominasi_file_with_generic_columns_if_status_indicates_aktivasi(): void
+    {
+        // Berkas tanpa header eksplisit tanggal_aktivasi tapi status_cair = Belum Aktivasi Rekening
+        $rows = [
+            ['nisn' => '001', 'nama_pd' => 'A', 'status_cair' => 'Belum Aktivasi Rekening', 'nominal' => '450000'],
+        ];
+
+        $this->assertNotNull(PipService::jenisSkKolomError($rows, 'pemberian'));
+        $this->assertSame('nominasi', PipService::detectJenisSk($rows));
+    }
+
     public function test_normalize_import_rows_maps_sipintar_headers_to_canonical_keys(): void
     {
         $rows = PipService::normalizeImportRows([
