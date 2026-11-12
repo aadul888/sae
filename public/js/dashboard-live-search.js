@@ -21,7 +21,8 @@
         if (
             el.hasAttribute("data-manual-search") ||
             el.hasAttribute("data-no-ajax") ||
-            el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop, [data-manual-search], [data-no-ajax]")
+            el.hasAttribute("data-no-live-search") ||
+            el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop, [data-manual-search], [data-no-ajax], [data-no-live-search]")
         ) {
             return false;
         }
@@ -373,7 +374,13 @@
         // 1. Jika elemen berada di dalam form
         const form = el.closest("form");
         if (form) {
-            if ((form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
+            if (
+                (form.method || "get").toLowerCase() === "get" &&
+                !form.hasAttribute("data-manual-filter") &&
+                !form.hasAttribute("data-no-live-search") &&
+                !form.closest("[data-no-live-search]") &&
+                !form.closest("[data-no-ajax]")
+            ) {
                 const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
                 if (hasTable) {
                     e.stopImmediatePropagation();
@@ -436,6 +443,14 @@
     document.addEventListener("click", function (e) {
         const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin, #btnResetFilter, a[title*='Reset filter'], a[title*='Reset']");
         if (resetBtn && resetBtn.href) {
+            if (
+                resetBtn.hasAttribute("data-no-live-search") ||
+                resetBtn.closest("[data-no-live-search]") ||
+                resetBtn.closest("[data-no-ajax]") ||
+                resetBtn.closest("[data-manual-filter]")
+            ) {
+                return;
+            }
             e.preventDefault();
             const wrap = resetBtn.closest(".datatable-toolbar, .dash-table-toolbar, .card, body");
             const sInput = wrap ? wrap.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null;

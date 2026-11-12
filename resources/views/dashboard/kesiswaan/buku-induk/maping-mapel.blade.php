@@ -38,17 +38,21 @@
             $s = (int) $s;
             $semPkl[$s] = $tingkatLabel[(string) (10 + intdiv($s - 1, 2))] ?? '';
         }
+        $semAktif = (int) request()->query('sem', 1);
+        if ($semAktif < 1 || $semAktif > 6) $semAktif = 1;
     @endphp
 
-    {{-- 3. Unified Datatable Card --}}
-    <div class="card datatable-card-wrapper" id="tableDataContainer">
+    {{-- 3. Form Editor Mapel (Bukan datatable, gunakan navigasi manual/standar) --}}
+    <div class="card datatable-card-wrapper" id="mapingMapelContainer" data-no-live-search="true" data-no-ajax="true" data-manual-filter="true">
         {{-- Toolbar Terpadu --}}
         <div class="datatable-toolbar">
             <form method="GET" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}" class="datatable-filter-form"
+                data-no-live-search="true" data-no-ajax="true" data-manual-filter="true"
                 style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; width: 100%;">
                 <div class="toolbar-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <select name="jurusan" id="filterJurusanMapel" class="toolbar-filter-select"
-                        onchange="this.form.submit()"
+                        data-no-live-search="true" data-no-ajax="true" data-manual-filter="true"
+                        onchange="navigateJurusanMapel(this.value)"
                         style="height: 38px; min-width: 280px;">
                         <option value="_global" {{ $jurusanTerpilih === '_global' ? 'selected' : '' }}>&mdash; Default (semua jurusan) &mdash;</option>
                         @foreach ($jurusanList as $kunci => $jr)
@@ -60,7 +64,8 @@
 
                     @if ($jurusanTerpilih !== '_global')
                         <a href="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
-                            class="btn btn-outline btn-reset-filter"
+                            class="btn btn-outline"
+                            data-no-live-search="true" data-no-ajax="true" data-manual-filter="true"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                             title="Reset filter jurusan">
                             <i class="fas fa-undo"></i>
@@ -96,7 +101,7 @@
 
             <div class="bi-sem-tabs">
                 @foreach (range(1, 6) as $sem)
-                    <button type="button" class="bi-sem-tab {{ $sem === 1 ? 'active' : '' }}" data-sem="{{ $sem }}">
+                    <button type="button" class="bi-sem-tab {{ $sem === $semAktif ? 'active' : '' }}" data-sem="{{ $sem }}">
                         Semester {{ $sem }}
                         <span class="bi-sem-badge">{{ isset($semPkl[$sem]) ? 'PKL' : (count($perSemester[$sem]['umum']) + count($perSemester[$sem]['kejuruan'])) }}</span>
                     </button>
@@ -104,7 +109,7 @@
             </div>
 
             @foreach (range(1, 6) as $sem)
-                <div class="bi-sem-panel {{ $sem === 1 ? 'active' : '' }}" data-sem="{{ $sem }}">
+                <div class="bi-sem-panel {{ $sem === $semAktif ? 'active' : '' }}" data-sem="{{ $sem }}">
                     <label class="bi-pkl-toggle bi-pkl-per-sem">
                         <input type="checkbox" name="pkl_semester[]" value="{{ $sem }}"
                             {{ in_array($sem, $pklSemester ?? [], true) ? 'checked' : '' }}>
@@ -160,10 +165,13 @@
 
                     <div class="bi-mapel-grid">
                         @foreach (['umum' => ['label' => 'Mapel Umum', 'color' => '#10b981'], 'kejuruan' => ['label' => 'Mapel Kejuruan', 'color' => '#f59e0b']] as $key => $meta)
+                            @php
+                                $daftarMapelKel = $perSemester[$sem][$key] ?? [];
+                            @endphp
                             <div class="bi-mapel-col" data-kelompok="{{ $key }}" data-semester="{{ $sem }}">
                                 <div class="bi-col-head">
                                     <span><i class="fas fa-layer-group" style="color: {{ $meta['color'] }};"></i> {{ $meta['label'] }} — Sem {{ $sem }}</span>
-                                    <span class="bi-count" data-count>0</span>
+                                    <span class="bi-count" data-count>{{ count($daftarMapelKel) }}</span>
                                 </div>
 
                                 <div class="bi-ref-wrap">
@@ -174,7 +182,23 @@
                                     <div class="bi-ref-list" data-ref></div>
                                 </div>
 
-                                <div class="bi-selected" data-selected></div>
+                                <div class="bi-selected" data-selected>
+                                    @forelse ($daftarMapelKel as $idx => $nMapel)
+                                        <div class="bi-sel-item">
+                                            <span class="bi-sel-idx">{{ $idx + 1 }}</span>
+                                            <input type="text" class="bi-input bi-singkatan-item" maxlength="20" title="Singkatan kolom di Input Nilai"
+                                                name="singkatan[{{ $nMapel }}]" value="{{ $singkatan[$nMapel] ?? '' }}">
+                                            <span class="bi-sel-name">{{ $nMapel }}</span>
+                                            <span class="bi-sel-actions">
+                                                <button type="button" class="bi-up" title="Naikkan"><i class="fas fa-arrow-up"></i></button>
+                                                <button type="button" class="bi-down" title="Turunkan"><i class="fas fa-arrow-down"></i></button>
+                                                <button type="button" class="bi-remove" title="Hapus"><i class="fas fa-times"></i></button>
+                                            </span>
+                                        </div>
+                                    @empty
+                                        <div class="bi-sel-empty">Belum ada mapel. Tambahkan dari referensi di atas.</div>
+                                    @endforelse
+                                </div>
 
                                 <div class="bi-add-custom">
                                     <input type="text" class="bi-input bi-custom-input" placeholder="Tambah mapel manual...">
@@ -183,7 +207,7 @@
                                     </button>
                                 </div>
 
-                                <textarea name="mapel[{{ $sem }}][{{ $key }}]" class="bi-hidden-mapel" hidden>{{ implode("\n", $perSemester[$sem][$key]) }}</textarea>
+                                <textarea name="mapel[{{ $sem }}][{{ $key }}]" class="bi-hidden-mapel" hidden>{{ implode("\n", $daftarMapelKel) }}</textarea>
                             </div>
                         @endforeach
                     </div>
@@ -213,5 +237,18 @@
 @include('dashboard.kesiswaan.buku-induk.partials.buku-induk-style')
 
 @push('scripts')
+    <script>
+    function navigateJurusanMapel(val) {
+        const u = new URL('{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}', window.location.origin);
+        if (val && val !== '_global') {
+            u.searchParams.set('jurusan', val);
+        }
+        const curSem = new URLSearchParams(window.location.search).get('sem');
+        if (curSem) {
+            u.searchParams.set('sem', curSem);
+        }
+        window.location.href = u.toString();
+    }
+    </script>
     <script src="{{ asset('js/buku-induk-nilai.js') }}?v={{ file_exists(public_path('js/buku-induk-nilai.js')) ? filemtime(public_path('js/buku-induk-nilai.js')) : time() }}"></script>
 @endpush

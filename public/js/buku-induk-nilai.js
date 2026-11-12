@@ -45,8 +45,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ================== Tab Semester (Maping Mata Pelajaran) ================== */
-    const semTabs = document.querySelectorAll('.bi-sem-tab');
-    if (semTabs.length) {
+    function initMapingSemTabs() {
+        const semTabs = document.querySelectorAll('.bi-sem-tab');
+        if (!semTabs.length) return;
+
         function activateSem(sem) {
             semTabs.forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-sem') === String(sem)); });
             document.querySelectorAll('.bi-sem-panel').forEach(function (p) {
@@ -60,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         semTabs.forEach(function (tab) {
+            if (tab.dataset.tabBound) return;
+            tab.dataset.tabBound = 'true';
             tab.addEventListener('click', function () {
                 const sem = tab.getAttribute('data-sem');
                 activateSem(sem);
@@ -72,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
             activateSem(semParam);
         }
     }
+    initMapingSemTabs();
 
     /* ================== Pelaksanaan PKL per semester ==================
      * Checkbox `pkl_semester[]` langsung terkirim bersama form; tidak ada
@@ -326,72 +331,83 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
     }
 
-    cols.forEach(function (col) {
-        // Muat nilai awal dari textarea (mapel tersimpan)
-        const ta = col.querySelector('.bi-hidden-mapel');
-        const initial = ta ? ta.value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean) : [];
-        renderSelected(col, initial);
-        renderRef(col, '');
+    function initMapelCols() {
+        const mapelCols = document.querySelectorAll('.bi-mapel-col');
+        mapelCols.forEach(function (col) {
+            // Muat nilai awal dari textarea (mapel tersimpan)
+            const ta = col.querySelector('.bi-hidden-mapel');
+            const initial = ta ? ta.value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+            renderSelected(col, initial);
+            renderRef(col, '');
 
-        // Cari referensi
-        const search = col.querySelector('.bi-ref-search');
-        if (search) {
-            search.addEventListener('input', function () { renderRef(col, search.value.trim()); });
-        }
+            if (col.dataset.colBound) return;
+            col.dataset.colBound = 'true';
 
-        // Tambah dari referensi
-        const refBox = col.querySelector('[data-ref]');
-        if (refBox) {
-            refBox.addEventListener('click', function (e) {
-                const btn = e.target.closest('.bi-ref-add');
-                if (!btn) return;
-                addName(col, btn.getAttribute('data-name'));
-            });
-        }
+            // Cari referensi
+            const search = col.querySelector('.bi-ref-search');
+            if (search) {
+                search.addEventListener('input', function () { renderRef(col, search.value.trim()); });
+            }
 
-        // Tambah manual
-        const customInput = col.querySelector('.bi-custom-input');
-        const addBtn = col.querySelector('.bi-add-btn');
-        function addCustom() {
-            if (!customInput) return;
-            addName(col, customInput.value);
-            customInput.value = '';
-        }
-        if (addBtn) addBtn.addEventListener('click', addCustom);
-        if (customInput) {
-            customInput.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
-            });
-        }
+            // Tambah dari referensi
+            const refBox = col.querySelector('[data-ref]');
+            if (refBox) {
+                refBox.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.bi-ref-add');
+                    if (!btn) return;
+                    addName(col, btn.getAttribute('data-name'));
+                });
+            }
 
-        // Aksi pada item terpilih (naik/turun/hapus)
-        const sel = col.querySelector('[data-selected]');
-        if (sel) {
-            sel.addEventListener('click', function (e) {
-                const item = e.target.closest('.bi-sel-item');
-                if (!item) return;
-                if (e.target.closest('.bi-remove')) {
-                    item.remove();
-                    if (!sel.querySelector('.bi-sel-item')) {
-                        sel.innerHTML = '<div class="bi-sel-empty">Belum ada mapel. Tambahkan dari referensi di atas.</div>';
-                    }
-                    refresh(col);
-                } else if (e.target.closest('.bi-up')) {
-                    const prev = item.previousElementSibling;
-                    if (prev && prev.classList.contains('bi-sel-item')) {
-                        sel.insertBefore(item, prev);
+            // Tambah manual
+            const customInput = col.querySelector('.bi-custom-input');
+            const addBtn = col.querySelector('.bi-add-btn');
+            function addCustom() {
+                if (!customInput) return;
+                addName(col, customInput.value);
+                customInput.value = '';
+            }
+            if (addBtn) addBtn.addEventListener('click', addCustom);
+            if (customInput) {
+                customInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
+                });
+            }
+
+            // Aksi pada item terpilih (naik/turun/hapus)
+            const sel = col.querySelector('[data-selected]');
+            if (sel) {
+                sel.addEventListener('click', function (e) {
+                    const item = e.target.closest('.bi-sel-item');
+                    if (!item) return;
+                    if (e.target.closest('.bi-remove')) {
+                        item.remove();
+                        if (!sel.querySelector('.bi-sel-item')) {
+                            sel.innerHTML = '<div class="bi-sel-empty">Belum ada mapel. Tambahkan dari referensi di atas.</div>';
+                        }
                         refresh(col);
+                    } else if (e.target.closest('.bi-up')) {
+                        const prev = item.previousElementSibling;
+                        if (prev && prev.classList.contains('bi-sel-item')) {
+                            sel.insertBefore(item, prev);
+                            refresh(col);
+                        }
+                    } else if (e.target.closest('.bi-down')) {
+                        const next = item.nextElementSibling;
+                        if (next && next.classList.contains('bi-sel-item')) {
+                            sel.insertBefore(next, item);
+                            refresh(col);
+                        }
                     }
-                } else if (e.target.closest('.bi-down')) {
-                    const next = item.nextElementSibling;
-                    if (next && next.classList.contains('bi-sel-item')) {
-                        sel.insertBefore(next, item);
-                        refresh(col);
-                    }
-                }
-            });
-        }
-    });
+                });
+            }
+        });
+    }
+    initMapelCols();
+    window.initMapingMapel = function () {
+        initMapingSemTabs();
+        initMapelCols();
+    };
 
     /* ================== Salin mapel dari semester lain ================== */
     let perSemester = {};
