@@ -26,7 +26,7 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.kesiswaan.buku-induk.cetak-rekap', request()->only(['rombel_id', 'tahun_masuk', 'status'])) }}"
+            <a href="{{ route('dashboard.kesiswaan.buku-induk.cetak-rekap', array_merge(request()->only(['rombel_id']), ['tahun_lulus' => $tahunLulus])) }}"
                 target="_blank" class="btn btn-outline" title="Cetak Register Rekap Buku Induk"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                 <i class="fas fa-print"></i>
@@ -50,7 +50,7 @@
         </div>
     @endif
 
-    {{-- 3. Statistik Ringkasan --}}
+    {{-- 3. Statistik Ringkasan Terfilter --}}
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
@@ -58,34 +58,34 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['total_siswa'] ?? 0, 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Total Siswa Terdaftar</div>
+                <div class="dash-stat-label">Total Siswa</div>
+            </div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: #0284c7;">
+                <i class="fas fa-mars"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_l'] ?? 0, 0, ',', '.') }}</div>
+                <div class="dash-stat-label">Laki-laki (L)</div>
+            </div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(236,72,153,0.12); color: #ec4899;">
+                <i class="fas fa-venus"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_p'] ?? 0, 0, ',', '.') }}</div>
+                <div class="dash-stat-label">Perempuan (P)</div>
             </div>
         </div>
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
-                <i class="fas fa-user-check"></i>
+                <i class="fas fa-file-circle-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_aktif'] ?? 0, 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Siswa Aktif</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_lulus'] ?? 0, 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Lulus / Alumni</div>
-            </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
-                <i class="fas fa-person-walking-dashed-line-arrow-right"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_mutasi'] ?? 0, 0, ',', '.') }}</div>
-                <div class="dash-stat-label">Mutasi / Keluar</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_siap_cetak'] ?? 0, 0, ',', '.') }}</div>
+                <div class="dash-stat-label">Nilai Lengkap / Siap Cetak</div>
             </div>
         </div>
     </div>
@@ -110,24 +110,14 @@
                         <span>entri</span>
                     </div>
 
-                    <select name="akademik" id="filterAkademikBukuInduk" class="toolbar-filter-select"
+                    <select name="tahun_lulus" id="filterTahunLulus" class="toolbar-filter-select"
                         onchange="this.form.submit()"
-                        style="height: 38px; min-width: 150px;">
-                        <option value="aktif" {{ ($akademik ?? 'aktif') === 'aktif' ? 'selected' : '' }}>Siswa Aktif
-                            (Kelas XII)</option>
-                        <option value="alumni" {{ ($akademik ?? '') === 'alumni' ? 'selected' : '' }}>Alumni
-                            {{ ($tahunAjaranTerpilih ?? null) !== ($tahunAjaranAktif ?? null) ? ($tahunAjaranTerpilih ?? 'Tahun Lalu') : '(Tahun Lalu)' }}</option>
-                    </select>
-
-                    <select name="status" id="filterStatusKlaper" class="toolbar-filter-select"
-                        style="height: 38px; min-width: 150px;">
-                        <option value="aktif" {{ ($status ?? 'aktif') === 'aktif' ? 'selected' : '' }}>Siswa Aktif
-                        </option>
-                        <option value="lulus" {{ ($status ?? '') === 'lulus' ? 'selected' : '' }}>Lulus</option>
-                        <option value="mutasi_keluar" {{ ($status ?? '') === 'mutasi_keluar' ? 'selected' : '' }}>Mutasi
-                            Keluar</option>
-                        <option value="do" {{ ($status ?? '') === 'do' ? 'selected' : '' }}>Dikeluarkan (DO)</option>
-                        <option value="all" {{ ($status ?? '') === 'all' ? 'selected' : '' }}>Semua Status</option>
+                        style="height: 38px; min-width: 130px;">
+                        @foreach ($filterTahunList as $th)
+                            <option value="{{ $th }}" {{ (string) ($tahunLulus ?? '') === (string) $th ? 'selected' : '' }}>
+                                Tahun {{ $th }}
+                            </option>
+                        @endforeach
                     </select>
 
                     <select name="rombel_id" id="filterRombelBukuInduk" class="toolbar-filter-select"
@@ -137,16 +127,6 @@
                             <option value="{{ $r->rombongan_belajar_id }}"
                                 {{ (string) ($rombelId ?? '') === (string) $r->rombongan_belajar_id ? 'selected' : '' }}>
                                 {{ $r->nama }}</option>
-                        @endforeach
-                    </select>
-
-                    <select name="tahun_masuk" id="filterTahunMasuk" class="toolbar-filter-select"
-                        style="height: 38px; min-width: 140px;">
-                        <option value="">Semua Angkatan</option>
-                        @foreach ($tahunMasukList as $th)
-                            <option value="{{ $th }}"
-                                {{ (string) ($tahunMasuk ?? '') === (string) $th ? 'selected' : '' }}>
-                                Angkatan {{ $th }}</option>
                         @endforeach
                     </select>
 
@@ -165,9 +145,8 @@
                     @if (
                         !empty($q) ||
                             !empty($rombelId) ||
-                            !empty($tahunMasuk) ||
                             ($kelengkapan ?? 'all') !== 'all' ||
-                            ($status ?? 'aktif') !== 'aktif')
+                            (string) ($tahunLulus ?? '') !== (string) ($tahunLulusPengaturan ?? ''))
                         <a href="{{ route('dashboard.kesiswaan.buku-induk.index') }}"
                             class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -194,20 +173,15 @@
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                        <th class="sortable-th {{ ($sort ?? '') === 'nipd' ? 'sorted' : '' }}" data-sort="nipd"
-                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
-                            No. Induk
-                            <span class="sort-icon">{!! ($sort ?? '') === 'nipd' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        <th class="sortable-th {{ in_array(($sort ?? ''), ['nipd', 'nomor_induk', 'nisn']) ? 'sorted' : '' }}" data-sort="nipd"
+                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                            No. Induk / NISN
+                            <span class="sort-icon">{!! in_array(($sort ?? ''), ['nipd', 'nomor_induk', 'nisn']) ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ ($sort ?? '') === 'nama' ? 'sorted' : '' }}" data-sort="nama"
                             style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Nama Peserta Didik
                             <span class="sort-icon">{!! ($sort ?? '') === 'nama' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ ($sort ?? '') === 'nisn' ? 'sorted' : '' }}" data-sort="nisn"
-                            style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                            NISN
-                            <span class="sort-icon">{!! ($sort ?? '') === 'nisn' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th class="sortable-th {{ ($sort ?? '') === 'rombel_nama' ? 'sorted' : '' }}"
                             data-sort="rombel_nama"
@@ -249,9 +223,14 @@
                             $lengkap = !empty($item->nik) && !empty($item->no_kk);
                         @endphp
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td data-label="No. Induk"
-                                style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: var(--primary, #3b82f6);">
-                                {{ $item->nomor_induk ?: ($item->nipd ?: '-') }}
+                            <td data-label="No. Induk / NISN"
+                                style="padding: 12px 16px;">
+                                <div style="font-family: monospace; font-weight: 700; color: var(--primary, #3b82f6);">
+                                    {{ $item->nomor_induk ?: ($item->nipd ?: '-') }}
+                                </div>
+                                <div style="font-family: monospace; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                    {{ $item->nisn ?: '-' }}
+                                </div>
                             </td>
                             <td data-label="Nama Peserta Didik"
                                 style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
@@ -266,21 +245,8 @@
                                                 style="font-size: var(--text-base, 0.875rem);"></i>
                                         </div>
                                     @endif
-                                    <div>
-                                        <div>{{ $item->nama }}</div>
-                                        <div
-                                            style="font-size: var(--text-xs, 0.75rem); font-weight: 500; color: var(--text-muted);">
-                                            {{ $item->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
-                                            @if (!empty($item->tempat_lahir))
-                                                &bull; {{ $item->tempat_lahir }}
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <div>{{ $item->nama }}</div>
                                 </div>
-                            </td>
-                            <td data-label="NISN"
-                                style="padding: 12px 16px; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
-                                {{ $item->nisn ?: '-' }}
                             </td>
                             <td data-label="Rombel" style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);">
                                 @if (!empty($item->rombel_nama))
@@ -374,7 +340,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                            <td colspan="7" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                 <i class="fas fa-address-book"
                                     style="font-size: var(--text-3xl, 2rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                 <div style="font-weight: 600;">Belum ada data Buku Induk yang cocok dengan filter.</div>
@@ -536,32 +502,8 @@
                         <div class="bi-section-title"><i class="fas fa-house"></i> B. Keterangan Tempat Tinggal</div>
                         <div class="bi-grid-3">
                             <div class="bi-field bi-span-3">
-                                <label>Alamat Jalan / Dusun</label>
-                                <input type="text" name="alamat_jalan" id="biAlamat" class="bi-input">
-                            </div>
-                            <div class="bi-field">
-                                <label>RT</label>
-                                <input type="text" name="rt" id="biRt" class="bi-input" maxlength="5">
-                            </div>
-                            <div class="bi-field">
-                                <label>RW</label>
-                                <input type="text" name="rw" id="biRw" class="bi-input" maxlength="5">
-                            </div>
-                            <div class="bi-field">
-                                <label>Kode Pos</label>
-                                <input type="text" name="kode_pos" id="biKodePos" class="bi-input" maxlength="10">
-                            </div>
-                            <div class="bi-field">
-                                <label>Desa / Kelurahan</label>
-                                <input type="text" name="desa_kelurahan" id="biDesa" class="bi-input">
-                            </div>
-                            <div class="bi-field">
-                                <label>Kecamatan</label>
-                                <input type="text" name="kecamatan" id="biKecamatan" class="bi-input">
-                            </div>
-                            <div class="bi-field">
-                                <label>Kabupaten / Kota</label>
-                                <input type="text" name="kabupaten_kota" id="biKabupaten" class="bi-input">
+                                <label>Alamat Lengkap</label>
+                                <textarea name="alamat_jalan" id="biAlamat" class="bi-input" rows="2" placeholder="Alamat lengkap tempat tinggal..."></textarea>
                             </div>
                         </div>
                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\KelasAkhirScope;
 use App\Support\Table;
 use Illuminate\Support\Facades\DB;
 
@@ -512,7 +513,7 @@ class BukuIndukJurusanService
         return DB::table('peserta_didik')
             ->where('rombongan_belajar_id', $rombelId)
             ->orderBy('nama')
-            ->get(['peserta_didik_id', 'nama', 'nisn', 'nama_rombel'])
+            ->get(['peserta_didik_id', 'nama', 'nisn', 'nipd', 'nama_rombel'])
             ->all();
     }
 
@@ -525,7 +526,7 @@ class BukuIndukJurusanService
                 continue;
             }
             $rows = DB::table($tabel)
-                ->where('rombongan_belajar_id', $rombelId)
+                ->where(fn ($w) => $w->where('rombongan_belajar_id', $rombelId)->orWhere('nama_rombel_terakhir', $rombelId))
                 ->whereNotNull('nisn')
                 ->get(['nisn', 'peserta_didik_id']);
             foreach ($rows as $r) {
@@ -537,5 +538,189 @@ class BukuIndukJurusanService
         }
 
         return $out;
+    }
+
+    /** Resolusi cohort kelulusan buku induk (mengacu tahun ajaran di pengaturan). */
+    public static function resolveCohort(?string $requestedTahunLulus = null): array
+    {
+        $tahunAjaranAktif     = BukuIndukNilaiService::tahunAjaranAktif();
+        $tahunAjaranTerpilih  = (string) (BukuIndukNilaiService::pengaturan()->tahun_ajaran ?? '') ?: $tahunAjaranAktif;
+        $tahunLulusAktif      = str_contains($tahunAjaranAktif, '/') ? explode('/', $tahunAjaranAktif)[1] : $tahunAjaranAktif;
+        $tahunLulusPengaturan = str_contains($tahunAjaranTerpilih, '/') ? explode('/', $tahunAjaranTerpilih)[1] : $tahunAjaranTerpilih;
+
+        $alumniTahunList = Table::exists('peserta_didik_tidak_aktif')
+            ? DB::table('peserta_didik_tidak_aktif')
+                ->where(fn ($b) => $b->where('status_keluar', 'Alumni')
+                    ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                    ->orWhere('alasan_keluar', 'like', '%Tamat%'))
+                ->selectRaw("COALESCE(NULLIF(YEAR(tanggal_keluar), 0), NULLIF(tahun_lulus, '')) AS th")
+                ->pluck('th')
+                ->filter(fn ($v) => !empty($v) && is_numeric($v))
+                ->unique()
+            : collect();
+
+        $filterTahunList = collect([$tahunLulusAktif])->merge($alumniTahunList)->unique()->sortDesc()->values();
+
+        $tahunLulus = trim((string) $requestedTahunLulus);
+        if ($tahunLulus === '' || !$filterTahunList->contains($tahunLulus)) {
+            $tahunLulus = $tahunLulusPengaturan ?: ($filterTahunList->first() ?? $tahunLulusAktif);
+        }
+
+        $isAktif = ((string) $tahunLulus === (string) $tahunLulusAktif);
+
+        return [
+            'tahunAjaranAktif' => $tahunAjaranAktif,
+            'tahunAjaranTerpilih' => $tahunAjaranTerpilih,
+            'tahunLulusAktif' => $tahunLulusAktif,
+            'tahunLulusPengaturan' => $tahunLulusPengaturan,
+            'filterTahunList' => $filterTahunList,
+            'tahunLulus' => $tahunLulus,
+            'isAktif' => $isAktif,
+        ];
+    }
+
+    /** Daftar rombel kelas akhir sesuai cohort (aktif atau alumni). */
+    public static function cohortRombelList(string $tahunLulus, bool $isAktif): \Illuminate\Support\Collection
+    {
+        if ($isAktif) {
+            return \App\Support\RombelScope::query()
+                ->whereIn('tingkat_pendidikan_id', KelasAkhirScope::TINGKAT)
+                ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
+                ->orderBy('tingkat_pendidikan_id')->orderBy('nama')->get();
+        }
+
+        if (!Table::exists('peserta_didik_tidak_aktif')) {
+            return collect();
+        }
+
+        return DB::table('peserta_didik_tidak_aktif')
+            ->where(fn ($w) => $w->where('tahun_lulus', (string) $tahunLulus)
+                ->orWhere('tahun_lulus', "{$tahunLulus}/" . ((int) $tahunLulus + 1))
+                ->orWhere('tahun_lulus', ((int) $tahunLulus - 1) . "/{$tahunLulus}")
+                ->orWhereYear('tanggal_keluar', (string) $tahunLulus))
+            ->where(fn ($b) => $b->where('status_keluar', 'Alumni')
+                ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                ->orWhere('alasan_keluar', 'like', '%Tamat%'))
+            ->whereNotNull('nama_rombel_terakhir')
+            ->where('nama_rombel_terakhir', '<>', '')
+            ->distinct()
+            ->orderBy('nama_rombel_terakhir')
+            ->pluck('nama_rombel_terakhir')
+            ->map(fn ($nama) => (object) [
+                'rombongan_belajar_id' => $nama,
+                'nama' => $nama,
+                'tingkat_pendidikan_id' => '12',
+            ]);
+    }
+
+    /** Daftar kelas akhir (dengan kunci kurikulum) sesuai cohort. */
+    public static function cohortKelasList(string $tahunLulus, bool $isAktif): array
+    {
+        if ($isAktif) {
+            return array_values(array_filter(
+                self::kelasList(),
+                fn ($k) => in_array($k['tingkat'], KelasAkhirScope::TINGKAT, true)
+            ));
+        }
+
+        $rombel = self::cohortRombelList($tahunLulus, false);
+        $out = [];
+        foreach ($rombel as $r) {
+            $nama = (string) $r->nama;
+            $kunci = self::kunciJurusan((object) ['nama_rombel' => $nama]);
+            $out[] = [
+                'id' => $nama,
+                'nama' => $nama,
+                'tingkat' => '12',
+                'kunci' => $kunci,
+            ];
+        }
+
+        return $out;
+    }
+
+    /** Detail satu kelas cohort beserta kunci kurikulum. */
+    public static function cohortKelas(string $id, string $tahunLulus, bool $isAktif): ?array
+    {
+        foreach (self::cohortKelasList($tahunLulus, $isAktif) as $k) {
+            if ($k['id'] === $id) {
+                return $k;
+            }
+        }
+
+        return null;
+    }
+
+    /** Query builder daftar siswa cohort per kelas (untuk input nilai). */
+    public static function cohortSiswaKelasQuery(string $kelasId, string $tahunLulus, bool $isAktif): \Illuminate\Database\Query\Builder
+    {
+        if ($isAktif) {
+            return DB::table('peserta_didik as pd')
+                ->where('pd.rombongan_belajar_id', $kelasId)
+                ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.nama_rombel');
+        }
+
+        return DB::table('peserta_didik_tidak_aktif as pd')
+            ->where(fn ($w) => $w->where('pd.nama_rombel_terakhir', $kelasId)->orWhere('pd.rombongan_belajar_id', $kelasId))
+            ->where(fn ($w) => $w->where('pd.tahun_lulus', (string) $tahunLulus)
+                ->orWhere('pd.tahun_lulus', "{$tahunLulus}/" . ((int) $tahunLulus + 1))
+                ->orWhere('pd.tahun_lulus', ((int) $tahunLulus - 1) . "/{$tahunLulus}")
+                ->orWhereYear('pd.tanggal_keluar', (string) $tahunLulus))
+            ->where(fn ($b) => $b->where('pd.status_keluar', 'Alumni')
+                ->orWhere('pd.alasan_keluar', 'like', '%Lulus%')
+                ->orWhere('pd.alasan_keluar', 'like', '%Tamat%'))
+            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.nama_rombel_terakhir as nama_rombel');
+    }
+
+    /** Array data siswa satu kelas cohort (untuk template excel nilai). */
+    public static function cohortSiswaKelas(string $kelasId, string $tahunLulus, bool $isAktif): array
+    {
+        return self::cohortSiswaKelasQuery($kelasId, $tahunLulus, $isAktif)
+            ->orderBy('pd.nama')
+            ->get()
+            ->all();
+    }
+
+    /** Query builder daftar siswa cohort untuk PKL. */
+    public static function cohortSiswaPklQuery(?string $rombelId, string $tahunLulus, bool $isAktif): \Illuminate\Database\Query\Builder
+    {
+        if ($isAktif) {
+            $query = DB::table('peserta_didik as pd')
+                ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
+                ->leftJoin('buku_induk_pkl as pkl', 'pd.peserta_didik_id', '=', 'pkl.peserta_didik_id')
+                ->where(fn ($sub) => $sub->whereIn('pd.tingkat_pendidikan_id', KelasAkhirScope::TINGKAT)->orWhereIn('rb.tingkat_pendidikan_id', KelasAkhirScope::TINGKAT))
+                ->where(fn ($sub) => $sub->whereNull('kbk.status_klaper')->orWhere('kbk.status_klaper', 'aktif'));
+
+            if ($rombelId !== null && $rombelId !== '') {
+                $query->where('pd.rombongan_belajar_id', $rombelId);
+            }
+
+            return $query->select(
+                'pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.jenis_kelamin',
+                'pd.nama_rombel', 'rb.nama as rombel_nama', 'pkl.nama_dudi', 'pkl.alamat_dudi'
+            );
+        }
+
+        $query = DB::table('peserta_didik_tidak_aktif as pd')
+            ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
+            ->leftJoin('buku_induk_pkl as pkl', 'pd.peserta_didik_id', '=', 'pkl.peserta_didik_id')
+            ->where(fn ($w) => $w->where('pd.tahun_lulus', (string) $tahunLulus)
+                ->orWhere('pd.tahun_lulus', "{$tahunLulus}/" . ((int) $tahunLulus + 1))
+                ->orWhere('pd.tahun_lulus', ((int) $tahunLulus - 1) . "/{$tahunLulus}")
+                ->orWhereYear('pd.tanggal_keluar', (string) $tahunLulus))
+            ->where(fn ($b) => $b->where('pd.status_keluar', 'Alumni')
+                ->orWhere('pd.alasan_keluar', 'like', '%Lulus%')
+                ->orWhere('pd.alasan_keluar', 'like', '%Tamat%'));
+
+        if ($rombelId !== null && $rombelId !== '') {
+            $query->where(fn ($w) => $w->where('pd.nama_rombel_terakhir', $rombelId)->orWhere('pd.rombongan_belajar_id', $rombelId));
+        }
+
+        return $query->select(
+            'pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.jenis_kelamin',
+            'pd.nama_rombel_terakhir as nama_rombel', 'pd.nama_rombel_terakhir as rombel_nama',
+            'pkl.nama_dudi', 'pkl.alamat_dudi'
+        );
     }
 }

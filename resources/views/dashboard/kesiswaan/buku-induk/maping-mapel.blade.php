@@ -27,39 +27,11 @@
     {{-- 2. Tab Navigasi --}}
     @include('dashboard.kesiswaan.buku-induk.partials.tabs', ['activeTab' => 'mapel'])
 
-    {{-- 3. Pemilih Jurusan --}}
     @php
         $jurusanTerpilih = $jurusanTerpilih ?? '_global';
         $labelJurusan = $jurusanTerpilih === '_global'
             ? 'Default (semua jurusan)'
             : \App\Services\BukuIndukJurusanService::label($jurusanMeta ?? []);
-    @endphp
-    <div class="card" style="padding: 16px 18px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <i class="fas fa-graduation-cap" style="color: #0d9488;"></i>
-                <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color);">Jurusan</span>
-            </div>
-            <form method="GET" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
-                style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <select name="jurusan" class="bi-input" style="min-width: 300px;" onchange="this.form.submit()">
-                    <option value="_global" {{ $jurusanTerpilih === '_global' ? 'selected' : '' }}>&mdash; Default (semua jurusan) &mdash;</option>
-                    @foreach ($jurusanList as $kunci => $jr)
-                        <option value="{{ $kunci }}" {{ (string) $jurusanTerpilih === (string) $kunci ? 'selected' : '' }}>
-                            {{ \App\Services\BukuIndukJurusanService::label($jr) }}
-                        </option>
-                    @endforeach
-                </select>
-                <noscript><button type="submit" class="btn btn-outline">Tampilkan</button></noscript>
-            </form>
-            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); flex: 1; min-width: 220px;">
-                Setiap jurusan punya susunan mapel sendiri. Jurusan yang belum dipetakan memakai daftar <strong>Default</strong>.
-            </div>
-        </div>
-    </div>
-
-    {{-- 4. Pemetaan per Semester --}}
-    @php
         $tingkatLabel = ['10' => 'X', '11' => 'XI', '12' => 'XII'];
         $semPkl = [];
         foreach (($pklSemester ?? []) as $s) {
@@ -67,7 +39,43 @@
             $semPkl[$s] = $tingkatLabel[(string) (10 + intdiv($s - 1, 2))] ?? '';
         }
     @endphp
-    <div class="card" style="padding: 18px;">
+
+    {{-- 3. Unified Datatable Card --}}
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        {{-- Toolbar Terpadu --}}
+        <div class="datatable-toolbar">
+            <form method="GET" action="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}" class="datatable-filter-form"
+                style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="toolbar-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <select name="jurusan" id="filterJurusanMapel" class="toolbar-filter-select"
+                        onchange="this.form.submit()"
+                        style="height: 38px; min-width: 280px;">
+                        <option value="_global" {{ $jurusanTerpilih === '_global' ? 'selected' : '' }}>&mdash; Default (semua jurusan) &mdash;</option>
+                        @foreach ($jurusanList as $kunci => $jr)
+                            <option value="{{ $kunci }}" {{ (string) $jurusanTerpilih === (string) $kunci ? 'selected' : '' }}>
+                                {{ \App\Services\BukuIndukJurusanService::label($jr) }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @if ($jurusanTerpilih !== '_global')
+                        <a href="{{ route('dashboard.kesiswaan.buku-induk.mapel.index') }}"
+                            class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                            title="Reset filter jurusan">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
+                </div>
+
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-circle-info" style="color: #0d9488;"></i>
+                    <span>Setiap jurusan punya susunan mapel sendiri. Jurusan belum dipetakan memakai <strong>Default</strong>.</span>
+                </div>
+            </form>
+        </div>
+
+        <div style="padding: 18px;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
             <div
                 style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(13,148,136,0.12); color: #0d9488; display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
@@ -191,7 +199,7 @@
             @else
                 <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Anda tidak memiliki hak untuk mengubah pemetaan mapel.</div>
             @endif
-        </form>
+        </div>
     </div>
 
     {{-- Data referensi mapel dari tabel pembelajaran (untuk JS) --}}

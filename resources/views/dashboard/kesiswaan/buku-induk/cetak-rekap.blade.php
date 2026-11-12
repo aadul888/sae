@@ -38,10 +38,12 @@
                 @else
                     SELURUH ROMBEL &bull;
                 @endif
-                @if (!empty($tahunMasuk))
-                    ANGKATAN {{ $tahunMasuk }} &bull;
+                @if (!empty($tahunLulus))
+                    TAHUN KELULUSAN: {{ $tahunLulus }} &bull;
+                @elseif (!empty($tahunMasuk))
+                    ANGKATAN: {{ $tahunMasuk }} &bull;
                 @endif
-                STATUS: {{ strtoupper($status === 'all' ? 'SEMUA' : str_replace('_', ' ', $status)) }} &bull;
+                STATUS: {{ strtoupper($status === 'aktif' ? 'SISWA AKTIF' : ($status === 'lulus' ? 'LULUS / ALUMNI' : str_replace('_', ' ', $status))) }} &bull;
                 JUMLAH: {{ $items->count() }} SISWA
             </div>
         </div>
@@ -50,13 +52,12 @@
             <thead>
                 <tr>
                     <th style="width: 30px; text-align: center;">No</th>
-                    <th style="width: 78px;">No. Induk</th>
+                    <th style="width: 100px;">No. Induk / NISN</th>
                     <th style="width: 70px;">No. Klaper</th>
                     <th>Nama Peserta Didik</th>
                     <th style="width: 32px; text-align: center;">L/P</th>
                     <th style="width: 105px;">Tempat Lahir</th>
                     <th style="width: 72px;">Tgl. Lahir</th>
-                    <th style="width: 110px;">NISN</th>
                     <th style="width: 110px;">NIK</th>
                     <th style="width: 95px;">Rombel</th>
                     <th style="width: 105px;">Nama Ayah</th>
@@ -68,7 +69,10 @@
                 @forelse ($items as $idx => $row)
                     <tr>
                         <td class="center">{{ $idx + 1 }}</td>
-                        <td class="font-mono">{{ $row->nomor_induk ?: ($row->nipd ?: '—') }}</td>
+                        <td class="font-mono">
+                            <div>{{ $row->nomor_induk ?: ($row->nipd ?: '—') }}</div>
+                            <div style="font-size: var(--text-2xs, 0.6875rem); color: #6b7280;">{{ $row->nisn ?: '—' }}</div>
+                        </td>
                         <td class="font-mono">{{ $row->nomor_klaper ?: '—' }}</td>
                         <td><strong>{{ $row->nama }}</strong></td>
                         <td class="center">{{ $row->jenis_kelamin ?: '—' }}</td>
@@ -76,7 +80,6 @@
                         <td class="center">
                             {{ $row->tanggal_lahir ? \Carbon\Carbon::parse($row->tanggal_lahir)->format('d/m/Y') : '—' }}
                         </td>
-                        <td class="font-mono">{{ $row->nisn ?: '—' }}</td>
                         <td class="font-mono">{{ $row->nik ?: '—' }}</td>
                         <td>{{ $row->rombel_nama ?: '—' }}</td>
                         <td>{{ $row->nama_ayah ?: '—' }}</td>
@@ -87,7 +90,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="13" class="center" style="padding: 14px; color: #6b7280;">
+                        <td colspan="12" class="center" style="padding: 14px; color: #6b7280;">
                             <em>Tidak ada data siswa pada filter yang dipilih.</em>
                         </td>
                     </tr>

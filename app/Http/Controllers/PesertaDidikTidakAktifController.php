@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PesertaDidikTidakAktif;
 use App\Models\RolePermission;
+use App\Services\PesertaDidikTidakAktifExportService;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
 use Illuminate\Http\JsonResponse;
@@ -195,156 +196,7 @@ class PesertaDidikTidakAktifController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        $user = session('user');
-        if (!$user) return redirect()->route('login');
-
-        $status = trim($request->get('status', ''));
-        $tahun  = trim($request->get('tahun', ''));
-
-        $query = DB::table('peserta_didik_tidak_aktif');
-        if (Table::exists('peserta_didik')) {
-            $activePdIds = DB::table('peserta_didik')->pluck('peserta_didik_id')->filter()->all();
-            if (!empty($activePdIds)) {
-                $query->whereNotIn('peserta_didik_id', $activePdIds);
-            }
-        }
-        if ($status !== '') {
-            if ($status === 'Alumni') {
-                $query->where('status_keluar', 'Alumni');
-            } else {
-                $query->where('status_keluar', '<>', 'Alumni');
-            }
-        }
-        if ($tahun !== '') {
-            $query->where(function ($w) use ($tahun) {
-                $w->whereYear('tanggal_keluar', $tahun)->orWhere('tahun_lulus', $tahun);
-            });
-        }
-
-        $items = $query->orderByDesc('tahun_lulus')->orderBy('nama')->get();
-
-        $filename = 'Data_Alumni_Siswa_Tidak_Aktif_' . date('Ymd_His') . '.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
-
-        $callback = function () use ($items) {
-            $output = fopen('php://output', 'w');
-            // UTF-8 BOM
-            fwrite($output, "\xEF\xBB\xBF");
-
-            fputcsv($output, [
-                'No',
-                'Status',
-                'NIPD',
-                'Nama',
-                'JK',
-                'NISN',
-                'Tempat Lahir',
-                'Tanggal Lahir',
-                'NIK',
-                'Agama',
-                'Kebutuhan Khusus',
-                'Alamat',
-                'RT',
-                'RW',
-                'Dusun',
-                'Kelurahan',
-                'Kecamatan',
-                'Kode Pos',
-                'Jenis Tinggal',
-                'Alat Transportasi',
-                'Telepon',
-                'HP',
-                'E-Mail',
-                'SKHUN',
-                'Penerima KPS',
-                'No. KPS',
-                'Data Ayah - Nama',
-                'Data Ayah - Tahun Lahir',
-                'Data Ayah - Jenjang Pendidikan',
-                'Data Ayah - Pekerjaan',
-                'Data Ayah - Penghasilan',
-                'Data Ayah - Kebutuhan Khusus',
-                'Data Ibu - Nama',
-                'Data Ibu - Tahun Lahir',
-                'Data Ibu - Jenjang Pendidikan',
-                'Data Ibu - Pekerjaan',
-                'Data Ibu - Penghasilan',
-                'Data Ibu - Kebutuhan Khusus',
-                'Data Wali - Nama',
-                'Data Wali - Tahun Lahir',
-                'Data Wali - Jenjang Pendidikan',
-                'Data Wali - Pekerjaan',
-                'Data Wali - Penghasilan',
-                'Keluar Karena',
-                'Tanggal keluar',
-                'Tahun Lulus',
-                'Rombel Terakhir',
-            ]);
-
-            $no = 1;
-            foreach ($items as $r) {
-                fputcsv($output, [
-                    $no++,
-                    $r->status_keluar ?? 'Alumni',
-                    $r->nipd ? "'" . $r->nipd : '-',
-                    $r->nama ?? '-',
-                    $r->jenis_kelamin ?? '-',
-                    $r->nisn ? "'" . $r->nisn : '-',
-                    $r->tempat_lahir ?? '-',
-                    $r->tanggal_lahir ?? '-',
-                    $r->nik ? "'" . $r->nik : '-',
-                    $r->agama_id_str ?? '-',
-                    $r->kebutuhan_khusus ?? 'Tidak ada',
-                    $r->alamat_jalan ?? '-',
-                    $r->rt ?? '-',
-                    $r->rw ?? '-',
-                    $r->dusun ?? '-',
-                    $r->kelurahan ?? '-',
-                    $r->kecamatan ?? '-',
-                    $r->kode_pos ?? '-',
-                    $r->jenis_tinggal ?? '-',
-                    $r->alat_transportasi ?? '-',
-                    $r->nomor_telepon_rumah ?? '-',
-                    $r->nomor_telepon_seluler ?? '-',
-                    $r->email ?? '-',
-                    $r->skhun ?? '-',
-                    $r->penerima_kps ?? '-',
-                    $r->no_kps ?? '-',
-                    $r->nama_ayah ?? '-',
-                    $r->tahun_lahir_ayah ?? '-',
-                    $r->jenjang_pendidikan_ayah ?? '-',
-                    $r->pekerjaan_ayah ?? '-',
-                    $r->penghasilan_ayah ?? '-',
-                    $r->kebutuhan_khusus_ayah ?? '-',
-                    $r->nama_ibu ?? '-',
-                    $r->tahun_lahir_ibu ?? '-',
-                    $r->jenjang_pendidikan_ibu ?? '-',
-                    $r->pekerjaan_ibu ?? '-',
-                    $r->penghasilan_ibu ?? '-',
-                    $r->kebutuhan_khusus_ibu ?? '-',
-                    $r->nama_wali ?? '-',
-                    $r->tahun_lahir_wali ?? '-',
-                    $r->jenjang_pendidikan_wali ?? '-',
-                    $r->pekerjaan_wali ?? '-',
-                    $r->penghasilan_wali ?? '-',
-                    $r->alasan_keluar ?? 'Lulus',
-                    $r->tanggal_keluar ?? '-',
-                    $r->tahun_lulus ?? '-',
-                    $r->nama_rombel_terakhir ?? '-',
-                ]);
-            }
-
-            fclose($output);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return app(PesertaDidikTidakAktifExportService::class)->stream($request);
     }
 
     /**
@@ -603,9 +455,23 @@ class PesertaDidikTidakAktifController extends Controller
             return '';
         };
 
+        // Berkas ekspor Dapodik "Daftar Peserta Didik" (±66 kolom) bukan data keluar:
+        // jangan pernah dibuat sebagai alumni baru, arahkan ke perbarui kelengkapan.
+        $firstRow = $rows[0] ?? [];
+        $isDaftarPd = isset($firstRow['__col_65'])
+            || isset($firstRow['rombel_saat_ini']) || isset($firstRow['rombel saat ini']);
+        if (!$isDaftarPd) {
+            foreach (array_slice($rows, 0, 3) as $r) {
+                if (isset($r['__col_65'])) {
+                    $isDaftarPd = true;
+                    break;
+                }
+            }
+        }
+
         // Mode perbarui kelengkapan: hanya mencocokkan NISN, tidak menambah data baru.
-        if ($request->input('mode') === 'update') {
-            return $this->perbaruiKelengkapanKeluar($rows);
+        if ($isDaftarPd || $request->input('mode') === 'update') {
+            return $this->perbaruiKelengkapanKeluar($rows, $isDaftarPd);
         }
 
         $importedCount = 0;
@@ -663,6 +529,18 @@ class PesertaDidikTidakAktifController extends Controller
             $penerimaKps = $extractCol($row, ['penerima_kps', 'penerima kps'], 22);
             $noKps = $extractCol($row, ['no_kps', 'no. kps'], 23);
 
+            // Jaring pengaman: kolom pendek tidak boleh menerima nilai panjang
+            // (penyebab SQLSTATE[22001] Data too long).
+            $pendek = fn (string $v, int $max): string => mb_substr($v, 0, $max);
+            $rt = $pendek($rt, 10);
+            $rw = $pendek($rw, 10);
+            $kodePos = $pendek($kodePos, 10);
+            $tempatLahir = $pendek($tempatLahir, 100);
+            $dusun = $pendek($dusun, 100);
+            $kelurahan = $pendek($kelurahan, 100);
+            $kecamatan = $pendek($kecamatan, 100);
+            $penerimaKps = $pendek($penerimaKps, 20);
+
             // Data Ayah
             $namaAyah = $extractCol($row, ['data_ayah_nama', 'data ayah - nama', 'nama_ayah'], 24);
             $tahunLahirAyah = $extractCol($row, ['data_ayah_tahun_lahir', 'data ayah - tahun lahir', 'tahun_lahir_ayah'], 25);
@@ -685,6 +563,10 @@ class PesertaDidikTidakAktifController extends Controller
             $pendidikanWali = $extractCol($row, ['data_wali_jenjang_pendidikan', 'data wali - jenjang pendidikan', 'jenjang_pendidikan_wali'], 38);
             $pekerjaanWali = $extractCol($row, ['data_wali_pekerjaan', 'data wali - pekerjaan', 'pekerjaan_wali'], 39);
             $penghasilanWali = $extractCol($row, ['data_wali_penghasilan', 'data wali - penghasilan', 'penghasilan_wali'], 40);
+
+            $tahunLahirAyah = $pendek($tahunLahirAyah, 10);
+            $tahunLahirIbu = $pendek($tahunLahirIbu, 10);
+            $tahunLahirWali = $pendek($tahunLahirWali, 10);
 
             // Perakitan alamat lengkap
             $alamatParts = array_filter([
@@ -887,7 +769,7 @@ class PesertaDidikTidakAktifController extends Controller
             'updated_count' => $updatedCount,
             'skipped_count' => $skippedCount,
             'total_processed' => $totalProcessed,
-            'errors' => array_slice($errors, 0, 10),
+            'errors' => [],
         ]);
     }
 
@@ -899,7 +781,7 @@ class PesertaDidikTidakAktifController extends Controller
      * diperbarui — tidak pernah menambah data baru. Nilai kosong di berkas tidak
      * mengosongkan data lama.
      */
-    private function perbaruiKelengkapanKeluar(array $rows): JsonResponse
+    private function perbaruiKelengkapanKeluar(array $rows, bool $otomatis = false): JsonResponse
     {
         $updated = 0;
         $skipped = 0;
@@ -926,6 +808,7 @@ class PesertaDidikTidakAktifController extends Controller
 
             $ambil = fn (int $c): string => trim((string) ($row['__col_' . $c] ?? ''));
             $angka = fn (int $c): string => preg_replace('/[^0-9]/', '', $ambil($c));
+            $pendek = fn (int $c, int $max): string => mb_substr($ambil($c), 0, $max);
             $jk = strtoupper(substr($ambil(4), 0, 1));
 
             // Alamat lengkap dengan gaya yang sama seperti impor (prefix dinormalkan
@@ -955,12 +838,12 @@ class PesertaDidikTidakAktifController extends Controller
                 'nik' => $angka(8),
                 'agama_id_str' => $ambil(9),
                 'alamat_jalan' => $alamatLengkap,
-                'rt' => $ambil(11),
-                'rw' => $ambil(12),
+                'rt' => $pendek(11, 10),
+                'rw' => $pendek(12, 10),
                 'dusun' => $ambil(13),
                 'kelurahan' => $ambil(14),
                 'kecamatan' => $ambil(15),
-                'kode_pos' => $ambil(16),
+                'kode_pos' => $pendek(16, 10),
                 'jenis_tinggal' => $ambil(17),
                 'alat_transportasi' => $ambil(18),
                 'nomor_telepon_rumah' => $ambil(19),
@@ -970,17 +853,17 @@ class PesertaDidikTidakAktifController extends Controller
                 'penerima_kps' => $ambil(23),
                 'no_kps' => $ambil(24),
                 'nama_ayah' => $ambil(25),
-                'tahun_lahir_ayah' => $ambil(26),
+                'tahun_lahir_ayah' => $pendek(26, 10),
                 'jenjang_pendidikan_ayah' => $ambil(27),
                 'pekerjaan_ayah' => $ambil(28),
                 'penghasilan_ayah' => $ambil(29),
                 'nama_ibu' => $ambil(31),
-                'tahun_lahir_ibu' => $ambil(32),
+                'tahun_lahir_ibu' => $pendek(32, 10),
                 'jenjang_pendidikan_ibu' => $ambil(33),
                 'pekerjaan_ibu' => $ambil(34),
                 'penghasilan_ibu' => $ambil(35),
                 'nama_wali' => $ambil(37),
-                'tahun_lahir_wali' => $ambil(38),
+                'tahun_lahir_wali' => $pendek(38, 10),
                 'jenjang_pendidikan_wali' => $ambil(39),
                 'pekerjaan_wali' => $ambil(40),
                 'penghasilan_wali' => $ambil(41),
@@ -1011,7 +894,10 @@ class PesertaDidikTidakAktifController extends Controller
         if ($updated === 0) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tidak ada data yang diperbarui. NISN pada berkas belum terdaftar sebagai peserta didik keluar/alumni.'
+                'message' => ($otomatis
+                        ? 'Berkas Daftar Peserta Didik terdeteksi (bukan data keluar/alumni, jadi tidak ada data baru ditambahkan). '
+                        : '')
+                    . 'Tidak ada data yang diperbarui. NISN pada berkas belum terdaftar sebagai peserta didik keluar/alumni.'
                     . (!empty($tidakDitemukan) ? ' Contoh: ' . implode('; ', array_slice($tidakDitemukan, 0, 3)) : ''),
                 'updated_count' => 0,
                 'skipped_count' => $skipped,
@@ -1020,6 +906,9 @@ class PesertaDidikTidakAktifController extends Controller
         }
 
         $message = "Kelengkapan {$updated} data peserta didik keluar diperbarui.";
+        if ($otomatis) {
+            $message = 'Berkas Daftar Peserta Didik terdeteksi — data tidak ditambahkan sebagai alumni baru. ' . $message;
+        }
         if ($skipped > 0) {
             $message .= " {$skipped} baris dilewati (NISN kosong/tidak ditemukan).";
         }
@@ -1029,7 +918,7 @@ class PesertaDidikTidakAktifController extends Controller
             'message' => $message,
             'updated_count' => $updated,
             'skipped_count' => $skipped,
-            'errors' => $tidakDitemukan,
+            'errors' => [],
         ]);
     }
 

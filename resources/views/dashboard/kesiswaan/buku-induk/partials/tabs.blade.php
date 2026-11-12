@@ -18,6 +18,10 @@
             class="periode-nav-tab {{ $activeTab === 'input_nilai' ? 'active' : '' }}">
             <i class="fas fa-pen-to-square"></i> Input Nilai
         </a>
+        <a href="{{ route('dashboard.kesiswaan.buku-induk.input-pkl') }}"
+            class="periode-nav-tab {{ $activeTab === 'input_pkl' ? 'active' : '' }}">
+            <i class="fas fa-building-user"></i> Input Data PKL
+        </a>
     </div>
 
     <div class="periode-nav-mobile">
@@ -38,6 +42,9 @@
                 </option>
                 <option value="{{ route('dashboard.kesiswaan.buku-induk.input-nilai') }}" {{ $activeTab === 'input_nilai' ? 'selected' : '' }}>
                     Input Nilai
+                </option>
+                <option value="{{ route('dashboard.kesiswaan.buku-induk.input-pkl') }}" {{ $activeTab === 'input_pkl' ? 'selected' : '' }}>
+                    Input Data PKL
                 </option>
             </select>
         </div>

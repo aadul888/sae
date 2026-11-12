@@ -407,13 +407,19 @@
                                     {{ $r }}</option>
                             @endforeach
                         </select>
-                        <input type="text" id="filterTahunLulus" name="tahun_lulus" value="{{ $tahunLulus }}"
-                            placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
-                            style="width: 170px; height: 38px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
+                        <select id="filterTahunLulus" name="tahun_lulus" class="toolbar-filter-select"
+                            style="height: 38px; min-width: 150px;">
+                            <option value="">Semua Tahun Lulus</option>
+                            @foreach ($filterTahunAlumni ?? [] as $t)
+                                <option value="{{ $t }}" {{ $tahunLulus === (string) $t ? 'selected' : '' }}>
+                                    Tahun {{ $t }}
+                                </option>
+                            @endforeach
+                        </select>
                         @if ($canCreate)
                             <button type="button" id="btnImportAlumni" class="btn btn-outline"
-                                onclick="openImportExcelModal()"
-                                title="Import Excel Dapodik Peserta Didik Keluar / Alumni"
+                                onclick="openPdKeluarImportModal()"
+                                title="Import / Perbarui Berkas Dapodik Peserta Didik Keluar & Alumni"
                                 aria-label="Import Data Alumni dari Dapodik"
                                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
                                 <i class="fas fa-file-import"></i>

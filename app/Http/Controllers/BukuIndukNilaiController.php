@@ -383,11 +383,8 @@ class BukuIndukNilaiController extends Controller
     {
         if ($res = $this->checkAuth()) return $res;
 
-        // Mengacu pada Pengaturan: hanya kelas akhir (XII) yang dikelola.
-        $pilihanKelas = array_values(array_filter(
-            BukuIndukJurusanService::kelasList(),
-            fn ($k) => in_array($k['tingkat'], KelasAkhirScope::TINGKAT, true)
-        ));
+        $cohort = BukuIndukJurusanService::resolveCohort($request->query('tahun_lulus'));
+        $pilihanKelas = BukuIndukJurusanService::cohortKelasList($cohort['tahunLulus'], $cohort['isAktif']);
 
         // Kelas tetap kelas akhir (XII); semester boleh mundur 1–6 untuk mengisi rapor sebelumnya.
         $semesterList = range(1, 6);
@@ -396,12 +393,12 @@ class BukuIndukNilaiController extends Controller
             $semester = 5;
         }
 
-        // Tingkat Dapodik dari semester: sem 1–2 → '10', 3–4 → '11', 5–6 → '12'.
-        $kelasId = (string) ($request->query('kelas') ?? '');        if ($kelasId === '' || !collect($pilihanKelas)->contains('id', $kelasId)) {
+        $kelasId = (string) ($request->query('kelas') ?? '');
+        if ($kelasId === '' || !collect($pilihanKelas)->contains('id', $kelasId)) {
             $kelasId = $pilihanKelas ? $pilihanKelas[0]['id'] : '';
         }
 
-        $kelas = $kelasId !== '' ? BukuIndukJurusanService::kelas($kelasId) : null;
+        $kelas = $kelasId !== '' ? BukuIndukJurusanService::cohortKelas($kelasId, $cohort['tahunLulus'], $cohort['isAktif']) : null;
         $kunci = $kelas['kunci'] ?? null;
 
         $grup = BukuIndukJurusanService::mapelSatuSemester($kunci, $semester);
@@ -413,10 +410,37 @@ class BukuIndukNilaiController extends Controller
             }
         }
 
-        $siswa = $kelasId !== '' ? BukuIndukJurusanService::siswaKelas($kelasId) : [];
+        $q = trim((string) $request->query('q', ''));
+        $perPage = (int) ($request->query('perPage') ?? 25);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) $perPage = 25;
+        $sort = (string) ($request->query('sort') ?? 'nama');
+        $sortDir = strtolower((string) ($request->query('sort_dir') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $sortCols = [
+            'nipd' => 'pd.nipd', 'nomor_induk' => 'pd.nipd', 'nisn' => 'pd.nisn',
+            'nama' => 'pd.nama',
+        ];
+        $orderByCol = $sortCols[$sort] ?? 'pd.nama';
+
+        if ($kelasId !== '') {
+            $querySiswa = BukuIndukJurusanService::cohortSiswaKelasQuery($kelasId, $cohort['tahunLulus'], $cohort['isAktif']);
+
+            if ($q !== '') {
+                $querySiswa->where(fn ($sub) => $sub->where('pd.nama', 'like', "%{$q}%")
+                    ->orWhere('pd.nisn', 'like', "%{$q}%")
+                    ->orWhere('pd.nipd', 'like', "%{$q}%"));
+            }
+
+            $siswa = $querySiswa
+                ->orderBy($orderByCol, $sortDir)
+                ->paginate($perPage)
+                ->withQueryString();
+        } else {
+            $siswa = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
         $tersimpan = [];
-        if ($siswa && $mapel) {
-            $ids = array_map(fn ($s) => $s->peserta_didik_id, $siswa);
+        if ($siswa->count() > 0 && $mapel) {
+            $ids = $siswa->pluck('peserta_didik_id')->all();
             $rows = DB::table('buku_induk_nilai')
                 ->whereIn('peserta_didik_id', $ids)
                 ->where('semester', $semester)
@@ -439,6 +463,13 @@ class BukuIndukNilaiController extends Controller
             'tersimpan' => $tersimpan,
             'pklSemester' => BukuIndukNilaiService::pklSemester(),
             'singkatan' => BukuIndukNilaiService::singkatanEfektif($mapel),
+            'perPage' => $perPage,
+            'q' => $q,
+            'sort' => $sort,
+            'sortDir' => $sortDir,
+            'filterTahunList' => $cohort['filterTahunList'],
+            'tahunLulus' => $cohort['tahunLulus'],
+            'isAktif' => $cohort['isAktif'],
             'can' => $this->perms(),
         ]);
     }
@@ -547,8 +578,9 @@ class BukuIndukNilaiController extends Controller
             $semester = 1;
         }
 
+        $cohort = BukuIndukJurusanService::resolveCohort($request->query('tahun_lulus'));
         $kelasId = trim((string) $request->query('kelas', ''));
-        $kelas = $kelasId !== '' ? BukuIndukJurusanService::kelas($kelasId) : null;
+        $kelas = $kelasId !== '' ? BukuIndukJurusanService::cohortKelas($kelasId, $cohort['tahunLulus'], $cohort['isAktif']) : null;
 
         $kunci = $kelas['kunci'] ?? trim((string) $request->query('jurusan', ''));
         if (!$kelas && ($kunci === '' || $kunci === '_global' || !BukuIndukJurusanService::jurusan($kunci))) {
@@ -563,7 +595,7 @@ class BukuIndukNilaiController extends Controller
         $headers = array_merge(['No', 'NISN', 'Nama', 'Kelas'], $kolom);
         $sample = [];
         $no = 1;
-        $daftarSiswa = $kelas ? BukuIndukJurusanService::siswaKelas($kelasId) : BukuIndukJurusanService::siswaJurusan((string) $kunci);
+        $daftarSiswa = $kelas ? BukuIndukJurusanService::cohortSiswaKelas($kelasId, $cohort['tahunLulus'], $cohort['isAktif']) : BukuIndukJurusanService::siswaJurusan((string) $kunci);
         foreach ($daftarSiswa as $s) {
             $sample[] = array_merge([(string) $no++, (string) ($s->nisn ?? ''), (string) $s->nama, (string) ($s->nama_rombel ?? '')], $tanpaNilai);
         }
@@ -605,10 +637,12 @@ class BukuIndukNilaiController extends Controller
         $validated = $request->validate([
             'kelas' => ['required', 'string', 'max:60'],
             'semester' => ['required', 'integer', 'between:1,6'],
+            'tahun_lulus' => ['nullable', 'string', 'max:20'],
             'file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt'],
         ]);
 
-        $kelas = BukuIndukJurusanService::kelas(trim((string) $validated['kelas']));
+        $cohort = BukuIndukJurusanService::resolveCohort($validated['tahun_lulus'] ?? $request->input('tahun_lulus'));
+        $kelas = BukuIndukJurusanService::cohortKelas(trim((string) $validated['kelas']), $cohort['tahunLulus'], $cohort['isAktif']);
         if (!$kelas) {
             return response()->json(['status' => 'error', 'message' => 'Pilih kelas terlebih dahulu sebelum mengunggah.'], 422);
         }
@@ -704,8 +738,195 @@ class BukuIndukNilaiController extends Controller
             BukuIndukNilaiService::pengaturanForm()
         );
 
+        $pkl = DB::table('buku_induk_pkl')->where('peserta_didik_id', $pd->peserta_didik_id)->first();
+
         return view('dashboard.kesiswaan.buku-induk.cetak-buku-induk', compact(
-            'pd', 'identitas', 'klaper', 'meta', 'sekolah', 'sekolahMeta', 'rombel', 'kepsek', 'matriks', 'pengaturan'
+            'pd', 'identitas', 'klaper', 'meta', 'sekolah', 'sekolahMeta', 'rombel', 'kepsek', 'matriks', 'pengaturan', 'pkl'
         ));
+    }
+
+    /** Tab 5 — Input Data PKL (Nama DU/DI & Alamat DU/DI) untuk seluruh siswa aktif / per rombel. */
+    public function inputPkl(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $cohort = BukuIndukJurusanService::resolveCohort($request->query('tahun_lulus'));
+        $rombelId = trim((string) $request->query('rombel_id', ''));
+        $q = trim((string) $request->query('q', ''));
+        $perPage = (int) ($request->query('perPage') ?? 25);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) $perPage = 25;
+        $sort = (string) ($request->query('sort') ?? 'nama');
+        $sortDir = strtolower((string) ($request->query('sort_dir') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $sortCols = [
+            'nipd' => 'pd.nipd', 'nomor_induk' => 'pd.nipd', 'nisn' => 'pd.nisn',
+            'nama' => 'pd.nama', 'rombel_nama' => $cohort['isAktif'] ? 'rb.nama' : 'pd.nama_rombel_terakhir',
+            'jenis_kelamin' => 'pd.jenis_kelamin', 'nama_dudi' => 'pkl.nama_dudi', 'alamat_dudi' => 'pkl.alamat_dudi',
+        ];
+        $orderByCol = $sortCols[$sort] ?? 'pd.nama';
+
+        $rombelList = BukuIndukJurusanService::cohortRombelList($cohort['tahunLulus'], $cohort['isAktif']);
+
+        $query = BukuIndukJurusanService::cohortSiswaPklQuery($rombelId !== '' ? $rombelId : null, $cohort['tahunLulus'], $cohort['isAktif']);
+
+        if ($q !== '') {
+            $query->where(fn ($sub) => $sub->where('pd.nama', 'like', "%{$q}%")
+                ->orWhere('pd.nisn', 'like', "%{$q}%")->orWhere('pd.nipd', 'like', "%{$q}%")
+                ->orWhere('pkl.nama_dudi', 'like', "%{$q}%")->orWhere('pkl.alamat_dudi', 'like', "%{$q}%"));
+        }
+
+        $totalSiswa = (clone $query)->count();
+        $terisi = (clone $query)->whereNotNull('pkl.nama_dudi')->where('pkl.nama_dudi', '!=', '')->count();
+
+        $siswa = $query->orderBy($orderByCol, $sortDir)->paginate($perPage)->withQueryString();
+
+        return view('dashboard.kesiswaan.buku-induk.input-pkl', [
+            'rombelList' => $rombelList, 'rombelId' => $rombelId, 'q' => $q,
+            'siswa' => $siswa, 'totalSiswa' => $totalSiswa, 'terisi' => $terisi,
+            'perPage' => $perPage, 'sort' => $sort, 'sortDir' => $sortDir,
+            'filterTahunList' => $cohort['filterTahunList'],
+            'tahunLulus' => $cohort['tahunLulus'],
+            'isAktif' => $cohort['isAktif'],
+            'can' => $this->perms(),
+        ]);
+    }
+
+    /** Simpan massal data DU/DI PKL dari tabel input. */
+    public function saveInputPkl(Request $request): JsonResponse
+    {
+        if ($res = $this->checkAuth()) return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
+        if (!$this->perms()['update']) return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+
+        $data = $request->input('pkl', []);
+        if (!is_array($data)) return response()->json(['status' => 'error', 'message' => 'Format data PKL tidak valid.'], 422);
+
+        $now = now();
+        $disimpan = 0;
+        foreach ($data as $pdId => $item) {
+            $pdId = (string) $pdId;
+            if (!is_array($item)) continue;
+            $namaDudi = trim((string) ($item['nama_dudi'] ?? ''));
+            $alamatDudi = trim((string) ($item['alamat_dudi'] ?? ''));
+
+            DB::table('buku_induk_pkl')->updateOrInsert(
+                ['peserta_didik_id' => $pdId],
+                ['nama_dudi' => $namaDudi !== '' ? $namaDudi : null, 'alamat_dudi' => $alamatDudi !== '' ? $alamatDudi : null, 'updated_at' => $now, 'created_at' => $now]
+            );
+            $disimpan++;
+        }
+
+        return response()->json(['status' => 'success', 'message' => "Data PKL untuk {$disimpan} siswa berhasil disimpan."]);
+    }
+
+    /** Simpan pembaruan PKL satu baris siswa (inline update). */
+    public function saveRowPkl(Request $request): JsonResponse
+    {
+        if ($res = $this->checkAuth()) return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
+        if (!$this->perms()['update']) return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+
+        $pdId = trim((string) $request->input('peserta_didik_id', ''));
+        if ($pdId === '' || !BukuIndukNilaiService::findPesertaDidik($pdId)) {
+            return response()->json(['status' => 'error', 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $namaDudi = trim((string) $request->input('nama_dudi', ''));
+        $alamatDudi = trim((string) $request->input('alamat_dudi', ''));
+        $now = now();
+        DB::table('buku_induk_pkl')->updateOrInsert(
+            ['peserta_didik_id' => $pdId],
+            ['nama_dudi' => $namaDudi !== '' ? $namaDudi : null, 'alamat_dudi' => $alamatDudi !== '' ? $alamatDudi : null, 'updated_at' => $now, 'created_at' => $now]
+        );
+
+        return response()->json(['status' => 'success', 'message' => 'Data PKL siswa berhasil diperbarui.']);
+    }
+
+    /** Unduh template Excel 3 kolom (nisn, nama_dudi, alamat_dudi) per kelas atau semua rombel. */
+    public function downloadTemplatePkl(Request $request): BinaryFileResponse
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $cohort = BukuIndukJurusanService::resolveCohort($request->query('tahun_lulus'));
+        $rombelId = trim((string) $request->query('rombel_id', ''));
+        $query = BukuIndukJurusanService::cohortSiswaPklQuery($rombelId !== '' ? $rombelId : null, $cohort['tahunLulus'], $cohort['isAktif']);
+
+        $labelRombel = 'Semua Kelas (XII)';
+        $namaRombel = 'Semua_Kelas';
+        if ($rombelId !== '') {
+            $rombelObj = BukuIndukJurusanService::cohortRombelList($cohort['tahunLulus'], $cohort['isAktif'])->firstWhere('rombongan_belajar_id', $rombelId);
+            $namaRombel = $rombelObj ? preg_replace('/[^A-Za-z0-9]+/', '_', (string) $rombelObj->nama) : preg_replace('/[^A-Za-z0-9]+/', '_', $rombelId);
+            $labelRombel = $rombelObj ? (string) $rombelObj->nama : $rombelId;
+        }
+
+        $daftar = $query->orderBy('pd.nama')->get();
+        $headers = ['No', 'NISN', 'Nama Siswa', 'Kelas', 'Nama DU/DI', 'Alamat DU/DI'];
+        $sample = [];
+        $no = 1;
+        foreach ($daftar as $d) {
+            $sample[] = [
+                (string) $no++,
+                (string) ($d->nisn ?? ''),
+                (string) ($d->nama ?? ''),
+                (string) ($d->rombel_nama ?? ($d->nama_rombel ?? '')),
+                (string) ($d->nama_dudi ?? ''),
+                (string) ($d->alamat_dudi ?? ''),
+            ];
+        }
+        if (empty($sample)) {
+            $sample[] = ['1', '0081234567', 'Contoh Siswa', 'XII RPL 1', 'PT Industri Maju Bersama', 'Jl. Industri No. 12, Kawasan Industri'];
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'tpl_pkl_') . '.xlsx';
+        SimpleXlsxExporter::export($tempPath, [], $headers, $sample, [
+            'sheetName' => 'Data PKL',
+            'rawTable'  => true,
+            'headerBg'  => '#0D9488',
+        ]);
+
+        return response()->download($tempPath, "Template_PKL_{$namaRombel}_Tahun_{$cohort['tahunLulus']}.xlsx", [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /** Impor berkas Excel/CSV template 3 kolom (nisn, nama_dudi, alamat_dudi). */
+    public function importPkl(Request $request): JsonResponse
+    {
+        if ($res = $this->checkAuth()) return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
+        if (!$this->perms()['create']) return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+
+        $request->validate(['file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt']]);
+
+        try {
+            $rows = SimpleXlsxReader::readFile($request->file('file_excel')->getRealPath());
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal membaca berkas: ' . $e->getMessage()], 422);
+        }
+
+        if (empty($rows)) return response()->json(['status' => 'error', 'message' => 'Berkas kosong atau tidak ada data.'], 422);
+
+        $nisnMap = DB::table('peserta_didik')->whereNotNull('nisn')->where('nisn', '!=', '')->pluck('peserta_didik_id', 'nisn');
+        if (Table::exists('peserta_didik_tidak_aktif')) {
+            $nisnMap = $nisnMap->merge(
+                DB::table('peserta_didik_tidak_aktif')->whereNotNull('nisn')->where('nisn', '!=', '')->pluck('peserta_didik_id', 'nisn')
+            );
+        }
+        $nisnMap = $nisnMap->all();
+        $now = now(); $imported = 0; $skipped = 0;
+
+        foreach ($rows as $row) {
+            $nisn = trim((string) ($row['nisn'] ?? $row['__col_1'] ?? $row['__col_0'] ?? ''));
+            $nisn = preg_replace('/[^0-9]/', '', $nisn);
+            if ($nisn === '' || !isset($nisnMap[$nisn])) { $skipped++; continue; }
+
+            $pdId = $nisnMap[$nisn];
+            $namaDudi = trim((string) ($row['nama_dudi'] ?? $row['dudi'] ?? $row['nama_mitra'] ?? $row['__col_4'] ?? $row['__col_1'] ?? ''));
+            $alamatDudi = trim((string) ($row['alamat_dudi'] ?? $row['alamat'] ?? $row['__col_5'] ?? $row['__col_2'] ?? ''));
+
+            DB::table('buku_induk_pkl')->updateOrInsert(
+                ['peserta_didik_id' => $pdId],
+                ['nama_dudi' => $namaDudi !== '' ? $namaDudi : null, 'alamat_dudi' => $alamatDudi !== '' ? $alamatDudi : null, 'updated_at' => $now, 'created_at' => $now]
+            );
+            $imported++;
+        }
+
+        return response()->json(['status' => 'success', 'message' => "Impor data PKL berhasil: {$imported} siswa diperbarui, {$skipped} baris dilewati (NISN tidak ditemukan)."]);
     }
 }

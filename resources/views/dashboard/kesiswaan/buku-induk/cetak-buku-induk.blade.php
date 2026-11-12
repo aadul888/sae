@@ -169,27 +169,18 @@
 
                     <tr><td class="no">11.</td><td class="lbl" colspan="3"><b>Selama Bersekolah</b></td></tr>
                     <tr class="sub"><td></td><td class="lbl">a. Tinggal Bersama</td><td class="col">:</td><td class="v">{{ $val($identitas->tempat_tinggal_str ?? null, 'Bersama orang tua') }}</td></tr>
-                    <tr class="sub"><td></td><td class="lbl">b. Alamat</td><td class="col"></td><td class="v"></td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Jl</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Desa/Kel.</td><td class="col">:</td><td class="v">{{ $val($identitas->desa_kelurahan ?? null) }} {{ $val($identitas->rt ?? null, '-') }}/{{ $val($identitas->rw ?? null, '-') }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Kec</td><td class="col">:</td><td class="v">{{ $val($identitas->kecamatan ?? null) }}</td></tr>
+                    <tr class="sub"><td></td><td class="lbl">b. Alamat Lengkap</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
 
                     <tr><td class="no">12.</td><td class="lbl" colspan="3"><b>Orang Tua Kandung</b></td></tr>
                     <tr class="sub"><td></td><td class="lbl">a. Nama Ayah</td><td class="col">:</td><td class="v">{{ $val($identitas->nama_ayah ?? null, $pd->nama_ayah) }}</td></tr>
                     <tr class="sub"><td></td><td class="lbl">b. Pekerjaan</td><td class="col">:</td><td class="v">{{ $val($identitas->pekerjaan_ayah_str ?? null, $pd->pekerjaan_ayah_id_str ?? null) }}</td></tr>
                     <tr class="sub"><td></td><td class="lbl">c. Nama Ibu</td><td class="col">:</td><td class="v">{{ $val($identitas->nama_ibu ?? null, $pd->nama_ibu) }}</td></tr>
                     <tr class="sub"><td></td><td class="lbl">d. Pekerjaan</td><td class="col">:</td><td class="v">{{ $val($identitas->pekerjaan_ibu_str ?? null, $pd->pekerjaan_ibu_id_str ?? null) }}</td></tr>
-                    <tr class="sub"><td></td><td class="lbl">e. Alamat Rumah</td><td class="col"></td><td class="v"></td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Jl</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Desa/Kel.</td><td class="col">:</td><td class="v">{{ $val($identitas->desa_kelurahan ?? null) }} {{ $val($identitas->rt ?? null, '-') }}/{{ $val($identitas->rw ?? null, '-') }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Kec</td><td class="col">:</td><td class="v">{{ $val($identitas->kecamatan ?? null) }}</td></tr>
+                    <tr class="sub"><td></td><td class="lbl">e. Alamat Lengkap</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
 
                     <tr><td class="no">13.</td><td class="lbl" colspan="3"><b>Nama Wali Siswa</b></td></tr>
                     <tr class="sub"><td></td><td class="lbl">a. Pekerjaan</td><td class="col">:</td><td class="v">{{ $val($identitas->pekerjaan_wali_str ?? null, $pd->pekerjaan_wali_id_str ?? null) }}</td></tr>
-                    <tr class="sub"><td></td><td class="lbl">b. Alamat Rumah</td><td class="col"></td><td class="v"></td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Jl</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Desa/Kel.</td><td class="col">:</td><td class="v">{{ $val($identitas->desa_kelurahan ?? null) }}</td></tr>
-                    <tr class="sub2"><td></td><td class="lbl">Kab/Kec</td><td class="col">:</td><td class="v">{{ $val($identitas->kecamatan ?? null) }}</td></tr>
+                    <tr class="sub"><td></td><td class="lbl">b. Alamat Lengkap</td><td class="col">:</td><td class="v">{{ $val($identitas->alamat_jalan ?? null, $pd->alamat_jalan) }}</td></tr>
 
                     <tr><td class="no">14.</td><td class="lbl" colspan="3"><b>Diterima Menjadi Siswa</b></td></tr>
                     <tr class="sub"><td></td><td class="lbl">a. Mulai Tanggal</td><td class="col">:</td><td class="v">{{ $tgl($identitas->tanggal_masuk_sekolah ?? $pd->tanggal_masuk_sekolah) }}</td></tr>
@@ -197,8 +188,8 @@
                     <tr class="sub"><td></td><td class="lbl">c. Alamat Sekolah</td><td class="col">:</td><td class="v">—</td></tr>
 
                     <tr><td class="no">15.</td><td class="lbl" colspan="3"><b>Prakerin</b></td></tr>
-                    <tr class="sub"><td></td><td class="lbl">a. Nama DU/DI</td><td class="col">:</td><td class="v">—</td></tr>
-                    <tr class="sub"><td></td><td class="lbl">b. Alamat</td><td class="col">:</td><td class="v">—</td></tr>
+                    <tr class="sub"><td></td><td class="lbl">a. Nama DU/DI</td><td class="col">:</td><td class="v">{{ $val($pkl->nama_dudi ?? null) }}</td></tr>
+                    <tr class="sub"><td></td><td class="lbl">b. Alamat</td><td class="col">:</td><td class="v">{{ $val($pkl->alamat_dudi ?? null) }}</td></tr>
 
                     <tr><td class="no">16.</td><td class="lbl">Kegiatan Ekstrakulikuler</td><td class="col">:</td><td class="v">—</td></tr>
                     <tr><td class="no">17.</td><td class="lbl">Prestasi Di Sekolah Ini</td><td class="col">:</td><td class="v">—</td></tr>

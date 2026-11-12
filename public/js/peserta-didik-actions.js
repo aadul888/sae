@@ -272,7 +272,10 @@ window.closeImportExcelModal = function () {
 window.handleImportExcelSubmit = async function (e) {
     e.preventDefault();
     const form = e.target;
-    const fileInput = document.getElementById("inputExcelFile");
+    if (form && (form.id === "formUpdateKelengkapan" || form.id === "formImportExcelKeluar") && typeof window.handlePdKeluarImportSubmit === "function") {
+        return window.handlePdKeluarImportSubmit(e);
+    }
+    const fileInput = form.querySelector('input[type="file"]') || document.getElementById("inputExcelFile");
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         if (typeof Swal !== "undefined") {
             Swal.fire({
@@ -313,12 +316,6 @@ window.handleImportExcelSubmit = async function (e) {
             window.closeImportExcelModal();
 
             let detailHtml = escapeHtml(json.message);
-            if (json.errors && json.errors.length > 0) {
-                detailHtml +=
-                    "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 120px; overflow-y: auto;'>" +
-                    json.errors.map((err) => escapeHtml(err)).join("<br>") +
-                    "</small>";
-            }
 
             if (typeof Swal !== "undefined") {
                 await Swal.fire({

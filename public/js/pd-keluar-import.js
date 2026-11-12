@@ -1,44 +1,62 @@
 /**
- * Import Excel Peserta Didik Keluar / Alumni (Format Resmi Dapodik 43 kolom).
+ * Import Excel Peserta Didik Keluar & Perbarui Kelengkapan Alumni (Format Resmi Dapodik).
  * Dipakai bersama oleh halaman Peserta Didik Tidak Aktif & tab Alumni.
  */
 
-window.openImportExcelModal = function () {
+window.openPdKeluarImportModal = function () {
     const modal = document.getElementById("modalImportExcel");
     if (!modal) return;
-    ["formImportExcel", "formUpdateKelengkapan"].forEach(function (id) {
+
+    ["formImportExcelKeluar", "formImportExcel", "formUpdateKelengkapan"].forEach(function (id) {
         const f = document.getElementById(id);
-        if (f) f.reset();
+        if (f) {
+            f.reset();
+            const btn = f.querySelector('button[type="submit"]');
+            if (btn) btn.disabled = false;
+        }
     });
-    const progress = document.getElementById("importExcelProgress");
-    if (progress) progress.style.display = "none";
-    const btnSubmit = document.getElementById("btnSubmitImportExcel");
-    if (btnSubmit) btnSubmit.disabled = false;
+
+    modal.querySelectorAll(".import-excel-progress").forEach(function (p) {
+        p.style.display = "none";
+    });
+
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
 };
 
-window.closeImportExcelModal = function () {
+window.closePdKeluarImportModal = function () {
     const modal = document.getElementById("modalImportExcel");
     if (!modal) return;
     modal.style.display = "none";
     document.body.style.overflow = "";
 };
 
-window.handleImportExcelSubmit = async function (e) {
+// Aliases agar pemanggil lama tetap kompatibel
+window.openImportExcelModal = window.openPdKeluarImportModal;
+window.closeImportExcelModal = window.closePdKeluarImportModal;
+
+window.handlePdKeluarImportSubmit = async function (e) {
     e.preventDefault();
     const form = e.target;
     const fileInput = form.querySelector('input[type="file"]');
+
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        const isUpdateForm = form.id === "formUpdateKelengkapan";
+        const namaBerkas = isUpdateForm
+            ? "Berkas Daftar Peserta Didik Lengkap"
+            : "Berkas Peserta Didik Keluar";
+
         if (typeof Swal !== "undefined") {
             Swal.fire({
                 title: "Berkas Belum Dipilih",
-                text: "Silakan pilih berkas Excel atau CSV terlebih dahulu.",
+                text: "Silakan pilih " + namaBerkas + " terlebih dahulu.",
                 icon: "warning",
                 confirmButtonColor: "#6366f1",
             });
+        } else if (window.SAE && typeof window.SAE.alert === "function") {
+            window.SAE.alert("Silakan pilih " + namaBerkas + " terlebih dahulu.", "Informasi", "info");
         } else {
-            window.SAE.alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.", 'Informasi', 'info');
+            alert("Silakan pilih " + namaBerkas + " terlebih dahulu.");
         }
         return;
     }
@@ -47,7 +65,7 @@ window.handleImportExcelSubmit = async function (e) {
     const isUpdate = !!(modeInput && modeInput.value === "update");
 
     const progress = form.querySelector(".import-excel-progress");
-    const btnSubmit = form.querySelector('button[type="submit"]') || document.getElementById("btnSubmitImportExcel");
+    const btnSubmit = form.querySelector('button[type="submit"]');
     const btnIcon = btnSubmit ? btnSubmit.querySelector("i") : null;
     const iconAwal = btnIcon ? btnIcon.className : "";
 
@@ -70,15 +88,15 @@ window.handleImportExcelSubmit = async function (e) {
         const json = await res.json();
 
         if (res.ok && json.status === "success") {
-            window.closeImportExcelModal();
+            window.closePdKeluarImportModal();
 
-            let detailHtml = escapeHtml(json.message);
-            if (json.errors && json.errors.length > 0) {
-                detailHtml +=
-                    "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 120px; overflow-y: auto;'>" +
-                    json.errors.map((err) => escapeHtml(err)).join("<br>") +
-                    "</small>";
-            }
+            const escapeText = function (str) {
+                const d = document.createElement("div");
+                d.textContent = str || "";
+                return d.innerHTML;
+            };
+
+            const detailHtml = escapeText(json.message);
 
             if (typeof Swal !== "undefined") {
                 await Swal.fire({
@@ -87,11 +105,12 @@ window.handleImportExcelSubmit = async function (e) {
                     icon: "success",
                     confirmButtonColor: "#10b981",
                 });
+            } else if (window.SAE && typeof window.SAE.alert === "function") {
+                window.SAE.alert(json.message, "Informasi", "info");
             } else {
-                window.SAE.alert(json.message, 'Informasi', 'info');
+                alert(json.message);
             }
 
-            // Pertahankan query aktif (tab/filter) saat memuat ulang.
             const targetUrl = window.location.pathname + window.location.search;
             if (typeof window.refreshLiveTable === "function" && document.getElementById("tableDataContainer")) {
                 window.refreshLiveTable(targetUrl);
@@ -99,18 +118,23 @@ window.handleImportExcelSubmit = async function (e) {
                 window.location.href = targetUrl;
             }
         } else {
-            let errorMsg = json.message || "Gagal mengimpor berkas Excel.";
-            let errorHtml = escapeHtml(errorMsg);
+            let errorMsg = json.message || "Gagal memproses berkas Excel.";
+            const escapeText = function (str) {
+                const d = document.createElement("div");
+                d.textContent = str || "";
+                return d.innerHTML;
+            };
+            let errorHtml = escapeText(errorMsg);
             if (json.errors && Array.isArray(json.errors) && json.errors.length > 0) {
                 errorHtml +=
                     "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 140px; overflow-y: auto;'>" +
-                    json.errors.map((err) => escapeHtml(err)).join("<br>") +
+                    json.errors.map((err) => escapeText(err)).join("<br>") +
                     "</small>";
             } else if (json.errors && typeof json.errors === "object") {
                 const flat = Object.values(json.errors).flat().join("<br>");
                 errorHtml +=
                     "<br><br><small style='color: #ef4444; text-align: left; display: block;'>" +
-                    escapeHtml(flat) +
+                    escapeText(flat) +
                     "</small>";
             }
 
@@ -121,32 +145,36 @@ window.handleImportExcelSubmit = async function (e) {
                     icon: "error",
                     confirmButtonColor: "#ef4444",
                 });
+            } else if (window.SAE && typeof window.SAE.alert === "function") {
+                window.SAE.alert(errorMsg, "Error", "error");
             } else {
-                window.SAE.alert(errorMsg, 'Informasi', 'info');
+                alert(errorMsg);
             }
+
+            if (btnSubmit) btnSubmit.disabled = false;
+            if (btnIcon && iconAwal) btnIcon.className = iconAwal;
+            if (progress) progress.style.display = "none";
         }
     } catch (err) {
+        if (progress) progress.style.display = "none";
+        if (btnSubmit) btnSubmit.disabled = false;
+        if (btnIcon && iconAwal) btnIcon.className = iconAwal;
+
+        const msg = err && err.message ? err.message : "Terjadi kesalahan jaringan.";
         if (typeof Swal !== "undefined") {
             Swal.fire({
-                title: "Kesalahan Jaringan",
-                text:
-                    "Gagal terhubung ke server: " +
-                    (err.message || "Terjadi kesalahan."),
+                title: "Terjadi Kesalahan",
+                text: msg,
                 icon: "error",
                 confirmButtonColor: "#ef4444",
             });
+        } else if (window.SAE && typeof window.SAE.alert === "function") {
+            window.SAE.alert(msg, "Error", "error");
         } else {
-            window.SAE.alert("Kesalahan jaringan: " + err.message, 'Informasi', 'info');
+            alert(msg);
         }
-    } finally {
-        if (progress) progress.style.display = "none";
-        if (btnSubmit) btnSubmit.disabled = false;
-        if (btnIcon) btnIcon.className = iconAwal || "fas fa-cloud-arrow-up";
     }
 };
 
-document.addEventListener("click", function (e) {
-    if (e.target && e.target.id === "modalImportExcel") {
-        window.closeImportExcelModal();
-    }
-});
+// Aliaskan juga handleImportExcelSubmit ke handlePdKeluarImportSubmit
+window.handleImportExcelSubmit = window.handlePdKeluarImportSubmit;

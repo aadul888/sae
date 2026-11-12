@@ -41,202 +41,139 @@ class BukuIndukController extends Controller
         // Parameter Filter & Pencarian
         $q           = trim($request->input('q', ''));
         $rombelId    = $request->input('rombel_id', '');
-        $tahunMasuk  = $request->input('tahun_masuk', '');
-        $status      = $request->input('status', 'aktif'); // aktif, lulus, mutasi_keluar, do, all
         $kelengkapan = $request->input('kelengkapan', 'all'); // lengkap, belum_lengkap, all
         $perPageVal  = $request->input('perPage', $request->input('per_page', 25));
         $perPage     = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 25;
-        $akademik    = $request->input('akademik') === 'alumni' ? 'alumni' : ($request->input('akademik') === 'aktif' ? 'aktif' : null);
 
         // Tahun ajaran dari Pengaturan Buku Induk menentukan cohort yang tampil:
         // tahun ajaran aktif → kelas akhir (XII) sekarang; tahun ajaran lampau → Alumni tahun itu.
-        $tahunAjaranAktif   = BukuIndukNilaiService::tahunAjaranAktif();
-        $tahunAjaranTerpilih = (string) (BukuIndukNilaiService::pengaturan()->tahun_ajaran ?? '') ?: $tahunAjaranAktif;
-        if ($akademik === null) {
-            $akademik = $tahunAjaranTerpilih === $tahunAjaranAktif ? 'aktif' : 'alumni';
+        $tahunAjaranAktif     = BukuIndukNilaiService::tahunAjaranAktif();
+        $tahunAjaranTerpilih  = (string) (BukuIndukNilaiService::pengaturan()->tahun_ajaran ?? '') ?: $tahunAjaranAktif;
+        $tahunLulusAktif      = str_contains($tahunAjaranAktif, '/') ? explode('/', $tahunAjaranAktif)[1] : $tahunAjaranAktif;
+        $tahunLulusPengaturan = str_contains($tahunAjaranTerpilih, '/') ? explode('/', $tahunAjaranTerpilih)[1] : $tahunAjaranTerpilih;
+
+        // Daftar tahun kelulusan: tahun kelulusan aktif digabung alumni yang tamat/lulus
+        $alumniTahunList = DB::table('peserta_didik_tidak_aktif')
+            ->where(function ($b) {
+                $b->where('status_keluar', 'Alumni')
+                  ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                  ->orWhere('alasan_keluar', 'like', '%Tamat%');
+            })
+            ->selectRaw("COALESCE(NULLIF(YEAR(tanggal_keluar), 0), NULLIF(tahun_lulus, '')) AS th")
+            ->pluck('th')
+            ->filter(fn ($v) => !empty($v) && is_numeric($v))
+            ->unique();
+
+        $filterTahunList = collect([$tahunLulusAktif])->merge($alumniTahunList)->unique()->sortDesc()->values();
+
+        $tahunLulus = $request->input('tahun_lulus');
+        if (empty($tahunLulus) || !$filterTahunList->contains($tahunLulus)) {
+            $tahunLulus = $tahunLulusPengaturan ?: ($filterTahunList->first() ?? $tahunLulusAktif);
         }
+
+        $isAktif = ((string) $tahunLulus === (string) $tahunLulusAktif);
 
         // Sorting
         $sort    = $request->input('sort', 'nama');
         $sortDir = strtolower($request->input('sort_dir', $request->input('dir', 'asc'))) === 'desc' ? 'desc' : 'asc';
-        $allowedSorts = ['nama', 'nisn', 'nipd', 'rombel_nama', 'tahun_masuk', 'status_klaper', 'tanggal_lahir'];
+        $allowedSorts = ['nama', 'nisn', 'nipd', 'rombel_nama', 'status_klaper', 'tanggal_lahir'];
         if (!in_array($sort, $allowedSorts, true)) {
             $sort = 'nama';
         }
 
-        // Statistik Ringkasan Buku Induk — hanya kelas akhir (tingkat XII)
-        $totalSiswa = KelasAkhirScope::apply(DB::table('peserta_didik as pd'), 'pd', null)->count();
-        $totalLulus = KelasAkhirScope::apply(
-            DB::table('kesiswaan_buku_klaper as kbk')
-                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
-            'pd',
-            null
-        )->where('kbk.status_klaper', 'lulus')->count();
-        $totalMutasi = KelasAkhirScope::apply(
-            DB::table('kesiswaan_buku_klaper as kbk')
-                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
-            'pd',
-            null
-        )->whereIn('kbk.status_klaper', ['mutasi_keluar', 'do'])->count();
-        $totalKeluarKlaper = $totalLulus + $totalMutasi;
-        // ponytail: status aktif = total siswa dikurangi yang berstatus keluar pada buku klaper.
-        $totalAktif = max(0, $totalSiswa - $totalKeluarKlaper);
-        $totalIdentitasTerisi = KelasAkhirScope::apply(
-            DB::table('peserta_didik_identitas as pdi')
-                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id'),
-            'pd',
-            null
-        )
-            ->whereNotNull('pdi.nik')
-            ->where('pdi.nik', '!=', '')
-            ->count();
-
-        $stats = [
-            'total_siswa'     => $totalSiswa,
-            'total_aktif'     => $totalAktif,
-            'total_lulus'     => $totalLulus,
-            'total_mutasi'    => $totalMutasi,
-            'total_lengkap'   => $totalIdentitasTerisi,
-        ];
-
-        // Query Dasar Siswa dengan Left Join
-        // ponytail: rombel diambil dari kolom denormalisasi peserta_didik (bukan join anggota_rombel) agar 1 siswa = 1 baris.
-        $query = DB::table('peserta_didik as pd')
-            ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
-            ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
-            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select([
-                'pd.peserta_didik_id',
-                'pd.nama',
-                'pd.nisn',
-                'pd.nipd',
-                'pd.nik',
-                'pd.jenis_kelamin',
-                'pd.tempat_lahir',
-                'pd.tanggal_lahir',
-                'pd.nama_ayah',
-                'pd.nama_ibu',
-                'pd.nama_wali',
-                'pd.alamat_jalan',
-                'pd.rombongan_belajar_id',
-                'pd.nama_rombel',
-                'rb.nama as rombel_nama',
-                'pdm.foto_path',
-                'kbk.id as klaper_id',
-                'kbk.nomor_klaper',
-                'kbk.nomor_induk',
-                'kbk.tahun_masuk',
-                'kbk.status_klaper',
-                'pdi.id as identitas_id',
-                'pdi.no_kk',
-                'pdi.no_registrasi_akta_lahir',
-                'pdi.status_konfirmasi',
-                'pdi.dikonfirmasi_pada',
-            ]);
-
-        // Hanya kelas akhir (tingkat XII)
-        KelasAkhirScope::apply($query);
-
-        // Filter Status Keaktifan / Klaper
-        if ($status !== '' && $status !== 'all') {
-            if ($status === 'aktif') {
-                $query->where(function ($w) {
-                    $w->whereNull('kbk.status_klaper')
-                      ->orWhere('kbk.status_klaper', 'aktif');
-                });
-            } else {
-                $query->where('kbk.status_klaper', $status);
-            }
-        }
-
-        // Filter Rombel
-        if (!empty($rombelId)) {
-            $query->where('pd.rombongan_belajar_id', $rombelId);
-        }
-
-        // Filter Angkatan / Tahun Masuk
-        if (!empty($tahunMasuk)) {
-            $query->where('kbk.tahun_masuk', (int) $tahunMasuk);
-        }
-
-        // Filter Kelengkapan Data
-        if ($kelengkapan === 'lengkap') {
-            $query->whereNotNull('pdi.nik')
-                  ->where('pdi.nik', '!=', '')
-                  ->whereNotNull('pdi.no_kk')
-                  ->where('pdi.no_kk', '!=', '');
-        } elseif ($kelengkapan === 'belum_lengkap') {
-            $query->where(function ($w) {
-                $w->whereNull('pdi.nik')
-                  ->orWhere('pdi.nik', '')
-                  ->orWhereNull('pdi.no_kk')
-                  ->orWhere('pdi.no_kk', '');
-            });
-        }
-
-        // Pencarian Kata Kunci
-        if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                $w->where('pd.nama', 'like', "%{$q}%")
-                  ->orWhere('pd.nisn', 'like', "%{$q}%")
-                  ->orWhere('pd.nipd', 'like', "%{$q}%")
-                  ->orWhere('pd.nik', 'like', "%{$q}%")
-                  ->orWhere('kbk.nomor_induk', 'like', "%{$q}%")
-                  ->orWhere('kbk.nomor_klaper', 'like', "%{$q}%")
-                  ->orWhere('pdi.no_kk', 'like', "%{$q}%");
-            });
-        }
-
-        // Eksekusi Sorting & Pagination
-        if ($sort === 'rombel_nama') {
-            $query->orderBy('pd.nama_rombel', $sortDir);
-        } elseif ($sort === 'tahun_masuk') {
-            $query->orderBy('kbk.tahun_masuk', $sortDir);
-        } elseif ($sort === 'status_klaper') {
-            $query->orderBy('kbk.status_klaper', $sortDir);
-        } else {
-            $query->orderBy('pd.' . $sort, $sortDir);
-        }
-
-        $items = $query->paginate($perPage)->withQueryString();
-
-        // Lampirkan URL foto (foto_path bukan kolom publik; URL dibentuk dari accessor model)
-        $pageIds = collect($items->items())->pluck('peserta_didik_id')->filter()->all();
-        $metaMap = !empty($pageIds)
-            ? PesertaDidikMeta::whereIn('peserta_didik_id', $pageIds)->get()->keyBy('peserta_didik_id')
-            : collect();
-
-        foreach ($items as $item) {
-            $item->foto_url = $metaMap->get($item->peserta_didik_id)?->foto_url;
-        }
-
-        // Mode alumni: arsip lulusan tahun sebelumnya (nilai semester 5–6 tetap bisa diisi/dicetak).
-        if ($akademik === 'alumni') {
-            $items = DB::table('peserta_didik_tidak_aktif')
+        if (!$isAktif) {
+            // Base query cohort alumni yang tamat/lulus (bukan DO / mutasi keluar)
+            $alumniQuery = DB::table('peserta_didik_tidak_aktif')
+                ->where(function ($w) use ($tahunLulus) {
+                    $w->where('tahun_lulus', (string) $tahunLulus)
+                      ->orWhere('tahun_lulus', "{$tahunLulus}/" . ((int) $tahunLulus + 1))
+                      ->orWhere('tahun_lulus', ((int) $tahunLulus - 1) . "/{$tahunLulus}")
+                      ->orWhereYear('tanggal_keluar', (string) $tahunLulus);
+                })
                 ->where(function ($b) {
                     $b->where('status_keluar', 'Alumni')
-                        ->orWhere('alasan_keluar', 'like', '%Lulus%')
-                        ->orWhere('alasan_keluar', 'like', '%Tamat%');
-                })
-                // Tahun ajaran lampau: batasi ke lulusan tahun ajaran itu.
-                ->when($tahunAjaranTerpilih !== $tahunAjaranAktif, function ($b) use ($tahunAjaranTerpilih) {
-                    $b->where('tahun_lulus', $tahunAjaranTerpilih);
-                })
-                ->when($q !== '', function ($b) use ($q) {
-                    $b->where(function ($w) use ($q) {
-                        $w->where('nama', 'like', "%{$q}%")
-                            ->orWhere('nisn', 'like', "%{$q}%")
-                            ->orWhere('nipd', 'like', "%{$q}%");
-                    });
-                })
-                ->select(
+                      ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                      ->orWhere('alasan_keluar', 'like', '%Tamat%');
+                });
+
+            // Rombel dropdown dari cohort alumni (lulusan/alumni)
+            $rombelList = (clone $alumniQuery)
+                ->whereNotNull('nama_rombel_terakhir')
+                ->where('nama_rombel_terakhir', '<>', '')
+                ->distinct()
+                ->orderBy('nama_rombel_terakhir')
+                ->pluck('nama_rombel_terakhir')
+                ->map(fn ($nama) => (object) [
+                    'rombongan_belajar_id' => $nama,
+                    'nama' => $nama,
+                ]);
+
+            $angkatanMasuk = (int) $tahunLulus > 2000 ? (int) $tahunLulus - 3 : null;
+
+            // Filter Rombel
+            if (!empty($rombelId)) {
+                $alumniQuery->where(function ($w) use ($rombelId) {
+                    $w->where('nama_rombel_terakhir', $rombelId)
+                      ->orWhere('rombongan_belajar_id', $rombelId);
+                });
+            }
+
+            // Filter Kelengkapan Data
+            if ($kelengkapan === 'lengkap') {
+                $alumniQuery->whereNotNull('nik')->where('nik', '!=', '');
+            } elseif ($kelengkapan === 'belum_lengkap') {
+                $alumniQuery->where(function ($w) {
+                    $w->whereNull('nik')->orWhere('nik', '');
+                });
+            }
+
+            // Pencarian Kata Kunci
+            if ($q !== '') {
+                $alumniQuery->where(function ($w) use ($q) {
+                    $w->where('nama', 'like', "%{$q}%")
+                      ->orWhere('nisn', 'like', "%{$q}%")
+                      ->orWhere('nipd', 'like', "%{$q}%")
+                      ->orWhere('nik', 'like', "%{$q}%");
+                });
+            }
+
+            // Statistik terfilter datatable alumni
+            $statRow = (clone $alumniQuery)
+                ->selectRaw("
+                    COUNT(*) as total_siswa,
+                    SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as total_l,
+                    SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as total_p,
+                    SUM(CASE WHEN EXISTS (
+                        SELECT 1 FROM buku_induk_nilai WHERE buku_induk_nilai.peserta_didik_id = peserta_didik_tidak_aktif.peserta_didik_id
+                    ) THEN 1 ELSE 0 END) as total_siap_cetak
+                ")
+                ->first();
+
+            $stats = [
+                'total_siswa'      => (int) ($statRow->total_siswa ?? 0),
+                'total_l'          => (int) ($statRow->total_l ?? 0),
+                'total_p'          => (int) ($statRow->total_p ?? 0),
+                'total_siap_cetak' => (int) ($statRow->total_siap_cetak ?? 0),
+            ];
+
+            $sortColumn = match ($sort) {
+                'nipd' => 'nipd',
+                'nisn' => 'nisn',
+                'rombel_nama' => 'nama_rombel_terakhir',
+                'tanggal_lahir' => 'tanggal_lahir',
+                default => 'nama',
+            };
+
+            $items = $alumniQuery
+                ->select([
                     'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin',
-                    'tempat_lahir', 'nama_ayah', 'nama_ibu', 'nama_wali',
-                    'nama_rombel_terakhir', 'tahun_lulus', 'foto_path'
-                )
-                ->selectRaw("NULL as no_kk, NULL as nomor_induk, 'lulus' as status_klaper, NULL as tahun_masuk")
-                ->orderBy('nama', $sortDir)
+                    'tempat_lahir', 'tanggal_lahir', 'nama_ayah', 'nama_ibu', 'nama_wali',
+                    'nama_rombel_terakhir', 'tahun_lulus', 'foto_path', 'status_keluar',
+                ])
+                ->selectRaw("NULL as no_kk, nipd as nomor_induk, 'lulus' as status_klaper, ? as tahun_masuk", [
+                    $angkatanMasuk
+                ])
+                ->orderBy($sortColumn, $sortDir)
                 ->paginate($perPage)
                 ->withQueryString();
 
@@ -246,31 +183,134 @@ class BukuIndukController extends Controller
                     ? asset('storage/' . ltrim($item->foto_path, '/'))
                     : null;
             }
-        }
+        } else {
+            // Query Dasar Siswa dengan Left Join
+            // ponytail: rombel diambil dari kolom denormalisasi peserta_didik (bukan join anggota_rombel) agar 1 siswa = 1 baris.
+            $query = DB::table('peserta_didik as pd')
+                ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
+                ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
+                ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+                ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id');
 
-        // Master List untuk Filter Dropdown
-        $rombelList = \App\Support\RombelScope::query()
-            ->whereIn('tingkat_pendidikan_id', KelasAkhirScope::TINGKAT)
-            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
-            ->orderBy('tingkat_pendidikan_id')
-            ->orderBy('nama')
-            ->get();
+            // Hanya kelas akhir (tingkat XII)
+            KelasAkhirScope::apply($query);
 
-        $tahunMasukList = KelasAkhirScope::apply(
-            DB::table('kesiswaan_buku_klaper as kbk')
-                ->join('peserta_didik as pd', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id'),
-            'pd',
-            null
-        )
-            ->whereNotNull('kbk.tahun_masuk')
-            ->select('kbk.tahun_masuk')
-            ->distinct()
-            ->orderBy('kbk.tahun_masuk', 'desc')
-            ->pluck('tahun_masuk');
+            // Hanya siswa aktif terakhir (bukan yang dikeluarkan atau pindah/mutasi)
+            $query->where(function ($w) {
+                $w->whereNull('kbk.status_klaper')
+                  ->orWhere('kbk.status_klaper', 'aktif');
+            });
 
-        if ($tahunMasukList->isEmpty()) {
-            $curY = (int) date('Y');
-            $tahunMasukList = collect([$curY, $curY - 1, $curY - 2]);
+            // Filter Rombel
+            if (!empty($rombelId)) {
+                $query->where('pd.rombongan_belajar_id', $rombelId);
+            }
+
+            // Filter Kelengkapan Data
+            if ($kelengkapan === 'lengkap') {
+                $query->whereNotNull('pdi.nik')
+                      ->where('pdi.nik', '!=', '')
+                      ->whereNotNull('pdi.no_kk')
+                      ->where('pdi.no_kk', '!=', '');
+            } elseif ($kelengkapan === 'belum_lengkap') {
+                $query->where(function ($w) {
+                    $w->whereNull('pdi.nik')
+                      ->orWhere('pdi.nik', '')
+                      ->orWhereNull('pdi.no_kk')
+                      ->orWhere('pdi.no_kk', '');
+                });
+            }
+
+            // Pencarian Kata Kunci
+            if ($q !== '') {
+                $query->where(function ($w) use ($q) {
+                    $w->where('pd.nama', 'like', "%{$q}%")
+                      ->orWhere('pd.nisn', 'like', "%{$q}%")
+                      ->orWhere('pd.nipd', 'like', "%{$q}%")
+                      ->orWhere('pd.nik', 'like', "%{$q}%")
+                      ->orWhere('kbk.nomor_induk', 'like', "%{$q}%")
+                      ->orWhere('kbk.nomor_klaper', 'like', "%{$q}%")
+                      ->orWhere('pdi.no_kk', 'like', "%{$q}%");
+                });
+            }
+
+            // Statistik terfilter datatable aktif
+            $statRow = (clone $query)
+                ->selectRaw("
+                    COUNT(DISTINCT pd.peserta_didik_id) as total_siswa,
+                    SUM(CASE WHEN pd.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as total_l,
+                    SUM(CASE WHEN pd.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as total_p,
+                    SUM(CASE WHEN EXISTS (
+                        SELECT 1 FROM buku_induk_nilai WHERE buku_induk_nilai.peserta_didik_id = pd.peserta_didik_id
+                    ) THEN 1 ELSE 0 END) as total_siap_cetak
+                ")
+                ->first();
+
+            $stats = [
+                'total_siswa'      => (int) ($statRow->total_siswa ?? 0),
+                'total_l'          => (int) ($statRow->total_l ?? 0),
+                'total_p'          => (int) ($statRow->total_p ?? 0),
+                'total_siap_cetak' => (int) ($statRow->total_siap_cetak ?? 0),
+            ];
+
+            // Eksekusi Sorting & Pagination
+            if ($sort === 'rombel_nama') {
+                $query->orderBy('pd.nama_rombel', $sortDir);
+            } elseif ($sort === 'status_klaper') {
+                $query->orderBy('kbk.status_klaper', $sortDir);
+            } else {
+                $query->orderBy('pd.' . $sort, $sortDir);
+            }
+
+            $items = $query
+                ->select([
+                    'pd.peserta_didik_id',
+                    'pd.nama',
+                    'pd.nisn',
+                    'pd.nipd',
+                    'pd.nik',
+                    'pd.jenis_kelamin',
+                    'pd.tempat_lahir',
+                    'pd.tanggal_lahir',
+                    'pd.nama_ayah',
+                    'pd.nama_ibu',
+                    'pd.nama_wali',
+                    'pd.alamat_jalan',
+                    'pd.rombongan_belajar_id',
+                    'pd.nama_rombel',
+                    'rb.nama as rombel_nama',
+                    'pdm.foto_path',
+                    'kbk.id as klaper_id',
+                    'kbk.nomor_klaper',
+                    'kbk.nomor_induk',
+                    'kbk.tahun_masuk',
+                    'kbk.status_klaper',
+                    'pdi.id as identitas_id',
+                    'pdi.no_kk',
+                    'pdi.no_registrasi_akta_lahir',
+                    'pdi.status_konfirmasi',
+                    'pdi.dikonfirmasi_pada',
+                ])
+                ->paginate($perPage)
+                ->withQueryString();
+
+            // Lampirkan URL foto (foto_path bukan kolom publik; URL dibentuk dari accessor model)
+            $pageIds = collect($items->items())->pluck('peserta_didik_id')->filter()->all();
+            $metaMap = !empty($pageIds)
+                ? PesertaDidikMeta::whereIn('peserta_didik_id', $pageIds)->get()->keyBy('peserta_didik_id')
+                : collect();
+
+            foreach ($items as $item) {
+                $item->foto_url = $metaMap->get($item->peserta_didik_id)?->foto_url;
+            }
+
+            // Master List untuk Filter Dropdown
+            $rombelList = \App\Support\RombelScope::query()
+                ->whereIn('tingkat_pendidikan_id', KelasAkhirScope::TINGKAT)
+                ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
+                ->orderBy('tingkat_pendidikan_id')
+                ->orderBy('nama')
+                ->get();
         }
 
         return view('dashboard.kesiswaan.buku-induk.index', compact(
@@ -278,21 +318,22 @@ class BukuIndukController extends Controller
             'items',
             'q',
             'rombelId',
-            'tahunMasuk',
-            'status',
             'kelengkapan',
             'perPage',
-            'akademik',
             'sort',
             'sortDir',
             'rombelList',
-            'tahunMasukList',
             'canCreate',
             'canRead',
             'canUpdate',
             'canDelete',
             'tahunAjaranTerpilih',
-            'tahunAjaranAktif'
+            'tahunAjaranAktif',
+            'filterTahunList',
+            'tahunLulus',
+            'tahunLulusAktif',
+            'tahunLulusPengaturan',
+            'isAktif'
         ));
     }
 
@@ -305,10 +346,7 @@ class BukuIndukController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi berakhir.'], 401);
         }
 
-        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
-            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
-        }
+        $pd = $this->findPesertaDidik($id);
 
         if (!$pd) {
             return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
@@ -327,7 +365,8 @@ class BukuIndukController extends Controller
         $rombel = (object) [
             'rombel_nama' => $pd->nama_rombel
                 ?: (DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id ?? '')->value('nama') ?? '-'),
-            'tingkat_pendidikan_id' => DB::table('rombongan_belajar')
+            'tingkat_pendidikan_id' => $pd->tingkat_pendidikan_id
+                ?: DB::table('rombongan_belajar')
                 ->where('rombongan_belajar_id', $pd->rombongan_belajar_id ?? '')
                 ->value('tingkat_pendidikan_id'),
         ];
@@ -431,10 +470,7 @@ class BukuIndukController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
-        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
-            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
-        }
+        $pd = $this->findPesertaDidik($id);
 
         if (!$pd) {
             return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
@@ -582,10 +618,7 @@ class BukuIndukController extends Controller
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
-        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
-            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
-        }
+        $pd = $this->findPesertaDidik($id);
 
         if (!$pd) {
             abort(404, 'Data peserta didik tidak ditemukan.');
@@ -641,67 +674,96 @@ class BukuIndukController extends Controller
     }
 
     /**
-     * Cetak Register Rekapitulasi Buku Induk Siswa per Rombel / Angkatan
+     * Cetak Register Rekapitulasi Buku Induk Siswa per Rombel / Cohort
      */
     public function cetakRekap(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $rombelId   = $request->input('rombel_id', '');
-        $tahunMasuk = $request->input('tahun_masuk', '');
-        $status     = $request->input('status', 'aktif');
-
-        $query = DB::table('peserta_didik as pd')
-            ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
-            ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select([
-                'pd.peserta_didik_id',
-                'pd.nama',
-                'pd.nisn',
-                'pd.nipd',
-                'pd.nik',
-                'pd.jenis_kelamin',
-                'pd.tempat_lahir',
-                'pd.tanggal_lahir',
-                'pd.nama_ayah',
-                'pd.nama_ibu',
-                'pd.alamat_jalan',
-                'pd.nama_rombel as rombel_nama',
-                'kbk.nomor_klaper',
-                'kbk.nomor_induk',
-                'kbk.tahun_masuk',
-                'kbk.status_klaper',
-                'pdi.sekolah_asal',
-            ]);
-
-        // Hanya kelas akhir (tingkat XII)
-        KelasAkhirScope::apply($query);
-
-        if (!empty($rombelId)) {
-            $query->where('pd.rombongan_belajar_id', $rombelId);
-        }
-
-        if (!empty($tahunMasuk)) {
-            $query->where('kbk.tahun_masuk', (int) $tahunMasuk);
-        }
-
-        if ($status !== '' && $status !== 'all') {
-            if ($status === 'aktif') {
-                $query->where(function ($w) {
-                    $w->whereNull('kbk.status_klaper')
-                      ->orWhere('kbk.status_klaper', 'aktif');
-                });
-            } else {
-                $query->where('kbk.status_klaper', $status);
-            }
-        }
-
-        $items = $query->orderBy('rb.nama', 'asc')->orderBy('pd.nama', 'asc')->get();
+        $rombelId = $request->input('rombel_id', '');
 
         $sekolah = Sekolah::first();
         $sekolahMeta = SekolahMeta::first();
-        $rombel = !empty($rombelId) ? DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first() : null;
+
+        $tahunAjaranAktif     = BukuIndukNilaiService::tahunAjaranAktif();
+        $tahunAjaranTerpilih  = (string) (BukuIndukNilaiService::pengaturan()->tahun_ajaran ?? '') ?: $tahunAjaranAktif;
+        $tahunLulusAktif      = str_contains($tahunAjaranAktif, '/') ? explode('/', $tahunAjaranAktif)[1] : $tahunAjaranAktif;
+        $tahunLulusPengaturan = str_contains($tahunAjaranTerpilih, '/') ? explode('/', $tahunAjaranTerpilih)[1] : $tahunAjaranTerpilih;
+
+        $tahunLulus = $request->input('tahun_lulus') ?: $tahunLulusPengaturan;
+        $isAktif = ((string) $tahunLulus === (string) $tahunLulusAktif);
+
+        if (!$isAktif) {
+            $query = DB::table('peserta_didik_tidak_aktif')
+                ->where(function ($w) use ($tahunLulus) {
+                    $w->where('tahun_lulus', (string) $tahunLulus)
+                      ->orWhere('tahun_lulus', "{$tahunLulus}/" . ((int) $tahunLulus + 1))
+                      ->orWhere('tahun_lulus', ((int) $tahunLulus - 1) . "/{$tahunLulus}")
+                      ->orWhereYear('tanggal_keluar', (string) $tahunLulus);
+                })
+                ->where(function ($b) {
+                    $b->where('status_keluar', 'Alumni')
+                      ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                      ->orWhere('alasan_keluar', 'like', '%Tamat%');
+                })
+                ->when(!empty($rombelId), function ($q) use ($rombelId) {
+                    $q->where(function ($w) use ($rombelId) {
+                        $w->where('nama_rombel_terakhir', $rombelId)
+                          ->orWhere('rombongan_belajar_id', $rombelId);
+                    });
+                })
+                ->select([
+                    'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin',
+                    'tempat_lahir', 'tanggal_lahir', 'nama_ayah', 'nama_ibu', 'alamat_jalan',
+                    'nama_rombel_terakhir as rombel_nama',
+                ])
+                ->selectRaw("NULL as nomor_klaper, nipd as nomor_induk, ? as tahun_masuk, 'lulus' as status_klaper, NULL as sekolah_asal", [
+                    (int) $tahunLulus > 2000 ? (int) $tahunLulus - 3 : null
+                ]);
+
+            $items = $query->orderBy('nama_rombel_terakhir', 'asc')->orderBy('nama', 'asc')->get();
+            $rombel = !empty($rombelId) ? (object) ['nama' => $rombelId] : null;
+        } else {
+            $query = DB::table('peserta_didik as pd')
+                ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
+                ->leftJoin('kesiswaan_buku_klaper as kbk', 'pd.peserta_didik_id', '=', 'kbk.peserta_didik_id')
+                ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->select([
+                    'pd.peserta_didik_id',
+                    'pd.nama',
+                    'pd.nisn',
+                    'pd.nipd',
+                    'pd.nik',
+                    'pd.jenis_kelamin',
+                    'pd.tempat_lahir',
+                    'pd.tanggal_lahir',
+                    'pd.nama_ayah',
+                    'pd.nama_ibu',
+                    'pd.alamat_jalan',
+                    'pd.nama_rombel as rombel_nama',
+                    'kbk.nomor_klaper',
+                    'kbk.nomor_induk',
+                    'kbk.tahun_masuk',
+                    'kbk.status_klaper',
+                    'pdi.sekolah_asal',
+                ]);
+
+            // Hanya kelas akhir (tingkat XII)
+            KelasAkhirScope::apply($query);
+
+            // Hanya siswa aktif terakhir (bukan DO / mutasi keluar)
+            $query->where(function ($w) {
+                $w->whereNull('kbk.status_klaper')
+                  ->orWhere('kbk.status_klaper', 'aktif');
+            });
+
+            if (!empty($rombelId)) {
+                $query->where('pd.rombongan_belajar_id', $rombelId);
+            }
+
+            $items = $query->orderBy('rb.nama', 'asc')->orderBy('pd.nama', 'asc')->get();
+            $rombel = !empty($rombelId) ? DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first() : null;
+        }
 
         $kepsek = DB::table('gtk')
             ->where(function ($q) {
@@ -711,6 +773,8 @@ class BukuIndukController extends Controller
             ->first();
 
         $orientasi = 'landscape';
+        $status = $isAktif ? 'aktif' : 'lulus';
+        $tahunMasuk = (int) $tahunLulus > 2000 ? (int) $tahunLulus - 3 : null;
 
         return view('dashboard.kesiswaan.buku-induk.cetak-rekap', compact(
             'items',
@@ -719,6 +783,7 @@ class BukuIndukController extends Controller
             'rombel',
             'tahunMasuk',
             'status',
+            'tahunLulus',
             'kepsek',
             'orientasi'
         ));
@@ -772,5 +837,68 @@ class BukuIndukController extends Controller
             'status'  => 'success',
             'message' => "Sinkronisasi Buku Induk selesai. {$syncedKlaper} nomor klaper dan {$syncedIdentitas} profil identitas baru dibuat.",
         ]);
+    }
+
+    /** Cari data peserta didik aktif atau alumni, dinormalisasi ke stdClass aman. */
+    private function findPesertaDidik($id): ?object
+    {
+        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+        if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
+            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
+        }
+
+        if (!$pd) {
+            return null;
+        }
+
+        $raw = is_object($pd) && method_exists($pd, 'getAttributes')
+            ? $pd->getAttributes()
+            : (array) $pd;
+
+        $pd = (object) array_merge([
+            'peserta_didik_id' => null,
+            'nama_rombel' => null,
+            'nama_rombel_terakhir' => null,
+            'rombongan_belajar_id' => null,
+            'tingkat_pendidikan_id' => null,
+            'tingkat_pendidikan_terakhir' => null,
+            'pekerjaan_ayah_id_str' => null,
+            'pekerjaan_ibu_id_str' => null,
+            'pekerjaan_wali_id_str' => null,
+            'sekolah_asal' => null,
+            'tanggal_masuk_sekolah' => null,
+            'agama_id' => null,
+            'agama_id_str' => null,
+            'alamat_jalan' => null,
+            'tinggi_badan' => null,
+            'berat_badan' => null,
+            'email' => null,
+            'nomor_telepon_seluler' => null,
+            'nama_ayah' => null,
+            'nama_ibu' => null,
+            'nama_wali' => null,
+            'nik' => null,
+            'nipd' => null,
+            'nisn' => null,
+            'nama' => null,
+            'tempat_lahir' => null,
+            'tanggal_lahir' => null,
+            'jenis_kelamin' => null,
+        ], $raw);
+
+        if (empty($pd->nama_rombel) && !empty($pd->nama_rombel_terakhir)) {
+            $pd->nama_rombel = $pd->nama_rombel_terakhir;
+        }
+        if (empty($pd->tingkat_pendidikan_id) && !empty($pd->tingkat_pendidikan_terakhir)) {
+            $pd->tingkat_pendidikan_id = $pd->tingkat_pendidikan_terakhir;
+        }
+        foreach (['ayah', 'ibu', 'wali'] as $who) {
+            $key = 'pekerjaan_' . $who . '_id_str';
+            if (empty($pd->$key) && !empty($pd->{'pekerjaan_' . $who})) {
+                $pd->$key = $pd->{'pekerjaan_' . $who};
+            }
+        }
+
+        return $pd;
     }
 }

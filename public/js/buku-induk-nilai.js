@@ -47,15 +47,30 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ================== Tab Semester (Maping Mata Pelajaran) ================== */
     const semTabs = document.querySelectorAll('.bi-sem-tab');
     if (semTabs.length) {
+        function activateSem(sem) {
+            semTabs.forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-sem') === String(sem)); });
+            document.querySelectorAll('.bi-sem-panel').forEach(function (p) {
+                p.classList.toggle('active', p.getAttribute('data-sem') === String(sem));
+            });
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('sem', sem);
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+        }
+
         semTabs.forEach(function (tab) {
             tab.addEventListener('click', function () {
                 const sem = tab.getAttribute('data-sem');
-                semTabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
-                document.querySelectorAll('.bi-sem-panel').forEach(function (p) {
-                    p.classList.toggle('active', p.getAttribute('data-sem') === sem);
-                });
+                activateSem(sem);
             });
         });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const semParam = urlParams.get('sem');
+        if (semParam && document.querySelector('.bi-sem-tab[data-sem="' + semParam + '"]')) {
+            activateSem(semParam);
+        }
     }
 
     /* ================== Pelaksanaan PKL per semester ==================
@@ -494,7 +509,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (res.ok && json.status === 'success') {
                     Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1500, showConfirmButton: false })
-                        .then(function () { location.reload(); });
+                        .then(function () {
+                            const url = new URL(window.location.href);
+                            if (semAktif) {
+                                url.searchParams.set('sem', semAktif);
+                            }
+                            window.location.href = url.toString();
+                        });
                 } else {
                     cols.forEach(function (col) {
                         const ta = col.querySelector('.bi-hidden-mapel');

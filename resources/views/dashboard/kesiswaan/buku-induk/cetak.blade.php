@@ -156,31 +156,13 @@
         <table class="table-data" style="margin-bottom: 10px;">
             <tbody>
                 <tr>
-                    <td style="width: 200px; font-weight: 700; background: #f9fafb;">Alamat Jalan / Dusun</td>
+                    <td style="width: 200px; font-weight: 700; background: #f9fafb;">Alamat Lengkap</td>
                     <td colspan="3">{{ $identitas->alamat_jalan ?: ($pd->alamat_jalan ?: '—') }}</td>
                 </tr>
                 <tr>
-                    <td style="font-weight: 700; background: #f9fafb;">RT / RW</td>
-                    <td style="width: 180px;">{{ $identitas->rt ?: '—' }} / {{ $identitas->rw ?: '—' }}</td>
-                    <td style="width: 160px; font-weight: 700; background: #f9fafb;">Kode Pos</td>
-                    <td>{{ $identitas->kode_pos ?: '—' }}</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: 700; background: #f9fafb;">Desa / Kelurahan</td>
-                    <td>{{ $identitas->desa_kelurahan ?: '—' }}</td>
-                    <td style="font-weight: 700; background: #f9fafb;">Kecamatan</td>
-                    <td>{{ $identitas->kecamatan ?: '—' }}</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: 700; background: #f9fafb;">Kabupaten / Kota</td>
-                    <td>{{ $identitas->kabupaten_kota ?: '—' }}</td>
-                    <td style="font-weight: 700; background: #f9fafb;">Provinsi</td>
-                    <td>{{ $identitas->provinsi ?: '—' }}</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: 700; background: #f9fafb;">Status Tempat Tinggal</td>
-                    <td>{{ $identitas->tempat_tinggal_str ?: '—' }}</td>
-                    <td style="font-weight: 700; background: #f9fafb;">Moda Transportasi</td>
+                    <td style="width: 200px; font-weight: 700; background: #f9fafb;">Status Tempat Tinggal</td>
+                    <td style="width: 200px;">{{ $identitas->tempat_tinggal_str ?: '—' }}</td>
+                    <td style="width: 160px; font-weight: 700; background: #f9fafb;">Moda Transportasi</td>
                     <td>{{ $identitas->transportasi_str ?: '—' }}</td>
                 </tr>
                 <tr>

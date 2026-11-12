@@ -320,6 +320,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::get('/input-nilai/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplateNilai'])->name('input-nilai.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
             Route::post('/input-nilai/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importNilaiKelas'])->name('input-nilai.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
 
+            // Tab 5 — Input Data PKL (Nama DU/DI & Alamat DU/DI)
+            Route::get('/input-pkl', [\App\Http\Controllers\BukuIndukNilaiController::class, 'inputPkl'])->name('input-pkl')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/input-pkl', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveInputPkl'])->name('input-pkl.save')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::post('/input-pkl/save-row', [\App\Http\Controllers\BukuIndukNilaiController::class, 'saveRowPkl'])->name('input-pkl.save-row')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,update');
+            Route::get('/input-pkl/template', [\App\Http\Controllers\BukuIndukNilaiController::class, 'downloadTemplatePkl'])->name('input-pkl.template')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
+            Route::post('/input-pkl/import', [\App\Http\Controllers\BukuIndukNilaiController::class, 'importPkl'])->name('input-pkl.import')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,create');
+
             // Cetak lembar Buku Induk format A3
             Route::get('/cetak-buku-induk/{id}', [\App\Http\Controllers\BukuIndukNilaiController::class, 'cetakBukuInduk'])->name('cetak-buku-induk')->middleware('permission:menu_buku_induk|menu_kesiswaan|menu_kesiswaan_administrasi,read');
 

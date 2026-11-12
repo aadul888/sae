@@ -132,6 +132,19 @@ class KesiswaanQueryService
             ->sort()
             ->values();
 
+        $filterTahunAlumni = (clone $baseTidakAktif)
+            ->where(function ($b) {
+                $b->where('status_keluar', 'Alumni')
+                  ->orWhere('alasan_keluar', 'like', '%Lulus%')
+                  ->orWhere('alasan_keluar', 'like', '%Tamat%');
+            })
+            ->selectRaw("COALESCE(NULLIF(YEAR(tanggal_keluar), 0), NULLIF(tahun_lulus, '')) AS th")
+            ->pluck('th')
+            ->filter(fn ($v) => $v !== null && $v !== '')
+            ->unique()
+            ->sortDesc()
+            ->values();
+
         // 2. Tab: Peserta Didik Aktif
         $aktifQuery = DB::table('peserta_didik')
             ->select(
@@ -629,6 +642,7 @@ class KesiswaanQueryService
             'perPage',
             'filterRombel',
             'filterRombelTidakAktif',
+            'filterTahunAlumni',
             'aktifList',
             'tidakAktifList',
             'alumniList',

@@ -3239,6 +3239,15 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         display: none !important;
     }
 
+    /* Mode responsive: badge koordinator cukup ikon mahkota, tanpa teks. */
+    .table-pd tbody td.cell-pd-nama .badge-koordinator .badge-koordinator-text {
+        display: none !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .badge-koordinator {
+        padding: 3px 6px !important;
+    }
+
     /* 2. BARIS-BARIS DETAIL METRIK */
     .table-pd tbody td.cell-pd-nisn {
         order: 2 !important;
