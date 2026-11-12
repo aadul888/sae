@@ -70,15 +70,33 @@ class PipQueryService
         $riwayatTahapOpsi = [];
         $riwayatTahunSkList = [];
         if ($hasRiwayatTable) {
-            $riwayatTahapOpsi = DB::table('pip_riwayat')
-                ->whereNotNull('tahap_id')
-                ->where('tahap_id', '!=', '')
+            $rawTahaps = DB::table('pip_riwayat')
+                ->select(['tahap_id', 'tahap'])
                 ->distinct()
-                ->orderBy('tahap_id')
-                ->pluck('tahap_id')
-                ->map(fn($id) => ['id' => (string) $id, 'label' => (string) $id])
-                ->values()
-                ->all();
+                ->get();
+
+            $riwayatTahapOpsi = $rawTahaps->map(function ($row) {
+                $id = trim((string) ($row->tahap_id ?: ''));
+                if ($id === '') {
+                    if (preg_match('/(?:tahap\s*)?(\d+)/i', (string) $row->tahap, $m)) {
+                        $id = $m[1];
+                    }
+                }
+                if (str_contains($id, '-')) {
+                    $id = trim(explode('-', $id)[0]);
+                }
+                $cleanNumber = preg_replace('/^tahap\s*/i', '', $id);
+                return $cleanNumber !== '' ? $cleanNumber : null;
+            })
+            ->filter()
+            ->unique()
+            ->sort(SORT_NATURAL)
+            ->values()
+            ->map(fn($num) => [
+                'id'    => (string) $num,
+                'label' => 'Tahap ' . $num,
+            ])
+            ->all();
 
             $riwayatTahunSkList = DB::table('pip_riwayat')
                 ->whereNotNull('tanggal_sk')
@@ -743,7 +761,12 @@ class PipQueryService
 
                     $tahapFilter = trim((string) $request->get('tahap_id', ''));
                     if ($tahapFilter !== '') {
-                        $riwayatQuery->where('r.tahap_id', $tahapFilter);
+                        $riwayatQuery->where(function ($sub) use ($tahapFilter) {
+                            $sub->where('r.tahap_id', $tahapFilter)
+                                ->orWhere('r.tahap', $tahapFilter)
+                                ->orWhere('r.tahap', 'LIKE', "%Tahap {$tahapFilter}%")
+                                ->orWhere('r.tahap', 'LIKE', "{$tahapFilter} - %");
+                        });
                     }
 
                     if ($tahunSkFilter !== '') {

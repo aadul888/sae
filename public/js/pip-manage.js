@@ -734,6 +734,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll(".pip-bulk-delete-btn, #pipBulkDeleteRiwayat, #pipBulkDeleteRiwayatAlumni").forEach((btn) => {
             btn.disabled = !hasSelection;
+            btn.style.display = hasSelection ? "inline-flex" : "none";
             btn.style.opacity = hasSelection ? "1" : ".5";
         });
 
@@ -788,6 +789,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.addEventListener("sae:tableRefreshed", syncBulkUI);
+    syncBulkUI();
 
     // ---------------------------------------------------------------------
     // Export Usulan PIP ke Excel (.xlsx)

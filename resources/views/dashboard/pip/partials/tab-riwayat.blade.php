@@ -16,19 +16,6 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterStatusPip" name="status_pip" class="toolbar-filter-select"
-                    style="height: 38px; min-width: 175px;">
-                    <option value="penerima" {{ ($statusPipFilter ?? 'penerima') === 'penerima' ? 'selected' : '' }}>
-                        Penerima PIP (Riwayat)
-                    </option>
-                    <option value="belum" {{ ($statusPipFilter ?? 'penerima') === 'belum' ? 'selected' : '' }}>
-                        Belum Mendapatkan PIP
-                    </option>
-                    <option value="semua" {{ ($statusPipFilter ?? 'penerima') === 'semua' ? 'selected' : '' }}>
-                        Semua Siswa (Penerima &amp; Belum)
-                    </option>
-                </select>
-
                 @if ($isAdmin)
                     <select id="filterStatusSiswa" name="status_siswa" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Status Siswa</option>
@@ -37,59 +24,45 @@
                     </select>
                 @endif
 
-                @if (($statusPipFilter ?? 'penerima') !== 'belum')
-                    <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select" style="height: 38px;">
-                        <option value="">Semua Jenis SK</option>
-                        <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK
-                            Pemberian</option>
-                        <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK
-                            Nominasi
+                <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Jenis SK</option>
+                    <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK
+                        Pemberian</option>
+                    <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK
+                        Nominasi
+                    </option>
+                </select>
+
+                <select id="filterTahap" name="tahap_id" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Tahap</option>
+                    @foreach ($riwayatTahapList as $th)
+                        <option value="{{ $th['id'] }}"
+                            {{ request('tahap_id') === (string) $th['id'] ? 'selected' : '' }}>
+                            {{ $th['label'] }}
                         </option>
-                    </select>
-                @endif
+                    @endforeach
+                </select>
 
-                @if ($isAdmin)
-                    <select id="filterRombel" name="rombel_id" class="toolbar-filter-select" style="height: 38px;">
-                        <option value="">Semua Kelas</option>
-                        @foreach ($rombelList as $r)
-                            <option value="{{ $r->rombongan_belajar_id }}"
-                                {{ $activeRombel?->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                                {{ $r->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                @endif
+                <select id="filterTahunSk" name="tahun_sk" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Tahun SK</option>
+                    @foreach ($riwayatTahunSkList as $thnSk)
+                        <option value="{{ $thnSk }}"
+                            {{ request('tahun_sk') === (string) $thnSk ? 'selected' : '' }}>
+                            {{ $thnSk }}
+                        </option>
+                    @endforeach
+                </select>
 
-                @if (($statusPipFilter ?? 'penerima') !== 'belum')
-                    <select id="filterTahap" name="tahap_id" class="toolbar-filter-select" style="height: 38px;">
-                        <option value="">Semua Tahap</option>
-                        @foreach ($riwayatTahapList as $th)
-                            <option value="{{ $th['id'] }}"
-                                {{ request('tahap_id') === (string) $th['id'] ? 'selected' : '' }}>
-                                {{ $th['label'] }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <select id="filterTahunSk" name="tahun_sk" class="toolbar-filter-select" style="height: 38px;">
-                        <option value="">Semua Tahun SK</option>
-                        @foreach ($riwayatTahunSkList as $thnSk)
-                            <option value="{{ $thnSk }}"
-                                {{ request('tahun_sk') === (string) $thnSk ? 'selected' : '' }}>
-                                {{ $thnSk }}
-                            </option>
-                        @endforeach
-                    </select>
-                @endif
-
-                @if (
-                    $q ||
+                @php
+                    $hasActiveFilter = (bool) (
+                        $q ||
                         request('tahap_id') ||
                         request('tahun_sk') ||
                         request('status_siswa') ||
-                        ($jenisSkFilter ?? '') ||
-                        ($isAdmin && $activeRombel) ||
-                        ($statusPipFilter ?? 'penerima') !== 'penerima')
+                        ($jenisSkFilter ?? '')
+                    );
+                @endphp
+                @if ($hasActiveFilter)
                     <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun])) }}"
                         class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -100,7 +73,7 @@
 
                 @if ($isAdmin)
                     <button type="button" id="pipBulkDeleteRiwayat" class="btn btn-outline pip-bulk-delete-btn"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); color: var(--danger, #ef4444); opacity: .5;"
+                        style="width: 38px; height: 38px; padding: 0; display: none; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); color: var(--danger, #ef4444);"
                         title="Hapus riwayat terpilih" aria-label="Hapus riwayat terpilih" disabled>
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -313,7 +286,15 @@
                                         @elseif (!empty($r->tahun))
                                             <span style="font-weight: 700;">Th {{ $r->tahun }}</span> &bull;
                                         @endif
-                                        {{ $r->tahap ?: '-' }}@if ($r->tanggal_sk)
+                                        @php
+                                            $cleanTahap = $r->tahap_id ?: (preg_match('/(?:tahap\s*)?(\d+)/i', (string) $r->tahap, $m) ? $m[1] : null);
+                                            if ($cleanTahap) {
+                                                $tahapLabel = 'Tahap ' . preg_replace('/^tahap\s*/i', '', (string) $cleanTahap);
+                                            } else {
+                                                $tahapLabel = $r->tahap ? trim(explode('-', (string) $r->tahap)[0]) : '-';
+                                            }
+                                        @endphp
+                                        {{ $tahapLabel }}@if ($r->tanggal_sk)
                                             &bull; {{ $r->tanggal_sk }}
                                         @endif
                                     </div>
@@ -400,13 +381,7 @@
                                 style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-clock-rotate-left mb-2"
                                     style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>
-                                @if (($statusPipFilter ?? 'penerima') === 'belum')
-                                    Seluruh peserta didik aktif di rombel ini telah terdaftar sebagai penerima PIP.
-                                @elseif (($statusPipFilter ?? 'penerima') === 'semua')
-                                    Tidak ada data peserta didik yang cocok dengan kriteria pencarian.
-                                @else
-                                    Belum ada data riwayat penerima PIP yang tercatat.
-                                @endif
+                                Belum ada data riwayat penerima PIP yang tercatat.
                             </td>
                         </tr>
                     @endforelse
