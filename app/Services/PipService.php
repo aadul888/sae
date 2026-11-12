@@ -124,6 +124,16 @@ class PipService
                         $table->text('confirmation_text')->nullable();
                     }
                 });
+
+                try {
+                    $existingIndexes = collect(DB::select("SHOW INDEX FROM pip_riwayat"))->pluck('Key_name')->all();
+                    if (!in_array('pip_riwayat_tahap_id_idx', $existingIndexes, true)) {
+                        DB::statement("ALTER TABLE pip_riwayat ADD INDEX pip_riwayat_tahap_id_idx (tahap_id)");
+                    }
+                    if (!in_array('pip_riwayat_tanggal_sk_idx', $existingIndexes, true)) {
+                        DB::statement("ALTER TABLE pip_riwayat ADD INDEX pip_riwayat_tanggal_sk_idx (tanggal_sk)");
+                    }
+                } catch (\Throwable $e) {}
             }
 
             if (!Table::exists('pip_pengaturan')) {
@@ -660,12 +670,16 @@ class PipService
             $tahapKet = trim((string) ($row['tahap_keterangan'] ?? ''));
             $tahap = $tahapKet !== '' ? $tahapKet : ($tahapId !== '' ? $tahapId : trim((string) ($row['tahap'] ?? '')));
             $semesterId = trim((string) ($row['semester_id'] ?? ''));
-            $tahun = $semesterId !== '' ? $semesterId : trim((string) ($row['tahun'] ?? date('Y')));
+            $tahunSk = '';
+            if ($tglSk && preg_match('/^(\d{4})/', $tglSk, $m)) {
+                $tahunSk = $m[1];
+            }
+            $tahun = $tahunSk ?: ($semesterId !== '' ? substr($semesterId, 0, 4) : trim((string) ($row['tahun'] ?? date('Y'))));
             if (strlen($tahun) >= 4) {
                 $tahun = substr($tahun, 0, 4);
             }
 
-            // Kunci unik: 1 NISN per jenis SK + tahap + tahun. Duplikat dalam berkas dilewati.
+            // Kunci unik: 1 NISN per jenis SK + tahap + tahun/tanggal_sk. Duplikat dalam berkas dilewati.
             $identitas = $nisn !== ''
                 ? 'nisn:' . $nisn
                 : ($pdId !== '' ? 'pd:' . $pdId : 'nama:' . mb_strtolower($nama) . '|' . $rombel);
@@ -708,12 +722,6 @@ class PipService
                     $q->where('tahun', $tahun);
                 }
             };
-
-            // SK Nominasi dilewati bila sudah ada SK Pemberian pada tahap & tahun yang sama.
-            if ($jenisSk === 'nominasi' && $riwayatQuery('pemberian')->where($periodeFilter)->exists()) {
-                $skippedPemberianCount++;
-                continue;
-            }
 
             $tglCair = self::parseTanggal($row['tanggal_cair'] ?? '');
             $tglAktivasi = self::parseTanggal($row['tanggal_aktivasi'] ?? '');
@@ -794,9 +802,6 @@ class PipService
 
         $labelSk = $jenisSk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
         $msg = "Import {$labelSk} selesai. Sebanyak {$imported} data baru berhasil ditambahkan, dan {$updated} data diperbarui.";
-        if ($skippedPemberianCount > 0) {
-            $msg .= " Sebanyak {$skippedPemberianCount} siswa dilewati karena sudah terdaftar di SK Pemberian pada tahap & tahun yang sama.";
-        }
         if ($skippedDuplicateCount > 0) {
             $msg .= " Sebanyak {$skippedDuplicateCount} baris duplikat (NISN sama pada tahap & tahun yang sama) dilewati.";
         }
@@ -804,7 +809,7 @@ class PipService
         return [
             'imported'          => $imported,
             'updated'           => $updated,
-            'skipped_pemberian' => $skippedPemberianCount,
+            'skipped_pemberian' => 0,
             'skipped_duplikat'  => $skippedDuplicateCount,
             'message'           => $msg,
         ];

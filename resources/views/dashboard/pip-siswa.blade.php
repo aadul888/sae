@@ -221,58 +221,62 @@
                                         @php $laporanSk = $laporanMap[$r->id] ?? null; @endphp
                                         @if ($laporanSk)
                                             @php [$statusLabel, $badgeClass, $statusIcon] = $statusBadge($laporanSk->status); @endphp
-                                            <span class="badge {{ $badgeClass }}"
-                                                style="font-size: var(--text-xs); padding: 3px 8px;">
-                                                <i class="fas {{ $statusIcon }} me-1"></i>{{ $statusLabel }}
-                                            </span>
-                                            @if ($laporanSk->bukti_list->isNotEmpty())
-                                                <button type="button" class="btn-icon"
-                                                    data-pip-bukti="#pipBuktiTpl-{{ $laporanSk->id }}"
-                                                    data-pip-bukti-title="Bukti Laporan {{ $laporanSk->tahap ?: ($r->nomor_sk ?: '') }}"
-                                                    title="Lihat Bukti" aria-label="Lihat Bukti"
-                                                    style="color: var(--primary); margin-left: 6px;">
-                                                    <i class="fas fa-paperclip"></i>
-                                                </button>
-                                                <template id="pipBuktiTpl-{{ $laporanSk->id }}">
-                                                    @foreach ($laporanSk->bukti_list as $b)
-                                                        @php
-                                                            $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
-                                                            $isGambar = in_array(
-                                                                strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
-                                                                ['jpg', 'jpeg', 'png'],
-                                                                true,
-                                                            );
-                                                        @endphp
-                                                        <a href="{{ $buktiUrl }}" target="_blank" rel="noopener"
-                                                            style="display: block; margin-bottom: 12px; text-decoration: none;">
-                                                            @if ($isGambar)
-                                                                <img src="{{ $buktiUrl }}" alt="{{ $b->nama_asli ?: 'Bukti' }}"
-                                                                    loading="lazy"
-                                                                    style="max-width: 100%; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
-                                                            @else
-                                                                <span
-                                                                    style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm);">
-                                                                    <i class="fas fa-file-pdf"
-                                                                        style="color: var(--danger, #ef4444);"></i>
-                                                                    {{ $b->nama_asli ?: 'Lihat dokumen PDF' }}
-                                                                </span>
-                                                            @endif
-                                                            <div
-                                                                style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">
-                                                                {{ $b->nama_asli }}
-                                                            </div>
-                                                        </a>
-                                                    @endforeach
-                                                </template>
-                                            @endif
+                                            <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan']) }}"
+                                                    class="badge {{ $badgeClass }}"
+                                                    style="font-size: var(--text-xs, 0.75rem); padding: 6px 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border-radius: var(--radius-md, 6px);"
+                                                    title="Lihat status laporan di Tab Laporan">
+                                                    <i class="fas {{ $statusIcon }}"></i>
+                                                    <span>{{ $statusLabel }}</span>
+                                                </a>
+                                                @if ($laporanSk->bukti_list->isNotEmpty())
+                                                    <button type="button" class="btn-icon"
+                                                        data-pip-bukti="#pipBuktiTpl-{{ $laporanSk->id }}"
+                                                        data-pip-bukti-title="Bukti Laporan {{ $laporanSk->tahap ?: ($r->nomor_sk ?: '') }}"
+                                                        title="Lihat Bukti" aria-label="Lihat Bukti"
+                                                        style="color: var(--primary);">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </button>
+                                                    <template id="pipBuktiTpl-{{ $laporanSk->id }}">
+                                                        @foreach ($laporanSk->bukti_list as $b)
+                                                            @php
+                                                                $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
+                                                                $isGambar = in_array(
+                                                                    strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
+                                                                    ['jpg', 'jpeg', 'png'],
+                                                                    true,
+                                                                );
+                                                            @endphp
+                                                            <a href="{{ $buktiUrl }}" target="_blank" rel="noopener"
+                                                                style="display: block; margin-bottom: 12px; text-decoration: none;">
+                                                                @if ($isGambar)
+                                                                    <img src="{{ $buktiUrl }}" alt="{{ $b->nama_asli ?: 'Bukti' }}"
+                                                                        loading="lazy"
+                                                                        style="max-width: 100%; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color);">
+                                                                @else
+                                                                    <span
+                                                                        style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm);">
+                                                                        <i class="fas fa-file-pdf"
+                                                                            style="color: var(--danger, #ef4444);"></i>
+                                                                        {{ $b->nama_asli ?: 'Lihat dokumen PDF' }}
+                                                                    </span>
+                                                                @endif
+                                                                <div
+                                                                    style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">
+                                                                    {{ $b->nama_asli }}
+                                                                </div>
+                                                            </a>
+                                                        @endforeach
+                                                    </template>
+                                                @endif
+                                            </div>
                                         @else
-                                            <span class="badge badge-warning"
-                                                style="font-size: var(--text-xs); padding: 3px 8px;">Belum Dilaporkan</span>
-                                            <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan']) }}"
-                                                class="btn-icon" title="Laporkan Penggunaan Dana"
-                                                aria-label="Laporkan Penggunaan Dana"
-                                                style="color: var(--primary); margin-left: 6px;">
+                                            <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan', 'pip_riwayat_id' => $r->id]) }}"
+                                                class="btn btn-sm btn-outline-warning"
+                                                style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); padding: 6px 12px; font-weight: 600; border-radius: var(--radius-md, 6px); text-decoration: none; white-space: nowrap;"
+                                                title="Klik untuk mengisi Laporan Penggunaan Dana">
                                                 <i class="fas fa-pen-to-square"></i>
+                                                <span>Belum Dilaporkan</span>
                                             </a>
                                         @endif
                                     @endif
@@ -332,7 +336,7 @@
                                 <option value="">-- Pilih SK Pemberian --</option>
                                 @foreach ($riwayatPemberian as $rp)
                                     <option value="{{ $rp->id }}" data-nominal="{{ (float) ($rp->nominal ?? 0) }}"
-                                        {{ (string) old('pip_riwayat_id') === (string) $rp->id ? 'selected' : '' }}>
+                                        {{ (string) old('pip_riwayat_id', request('pip_riwayat_id')) === (string) $rp->id ? 'selected' : '' }}>
                                         {{ $rp->nomor_sk ?: 'SK #' . $rp->id }}
                                         &bull; {{ $rp->tahap_keterangan ?: ($rp->tahap ?: 'Tahap -') }}
                                         &bull; Rp {{ number_format((float) ($rp->nominal ?? 0), 0, ',', '.') }}

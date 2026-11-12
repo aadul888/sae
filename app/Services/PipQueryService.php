@@ -412,18 +412,12 @@ class PipQueryService
                 $totalSiswaAktif = (clone $activeStudentsScope)->count();
 
                 $penerimaUnikCount = (clone $activeStudentsScope)
-                    ->whereExists(function ($sub) {
-                        $sub->select(DB::raw(1))
-                            ->from('pip_riwayat as r')
-                            ->where(function ($match) {
-                                $match->whereColumn('r.peserta_didik_id', 'pd.peserta_didik_id')
-                                      ->orWhere(function ($orMatch) {
-                                          $orMatch->whereNull('r.peserta_didik_id')
-                                                  ->whereNotNull('r.nisn')
-                                                  ->where('r.nisn', '!=', '')
-                                                  ->whereColumn('r.nisn', 'pd.nisn');
-                                      });
-                            });
+                    ->where(function ($match) {
+                        $match->whereIn('pd.peserta_didik_id', function ($sub) {
+                            $sub->select('peserta_didik_id')->from('pip_riwayat')->whereNotNull('peserta_didik_id');
+                        })->orWhereIn('pd.nisn', function ($sub) {
+                            $sub->select('nisn')->from('pip_riwayat')->whereNotNull('nisn')->where('nisn', '!=', '');
+                        });
                     })
                     ->count();
 
@@ -508,20 +502,25 @@ class PipQueryService
                     });
                 }
 
-                $totalPemberian = $hasJenisSk
-                    ? (clone $baseRiwayatScope)->where('r.jenis_sk', 'pemberian')->count()
-                    : (clone $baseRiwayatScope)->count();
-                $totalNominasi = $hasJenisSk
-                    ? (clone $baseRiwayatScope)->where('r.jenis_sk', 'nominasi')->count()
-                    : 0;
-                $totalNominal = (float) (clone $baseRiwayatScope)->sum('r.nominal');
-                $totalTransaksi = (clone $baseRiwayatScope)->count();
+                $statRow = (clone $baseRiwayatScope)
+                    ->select([
+                        DB::raw("COUNT(*) as total_transaksi"),
+                        DB::raw("COALESCE(SUM(r.nominal), 0) as total_nominal"),
+                        DB::raw("COUNT(CASE WHEN r.jenis_sk = 'pemberian' THEN 1 END) as total_pemberian"),
+                        DB::raw("COUNT(CASE WHEN r.jenis_sk = 'nominasi' THEN 1 END) as total_nominasi"),
+                        DB::raw("COUNT(CASE WHEN rb.rombongan_belajar_id IS NOT NULL THEN 1 END) as total_siswa_aktif_penerima"),
+                        DB::raw("COUNT(CASE WHEN rb.rombongan_belajar_id IS NULL THEN 1 END) as total_alumni_penerima"),
+                        DB::raw("COUNT(DISTINCT COALESCE(NULLIF(r.nisn, ''), CAST(r.peserta_didik_id AS CHAR))) as total_penerima_unik"),
+                    ])
+                    ->first();
 
-                $totalSiswaAktifPenerima = (clone $baseRiwayatScope)->whereNotNull('rb.rombongan_belajar_id')->count();
-                $totalAlumniPenerima = (clone $baseRiwayatScope)->whereNull('rb.rombongan_belajar_id')->count();
-                $totalRiwayatPenerimaUnik = (clone $baseRiwayatScope)
-                    ->select(DB::raw("COUNT(DISTINCT COALESCE(NULLIF(r.nisn, ''), CAST(r.peserta_didik_id AS CHAR))) as c"))
-                    ->value('c') ?? 0;
+                $totalTransaksi = (int) ($statRow->total_transaksi ?? 0);
+                $totalNominal = (float) ($statRow->total_nominal ?? 0);
+                $totalPemberian = $hasJenisSk ? (int) ($statRow->total_pemberian ?? 0) : $totalTransaksi;
+                $totalNominasi = $hasJenisSk ? (int) ($statRow->total_nominasi ?? 0) : 0;
+                $totalSiswaAktifPenerima = (int) ($statRow->total_siswa_aktif_penerima ?? 0);
+                $totalAlumniPenerima = (int) ($statRow->total_alumni_penerima ?? 0);
+                $totalRiwayatPenerimaUnik = (int) ($statRow->total_penerima_unik ?? 0);
 
                 $riwayatStats = [
                     'total_siswa_aktif'          => $totalSiswaAktif,
