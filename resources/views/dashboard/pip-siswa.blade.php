@@ -272,8 +272,8 @@
                                             </div>
                                         @else
                                             <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan', 'pip_riwayat_id' => $r->id]) }}"
-                                                class="btn btn-sm btn-outline-warning"
-                                                style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); padding: 6px 12px; font-weight: 600; border-radius: var(--radius-md, 6px); text-decoration: none; white-space: nowrap;"
+                                                class="badge badge-warning"
+                                                style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); padding: 7px 12px; font-weight: 700; border-radius: var(--radius-md, 6px); text-decoration: none; white-space: nowrap; transition: all 0.2s ease;"
                                                 title="Klik untuk mengisi Laporan Penggunaan Dana">
                                                 <i class="fas fa-pen-to-square"></i>
                                                 <span>Belum Dilaporkan</span>
