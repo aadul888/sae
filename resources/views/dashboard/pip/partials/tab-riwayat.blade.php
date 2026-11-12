@@ -106,12 +106,12 @@
                 @endif
 
                 @if ($isAdmin)
-                    <button type="button" id="pipBulkDeleteRiwayat" class="btn btn-outline"
+                    <button type="button" id="pipBulkDeleteRiwayat" class="btn btn-outline pip-bulk-delete-btn"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); color: var(--danger, #ef4444); opacity: .5;"
                         title="Hapus riwayat terpilih" aria-label="Hapus riwayat terpilih" disabled>
                         <i class="fas fa-trash-alt"></i>
                     </button>
-                    <span id="pipBulkSelectedCount"
+                    <span id="pipBulkSelectedCount" class="pip-bulk-selected-count"
                         style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: none;">
                         0 dipilih
                     </span>

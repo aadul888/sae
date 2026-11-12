@@ -452,6 +452,9 @@
                         ? route('dashboard.pip.import-riwayat')
                         : url('/dashboard/pip/riwayat/import')),
                 storeRiwayat: @json(Route::has('dashboard.pip.store-riwayat') ? route('dashboard.pip.store-riwayat') : url('/dashboard/pip/riwayat')),
+                bulkDestroyRiwayat: @json(Route::has('dashboard.pip.bulk-destroy-riwayat')
+                        ? route('dashboard.pip.bulk-destroy-riwayat')
+                        : url('/dashboard/pip/riwayat/bulk-delete')),
                 updatePengaturan: @json(Route::has('dashboard.pip.update-pengaturan')
                         ? route('dashboard.pip.update-pengaturan')
                         : url('/dashboard/pip/pengaturan')),

@@ -11,8 +11,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // ---------------------------------------------------------------------
     // Util
     // ---------------------------------------------------------------------
+    async function askConfirm(msg, title = "Konfirmasi Tindakan", type = "warning", okText = "Ya, Lanjutkan", cancelText = "Batal") {
+        if (window.SAE && typeof window.SAE.confirm === "function") {
+            const res = await window.SAE.confirm(msg, title, type, okText, cancelText);
+            return res === true || Boolean(res && res.isConfirmed);
+        }
+        if (typeof Swal !== "undefined" && typeof Swal.fire === "function") {
+            const isDanger = type === "danger" || type === "error";
+            const res = await Swal.fire({
+                title,
+                html: msg,
+                icon: isDanger ? "warning" : type,
+                showCancelButton: true,
+                confirmButtonText: okText,
+                cancelButtonText: cancelText,
+                confirmButtonColor: isDanger ? "#ef4444" : "#3b82f6",
+                cancelButtonColor: "#64748b",
+            });
+            return Boolean(res && res.isConfirmed);
+        }
+        return window.confirm(msg.replace(/<[^>]+>/g, ""));
+    }
+
     async function post(url, payload, isForm = false) {
-        const headers = { "X-CSRF-TOKEN": csrf, "X-Requested-With": "XMLHttpRequest", Accept: "application/json" };
         if (!isForm) headers["Content-Type"] = "application/json";
         const res = await fetch(url, { method: "POST", headers, body: isForm ? payload : JSON.stringify(payload || {}) });
         let data = {};
@@ -372,8 +393,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const r = await window.SAE.confirm("Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.", "Hapus Usulan?", 'warning', "Ya, Hapus!", "Batal");
-        if (!r.isConfirmed) return;
+        const ok = await askConfirm("Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.", "Hapus Usulan?", 'warning', "Ya, Hapus!", "Batal");
+        if (!ok) return;
         try {
             const { ok, data } = await post(tpl(CFG.urlTemplates.destroyUsulan, id), {});
             if (ok) {
@@ -476,8 +497,8 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         const targetLabel = actionLabels[action] || action;
 
-        const confirmResult = await window.SAE.confirm("Ubah status verifikasi ${ids.length} usulan terpilih menjadi '${targetLabel}'.", "Tandai ${ids.length} Usulan?", 'info', "Ya, Lanjutkan", "Batal");
-        if (!confirmResult.isConfirmed) return;
+        const ok = await askConfirm("Ubah status verifikasi ${ids.length} usulan terpilih menjadi '${targetLabel}'.", "Tandai ${ids.length} Usulan?", 'info', "Ya, Lanjutkan", "Batal");
+        if (!ok) return;
 
         try {
             const { ok, data } = await post(CFG.routes.bulkVerifikasi, { ids, action });
@@ -685,16 +706,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.pipHapusRiwayat = async function (id, nama) {
-        const r = await window.SAE.confirm(`Catatan riwayat PIP ${nama} akan dihapus permanen.`, "Hapus Riwayat?", 'warning', "Ya, Hapus!", "Batal");
-        if (!r.isConfirmed) return;
+        const ok = await askConfirm(`Catatan riwayat PIP ${nama} akan dihapus permanen.`, "Hapus Riwayat?", "danger", "Ya, Hapus!", "Batal");
+        if (!ok) return;
         try {
-            const { ok, data } = await post(tpl(CFG.urlTemplates.destroyRiwayat, id), {});
-            if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
+            const { ok: reqOk, data } = await post(tpl(CFG.urlTemplates.destroyRiwayat, id), {});
+            if (reqOk) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
         } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
     };
 
     // ---------------------------------------------------------------------
     // Bulk hapus riwayat PIP (bersihkan baris ganda NISN + SK + tahap)
+    // Berlaku untuk tab Riwayat PIP Aktif maupun Riwayat Alumni / Kelas Lain
     // ---------------------------------------------------------------------
     const riwayatCheckedIds = () =>
         Array.from(document.querySelectorAll(".pip-row-check:checked")).map((el) => Number(el.value));
@@ -702,26 +724,26 @@ document.addEventListener("DOMContentLoaded", function () {
     function syncBulkUI() {
         const total = document.querySelectorAll(".pip-row-check").length;
         const ids = riwayatCheckedIds();
-        const btn = document.getElementById("pipBulkDeleteRiwayat");
-        const count = document.getElementById("pipBulkSelectedCount");
-        const all = document.getElementById("pipCheckAllRiwayat");
+        const hasSelection = ids.length > 0;
 
-        if (count) {
-            count.style.display = ids.length ? "inline" : "none";
-            count.textContent = `${ids.length} dipilih`;
-        }
-        if (btn) {
-            btn.disabled = ids.length === 0;
-            btn.style.opacity = ids.length ? "1" : ".5";
-        }
-        if (all) {
+        document.querySelectorAll(".pip-bulk-selected-count, #pipBulkSelectedCount, #pipBulkSelectedCountAlumni").forEach((el) => {
+            el.style.display = hasSelection ? "inline" : "none";
+            el.textContent = `${ids.length} dipilih`;
+        });
+
+        document.querySelectorAll(".pip-bulk-delete-btn, #pipBulkDeleteRiwayat, #pipBulkDeleteRiwayatAlumni").forEach((btn) => {
+            btn.disabled = !hasSelection;
+            btn.style.opacity = hasSelection ? "1" : ".5";
+        });
+
+        document.querySelectorAll(".pip-check-all, #pipCheckAllRiwayat, #pipCheckAllRiwayatAlumni").forEach((all) => {
             all.checked = total > 0 && ids.length === total;
             all.indeterminate = ids.length > 0 && ids.length < total;
-        }
+        });
     }
 
     document.addEventListener("change", function (e) {
-        if (e.target.id === "pipCheckAllRiwayat") {
+        if (e.target.matches(".pip-check-all, #pipCheckAllRiwayat, #pipCheckAllRiwayatAlumni")) {
             document.querySelectorAll(".pip-row-check").forEach((el) => { el.checked = e.target.checked; });
             syncBulkUI();
             return;
@@ -730,28 +752,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("click", async function (e) {
-        const btn = e.target.closest("#pipBulkDeleteRiwayat");
+        const btn = e.target.closest(".pip-bulk-delete-btn, #pipBulkDeleteRiwayat, #pipBulkDeleteRiwayatAlumni");
         if (!btn) return;
 
         const ids = riwayatCheckedIds();
         if (!ids.length) return;
 
-        const r = await window.SAE.confirm(
+        const ok = await askConfirm(
             `${ids.length} catatan riwayat PIP akan dihapus permanen.`,
             "Hapus Riwayat Terpilih?",
-            "warning",
+            "danger",
             "Ya, Hapus!",
             "Batal"
         );
-        if (!r.isConfirmed) return;
+        if (!ok) return;
 
         try {
-            const url = CFG.urlTemplates.bulkDestroyRiwayat;
-            if (!url) { Swal.fire("Gagal", "Rute hapus massal tidak tersedia.", "error"); return; }
-            const { ok, data } = await post(url, { ids });
-            if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
-        } catch (err) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+            const url = (CFG.urlTemplates && CFG.urlTemplates.bulkDestroyRiwayat)
+                ? CFG.urlTemplates.bulkDestroyRiwayat
+                : (CFG.routes && CFG.routes.bulkDestroyRiwayat)
+                    ? CFG.routes.bulkDestroyRiwayat
+                    : "/dashboard/pip/riwayat/bulk-delete";
+
+            const { ok: reqOk, data } = await post(url, { ids });
+            if (reqOk) {
+                toast(data.message || `${ids.length} catatan riwayat PIP berhasil dihapus.`);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message || "Gagal menghapus riwayat terpilih.", "error");
+            }
+        } catch (err) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
     });
+
+    window.addEventListener("sae:tableRefreshed", syncBulkUI);
 
     // ---------------------------------------------------------------------
     // Export Usulan PIP ke Excel (.xlsx)
