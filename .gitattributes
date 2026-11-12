@@ -9,5 +9,11 @@
 /.github export-ignore
 /.agents export-ignore
 /.agent export-ignore
+/tests export-ignore
+phpunit.xml export-ignore
+run-php.ps1 export-ignore
+check-server.sh export-ignore
+deploy.sh export-ignore
+harden-nginx.sh export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
