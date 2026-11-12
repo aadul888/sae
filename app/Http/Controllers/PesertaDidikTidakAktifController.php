@@ -83,12 +83,13 @@ class PesertaDidikTidakAktifController extends Controller
             'berfoto' => $totalBerfoto,
         ];
 
-        // Daftar filter tahun kelulusan
+        // Daftar filter tahun: diambil dari tahun `tanggal_keluar` (fallback tahun_lulus)
+        // sehingga opsi otomatis bertambah begitu data baru diimpor.
         $filterTahun = (clone $baseTidakAktif)
-            ->whereNotNull('tahun_lulus')
-            ->where('tahun_lulus', '<>', '')
-            ->distinct()
-            ->pluck('tahun_lulus')
+            ->selectRaw("COALESCE(NULLIF(YEAR(tanggal_keluar), 0), NULLIF(tahun_lulus, '')) AS th")
+            ->pluck('th')
+            ->filter(fn ($v) => $v !== null && $v !== '')
+            ->unique()
             ->sortDesc()
             ->values();
 
@@ -115,7 +116,9 @@ class PesertaDidikTidakAktifController extends Controller
         }
 
         if ($tahun !== '') {
-            $query->where('tahun_lulus', $tahun);
+            $query->where(function ($w) use ($tahun) {
+                $w->whereYear('tanggal_keluar', $tahun)->orWhere('tahun_lulus', $tahun);
+            });
         }
 
         $totalFiltered = $query->count();
@@ -213,7 +216,9 @@ class PesertaDidikTidakAktifController extends Controller
             }
         }
         if ($tahun !== '') {
-            $query->where('tahun_lulus', $tahun);
+            $query->where(function ($w) use ($tahun) {
+                $w->whereYear('tanggal_keluar', $tahun)->orWhere('tahun_lulus', $tahun);
+            });
         }
 
         $items = $query->orderByDesc('tahun_lulus')->orderBy('nama')->get();
@@ -598,6 +603,11 @@ class PesertaDidikTidakAktifController extends Controller
             return '';
         };
 
+        // Mode perbarui kelengkapan: hanya mencocokkan NISN, tidak menambah data baru.
+        if ($request->input('mode') === 'update') {
+            return $this->perbaruiKelengkapanKeluar($rows);
+        }
+
         $importedCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
@@ -878,6 +888,148 @@ class PesertaDidikTidakAktifController extends Controller
             'skipped_count' => $skippedCount,
             'total_processed' => $totalProcessed,
             'errors' => array_slice($errors, 0, 10),
+        ]);
+    }
+
+    /**
+     * Perbarui kelengkapan data peserta didik keluar/alumni dari ekspor Dapodik
+     * "Daftar Peserta Didik" (66 kolom, data mulai baris 7).
+     *
+     * Hanya baris yang NISN-nya sudah ada di `peserta_didik_tidak_aktif` yang
+     * diperbarui — tidak pernah menambah data baru. Nilai kosong di berkas tidak
+     * mengosongkan data lama.
+     */
+    private function perbaruiKelengkapanKeluar(array $rows): JsonResponse
+    {
+        $updated = 0;
+        $skipped = 0;
+        $tidakDitemukan = [];
+
+        foreach ($rows as $idx => $row) {
+            $nisn = preg_replace('/[^0-9]/', '', (string) ($row['__col_5'] ?? ''));
+            if ($nisn === '') {
+                $skipped++;
+                continue;
+            }
+
+            // Data pertama berkas = baris 7 (kop + 2 baris header dilewati).
+            $rowNum = $idx + 7;
+
+            $target = DB::table('peserta_didik_tidak_aktif')->where('nisn', $nisn)->first();
+            if (!$target) {
+                $skipped++;
+                if (count($tidakDitemukan) < 10) {
+                    $tidakDitemukan[] = "Baris {$rowNum}: NISN {$nisn} (" . trim((string) ($row['__col_2'] ?? '')) . ')';
+                }
+                continue;
+            }
+
+            $ambil = fn (int $c): string => trim((string) ($row['__col_' . $c] ?? ''));
+            $angka = fn (int $c): string => preg_replace('/[^0-9]/', '', $ambil($c));
+            $jk = strtoupper(substr($ambil(4), 0, 1));
+
+            // Alamat lengkap dengan gaya yang sama seperti impor (prefix dinormalkan
+            // agar tidak menulis "Kec. Kec. ..." karena berkas sudah menyertakannya).
+            $bersih = fn (string $v, array $awalan): string => trim(preg_replace(
+                '/^(?:' . implode('|', array_map(fn ($a) => preg_quote($a, '/'), $awalan)) . ')\s*\.?\s*/i',
+                '',
+                $v
+            ));
+            $rt = $ambil(11);
+            $rw = $ambil(12);
+            $alamatLengkap = implode(', ', array_filter([
+                $ambil(10),
+                ($rt !== '' || $rw !== '') ? trim('RT ' . $rt . ($rw !== '' ? ($rt !== '' ? ' / ' : '') . 'RW ' . $rw : '')) : '',
+                $ambil(13) !== '' ? 'Dusun ' . $bersih($ambil(13), ['Dusun']) : '',
+                $ambil(14) !== '' ? 'Kel. ' . $bersih($ambil(14), ['Desa/Kel', 'Kel', 'Desa']) : '',
+                $ambil(15) !== '' ? 'Kec. ' . $bersih($ambil(15), ['Kec']) : '',
+                $ambil(16) !== '' ? 'Kode Pos ' . $ambil(16) : '',
+            ]));
+
+            $data = [
+                'nipd' => $ambil(3),
+                'nama' => $ambil(2),
+                'jenis_kelamin' => in_array($jk, ['L', 'P'], true) ? $jk : '',
+                'tempat_lahir' => $ambil(6),
+                'tanggal_lahir' => (string) $this->parseTanggal($ambil(7)),
+                'nik' => $angka(8),
+                'agama_id_str' => $ambil(9),
+                'alamat_jalan' => $alamatLengkap,
+                'rt' => $ambil(11),
+                'rw' => $ambil(12),
+                'dusun' => $ambil(13),
+                'kelurahan' => $ambil(14),
+                'kecamatan' => $ambil(15),
+                'kode_pos' => $ambil(16),
+                'jenis_tinggal' => $ambil(17),
+                'alat_transportasi' => $ambil(18),
+                'nomor_telepon_rumah' => $ambil(19),
+                'nomor_telepon_seluler' => $ambil(20),
+                'email' => $ambil(21),
+                'skhun' => $ambil(22),
+                'penerima_kps' => $ambil(23),
+                'no_kps' => $ambil(24),
+                'nama_ayah' => $ambil(25),
+                'tahun_lahir_ayah' => $ambil(26),
+                'jenjang_pendidikan_ayah' => $ambil(27),
+                'pekerjaan_ayah' => $ambil(28),
+                'penghasilan_ayah' => $ambil(29),
+                'nama_ibu' => $ambil(31),
+                'tahun_lahir_ibu' => $ambil(32),
+                'jenjang_pendidikan_ibu' => $ambil(33),
+                'pekerjaan_ibu' => $ambil(34),
+                'penghasilan_ibu' => $ambil(35),
+                'nama_wali' => $ambil(37),
+                'tahun_lahir_wali' => $ambil(38),
+                'jenjang_pendidikan_wali' => $ambil(39),
+                'pekerjaan_wali' => $ambil(40),
+                'penghasilan_wali' => $ambil(41),
+                'kebutuhan_khusus' => $ambil(55),
+            ];
+            $data = array_filter($data, fn ($v) => $v !== '');
+
+            // Rombel terakhir hanya diisi bila arsip belum punya.
+            if (empty($target->nama_rombel_terakhir) && $ambil(1) !== '') {
+                $data['nama_rombel_terakhir'] = $ambil(1);
+            }
+            if (empty($data)) {
+                $skipped++;
+                continue;
+            }
+
+            $data['raw_data'] = json_encode(array_filter(
+                $row,
+                fn ($k) => !str_starts_with((string) $k, '__col_'),
+                ARRAY_FILTER_USE_KEY
+            ), JSON_UNESCAPED_UNICODE);
+            $data['updated_at'] = now();
+
+            DB::table('peserta_didik_tidak_aktif')->where('id', $target->id)->update($data);
+            $updated++;
+        }
+
+        if ($updated === 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tidak ada data yang diperbarui. NISN pada berkas belum terdaftar sebagai peserta didik keluar/alumni.'
+                    . (!empty($tidakDitemukan) ? ' Contoh: ' . implode('; ', array_slice($tidakDitemukan, 0, 3)) : ''),
+                'updated_count' => 0,
+                'skipped_count' => $skipped,
+                'errors' => $tidakDitemukan,
+            ], 422);
+        }
+
+        $message = "Kelengkapan {$updated} data peserta didik keluar diperbarui.";
+        if ($skipped > 0) {
+            $message .= " {$skipped} baris dilewati (NISN kosong/tidak ditemukan).";
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'updated_count' => $updated,
+            'skipped_count' => $skipped,
+            'errors' => $tidakDitemukan,
         ]);
     }
 

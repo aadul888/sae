@@ -64,7 +64,11 @@ class KesiswaanQueryService
         $totalAlumni = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->count();
         $alumniLaki = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->where('jenis_kelamin', 'L')->count();
         $alumniPerempuan = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->where('jenis_kelamin', 'P')->count();
-        $alumniTahunCount = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->whereNotNull('tahun_lulus')->where('tahun_lulus', '<>', '')->distinct()->count('tahun_lulus');
+        // Jumlah angkatan alumni: hitung tahun dari `tanggal_keluar` (fallback tahun_lulus).
+        $alumniTahunCount = (clone $baseTidakAktif)
+            ->where('status_keluar', 'Alumni')
+            ->distinct()
+            ->count(DB::raw("COALESCE(NULLIF(YEAR(tanggal_keluar), 0), NULLIF(tahun_lulus, ''))"));
 
         $totalBerkasLengkap = KesiswaanBerkasVerifikasi::where('akta_kelahiran', true)
             ->where('kartu_keluarga', true)

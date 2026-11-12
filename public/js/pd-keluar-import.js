@@ -6,8 +6,10 @@
 window.openImportExcelModal = function () {
     const modal = document.getElementById("modalImportExcel");
     if (!modal) return;
-    const form = document.getElementById("formImportExcel");
-    if (form) form.reset();
+    ["formImportExcel", "formUpdateKelengkapan"].forEach(function (id) {
+        const f = document.getElementById(id);
+        if (f) f.reset();
+    });
     const progress = document.getElementById("importExcelProgress");
     if (progress) progress.style.display = "none";
     const btnSubmit = document.getElementById("btnSubmitImportExcel");
@@ -26,7 +28,7 @@ window.closeImportExcelModal = function () {
 window.handleImportExcelSubmit = async function (e) {
     e.preventDefault();
     const form = e.target;
-    const fileInput = document.getElementById("inputExcelFile");
+    const fileInput = form.querySelector('input[type="file"]');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         if (typeof Swal !== "undefined") {
             Swal.fire({
@@ -41,9 +43,13 @@ window.handleImportExcelSubmit = async function (e) {
         return;
     }
 
-    const progress = document.getElementById("importExcelProgress");
-    const btnSubmit = document.getElementById("btnSubmitImportExcel");
-    const btnIcon = document.getElementById("btnSubmitImportExcelIcon");
+    const modeInput = form.querySelector('[name="mode"]');
+    const isUpdate = !!(modeInput && modeInput.value === "update");
+
+    const progress = form.querySelector(".import-excel-progress");
+    const btnSubmit = form.querySelector('button[type="submit"]') || document.getElementById("btnSubmitImportExcel");
+    const btnIcon = btnSubmit ? btnSubmit.querySelector("i") : null;
+    const iconAwal = btnIcon ? btnIcon.className : "";
 
     if (progress) progress.style.display = "block";
     if (btnSubmit) btnSubmit.disabled = true;
@@ -76,7 +82,7 @@ window.handleImportExcelSubmit = async function (e) {
 
             if (typeof Swal !== "undefined") {
                 await Swal.fire({
-                    title: "Import Berhasil!",
+                    title: isUpdate ? "Kelengkapan Diperbarui!" : "Import Berhasil!",
                     html: detailHtml,
                     icon: "success",
                     confirmButtonColor: "#10b981",
@@ -110,7 +116,7 @@ window.handleImportExcelSubmit = async function (e) {
 
             if (typeof Swal !== "undefined") {
                 Swal.fire({
-                    title: "Gagal Mengimpor",
+                    title: isUpdate ? "Gagal Memperbarui" : "Gagal Mengimpor",
                     html: errorHtml,
                     icon: "error",
                     confirmButtonColor: "#ef4444",
@@ -135,7 +141,7 @@ window.handleImportExcelSubmit = async function (e) {
     } finally {
         if (progress) progress.style.display = "none";
         if (btnSubmit) btnSubmit.disabled = false;
-        if (btnIcon) btnIcon.className = "fas fa-cloud-arrow-up";
+        if (btnIcon) btnIcon.className = iconAwal || "fas fa-cloud-arrow-up";
     }
 };
 

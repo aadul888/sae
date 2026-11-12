@@ -84,11 +84,39 @@
             </div>
 
             {{-- Loading / Status State --}}
-            <div id="importExcelProgress"
+            <div id="importExcelProgress" class="import-excel-progress"
                 style="display: none; margin-bottom: 14px; padding: 12px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981);">
                 <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
             </div>
 
         </form>
+
+        {{-- Perbarui kelengkapan data alumni: cocok NISN, tanpa menambah data --}}
+        <div style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-color);">
+            <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); margin-bottom: 2px;">
+                Perbarui Kelengkapan Data Alumni
+            </div>
+            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px;">
+                Unggah ekspor Dapodik <strong>Daftar Peserta Didik</strong> (data mulai baris 7). Hanya baris yang
+                <strong>NISN</strong>-nya sudah terdaftar yang diperbarui — tidak menambah data baru.
+            </div>
+            <form id="formUpdateKelengkapan" action="{{ $importAction }}" method="POST" enctype="multipart/form-data"
+                onsubmit="handleImportExcelSubmit(event)">
+                @csrf
+                <input type="hidden" name="mode" value="update">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="file" name="file_excel" accept=".xlsx,.xls,.csv,.txt" required
+                        style="flex: 1; min-width: 0; padding: 8px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-color);">
+                    <button type="submit" class="btn btn-primary"
+                        style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;">
+                        <i class="fas fa-rotate"></i> Perbarui
+                    </button>
+                </div>
+                <div class="import-excel-progress"
+                    style="display: none; margin-top: 10px; padding: 10px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981);">
+                    <i class="fas fa-spinner fa-spin me-2"></i> Memperbarui kelengkapan data...
+                </div>
+            </form>
+        </div>
     </div>
 </div>
