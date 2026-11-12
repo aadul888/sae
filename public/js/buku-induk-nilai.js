@@ -272,14 +272,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildSelItem(name) {
         const div = document.createElement('div');
         div.className = 'bi-sel-item';
+        div.setAttribute('draggable', 'true');
         div.innerHTML =
+            '<span class="bi-drag-handle" title="Tarik untuk memindahkan urutan"><i class="fas fa-grip-vertical"></i></span>' +
             '<span class="bi-sel-idx"></span>' +
             '<input type="text" class="bi-input bi-singkatan-item" maxlength="20" title="Singkatan kolom di Input Nilai" ' +
             'name="singkatan[' + esc(name) + ']" value="' + esc(singkatanValue(name)) + '">' +
             '<span class="bi-sel-name">' + esc(name) + '</span>' +
             '<span class="bi-sel-actions">' +
-            '<button type="button" class="bi-up" title="Naikkan"><i class="fas fa-arrow-up"></i></button>' +
-            '<button type="button" class="bi-down" title="Turunkan"><i class="fas fa-arrow-down"></i></button>' +
             '<button type="button" class="bi-remove" title="Hapus"><i class="fas fa-times"></i></button>' +
             '</span>';
         return div;
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            // Aksi pada item terpilih (naik/turun/hapus)
+            // Aksi pada item terpilih (drag & drop urutan / hapus)
             const sel = col.querySelector('[data-selected]');
             if (sel) {
                 sel.addEventListener('click', function (e) {
@@ -386,19 +386,88 @@ document.addEventListener('DOMContentLoaded', function () {
                             sel.innerHTML = '<div class="bi-sel-empty">Belum ada mapel. Tambahkan dari referensi di atas.</div>';
                         }
                         refresh(col);
-                    } else if (e.target.closest('.bi-up')) {
-                        const prev = item.previousElementSibling;
-                        if (prev && prev.classList.contains('bi-sel-item')) {
-                            sel.insertBefore(item, prev);
-                            refresh(col);
-                        }
-                    } else if (e.target.closest('.bi-down')) {
-                        const next = item.nextElementSibling;
-                        if (next && next.classList.contains('bi-sel-item')) {
-                            sel.insertBefore(next, item);
-                            refresh(col);
+                    }
+                });
+
+                let draggedItem = null;
+
+                sel.addEventListener('dragstart', function (e) {
+                    const target = e.target.closest('.bi-sel-item');
+                    if (!target) return;
+                    // Cegah drag jika pengguna sedang klik / fokus di input singkatan
+                    if (e.target.closest('.bi-singkatan-item')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    draggedItem = target;
+                    draggedItem.classList.add('bi-dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    try {
+                        e.dataTransfer.setData('text/plain', target.querySelector('.bi-sel-name')?.textContent || '');
+                    } catch (_) {}
+                });
+
+                sel.addEventListener('dragend', function () {
+                    if (draggedItem) {
+                        draggedItem.classList.remove('bi-dragging');
+                        draggedItem = null;
+                    }
+                    sel.querySelectorAll('.bi-sel-item').forEach(function (el) {
+                        el.classList.remove('bi-drag-over-top', 'bi-drag-over-bottom');
+                    });
+                });
+
+                sel.addEventListener('dragover', function (e) {
+                    if (!draggedItem) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+
+                    const overItem = e.target.closest('.bi-sel-item');
+                    if (!overItem || overItem === draggedItem) return;
+
+                    const rect = overItem.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+
+                    sel.querySelectorAll('.bi-sel-item').forEach(function (el) {
+                        if (el !== overItem) el.classList.remove('bi-drag-over-top', 'bi-drag-over-bottom');
+                    });
+
+                    if (e.clientY < midY) {
+                        overItem.classList.add('bi-drag-over-top');
+                        overItem.classList.remove('bi-drag-over-bottom');
+                    } else {
+                        overItem.classList.add('bi-drag-over-bottom');
+                        overItem.classList.remove('bi-drag-over-top');
+                    }
+                });
+
+                sel.addEventListener('dragleave', function (e) {
+                    const overItem = e.target.closest('.bi-sel-item');
+                    if (overItem && !overItem.contains(e.relatedTarget)) {
+                        overItem.classList.remove('bi-drag-over-top', 'bi-drag-over-bottom');
+                    }
+                });
+
+                sel.addEventListener('drop', function (e) {
+                    if (!draggedItem) return;
+                    e.preventDefault();
+
+                    const overItem = e.target.closest('.bi-sel-item');
+                    if (overItem && overItem !== draggedItem) {
+                        const rect = overItem.getBoundingClientRect();
+                        const midY = rect.top + rect.height / 2;
+                        if (e.clientY < midY) {
+                            sel.insertBefore(draggedItem, overItem);
+                        } else {
+                            sel.insertBefore(draggedItem, overItem.nextSibling);
                         }
                     }
+
+                    sel.querySelectorAll('.bi-sel-item').forEach(function (el) {
+                        el.classList.remove('bi-drag-over-top', 'bi-drag-over-bottom', 'bi-dragging');
+                    });
+                    draggedItem = null;
+                    refresh(col);
                 });
             }
         });

@@ -184,14 +184,13 @@
 
                                 <div class="bi-selected" data-selected>
                                     @forelse ($daftarMapelKel as $idx => $nMapel)
-                                        <div class="bi-sel-item">
+                                        <div class="bi-sel-item" draggable="true">
+                                            <span class="bi-drag-handle" title="Tarik untuk memindahkan urutan"><i class="fas fa-grip-vertical"></i></span>
                                             <span class="bi-sel-idx">{{ $idx + 1 }}</span>
                                             <input type="text" class="bi-input bi-singkatan-item" maxlength="20" title="Singkatan kolom di Input Nilai"
                                                 name="singkatan[{{ $nMapel }}]" value="{{ $singkatan[$nMapel] ?? '' }}">
                                             <span class="bi-sel-name">{{ $nMapel }}</span>
                                             <span class="bi-sel-actions">
-                                                <button type="button" class="bi-up" title="Naikkan"><i class="fas fa-arrow-up"></i></button>
-                                                <button type="button" class="bi-down" title="Turunkan"><i class="fas fa-arrow-down"></i></button>
                                                 <button type="button" class="bi-remove" title="Hapus"><i class="fas fa-times"></i></button>
                                             </span>
                                         </div>

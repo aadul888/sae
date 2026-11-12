@@ -48,7 +48,43 @@
         .bi-ref-empty { padding: 10px; text-align: center; color: var(--text-muted); font-size: var(--text-xs, 0.75rem); }
         .bi-selected { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
         .bi-sel-empty { text-align: center; color: var(--text-muted); font-size: var(--text-xs, 0.75rem); padding: 10px; border: 1px dashed var(--border-color, #e5e7eb); border-radius: var(--radius-md, 8px); }
-        .bi-sel-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.18); }
+        .bi-sel-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: var(--radius-md, 8px);
+            background: rgba(99,102,241,0.06);
+            border: 1px solid rgba(99,102,241,0.18);
+            user-select: none;
+            transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+        }
+        .bi-sel-item[draggable="true"] {
+            cursor: grab;
+        }
+        .bi-sel-item.bi-dragging {
+            opacity: 0.45;
+            cursor: grabbing;
+            background: rgba(99,102,241,0.15);
+            border: 1px dashed var(--primary, #3b82f6);
+        }
+        .bi-sel-item.bi-drag-over-top {
+            border-top: 2px solid var(--primary, #3b82f6);
+        }
+        .bi-sel-item.bi-drag-over-bottom {
+            border-bottom: 2px solid var(--primary, #3b82f6);
+        }
+        .bi-drag-handle {
+            color: var(--text-muted);
+            cursor: grab;
+            font-size: var(--text-xs, 0.75rem);
+            padding: 2px 4px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .bi-drag-handle:hover {
+            color: var(--primary, #3b82f6);
+        }
         .bi-sel-idx { font-size: var(--text-2xs, 0.6875rem); font-weight: 700; color: var(--text-muted); min-width: 18px; }
         .bi-sel-name { flex: 1; font-size: var(--text-xs, 0.75rem); font-weight: 600; color: var(--text-color); }
         .bi-sel-actions { display: flex; gap: 3px; }
