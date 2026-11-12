@@ -568,6 +568,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/pip/kuota', [\App\Http\Controllers\PipController::class, 'updateKuota'])->name('pip.update-kuota');
     Route::post('/pip/riwayat/import', [\App\Http\Controllers\PipController::class, 'importRiwayatExcel'])->name('pip.import-riwayat');
     Route::post('/pip/riwayat', [\App\Http\Controllers\PipController::class, 'storeRiwayatManual'])->name('pip.store-riwayat');
+    Route::post('/pip/riwayat/bulk-delete', [\App\Http\Controllers\PipController::class, 'bulkDestroyRiwayat'])->name('pip.bulk-destroy-riwayat');
     Route::match(['post', 'delete'], '/pip/riwayat/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyRiwayat'])->name('pip.destroy-riwayat');
     Route::post('/pip/pengaturan', [\App\Http\Controllers\PipController::class, 'updatePengaturan'])->name('pip.update-pengaturan')->middleware('permission:menu_pip,update');
     Route::post('/pip/laporan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'verifikasiLaporan'])->name('pip.verifikasi-laporan')->middleware('permission:menu_pip,update');

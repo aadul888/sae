@@ -685,13 +685,73 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.pipHapusRiwayat = async function (id, nama) {
-        const r = await window.SAE.confirm("Catatan riwayat PIP ${nama} akan dihapus permanen.", "Hapus Riwayat?", 'warning', "Ya, Hapus!", "Batal");
+        const r = await window.SAE.confirm(`Catatan riwayat PIP ${nama} akan dihapus permanen.`, "Hapus Riwayat?", 'warning', "Ya, Hapus!", "Batal");
         if (!r.isConfirmed) return;
         try {
             const { ok, data } = await post(tpl(CFG.urlTemplates.destroyRiwayat, id), {});
             if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
         } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
     };
+
+    // ---------------------------------------------------------------------
+    // Bulk hapus riwayat PIP (bersihkan baris ganda NISN + SK + tahap)
+    // ---------------------------------------------------------------------
+    const riwayatCheckedIds = () =>
+        Array.from(document.querySelectorAll(".pip-row-check:checked")).map((el) => Number(el.value));
+
+    function syncBulkUI() {
+        const total = document.querySelectorAll(".pip-row-check").length;
+        const ids = riwayatCheckedIds();
+        const btn = document.getElementById("pipBulkDeleteRiwayat");
+        const count = document.getElementById("pipBulkSelectedCount");
+        const all = document.getElementById("pipCheckAllRiwayat");
+
+        if (count) {
+            count.style.display = ids.length ? "inline" : "none";
+            count.textContent = `${ids.length} dipilih`;
+        }
+        if (btn) {
+            btn.disabled = ids.length === 0;
+            btn.style.opacity = ids.length ? "1" : ".5";
+        }
+        if (all) {
+            all.checked = total > 0 && ids.length === total;
+            all.indeterminate = ids.length > 0 && ids.length < total;
+        }
+    }
+
+    document.addEventListener("change", function (e) {
+        if (e.target.id === "pipCheckAllRiwayat") {
+            document.querySelectorAll(".pip-row-check").forEach((el) => { el.checked = e.target.checked; });
+            syncBulkUI();
+            return;
+        }
+        if (e.target.classList.contains("pip-row-check")) syncBulkUI();
+    });
+
+    document.addEventListener("click", async function (e) {
+        const btn = e.target.closest("#pipBulkDeleteRiwayat");
+        if (!btn) return;
+
+        const ids = riwayatCheckedIds();
+        if (!ids.length) return;
+
+        const r = await window.SAE.confirm(
+            `${ids.length} catatan riwayat PIP akan dihapus permanen.`,
+            "Hapus Riwayat Terpilih?",
+            "warning",
+            "Ya, Hapus!",
+            "Batal"
+        );
+        if (!r.isConfirmed) return;
+
+        try {
+            const url = CFG.urlTemplates.bulkDestroyRiwayat;
+            if (!url) { Swal.fire("Gagal", "Rute hapus massal tidak tersedia.", "error"); return; }
+            const { ok, data } = await post(url, { ids });
+            if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
+        } catch (err) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+    });
 
     // ---------------------------------------------------------------------
     // Export Usulan PIP ke Excel (.xlsx)

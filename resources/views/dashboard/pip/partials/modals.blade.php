@@ -196,7 +196,9 @@
                                 &bull; Pada SK Nominasi, sistem otomatis memvalidasi agar peserta didik yang sudah ada
                                 di SK Pemberian tidak tersimpan ganda.<br>
                                 &bull; Jenis SK pada berkas harus sesuai pilihan. Berkas SK Nominasi yang diunggah
-                                sebagai SK Pemberian (atau sebaliknya) otomatis ditolak.
+                                sebagai SK Pemberian (atau sebaliknya) otomatis ditolak.<br>
+                                &bull; Kolom wajib: SK Pemberian memuat <em>tanggal cair</em> / <em>virtual acc</em> /
+                                <em>keterangan pencairan</em>; SK Nominasi memuat <em>tanggal aktivasi</em>.
                             </span>
                         </div>
                     </div>

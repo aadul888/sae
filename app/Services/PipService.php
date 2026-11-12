@@ -346,65 +346,231 @@ class PipService
 
     /**
      * Deteksi jenis SK dari isi berkas impor (header & nilai).
-     * Kembalikan null bila tidak dapat dipastikan agar impor tetap berjalan.
+     *
+     * Kolom SK Pemberian dan SK Nominasi berbeda:
+     * - Pemberian: tanggal_cair, virtual_acc, nama_rekening, keterangan_pencairan.
+     * - Nominasi : tanggal_aktivasi (+ status "aktivasi").
+     *
+     * Deteksi memakai signature kolom lebih dulu, bukan sekadar skor nilai.
+     * Kembalikan null bila tidak dapat dipastikan.
      */
     public static function detectJenisSk(array $rows): ?string
     {
-        $headerKeys = [];
-        $nominasiScore = 0;
-        $pemberianScore = 0;
+        $headers = self::normalizedHeaderMap($rows);
+        $keys = array_keys($headers);
+
+        $hasNominasiCol = false;
+        foreach ($keys as $key) {
+            if (self::isHeaderAktivasi($key)) {
+                $hasNominasiCol = true;
+                break;
+            }
+        }
+
+        $hasPemberianCol = false;
+        foreach ($keys as $key) {
+            if (self::isHeaderPencairan($key)) {
+                $hasPemberianCol = true;
+                break;
+            }
+        }
+
+        $aktivasiRows = 0;
+        $cairRows = 0;
+        $virtualRows = 0;
 
         foreach ($rows as $row) {
-            foreach ($row as $key => $value) {
-                $key = strtolower((string) $key);
-                if ($key === '' || str_starts_with($key, '__col_')) {
-                    continue;
-                }
-                $headerKeys[$key] = true;
+            $status = strtolower(trim((string) ($row[$headers['statuscair'] ?? ''] ?? '')));
+            if (self::rowHasAktivasi($row, $headers) || str_contains($status, 'aktivasi')) {
+                $aktivasiRows++;
+            }
+            if (self::rowHasTanggalCair($row, $headers)) {
+                $cairRows++;
+            }
+            if (trim((string) ($row[$headers['virtualacc'] ?? ''] ?? '')) !== '') {
+                $virtualRows++;
             }
         }
 
-        if (isset($headerKeys['tanggal_aktivasi']) || isset($headerKeys['tanggal aktivasi'])) {
-            $nominasiScore += 2;
-        }
-        if (isset($headerKeys['tanggal_cair']) || isset($headerKeys['tanggal cair'])) {
-            $pemberianScore += 2;
-        }
-        foreach (['keterangan_pencairan', 'keterangan pencairan', 'virtual_acc', 'nama_rekening', 'nama rekening'] as $kolom) {
-            if (isset($headerKeys[$kolom])) {
-                $pemberianScore += 2;
-            }
-        }
+        $pencairanRows = $cairRows + $virtualRows;
 
-        foreach ($rows as $row) {
-            if (trim((string) ($row['tanggal_aktivasi'] ?? $row['tanggal aktivasi'] ?? '')) !== '') {
-                $nominasiScore += 1;
-            }
-            if (trim((string) ($row['tanggal_cair'] ?? $row['tanggal cair'] ?? '')) !== '') {
-                $pemberianScore += 1;
-            }
-            if (trim((string) ($row['virtual_acc'] ?? '')) !== ''
-                || trim((string) ($row['keterangan_pencairan'] ?? $row['keterangan pencairan'] ?? '')) !== '') {
-                $pemberianScore += 1;
-            }
-            $status = strtolower(trim((string) ($row['status_cair'] ?? $row['status cair'] ?? '')));
-            if ($status !== '' && str_contains($status, 'aktivasi')) {
-                $nominasiScore += 2;
-            }
-            $nominal = self::parseNominal($row['nominal'] ?? '');
-            if ($nominal !== null && $nominal > 0) {
-                $pemberianScore += 1;
-            }
-        }
-
-        if ($nominasiScore >= 2 && $nominasiScore > $pemberianScore) {
+        if ($hasNominasiCol && !$hasPemberianCol) {
             return 'nominasi';
         }
-        if ($pemberianScore >= 2 && $pemberianScore > $nominasiScore) {
+        if ($hasPemberianCol && !$hasNominasiCol) {
+            return 'pemberian';
+        }
+
+        if ($hasNominasiCol && $hasPemberianCol) {
+            if ($aktivasiRows > 0 && $pencairanRows === 0) {
+                return 'nominasi';
+            }
+            if ($pencairanRows > 0 && $aktivasiRows === 0) {
+                return 'pemberian';
+            }
+            if ($aktivasiRows > $pencairanRows) {
+                return 'nominasi';
+            }
+            if ($pencairanRows > $aktivasiRows) {
+                return 'pemberian';
+            }
+            return null;
+        }
+
+        if ($aktivasiRows > 0 && $pencairanRows === 0) {
+            return 'nominasi';
+        }
+        if ($pencairanRows > 0 && $aktivasiRows === 0) {
             return 'pemberian';
         }
 
         return null;
+    }
+
+    /**
+     * Validasi ketat kolom wajib sesuai jenis SK yang dipilih.
+     * Mengembalikan pesan error bila berkas tidak memiliki kolom khas jenis SK tsb.
+     */
+    public static function jenisSkKolomError(array $rows, string $jenisSk): ?string
+    {
+        $keys = array_keys(self::normalizedHeaderMap($rows));
+
+        $hasPemberianCol = false;
+        $hasNominasiCol = false;
+        foreach ($keys as $key) {
+            if (!$hasPemberianCol && self::isHeaderPencairan($key)) {
+                $hasPemberianCol = true;
+            }
+            if (!$hasNominasiCol && self::isHeaderAktivasi($key)) {
+                $hasNominasiCol = true;
+            }
+        }
+
+        if ($jenisSk === 'pemberian' && !$hasPemberianCol) {
+            return 'Berkas tidak memiliki kolom pencairan dana (tanggal_cair / virtual_acc / keterangan_pencairan). Berkas ini terindikasi SK Nominasi; pilih SK Nominasi atau unggah berkas SK Pemberian.';
+        }
+        if ($jenisSk === 'nominasi' && !$hasNominasiCol) {
+            return 'Berkas tidak memiliki kolom aktivasi rekening (tanggal_aktivasi). Berkas ini terindikasi SK Pemberian; pilih SK Pemberian atau unggah berkas SK Nominasi.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalisasi nama kolom berkas impor ke key baku yang dipakai importRiwayatRows.
+     * Menangani variasi spasi, titik, huruf besar, dan BOM dari ekspor SiPintar.
+     */
+    public static function normalizeImportRows(array $rows): array
+    {
+        $canonical = [
+            'namapd'            => 'nama_pd',
+            'namarombel'        => 'nama_rombel',
+            'pesertadidikid'    => 'peserta_didik_id',
+            'namaibukandung'    => 'nama_ibu_kandung',
+            'namaayah'          => 'nama_ayah',
+            'tanggallahir'      => 'tanggal_lahir',
+            'tempatlahir'       => 'tempat_lahir',
+            'jeniskelamin'      => 'jenis_kelamin',
+            'nomorsk'           => 'nomor_sk',
+            'tanggalsk'         => 'tanggal_sk',
+            'tahapid'           => 'tahap_id',
+            'tahapketerangan'   => 'tahap_keterangan',
+            'semesterid'        => 'semester_id',
+            'statuscair'        => 'status_cair',
+            'tanggalcair'       => 'tanggal_cair',
+            'tglcair'           => 'tanggal_cair',
+            'tanggalpencairan'  => 'tanggal_cair',
+            'tglpencairan'      => 'tanggal_cair',
+            'tanggalaktivasi'   => 'tanggal_aktivasi',
+            'tglaktivasi'       => 'tanggal_aktivasi',
+            'virtualacc'        => 'virtual_acc',
+            'nomorvirtualacc'   => 'virtual_acc',
+            'namarekening'      => 'nama_rekening',
+            'keteranganpencairan' => 'keterangan_pencairan',
+        ];
+
+        $normalizedRows = [];
+        foreach ($rows as $row) {
+            $normalizedRow = [];
+            foreach ($row as $key => $value) {
+                $raw = (string) $key;
+                $normalized = strtolower(trim($raw));
+                $normalized = preg_replace('/^\xEF\xBB\xBF/', '', $normalized) ?? $normalized;
+                $normalized = preg_replace('/[^a-z0-9]+/', '', $normalized) ?? $normalized;
+
+                $normalizedRow[$canonical[$normalized] ?? $raw] = $value;
+            }
+            $normalizedRows[] = $normalizedRow;
+        }
+
+        return $normalizedRows;
+    }
+
+    /**
+     * Peta header ternormalisasi => nama kolom asli.
+     */
+    private static function normalizedHeaderMap(array $rows): array
+    {
+        $map = [];
+        foreach ($rows as $row) {
+            foreach ($row as $key => $value) {
+                $raw = (string) $key;
+                if ($raw === '' || str_starts_with(strtolower($raw), '__col_')) {
+                    continue;
+                }
+                $normalized = strtolower(trim($raw));
+                $normalized = preg_replace('/^\xEF\xBB\xBF/', '', $normalized) ?? $normalized;
+                $normalized = preg_replace('/[^a-z0-9]+/', '', $normalized) ?? $normalized;
+                if ($normalized === '') {
+                    continue;
+                }
+                if (!isset($map[$normalized])) {
+                    $map[$normalized] = $raw;
+                }
+            }
+        }
+
+        return $map;
+    }
+
+    private static function isHeaderAktivasi(string $key): bool
+    {
+        return (bool) preg_match('/^(tanggal|tgl)aktivasi/', $key);
+    }
+
+    private static function isHeaderPencairan(string $key): bool
+    {
+        return in_array($key, [
+            'tanggalcair',
+            'tglcair',
+            'tanggalpencairan',
+            'tglpencairan',
+            'virtualacc',
+            'nomorvirtualacc',
+            'keteranganpencairan',
+        ], true);
+    }
+
+    private static function rowHasAktivasi(array $row, array $headers): bool
+    {
+        foreach ($headers as $normalized => $original) {
+            if (self::isHeaderAktivasi($normalized) && trim((string) ($row[$original] ?? '')) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function rowHasTanggalCair(array $row, array $headers): bool
+    {
+        foreach (['tanggalcair', 'tglcair', 'tanggalpencairan', 'tglpencairan'] as $key) {
+            if (!empty($headers[$key]) && trim((string) ($row[$headers[$key]] ?? '')) !== '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

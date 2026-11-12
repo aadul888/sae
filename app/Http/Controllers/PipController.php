@@ -890,6 +890,13 @@ class PipController extends Controller
             return response()->json(['success' => false, 'message' => 'Berkas Excel kosong atau baris data tidak terdeteksi.'], 422);
         }
 
+        $rows = PipService::normalizeImportRows($rows);
+
+        $kolomError = PipService::jenisSkKolomError($rows, $jenisSk);
+        if ($kolomError !== null) {
+            return response()->json(['success' => false, 'message' => $kolomError], 422);
+        }
+
         $detected = PipService::detectJenisSk($rows);
         if ($detected !== null && $detected !== $jenisSk) {
             $labelDetected = $detected === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
@@ -1022,6 +1029,33 @@ class PipController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Catatan riwayat PIP berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Hapus banyak Catatan Riwayat PIP sekaligus (Admin Only).
+     * Dipakai untuk membersihkan baris ganda NISN + SK + tahap.
+     */
+    public function bulkDestroyRiwayat(Request $request): JsonResponse
+    {
+        if (!$this->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $data = $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ], [
+            'ids.required' => 'Pilih minimal satu riwayat yang akan dihapus.',
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $data['ids'])));
+        $deleted = PipRiwayat::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "{$deleted} catatan riwayat PIP berhasil dihapus.",
         ]);
     }
 

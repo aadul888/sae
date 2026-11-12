@@ -104,6 +104,18 @@
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
+
+                @if ($isAdmin)
+                    <button type="button" id="pipBulkDeleteRiwayat" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); color: var(--danger, #ef4444); opacity: .5;"
+                        title="Hapus riwayat terpilih" aria-label="Hapus riwayat terpilih" disabled>
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <span id="pipBulkSelectedCount"
+                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: none;">
+                        0 dipilih
+                    </span>
+                @endif
             </div>
 
             <div class="live-search-wrap" style="height: 38px;">
@@ -125,6 +137,13 @@
             style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    @if ($isAdmin)
+                        <th class="th-check"
+                            style="padding: 12px 14px; width: 40px; text-align: center;">
+                            <input type="checkbox" id="pipCheckAllRiwayat" class="pip-check-all"
+                                title="Pilih semua baris di halaman ini" aria-label="Pilih semua baris">
+                        </th>
+                    @endif
                     <th class="th-no d-none-mobile"
                         style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
                         No</th>
@@ -164,6 +183,14 @@
                     @endphp
                     <tr class="pip-riwayat-row"
                         style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                        @if ($isAdmin)
+                            <td class="cell-pd-check" style="padding: 12px 14px; text-align: center;" data-label="Pilih">
+                                @if (!$isBelum)
+                                    <input type="checkbox" class="pip-row-check" value="{{ $r->id }}"
+                                        aria-label="Pilih riwayat {{ $namaSiswa }}">
+                                @endif
+                            </td>
+                        @endif
                         <!-- No Urut (Desktop Only) -->
                         <td class="cell-pd-no d-none-mobile"
                             style="text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem); font-weight: 700;"
@@ -359,7 +386,7 @@
                     </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="cell-empty"
+                            <td colspan="{{ $isAdmin ? 8 : 7 }}" class="cell-empty"
                                 style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-clock-rotate-left mb-2"
                                     style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>

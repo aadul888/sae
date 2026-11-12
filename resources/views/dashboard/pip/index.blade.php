@@ -472,6 +472,9 @@
                 destroyRiwayat: @json(Route::has('dashboard.pip.destroy-riwayat')
                         ? route('dashboard.pip.destroy-riwayat', ['id' => '__ID__'])
                         : url('/dashboard/pip/riwayat/__ID__/delete')),
+                bulkDestroyRiwayat: @json(Route::has('dashboard.pip.bulk-destroy-riwayat')
+                        ? route('dashboard.pip.bulk-destroy-riwayat')
+                        : url('/dashboard/pip/riwayat/bulk-delete')),
             },
         };
     </script>
