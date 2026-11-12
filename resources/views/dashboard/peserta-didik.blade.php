@@ -165,7 +165,27 @@
         </div>
     </div>
 
-
+    @if (!empty($pipTerdaftar))
+        <!-- Akses Cepat: Riwayat & Laporan Dana PIP -->
+        <div class="card"
+            style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-left: 4px solid var(--success, #10b981);">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                <div
+                    style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                </div>
+                <div style="min-width: 0;">
+                    <div style="font-weight: 800; color: var(--text-color);">Riwayat PIP &amp; Laporan Penggunaan Dana</div>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                        Lihat SK PIP kamu dan laporkan penggunaan dana beserta buktinya.
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('dashboard.pip-siswa.index') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right me-1"></i> Buka PIP Saya
+            </a>
+        </div>
+    @endif
 
     <!-- 2 Columns: Attendance History & Schedule -->
     <div class="dash-grid-2">

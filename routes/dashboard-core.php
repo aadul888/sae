@@ -570,6 +570,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/pip/riwayat', [\App\Http\Controllers\PipController::class, 'storeRiwayatManual'])->name('pip.store-riwayat');
     Route::match(['post', 'delete'], '/pip/riwayat/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyRiwayat'])->name('pip.destroy-riwayat');
     Route::post('/pip/pengaturan', [\App\Http\Controllers\PipController::class, 'updatePengaturan'])->name('pip.update-pengaturan')->middleware('permission:menu_pip,update');
+    Route::post('/pip/laporan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'verifikasiLaporan'])->name('pip.verifikasi-laporan')->middleware('permission:menu_pip,update');
+
+    // Portal PIP Peserta Didik & Orang Tua/Wali (Riwayat PIP + Lapor Penggunaan Dana)
+    Route::get('/pip-saya', [\App\Http\Controllers\PipSiswaController::class, 'index'])->name('pip-siswa.index');
+    Route::post('/pip-saya/laporan', [\App\Http\Controllers\PipSiswaController::class, 'storeLaporan'])->name('pip-siswa.laporan.store');
 
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PipKuotaRombel;
 use App\Models\PipPengaturan;
+use App\Models\PipPenggunaanDana;
 use App\Models\PipUsulan;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -30,10 +31,10 @@ class PipQueryService
         $activeTahun = $ctx['activeTahun'];
 
         $tab = $request->get('tab', 'dashboard');
-        if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni', 'pengaturan'], true)) {
+        if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni', 'pengaturan', 'verifikasi'], true)) {
             $tab = ($tab === 'riwayat_alumni') ? 'riwayat' : 'dashboard';
         }
-        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni', 'pengaturan'], true)) {
+        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni', 'pengaturan', 'verifikasi'], true)) {
             $tab = 'dashboard';
         }
 
@@ -851,6 +852,64 @@ class PipQueryService
             }
         }
 
+        $verifikasiList = null;
+        $verifikasiPending = 0;
+        if ($isAdmin && Table::exists('pip_penggunaan_dana')) {
+            $verifikasiPending = PipPenggunaanDana::where('status', 'diajukan')->count();
+        }
+        $statusLaporanFilter = trim((string) $request->get('status_laporan', ''));
+        if (!in_array($statusLaporanFilter, ['diajukan', 'diverifikasi', 'ditolak'], true)) {
+            $statusLaporanFilter = '';
+        }
+        $verifikasiStats = ['total' => 0, 'diajukan' => 0, 'diverifikasi' => 0, 'ditolak' => 0];
+
+        if ($isAdmin && $tab === 'verifikasi' && Table::exists('pip_penggunaan_dana')) {
+            $verifQuery = PipPenggunaanDana::query()->with('bukti');
+
+            if ($statusLaporanFilter !== '') {
+                $verifQuery->where('status', $statusLaporanFilter);
+            }
+            if ($q !== '') {
+                $like = '%' . $q . '%';
+                $verifQuery->whereIn('peserta_didik_id', function ($sub) use ($like) {
+                    $sub->select('peserta_didik_id')
+                        ->from('peserta_didik')
+                        ->where(function ($w) use ($like) {
+                            $w->where('nama', 'like', $like)->orWhere('nisn', 'like', $like);
+                        });
+                });
+            }
+
+            $grouped = (clone $verifQuery)->reorder()
+                ->select('status', DB::raw('COUNT(*) as jml'))
+                ->groupBy('status')
+                ->pluck('jml', 'status')
+                ->toArray();
+            foreach (['diajukan', 'diverifikasi', 'ditolak'] as $statusKey) {
+                $verifikasiStats[$statusKey] = (int) ($grouped[$statusKey] ?? 0);
+            }
+            $verifikasiStats['total'] = array_sum($verifikasiStats);
+
+            $verifikasiList = $verifQuery
+                ->orderByRaw("CASE status WHEN 'diajukan' THEN 0 WHEN 'ditolak' THEN 1 ELSE 2 END")
+                ->orderByDesc('id')
+                ->paginate($perPage, ['*'], 'page')
+                ->withQueryString();
+
+            $pdIds = $verifikasiList->pluck('peserta_didik_id')->filter()->unique()->all();
+            $pdMap = $pdIds
+                ? DB::table('peserta_didik')->whereIn('peserta_didik_id', $pdIds)->get(['peserta_didik_id', 'nama', 'nisn'])->keyBy('peserta_didik_id')
+                : collect();
+
+            $verifikasiList->getCollection()->transform(function ($lap) use ($pdMap) {
+                $pd = $pdMap[$lap->peserta_didik_id] ?? null;
+                $lap->nama_peserta = $pd->nama ?? '-';
+                $lap->nisn_peserta = $pd->nisn ?? '';
+                $lap->rincian_list = is_array($lap->rincian) ? $lap->rincian : [];
+                return $lap;
+            });
+        }
+
         if (!$riwayatList) {
             $riwayatList = new LengthAwarePaginator(
                 collect(),
@@ -907,7 +966,11 @@ class PipQueryService
             'dashboardData',
             'pipPengaturan',
             'pipStatusInfo',
-            'isWaliLocked'
+            'isWaliLocked',
+            'verifikasiList',
+            'verifikasiStats',
+            'verifikasiPending',
+            'statusLaporanFilter'
         );
     }
 

@@ -118,6 +118,8 @@
         @include('dashboard.pip.partials.cards-riwayat-alumni')
     @elseif ($tab === 'riwayat')
         @include('dashboard.pip.partials.cards-riwayat')
+    @elseif ($tab === 'verifikasi' && $isAdmin)
+        @include('dashboard.pip.partials.cards-verifikasi')
     @endif
 
     <!-- 5. Segmented Navigation Tabs Baku SAE (Di Bawah Card Rekap) -->
@@ -149,6 +151,13 @@
                 class="tab-btn btn {{ $tab === 'pengaturan' ? 'btn-primary active' : 'btn-outline' }}">
                 <i class="fas fa-gear me-1"></i> Pengaturan
             </a>
+            <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'verifikasi'])) }}"
+                class="tab-btn btn pip-tab-verifikasi {{ $tab === 'verifikasi' ? 'active' : '' }}">
+                <i class="fas fa-clipboard-check me-1"></i> Verifikasi Laporan
+                @if (($verifikasiPending ?? 0) > 0)
+                    <span class="pip-tab-badge">{{ $verifikasiPending }}</span>
+                @endif
+            </a>
         @endif
     </div>
 
@@ -163,6 +172,8 @@
         @include('dashboard.pip.partials.tab-riwayat-alumni')
     @elseif ($tab === 'pengaturan' && $isAdmin)
         @include('dashboard.pip.partials.tab-pengaturan')
+    @elseif ($tab === 'verifikasi' && $isAdmin)
+        @include('dashboard.pip.partials.tab-verifikasi')
     @else
         @include('dashboard.pip.partials.tab-riwayat')
     @endif

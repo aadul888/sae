@@ -116,15 +116,7 @@
     $hasAkademikGuru = $can('menu_presensi_mengajar') || $can('menu_agenda_kbm') || $can('menu_presensi_peserta_didik');
 
     // Section: Portal Peserta Didik (Khusus Peserta Didik)
-    $hasPortalPesertaDidik =
-        $role === 'peserta_didik' &&
-        ($can('menu_identitas_siswa') ||
-            $can('menu_validasi_berkas') ||
-            $can('menu_surat_izin_pd') ||
-            $can('menu_e_izin') ||
-            $can('menu_riwayat_rfid') ||
-            $can('menu_jadwal_pelajaran') ||
-            $can('menu_jadwal_kbm'));
+    $hasPortalPesertaDidik = $role === 'peserta_didik';
 
     // Section: Wali Kelas (Khusus Guru dengan Tugas Tambahan Wali Kelas atau Siswa Koordinator)
     $hasWaliKelasDuty = collect($userDuties)->contains('kode', 'WALI_KELAS');
@@ -1305,7 +1297,8 @@
                 request()->routeIs('dashboard.berkas.*') ||
                 request()->routeIs('dashboard.berkas') ||
                 request()->routeIs('dashboard.validasi-berkas.*') ||
-                request()->routeIs('dashboard.validasi-berkas');
+                request()->routeIs('dashboard.validasi-berkas') ||
+                request()->routeIs('dashboard.pip-siswa*');
         @endphp
         <div class="dash-nav-group {{ $isPortalPesertaDidikActive ? 'open active-group' : '' }}">
             <button type="button" class="dash-nav-toggle">
@@ -1364,13 +1357,27 @@
                         <span class="nav-label">Jadwal Pelajaran</span>
                     </a>
                 @endif
+
+                @if ($role === 'peserta_didik')
+                    <a href="{{ route('dashboard.pip-siswa.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.pip-siswa*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
+                        <span class="nav-label">Riwayat PIP Saya</span>
+                    </a>
+                @endif
             </div>
         </div>
     @endif
 
     {{-- Menu Khusus: Portal Orang Tua / Wali Murid --}}
-    @if ($role === 'orang_tua' && ($can('menu_riwayat_rfid') || $can('menu_jadwal_pelajaran') || $can('menu_surat_izin_pd') || $can('menu_identitas_siswa')))
+    @if ($role === 'orang_tua')
         <span class="nav-section-label">Portal Pemantauan Siswa</span>
+
+        <a href="{{ route('dashboard.pip-siswa.index') }}"
+            class="dash-nav-link {{ request()->routeIs('dashboard.pip-siswa*') ? 'active' : '' }}">
+            <span class="nav-icon"><i class="fas fa-fw fa-hand-holding-dollar text-success"></i></span>
+            <span class="nav-label">Riwayat &amp; Laporan PIP</span>
+        </a>
 
         @if ($can('menu_riwayat_rfid'))
             <a href="{{ route('dashboard.orang-tua.kehadiran') }}"

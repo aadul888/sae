@@ -355,6 +355,10 @@ class DashboardController extends Controller
             }
         }
 
+        $pipTerdaftar = $pd
+            ? \App\Models\PipRiwayat::terdaftar($pd->peserta_didik_id, $pd->nisn ?? null)
+            : false;
+
         return view('dashboard.peserta-didik', compact(
             'stats',
             'presensi_terakhir',
@@ -366,7 +370,8 @@ class DashboardController extends Controller
             'koordinatorStats',
             'isJadwalDiberlakukan',
             'modeAktif',
-            'hariIni'
+            'hariIni',
+            'pipTerdaftar'
         ));
     }
 
@@ -710,6 +715,10 @@ class DashboardController extends Controller
 
         $semuaTransaksi = $transaksi->sortByDesc('waktu_sort')->values();
 
+        $pipTerdaftar = $pd
+            ? \App\Models\PipRiwayat::terdaftar($pd->peserta_didik_id, $pd->nisn ?? null)
+            : false;
+
         return view('dashboard.orang-tua', compact(
             'pd',
             'parentName',
@@ -719,7 +728,8 @@ class DashboardController extends Controller
             'statsHarian',
             'totalMapelSesi',
             'totalIzinSiswa',
-            'semuaTransaksi'
+            'semuaTransaksi',
+            'pipTerdaftar'
         ));
     }
 

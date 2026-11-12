@@ -194,7 +194,9 @@
                             Mendukung file unduhan langsung dari SiPintar (.xls, .xlsx, .csv, maks. 30 MB).<br>
                             <span id="pipValidationRuleHint" style="color: var(--primary); font-weight: 600;">
                                 &bull; Pada SK Nominasi, sistem otomatis memvalidasi agar peserta didik yang sudah ada
-                                di SK Pemberian tidak tersimpan ganda.
+                                di SK Pemberian tidak tersimpan ganda.<br>
+                                &bull; Jenis SK pada berkas harus sesuai pilihan. Berkas SK Nominasi yang diunggah
+                                sebagai SK Pemberian (atau sebaliknya) otomatis ditolak.
                             </span>
                         </div>
                     </div>

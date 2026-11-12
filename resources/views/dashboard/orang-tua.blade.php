@@ -197,6 +197,14 @@
                 <span class="kepegawaian-quick-label">Kartu Pelajar</span>
             </button>
         @endif
+        @if (!empty($pipTerdaftar))
+            <a href="{{ route('dashboard.pip-siswa.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Riwayat PIP & Laporan Penggunaan Dana">
+                <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                </div>
+                <span class="kepegawaian-quick-label">Riwayat PIP</span>
+            </a>
+        @endif
     </div>
 
     <!-- 4. Konten Utama: Tabel Semua Transaksi & Aktivitas Terkini Peserta Didik (Point 2) -->

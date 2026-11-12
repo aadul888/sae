@@ -345,6 +345,69 @@ class PipService
     }
 
     /**
+     * Deteksi jenis SK dari isi berkas impor (header & nilai).
+     * Kembalikan null bila tidak dapat dipastikan agar impor tetap berjalan.
+     */
+    public static function detectJenisSk(array $rows): ?string
+    {
+        $headerKeys = [];
+        $nominasiScore = 0;
+        $pemberianScore = 0;
+
+        foreach ($rows as $row) {
+            foreach ($row as $key => $value) {
+                $key = strtolower((string) $key);
+                if ($key === '' || str_starts_with($key, '__col_')) {
+                    continue;
+                }
+                $headerKeys[$key] = true;
+            }
+        }
+
+        if (isset($headerKeys['tanggal_aktivasi']) || isset($headerKeys['tanggal aktivasi'])) {
+            $nominasiScore += 2;
+        }
+        if (isset($headerKeys['tanggal_cair']) || isset($headerKeys['tanggal cair'])) {
+            $pemberianScore += 2;
+        }
+        foreach (['keterangan_pencairan', 'keterangan pencairan', 'virtual_acc', 'nama_rekening', 'nama rekening'] as $kolom) {
+            if (isset($headerKeys[$kolom])) {
+                $pemberianScore += 2;
+            }
+        }
+
+        foreach ($rows as $row) {
+            if (trim((string) ($row['tanggal_aktivasi'] ?? $row['tanggal aktivasi'] ?? '')) !== '') {
+                $nominasiScore += 1;
+            }
+            if (trim((string) ($row['tanggal_cair'] ?? $row['tanggal cair'] ?? '')) !== '') {
+                $pemberianScore += 1;
+            }
+            if (trim((string) ($row['virtual_acc'] ?? '')) !== ''
+                || trim((string) ($row['keterangan_pencairan'] ?? $row['keterangan pencairan'] ?? '')) !== '') {
+                $pemberianScore += 1;
+            }
+            $status = strtolower(trim((string) ($row['status_cair'] ?? $row['status cair'] ?? '')));
+            if ($status !== '' && str_contains($status, 'aktivasi')) {
+                $nominasiScore += 2;
+            }
+            $nominal = self::parseNominal($row['nominal'] ?? '');
+            if ($nominal !== null && $nominal > 0) {
+                $pemberianScore += 1;
+            }
+        }
+
+        if ($nominasiScore >= 2 && $nominasiScore > $pemberianScore) {
+            return 'nominasi';
+        }
+        if ($pemberianScore >= 2 && $pemberianScore > $nominasiScore) {
+            return 'pemberian';
+        }
+
+        return null;
+    }
+
+    /**
      * Proses impor baris transaksi riwayat PIP dari berkas SiPintar.
      */
     public static function importRiwayatRows(array $rows, string $jenisSk): array
@@ -359,6 +422,8 @@ class PipService
         $imported = 0;
         $updated = 0;
         $skippedPemberianCount = 0;
+        $skippedDuplicateCount = 0;
+        $seen = [];
 
         foreach ($rows as $row) {
             $nama = trim((string) ($row['nama_pd'] ?? ($row['nama'] ?? '')));
@@ -379,29 +444,6 @@ class PipService
             $tempatLahir = trim((string) ($row['tempat_lahir'] ?? ''));
             $jk = strtoupper(trim((string) ($row['jenis_kelamin'] ?? '')));
 
-            // Validasi khusus SK Nominasi: lewati jika siswa sudah ada di SK Pemberian
-            if ($jenisSk === 'nominasi') {
-                $hasPemberian = PipRiwayat::where('jenis_sk', 'pemberian')
-                    ->where(function ($q) use ($pdId, $nisn, $nama, $rombel) {
-                        if ($pdId !== '') {
-                            $q->where('peserta_didik_id', $pdId);
-                        } elseif ($nisn !== '') {
-                            $q->where('nisn', $nisn);
-                        } else {
-                            $q->where('nama_pd', $nama);
-                            if ($rombel !== '') {
-                                $q->where('rombel', $rombel);
-                            }
-                        }
-                    })
-                    ->exists();
-
-                if ($hasPemberian) {
-                    $skippedPemberianCount++;
-                    continue;
-                }
-            }
-
             $nominal = self::parseNominal($row['nominal'] ?? '');
             $nomorSk = trim((string) ($row['nomor_sk'] ?? ''));
             $tglSk = self::parseTanggal($row['tanggal_sk'] ?? '');
@@ -412,6 +454,56 @@ class PipService
             $tahun = $semesterId !== '' ? $semesterId : trim((string) ($row['tahun'] ?? date('Y')));
             if (strlen($tahun) >= 4) {
                 $tahun = substr($tahun, 0, 4);
+            }
+
+            // Kunci unik: 1 NISN per jenis SK + tahap + tahun. Duplikat dalam berkas dilewati.
+            $identitas = $nisn !== ''
+                ? 'nisn:' . $nisn
+                : ($pdId !== '' ? 'pd:' . $pdId : 'nama:' . mb_strtolower($nama) . '|' . $rombel);
+            $tahapKey = $tahapId !== '' ? 'tid:' . $tahapId : 't:' . $tahap;
+            $uniqueKey = $jenisSk . '|' . $identitas . '|' . $tahapKey . '|' . $tahun;
+
+            if (isset($seen[$uniqueKey])) {
+                $skippedDuplicateCount++;
+                continue;
+            }
+            $seen[$uniqueKey] = true;
+
+            $riwayatQuery = function (string $jenis) use ($pdId, $nisn, $nama, $rombel) {
+                return PipRiwayat::where('jenis_sk', $jenis)->where(function ($q) use ($pdId, $nisn, $nama, $rombel) {
+                    if ($nisn !== '') {
+                        $q->where('nisn', $nisn);
+                    } elseif ($pdId !== '') {
+                        $q->where('peserta_didik_id', $pdId);
+                    } else {
+                        $q->where('nama_pd', $nama);
+                        if ($rombel !== '') {
+                            $q->where('rombel', $rombel);
+                        }
+                    }
+                });
+            };
+
+            $periodeFilter = function ($q) use ($tahapId, $tahap, $tahun) {
+                if ($tahapId !== '') {
+                    $q->where(function ($sub) use ($tahapId, $tahap) {
+                        $sub->where('tahap_id', $tahapId)->orWhere('tahap', $tahapId);
+                        if ($tahap !== '' && $tahap !== $tahapId) {
+                            $sub->orWhere('tahap', $tahap);
+                        }
+                    });
+                } elseif ($tahap !== '') {
+                    $q->where('tahap', $tahap);
+                }
+                if ($tahun !== '') {
+                    $q->where('tahun', $tahun);
+                }
+            };
+
+            // SK Nominasi dilewati bila sudah ada SK Pemberian pada tahap & tahun yang sama.
+            if ($jenisSk === 'nominasi' && $riwayatQuery('pemberian')->where($periodeFilter)->exists()) {
+                $skippedPemberianCount++;
+                continue;
             }
 
             $tglCair = self::parseTanggal($row['tanggal_cair'] ?? '');
@@ -437,25 +529,6 @@ class PipService
                 $rombelId = $pdMapByPdId[$pdId];
             } elseif ($nisn && isset($pdMapByNisn[$nisn])) {
                 $rombelId = $pdMapByNisn[$nisn];
-            }
-
-            $criteria = [
-                'jenis_sk' => $jenisSk,
-            ];
-            if ($pdId !== '') {
-                $criteria['peserta_didik_id'] = $pdId;
-            } elseif ($nisn !== '') {
-                $criteria['nisn'] = $nisn;
-            } else {
-                $criteria['nama_pd'] = $nama;
-            }
-            if ($nomorSk !== '') {
-                $criteria['nomor_sk'] = $nomorSk;
-            }
-            if ($tahapId !== '') {
-                $criteria['tahap_id'] = $tahapId;
-            } elseif ($tahap !== '') {
-                $criteria['tahap'] = $tahap;
             }
 
             $recordData = [
@@ -500,7 +573,7 @@ class PipService
                 'raw_data'             => $row,
             ];
 
-            $existing = PipRiwayat::where($criteria)->first();
+            $existing = $riwayatQuery($jenisSk)->where($periodeFilter)->first();
             if ($existing) {
                 $existing->update($recordData);
                 $updated++;
@@ -513,13 +586,17 @@ class PipService
         $labelSk = $jenisSk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
         $msg = "Import {$labelSk} selesai. Sebanyak {$imported} data baru berhasil ditambahkan, dan {$updated} data diperbarui.";
         if ($skippedPemberianCount > 0) {
-            $msg .= " Sebanyak {$skippedPemberianCount} siswa dilewati karena sudah terdaftar di SK Pemberian.";
+            $msg .= " Sebanyak {$skippedPemberianCount} siswa dilewati karena sudah terdaftar di SK Pemberian pada tahap & tahun yang sama.";
+        }
+        if ($skippedDuplicateCount > 0) {
+            $msg .= " Sebanyak {$skippedDuplicateCount} baris duplikat (NISN sama pada tahap & tahun yang sama) dilewati.";
         }
 
         return [
             'imported'          => $imported,
             'updated'           => $updated,
             'skipped_pemberian' => $skippedPemberianCount,
+            'skipped_duplikat'  => $skippedDuplicateCount,
             'message'           => $msg,
         ];
     }

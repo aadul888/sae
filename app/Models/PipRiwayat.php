@@ -53,6 +53,29 @@ class PipRiwayat extends Model
         'raw_data',
     ];
 
+    /**
+     * Query riwayat PIP milik seorang peserta didik (by ID, fallback NISN).
+     * ponytail: pencocokan NISN saja; tambahkan NIK bila data legacy tidak punya NISN.
+     */
+    public static function milikSiswa(string $pesertaDidikId, ?string $nisn = null)
+    {
+        return static::query()->where(function ($q) use ($pesertaDidikId, $nisn) {
+            $q->where('peserta_didik_id', $pesertaDidikId);
+            if (!empty($nisn)) {
+                $q->orWhere('nisn', $nisn);
+            }
+        });
+    }
+
+    public static function terdaftar(string $pesertaDidikId, ?string $nisn = null): bool
+    {
+        if (!\App\Support\Table::exists('pip_riwayat')) {
+            return false;
+        }
+
+        return static::milikSiswa($pesertaDidikId, $nisn)->exists();
+    }
+
     public const JENIS_SK = [
         'pemberian' => 'SK Pemberian (Pencairan Dana)',
         'nominasi'  => 'SK Nominasi (Aktivasi Rekening)',

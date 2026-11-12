@@ -17,6 +17,7 @@ use App\Support\SemesterHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 
@@ -889,6 +890,17 @@ class PipController extends Controller
             return response()->json(['success' => false, 'message' => 'Berkas Excel kosong atau baris data tidak terdeteksi.'], 422);
         }
 
+        $detected = PipService::detectJenisSk($rows);
+        if ($detected !== null && $detected !== $jenisSk) {
+            $labelDetected = $detected === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
+            $labelSelected = $jenisSk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
+
+            return response()->json([
+                'success' => false,
+                'message' => "Berkas yang diunggah terdeteksi sebagai {$labelDetected}, sedangkan pilihan Anda {$labelSelected}. Import dibatalkan agar data riwayat tidak tertukar.",
+            ], 422);
+        }
+
         $result = PipService::importRiwayatRows($rows, $jenisSk);
 
         return response()->json([
@@ -922,26 +934,52 @@ class PipController extends Controller
             'tanggal_aktivasi' => 'nullable|string|max:30',
         ]);
 
-        // Validasi: jika jenis_sk nominasi, jangan simpan jika sudah ada pada sk pemberian!
+        $label = $data['jenis_sk'] === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
+        $tahun = $data['tahun'] ?: date('Y');
+
+        $identityFilter = function ($q) use ($data) {
+            if (!empty($data['peserta_didik_id'])) {
+                $q->where('peserta_didik_id', $data['peserta_didik_id']);
+            } elseif (!empty($data['nisn'])) {
+                $q->where('nisn', $data['nisn']);
+            } else {
+                $q->where('nama_pd', $data['nama_pd']);
+            }
+        };
+
+        $periodeFilter = function ($q) use ($data, $tahun) {
+            if (!empty($data['tahap'])) {
+                $q->where('tahap', $data['tahap']);
+            }
+            $q->where('tahun', $tahun);
+        };
+
+        // Validasi: jika jenis_sk nominasi, jangan simpan jika sudah ada SK Pemberian pada tahap & tahun yang sama.
         if ($data['jenis_sk'] === 'nominasi') {
             $hasPemberian = PipRiwayat::where('jenis_sk', 'pemberian')
-                ->where(function ($q) use ($data) {
-                    if (!empty($data['peserta_didik_id'])) {
-                        $q->where('peserta_didik_id', $data['peserta_didik_id']);
-                    } elseif (!empty($data['nisn'])) {
-                        $q->where('nisn', $data['nisn']);
-                    } else {
-                        $q->where('nama_pd', $data['nama_pd']);
-                    }
-                })
+                ->where($identityFilter)
+                ->where($periodeFilter)
                 ->exists();
 
             if ($hasPemberian) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Siswa {$data['nama_pd']} sudah memiliki SK Pemberian. SK Nominasi tidak dapat disimpan untuk siswa yang telah berstatus penerima SK Pemberian.",
+                    'message' => "Siswa {$data['nama_pd']} sudah memiliki SK Pemberian pada tahap & tahun yang sama. SK Nominasi tidak dapat disimpan.",
                 ], 422);
             }
+        }
+
+        // Satu NISN hanya boleh punya satu baris per jenis SK + tahap + tahun.
+        $duplicate = PipRiwayat::where('jenis_sk', $data['jenis_sk'])
+            ->where($identityFilter)
+            ->where($periodeFilter)
+            ->exists();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => false,
+                'message' => "Data {$label} untuk siswa ini pada tahap & tahun yang sama sudah ada. Gunakan impor ulang untuk memperbarui datanya.",
+            ], 422);
         }
 
         $rombelId = null;
@@ -959,12 +997,11 @@ class PipController extends Controller
             'nomor_sk'             => $data['nomor_sk'] ?: null,
             'jenis_sk'             => $data['jenis_sk'],
             'tahap'                => $data['tahap'] ?: null,
-            'tahun'                => $data['tahun'] ?: date('Y'),
+            'tahun'                => $tahun,
             'status_cair'          => $data['status_cair'] ?: null,
             'tanggal_aktivasi'     => $data['tanggal_aktivasi'] ?: null,
         ]);
 
-        $label = $data['jenis_sk'] === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
         return response()->json([
             'success' => true,
             'message' => "Catatan riwayat PIP ({$label}) berhasil ditambahkan.",
@@ -1051,5 +1088,61 @@ class PipController extends Controller
             'message'     => "Pengaturan {$judul} berhasil disimpan. {$statusDesc}",
             'status_info' => $info,
         ]);
+    }
+
+    /**
+     * Verifikasi / tolak laporan penggunaan dana PIP (Admin only)
+     */
+    public function verifikasiLaporan(Request $request, int $id)
+    {
+        if (!$this->isAdminUser()) {
+            abort(403, 'Akses ditolak: Khusus Administrator.');
+        }
+
+        $data = $request->validate([
+            'status'             => 'required|in:diajukan,diverifikasi,ditolak',
+            'catatan_verifikasi' => 'nullable|string|max:1000',
+        ]);
+
+        if (!Table::exists('pip_penggunaan_dana')) {
+            return back()->with('error', 'Data laporan belum tersedia.');
+        }
+
+        $laporan = DB::table('pip_penggunaan_dana')->where('id', $id)->first();
+        if (!$laporan) {
+            return back()->with('error', 'Laporan tidak ditemukan.');
+        }
+
+        $user = session('user');
+        $verifikator = is_array($user)
+            ? ($user['nama'] ?? ($user['name'] ?? 'Admin'))
+            : ($user->nama ?? ($user->name ?? 'Admin'));
+
+        $dikembalikan = $data['status'] === 'diajukan';
+
+        $payload = [
+            'status'     => $data['status'],
+            'updated_at' => now(),
+        ];
+
+        if (Schema::hasColumn('pip_penggunaan_dana', 'catatan_verifikasi')) {
+            $payload['catatan_verifikasi'] = $data['catatan_verifikasi'] ?? null;
+        }
+        if (!$dikembalikan && Schema::hasColumn('pip_penggunaan_dana', 'diverifikasi_oleh')) {
+            $payload['diverifikasi_oleh'] = $verifikator;
+        }
+        if (!$dikembalikan && Schema::hasColumn('pip_penggunaan_dana', 'diverifikasi_pada')) {
+            $payload['diverifikasi_pada'] = now();
+        }
+
+        DB::table('pip_penggunaan_dana')->where('id', $id)->update($payload);
+
+        $pesan = match ($data['status']) {
+            'diverifikasi' => 'Laporan penggunaan dana disetujui.',
+            'ditolak'      => 'Laporan penggunaan dana ditolak.',
+            default        => 'Status laporan dikembalikan ke diajukan.',
+        };
+
+        return back()->with('success', $pesan);
     }
 }
