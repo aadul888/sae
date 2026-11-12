@@ -305,7 +305,7 @@
                 justify-content: space-between !important;
                 align-items: center !important;
                 padding: 8px 0 !important;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                border-bottom: 1px dashed var(--border-color) !important;
                 width: 100% !important;
             }
 
@@ -324,7 +324,7 @@
                 justify-content: space-between !important;
                 align-items: flex-start !important;
                 padding: 9px 0 !important;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                border-bottom: 1px dashed var(--border-color) !important;
                 width: 100% !important;
             }
 
@@ -350,7 +350,7 @@
                 justify-content: space-between !important;
                 align-items: center !important;
                 padding: 8px 0 !important;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                border-bottom: 1px dashed var(--border-color) !important;
                 width: 100% !important;
             }
 
@@ -369,7 +369,7 @@
                 justify-content: space-between !important;
                 align-items: center !important;
                 padding: 8px 0 !important;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                border-bottom: 1px dashed var(--border-color) !important;
                 width: 100% !important;
             }
 
@@ -417,6 +417,11 @@
             .d-block-mobile {
                 display: none !important;
             }
+        }
+
+        /* Light mode sticky table header background */
+        [data-theme="light"] #tableRekapRombel thead {
+            background: #ffffff !important;
         }
     </style>
 @endpush

@@ -74,13 +74,13 @@
             return;
         }
 
-        const isDark = document.documentElement.getAttribute("data-theme") === "dark" ||
-            document.body.classList.contains("dark") ||
-            (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        const isLight = document.documentElement.getAttribute("data-theme") === "light";
+        const isDark = !isLight;
 
-        const textColor = isDark ? "#f1f5f9" : "#1e293b";
-        const textMuted = isDark ? "#94a3b8" : "#64748b";
-        const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+        const textColor = isLight ? "#0f172a" : "#f1f5f9";
+        const textMuted = isLight ? "#475569" : "#94a3b8";
+        const borderColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.08)";
+        const cardBg = isLight ? "#ffffff" : "#1e293b";
 
         // 1. Chart Status Usulan (Doughnut)
         const ctxStatus = document.getElementById("chartPipStatus") || document.getElementById("pipChartStatus");
@@ -113,8 +113,8 @@
                             const pos = element.tooltipPosition();
                             const pct = totalStatus > 0 ? Math.round((val / totalStatus) * 100) : 0;
 
-                            ctx.fillStyle = "#ffffff";
-                            ctx.font = "bold 11px sans-serif";
+                            ctx.fillStyle = (index === 3 || index === 1) && isLight ? "#0f172a" : "#ffffff";
+                            ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillText(val + " (" + pct + "%)", pos.x, pos.y);
@@ -129,15 +129,15 @@
                     ctx.textBaseline = "middle";
 
                     ctx.fillStyle = textMuted;
-                    ctx.font = "700 10px sans-serif";
+                    ctx.font = "700 11px 'Plus Jakarta Sans', sans-serif";
                     ctx.fillText("TOTAL USULAN", centerX, centerY - 10);
 
                     ctx.fillStyle = textColor;
-                    ctx.font = "800 18px sans-serif";
+                    ctx.font = "800 18px 'Plus Jakarta Sans', sans-serif";
                     ctx.fillText(totalUsulan + " Siswa", centerX, centerY + 8);
 
-                    ctx.fillStyle = targetPagu > 0 ? "#10b981" : textMuted;
-                    ctx.font = "600 10px sans-serif";
+                    ctx.fillStyle = targetPagu > 0 ? (isLight ? "#059669" : "#10b981") : textMuted;
+                    ctx.font = "700 11px 'Plus Jakarta Sans', sans-serif";
                     ctx.fillText(pctVal + "% Kuota", centerX, centerY + 24);
 
                     ctx.restore();
@@ -521,4 +521,20 @@
     }
 
     window.addEventListener("sae:tableRefreshed", runPipInit);
+
+    // Re-render chart otomatis saat toggle mode terang / gelap
+    if (typeof MutationObserver !== "undefined" && document.documentElement) {
+        const themeObserver = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                if (m.attributeName === "data-theme") {
+                    initPipDashboardCharts();
+                    break;
+                }
+            }
+        });
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+    }
 })();

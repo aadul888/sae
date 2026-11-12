@@ -42,7 +42,7 @@
             </div>
             <div class="dash-stat-label">
                 Sudah Diusulkan
-                <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: block; font-weight: 600; margin-top: 2px;">
                     ({{ number_format($belumDiajukan) }} belum diajukan)
                 </span>
             </div>
@@ -65,12 +65,12 @@
             <div class="dash-stat-label">
                 @if ($isAdmin)
                     Pagu Kuota ({{ $pctTerpakai }}%)
-                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: block; font-weight: 600; margin-top: 2px;">
                         ({{ number_format($sisaKuota) }} sisa kuota)
                     </span>
                 @else
                     Kuota Kelas
-                    <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
+                    <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: block; font-weight: 600; margin-top: 2px;">
                         ({{ $sisaKuotaKelas }} sisa kuota)
                     </span>
                 @endif

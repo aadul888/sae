@@ -67,7 +67,7 @@
                 <canvas id="chartPipStatus"></canvas>
             </div>
             <div
-                style="display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem);">
+                style="display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem); color: var(--text-color); font-weight: 600;">
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
                         style="width: 10px; height: 10px; border-radius: 50%; background: var(--success, #10b981); display: inline-block;"></span>
@@ -87,7 +87,7 @@
                 @endif
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
-                        style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted, #94a3b8); display: inline-block;"></span>
+                        style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); display: inline-block;"></span>
                     Sisa Kuota ({{ $isAdmin ? $sisaKuota : $sisaKuotaKelas }})
                 </span>
             </div>
@@ -172,28 +172,28 @@
                     </h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                         <div
-                            style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+                            style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25);">
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981); font-weight: 700; text-transform: uppercase;">
+                                style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #059669); font-weight: 800; text-transform: uppercase;">
                                 Sudah Pernah Terima PIP</div>
                             <div
-                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success, #10b981); margin: 4px 0;">
+                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success, #059669); margin: 4px 0;">
                                 {{ $d['wali_sudah_pip'] ?? 0 }}
                             </div>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Tercatat di
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 500;">Tercatat di
                                 riwayat SiPintar
                             </div>
                         </div>
                         <div
-                            style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
+                            style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);">
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: var(--warning, #f59e0b); font-weight: 700; text-transform: uppercase;">
+                                style="font-size: var(--text-sm, 0.8125rem); color: var(--warning, #d97706); font-weight: 800; text-transform: uppercase;">
                                 Belum Pernah Terima PIP</div>
                             <div
-                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--warning, #f59e0b); margin: 4px 0;">
+                                style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--warning, #d97706); margin: 4px 0;">
                                 {{ $d['wali_belum_pip'] ?? 0 }}
                             </div>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Peluang
+                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 500;">Peluang
                                 prioritas usulan baru
                             </div>
                         </div>
@@ -257,11 +257,11 @@
                 </h4>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                     Total {{ $rombelSummary->count() }} rombongan belajar aktif &bull;
-                    <span class="text-success font-weight-bold">{{ $d['rombel_penuh_count'] ?? 0 }} Penuh</span>
+                    <span class="text-success" style="font-weight: 700;">{{ $d['rombel_penuh_count'] ?? 0 }} Penuh</span>
                     &bull;
-                    <span class="text-warning font-weight-bold">{{ $d['rombel_tersedia_count'] ?? 0 }} Ada
+                    <span class="text-warning" style="font-weight: 700;">{{ $d['rombel_tersedia_count'] ?? 0 }} Ada
                         Kuota</span> &bull;
-                    <span class="text-danger font-weight-bold">{{ $d['rombel_belum_usul_count'] ?? 0 }} Belum
+                    <span class="text-danger" style="font-weight: 700;">{{ $d['rombel_belum_usul_count'] ?? 0 }} Belum
                         Mengusulkan</span>
                 </div>
             </div>
@@ -269,7 +269,7 @@
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <!-- Filter Sasaran Tingkat: Semua, Kelas Awal, Kelas Berjalan -->
                 <div class="dash-rekap-tingkat-filters"
-                    style="display: inline-flex; gap: 3px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 2px;">
+                    style="display: inline-flex; gap: 3px; background: var(--bg-hover, rgba(0,0,0,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 2px;">
                     <button type="button" class="btn-rekap-tingkat-filter active" data-tingkat="all"
                         style="padding: 4px 9px; font-size: var(--text-xs, 0.75rem); font-weight: 700; border: none; border-radius: var(--radius-sm, 6px); cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">
                         Semua Tingkat ({{ $rombelSummary->count() }})
@@ -286,7 +286,7 @@
 
                 <!-- Filter status keterisian kuota -->
                 <div class="dash-rekap-filters"
-                    style="display: inline-flex; gap: 3px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 2px;">
+                    style="display: inline-flex; gap: 3px; background: var(--bg-hover, rgba(0,0,0,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 2px;">
                     <button type="button" class="btn-rekap-filter active" data-status="all"
                         style="padding: 4px 9px; font-size: var(--text-xs, 0.75rem); font-weight: 700; border: none; border-radius: var(--radius-sm, 6px); cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">
                         Semua Status
@@ -384,11 +384,11 @@
                                         style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $r->tingkat_pendidikan_id_str ?: '-' }}</span>
                                     <span
                                         class="badge {{ $kategoriTingkat === 'kelas_awal' ? 'badge-primary' : 'badge-outline' }}"
-                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px; opacity: 0.9;">
+                                        style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 5px;">
                                         {{ $kategoriTingkat === 'kelas_awal' ? 'Kelas Awal' : 'Kelas Berjalan' }}
                                     </span>
                                 </div>
-                                <div style="font-size: var(--text-xs, 0.75rem); margin-top: 3px;">
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 500; margin-top: 3px;">
                                     {{ $r->jurusan_id_str ?: '-' }}
                                 </div>
                             </td>
@@ -410,10 +410,10 @@
                                     style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                                     <div
                                         style="width: {{ $r->pct }}%; height: 100%; background: {{ $r->pct >= 100 ? '#10b981' : ($r->pct > 0 ? 'var(--primary-light, #6366f1)' : '#cbd5e1') }}; border-radius: var(--radius-xs, 4px);">
-                                    </div>
+                                        </div>
                                 </div>
                             </td>
-                            <td style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: {{ $r->sisa > 0 ? 'var(--success, #10b981)' : '#94a3b8' }};"
+                            <td style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: {{ $r->sisa > 0 ? 'var(--success, #10b981)' : 'var(--text-muted)' }};"
                                 data-label="Sisa">
                                 {{ $r->sisa }}
                             </td>

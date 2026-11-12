@@ -90,6 +90,16 @@
         margin-top: 3px;
     }
 
+    [data-theme="light"] .pip-cd-box {
+        background: #ffffff;
+        border-color: rgba(37, 99, 235, 0.22);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="light"] .pip-cd-lbl {
+        color: #475569;
+    }
+
     .pip-cd-sep {
         font-size: var(--text-xl, 1.25rem);
         font-weight: 800;
@@ -116,7 +126,7 @@
         .pip-countdown-right {
             justify-content: space-between;
             width: 100%;
-            border-top: 1px dashed rgba(255, 255, 255, 0.08);
+            border-top: 1px dashed var(--border-color);
             padding-top: 12px;
         }
 
