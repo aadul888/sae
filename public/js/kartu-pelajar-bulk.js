@@ -200,6 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (formBulkBayar) {
         formBulkBayar.addEventListener("submit", async function (e) {
             e.preventDefault();
+            e.stopPropagation();
             const ids = getBerhasilSelectedIds();
             const applyAll = isBerhasilApplyAll();
 

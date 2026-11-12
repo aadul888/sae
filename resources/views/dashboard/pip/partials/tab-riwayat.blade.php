@@ -221,17 +221,6 @@
                         <td class="cell-pd-kelas" style="padding: 12px 14px;" data-label="Kelas">
                             <span class="badge badge-outline"
                                 style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 600;">{{ $kelasAktif }}</span>
-                            @if (
-                                !$isBelum &&
-                                    !empty($r->rombel) &&
-                                    $r->rombel !== ($r->nama_kelas_aktif ?? '') &&
-                                    $r->rombel !== ($r->nama_rombel_aktif ?? '') &&
-                                    $r->rombel !== ($r->nama_rombel_terakhir ?? ''))
-                                <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 3px;"
-                                    title="Rombel tercatat saat SK SiPintar">
-                                    SK: {{ $r->rombel }}
-                                </div>
-                            @endif
                         </td>
 
                         <!-- Kolom Status PIP / SK -->

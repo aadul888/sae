@@ -216,6 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (formEditBayar) {
         formEditBayar.addEventListener("submit", async function (e) {
             e.preventDefault();
+            e.stopPropagation();
             const btnSubmit = document.getElementById("btnSubmitPembayaran");
             const originalText = btnSubmit.innerHTML;
             btnSubmit.disabled = true;
@@ -571,6 +572,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (formGaransi) {
         formGaransi.addEventListener("submit", async function (e) {
             e.preventDefault();
+            e.stopPropagation();
             const btnSubmit = document.getElementById("btnSubmitGaransi");
             const originalText = btnSubmit.innerHTML;
             btnSubmit.disabled = true;

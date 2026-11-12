@@ -22,7 +22,7 @@
                 </div>
             </div>
 
-            <form id="formEditPembayaran">
+            <form id="formEditPembayaran" method="POST" data-no-ajax="true">
                 <input type="hidden" name="peserta_didik_id" id="bayarPdId">
 
                 <!-- Status Pembayaran Radio -->
@@ -162,7 +162,7 @@
                     sekaligus.</span>
             </div>
 
-            <form id="formBulkPembayaran">
+            <form id="formBulkPembayaran" method="POST" data-no-ajax="true">
                 <input type="hidden" name="action" id="bulkModalAction" value="custom_bulk">
                 <input type="hidden" name="apply_all_filtered" id="bulkModalApplyAll" value="0">
                 <input type="hidden" name="filter_q" id="bulkModalFilterQ" value="">
@@ -430,7 +430,7 @@
                 </div>
             </div>
 
-            <form id="formKlaimGaransi">
+            <form id="formKlaimGaransi" method="POST" data-no-ajax="true">
                 <input type="hidden" name="peserta_didik_id" id="garansiPdId">
 
                 <div style="margin-bottom: 14px;">

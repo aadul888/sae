@@ -6,7 +6,7 @@ use App\Models\PipKuotaRombel;
 use App\Models\PipRiwayat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-
+use Illuminate\Support\Facades\Storage;
 use App\Support\Table;
 /**
  * Service pemrosesan logika bisnis modul Program Indonesia Pintar (PIP).
@@ -639,6 +639,9 @@ class PipService
 
             $pdId = trim((string) ($row['peserta_didik_id'] ?? ''));
             $nisn = trim((string) ($row['nisn'] ?? ''));
+            if ($nisn !== '' && ctype_digit($nisn) && strlen($nisn) < 10) {
+                $nisn = str_pad($nisn, 10, '0', STR_PAD_LEFT);
+            }
             if ($pdId === '' && $nisn !== '') {
                 $pdId = $pdIdByNisn[$nisn] ?? ($pdtaIdByNisn[$nisn] ?? '');
             }
@@ -805,6 +808,82 @@ class PipService
             'skipped_duplikat'  => $skippedDuplicateCount,
             'message'           => $msg,
         ];
+    }
+
+    /**
+     * Hapus satu atau banyak riwayat PIP beserta kaskade laporan penggunaan dana & berkas bukti.
+     */
+    public static function deleteRiwayat(array $ids): int
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (empty($ids)) {
+            return 0;
+        }
+
+        if (Table::exists('pip_penggunaan_dana')) {
+            $laporanIds = DB::table('pip_penggunaan_dana')
+                ->whereIn('pip_riwayat_id', $ids)
+                ->pluck('id')
+                ->all();
+
+            if (!empty($laporanIds) && Table::exists('pip_penggunaan_bukti')) {
+                $buktiFiles = DB::table('pip_penggunaan_bukti')
+                    ->whereIn('penggunaan_dana_id', $laporanIds)
+                    ->pluck('file_path')
+                    ->all();
+
+                foreach ($buktiFiles as $filePath) {
+                    if ($filePath && Storage::disk('public')->exists($filePath)) {
+                        Storage::disk('public')->delete($filePath);
+                    }
+                }
+
+                DB::table('pip_penggunaan_bukti')->whereIn('penggunaan_dana_id', $laporanIds)->delete();
+            }
+
+            if (!empty($laporanIds)) {
+                DB::table('pip_penggunaan_dana')->whereIn('id', $laporanIds)->delete();
+            }
+        }
+
+        return PipRiwayat::whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * Bersihkan laporan penggunaan dana dan berkas bukti yang kehilangan induk riwayat PIP (orphaned).
+     */
+    public static function cleanupOrphanedPenggunaanDana(): int
+    {
+        if (!Table::exists('pip_penggunaan_dana')) {
+            return 0;
+        }
+
+        $orphanedIds = DB::table('pip_penggunaan_dana as d')
+            ->leftJoin('pip_riwayat as r', 'd.pip_riwayat_id', '=', 'r.id')
+            ->whereNull('r.id')
+            ->pluck('d.id')
+            ->all();
+
+        if (empty($orphanedIds)) {
+            return 0;
+        }
+
+        if (Table::exists('pip_penggunaan_bukti')) {
+            $buktiFiles = DB::table('pip_penggunaan_bukti')
+                ->whereIn('penggunaan_dana_id', $orphanedIds)
+                ->pluck('file_path')
+                ->all();
+
+            foreach ($buktiFiles as $filePath) {
+                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
+                }
+            }
+
+            DB::table('pip_penggunaan_bukti')->whereIn('penggunaan_dana_id', $orphanedIds)->delete();
+        }
+
+        return DB::table('pip_penggunaan_dana')->whereIn('id', $orphanedIds)->delete();
     }
 
     /**

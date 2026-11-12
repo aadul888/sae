@@ -70,28 +70,32 @@ class PipSiswaController extends Controller
         $laporanList = collect();
         $laporanMap = collect();
         if (Table::exists('pip_penggunaan_dana')) {
-            $laporanList = DB::table('pip_penggunaan_dana as d')
-                ->where('d.peserta_didik_id', $pd->peserta_didik_id)
-                ->orderByDesc('d.id')
-                ->get();
+            $riwayatIds = $riwayatList->pluck('id')->all();
+            if (!empty($riwayatIds)) {
+                $laporanList = DB::table('pip_penggunaan_dana as d')
+                    ->where('d.peserta_didik_id', $pd->peserta_didik_id)
+                    ->whereIn('d.pip_riwayat_id', $riwayatIds)
+                    ->orderByDesc('d.id')
+                    ->get();
 
-            $buktiMap = Table::exists('pip_penggunaan_bukti')
-                ? DB::table('pip_penggunaan_bukti')
-                    ->whereIn('penggunaan_dana_id', $laporanList->pluck('id')->all())
-                    ->orderBy('id')
-                    ->get()
-                    ->groupBy('penggunaan_dana_id')
-                : collect();
+                $buktiMap = Table::exists('pip_penggunaan_bukti')
+                    ? DB::table('pip_penggunaan_bukti')
+                        ->whereIn('penggunaan_dana_id', $laporanList->pluck('id')->all())
+                        ->orderBy('id')
+                        ->get()
+                        ->groupBy('penggunaan_dana_id')
+                    : collect();
 
-            $laporanList->each(function ($laporan) use ($buktiMap) {
-                $laporan->bukti_list = $buktiMap->get($laporan->id, collect())->values();
-                $laporan->rincian_list = is_string($laporan->rincian)
-                    ? (json_decode($laporan->rincian, true) ?: [])
-                    : ($laporan->rincian ?: []);
-            });
+                $laporanList->each(function ($laporan) use ($buktiMap) {
+                    $laporan->bukti_list = $buktiMap->get($laporan->id, collect())->values();
+                    $laporan->rincian_list = is_string($laporan->rincian)
+                        ? (json_decode($laporan->rincian, true) ?: [])
+                        : ($laporan->rincian ?: []);
+                });
 
-            // Laporan terbaru per SK Pemberian untuk deteksi status pelaporan.
-            $laporanMap = $laporanList->groupBy('pip_riwayat_id')->map->first();
+                // Laporan terbaru per SK Pemberian untuk deteksi status pelaporan.
+                $laporanMap = $laporanList->groupBy('pip_riwayat_id')->map->first();
+            }
         }
 
         return view('dashboard.pip-siswa', [

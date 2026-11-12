@@ -471,6 +471,43 @@ class PipQueryService
                 }
 
                 $hasJenisSk = Schema::hasColumn('pip_riwayat', 'jenis_sk');
+                $tahapFilter = trim((string) $request->get('tahap_id', ''));
+                if ($tahapFilter !== '') {
+                    $baseRiwayatScope->where(function ($sub) use ($tahapFilter) {
+                        $sub->where('r.tahap_id', $tahapFilter)
+                            ->orWhere('r.tahap', $tahapFilter)
+                            ->orWhere('r.tahap', 'LIKE', "%Tahap {$tahapFilter}%")
+                            ->orWhere('r.tahap', 'LIKE', "{$tahapFilter} - %");
+                    });
+                }
+                if ($tahunSkFilter !== '') {
+                    $baseRiwayatScope->where(function ($s) use ($tahunSkFilter) {
+                        $s->where('r.tanggal_sk', 'like', $tahunSkFilter . '%')
+                          ->orWhere('r.tanggal_sk', 'like', '%' . $tahunSkFilter);
+                    });
+                }
+                if ($hasJenisSk && $jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
+                    $baseRiwayatScope->where('r.jenis_sk', $jenisSkFilter);
+                }
+                if ($q !== '') {
+                    $baseRiwayatScope->where(function ($sub) use ($q, $hasPdta) {
+                        $sub->where('r.nama_pd', 'LIKE', "%{$q}%")
+                            ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                            ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
+                            ->orWhere('r.rombel', 'LIKE', "%{$q}%")
+                            ->orWhere('pd.nama', 'LIKE', "%{$q}%")
+                            ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
+                            ->orWhere('rb.nama', 'LIKE', "%{$q}%")
+                            ->orWhere('r.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                        if ($hasPdta) {
+                            $sub->orWhere('pdta.nama', 'LIKE', "%{$q}%")
+                                ->orWhere('pdta.nisn', 'LIKE', "%{$q}%")
+                                ->orWhere('pdta.status_keluar', 'LIKE', "%{$q}%")
+                                ->orWhere('pdta.nama_rombel_terakhir', 'LIKE', "%{$q}%");
+                        }
+                    });
+                }
+
                 $totalPemberian = $hasJenisSk
                     ? (clone $baseRiwayatScope)->where('r.jenis_sk', 'pemberian')->count()
                     : (clone $baseRiwayatScope)->count();
@@ -480,15 +517,13 @@ class PipQueryService
                 $totalNominal = (float) (clone $baseRiwayatScope)->sum('r.nominal');
                 $totalTransaksi = (clone $baseRiwayatScope)->count();
 
-                $totalRiwayatPenerimaUnik = (clone $baseRiwayatScope)
-                    ->select(DB::raw("COUNT(DISTINCT COALESCE(NULLIF(r.nisn, ''), CAST(r.peserta_didik_id AS CHAR))) as c"))
-                    ->value('c') ?? 0;
-                $totalAlumniPenerima = max(0, $totalRiwayatPenerimaUnik - $penerimaUnikCount);
+                $totalSiswaAktifPenerima = (clone $baseRiwayatScope)->whereNotNull('rb.rombongan_belajar_id')->count();
+                $totalAlumniPenerima = (clone $baseRiwayatScope)->whereNull('rb.rombongan_belajar_id')->count();
 
                 $riwayatStats = [
                     'total_siswa_aktif'          => $totalSiswaAktif,
                     'total_penerima_unik'        => $totalRiwayatPenerimaUnik,
-                    'total_siswa_aktif_penerima' => $penerimaUnikCount,
+                    'total_siswa_aktif_penerima' => $totalSiswaAktifPenerima,
                     'total_belum'                => $totalBelumMenerima,
                     'total_alumni_penerima'      => $totalAlumniPenerima,
                     'total_siswa'                => $totalTransaksi,

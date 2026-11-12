@@ -215,15 +215,28 @@
         return url.toString();
     };
 
+    // Helper: Safely resolve form action URL even if shadowed by input[name="action"]
+    function getFormAction(form) {
+        if (!form) return window.location.href;
+        const rawAction = typeof form.action === "string" ? form.action : form.getAttribute("action");
+        return rawAction || window.location.href;
+    }
+
     // Universal Helper: Execute Datatable search (works for forms and standalone toolbars)
     function executeDatatableSearch(input) {
         if (!input) return;
 
         // 1. Jika berada di dalam form GET, submit form secara asinkron
         const form = input.closest("form");
-        if (form && !form.hasAttribute("data-manual-search") && (form.method || "get").toLowerCase() === "get") {
+        if (
+            form &&
+            !form.hasAttribute("data-manual-search") &&
+            !form.hasAttribute("data-no-ajax") &&
+            !form.closest(".modal, .swal2-container, #actionModal, .modal-backdrop") &&
+            (form.method || "get").toLowerCase() === "get"
+        ) {
             const formData = new FormData(form);
-            const url = new URL(form.action || window.location.href, window.location.origin);
+            const url = new URL(getFormAction(form), window.location.origin);
             for (const [key, val] of formData.entries()) {
                 if (val !== "") url.searchParams.set(key, val);
                 else url.searchParams.delete(key);
@@ -311,17 +324,22 @@
         if (
             form &&
             !form.hasAttribute("data-no-ajax") &&
+            !form.closest(".modal, .swal2-container, #actionModal, .modal-backdrop") &&
             (form.method || "get").toLowerCase() === "get"
         ) {
             const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
             if (!hasTable) return;
+
+            const isSearchFilterForm = form.classList.contains("datatable-toolbar") ||
+                form.querySelector(".live-search-wrap, input[name='q'], select[name='perPage'], select[name='rombel']");
+            if (!isSearchFilterForm) return;
 
             e.preventDefault();
             e.stopImmediatePropagation();
             clearTimeout(globalLiveSearchTimer);
             if (typeof window.abortLiveTable === "function") window.abortLiveTable();
             const formData = new FormData(form);
-            const url = new URL(form.action || window.location.href, window.location.origin);
+            const url = new URL(getFormAction(form), window.location.origin);
             for (const [k, v] of formData.entries()) {
                 if (v !== "") url.searchParams.set(k, v);
                 else url.searchParams.delete(k);
@@ -360,7 +378,7 @@
                 if (hasTable) {
                     e.stopImmediatePropagation();
                     const formData = new FormData(form);
-                    const url = new URL(form.action || window.location.href, window.location.origin);
+                    const url = new URL(getFormAction(form), window.location.origin);
                     for (const [k, v] of formData.entries()) {
                         if (v !== "") url.searchParams.set(k, v);
                         else url.searchParams.delete(k);

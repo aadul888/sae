@@ -1024,7 +1024,10 @@ class PipController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
-        PipRiwayat::findOrFail($id)->delete();
+        $deleted = PipService::deleteRiwayat([$id]);
+        if ($deleted === 0) {
+            return response()->json(['success' => false, 'message' => 'Catatan riwayat PIP tidak ditemukan.'], 404);
+        }
 
         return response()->json([
             'success' => true,
@@ -1050,7 +1053,7 @@ class PipController extends Controller
         ]);
 
         $ids = array_values(array_unique(array_map('intval', $data['ids'])));
-        $deleted = PipRiwayat::whereIn('id', $ids)->delete();
+        $deleted = PipService::deleteRiwayat($ids);
 
         return response()->json([
             'success' => true,
