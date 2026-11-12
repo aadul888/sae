@@ -667,8 +667,6 @@ document.addEventListener("DOMContentLoaded", function () {
         openModal("modalImportRiwayat");
     };
     window.closeImportRiwayat = () => closeModal("modalImportRiwayat");
-    window.openTambahRiwayat = () => { document.getElementById("formTambahRiwayat")?.reset(); document.getElementById("rwPdId").value = ""; openModal("modalTambahRiwayat"); };
-    window.closeTambahRiwayat = () => closeModal("modalTambahRiwayat");
 
     document.getElementById("formImportRiwayat")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -683,27 +681,6 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (err) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
         btn.disabled = false;
         btn.innerHTML = old;
-    });
-
-    bindAutocomplete({
-        input: "rwCari", list: "rwAcList",
-        extra: { all_years: 1 },
-        onPick: (r, inp) => {
-            document.getElementById("rwPdId").value = r.peserta_didik_id;
-            document.getElementById("rwNama").value = r.nama;
-            document.getElementById("rwNisn").value = r.nisn || "";
-            document.getElementById("rwRombel").value = r.nama_rombel || "";
-            inp.value = r.nama;
-        },
-    });
-
-    document.getElementById("formTambahRiwayat")?.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const payload = Object.fromEntries(new FormData(this).entries());
-        try {
-            const { ok, data } = await post(CFG.routes.storeRiwayat, payload);
-            if (ok) { closeTambahRiwayat(); toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
-        } catch (err) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
     });
 
     window.pipHapusRiwayat = async function (id, nama) {
@@ -881,6 +858,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") ["modalTambahUsulan", "modalEditUsulan", "modalRiwayatUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
+        if (e.key === "Escape") ["modalTambahUsulan", "modalEditUsulan", "modalRiwayatUsulan", "modalImportRiwayat"].forEach(closeModal);
     });
 });

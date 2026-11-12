@@ -74,11 +74,6 @@
                     </button>
                 @endif
             @elseif ($tab === 'riwayat' && $isAdmin)
-                <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
-                    title="Tambah Data Riwayat Manual">
-                    <i class="fas fa-plus"></i>
-                </button>
                 <button type="button" class="btn btn-primary" onclick="openImportRiwayat()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Import Excel SK SiPintar Kemdikbud">
