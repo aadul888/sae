@@ -73,7 +73,7 @@
                         <i class="fas fa-plus"></i>
                     </button>
                 @endif
-            @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
+            @elseif ($tab === 'riwayat' && $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Data Riwayat Manual">
@@ -114,8 +114,6 @@
         @include('dashboard.pip.partials.cards-usulan')
     @elseif ($tab === 'kuota' && $isAdmin)
         @include('dashboard.pip.partials.cards-kuota')
-    @elseif ($tab === 'riwayat_alumni' && $isAdmin)
-        @include('dashboard.pip.partials.cards-riwayat-alumni')
     @elseif ($tab === 'riwayat')
         @include('dashboard.pip.partials.cards-riwayat')
     @elseif ($tab === 'verifikasi' && $isAdmin)
@@ -140,13 +138,9 @@
         @endif
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'riwayat'])) }}"
             class="tab-btn btn {{ $tab === 'riwayat' ? 'btn-primary active' : 'btn-outline' }}">
-            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat (Siswa Aktif)
+            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat
         </a>
         @if ($isAdmin)
-            <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'riwayat_alumni'])) }}"
-                class="tab-btn btn {{ $tab === 'riwayat_alumni' ? 'btn-primary active' : 'btn-outline' }}">
-                <i class="fas fa-user-graduate me-1"></i> Riwayat Kelas Lain &amp; Alumni
-            </a>
             <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'pengaturan'])) }}"
                 class="tab-btn btn {{ $tab === 'pengaturan' ? 'btn-primary active' : 'btn-outline' }}">
                 <i class="fas fa-gear me-1"></i> Pengaturan
@@ -168,8 +162,6 @@
         @include('dashboard.pip.partials.tab-usulan')
     @elseif ($tab === 'kuota' && $isAdmin)
         @include('dashboard.pip.partials.tab-kuota')
-    @elseif ($tab === 'riwayat_alumni' && $isAdmin)
-        @include('dashboard.pip.partials.tab-riwayat-alumni')
     @elseif ($tab === 'pengaturan' && $isAdmin)
         @include('dashboard.pip.partials.tab-pengaturan')
     @elseif ($tab === 'verifikasi' && $isAdmin)

@@ -1,19 +1,3 @@
-@if ($isAdmin)
-    <div
-        style="background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 16px; margin-bottom: 20px; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-info-circle text-primary" style="font-size: var(--text-lg, 1.125rem); flex-shrink: 0;"></i>
-            <span>Tab ini menampilkan data <strong>Peserta Didik Aktif</strong>, baik yang sudah menerima maupun yang
-                <strong>belum mendapatkan PIP</strong>. Data siswa yang telah lulus atau mutasi alumni berada di tab
-                khusus.</span>
-        </div>
-        <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat_alumni', 'tahun' => $activeTahun])) }}"
-            class="btn btn-outline btn-sm" style="white-space: nowrap; font-size: var(--text-sm, 0.8125rem); font-weight: 600;">
-            <i class="fas fa-user-graduate me-1"></i> Buka Riwayat Kelas Lain &amp; Alumni
-        </a>
-    </div>
-@endif
-
 <!-- Unified Datatable Riwayat PIP (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
 <div class="card datatable-card-wrapper" id="tableDataContainer">
     <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
@@ -44,6 +28,14 @@
                         Semua Siswa (Penerima &amp; Belum)
                     </option>
                 </select>
+
+                @if ($isAdmin)
+                    <select id="filterStatusSiswa" name="status_siswa" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Status Siswa</option>
+                        <option value="aktif" {{ request('status_siswa') === 'aktif' ? 'selected' : '' }}>Siswa Aktif</option>
+                        <option value="alumni" {{ request('status_siswa') === 'alumni' ? 'selected' : '' }}>Alumni &amp; Non-Aktif</option>
+                    </select>
+                @endif
 
                 @if (($statusPipFilter ?? 'penerima') !== 'belum')
                     <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select" style="height: 38px;">
@@ -94,6 +86,7 @@
                     $q ||
                         request('tahap_id') ||
                         request('tahun_sk') ||
+                        request('status_siswa') ||
                         ($jenisSkFilter ?? '') ||
                         ($isAdmin && $activeRombel) ||
                         ($statusPipFilter ?? 'penerima') !== 'penerima')
@@ -152,7 +145,7 @@
                         Peserta Didik</th>
                     <th
                         style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 120px;">
-                        Kelas Aktif</th>
+                        Kelas / Rombel</th>
                     <th
                         style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
                         Status PIP / SK</th>
@@ -175,10 +168,10 @@
                         $cair =
                             stripos((string) $r->status_cair, 'cair') !== false &&
                             stripos((string) $r->status_cair, 'belum') === false;
-                        $namaSiswa = $r->nama_pd_aktif ?: ($r->nama_pd ?: 'Peserta Didik');
-                        $nisnSiswa = $r->nisn_pd_aktif ?: ($r->nisn ?: '-');
+                        $namaSiswa = $r->nama_pd_aktif ?: ($r->nama_pd_alumni ?: ($r->nama_pd ?: 'Peserta Didik'));
+                        $nisnSiswa = $r->nisn_pd_aktif ?: ($r->nisn_pd_alumni ?: ($r->nisn ?: '-'));
                         $kelasAktif =
-                            $r->nama_kelas_aktif ?: ($r->nama_rombel_aktif ?: ($r->rombel ?: ($r->kelas ?: '-')));
+                            $r->nama_kelas_aktif ?: ($r->nama_rombel_aktif ?: ($r->nama_rombel_terakhir ?: ($r->rombel ?: ($r->kelas ?: '-'))));
                         $itemIndex = ($riwayatList->firstItem() ?: 1) + $loop->index;
                     @endphp
                     <tr class="pip-riwayat-row"
@@ -219,6 +212,22 @@
                                             style="font-weight: 800; font-size: var(--text-base, 0.875rem); color: var(--text-color); line-height: 1.35; word-break: break-word;">
                                             {{ $namaSiswa }}
                                         </div>
+                                        @if (($r->status_siswa ?? '') === 'alumni')
+                                            <span class="badge badge-warning"
+                                                style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px; font-weight: 700;"
+                                                title="Peserta didik terdata non-aktif / alumni">
+                                                <i class="fas fa-user-graduate me-1"></i>{{ $r->status_keluar ?: 'Alumni' }}
+                                                @if (!empty($r->tahun_lulus))
+                                                    ({{ $r->tahun_lulus }})
+                                                @endif
+                                            </span>
+                                        @elseif (($r->status_siswa ?? '') === 'riwayat_lain')
+                                            <span class="badge badge-outline"
+                                                style="font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px; font-weight: 600; color: var(--text-muted);"
+                                                title="Riwayat arsip SiPintar / rombel lain">
+                                                Arsip
+                                            </span>
+                                        @endif
                                     </div>
                                     <div class="pd-meta-row"
                                         style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
@@ -235,7 +244,7 @@
                             </div>
                         </td>
 
-                        <!-- Kolom Kelas Aktif -->
+                        <!-- Kolom Kelas / Rombel -->
                         <td class="cell-pd-kelas" style="padding: 12px 14px;" data-label="Kelas">
                             <span class="badge badge-outline"
                                 style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 600;">{{ $kelasAktif }}</span>
@@ -243,7 +252,8 @@
                                 !$isBelum &&
                                     !empty($r->rombel) &&
                                     $r->rombel !== ($r->nama_kelas_aktif ?? '') &&
-                                    $r->rombel !== ($r->nama_rombel_aktif ?? ''))
+                                    $r->rombel !== ($r->nama_rombel_aktif ?? '') &&
+                                    $r->rombel !== ($r->nama_rombel_terakhir ?? ''))
                                 <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 3px;"
                                     title="Rombel tercatat saat SK SiPintar">
                                     SK: {{ $r->rombel }}
@@ -395,7 +405,7 @@
                                 @elseif (($statusPipFilter ?? 'penerima') === 'semua')
                                     Tidak ada data peserta didik yang cocok dengan kriteria pencarian.
                                 @else
-                                    Belum ada riwayat penerima PIP untuk peserta didik aktif saat ini.
+                                    Belum ada data riwayat penerima PIP yang tercatat.
                                 @endif
                             </td>
                         </tr>

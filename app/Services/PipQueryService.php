@@ -31,10 +31,13 @@ class PipQueryService
         $activeTahun = $ctx['activeTahun'];
 
         $tab = $request->get('tab', 'dashboard');
-        if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni', 'pengaturan', 'verifikasi'], true)) {
-            $tab = ($tab === 'riwayat_alumni') ? 'riwayat' : 'dashboard';
+        if ($tab === 'riwayat_alumni') {
+            $tab = 'riwayat';
         }
-        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni', 'pengaturan', 'verifikasi'], true)) {
+        if (!$isAdmin && in_array($tab, ['kuota', 'pengaturan', 'verifikasi'], true)) {
+            $tab = 'dashboard';
+        }
+        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'pengaturan', 'verifikasi'], true)) {
             $tab = 'dashboard';
         }
 
@@ -409,7 +412,7 @@ class PipQueryService
                 $totalBelumMenerima = max(0, $totalSiswaAktif - $penerimaUnikCount);
 
                 $baseRiwayatScope = DB::table('pip_riwayat as r')
-                    ->join('peserta_didik as pd', function ($j) {
+                    ->leftJoin('peserta_didik as pd', function ($j) {
                         $j->on('r.peserta_didik_id', '=', 'pd.peserta_didik_id')
                           ->orWhere(function ($q) {
                               $q->whereNull('r.peserta_didik_id')
@@ -418,15 +421,35 @@ class PipQueryService
                                 ->whereColumn('r.nisn', 'pd.nisn');
                           });
                     })
-                    ->join('rombongan_belajar as rb', function ($j) {
+                    ->leftJoin('rombongan_belajar as rb', function ($j) {
                         $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
                           ->where('rb.jenis_rombel', '=', '1');
                     });
+
+                $hasPdta = Table::exists('peserta_didik_tidak_aktif');
+                if ($hasPdta) {
+                    $baseRiwayatScope->leftJoin('peserta_didik_tidak_aktif as pdta', function ($j) {
+                        $j->on('r.peserta_didik_id', '=', 'pdta.peserta_didik_id')
+                          ->orWhere(function ($q) {
+                              $q->whereNull('r.peserta_didik_id')
+                                ->whereNotNull('r.nisn')
+                                ->where('r.nisn', '!=', '')
+                                ->whereColumn('r.nisn', 'pdta.nisn');
+                          });
+                    });
+                }
 
                 if (!$isAdmin && $activeRombel) {
                     $baseRiwayatScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
                 } elseif ($isAdmin && $activeRombel) {
                     $baseRiwayatScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+                }
+
+                $statusSiswaFilter = trim((string) $request->get('status_siswa', ''));
+                if ($statusSiswaFilter === 'aktif') {
+                    $baseRiwayatScope->whereNotNull('rb.rombongan_belajar_id');
+                } elseif ($statusSiswaFilter === 'alumni') {
+                    $baseRiwayatScope->whereNull('rb.rombongan_belajar_id');
                 }
 
                 $hasJenisSk = Schema::hasColumn('pip_riwayat', 'jenis_sk');
@@ -439,14 +462,22 @@ class PipQueryService
                 $totalNominal = (float) (clone $baseRiwayatScope)->sum('r.nominal');
                 $totalTransaksi = (clone $baseRiwayatScope)->count();
 
+                $totalRiwayatPenerimaUnik = (clone $baseRiwayatScope)
+                    ->select(DB::raw("COUNT(DISTINCT COALESCE(NULLIF(r.nisn, ''), CAST(r.peserta_didik_id AS CHAR))) as c"))
+                    ->value('c') ?? 0;
+                $totalAlumniPenerima = max(0, $totalRiwayatPenerimaUnik - $penerimaUnikCount);
+
                 $riwayatStats = [
-                    'total_siswa_aktif'   => $totalSiswaAktif,
-                    'total_penerima_unik' => $penerimaUnikCount,
-                    'total_belum'         => $totalBelumMenerima,
-                    'total_siswa'         => $totalTransaksi,
-                    'total_pemberian'     => $totalPemberian,
-                    'total_nominasi'      => $totalNominasi,
-                    'total_nominal'       => $totalNominal,
+                    'total_siswa_aktif'          => $totalSiswaAktif,
+                    'total_penerima_unik'        => $totalRiwayatPenerimaUnik,
+                    'total_siswa_aktif_penerima' => $penerimaUnikCount,
+                    'total_belum'                => $totalBelumMenerima,
+                    'total_alumni_penerima'      => $totalAlumniPenerima,
+                    'total_siswa'                => $totalTransaksi,
+                    'total_riwayat'              => $totalTransaksi,
+                    'total_pemberian'            => $totalPemberian,
+                    'total_nominasi'             => $totalNominasi,
+                    'total_nominal'              => $totalNominal,
                 ];
 
                 $riwayatTahapList = $riwayatTahapOpsi;
@@ -527,7 +558,7 @@ class PipQueryService
                         ->withQueryString();
                 } elseif ($statusPipFilter === 'semua') {
                     $qPenerima = (clone $baseRiwayatScope)
-                        ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id');
+                        ->leftJoin('peserta_didik_meta as pdm', 'r.peserta_didik_id', '=', 'pdm.peserta_didik_id');
 
                     if ($hasUsulan) {
                         $qPenerima->leftJoin('pip_usulan as u', function ($j) use ($activeTahun) {
@@ -540,6 +571,7 @@ class PipQueryService
                         'pd.peserta_didik_id',
                         'r.nama_pd',
                         'pd.nama as nama_pd_aktif',
+                        $hasPdta ? 'pdta.nama as nama_pd_alumni' : DB::raw('NULL as nama_pd_alumni'),
                         'r.nisn',
                         'pd.nisn as nisn_pd_aktif',
                         'pd.nipd',
@@ -548,7 +580,9 @@ class PipQueryService
                         'pd.nama_rombel as nama_rombel_aktif',
                         'pd.rombongan_belajar_id as rombel_id_aktif',
                         'rb.nama as nama_kelas_aktif',
-                        'pdm.foto_path',
+                        $hasPdta ? 'pdta.status_keluar' : DB::raw('NULL as status_keluar'),
+                        $hasPdta ? 'pdta.nama_rombel_terakhir' : DB::raw('NULL as nama_rombel_terakhir'),
+                        $hasPdta ? DB::raw('COALESCE(pdta.foto_path, pdm.foto_path) as foto_path') : 'pdm.foto_path',
                         $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
                         $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
                         $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
@@ -564,6 +598,11 @@ class PipQueryService
                         'r.tanggal_aktivasi',
                         'r.rombel',
                         'r.tahun',
+                        DB::raw("CASE
+                            WHEN rb.rombongan_belajar_id IS NOT NULL THEN 'aktif'
+                            WHEN " . ($hasPdta ? "pdta.status_keluar IS NOT NULL" : "0=1") . " THEN 'alumni'
+                            ELSE 'riwayat_lain'
+                        END as status_siswa"),
                         DB::raw("'penerima' as status_pip_record")
                     );
 
@@ -595,6 +634,7 @@ class PipQueryService
                         'pd.peserta_didik_id',
                         'pd.nama as nama_pd',
                         'pd.nama as nama_pd_aktif',
+                        DB::raw('NULL as nama_pd_alumni'),
                         'pd.nisn',
                         'pd.nisn as nisn_pd_aktif',
                         'pd.nipd',
@@ -603,6 +643,8 @@ class PipQueryService
                         'pd.nama_rombel as nama_rombel_aktif',
                         'pd.rombongan_belajar_id as rombel_id_aktif',
                         'rb.nama as nama_kelas_aktif',
+                        DB::raw('NULL as status_keluar'),
+                        DB::raw('NULL as nama_rombel_terakhir'),
                         'pdm.foto_path',
                         $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
                         $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
@@ -619,6 +661,7 @@ class PipQueryService
                         DB::raw('NULL as tanggal_aktivasi'),
                         DB::raw('NULL as rombel'),
                         DB::raw('NULL as tahun'),
+                        DB::raw("'aktif' as status_siswa"),
                         DB::raw("'belum_menerima' as status_pip_record")
                     );
 
@@ -656,21 +699,31 @@ class PipQueryService
                     $riwayatQuery->select(
                         'r.*',
                         'pd.nama as nama_pd_aktif',
+                        $hasPdta ? 'pdta.nama as nama_pd_alumni' : DB::raw('NULL as nama_pd_alumni'),
                         'pd.nisn as nisn_pd_aktif',
+                        $hasPdta ? 'pdta.nisn as nisn_pd_alumni' : DB::raw('NULL as nisn_pd_alumni'),
                         'pd.nipd as nipd_pd_aktif',
                         'pd.nama_rombel as nama_rombel_aktif',
                         'pd.rombongan_belajar_id as rombel_id_aktif',
                         'rb.nama as nama_kelas_aktif',
-                        'pdm.foto_path',
+                        $hasPdta ? 'pdta.status_keluar' : DB::raw('NULL as status_keluar'),
+                        $hasPdta ? 'pdta.tahun_lulus' : DB::raw('NULL as tahun_lulus'),
+                        $hasPdta ? 'pdta.nama_rombel_terakhir' : DB::raw('NULL as nama_rombel_terakhir'),
+                        $hasPdta ? DB::raw('COALESCE(pdta.foto_path, pdm.foto_path) as foto_path') : 'pdm.foto_path',
                         $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
                         $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
                         $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
                         $hasUsulan ? 'u.keterangan as keterangan_usulan' : DB::raw('NULL as keterangan_usulan'),
+                        DB::raw("CASE
+                            WHEN rb.rombongan_belajar_id IS NOT NULL THEN 'aktif'
+                            WHEN " . ($hasPdta ? "pdta.status_keluar IS NOT NULL" : "0=1") . " THEN 'alumni'
+                            ELSE 'riwayat_lain'
+                        END as status_siswa"),
                         DB::raw("'penerima' as status_pip_record")
                     );
 
                     if ($q !== '') {
-                        $riwayatQuery->where(function ($sub) use ($q) {
+                        $riwayatQuery->where(function ($sub) use ($q, $hasPdta) {
                             $sub->where('r.nama_pd', 'LIKE', "%{$q}%")
                                 ->orWhere('r.nisn', 'LIKE', "%{$q}%")
                                 ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
@@ -679,6 +732,12 @@ class PipQueryService
                                 ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
                                 ->orWhere('rb.nama', 'LIKE', "%{$q}%")
                                 ->orWhere('r.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                            if ($hasPdta) {
+                                $sub->orWhere('pdta.nama', 'LIKE', "%{$q}%")
+                                    ->orWhere('pdta.nisn', 'LIKE', "%{$q}%")
+                                    ->orWhere('pdta.status_keluar', 'LIKE', "%{$q}%")
+                                    ->orWhere('pdta.nama_rombel_terakhir', 'LIKE', "%{$q}%");
+                            }
                         });
                     }
 
@@ -720,136 +779,7 @@ class PipQueryService
                 );
             }
         } elseif ($tab === 'riwayat_alumni' && $isAdmin) {
-            if ($hasRiwayatTable) {
-                $hasPdta = Table::exists('peserta_didik_tidak_aktif');
-
-                $riwayatAlumniQuery = DB::table('pip_riwayat as r')
-                    ->whereNotExists(function ($sub) {
-                        $sub->select(DB::raw(1))
-                            ->from('peserta_didik as pd')
-                            ->join('rombongan_belajar as rb', function ($j) {
-                                $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-                                  ->where('rb.jenis_rombel', '=', '1');
-                            })
-                            ->where(function ($match) {
-                                $match->whereColumn('r.peserta_didik_id', 'pd.peserta_didik_id')
-                                      ->orWhere(function ($orMatch) {
-                                          $orMatch->whereNull('r.peserta_didik_id')
-                                                  ->whereNotNull('r.nisn')
-                                                  ->where('r.nisn', '!=', '')
-                                                  ->whereColumn('r.nisn', 'pd.nisn');
-                                      });
-                            });
-                    });
-
-                if ($hasPdta) {
-                    $riwayatAlumniQuery->leftJoin('peserta_didik_tidak_aktif as pdta', function ($j) {
-                        $j->on('r.peserta_didik_id', '=', 'pdta.peserta_didik_id')
-                          ->orWhere(function ($q) {
-                              $q->whereNull('r.peserta_didik_id')
-                                ->whereNotNull('r.nisn')
-                                ->where('r.nisn', '!=', '')
-                                ->whereColumn('r.nisn', 'pdta.nisn');
-                          });
-                    });
-                }
-
-                $riwayatAlumniQuery->leftJoin('peserta_didik_meta as pdm', 'r.peserta_didik_id', '=', 'pdm.peserta_didik_id');
-
-                $selectFields = [
-                    'r.*',
-                    $hasPdta ? 'pdta.status_keluar' : DB::raw("NULL as status_keluar"),
-                    $hasPdta ? 'pdta.tahun_lulus' : DB::raw("NULL as tahun_lulus"),
-                    $hasPdta ? 'pdta.nama_rombel_terakhir' : DB::raw("NULL as nama_rombel_terakhir"),
-                    $hasPdta ? 'pdta.alasan_keluar' : DB::raw("NULL as alasan_keluar"),
-                    $hasPdta ? DB::raw('COALESCE(pdta.foto_path, pdm.foto_path) as foto_path') : 'pdm.foto_path',
-                ];
-                $riwayatAlumniQuery->select($selectFields);
-
-                if ($q !== '') {
-                    $riwayatAlumniQuery->where(function ($sub) use ($q, $hasPdta) {
-                        $sub->where('r.nama_pd', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nisn', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
-                            ->orWhere('r.rombel', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nama_ibu_kandung', 'LIKE', "%{$q}%");
-                        if ($hasPdta) {
-                            $sub->orWhere('pdta.nama', 'LIKE', "%{$q}%")
-                                ->orWhere('pdta.status_keluar', 'LIKE', "%{$q}%")
-                                ->orWhere('pdta.nama_rombel_terakhir', 'LIKE', "%{$q}%");
-                        }
-                    });
-                }
-
-                if ($hasPdta && $statusKeluarFilter !== '') {
-                    if ($statusKeluarFilter === 'Lainnya') {
-                        $riwayatAlumniQuery->where(function ($s) {
-                            $s->whereNull('pdta.status_keluar')
-                              ->orWhereNotIn('pdta.status_keluar', ['Alumni', 'Mutasi']);
-                        });
-                    } else {
-                        $riwayatAlumniQuery->where('pdta.status_keluar', $statusKeluarFilter);
-                    }
-                }
-
-                $tahapFilter = trim((string) $request->get('tahap_id', ''));
-                if ($tahapFilter !== '') {
-                    $riwayatAlumniQuery->where('r.tahap_id', $tahapFilter);
-                }
-
-                if ($tahunSkFilter !== '') {
-                    $riwayatAlumniQuery->where(function ($s) use ($tahunSkFilter) {
-                        $s->where('r.tanggal_sk', 'like', $tahunSkFilter . '%')
-                          ->orWhere('r.tanggal_sk', 'like', '%' . $tahunSkFilter);
-                    });
-                }
-
-                $hasJenisSk = Schema::hasColumn('pip_riwayat', 'jenis_sk');
-                $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
-                if ($hasJenisSk && $jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
-                    $riwayatAlumniQuery->where('r.jenis_sk', $jenisSkFilter);
-                }
-
-                $statAlumniQuery = clone $riwayatAlumniQuery;
-                $riwayatAlumniStats['total_siswa'] = (clone $statAlumniQuery)->count();
-                $riwayatAlumniStats['total_pemberian'] = $hasJenisSk
-                    ? (clone $statAlumniQuery)->where('r.jenis_sk', 'pemberian')->count()
-                    : $riwayatAlumniStats['total_siswa'];
-                $riwayatAlumniStats['total_nominasi'] = $hasJenisSk
-                    ? (clone $statAlumniQuery)->where('r.jenis_sk', 'nominasi')->count()
-                    : 0;
-                $riwayatAlumniStats['total_nominal'] = (float) (clone $statAlumniQuery)->sum('r.nominal');
-
-                $riwayatAlumniTahapList = $riwayatTahapOpsi;
-
-                if ($hasPdta) {
-                    $alumniStatusList = DB::table('peserta_didik_tidak_aktif')
-                        ->whereNotNull('status_keluar')
-                        ->where('status_keluar', '!=', '')
-                        ->distinct()
-                        ->pluck('status_keluar')
-                        ->all();
-                }
-
-                $riwayatAlumniList = $riwayatAlumniQuery
-                    ->orderByDesc('r.tahun')
-                    ->orderByDesc('r.id')
-                    ->paginate($perPage, ['*'], 'alumni_page')
-                    ->withQueryString();
-
-                $riwayatAlumniList->getCollection()->transform(function ($item) {
-                    $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
-                    return $item;
-                });
-            } else {
-                $riwayatAlumniList = new LengthAwarePaginator(
-                    collect(),
-                    0,
-                    $perPage,
-                    1,
-                    ['path' => $request->url(), 'pageName' => 'alumni_page', 'query' => $request->query()]
-                );
-            }
+            // Deprecated: riwayat alumni telah digabungkan ke dalam tab 'riwayat'
         }
 
         $verifikasiList = null;
