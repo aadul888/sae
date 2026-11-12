@@ -1,6 +1,8 @@
 @php
     $list = $verifikasiList;
     $statusFilter = $statusLaporanFilter ?? '';
+    $curSort = $sort ?? '';
+    $curDir = $sortDir ?? 'asc';
 @endphp
 
 <div class="card datatable-card-wrapper" id="tableDataContainer">
@@ -19,14 +21,14 @@
 
                 <select id="filterStatusLaporan" name="status_laporan" class="toolbar-filter-select"
                     style="height: 38px; min-width: 190px;">
-                    <option value="">Semua Status</option>
-                    <option value="diajukan" {{ $statusFilter === 'diajukan' ? 'selected' : '' }}>Menunggu Verifikasi
-                    </option>
+                    <option value="">Semua Status Laporan</option>
+                    <option value="belum" {{ $statusFilter === 'belum' ? 'selected' : '' }}>Belum Melapor</option>
+                    <option value="diajukan" {{ $statusFilter === 'diajukan' ? 'selected' : '' }}>Menunggu Verifikasi</option>
                     <option value="diverifikasi" {{ $statusFilter === 'diverifikasi' ? 'selected' : '' }}>Disetujui</option>
                     <option value="ditolak" {{ $statusFilter === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                 </select>
 
-                @if (!empty($q) || $statusFilter !== '')
+                @if (!empty($q) || $statusFilter !== '' || !empty($curSort))
                     <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'verifikasi', 'tahun' => $activeTahun])) }}"
                         class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
@@ -38,7 +40,7 @@
 
             <div class="live-search-wrap" style="height: 38px;">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchVerifikasi" name="q" placeholder="Cari nama / NISN..." value="{{ $q }}"
+                <input type="text" id="searchVerifikasi" name="q" placeholder="Cari nama / NISN / SK..." value="{{ $q }}"
                     autocomplete="off">
                 <button type="button" id="clearSearchVerifikasi"
                     class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
@@ -52,29 +54,51 @@
         <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <th class="sortable-th {{ $curSort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
+                        Peserta Didik
+                        <span class="sort-icon">{!! $curSort === 'nama' ? ($curDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $curSort === 'rombel' ? 'sorted' : '' }}" data-sort="rombel"
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 130px;">
+                        Kelas / Rombel
+                        <span class="sort-icon">{!! $curSort === 'rombel' ? ($curDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $curSort === 'tahap' ? 'sorted' : '' }}" data-sort="tahap"
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 170px;">
+                        Tahap / SK
+                        <span class="sort-icon">{!! $curSort === 'tahap' ? ($curDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
                     <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
-                        Peserta Didik</th>
-                    <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 160px;">
-                        Tahap / SK</th>
-                    <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
-                        Rincian Penggunaan</th>
-                    <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
-                        Nominal</th>
-                    <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
-                        Status</th>
+                        Rincian Penggunaan
+                    </th>
+                    <th class="sortable-th {{ $curSort === 'nominal' ? 'sorted' : '' }}" data-sort="nominal"
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
+                        Nominal
+                        <span class="sort-icon">{!! $curSort === 'nominal' ? ($curDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $curSort === 'status' ? 'sorted' : '' }}" data-sort="status"
+                        style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
+                        Status
+                        <span class="sort-icon">{!! $curSort === 'status' ? ($curDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
                     <th style="padding: 12px 14px; font-size: var(--text-xs, 0.75rem); text-transform: uppercase; color: var(--text-muted); text-align: center; width: 100px;">
-                        Aksi</th>
+                        Aksi
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($list as $lap)
                     @php
-                        $totalRincian = array_sum(array_map(fn($x) => (float) ($x['nominal'] ?? 0), $lap->rincian_list));
-                        $badge = [
-                            'diajukan' => ['Menunggu', 'badge-warning', 'fa-hourglass-half'],
+                        $hasLaporan = !empty($lap->laporan_id);
+                        $totalRincian = array_sum(array_map(fn($x) => (float) ($x['nominal'] ?? 0), $lap->rincian_list ?? []));
+                        $badge = match ($lap->status_laporan) {
+                            'diajukan'     => ['Menunggu Verifikasi', 'badge-warning', 'fa-hourglass-half'],
                             'diverifikasi' => ['Disetujui', 'badge-success', 'fa-circle-check'],
-                            'ditolak' => ['Ditolak', 'badge-danger', 'fa-circle-xmark'],
-                        ][$lap->status] ?? ['Diajukan', 'badge-outline', 'fa-circle-info'];
+                            'ditolak'      => ['Ditolak', 'badge-danger', 'fa-circle-xmark'],
+                            default        => ['Belum Melapor', 'badge-secondary', 'fa-file-circle-xmark'],
+                        };
+                        $nominalTampil = (float) ($hasLaporan ? ($lap->nominal_laporan ?: $lap->nominal_sk) : $lap->nominal_sk);
                     @endphp
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem);" data-label="Peserta Didik">
@@ -82,153 +106,169 @@
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                 NISN {{ $lap->nisn_peserta ?: '-' }}
                             </div>
-                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                {{ $lap->dilaporkan_oleh ?: '-' }}
-                                @if ($lap->created_at)
-                                    &middot; {{ \Illuminate\Support\Carbon::parse($lap->created_at)->format('d/m/Y H:i') }}
-                                @endif
-                            </div>
+                            @if ($hasLaporan)
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
+                                    {{ $lap->dilaporkan_oleh ?: 'Siswa' }}
+                                    @if ($lap->tgl_lapor)
+                                        &middot; {{ \Illuminate\Support\Carbon::parse($lap->tgl_lapor)->format('d/m/Y H:i') }}
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
+                        <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem);" data-label="Kelas / Rombel">
+                            <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px;">
+                                {{ $lap->nama_rombel ?: '-' }}
+                            </span>
                         </td>
                         <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem);" data-label="Tahap / SK">
-                            <div style="font-weight: 600;">{{ $lap->tahap ?: '-' }}</div>
+                            <div style="font-weight: 600;">{{ $lap->tahap_keterangan_sk ?: ($lap->tahap_sk ?: '-') }}</div>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                Tahap ID: {{ $lap->tahap_id ?: '-' }}
+                                Tahap ID: {{ $lap->tahap_id_sk ?: '-' }}
                             </div>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                {{ $lap->jenis_sk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian' }}
+                                {{ $lap->nomor_sk ?: '-' }}
                             </div>
                         </td>
-                        <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem);" data-label="Rincian">
-                            @forelse ($lap->rincian_list as $rin)
-                                <div style="display: flex; justify-content: space-between; gap: 12px;">
-                                    <span>{{ $rin['kategori'] ?? '-' }}</span>
-                                    <strong style="white-space: nowrap;">Rp
-                                        {{ number_format((float) ($rin['nominal'] ?? 0), 0, ',', '.') }}</strong>
+                        <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem);" data-label="Rincian Penggunaan">
+                            @if ($hasLaporan)
+                                @forelse ($lap->rincian_list as $rin)
+                                    <div style="display: flex; justify-content: space-between; gap: 12px; font-size: var(--text-xs, 0.75rem);">
+                                        <span>{{ $rin['kategori'] ?? '-' }}</span>
+                                        <strong style="white-space: nowrap;">Rp {{ number_format((float) ($rin['nominal'] ?? 0), 0, ',', '.') }}</strong>
+                                    </div>
+                                @empty
+                                    <span class="text-muted" style="font-size: var(--text-xs, 0.75rem);">-</span>
+                                @endforelse
+                                <div style="margin-top: 4px; font-weight: 700; font-size: var(--text-xs, 0.75rem); border-top: 1px dashed var(--border-color); padding-top: 3px;">
+                                    Total: Rp {{ number_format($totalRincian, 0, ',', '.') }}
                                 </div>
-                            @empty
-                                <span class="text-muted">-</span>
-                            @endforelse
-                            <div style="margin-top: 4px; font-weight: 700;">
-                                Total: Rp {{ number_format($totalRincian, 0, ',', '.') }}
-                            </div>
+                            @else
+                                <span class="text-muted" style="font-size: var(--text-xs, 0.75rem); font-style: italic;">
+                                    Belum ada rincian yang dikirim siswa
+                                </span>
+                            @endif
                         </td>
                         <td style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); text-align: right; white-space: nowrap;"
                             data-label="Nominal">
-                            Rp {{ number_format((float) $lap->nominal, 0, ',', '.') }}
+                            <strong>Rp {{ number_format($nominalTampil, 0, ',', '.') }}</strong>
                         </td>
                         <td style="padding: 12px 14px;" data-label="Status">
-                            <span class="badge {{ $badge[1] }}" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
-                                <i class="fas {{ $badge[2] }} me-1"></i>{{ $badge[0] }}
+                            <span class="badge {{ $badge[1] }}" style="font-size: var(--text-xs, 0.75rem); padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas {{ $badge[2] }}"></i>
+                                <span>{{ $badge[0] }}</span>
                             </span>
-                            @if (!empty($lap->catatan_verifikasi))
+                            @if ($hasLaporan && !empty($lap->catatan_verifikasi))
                                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
                                     {{ $lap->catatan_verifikasi }}
                                 </div>
                             @endif
-                            @if (!empty($lap->diverifikasi_oleh))
-                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 4px;">
+                            @if ($hasLaporan && !empty($lap->diverifikasi_oleh))
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                     oleh {{ $lap->diverifikasi_oleh }}
                                 </div>
                             @endif
                         </td>
                         <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
-                            <button type="button" class="btn-icon pip-verif-open"
-                                data-verif-id="{{ $lap->id }}"
-                                data-verif-nama="{{ $lap->nama_peserta }}"
-                                data-verif-tahap="{{ $lap->tahap ?: '-' }}{{ $lap->tahap_id ? ' / ' . $lap->tahap_id : '' }}"
-                                data-verif-status="{{ $lap->status }}"
-                                data-verif-action="{{ route('dashboard.pip.verifikasi-laporan', ['id' => $lap->id]) }}"
-                                data-verif-template="#pipVerifTpl-{{ $lap->id }}"
-                                title="Tinjau Laporan" aria-label="Tinjau Laporan" style="color: var(--primary);">
-                                <i class="fas fa-magnifying-glass"></i>
-                            </button>
+                            @if ($hasLaporan)
+                                <button type="button" class="btn-icon pip-verif-open"
+                                    data-verif-id="{{ $lap->laporan_id }}"
+                                    data-verif-nama="{{ $lap->nama_peserta }}"
+                                    data-verif-tahap="{{ $lap->tahap_keterangan_sk ?: ($lap->tahap_sk ?: '-') }}"
+                                    data-verif-status="{{ $lap->status_laporan }}"
+                                    data-verif-action="{{ route('dashboard.pip.verifikasi-laporan', ['id' => $lap->laporan_id]) }}"
+                                    data-verif-template="#pipVerifTpl-{{ $lap->laporan_id }}"
+                                    title="Tinjau Laporan Siswa" aria-label="Tinjau Laporan" style="color: var(--primary);">
+                                    <i class="fas fa-magnifying-glass"></i>
+                                </button>
 
-                            <template id="pipVerifTpl-{{ $lap->id }}">
-                                <div style="font-size: var(--text-sm, 0.8125rem);">
-                                    <div style="margin-bottom: 10px;">
-                                        <strong>Peserta:</strong> {{ $lap->nama_peserta }}
-                                        <span class="text-muted">(NISN {{ $lap->nisn_peserta ?: '-' }})</span><br>
-                                        <strong>Tahap / SK:</strong> {{ $lap->tahap ?: '-' }}
-                                        <span class="text-muted">(Tahap ID: {{ $lap->tahap_id ?: '-' }})</span>
-                                        ({{ $lap->jenis_sk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian' }})<br>
-                                        <strong>Dana diterima:</strong> Rp
-                                        {{ number_format((float) $lap->nominal, 0, ',', '.') }}
-                                    </div>
+                                <template id="pipVerifTpl-{{ $lap->laporan_id }}">
+                                    <div style="font-size: var(--text-sm, 0.8125rem);">
+                                        <div style="margin-bottom: 10px;">
+                                            <strong>Peserta:</strong> {{ $lap->nama_peserta }}
+                                            <span class="text-muted">(NISN {{ $lap->nisn_peserta ?: '-' }})</span><br>
+                                            <strong>Kelas:</strong> {{ $lap->nama_rombel ?: '-' }}<br>
+                                            <strong>Tahap / SK:</strong> {{ $lap->tahap_keterangan_sk ?: ($lap->tahap_sk ?: '-') }}
+                                            <span class="text-muted">({{ $lap->nomor_sk ?: 'SK Pemberian' }})</span><br>
+                                            <strong>Dana diterima:</strong> Rp {{ number_format((float) $lap->nominal_sk, 0, ',', '.') }}
+                                        </div>
 
-                                    <div style="font-weight: 700; margin-bottom: 6px;">Rincian Penggunaan</div>
-                                    <div style="margin-bottom: 12px;">
-                                        @forelse ($lap->rincian_list as $rin)
-                                            <div style="display: flex; justify-content: space-between; gap: 12px;">
-                                                <span>{{ $rin['kategori'] ?? '-' }}@if (!empty($rin['keterangan']))
-                                                        <span class="text-muted">— {{ $rin['keterangan'] }}</span>
-                                                    @endif</span>
-                                                <strong style="white-space: nowrap;">Rp
-                                                    {{ number_format((float) ($rin['nominal'] ?? 0), 0, ',', '.') }}</strong>
+                                        <div style="font-weight: 700; margin-bottom: 6px;">Rincian Penggunaan</div>
+                                        <div style="margin-bottom: 12px;">
+                                            @forelse ($lap->rincian_list as $rin)
+                                                <div style="display: flex; justify-content: space-between; gap: 12px;">
+                                                    <span>{{ $rin['kategori'] ?? '-' }}@if (!empty($rin['keterangan']))
+                                                            <span class="text-muted">— {{ $rin['keterangan'] }}</span>
+                                                        @endif</span>
+                                                    <strong style="white-space: nowrap;">Rp
+                                                        {{ number_format((float) ($rin['nominal'] ?? 0), 0, ',', '.') }}</strong>
+                                                </div>
+                                            @empty
+                                                <span class="text-muted">Tidak ada rincian.</span>
+                                            @endforelse
+                                            <div style="margin-top: 6px; font-weight: 700; border-top: 1px dashed var(--border-color); padding-top: 4px;">
+                                                Total: Rp {{ number_format($totalRincian, 0, ',', '.') }}
                                             </div>
-                                        @empty
-                                            <span class="text-muted">Tidak ada rincian.</span>
-                                        @endforelse
-                                        <div style="margin-top: 6px; font-weight: 700;">
-                                            Total: Rp {{ number_format($totalRincian, 0, ',', '.') }}
                                         </div>
-                                    </div>
 
-                                    <div style="font-weight: 700; margin-bottom: 6px;">Bukti Lampiran</div>
-                                    <div style="margin-bottom: 4px;">
-                                        @forelse ($lap->bukti as $b)
-                                            @php
-                                                $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
-                                                $isGambar = in_array(
-                                                    strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
-                                                    ['jpg', 'jpeg', 'png'],
-                                                    true,
-                                                );
-                                            @endphp
-                                            <button type="button" class="pip-verif-bukti"
-                                                data-bukti-url="{{ $buktiUrl }}"
-                                                data-bukti-type="{{ $isGambar ? 'image' : 'pdf' }}"
-                                                data-bukti-name="{{ $b->nama_asli ?: 'Bukti' }}"
-                                                style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 8px; margin-bottom: 8px; cursor: pointer; color: var(--text-color);">
-                                                @if ($isGambar)
-                                                    <img src="{{ $buktiUrl }}" alt="{{ $b->nama_asli ?: 'Bukti' }}"
-                                                        loading="lazy"
-                                                        style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); flex-shrink: 0;">
-                                                @else
-                                                    <span
-                                                        style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: rgba(239,68,68,0.1); color: var(--danger, #ef4444); font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
-                                                        <i class="fas fa-file-pdf"></i>
+                                        <div style="font-weight: 700; margin-bottom: 6px;">Bukti Lampiran</div>
+                                        <div style="margin-bottom: 4px;">
+                                            @forelse ($lap->bukti as $b)
+                                                @php
+                                                    $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
+                                                    $isGambar = in_array(
+                                                        strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
+                                                        ['jpg', 'jpeg', 'png'],
+                                                        true,
+                                                    );
+                                                @endphp
+                                                <button type="button" class="pip-verif-bukti"
+                                                    data-bukti-url="{{ $buktiUrl }}"
+                                                    data-bukti-type="{{ $isGambar ? 'image' : 'pdf' }}"
+                                                    data-bukti-name="{{ $b->nama_asli ?: 'Bukti' }}"
+                                                    style="display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 8px; margin-bottom: 8px; cursor: pointer; color: var(--text-color);">
+                                                    @if ($isGambar)
+                                                        <img src="{{ $buktiUrl }}" alt="{{ $b->nama_asli ?: 'Bukti' }}"
+                                                            loading="lazy"
+                                                            style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); flex-shrink: 0;">
+                                                    @else
+                                                        <span
+                                                            style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: rgba(239,68,68,0.1); color: var(--danger, #ef4444); font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                                                            <i class="fas fa-file-pdf"></i>
+                                                        </span>
+                                                    @endif
+                                                    <span style="min-width: 0;">
+                                                        <span
+                                                            style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                            {{ $b->nama_asli ?: 'Bukti' }}
+                                                        </span>
+                                                        <span
+                                                            style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+                                                            <i class="fas fa-magnifying-glass-plus me-1"></i>Klik untuk meninjau
+                                                        </span>
                                                     </span>
-                                                @endif
-                                                <span style="min-width: 0;">
-                                                    <span
-                                                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                        {{ $b->nama_asli ?: 'Bukti' }}
-                                                    </span>
-                                                    <span
-                                                        style="display: block; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
-                                                        <i class="fas fa-magnifying-glass-plus me-1"></i>Klik untuk meninjau
-                                                    </span>
-                                                </span>
-                                            </button>
-                                        @empty
-                                            <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);">Tidak ada
-                                                bukti.</span>
-                                        @endforelse
-                                    </div>
-
-                                    @if (!empty($lap->catatan))
-                                        <div style="margin-top: 10px; font-size: var(--text-sm, 0.8125rem);">
-                                            <strong>Catatan pelapor:</strong> {{ $lap->catatan }}
+                                                </button>
+                                            @empty
+                                                <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);">Tidak ada
+                                                    bukti.</span>
+                                            @endforelse
                                         </div>
-                                    @endif
-                                </div>
-                            </template>
+
+                                        @if (!empty($lap->catatan_laporan))
+                                            <div style="margin-top: 10px; font-size: var(--text-sm, 0.8125rem);">
+                                                <strong>Catatan pelapor:</strong> {{ $lap->catatan_laporan }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </template>
+                            @else
+                                <span class="text-muted" style="font-size: var(--text-xs, 0.75rem);" title="Menunggu siswa melapor">-</span>
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="padding: 35px; text-align: center; color: var(--text-muted);">
-                            Belum ada laporan penggunaan dana yang masuk.
+                        <td colspan="7" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                            Tidak ada data penerima PIP SK Pemberian yang cocok.
                         </td>
                     </tr>
                 @endforelse

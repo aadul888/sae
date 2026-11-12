@@ -76,12 +76,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyParams(changes) {
         const url = new URL(window.location.href);
         Object.entries(changes).forEach(([k, v]) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k)));
-        const q = document.getElementById("searchPip");
-        if (q && q.value.trim()) url.searchParams.set("q", q.value.trim()); else url.searchParams.delete("q");
+        const qEl = document.getElementById("searchVerifikasi") || document.getElementById("searchPip");
+        if (qEl && qEl.value.trim()) url.searchParams.set("q", qEl.value.trim()); else url.searchParams.delete("q");
         url.searchParams.delete("usulan_page");
         url.searchParams.delete("kuota_page");
         url.searchParams.delete("riwayat_page");
         url.searchParams.delete("alumni_page");
+        url.searchParams.delete("verif_page");
         url.searchParams.delete("page");
         history.replaceState(null, "", url.toString());
         if (typeof window.refreshLiveTable === "function") window.refreshLiveTable(url.toString());
@@ -89,24 +90,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.addEventListener("input", function (e) {
-        if (e.target.id !== "searchPip") return;
-        clearBtn?.classList.toggle("visible", e.target.value.trim().length > 0);
-        clearTimeout(timer);
-        timer = setTimeout(() => applyParams({}), 350);
+        if (e.target.id === "searchPip" || e.target.id === "searchVerifikasi") {
+            const clear = e.target.parentElement?.querySelector(".clear-search");
+            clear?.classList.toggle("visible", e.target.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(() => applyParams({}), 350);
+        }
     });
     document.addEventListener("keydown", function (e) {
-        if (e.target.id === "searchPip" && e.key === "Enter") { e.preventDefault(); clearTimeout(timer); applyParams({}); }
+        if ((e.target.id === "searchPip" || e.target.id === "searchVerifikasi") && e.key === "Enter") {
+            e.preventDefault();
+            clearTimeout(timer);
+            applyParams({});
+        }
     });
     document.addEventListener("click", function (e) {
-        if (e.target.closest("#clearSearchPip")) {
-            const q = document.getElementById("searchPip");
+        if (e.target.closest("#clearSearchPip") || e.target.closest("#clearSearchVerifikasi")) {
+            const clear = e.target.closest(".clear-search");
+            const q = clear?.parentElement?.querySelector("input");
             if (q) q.value = "";
-            document.getElementById("clearSearchPip")?.classList.remove("visible");
+            clear?.classList.remove("visible");
             applyParams({});
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterFase: "fase", filterTahap: "tahap_id", filterTahunSk: "tahun_sk", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
+        const map = {
+            perPageSelect: "perPage",
+            filterRombel: "rombel_id",
+            filterStatusVerif: "status_verifikasi",
+            filterFase: "fase",
+            filterTahap: "tahap_id",
+            filterTahunSk: "tahun_sk",
+            filterJenisSk: "jenis_sk",
+            filterStatusKeluar: "status_keluar",
+            filterStatusPip: "status_pip",
+            filterStatusLaporan: "status_laporan"
+        };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);

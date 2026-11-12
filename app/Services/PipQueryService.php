@@ -61,6 +61,9 @@ class PipQueryService
         $hasKuotaTable = Table::exists('pip_kuota_rombel');
         $hasRiwayatTable = Table::exists('pip_riwayat');
 
+        $sort = trim((string) $request->get('sort', ''));
+        $sortDir = strtolower(trim((string) $request->get('sort_dir', 'asc'))) === 'desc' ? 'desc' : 'asc';
+
         $tahunSkFilter = trim((string) $request->get('tahun_sk', ''));
         if (!preg_match('/^\d{4}$/', $tahunSkFilter)) {
             $tahunSkFilter = '';
@@ -804,59 +807,140 @@ class PipQueryService
 
         $verifikasiList = null;
         $verifikasiPending = 0;
+        $statusLaporanFilter = trim((string) $request->get('status_laporan', ''));
+        if (!in_array($statusLaporanFilter, ['belum', 'diajukan', 'diverifikasi', 'ditolak'], true)) {
+            $statusLaporanFilter = '';
+        }
+        $verifikasiStats = ['total' => 0, 'belum' => 0, 'diajukan' => 0, 'diverifikasi' => 0, 'ditolak' => 0];
+
         if ($isAdmin && Table::exists('pip_penggunaan_dana')) {
             $verifikasiPending = PipPenggunaanDana::where('status', 'diajukan')->count();
         }
-        $statusLaporanFilter = trim((string) $request->get('status_laporan', ''));
-        if (!in_array($statusLaporanFilter, ['diajukan', 'diverifikasi', 'ditolak'], true)) {
-            $statusLaporanFilter = '';
-        }
-        $verifikasiStats = ['total' => 0, 'diajukan' => 0, 'diverifikasi' => 0, 'ditolak' => 0];
 
-        if ($isAdmin && $tab === 'verifikasi' && Table::exists('pip_penggunaan_dana')) {
-            $verifQuery = PipPenggunaanDana::query()->with('bukti');
+        if ($isAdmin && $tab === 'verifikasi' && $hasRiwayatTable) {
+            $baseVerifScope = DB::table('pip_riwayat as r')
+                ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->join('rombongan_belajar as rb', function ($j) {
+                    $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                      ->where('rb.jenis_rombel', '=', '1');
+                })
+                ->where('r.jenis_sk', 'pemberian')
+                ->leftJoin('pip_penggunaan_dana as l', 'r.id', '=', 'l.pip_riwayat_id');
+
+            // Hitung kartu statistik: total penerima SK pemberian aktif, belum lapor, diajukan (menunggu), disetujui, ditolak
+            $statRows = (clone $baseVerifScope)
+                ->select([
+                    DB::raw("COUNT(*) as total"),
+                    DB::raw("COUNT(CASE WHEN l.id IS NULL THEN 1 END) as belum"),
+                    DB::raw("COUNT(CASE WHEN l.status = 'diajukan' THEN 1 END) as diajukan"),
+                    DB::raw("COUNT(CASE WHEN l.status = 'diverifikasi' THEN 1 END) as diverifikasi"),
+                    DB::raw("COUNT(CASE WHEN l.status = 'ditolak' THEN 1 END) as ditolak"),
+                ])
+                ->first();
+
+            $verifikasiStats = [
+                'total'        => (int) ($statRows->total ?? 0),
+                'belum'        => (int) ($statRows->belum ?? 0),
+                'diajukan'     => (int) ($statRows->diajukan ?? 0),
+                'diverifikasi' => (int) ($statRows->diverifikasi ?? 0),
+                'ditolak'      => (int) ($statRows->ditolak ?? 0),
+            ];
+
+            $verifDataQuery = (clone $baseVerifScope);
 
             if ($statusLaporanFilter !== '') {
-                $verifQuery->where('status', $statusLaporanFilter);
+                if ($statusLaporanFilter === 'belum') {
+                    $verifDataQuery->whereNull('l.id');
+                } else {
+                    $verifDataQuery->where('l.status', $statusLaporanFilter);
+                }
             }
+
             if ($q !== '') {
-                $like = '%' . $q . '%';
-                $verifQuery->whereIn('peserta_didik_id', function ($sub) use ($like) {
-                    $sub->select('peserta_didik_id')
-                        ->from('peserta_didik')
-                        ->where(function ($w) use ($like) {
-                            $w->where('nama', 'like', $like)->orWhere('nisn', 'like', $like);
-                        });
+                $verifDataQuery->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('r.nama_pd', 'LIKE', "%{$q}%")
+                        ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
+                        ->orWhere('rb.nama', 'LIKE', "%{$q}%");
                 });
             }
 
-            $grouped = (clone $verifQuery)->reorder()
-                ->select('status', DB::raw('COUNT(*) as jml'))
-                ->groupBy('status')
-                ->pluck('jml', 'status')
-                ->toArray();
-            foreach (['diajukan', 'diverifikasi', 'ditolak'] as $statusKey) {
-                $verifikasiStats[$statusKey] = (int) ($grouped[$statusKey] ?? 0);
+            $verifDataQuery->select([
+                'r.id as pip_riwayat_id',
+                'r.peserta_didik_id',
+                'pd.nama as nama_peserta',
+                'pd.nisn as nisn_peserta',
+                'rb.nama as nama_rombel',
+                'r.nominal as nominal_sk',
+                'r.tahap as tahap_sk',
+                'r.tahap_id as tahap_id_sk',
+                'r.tahap_keterangan as tahap_keterangan_sk',
+                'r.nomor_sk',
+                'r.tanggal_sk',
+                'r.tanggal_cair',
+                'r.jenis_sk',
+                'l.id as laporan_id',
+                'l.nominal as nominal_laporan',
+                'l.rincian as rincian_laporan',
+                'l.pernyataan as pernyataan_laporan',
+                'l.catatan as catatan_laporan',
+                'l.catatan_verifikasi',
+                'l.dilaporkan_oleh',
+                'l.peran',
+                'l.status as status_laporan',
+                'l.created_at as tgl_lapor',
+                'l.diverifikasi_oleh',
+                'l.diverifikasi_pada',
+            ]);
+
+            // Default urutan: status menunggu (diajukan) paling atas, lalu ditolak, disetujui, dan belum lapor di akhir
+            if ($sort !== '') {
+                $sortColumn = match ($sort) {
+                    'nama'     => 'pd.nama',
+                    'rombel'   => 'rb.nama',
+                    'nominal'  => DB::raw("COALESCE(l.nominal, r.nominal)"),
+                    'tahap'    => 'r.tahap_id',
+                    'status'   => 'l.status',
+                    'created_at', 'tgl_lapor' => 'l.created_at',
+                    default    => null,
+                };
+                if ($sortColumn) {
+                    $verifDataQuery->orderBy($sortColumn, $sortDir);
+                }
+            } else {
+                $verifDataQuery->orderByRaw("
+                    CASE 
+                        WHEN l.status = 'diajukan' THEN 0 
+                        WHEN l.status = 'ditolak' THEN 1 
+                        WHEN l.status = 'diverifikasi' THEN 2 
+                        ELSE 3 
+                    END ASC
+                ")->orderByDesc('l.id')->orderBy('pd.nama', 'asc');
             }
-            $verifikasiStats['total'] = array_sum($verifikasiStats);
 
-            $verifikasiList = $verifQuery
-                ->orderByRaw("CASE status WHEN 'diajukan' THEN 0 WHEN 'ditolak' THEN 1 ELSE 2 END")
-                ->orderByDesc('id')
-                ->paginate($perPage, ['*'], 'page')
-                ->withQueryString();
+            $verifikasiList = $verifDataQuery->paginate($perPage, ['*'], 'verif_page')->withQueryString();
 
-            $pdIds = $verifikasiList->pluck('peserta_didik_id')->filter()->unique()->all();
-            $pdMap = $pdIds
-                ? DB::table('peserta_didik')->whereIn('peserta_didik_id', $pdIds)->get(['peserta_didik_id', 'nama', 'nisn'])->keyBy('peserta_didik_id')
-                : collect();
+            // Load bukti untuk data yang sudah ada laporan
+            $laporanIds = collect($verifikasiList->items())->pluck('laporan_id')->filter()->unique()->all();
+            $buktiMap = [];
+            if (!empty($laporanIds) && Table::exists('pip_penggunaan_bukti')) {
+                $buktiMap = DB::table('pip_penggunaan_bukti')
+                    ->whereIn('penggunaan_dana_id', $laporanIds)
+                    ->get()
+                    ->groupBy('penggunaan_dana_id');
+            }
 
-            $verifikasiList->getCollection()->transform(function ($lap) use ($pdMap) {
-                $pd = $pdMap[$lap->peserta_didik_id] ?? null;
-                $lap->nama_peserta = $pd->nama ?? '-';
-                $lap->nisn_peserta = $pd->nisn ?? '';
-                $lap->rincian_list = is_array($lap->rincian) ? $lap->rincian : [];
-                return $lap;
+            $verifikasiList->getCollection()->transform(function ($item) use ($buktiMap) {
+                $rincian = [];
+                if (!empty($item->rincian_laporan)) {
+                    $decoded = json_decode($item->rincian_laporan, true);
+                    $rincian = is_array($decoded) ? $decoded : [];
+                }
+                $item->rincian_list = $rincian;
+                $item->bukti = $item->laporan_id && isset($buktiMap[$item->laporan_id]) ? $buktiMap[$item->laporan_id] : collect();
+                return $item;
             });
         }
 
@@ -920,7 +1004,9 @@ class PipQueryService
             'verifikasiList',
             'verifikasiStats',
             'verifikasiPending',
-            'statusLaporanFilter'
+            'statusLaporanFilter',
+            'sort',
+            'sortDir'
         );
     }
 
