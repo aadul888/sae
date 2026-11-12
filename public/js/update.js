@@ -160,11 +160,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success") {
                 data.data.logs.forEach((l) => appendLog(l, "#34d399"));
                 appendLog("Update sistem selesai dengan sukses!", "#4ade80");
+                appendLog("Memuat ulang halaman sistem...", "#38bdf8");
                 btnRun.classList.add("hidden");
                 btnRun.style.display = "none";
                 bannerTitle.textContent = "Sistem Berhasil Diperbarui";
                 bannerDesc.textContent =
-                    "Semua file kode dan database telah disinkronkan.";
+                    "Semua file kode dan database telah disinkronkan. Halaman akan dimuat ulang...";
                 updateBanner.style.background = "rgba(16, 185, 129, 0.1)";
                 updateBanner.style.borderColor = "rgba(16, 185, 129, 0.3)";
                 statusBadge.className = "badge badge-primary";
@@ -177,8 +178,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (window.SAE && typeof window.SAE.toast === "function") {
-                    window.SAE.toast("Sistem berhasil diperbarui!", "success");
+                    window.SAE.toast("Sistem berhasil diperbarui! Memuat ulang...", "success");
                 }
+
+                // Hard refresh dengan cache buster agar assets dan view teranyar dimuat penuh
+                setTimeout(() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("_reload", Date.now().toString());
+                    window.location.replace(url.toString());
+                }, 1200);
             } else {
                 data.data.logs.forEach((l) => appendLog(l, "#f87171"));
                 appendLog(
