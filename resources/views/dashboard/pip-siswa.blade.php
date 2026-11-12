@@ -221,21 +221,30 @@
                                         @php $laporanSk = $laporanMap[$r->id] ?? null; @endphp
                                         @if ($laporanSk)
                                             @php [$statusLabel, $badgeClass, $statusIcon] = $statusBadge($laporanSk->status); @endphp
-                                            <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                                <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan']) }}"
-                                                    class="badge {{ $badgeClass }}"
-                                                    style="font-size: var(--text-xs, 0.75rem); padding: 6px 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border-radius: var(--radius-md, 6px);"
-                                                    title="Lihat status laporan di Tab Laporan">
-                                                    <i class="fas {{ $statusIcon }}"></i>
-                                                    <span>{{ $statusLabel }}</span>
-                                                </a>
+                                            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
+                                                <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                    <span class="badge {{ $badgeClass }}"
+                                                        style="font-size: var(--text-xs, 0.75rem); padding: 5px 9px; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-md, 6px);"
+                                                        title="Status Laporan: {{ $statusLabel }}">
+                                                        <i class="fas {{ $statusIcon }}"></i>
+                                                        <span>{{ $statusLabel }}</span>
+                                                    </span>
+                                                    <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'laporan', 'edit_laporan_id' => $laporanSk->id, 'pip_riwayat_id' => $r->id]) }}"
+                                                        class="badge badge-primary"
+                                                        style="font-size: var(--text-xs, 0.75rem); padding: 5px 9px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; border-radius: var(--radius-md, 6px);"
+                                                        title="Klik untuk mengedit atau memperbarui laporan ini">
+                                                        <i class="fas fa-pen-to-square"></i>
+                                                        <span>Edit Laporan</span>
+                                                    </a>
+                                                </div>
                                                 @if ($laporanSk->bukti_list->isNotEmpty())
-                                                    <button type="button" class="btn-icon"
+                                                    <button type="button" class="btn btn-outline"
                                                         data-pip-bukti="#pipBuktiTpl-{{ $laporanSk->id }}"
-                                                        data-pip-bukti-title="Bukti Laporan {{ $laporanSk->tahap ?: ($r->nomor_sk ?: '') }}"
-                                                        title="Lihat Bukti" aria-label="Lihat Bukti"
-                                                        style="color: var(--primary);">
+                                                        data-pip-bukti-title="Bukti Laporan Tahap {{ $r->tahap_id ?: ($r->tahap ?: '') }}"
+                                                        style="font-size: var(--text-xs, 0.75rem); padding: 6px 12px; min-height: 34px; border-radius: var(--radius-md, 6px); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--primary); border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.08); text-decoration: none; font-weight: 600; white-space: nowrap;"
+                                                        title="Lihat {{ $laporanSk->bukti_list->count() }} Bukti Lampiran">
                                                         <i class="fas fa-paperclip"></i>
+                                                        <span>{{ $laporanSk->bukti_list->count() }} Lampiran</span>
                                                     </button>
                                                     <template id="pipBuktiTpl-{{ $laporanSk->id }}">
                                                         @foreach ($laporanSk->bukti_list as $b)
@@ -313,41 +322,135 @@
 
         <!-- Form Lapor -->
         <div class="card" style="margin-bottom: 18px;">
-            <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0 0 4px 0;">
-                <i class="fas fa-file-circle-plus text-primary me-1"></i> Formulir Laporan Penggunaan Dana
-            </h3>
-            <div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 16px;">
-                Lampirkan bukti penerimaan sampai penggunaan dana, lalu centang pernyataan di bawah ini.
+            @php
+                $isEdit = !empty($editLaporan);
+                $activeLaporan = $editLaporan ?? null;
+                $activeRincianMap = [];
+                if ($activeLaporan && !empty($activeLaporan->rincian_list)) {
+                    foreach ($activeLaporan->rincian_list as $item) {
+                        if (isset($item['kategori'])) {
+                            $activeRincianMap[$item['kategori']] = [
+                                'nominal'    => $item['nominal'] ?? 0,
+                                'keterangan' => $item['keterangan'] ?? '',
+                            ];
+                        }
+                    }
+                }
+            @endphp
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+                <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
+                    @if ($isEdit)
+                        <i class="fas fa-pen-to-square text-primary me-1"></i> Edit Laporan Penggunaan Dana
+                    @else
+                        <i class="fas fa-file-circle-plus text-primary me-1"></i> Formulir Laporan Penggunaan Dana Baru
+                    @endif
+                </h3>
+                @if ($isEdit)
+                    <a href="{{ route('dashboard.pip-siswa.index', ['tab' => 'riwayat']) }}" class="btn btn-outline"
+                        style="padding: 5px 12px; font-size: var(--text-xs); border-radius: var(--radius-md, 6px);">
+                        <i class="fas fa-arrow-left me-1"></i> Kembali ke Riwayat
+                    </a>
+                @endif
             </div>
+
+            <div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 16px;">
+                @if ($isEdit)
+                    Perbarui rincian atau bukti lampiran laporan Anda. Saat disimpan, status laporan akan kembali menjadi <strong>Menunggu Verifikasi</strong> untuk ditinjau ulang oleh petugas.
+                @else
+                    Lampirkan bukti penerimaan sampai penggunaan dana, lalu centang pernyataan di bawah ini.
+                @endif
+            </div>
+
+            @if ($isEdit && $activeLaporan)
+                @php
+                    [$statusLabel, $badgeClass, $statusIcon] = $statusBadge($activeLaporan->status);
+                @endphp
+                <div style="border-radius: var(--radius-lg, 12px); padding: 12px 16px; margin-bottom: 18px; border: 1px solid var(--border-color); background: rgba(99,102,241,0.04); display: flex; align-items: flex-start; gap: 14px;">
+                    <span class="badge {{ $badgeClass }}" style="font-size: var(--text-xs); padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-top: 2px;">
+                        <i class="fas {{ $statusIcon }}"></i>
+                        <span>{{ $statusLabel }}</span>
+                    </span>
+                    <div style="font-size: var(--text-sm); line-height: 1.5;">
+                        @if ($activeLaporan->status === 'ditolak')
+                            <strong style="color: var(--danger, #ef4444);">Status: Laporan Ditolak.</strong>
+                            @if (!empty($activeLaporan->catatan_verifikasi))
+                                <div style="color: var(--text-muted); margin-top: 2px;">
+                                    Catatan petugas: <em>"{{ $activeLaporan->catatan_verifikasi }}"</em>
+                                </div>
+                            @endif
+                            <div style="color: var(--text-muted); margin-top: 2px;">
+                                Silakan perbaiki rincian biaya atau bukti di bawah ini lalu kirim ulang laporan.
+                            </div>
+                        @elseif ($activeLaporan->status === 'diverifikasi')
+                            <strong style="color: var(--success, #10b981);">Status: Laporan Sudah Disetujui.</strong>
+                            <div style="color: var(--text-muted); margin-top: 2px;">
+                                Anda dapat memperbarui rincian ini. Saat dikirim ulang, status verifikasi akan otomatis kembali menjadi <em>Menunggu Verifikasi</em>.
+                            </div>
+                        @else
+                            <strong style="color: var(--warning, #f59e0b);">Status: Menunggu Verifikasi Petugas.</strong>
+                            <div style="color: var(--text-muted); margin-top: 2px;">
+                                Anda dapat merevisi rincian penggunaan atau menambah bukti lampiran sebelum diverifikasi oleh admin.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
             @if ($riwayatPemberian->isEmpty())
                 <div class="badge badge-warning" style="padding: 8px 12px; font-size: var(--text-sm);">
                     Belum ada SK Pemberian (pencairan dana).
                 </div>
             @else
-                <form method="POST" action="{{ route('dashboard.pip-siswa.laporan.store') }}"
+                <form method="POST"
+                    action="{{ $isEdit ? route('dashboard.pip-siswa.laporan.update', ['id' => $activeLaporan->id]) : route('dashboard.pip-siswa.laporan.store') }}"
                     enctype="multipart/form-data">
                     @csrf
+                    @if ($isEdit)
+                        @method('PUT')
+                    @endif
 
                     <div class="pip-form-grid">
                         <div>
-                            <label for="pipSkSelect" class="pip-label">SK Pemberian</label>
-                            <select id="pipSkSelect" name="pip_riwayat_id" class="form-control" required style="width: 100%;">
-                                <option value="">-- Pilih SK Pemberian --</option>
-                                @foreach ($riwayatPemberian as $rp)
-                                    <option value="{{ $rp->id }}" data-nominal="{{ (float) ($rp->nominal ?? 0) }}"
-                                        {{ (string) old('pip_riwayat_id', request('pip_riwayat_id')) === (string) $rp->id ? 'selected' : '' }}>
-                                        {{ $rp->nomor_sk ?: 'SK #' . $rp->id }}
-                                        &bull; {{ $rp->tahap_keterangan ?: ($rp->tahap ?: 'Tahap -') }}
-                                        &bull; Rp {{ number_format((float) ($rp->nominal ?? 0), 0, ',', '.') }}
+                            <label for="pipSkSelect" class="pip-label">Tahap &amp; Tahun SK Pemberian</label>
+                            @if ($isEdit)
+                                @php
+                                    $rpActive = $riwayatPemberian->firstWhere('id', $activeLaporan->pip_riwayat_id);
+                                    $thnActive = $rpActive->tahun ?? ($rpActive->tanggal_sk ? \Illuminate\Support\Carbon::parse($rpActive->tanggal_sk)->format('Y') : date('Y'));
+                                    $tahapLabelActive = !empty($rpActive->tahap_id)
+                                        ? (stripos((string) $rpActive->tahap_id, 'tahap') !== false ? $rpActive->tahap_id : 'Tahap ' . $rpActive->tahap_id)
+                                        : ($rpActive->tahap_keterangan ?? ($rpActive->tahap ?? 'Tahap -'));
+                                    $nominalActive = (float) ($rpActive->nominal ?? $activeLaporan->nominal ?? 0);
+                                @endphp
+                                <input type="hidden" name="pip_riwayat_id" value="{{ $activeLaporan->pip_riwayat_id }}">
+                                <select id="pipSkSelect" class="form-control" disabled style="width: 100%; opacity: 0.85; background: var(--bg-hover, rgba(255,255,255,0.05)); cursor: not-allowed;">
+                                    <option value="{{ $activeLaporan->pip_riwayat_id }}" data-nominal="{{ $nominalActive }}" selected>
+                                        {{ $tahapLabelActive }} &bull; Tahun {{ $thnActive }}
                                     </option>
-                                @endforeach
-                            </select>
+                                </select>
+                            @else
+                                <select id="pipSkSelect" name="pip_riwayat_id" class="form-control" required style="width: 100%;">
+                                    <option value="">-- Pilih Tahap &amp; Tahun --</option>
+                                    @foreach ($riwayatPemberian as $rp)
+                                        @php
+                                            $thn = $rp->tahun ?: ($rp->tanggal_sk ? \Illuminate\Support\Carbon::parse($rp->tanggal_sk)->format('Y') : date('Y'));
+                                            $tahapLabel = !empty($rp->tahap_id)
+                                                ? (stripos((string) $rp->tahap_id, 'tahap') !== false ? $rp->tahap_id : 'Tahap ' . $rp->tahap_id)
+                                                : ($rp->tahap_keterangan ?: ($rp->tahap ?: 'Tahap -'));
+                                            $hasReport = isset($laporanMap[$rp->id]);
+                                        @endphp
+                                        <option value="{{ $rp->id }}" data-nominal="{{ (float) ($rp->nominal ?? 0) }}" data-has-report="{{ $hasReport ? '1' : '0' }}"
+                                            {{ (string) $selectedRiwayatId === (string) $rp->id ? 'selected' : '' }}>
+                                            {{ $tahapLabel }} &bull; Tahun {{ $thn }}{{ $hasReport ? ' (Sudah Dilaporkan)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </div>
                         <div>
                             <label class="pip-label">Dana Diterima</label>
                             <input type="text" id="pipDanaDiterima" class="form-control" value="Rp 0" readonly
-                                style="width: 100%; font-weight: 700;">
+                                style="width: 100%; font-weight: 700; background: var(--bg-hover, rgba(255,255,255,0.05)); cursor: not-allowed;">
                         </div>
                     </div>
 
@@ -356,6 +459,10 @@
                     </div>
                     <div class="pip-rincian-grid">
                         @foreach ($kategoriPeruntukan as $i => $kategori)
+                            @php
+                                $defNominal = $activeRincianMap[$kategori]['nominal'] ?? '';
+                                $defKet = $activeRincianMap[$kategori]['keterangan'] ?? '';
+                            @endphp
                             <div class="pip-rincian-card">
                                 <label class="pip-rincian-label">
                                     {{ $kategori }}
@@ -363,9 +470,10 @@
                                 <input type="hidden" name="rincian[{{ $i }}][kategori]" value="{{ $kategori }}">
                                 <input type="text" name="rincian[{{ $i }}][nominal]" inputmode="numeric"
                                     autocomplete="off" class="form-control pip-rincian-nominal"
-                                    value="{{ old("rincian.$i.nominal") }}" placeholder="0" style="width: 100%;">
+                                    value="{{ old("rincian.$i.nominal", $defNominal ? (float) $defNominal : '') }}"
+                                    placeholder="0" style="width: 100%;">
                                 <input type="text" name="rincian[{{ $i }}][keterangan]" maxlength="255"
-                                    class="form-control" value="{{ old("rincian.$i.keterangan") }}"
+                                    class="form-control" value="{{ old("rincian.$i.keterangan", $defKet) }}"
                                     placeholder="Keterangan (opsional)" style="width: 100%;">
                             </div>
                         @endforeach
@@ -380,43 +488,73 @@
 
                     <div style="margin-bottom: 16px;">
                         <label for="pipBukti" style="display: block; font-size: var(--text-sm); font-weight: 700; margin-bottom: 6px;">
-                            Bukti Penerimaan &amp; Penggunaan (JPG/PNG/PDF, maks. 4 MB per file, bisa lebih dari satu)
+                            Bukti Penerimaan &amp; Penggunaan (JPG/PNG/PDF, maks. 4 MB per file)
                         </label>
+
+                        @if ($isEdit && !empty($activeLaporan->bukti_list) && $activeLaporan->bukti_list->isNotEmpty())
+                            <div style="margin-bottom: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
+                                <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+                                    Lampiran yang Sudah Terunggah ({{ $activeLaporan->bukti_list->count() }} file):
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    @foreach ($activeLaporan->bukti_list as $b)
+                                        @php
+                                            $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
+                                            $ext = strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION));
+                                            $isGambar = in_array($ext, ['jpg', 'jpeg', 'png'], true);
+                                        @endphp
+                                        <a href="{{ $buktiUrl }}" target="_blank" rel="noopener"
+                                            style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); padding: 5px 9px; border-radius: var(--radius-md, 6px); background: var(--bg-hover, rgba(255,255,255,0.05)); border: 1px solid var(--border-color); color: var(--text-color); text-decoration: none;">
+                                            <i class="fas {{ $isGambar ? 'fa-image text-primary' : 'fa-file-pdf text-danger' }}"></i>
+                                            <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                {{ $b->nama_asli ?: 'Lampiran' }}
+                                            </span>
+                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.6;"></i>
+                                        </a>
+                                    @endforeach
+                                </div>
+                                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 6px;">
+                                    <em>Unggah file baru di bawah ini jika ingin menambahkan bukti baru. Bukti lama tetap disimpan.</em>
+                                </div>
+                            </div>
+                        @endif
+
                         <input type="file" id="pipBukti" name="bukti[]" class="form-control"
-                            accept=".jpg,.jpeg,.png,.pdf" multiple required style="width: 100%;">
+                            accept=".jpg,.jpeg,.png,.pdf" multiple {{ ($isEdit && !empty($activeLaporan->bukti_list) && $activeLaporan->bukti_list->isNotEmpty()) ? '' : 'required' }} style="width: 100%;">
                         <div id="pipBuktiInfo" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;"></div>
                     </div>
 
                     <div style="margin-bottom: 16px;">
                         <label for="pipCatatan" style="display: block; font-size: var(--text-sm); font-weight: 700; margin-bottom: 6px;">Catatan (opsional)</label>
                         <textarea id="pipCatatan" name="catatan" rows="3" maxlength="1000" class="form-control"
-                            style="width: 100%;">{{ old('catatan') }}</textarea>
+                            style="width: 100%;">{{ old('catatan', $activeLaporan->catatan ?? '') }}</textarea>
                     </div>
 
                     <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
                         <div style="font-weight: 700; font-size: var(--text-sm);">
                             <i class="fas fa-scale-balanced me-1"></i> Pernyataan
                         </div>
-                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0;">
+                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0; cursor: pointer;">
                             <input type="checkbox" name="pernyataan_tanpa_potongan" value="1"
-                                {{ old('pernyataan_tanpa_potongan') ? 'checked' : '' }}>
+                                {{ old('pernyataan_tanpa_potongan', $isEdit ? 1 : 0) ? 'checked' : '' }} required>
                             <span>Tidak ada potongan dana dari sekolah maupun pihak lain. Dana diterima utuh sesuai SK.</span>
                         </label>
-                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0;">
+                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0; cursor: pointer;">
                             <input type="checkbox" name="pernyataan_sesuai_ketentuan" value="1"
-                                {{ old('pernyataan_sesuai_ketentuan') ? 'checked' : '' }}>
+                                {{ old('pernyataan_sesuai_ketentuan', $isEdit ? 1 : 0) ? 'checked' : '' }} required>
                             <span>Dana telah digunakan sesuai peruntukan dan ketentuan PIP (biaya personal pendidikan).</span>
                         </label>
-                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0;">
+                        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: var(--text-sm); margin: 0; cursor: pointer;">
                             <input type="checkbox" name="pernyataan_kebenaran" value="1"
-                                {{ old('pernyataan_kebenaran') ? 'checked' : '' }}>
+                                {{ old('pernyataan_kebenaran', $isEdit ? 1 : 0) ? 'checked' : '' }} required>
                             <span>Data, rincian, dan bukti yang saya lampirkan adalah benar dan dapat dipertanggungjawabkan.</span>
                         </label>
                     </div>
 
                     <div class="pip-submit-row">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> Kirim Laporan
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700;">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            <span>{{ $isEdit ? 'Simpan Perubahan & Ajukan Kembali' : 'Kirim Laporan' }}</span>
                         </button>
                     </div>
                 </form>

@@ -6,12 +6,16 @@ use App\Models\KesiswaanBerkasVerifikasi;
 use App\Models\KesiswaanBukuKlaper;
 use App\Models\KesiswaanKelulusan;
 use App\Models\KesiswaanMutasi;
+use App\Models\Persuratan;
 use App\Models\PesertaDidik;
+use App\Models\PesertaDidikTidakAktif;
 use App\Models\RolePermission;
+use App\Services\PersuratanHddService;
 use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
 
 class KesiswaanController extends Controller
@@ -101,11 +105,26 @@ class KesiswaanController extends Controller
         // 3. Data Mutasi Siswa
         $mutasiQuery = KesiswaanMutasi::with('siswa')->orderBy('tanggal_mutasi', 'desc');
         if ($q !== '' && $activeTab === 'mutasi') {
-            $mutasiQuery->whereHas('siswa', function ($b) use ($q) {
-                $b->where('nama', 'like', "%{$q}%")
-                  ->orWhere('nisn', 'like', "%{$q}%");
-            })->orWhere('nomor_surat_mutasi', 'like', "%{$q}%")
-              ->orWhere('sekolah_tujuan_asal', 'like', "%{$q}%");
+            $mutasiQuery->where(function ($query) use ($q) {
+                $query->where('nama_siswa', 'like', "%{$q}%")
+                    ->orWhere('nisn_siswa', 'like', "%{$q}%")
+                    ->orWhere('nipd_siswa', 'like', "%{$q}%")
+                    ->orWhere('nomor_surat_mutasi', 'like', "%{$q}%")
+                    ->orWhere('nomor_surat_dapodik', 'like', "%{$q}%")
+                    ->orWhere('sekolah_tujuan_asal', 'like', "%{$q}%")
+                    ->orWhere('alasan', 'like', "%{$q}%")
+                    ->orWhere('jenis_mutasi', 'like', "%{$q}%")
+                    ->orWhereHas('siswa', function ($b) use ($q) {
+                        $b->where('nama', 'like', "%{$q}%")
+                          ->orWhere('nisn', 'like', "%{$q}%");
+                    })
+                    ->orWhereIn('peserta_didik_id', function ($sub) use ($q) {
+                        $sub->select('peserta_didik_id')
+                            ->from('peserta_didik_tidak_aktif')
+                            ->where('nama', 'like', "%{$q}%")
+                            ->orWhere('nisn', 'like', "%{$q}%");
+                    });
+            });
         }
         $mutasiList = $mutasiQuery->paginate($perPage, ['*'], 'mutasi_page')->withQueryString();
 
@@ -124,6 +143,8 @@ class KesiswaanController extends Controller
         }
         $kelulusanList = $kelulusanQuery->paginate($perPage, ['*'], 'kelulusan_page')->withQueryString();
 
+        $nextNomorSuratKeluar = PersuratanHddService::generateNomorSuratKeluar('TU.01');
+
         return view('dashboard.kesiswaan.administrasi', compact(
             'stats',
             'activeTab',
@@ -135,6 +156,7 @@ class KesiswaanController extends Controller
             'klaperList',
             'mutasiList',
             'kelulusanList',
+            'nextNomorSuratKeluar',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -212,6 +234,9 @@ class KesiswaanController extends Controller
     /**
      * Catat Mutasi Siswa (Masuk, Keluar, DO).
      */
+    /**
+     * Catat Mutasi/Keluar Siswa (Tahap 1: Pengajuan Surat Bersedia Menerima / Permohonan).
+     */
     public function storeMutasi(Request $request)
     {
         $user = session('user');
@@ -222,42 +247,446 @@ class KesiswaanController extends Controller
         }
 
         $validated = $request->validate([
-            'peserta_didik_id'    => 'required|string',
-            'jenis_mutasi'        => 'required|string|in:masuk,keluar,do,meninggal',
-            'tanggal_mutasi'      => 'required|date',
-            'alasan'              => 'required|string|max:255',
-            'sekolah_tujuan_asal' => 'nullable|string|max:190',
-            'catatan'             => 'nullable|string',
+            'peserta_didik_id'        => 'required|string',
+            'jenis_mutasi'            => 'required|string|max:50',
+            'tanggal_mutasi'          => 'required|date',
+            'nomor_surat_penerimaan'  => 'required|string|max:190',
+            'alasan'                  => 'required|string|max:255',
+            'sekolah_tujuan_asal'     => 'nullable|string|max:190',
+            'file_surat_penerimaan'   => 'required|file|mimes:pdf|max:5120',
+            'catatan'                 => 'nullable|string',
+        ], [
+            'nomor_surat_penerimaan.required' => 'Nomor surat permohonan / dari sekolah tujuan wajib diinputkan.',
+            'file_surat_penerimaan.required'  => 'Berkas surat penerimaan / permohonan wajib diunggah.',
+            'file_surat_penerimaan.mimes'     => 'Berkas berkas wajib berformat PDF.',
         ]);
 
-        $siswa = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->firstOrFail();
+        // Cari siswa di tabel aktif atau tabel tidak aktif
+        $siswa = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->first();
+        if (!$siswa) {
+            $siswa = PesertaDidikTidakAktif::where('peserta_didik_id', $validated['peserta_didik_id'])->first();
+        }
+        if (!$siswa) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+        }
 
-        $countMutasi = KesiswaanMutasi::whereYear('tanggal_mutasi', date('Y', strtotime($validated['tanggal_mutasi'])))->count() + 1;
-        $nomorSurat = "421.5/" . str_pad($countMutasi, 3, '0', STR_PAD_LEFT) . "/SMK-MUTASI/" . date('Y', strtotime($validated['tanggal_mutasi']));
+        // Simpan Berkas Surat 1 (Surat Bersedia Menerima / Rekomendasi / Permohonan) - WAJIB PDF
+        $ext = $request->file('file_surat_penerimaan')->getClientOriginalExtension();
+        $originalName = $request->file('file_surat_penerimaan')->getClientOriginalName();
+        $fileSize = $request->file('file_surat_penerimaan')->getSize();
+        $filename = 'surat-penerimaan-' . substr(md5($validated['peserta_didik_id'] . microtime()), 0, 12) . '.' . $ext;
+        $pathSuratPenerimaan = $request->file('file_surat_penerimaan')->storeAs('mutasi/surat-penerimaan', $filename, 'public');
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
 
+        // Otomatis masukkan ke Modul Persuratan (Surat Masuk)
+        $suratMasukId = null;
+        try {
+            $suratMasuk = Persuratan::create([
+                'nomor_surat'        => $validated['nomor_surat_penerimaan'],
+                'kode_indeks'        => 'TU.01',
+                'jenis_surat'        => 'masuk',
+                'perihal'            => "Surat Penerimaan/Permohonan Mutasi Siswa: {$siswa->nama} ({$validated['jenis_mutasi']})",
+                'pengirim_asal'      => $validated['sekolah_tujuan_asal'] ?: 'Sekolah Tujuan / Orang Tua Siswa',
+                'tujuan_penerima'    => 'Kepala Sekolah / Kesiswaan',
+                'tanggal_surat'      => $validated['tanggal_mutasi'],
+                'tanggal_diterima'   => now()->toDateString(),
+                'status'             => 'diproses',
+                'file_path'          => $pathSuratPenerimaan,
+                'file_size'          => $fileSize,
+                'file_name_original' => $originalName,
+                'keterangan'         => "Otomatis dibuat dari alur mutasi kesiswaan. Alasan: {$validated['alasan']}",
+                'created_by'         => $userName,
+            ]);
+            $suratMasukId = $suratMasuk->id;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Gagal auto-insert surat masuk mutasi: " . $e->getMessage());
+        }
+
         $mutasi = KesiswaanMutasi::create([
-            'peserta_didik_id'    => $siswa->peserta_didik_id,
-            'jenis_mutasi'        => $validated['jenis_mutasi'],
-            'tanggal_mutasi'      => $validated['tanggal_mutasi'],
-            'alasan'              => $validated['alasan'],
-            'sekolah_tujuan_asal' => $validated['sekolah_tujuan_asal'],
-            'nomor_surat_mutasi'  => $nomorSurat,
-            'catatan'             => $validated['catatan'],
-            'created_by'          => $userName,
+            'peserta_didik_id'       => $siswa->peserta_didik_id,
+            'nama_siswa'             => $siswa->nama,
+            'nisn_siswa'             => $siswa->nisn ?? null,
+            'nipd_siswa'             => $siswa->nipd ?? null,
+            'rombel_terakhir'        => $siswa->nama_rombel ?? ($siswa->nama_rombel_terakhir ?? null),
+            'jenis_mutasi'           => $validated['jenis_mutasi'],
+            'tanggal_mutasi'         => $validated['tanggal_mutasi'],
+            'alasan'                 => $validated['alasan'],
+            'sekolah_tujuan_asal'    => $validated['sekolah_tujuan_asal'] ?? null,
+            'nomor_surat_penerimaan' => $validated['nomor_surat_penerimaan'],
+            'nomor_surat_mutasi'     => null, // Diisi saat surat mutasi Dapodik diunggah (Tahap 2)
+            'file_berkas'            => $pathSuratPenerimaan,
+            'file_surat_penerimaan'  => $pathSuratPenerimaan,
+            'surat_masuk_id'         => $suratMasukId,
+            'status_proses'          => 'menunggu_dapodik',
+            'catatan'                => $validated['catatan'] ?? null,
+            'created_by'             => $userName,
         ]);
 
-        if (in_array($validated['jenis_mutasi'], ['keluar', 'do', 'meninggal'])) {
-            KesiswaanBukuKlaper::where('peserta_didik_id', $siswa->peserta_didik_id)
-                ->update(['status_klaper' => 'mutasi_keluar']);
-        }
+        KesiswaanBukuKlaper::where('peserta_didik_id', $siswa->peserta_didik_id)
+            ->update(['status_klaper' => 'mutasi_keluar']);
 
         return response()->json([
             'status' => 'success',
-            'message' => "Mutasi siswa a.n {$siswa->nama} berhasil dicatat.",
+            'message' => "Catatan mutasi a.n {$siswa->nama} berhasil disimpan dan otomatis dicatat di Surat Masuk persuratan.",
             'mutasi_id' => $mutasi->id,
+        ]);
+    }
+
+    /**
+     * Unggah / Update Berkas Surat Mutasi Resmi dari Dapodik (Tahap 2).
+     * Otomatis menggenerate nomor surat keluar persuratan & mencatatnya di modul persuratan.
+     */
+    public function uploadSuratDapodik(Request $request, $id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create')
+            && !RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'file_surat_mutasi'   => 'required|file|mimes:pdf|max:5120',
+            'nomor_surat_dapodik' => 'nullable|string|max:190',
+        ], [
+            'file_surat_mutasi.required' => 'Berkas surat mutasi resmi Dapodik wajib diunggah.',
+            'file_surat_mutasi.mimes'    => 'Berkas surat mutasi wajib berformat PDF.',
+        ]);
+
+        $mutasi = KesiswaanMutasi::findOrFail($id);
+
+        if ($mutasi->file_surat_mutasi && Storage::disk('public')->exists($mutasi->file_surat_mutasi)) {
+            Storage::disk('public')->delete($mutasi->file_surat_mutasi);
+        }
+
+        $ext = $request->file('file_surat_mutasi')->getClientOriginalExtension();
+        $originalName = $request->file('file_surat_mutasi')->getClientOriginalName();
+        $fileSize = $request->file('file_surat_mutasi')->getSize();
+        $filename = 'surat-dapodik-' . substr(md5($mutasi->id . microtime()), 0, 12) . '.' . $ext;
+        $path = $request->file('file_surat_mutasi')->storeAs('mutasi/surat-dapodik', $filename, 'public');
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
+
+        // Penomoran surat mutasi mengikuti sistem penomoran Surat Keluar di modul persuratan (Indeks Persuratan: TU.01)
+        if (empty($mutasi->nomor_surat_mutasi)) {
+            $nomorSuratKeluar = PersuratanHddService::generateNomorSuratKeluar('TU.01');
+            PersuratanHddService::incrementNomorCounter('keluar');
+            $mutasi->nomor_surat_mutasi = $nomorSuratKeluar;
+            if (empty($mutasi->nomor_surat_dapodik)) {
+                $mutasi->nomor_surat_dapodik = $nomorSuratKeluar;
+            }
+        }
+
+        // Otomatis masukkan / perbarui pencatatan di Surat Keluar modul persuratan
+        $suratKeluarId = $mutasi->surat_keluar_id;
+        try {
+            $siswaNama = $mutasi->nama_siswa ?: ($mutasi->siswa?->nama ?: 'Peserta Didik');
+            if ($suratKeluarId && ($existingSk = Persuratan::find($suratKeluarId))) {
+                $existingSk->update([
+                    'nomor_surat'        => $mutasi->nomor_surat_mutasi,
+                    'kode_indeks'        => 'TU.01',
+                    'tujuan_penerima'    => $mutasi->sekolah_tujuan_asal ?: 'Sekolah Tujuan / Dinas Pendidikan',
+                    'file_path'          => $path,
+                    'file_size'          => $fileSize,
+                    'file_name_original' => $originalName,
+                    'status'             => 'selesai',
+                    'updated_at'         => now(),
+                ]);
+            } else {
+                $suratKeluar = Persuratan::create([
+                    'nomor_surat'        => $mutasi->nomor_surat_mutasi,
+                    'kode_indeks'        => 'TU.01',
+                    'jenis_surat'        => 'keluar',
+                    'perihal'            => "Surat Mutasi / Pindah Siswa: {$siswaNama} ({$mutasi->jenis_mutasi})",
+                    'pengirim_asal'      => 'Kepala Sekolah / Kesiswaan',
+                    'tujuan_penerima'    => $mutasi->sekolah_tujuan_asal ?: 'Sekolah Tujuan / Dinas Pendidikan',
+                    'tanggal_surat'      => $mutasi->tanggal_mutasi ?: now()->toDateString(),
+                    'tanggal_diterima'   => null,
+                    'status'             => 'selesai',
+                    'file_path'          => $path,
+                    'file_size'          => $fileSize,
+                    'file_name_original' => $originalName,
+                    'keterangan'         => "Otomatis tercatat dari alur mutasi kesiswaan resmi Dapodik. No Surat: {$mutasi->nomor_surat_mutasi}",
+                    'created_by'         => $userName,
+                ]);
+                $suratKeluarId = $suratKeluar->id;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Gagal auto-insert surat keluar mutasi: " . $e->getMessage());
+        }
+
+        $mutasi->file_surat_mutasi = $path;
+        $mutasi->surat_keluar_id = $suratKeluarId;
+        if (!empty($validated['nomor_surat_dapodik'])) {
+            $mutasi->nomor_surat_dapodik = $validated['nomor_surat_dapodik'];
+        } elseif (empty($mutasi->nomor_surat_dapodik)) {
+            $mutasi->nomor_surat_dapodik = $mutasi->nomor_surat_mutasi;
+        }
+        $mutasi->status_proses = 'selesai';
+        $mutasi->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Surat mutasi Dapodik berhasil diunggah, nomor surat keluar resmi diterbitkan, dan otomatis dicatat di Surat Keluar.',
+            'nomor_surat_mutasi' => $mutasi->nomor_surat_mutasi,
+            'file_url' => route('dashboard.kesiswaan.administrasi.mutasi.berkas', ['id' => $mutasi->id, 'jenis' => 'dapodik']),
             'cetak_url' => route('dashboard.kesiswaan.administrasi.mutasi.cetak', $mutasi->id),
+        ]);
+    }
+
+    /**
+     * Ganti / Update langsung salah satu berkas mutasi (penerimaan atau dapodik) via modal review dokumen.
+     */
+    public function updateBerkasMutasi(Request $request, $id, string $jenis)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
+            && !RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'file_dokumen' => 'required|file|mimes:pdf|max:5120',
+        ], [
+            'file_dokumen.required' => 'Berkas PDF wajib dipilih.',
+            'file_dokumen.mimes'    => 'Berkas wajib berformat PDF.',
+        ]);
+
+        $mutasi = KesiswaanMutasi::findOrFail($id);
+        $file = $request->file('file_dokumen');
+        $ext = $file->getClientOriginalExtension();
+        $originalName = $file->getClientOriginalName();
+        $fileSize = $file->getSize();
+
+        if ($jenis === 'dapodik') {
+            if ($mutasi->file_surat_mutasi && Storage::disk('public')->exists($mutasi->file_surat_mutasi)) {
+                Storage::disk('public')->delete($mutasi->file_surat_mutasi);
+            }
+            $filename = 'surat-dapodik-' . substr(md5($mutasi->id . microtime()), 0, 12) . '.' . $ext;
+            $path = $file->storeAs('mutasi/surat-dapodik', $filename, 'public');
+            $mutasi->file_surat_mutasi = $path;
+            $mutasi->status_proses = 'selesai';
+
+            // Jika belum punya nomor surat keluar, generate
+            if (empty($mutasi->nomor_surat_mutasi)) {
+                $mutasi->nomor_surat_mutasi = PersuratanHddService::generateNomorSuratKeluar('KS.02.23');
+                PersuratanHddService::incrementNomorCounter('keluar');
+            }
+
+            // Sync ke surat keluar jika ada
+            if ($mutasi->surat_keluar_id && ($sk = Persuratan::find($mutasi->surat_keluar_id))) {
+                $sk->update([
+                    'file_path' => $path,
+                    'file_size' => $fileSize,
+                    'file_name_original' => $originalName,
+                ]);
+            }
+        } else {
+            if ($mutasi->file_surat_penerimaan && Storage::disk('public')->exists($mutasi->file_surat_penerimaan)) {
+                Storage::disk('public')->delete($mutasi->file_surat_penerimaan);
+            }
+            $filename = 'surat-penerimaan-' . substr(md5($mutasi->id . microtime()), 0, 12) . '.' . $ext;
+            $path = $file->storeAs('mutasi/surat-penerimaan', $filename, 'public');
+            $mutasi->file_surat_penerimaan = $path;
+            $mutasi->file_berkas = $path;
+
+            // Sync ke surat masuk jika ada
+            if ($mutasi->surat_masuk_id && ($sm = Persuratan::find($mutasi->surat_masuk_id))) {
+                $sm->update([
+                    'file_path' => $path,
+                    'file_size' => $fileSize,
+                    'file_name_original' => $originalName,
+                ]);
+            }
+        }
+
+        $mutasi->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berkas dokumen PDF berhasil diperbarui.',
+            'file_url' => route('dashboard.kesiswaan.administrasi.mutasi.berkas', ['id' => $mutasi->id, 'jenis' => $jenis]),
+        ]);
+    }
+
+    /**
+     * Update data mutasi kesiswaan (data form & berkas S-1 / S-2).
+     */
+    public function updateMutasi(Request $request, $id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'jenis_mutasi'           => 'required|string|max:50',
+            'tanggal_mutasi'         => 'required|date',
+            'nomor_surat_penerimaan' => 'required|string|max:190',
+            'sekolah_tujuan_asal'    => 'nullable|string|max:190',
+            'alasan'                 => 'required|string|max:255',
+            'catatan'                => 'nullable|string',
+            'file_surat_penerimaan'  => 'nullable|file|mimes:pdf|max:5120',
+            'file_surat_mutasi'      => 'nullable|file|mimes:pdf|max:5120',
+        ], [
+            'file_surat_penerimaan.mimes' => 'Berkas Surat Penerimaan (S-1) wajib berformat PDF.',
+            'file_surat_mutasi.mimes'     => 'Berkas Surat Mutasi Dapodik (S-2) wajib berformat PDF.',
+        ]);
+
+        $mutasi = KesiswaanMutasi::findOrFail($id);
+
+        $mutasi->jenis_mutasi           = $validated['jenis_mutasi'];
+        $mutasi->tanggal_mutasi         = $validated['tanggal_mutasi'];
+        $mutasi->nomor_surat_penerimaan = $validated['nomor_surat_penerimaan'];
+        $mutasi->sekolah_tujuan_asal    = $validated['sekolah_tujuan_asal'] ?? null;
+        $mutasi->alasan                 = $validated['alasan'];
+        $mutasi->catatan                = $validated['catatan'] ?? null;
+
+        // Update berkas S-1 jika ada file baru diunggah
+        if ($request->hasFile('file_surat_penerimaan') && $request->file('file_surat_penerimaan')->isValid()) {
+            if ($mutasi->file_surat_penerimaan && Storage::disk('public')->exists($mutasi->file_surat_penerimaan)) {
+                Storage::disk('public')->delete($mutasi->file_surat_penerimaan);
+            }
+            $file1 = $request->file('file_surat_penerimaan');
+            $ext1 = $file1->getClientOriginalExtension();
+            $filename1 = 'surat-penerimaan-' . substr(md5($mutasi->id . microtime()), 0, 12) . '.' . $ext1;
+            $path1 = $file1->storeAs('mutasi/surat-penerimaan', $filename1, 'public');
+            $mutasi->file_surat_penerimaan = $path1;
+            $mutasi->file_berkas = $path1;
+
+            if ($mutasi->surat_masuk_id && ($sm = Persuratan::find($mutasi->surat_masuk_id))) {
+                $sm->update([
+                    'nomor_surat'        => $validated['nomor_surat_penerimaan'],
+                    'pengirim_asal'      => $validated['sekolah_tujuan_asal'] ?: 'Sekolah Tujuan / Orang Tua Siswa',
+                    'tanggal_surat'      => $validated['tanggal_mutasi'],
+                    'file_path'          => $path1,
+                    'file_size'          => $file1->getSize(),
+                    'file_name_original' => $file1->getClientOriginalName(),
+                ]);
+            }
+        } elseif ($mutasi->surat_masuk_id && ($sm = Persuratan::find($mutasi->surat_masuk_id))) {
+            $sm->update([
+                'nomor_surat'   => $validated['nomor_surat_penerimaan'],
+                'pengirim_asal' => $validated['sekolah_tujuan_asal'] ?: 'Sekolah Tujuan / Orang Tua Siswa',
+                'tanggal_surat' => $validated['tanggal_mutasi'],
+            ]);
+        }
+
+        // Update berkas S-2 jika ada file baru diunggah
+        if ($request->hasFile('file_surat_mutasi') && $request->file('file_surat_mutasi')->isValid()) {
+            if ($mutasi->file_surat_mutasi && Storage::disk('public')->exists($mutasi->file_surat_mutasi)) {
+                Storage::disk('public')->delete($mutasi->file_surat_mutasi);
+            }
+            $file2 = $request->file('file_surat_mutasi');
+            $ext2 = $file2->getClientOriginalExtension();
+            $filename2 = 'surat-dapodik-' . substr(md5($mutasi->id . microtime()), 0, 12) . '.' . $ext2;
+            $path2 = $file2->storeAs('mutasi/surat-dapodik', $filename2, 'public');
+            $mutasi->file_surat_mutasi = $path2;
+            $mutasi->status_proses = 'selesai';
+
+            if (empty($mutasi->nomor_surat_mutasi)) {
+                $mutasi->nomor_surat_mutasi = PersuratanHddService::generateNomorSuratKeluar('TU.01');
+                PersuratanHddService::incrementNomorCounter('keluar');
+            }
+
+            if ($mutasi->surat_keluar_id && ($sk = Persuratan::find($mutasi->surat_keluar_id))) {
+                $sk->update([
+                    'nomor_surat'        => $mutasi->nomor_surat_mutasi,
+                    'tujuan_penerima'    => $validated['sekolah_tujuan_asal'] ?: 'Sekolah Tujuan / Dinas Pendidikan',
+                    'tanggal_surat'      => $validated['tanggal_mutasi'],
+                    'file_path'          => $path2,
+                    'file_size'          => $file2->getSize(),
+                    'file_name_original' => $file2->getClientOriginalName(),
+                ]);
+            }
+        } elseif ($mutasi->surat_keluar_id && ($sk = Persuratan::find($mutasi->surat_keluar_id))) {
+            $sk->update([
+                'tujuan_penerima' => $validated['sekolah_tujuan_asal'] ?: 'Sekolah Tujuan / Dinas Pendidikan',
+                'tanggal_surat'   => $validated['tanggal_mutasi'],
+            ]);
+        }
+
+        $mutasi->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Data mutasi siswa & berkas terkait berhasil diperbarui.',
+        ]);
+    }
+
+    /**
+     * Hapus riwayat mutasi siswa, berkas fisik, dan data persuratan terkait.
+     */
+    public function destroyMutasi($id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $mutasi = KesiswaanMutasi::findOrFail($id);
+        $namaSiswa = $mutasi->nama_siswa ?: 'Peserta Didik';
+
+        // Hapus file fisik
+        if ($mutasi->file_surat_penerimaan && Storage::disk('public')->exists($mutasi->file_surat_penerimaan)) {
+            Storage::disk('public')->delete($mutasi->file_surat_penerimaan);
+        }
+        if ($mutasi->file_surat_mutasi && Storage::disk('public')->exists($mutasi->file_surat_mutasi)) {
+            Storage::disk('public')->delete($mutasi->file_surat_mutasi);
+        }
+
+        // Hapus surat masuk & surat keluar terhubung jika ada
+        if ($mutasi->surat_masuk_id) {
+            Persuratan::where('id', $mutasi->surat_masuk_id)->delete();
+        }
+        if ($mutasi->surat_keluar_id) {
+            Persuratan::where('id', $mutasi->surat_keluar_id)->delete();
+        }
+
+        // Kembalikan status buku klaper menjadi aktif jika masih ada di tabel siswa aktif
+        $masihAktif = PesertaDidik::where('peserta_didik_id', $mutasi->peserta_didik_id)->exists();
+        if ($masihAktif) {
+            KesiswaanBukuKlaper::where('peserta_didik_id', $mutasi->peserta_didik_id)
+                ->update(['status_klaper' => 'aktif']);
+        }
+
+        $mutasi->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Riwayat mutasi siswa a.n {$namaSiswa} berhasil dihapus.",
+        ]);
+    }
+    public function viewBerkasMutasi(Request $request, $id, string $jenis)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $mutasi = KesiswaanMutasi::findOrFail($id);
+        $field = ($jenis === 'dapodik') ? 'file_surat_mutasi' : 'file_surat_penerimaan';
+        $path = $mutasi->$field ?: ($jenis !== 'dapodik' ? $mutasi->file_berkas : null);
+
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan di server.');
+        }
+
+        $fullPath = Storage::disk('public')->path($path);
+        $mime = Storage::disk('public')->mimeType($path) ?: 'application/pdf';
+
+        return response()->file($fullPath, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
         ]);
     }
 
@@ -281,7 +710,7 @@ class KesiswaanController extends Controller
             ->select('rb.nama as rombel_nama', 'rb.tingkat_pendidikan_id_str', 'rb.jurusan_id_str')
             ->first();
 
-        $rombelNama = $anggotaRombel?->rombel_nama ?: 'Kelas X / XI / XII';
+        $rombelNama = $anggotaRombel?->rombel_nama ?: ($siswa->nama_rombel ?? ($mutasi->rombel_terakhir ?: 'Kelas X / XI / XII'));
         $jurusanNama = $anggotaRombel?->jurusan_id_str ?: 'Semua Program Keahlian';
 
         $curYear = (int) date('Y');

@@ -608,10 +608,37 @@ class FeederReceiverController extends Controller
                 foreach ($missingPdIds as $mId) {
                     $st = $currentStudents[$mId];
                     $isLulus = in_array((string)$st->tingkat_pendidikan_id, ['12', '13', 'XII', 'XIII'], true);
-                    $statusKeluar = $isLulus ? 'Alumni' : 'Mutasi';
-                    $tahunLulus = $isLulus ? $defaultTahunLulus : null;
-                    $alasan = $isLulus ? 'Lulus Tingkat Akhir (Alumni)' : 'Mutasi / Keluar dari Satuan Pendidikan';
                     $fotoPath = $metas[$mId]->foto_path ?? null;
+
+                    // Cek apakah siswa sudah tercatat dalam alur mutasi/keluar kesiswaan
+                    $mutasiRecord = Table::exists('kesiswaan_mutasi')
+                        ? DB::table('kesiswaan_mutasi')->where('peserta_didik_id', $mId)->orderByDesc('id')->first()
+                        : null;
+
+                    if ($mutasiRecord) {
+                        $statusKeluar = $mutasiRecord->jenis_mutasi ?: 'Mutasi';
+                        $alasan = $mutasiRecord->alasan ?: ($mutasiRecord->jenis_mutasi . ($mutasiRecord->sekolah_tujuan_asal ? ' ke ' . $mutasiRecord->sekolah_tujuan_asal : ''));
+                        $tahunLulus = null;
+                        $tanggalKeluar = $mutasiRecord->tanggal_mutasi ?: now()->toDateString();
+
+                        // Perbarui status proses di tabel kesiswaan_mutasi:
+                        // Jika berkas surat mutasi dapodik sudah ada -> 'selesai', jika belum -> 'tersinkron_dapodik'
+                        $newStatusProses = !empty($mutasiRecord->file_surat_mutasi) ? 'selesai' : 'tersinkron_dapodik';
+                        DB::table('kesiswaan_mutasi')->where('id', $mutasiRecord->id)->update([
+                            'status_proses'     => $newStatusProses,
+                            'dapodik_synced_at' => $now,
+                            'nama_siswa'        => $mutasiRecord->nama_siswa ?: $st->nama,
+                            'nisn_siswa'        => $mutasiRecord->nisn_siswa ?: $st->nisn,
+                            'nipd_siswa'        => $mutasiRecord->nipd_siswa ?: $st->nipd,
+                            'rombel_terakhir'   => $mutasiRecord->rombel_terakhir ?: $st->nama_rombel,
+                            'updated_at'        => $now,
+                        ]);
+                    } else {
+                        $statusKeluar = $isLulus ? 'Alumni' : 'Mutasi';
+                        $tahunLulus = $isLulus ? $defaultTahunLulus : null;
+                        $alasan = $isLulus ? 'Lulus Tingkat Akhir (Alumni)' : 'Mutasi / Keluar dari Satuan Pendidikan';
+                        $tanggalKeluar = now()->toDateString();
+                    }
 
                     DB::table('peserta_didik_tidak_aktif')->updateOrInsert(
                         ['peserta_didik_id' => $mId],
@@ -630,7 +657,7 @@ class FeederReceiverController extends Controller
                             'tingkat_pendidikan_terakhir' => $st->tingkat_pendidikan_id,
                             'kurikulum_id_str' => $st->kurikulum_id_str,
                             'tahun_lulus' => $tahunLulus,
-                            'tanggal_keluar' => now()->toDateString(),
+                            'tanggal_keluar' => $tanggalKeluar,
                             'status_keluar' => $statusKeluar,
                             'alasan_keluar' => $alasan,
                             'foto_path' => $fotoPath,

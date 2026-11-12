@@ -98,17 +98,30 @@ class PipSiswaController extends Controller
             }
         }
 
+        $editLaporanId = (int) $request->get('edit_laporan_id', 0);
+        $editLaporan = null;
+        if ($editLaporanId > 0) {
+            $editLaporan = $laporanList->firstWhere('id', $editLaporanId);
+        }
+
+        $selectedRiwayatId = (int) $request->get('pip_riwayat_id', $editLaporan ? $editLaporan->pip_riwayat_id : ($riwayatPemberian->first()->id ?? 0));
+        if (!$editLaporan && $selectedRiwayatId > 0 && isset($laporanMap[$selectedRiwayatId])) {
+            $editLaporan = $laporanMap[$selectedRiwayatId];
+        }
+
         return view('dashboard.pip-siswa', [
-            'role'             => $role,
-            'pd'               => $pd,
-            'terdaftar'        => $terdaftar,
-            'tab'              => $tab,
-            'riwayatList'      => $riwayatList,
-            'riwayatPemberian' => $riwayatPemberian,
-            'laporanList'      => $laporanList,
-            'laporanMap'       => $laporanMap,
-            'totalPemberian'   => (float) $riwayatPemberian->sum('nominal'),
-            'totalDilaporkan'  => (float) $laporanList->sum(
+            'role'              => $role,
+            'pd'                => $pd,
+            'terdaftar'         => $terdaftar,
+            'tab'               => $tab,
+            'riwayatList'       => $riwayatList,
+            'riwayatPemberian'  => $riwayatPemberian,
+            'laporanList'       => $laporanList,
+            'laporanMap'        => $laporanMap,
+            'editLaporan'       => $editLaporan,
+            'selectedRiwayatId' => $selectedRiwayatId,
+            'totalPemberian'    => (float) $riwayatPemberian->sum('nominal'),
+            'totalDilaporkan'   => (float) $laporanList->sum(
                 fn($laporan) => array_sum(array_column($laporan->rincian_list ?? [], 'nominal'))
             ),
             'kategoriPeruntukan' => [
@@ -126,6 +139,32 @@ class PipSiswaController extends Controller
     {
         [$role, $pd] = $this->resolveStudent($request);
 
+        $riwayatId = (int) $request->input('pip_riwayat_id');
+        $riwayat = $this->riwayatQuery($pd)->where('id', $riwayatId)->first();
+        if (!$riwayat || ($riwayat->jenis_sk ?? 'pemberian') !== 'pemberian') {
+            return back()->withInput()->with('error', 'SK Pemberian tidak ditemukan.');
+        }
+
+        // Tolak tambah baru jika laporan untuk tahap & tahun ini sudah ada; arahkan ke fitur update
+        $existingLaporan = PipPenggunaanDana::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->where(function ($q) use ($riwayat) {
+                $q->where('pip_riwayat_id', $riwayat->id);
+                if (!empty($riwayat->tahap_id)) {
+                    $q->orWhere('tahap_id', $riwayat->tahap_id);
+                }
+            })
+            ->first();
+
+        if ($existingLaporan) {
+            return redirect()
+                ->route('dashboard.pip-siswa.index', [
+                    'tab'             => 'laporan',
+                    'edit_laporan_id' => $existingLaporan->id,
+                    'pip_riwayat_id'  => $riwayat->id,
+                ])
+                ->with('error', 'Laporan untuk tahap dan tahun ini sudah ada. Silakan gunakan tombol edit/update untuk memperbarui data laporan.');
+        }
+
         // Nominal boleh dikirim dengan pemisah ribuan (contoh: 1.000) — normalisasi ke digit murni.
         $rincianInput = collect($request->input('rincian', []))
             ->map(function ($row) {
@@ -137,17 +176,17 @@ class PipSiswaController extends Controller
         $request->merge(['rincian' => $rincianInput]);
 
         $data = $request->validate([
-            'pip_riwayat_id'             => 'required|integer',
-            'rincian'                    => 'required|array|min:1',
-            'rincian.*.kategori'         => 'required|string|max:100',
-            'rincian.*.nominal'          => 'nullable|numeric|min:0',
-            'rincian.*.keterangan'       => 'nullable|string|max:255',
-            'catatan'                    => 'nullable|string|max:1000',
-            'bukti'                      => 'required|array|min:1',
-            'bukti.*'                    => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'pernyataan_tanpa_potongan'  => 'accepted',
+            'pip_riwayat_id'              => 'required|integer',
+            'rincian'                     => 'required|array|min:1',
+            'rincian.*.kategori'          => 'required|string|max:100',
+            'rincian.*.nominal'           => 'nullable|numeric|min:0',
+            'rincian.*.keterangan'        => 'nullable|string|max:255',
+            'catatan'                     => 'nullable|string|max:1000',
+            'bukti'                       => 'required|array|min:1',
+            'bukti.*'                     => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'pernyataan_tanpa_potongan'   => 'accepted',
             'pernyataan_sesuai_ketentuan' => 'accepted',
-            'pernyataan_kebenaran'       => 'accepted',
+            'pernyataan_kebenaran'        => 'accepted',
         ], [
             'pip_riwayat_id.required'              => 'Pilih SK Pemberian yang akan dilaporkan penggunaan dananya.',
             'rincian.required'                     => 'Isi minimal satu rincian penggunaan dana.',
@@ -159,11 +198,6 @@ class PipSiswaController extends Controller
             'pernyataan_sesuai_ketentuan.accepted' => 'Pernyataan penggunaan sesuai ketentuan wajib disetujui.',
             'pernyataan_kebenaran.accepted'        => 'Pernyataan kebenaran data wajib disetujui.',
         ]);
-
-        $riwayat = $this->riwayatQuery($pd)->where('id', (int) $data['pip_riwayat_id'])->first();
-        if (!$riwayat || ($riwayat->jenis_sk ?? 'pemberian') !== 'pemberian') {
-            return back()->withInput()->with('error', 'SK Pemberian tidak ditemukan.');
-        }
 
         $rincian = [];
         foreach ($data['rincian'] as $row) {
@@ -194,10 +228,10 @@ class PipSiswaController extends Controller
         $pelapor = $pelapor ?: ($pd->nama ?? 'Pengguna');
 
         $pernyataan = [
-            'tanpa_potongan'  => true,
+            'tanpa_potongan'   => true,
             'sesuai_ketentuan' => true,
-            'kebenaran_data'  => true,
-            'disetujui_pada'  => now()->toDateTimeString(),
+            'kebenaran_data'   => true,
+            'disetujui_pada'   => now()->toDateTimeString(),
         ];
 
         DB::transaction(function () use ($data, $pd, $riwayat, $rincian, $pernyataan, $pelapor, $role, $request) {
@@ -231,8 +265,126 @@ class PipSiswaController extends Controller
         });
 
         return redirect()
-            ->route('dashboard.pip-siswa.index', ['tab' => 'laporan'])
-            ->with('success', 'Laporan penggunaan dana PIP berhasil dikirim. Terima kasih.');
+            ->route('dashboard.pip-siswa.index', ['tab' => 'riwayat'])
+            ->with('success', 'Laporan penggunaan dana PIP berhasil dikirim. Menunggu verifikasi petugas.');
+    }
+
+    public function updateLaporan(Request $request, $id)
+    {
+        [$role, $pd] = $this->resolveStudent($request);
+
+        $laporan = PipPenggunaanDana::where('id', (int) $id)
+            ->where('peserta_didik_id', $pd->peserta_didik_id)
+            ->first();
+
+        if (!$laporan) {
+            return redirect()
+                ->route('dashboard.pip-siswa.index', ['tab' => 'riwayat'])
+                ->with('error', 'Data laporan tidak ditemukan.');
+        }
+
+        $riwayat = $this->riwayatQuery($pd)->where('id', $laporan->pip_riwayat_id)->first();
+        $danaDiterima = (float) ($riwayat->nominal ?? $laporan->nominal ?? 0);
+
+        // Nominal boleh dikirim dengan pemisah ribuan (contoh: 1.000) — normalisasi ke digit murni.
+        $rincianInput = collect($request->input('rincian', []))
+            ->map(function ($row) {
+                if (is_array($row) && array_key_exists('nominal', $row)) {
+                    $row['nominal'] = preg_replace('/[^\d]/', '', (string) $row['nominal']);
+                }
+                return $row;
+            })->all();
+        $request->merge(['rincian' => $rincianInput]);
+
+        $hasExistingBukti = PipPenggunaanBukti::where('penggunaan_dana_id', $laporan->id)->exists();
+
+        $data = $request->validate([
+            'rincian'                     => 'required|array|min:1',
+            'rincian.*.kategori'          => 'required|string|max:100',
+            'rincian.*.nominal'           => 'nullable|numeric|min:0',
+            'rincian.*.keterangan'        => 'nullable|string|max:255',
+            'catatan'                     => 'nullable|string|max:1000',
+            'bukti'                       => $hasExistingBukti ? 'nullable|array' : 'required|array|min:1',
+            'bukti.*'                     => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'pernyataan_tanpa_potongan'   => 'accepted',
+            'pernyataan_sesuai_ketentuan' => 'accepted',
+            'pernyataan_kebenaran'        => 'accepted',
+        ], [
+            'rincian.required'                     => 'Isi minimal satu rincian penggunaan dana.',
+            'rincian.*.nominal.numeric'            => 'Nominal penggunaan harus berupa angka.',
+            'bukti.required'                       => 'Unggah minimal satu bukti penerimaan/penggunaan dana.',
+            'bukti.*.mimes'                        => 'Bukti harus berupa JPG, PNG, atau PDF.',
+            'bukti.*.max'                          => 'Ukuran tiap bukti maksimal 4 MB.',
+            'pernyataan_tanpa_potongan.accepted'   => 'Pernyataan tidak ada potongan wajib disetujui.',
+            'pernyataan_sesuai_ketentuan.accepted' => 'Pernyataan penggunaan sesuai ketentuan wajib disetujui.',
+            'pernyataan_kebenaran.accepted'        => 'Pernyataan kebenaran data wajib disetujui.',
+        ]);
+
+        $rincian = [];
+        foreach ($data['rincian'] as $row) {
+            $nominal = (float) ($row['nominal'] ?? 0);
+            if ($nominal <= 0) {
+                continue;
+            }
+            $rincian[] = [
+                'kategori'   => trim((string) $row['kategori']),
+                'nominal'    => $nominal,
+                'keterangan' => trim((string) ($row['keterangan'] ?? '')),
+            ];
+        }
+
+        $totalRincian = array_sum(array_column($rincian, 'nominal'));
+
+        if (empty($rincian)) {
+            return back()->withInput()->with('error', 'Isi nominal pada minimal satu rincian penggunaan dana.');
+        }
+        if ($danaDiterima > 0 && $totalRincian > $danaDiterima + 0.01) {
+            return back()->withInput()->with('error', 'Total rincian penggunaan (Rp ' . number_format($totalRincian, 0, ',', '.') . ') melebihi dana yang diterima (Rp ' . number_format($danaDiterima, 0, ',', '.') . ').');
+        }
+
+        $pelapor = is_array(session('user'))
+            ? (session('user.nama') ?? session('user.name'))
+            : session('user.nama');
+        $pelapor = $pelapor ?: ($pd->nama ?? 'Pengguna');
+
+        $pernyataan = [
+            'tanpa_potongan'   => true,
+            'sesuai_ketentuan' => true,
+            'kebenaran_data'   => true,
+            'disetujui_pada'   => now()->toDateTimeString(),
+        ];
+
+        DB::transaction(function () use ($data, $pd, $riwayat, $laporan, $rincian, $pernyataan, $pelapor, $role, $request) {
+            // Update data laporan dan KEMBALIKAN status ke 'diajukan' (menunggu verifikasi)
+            $laporan->update([
+                'nominal'           => (float) ($riwayat->nominal ?? $laporan->nominal),
+                'rincian'           => $rincian,
+                'pernyataan'        => $pernyataan,
+                'catatan'           => trim((string) ($data['catatan'] ?? '')) ?: null,
+                'dilaporkan_oleh'   => $pelapor,
+                'peran'             => $role,
+                'status'            => 'diajukan', // KEMBALI JADI MENUNGGU
+                'diverifikasi_oleh' => null,
+                'diverifikasi_pada' => null,
+            ]);
+
+            foreach ($request->file('bukti', []) as $file) {
+                if (!$file) {
+                    continue;
+                }
+                $path = $file->store('pip-penggunaan/' . $pd->peserta_didik_id, 'public');
+                PipPenggunaanBukti::create([
+                    'penggunaan_dana_id' => $laporan->id,
+                    'file_path'          => $path,
+                    'nama_asli'          => Str::limit($file->getClientOriginalName(), 250),
+                    'keterangan'         => null,
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('dashboard.pip-siswa.index', ['tab' => 'riwayat'])
+            ->with('success', 'Laporan penggunaan dana PIP berhasil diperbarui dan diajukan kembali. Status kembali Menunggu Verifikasi.');
     }
 
     private function riwayatQuery($pd)

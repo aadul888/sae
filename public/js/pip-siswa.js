@@ -101,7 +101,20 @@
         });
     }
 
-    skSelect.addEventListener('change', hitung);
+    skSelect.addEventListener('change', function () {
+        var opt = skSelect.selectedOptions[0];
+        if (opt && opt.value) {
+            var currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('pip_riwayat_id') !== opt.value) {
+                currentUrl.searchParams.set('tab', 'laporan');
+                currentUrl.searchParams.set('pip_riwayat_id', opt.value);
+                currentUrl.searchParams.delete('edit_laporan_id');
+                window.location.href = currentUrl.toString();
+                return;
+            }
+        }
+        hitung();
+    });
 
     if (buktiInput && buktiInfo) {
         buktiInput.addEventListener('change', function () {

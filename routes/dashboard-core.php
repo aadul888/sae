@@ -334,6 +334,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->name('klaper.sync')->middleware('permission:menu_kesiswaan_administrasi,create');
             Route::put('/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper'])->name('klaper.update')->middleware('permission:menu_kesiswaan_administrasi,update');
             Route::post('/mutasi', [\App\Http\Controllers\KesiswaanController::class, 'storeMutasi'])->name('mutasi.store')->middleware('permission:menu_kesiswaan_administrasi,create');
+            Route::post('/mutasi/{id}/upload-berkas/{jenis}', [\App\Http\Controllers\KesiswaanController::class, 'updateBerkasMutasi'])->name('mutasi.update-berkas')->middleware('permission:menu_kesiswaan_administrasi,update');
+            Route::post('/mutasi/{id}/upload-surat-dapodik', [\App\Http\Controllers\KesiswaanController::class, 'uploadSuratDapodik'])->name('mutasi.upload-surat-dapodik')->middleware('permission:menu_kesiswaan_administrasi,update');
+            Route::put('/mutasi/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateMutasi'])->name('mutasi.update')->middleware('permission:menu_kesiswaan_administrasi,update');
+            Route::delete('/mutasi/{id}', [\App\Http\Controllers\KesiswaanController::class, 'destroyMutasi'])->name('mutasi.destroy')->middleware('permission:menu_kesiswaan_administrasi,delete');
+            Route::get('/mutasi/{id}/berkas/{jenis}', [\App\Http\Controllers\KesiswaanController::class, 'viewBerkasMutasi'])->name('mutasi.berkas')->middleware('permission:menu_kesiswaan_administrasi,read');
             Route::get('/mutasi/{id}/cetak', [\App\Http\Controllers\KesiswaanController::class, 'cetakMutasi'])->name('mutasi.cetak')->middleware('permission:menu_kesiswaan_administrasi,read');
             Route::post('/kelulusan', [\App\Http\Controllers\KesiswaanController::class, 'storeKelulusan'])->name('kelulusan.store')->middleware('permission:menu_kesiswaan_administrasi,create');
             Route::get('/kelulusan/{id}/cetak-skl', [\App\Http\Controllers\KesiswaanController::class, 'cetakSkl'])->name('kelulusan.cetak-skl')->middleware('permission:menu_kesiswaan_administrasi,read');
@@ -576,6 +581,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Portal PIP Peserta Didik & Orang Tua/Wali (Riwayat PIP + Lapor Penggunaan Dana)
     Route::get('/pip-saya', [\App\Http\Controllers\PipSiswaController::class, 'index'])->name('pip-siswa.index');
     Route::post('/pip-saya/laporan', [\App\Http\Controllers\PipSiswaController::class, 'storeLaporan'])->name('pip-siswa.laporan.store');
+    Route::match(['put', 'post'], '/pip-saya/laporan/{id}', [\App\Http\Controllers\PipSiswaController::class, 'updateLaporan'])->name('pip-siswa.laporan.update');
 
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');
