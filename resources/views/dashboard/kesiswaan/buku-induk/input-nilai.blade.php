@@ -488,10 +488,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     body: fd,
                 });
-                const data = await res.json();
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    // Non-JSON response
+                }
                 if (btn) { btn.disabled = false; btn.innerHTML = orig; }
 
-                if (res.ok && data.status === 'success') {
+                if (res.ok && data && data.status === 'success') {
                     closeModalImportNilai();
                     if (window.Swal) {
                         Swal.fire({ icon: 'success', title: 'Impor Selesai', text: data.message })
@@ -500,11 +505,25 @@ document.addEventListener('DOMContentLoaded', function () {
                         location.reload();
                     }
                 } else {
-                    if (window.Swal) Swal.fire({ icon: 'error', title: 'Gagal Impor', text: data.message || 'Format tidak sesuai.' });
+                    let errMsg = 'Format berkas atau data tidak sesuai.';
+                    if (data) {
+                        if (data.message) {
+                            errMsg = data.message;
+                        } else if (data.errors) {
+                            errMsg = Object.values(data.errors).flat().join('<br>');
+                        }
+                    } else {
+                        errMsg = 'Server mengembalikan kesalahan (' + res.status + ' ' + res.statusText + ').';
+                    }
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Gagal Impor', html: errMsg });
+                    } else {
+                        alert(errMsg.replace(/<br>/g, '\n'));
+                    }
                 }
             } catch (err) {
                 if (btn) { btn.disabled = false; btn.innerHTML = orig; }
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Kesalahan', text: 'Gagal memproses berkas impor.' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Kesalahan Jaringan', text: err.message || 'Gagal menghubungi server.' });
             }
         });
     }

@@ -638,7 +638,7 @@ class BukuIndukNilaiController extends Controller
             'kelas' => ['required', 'string', 'max:60'],
             'semester' => ['required', 'integer', 'between:1,6'],
             'tahun_lulus' => ['nullable', 'string', 'max:20'],
-            'file_excel' => ['required', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt', 'extensions:xlsx,xls,csv,txt'],
+            'file_excel' => ['required', 'file', 'max:20480'],
         ]);
 
         $cohort = BukuIndukJurusanService::resolveCohort($validated['tahun_lulus'] ?? $request->input('tahun_lulus'));
@@ -662,7 +662,12 @@ class BukuIndukNilaiController extends Controller
 
         // ponytail: importer mencocokkan kolom mapel per nama (kolom asing diabaikan),
         // siap menerima ekspor e-Rapor; tambahkan pemetaan kolom eksplisit bila formatnya pasti.
-        $result = BukuIndukJurusanService::importNilaiRows($rows, (string) $kelas['kunci'], (int) $validated['semester'], $kelas['id']);
+        try {
+            $result = BukuIndukJurusanService::importNilaiRows($rows, (string) $kelas['kunci'], (int) $validated['semester'], $kelas['id']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Buku Induk Import Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['status' => 'error', 'message' => 'Gagal memproses baris nilai: ' . $e->getMessage()], 422);
+        }
 
         if ($result['imported'] === 0) {
             return response()->json([
