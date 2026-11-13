@@ -1904,28 +1904,39 @@
         transform: translateY(0) scale(1);
     }
 }
-.custom-dropdown-item {
+.custom-dropdown-item,
+button.custom-dropdown-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 10px;
+    width: 100%;
     padding: 10px 12px;
+    background: transparent;
+    border: none;
+    outline: none;
     border-radius: var(--radius-md, 8px);
     color: var(--text-color);
     text-decoration: none;
+    font-family: inherit;
     font-size: var(--text-base, 0.875rem);
     font-weight: 500;
+    text-align: left;
     transition:
         background 0.15s ease,
         color 0.15s ease;
     cursor: pointer;
     box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
 }
-.custom-dropdown-item:hover {
+.custom-dropdown-item:hover,
+button.custom-dropdown-item:hover {
     background: var(--bg-hover);
     color: var(--primary);
 }
-.custom-dropdown-item.active {
+.custom-dropdown-item.active,
+button.custom-dropdown-item.active {
     background: rgba(99, 102, 241, 0.12);
     color: var(--primary);
     font-weight: 700;
@@ -6717,9 +6728,10 @@ input:disabled + .slider-toggle-crud {
         background: var(--bg-hover) !important;
     }
 
-    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no),
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile),
-    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td:not(.d-none):not(.d-none-mobile) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no):not([colspan]):not(.cell-empty),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not(.d-none):not(.d-none-mobile):not([colspan]):not(.cell-empty),
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td:not(.d-none):not(.d-none-mobile):not([colspan]):not(.cell-empty),
+    .dashboard-wrapper .dash-main .dash-body table.table tbody td:not(.d-none):not(.d-none-mobile):not(.cell-no):not(.cell-pd-no):not([colspan]):not(.cell-empty) {
         display: table-cell !important;
         position: static !important;
         width: auto !important;
@@ -6740,12 +6752,86 @@ input:disabled + .slider-toggle-crud {
         order: 0 !important;
     }
 
-    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan]:not(.d-none):not(.d-none-mobile),
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan]:not(.d-none):not(.d-none-mobile),
+    /* Empty State Datatable di Mobile - Global Rata Tengah */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan],
+    .dashboard-wrapper .dash-main .dash-body table tbody td[colspan],
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-empty,
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-empty {
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-empty,
+    .dashboard-wrapper .dash-main .dash-body table tbody td.cell-empty,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr.empty-row td,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody tr.empty-row td,
+    .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td {
+        text-align: center !important;
+        vertical-align: middle !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        padding: 32px 16px !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan] > *,
+    .dashboard-wrapper .dash-main .dash-body table tbody td[colspan] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-empty > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-empty > *,
+    .dashboard-wrapper .dash-main .dash-body table tbody td.cell-empty > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr.empty-row td > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody tr.empty-row td > *,
+    .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td > * {
         text-align: center !important;
         white-space: normal !important;
+        word-break: normal !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body table tbody td[colspan] i,
+    .dashboard-wrapper .dash-main .dash-body table tbody td.cell-empty i,
+    .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td i,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan] i,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-empty i,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr.empty-row td i {
+        display: inline-block !important;
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body table tbody td[colspan] div,
+    .dashboard-wrapper .dash-main .dash-body table tbody td.cell-empty div,
+    .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td div,
+    .dashboard-wrapper .dash-main .dash-body table tbody td[colspan] p,
+    .dashboard-wrapper .dash-main .dash-body table tbody td.cell-empty p,
+    .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td p {
+        text-align: center !important;
+        white-space: normal !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Kunci lebar tabel 100% saat data kosong agar tidak overflow horizontal dan konten empty state tepat di tengah layar */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody td[colspan]) table,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody tr.empty-row) table,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody td.cell-empty) table,
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody td[colspan]),
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody tr.empty-row),
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody td.cell-empty) {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody td[colspan]) thead th,
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody tr.empty-row) thead th,
+    .dashboard-wrapper .dash-main .dash-body table:has(tbody td.cell-empty) thead th {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
 
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td::before,
@@ -6755,9 +6841,10 @@ input:disabled + .slider-toggle-crud {
         display: none !important;
     }
 
-    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td > *,
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td > *,
-    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td > * {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not([colspan]):not(.cell-empty) > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not([colspan]):not(.cell-empty) > *,
+    .dashboard-wrapper .dash-main .dash-body .table-keahlian tbody td:not([colspan]):not(.cell-empty) > *,
+    .dashboard-wrapper .dash-main .dash-body table.table tbody td:not([colspan]):not(.cell-empty) > * {
         max-width: none !important;
         width: auto !important;
         white-space: nowrap !important;

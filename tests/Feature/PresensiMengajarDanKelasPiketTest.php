@@ -78,7 +78,7 @@ class PresensiMengajarDanKelasPiketTest extends TestCase
         $responseKelas = $this->withSession(['user' => $guru])
             ->get(route('dashboard.presensi.kelas'));
         $responseKelas->assertStatus(200);
-        $responseKelas->assertSee('tabPaneMonitoring');
+        $responseKelas->assertDontSee('tabPaneMonitoring');
         $responseKelas->assertSee('tabPaneDetail');
     }
 
@@ -95,5 +95,34 @@ class PresensiMengajarDanKelasPiketTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('tableMonitoringKelas');
+    }
+
+    public function test_hadir_semua_rombel_and_reset_endpoints()
+    {
+        $admin = $this->getAdminUser();
+
+        $rombel = DB::table('rombongan_belajar')->first();
+        if (!$rombel) {
+            $this->markTestSkipped('Tidak ada rombel untuk pengujian hadir semua.');
+        }
+
+        $responseHadir = $this->withSession(['user' => $admin])
+            ->postJson(route('dashboard.presensi.kelas.hadir-semua'), [
+                'rombongan_belajar_id' => $rombel->rombongan_belajar_id,
+                'tanggal' => now()->toDateString(),
+                'jam_ke' => '1',
+            ]);
+
+        $responseHadir->assertStatus(200);
+        $responseHadir->assertJson(['status' => 'success']);
+
+        $responseReset = $this->withSession(['user' => $admin])
+            ->postJson(route('dashboard.presensi.kelas.reset'), [
+                'rombongan_belajar_id' => $rombel->rombongan_belajar_id,
+                'tanggal' => now()->toDateString(),
+            ]);
+
+        $responseReset->assertStatus(200);
+        $responseReset->assertJson(['status' => 'success']);
     }
 }

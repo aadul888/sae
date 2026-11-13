@@ -515,8 +515,13 @@ class PresensiKelasService
             'total_alpha_sekolah' => $monitoringList->sum('alpha'),
         ];
 
+        // Monitoring seluruh kelas khusus Administrator
+        $isMonitoringAllowed = ($role === 'admin');
+
         $activeTab = $request->input('tab');
-        if (!$activeTab) {
+        if (!$isMonitoringAllowed) {
+            $activeTab = 'detail';
+        } elseif (!$activeTab) {
             $activeTab = ($isPiket || $isAdmin) ? 'monitoring' : 'detail';
         }
 
@@ -539,6 +544,7 @@ class PresensiKelasService
             'filteredMonitoring',
             'monitoringStats',
             'activeTab',
+            'isMonitoringAllowed',
             'isPiket',
             'canViewAllClasses',
             'isAdmin',

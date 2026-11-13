@@ -194,12 +194,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnHadirSemua = document.getElementById('btnHadirSemua') || document.getElementById('btnTandaiAlpha');
     if (btnHadirSemua) {
         btnHadirSemua.addEventListener('click', function () {
-            const rombelId = this.getAttribute('data-rombel');
-            const rombelNama = this.getAttribute('data-rombel-nama');
             const ctx = getContextData();
+            const rombelId = this.getAttribute('data-rombel') || ctx.rombelId;
+            const rombelNama = this.getAttribute('data-rombel-nama') || 'Kelas Ini';
+            const pembelajaranId = this.getAttribute('data-pembelajaran') || ctx.pembelajaranId;
+            const jamKe = this.getAttribute('data-jam-ke') || ctx.jamKe;
 
-            window.SAE.confirm("Tandai seluruh peserta didik di kelas ${rombelNama} sebagai Hadir (H) pada mata pelajaran ini?", "Tandai Hadir Semua?", 'info', "<i class=\"fas fa-check-double me-1\"></i> Ya, Hadir Semua", "Batal").then(async (result) => {
-                if (result.isConfirmed) {
+            if (!rombelId) {
+                if (window.SAE && typeof window.SAE.alert === 'function') {
+                    window.SAE.alert('Silakan pilih rombongan belajar terlebih dahulu.', 'Pilih Rombel', 'warning');
+                }
+                return;
+            }
+
+            window.SAE.confirm(`Tandai seluruh peserta didik di kelas ${rombelNama} sebagai Hadir (H) pada mata pelajaran ini?`, "Tandai Hadir Semua?", 'info', "<i class=\"fas fa-check-double me-1\"></i> Ya, Hadir Semua", "Batal").then(async (result) => {
+                if (result === true || result?.isConfirmed) {
                     try {
                         Swal.fire({
                             title: 'Memproses Presensi...',
@@ -217,8 +226,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             body: JSON.stringify({
                                 rombongan_belajar_id: rombelId,
                                 tanggal: ctx.tanggal,
-                                pembelajaran_id: ctx.pembelajaranId,
-                                jam_ke: ctx.jamKe
+                                pembelajaran_id: pembelajaranId,
+                                jam_ke: jamKe
                             })
                         });
 
@@ -247,12 +256,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnResetPresensiKelas = document.getElementById('btnResetPresensiKelas');
     if (btnResetPresensiKelas) {
         btnResetPresensiKelas.addEventListener('click', function () {
-            const rombelId = this.getAttribute('data-rombel');
-            const rombelNama = this.getAttribute('data-rombel-nama');
             const ctx = getContextData();
+            const rombelId = this.getAttribute('data-rombel') || ctx.rombelId;
+            const rombelNama = this.getAttribute('data-rombel-nama') || 'Kelas Ini';
+            const pembelajaranId = this.getAttribute('data-pembelajaran') || ctx.pembelajaranId;
 
-            window.SAE.confirm("Seluruh catatan presensi siswa kelas ${rombelNama} pada mata pelajaran ini akan dikosongkan kembali agar dapat diulang.", "Reset Presensi Kelas?", 'warning', "<i class=\"fas fa-rotate-left me-1\"></i> Ya, Reset Presensi", "Batal").then(async (result) => {
-                if (result.isConfirmed) {
+            if (!rombelId) {
+                if (window.SAE && typeof window.SAE.alert === 'function') {
+                    window.SAE.alert('Silakan pilih rombongan belajar terlebih dahulu.', 'Pilih Rombel', 'warning');
+                }
+                return;
+            }
+
+            window.SAE.confirm(`Seluruh catatan presensi siswa kelas ${rombelNama} pada mata pelajaran ini akan dikosongkan kembali agar dapat diulang.`, "Reset Presensi Kelas?", 'warning', "<i class=\"fas fa-rotate-left me-1\"></i> Ya, Reset Presensi", "Batal").then(async (result) => {
+                if (result === true || result?.isConfirmed) {
                     try {
                         Swal.fire({
                             title: 'Mereset Presensi...',
@@ -270,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             body: JSON.stringify({
                                 rombongan_belajar_id: rombelId,
                                 tanggal: ctx.tanggal,
-                                pembelajaran_id: ctx.pembelajaranId
+                                pembelajaran_id: pembelajaranId
                             })
                         });
 
@@ -382,8 +399,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 : 'Monitoring Seluruh Kelas';
         }
 
-        if (pkMobileMenu) {
-            pkMobileMenu.classList.remove('show');
+        const dropdownWrap = pkMobileTrigger?.closest('.dash-custom-dropdown');
+        if (dropdownWrap) {
+            dropdownWrap.classList.remove('open');
+        }
+        if (pkMobileTrigger) {
+            pkMobileTrigger.setAttribute('aria-expanded', 'false');
+            const icon = pkMobileTrigger.querySelector('.custom-dropdown-trigger-label i');
+            if (icon) {
+                icon.className = (tabName === 'detail')
+                    ? 'fas fa-users-viewfinder text-primary me-2'
+                    : 'fas fa-chart-pie text-primary me-2';
+            }
         }
 
         const url = new URL(window.location.href);
@@ -397,18 +424,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tabName) switchPkTab(tabName);
         });
     });
-
-    if (pkMobileTrigger && pkMobileMenu) {
-        pkMobileTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            pkMobileMenu.classList.toggle('show');
-        });
-        document.addEventListener('click', (e) => {
-            if (!pkMobileTrigger.contains(e.target) && !pkMobileMenu.contains(e.target)) {
-                pkMobileMenu.classList.remove('show');
-            }
-        });
-    }
 
     // 7. Live Search Instant di Tabel Monitoring Kelas
     const liveSearchMonitorInput = document.getElementById('liveSearchMonitorInput');

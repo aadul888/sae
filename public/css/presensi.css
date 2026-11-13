@@ -862,9 +862,9 @@ input[type="month"] {
     }
 
     /* 3. Detail Metrics Rows (Label on Left, Value on Right) */
-    .table-presensi-log tbody td:not(.cell-log-siswa):not(.cell-log-snapshot),
-    .table-rfid tbody td:not(.cell-rfid-siswa):not(.cell-rfid-aksi),
-    .table-izin tbody td:not(.cell-izin-siswa):not(.cell-izin-aksi) {
+    .table-presensi-log tbody td:not(.cell-log-siswa):not(.cell-log-snapshot):not([colspan]):not(.cell-empty),
+    .table-rfid tbody td:not(.cell-rfid-siswa):not(.cell-rfid-aksi):not([colspan]):not(.cell-empty),
+    .table-izin tbody td:not(.cell-izin-siswa):not(.cell-izin-aksi):not([colspan]):not(.cell-empty) {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
@@ -1163,6 +1163,160 @@ input[type="month"] {
 #rfidTableContainer.is-loading {
     opacity: 0.45;
     pointer-events: none;
+}
+
+/* ==========================================================================
+   Presensi Kelas Toolbar Filter & Mobile Dropdown
+   ========================================================================== */
+.dash-custom-dropdown .custom-dropdown-item,
+button.custom-dropdown-item {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-family: inherit !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.dash-custom-dropdown .custom-dropdown-item:hover,
+button.custom-dropdown-item:hover {
+    background: var(--bg-hover) !important;
+    color: var(--primary) !important;
+}
+
+.dash-custom-dropdown .custom-dropdown-item.active,
+button.custom-dropdown-item.active {
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: var(--primary) !important;
+    font-weight: 700 !important;
+}
+
+.pk-toolbar-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.pk-toolbar-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    flex: 1 1 auto;
+}
+
+.pk-filter-select-rombel {
+    min-width: 150px;
+    height: 38px;
+}
+
+.pk-filter-select-mapel {
+    min-width: 170px;
+    height: 38px;
+}
+
+.pk-filter-inline-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pk-filter-date-box,
+.pk-filter-jam-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 8px);
+    padding: 0 10px;
+    height: 38px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.pk-filter-date-box input[type="date"] {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: var(--text-sm, 0.8125rem);
+    padding: 0;
+    outline: none;
+    width: 125px;
+    cursor: pointer;
+}
+
+.pk-filter-jam-box input[type="text"] {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: var(--text-sm, 0.8125rem);
+    padding: 0;
+    outline: none;
+    width: 65px;
+}
+
+.pk-toolbar-search {
+    height: 38px;
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    .pk-toolbar-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .pk-toolbar-filters {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .pk-toolbar-filters > .toolbar-entries {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .pk-filter-select-rombel,
+    .pk-filter-select-mapel {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .pk-filter-inline-row {
+        display: grid !important;
+        grid-template-columns: 1fr 110px !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .pk-filter-date-box,
+    .pk-filter-jam-box {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    .pk-filter-date-box input[type="date"] {
+        width: 100% !important;
+    }
+
+    .pk-filter-jam-box input[type="text"] {
+        width: 100% !important;
+    }
+
+    .pk-toolbar-search {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
 }
 
 

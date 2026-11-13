@@ -13,10 +13,13 @@
     <div class="dash-banner" style="margin-bottom: 20px;">
         <div>
             <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-users-viewfinder text-primary me-2"></i> Presensi &amp; Monitoring Kehadiran Kelas
+                <i class="fas fa-users-viewfinder text-primary me-2"></i>
+                {{ !empty($isMonitoringAllowed) ? 'Presensi & Monitoring Kehadiran Kelas' : 'Presensi Kehadiran Kelas' }}
             </h2>
             <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
-                Monitoring keterisian presensi rombel (otomatis RFID &amp; manual) serta pencatatan presensi per kelas KBM.
+                {{ !empty($isMonitoringAllowed)
+                    ? 'Monitoring keterisian presensi rombel (otomatis RFID & manual) serta pencatatan presensi per kelas KBM.'
+                    : 'Pencatatan presensi peserta didik per kelas dan mata pelajaran KBM.' }}
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -44,8 +47,9 @@
         </div>
     </div>
 
-    <!-- 1. Navigasi 2 Tab Presensi Kelas & Monitoring (Baku SAE) -->
-    <div class="dash-tabs-nav dash-desktop-tabs" style="margin-bottom: 20px;">
+    @if (!empty($isMonitoringAllowed))
+        <!-- 1. Navigasi 2 Tab Presensi Kelas & Monitoring (Baku SAE) -->
+        <div class="dash-tabs-nav dash-desktop-tabs" style="margin-bottom: 20px;">
         <button type="button"
             class="btn {{ ($activeTab ?? 'monitoring') === 'monitoring' ? 'btn-primary' : 'btn-outline' }} pk-tab-btn"
             data-tab="monitoring">
@@ -91,7 +95,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if (!empty($isMonitoringAllowed))
     <!-- ========================================================================= -->
     <!-- TAB PANE 1: MONITORING PRESENSI SELURUH KELAS                             -->
     <!-- ========================================================================= -->
@@ -419,6 +425,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <!-- ========================================================================= -->
     <!-- TAB PANE 2: PRESENSI PER KELAS & MAPEL (DETAIL SISWA)                     -->
@@ -439,7 +446,7 @@
                                 style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
                                 <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
                                     title="Tanggal KBM"></i>
-                                <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}"
+                                <input type="date" id="kelasTanggalInputNonAktif" name="tanggal" value="{{ $tanggal }}"
                                     style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 125px; cursor: pointer;"
                                     onchange="this.form.submit()">
                             </div>
@@ -590,9 +597,8 @@
                     <input type="hidden" name="sort" value="{{ $sort ?? 'nama' }}">
                     <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'asc' }}">
 
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="pk-toolbar-flex">
+                        <div class="pk-toolbar-filters">
                             <!-- Tampilkan Entri Selector -->
                             <div class="toolbar-entries">
                                 <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
@@ -609,8 +615,8 @@
                             </div>
 
                             <!-- Filter Rombel -->
-                            <select name="rombel_id" class="toolbar-filter-select"
-                                style="min-width: 150px; height: 38px;" onchange="this.form.submit()"
+                            <select name="rombel_id" class="toolbar-filter-select pk-filter-select-rombel"
+                                onchange="this.form.submit()"
                                 title="Pilih Rombongan Belajar">
                                 @foreach ($rombelList as $r)
                                     <option value="{{ $r->rombongan_belajar_id }}"
@@ -621,8 +627,8 @@
                             </select>
 
                             <!-- Filter Mapel -->
-                            <select name="pembelajaran_id" id="kelasPembelajaranSelect" class="toolbar-filter-select"
-                                style="min-width: 170px; height: 38px;" onchange="this.form.submit()"
+                            <select name="pembelajaran_id" id="kelasPembelajaranSelect" class="toolbar-filter-select pk-filter-select-mapel"
+                                onchange="this.form.submit()"
                                 title="Pilih Mata Pelajaran">
                                 @if ($pembelajaranList->isEmpty())
                                     <option value="">-- Tidak ada mapel --</option>
@@ -636,29 +642,28 @@
                                 @endif
                             </select>
 
-                            <!-- Filter Tanggal Inline Baku SAE -->
-                            <div
-                                style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                                <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
-                                    title="Tanggal KBM"></i>
-                                <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}"
-                                    style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 125px; cursor: pointer;"
-                                    onchange="this.form.submit()">
-                            </div>
+                            <!-- Filter Tanggal & Jam Inline Row -->
+                            <div class="pk-filter-inline-row">
+                                <!-- Filter Tanggal Inline Baku SAE -->
+                                <div class="pk-filter-date-box">
+                                    <i class="fas fa-calendar-day text-primary" style="font-size: var(--text-sm, 0.8125rem);"
+                                        title="Tanggal KBM"></i>
+                                    <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}"
+                                        onchange="this.form.submit()">
+                                </div>
 
-                            <!-- Jam Ke Input -->
-                            <div
-                                style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                                <i class="fas fa-clock text-primary" style="font-size: var(--text-sm, 0.8125rem);" title="Jam Ke"></i>
-                                <input type="text" id="kelasJamKeInput" name="jam_ke" value="{{ $jamKe }}"
-                                    placeholder="Jam Ke"
-                                    style="background: transparent; border: none; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); padding: 0; outline: none; width: 65px;"
-                                    onchange="this.form.submit()">
+                                <!-- Jam Ke Input -->
+                                <div class="pk-filter-jam-box">
+                                    <i class="fas fa-clock text-primary" style="font-size: var(--text-sm, 0.8125rem);" title="Jam Ke"></i>
+                                    <input type="text" id="kelasJamKeInput" name="jam_ke" value="{{ $jamKe }}"
+                                        placeholder="Jam Ke"
+                                        onchange="this.form.submit()">
+                                </div>
                             </div>
                         </div>
 
                         <!-- Live Search Box Baku SAE -->
-                        <div class="live-search-wrap" style="height: 38px; min-width: 200px;">
+                        <div class="live-search-wrap pk-toolbar-search">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="liveSearchKelasInput" name="q" value="{{ request('q') }}"
                                 placeholder="Cari nama / NISN..." autocomplete="off">
