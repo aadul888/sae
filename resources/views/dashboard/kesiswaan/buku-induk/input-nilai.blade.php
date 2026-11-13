@@ -250,7 +250,7 @@
                                 Import Nilai Siswa
                             </h3>
                             <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                                {{ $kelas['nama'] }} &mdash; Semester {{ $semester }}
+                                {{ $kelas['nama'] }} &mdash; <span id="modalImportSubSemester">Semester {{ $semester }}</span>
                             </div>
                         </div>
                     </div>
@@ -261,20 +261,41 @@
                     </button>
                 </div>
 
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
-                        Kolom nilai akan dikenali otomatis berdasarkan nama mapel yang terdaftar. Baris NISN wajib terdaftar pada kelas <strong>{{ $kelas['nama'] }}</strong>.
+                {{-- Pilihan Semester di dalam Modal --}}
+                <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-md, 8px); padding: 12px 14px; margin-bottom: 14px;">
+                    <label for="modalSelectSemester" style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
+                        <i class="fas fa-layer-group text-primary me-1"></i> Pilih Target Semester <span style="color: #ef4444;">*</span>
+                    </label>
+                    <select id="modalSelectSemester" class="bi-input" style="width: 100%; height: 38px; background: var(--bg-card); color: var(--text-color); font-weight: 600;">
+                        @foreach ($semesterList as $sOption)
+                            <option value="{{ $sOption }}" {{ (int) $semester === $sOption ? 'selected' : '' }}>
+                                Semester {{ $sOption }} (Tingkat {{ $sOption <= 2 ? 'X' : ($sOption <= 4 ? 'XI' : 'XII') }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 4px;">
+                        Pilih semester 1 s.d. 6 untuk mengunduh template atau mengunggah nilai semester yang dituju.
                     </div>
-                    <a href="{{ route('dashboard.kesiswaan.buku-induk.input-nilai.template', ['kelas' => $kelasId, 'semester' => $semester, 'tahun_lulus' => $tahunLulus]) }}"
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-bottom: 10px; line-height: 1.5;">
+                        Kolom nilai pada template akan mengikuti mapel semester yang dipilih. Baris NISN wajib terdaftar pada kelas <strong>{{ $kelas['nama'] }}</strong>.
+                    </div>
+                    <a id="btnDownloadTemplateImport"
+                        href="{{ route('dashboard.kesiswaan.buku-induk.input-nilai.template', ['kelas' => $kelasId, 'semester' => $semester, 'tahun_lulus' => $tahunLulus]) }}"
+                        data-base-url="{{ route('dashboard.kesiswaan.buku-induk.input-nilai.template') }}"
+                        data-kelas="{{ $kelasId }}"
+                        data-tahun-lulus="{{ $tahunLulus }}"
                         class="btn btn-outline" style="width: 100%; justify-content: center; font-size: var(--text-xs, 0.75rem); border-color: var(--success, #10b981); color: var(--success, #10b981);">
-                        <i class="fas fa-download"></i> Unduh Format Template Excel (.xlsx)
+                        <i class="fas fa-download"></i> <span id="labelDownloadTemplate">Unduh Template Excel (Semester {{ $semester }})</span>
                     </a>
                 </div>
 
                 <form id="formInputImport" action="{{ route('dashboard.kesiswaan.buku-induk.input-nilai.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="kelas" value="{{ $kelasId }}">
-                    <input type="hidden" name="semester" value="{{ $semester }}">
+                    <input type="hidden" name="semester" id="hiddenImportSemester" value="{{ $semester }}">
                     <input type="hidden" name="tahun_lulus" value="{{ $tahunLulus }}">
 
                     <div style="margin-bottom: 18px;">
@@ -303,9 +324,35 @@
 
 @push('scripts')
 <script>
+function updateModalImportSemester(semVal) {
+    const hiddenSem = document.getElementById('hiddenImportSemester');
+    const labelTpl = document.getElementById('labelDownloadTemplate');
+    const linkTpl = document.getElementById('btnDownloadTemplateImport');
+    const subSem = document.getElementById('modalImportSubSemester');
+
+    if (hiddenSem) hiddenSem.value = semVal;
+    if (subSem) subSem.textContent = 'Semester ' + semVal;
+    if (labelTpl) labelTpl.textContent = 'Unduh Template Excel (Semester ' + semVal + ')';
+    if (linkTpl) {
+        const baseUrl = linkTpl.getAttribute('data-base-url');
+        const kId = linkTpl.getAttribute('data-kelas');
+        const tLulus = linkTpl.getAttribute('data-tahun-lulus');
+        linkTpl.href = `${baseUrl}?kelas=${encodeURIComponent(kId)}&semester=${encodeURIComponent(semVal)}&tahun_lulus=${encodeURIComponent(tLulus)}`;
+    }
+}
+
 function openModalImportNilai() {
     const m = document.getElementById('modalImportNilai');
-    if (m) m.style.display = 'flex';
+    if (m) {
+        const filterSem = document.getElementById('filterSemesterNilai');
+        const modalSelect = document.getElementById('modalSelectSemester');
+        const curSem = filterSem ? filterSem.value : '{{ $semester }}';
+        if (modalSelect) {
+            modalSelect.value = curSem;
+            updateModalImportSemester(curSem);
+        }
+        m.style.display = 'flex';
+    }
 }
 
 function closeModalImportNilai() {
@@ -319,6 +366,14 @@ function submitFormNilai() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Handler pilihan semester di modal import nilai
+    const modalSelectSem = document.getElementById('modalSelectSemester');
+    if (modalSelectSem) {
+        modalSelectSem.addEventListener('change', function () {
+            updateModalImportSemester(this.value);
+        });
+    }
+
     // Per page select auto-submit
     const perPageSel = document.getElementById('perPageSelect');
     if (perPageSel) {
