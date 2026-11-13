@@ -166,25 +166,22 @@ document.addEventListener('click', function (e) {
         return;
     }
 
-    // Tombol Hapus Buku (SweetAlert2)
+    // Tombol Hapus Buku
     const btnDelete = e.target.closest('.btn-delete-buku');
     if (btnDelete) {
         e.preventDefault();
         const formDel = btnDelete.closest('form');
         const judul = btnDelete.getAttribute('data-judul') || 'buku ini';
+        const pesan = `Apakah Anda yakin ingin menghapus buku "${judul}"?`;
 
-        if (typeof Swal !== 'undefined') {
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus buku \"${judul}\"?", "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
-                    formDel.submit();
-                }
-            });
-        } else {
-            window.SAE.confirm(`Apakah Anda yakin ingin menghapus buku "${judul}"?`, "Konfirmasi Hapus", 'danger', "Ya, Hapus!", "Batal").then((ok) => {
+        if (window.SAE && typeof window.SAE.confirm === 'function') {
+            window.SAE.confirm(pesan, "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((ok) => {
                 if (ok) {
                     formDel.submit();
                 }
             });
+        } else if (confirm(pesan)) {
+            formDel.submit();
         }
     }
 });

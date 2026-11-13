@@ -111,18 +111,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Tombol Hapus Transaksi (SweetAlert2)
+        // Tombol Hapus Transaksi
         const btnDelete = e.target.closest('.btn-delete-sirkulasi');
         if (btnDelete) {
             e.preventDefault();
             const formDel = btnDelete.closest('form');
             const kode = btnDelete.getAttribute('data-kode') || 'transaksi ini';
+            const pesan = `Apakah Anda yakin ingin menghapus data transaksi "${kode}"? Stok buku akan disesuaikan.`;
 
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus data transaksi \"${kode}\"? Stok buku akan disesuaikan.", "Hapus Transaksi?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
-                    formDel.submit();
-                }
-            });
+            if (window.SAE && typeof window.SAE.confirm === 'function') {
+                window.SAE.confirm(pesan, "Hapus Transaksi?", 'warning', "Ya, Hapus!", "Batal").then((ok) => {
+                    if (ok) {
+                        formDel.submit();
+                    }
+                });
+            } else if (confirm(pesan)) {
+                formDel.submit();
+            }
         }
     });
 
