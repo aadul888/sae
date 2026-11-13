@@ -525,10 +525,24 @@ class BukuIndukJurusanService
             if (!Table::exists($tabel)) {
                 continue;
             }
-            $rows = DB::table($tabel)
-                ->where(fn ($w) => $w->where('rombongan_belajar_id', $rombelId)->orWhere('nama_rombel_terakhir', $rombelId))
-                ->whereNotNull('nisn')
-                ->get(['nisn', 'peserta_didik_id']);
+
+            $hasRombelId = Table::hasColumn($tabel, 'rombongan_belajar_id');
+            $hasRombelTerakhir = Table::hasColumn($tabel, 'nama_rombel_terakhir');
+
+            if (!$hasRombelId && !$hasRombelTerakhir) {
+                continue;
+            }
+
+            $query = DB::table($tabel);
+            if ($hasRombelId && $hasRombelTerakhir) {
+                $query->where(fn ($w) => $w->where('rombongan_belajar_id', $rombelId)->orWhere('nama_rombel_terakhir', $rombelId));
+            } elseif ($hasRombelId) {
+                $query->where('rombongan_belajar_id', $rombelId);
+            } else {
+                $query->where('nama_rombel_terakhir', $rombelId);
+            }
+
+            $rows = $query->whereNotNull('nisn')->get(['nisn', 'peserta_didik_id']);
             foreach ($rows as $r) {
                 $n = preg_replace('/[^0-9]/', '', (string) $r->nisn);
                 if ($n !== '') {
