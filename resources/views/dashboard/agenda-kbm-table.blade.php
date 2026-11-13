@@ -83,28 +83,28 @@
                         </div>
                     </div>
                 </td>
-                <td data-label="Mapel" style="padding: 12px 16px;">
-                    <div class="cell-col-right">
-                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem); line-height: 1.35;">
+                <td data-label="Mapel" style="padding: 12px 16px; text-align: left;">
+                    <div class="cell-col-left" style="align-items: flex-start; text-align: left;">
+                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem); line-height: 1.35; text-align: left;">
                             {{ $item->nama_mata_pelajaran }}
                         </div>
                     </div>
                 </td>
-                <td data-label="Materi &amp; Uraian" style="padding: 12px 16px;">
-                    <div class="cell-col-right">
+                <td data-label="Materi &amp; Uraian" style="padding: 12px 16px; text-align: left;">
+                    <div class="cell-col-left" style="align-items: flex-start; text-align: left;">
                         <div
-                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); margin-bottom: 2px; line-height: 1.35;">
+                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); margin-bottom: 2px; line-height: 1.35; text-align: left;">
                             {{ $item->materi_pokok }}
                         </div>
                         @if (!empty($item->uraian_kegiatan))
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left;">
                                 {{ $item->uraian_kegiatan }}
                             </div>
                         @endif
                         @if ($item->penugasan)
                             <div
-                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; text-align: left;">
                                 <i class="fas fa-tasks"></i>
                                 <span>{{ \Illuminate\Support\Str::limit($item->penugasan, 45) }}</span>
                             </div>
