@@ -3,25 +3,25 @@
     <thead>
         <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
             <th
-                style="padding: 12px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                style="padding: 9px 10px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 40px; text-align: center;">
                 No</th>
             <th class="sortable-th {{ ($sort ?? '') === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
-                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 145px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 125px;">
                 <i class="fas fa-calendar-day me-1 text-primary"></i> Tanggal
                 <span class="sort-icon">{!! ($sort ?? '') === 'tanggal' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
             </th>
             <th class="sortable-th {{ ($sort ?? '') === 'pertemuan_ke' ? 'sorted' : '' }}" data-sort="pertemuan_ke"
-                style="padding: 12px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; text-align: center; width: 80px;">
+                style="padding: 9px 8px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; text-align: center; width: 65px;">
                 <i class="fas fa-hashtag me-1 text-primary"></i> Pert.
                 <span class="sort-icon">{!! ($sort ?? '') === 'pertemuan_ke' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
             </th>
             <th
-                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 135px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
                 <i class="fas fa-chalkboard me-1 text-primary"></i> Kelas
             </th>
             <th class="sortable-th {{ ($sort ?? '') === 'nama_mata_pelajaran' ? 'sorted' : '' }}"
                 data-sort="nama_mata_pelajaran"
-                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 170px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 145px; max-width: 155px;">
                 <i class="fas fa-book me-1 text-primary"></i> Mapel
                 <span class="sort-icon">{!! ($sort ?? '') === 'nama_mata_pelajaran'
                     ? (($sortDir ?? '') === 'asc'
@@ -30,16 +30,16 @@
                     : '&#9650;&#9660;' !!}</span>
             </th>
             <th
-                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; max-width: 260px;">
                 <i class="fas fa-file-lines me-1 text-primary"></i> Materi &amp; Uraian
             </th>
             <th class="sortable-th {{ ($sort ?? '') === 'status_kbm' ? 'sorted' : '' }}" data-sort="status_kbm"
-                style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; text-align: center; width: 130px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; text-align: center; width: 110px;">
                 <i class="fas fa-signal me-1 text-primary"></i> Status
                 <span class="sort-icon">{!! ($sort ?? '') === 'status_kbm' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
             </th>
             <th
-                style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 95px;">
                 <i class="fas fa-sliders me-1 text-primary"></i> Aksi
             </th>
         </tr>
@@ -49,86 +49,86 @@
             <tr class="data-row"
                 style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
                 <td data-label="No"
-                    style="padding: 12px 14px; text-align: center; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">
+                    style="padding: 8px 10px; text-align: center; color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">
                     <span class="badge"
-                        style="background: rgba(99,102,241,0.08); color: var(--primary); font-weight: 700; font-size: var(--text-xs, 0.75rem);">
+                        style="background: rgba(99,102,241,0.08); color: var(--primary); font-weight: 700; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px;">
                         #{{ $items->firstItem() + $index }}
                     </span>
                 </td>
-                <td data-label="Tanggal" style="padding: 12px 16px;">
+                <td data-label="Tanggal" style="padding: 8px 12px;">
                     <div class="cell-col-right">
                         <div
-                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); white-space: nowrap;">
+                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); white-space: nowrap;">
                             {{ $item->tanggal ? $item->tanggal->translatedFormat('d M Y') : '-' }}
                         </div>
-                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 1px;">
+                        <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 1px;">
                             {{ $item->hari }} &bull; Jam {{ $item->jam_ke_mulai }}-{{ $item->jam_ke_selesai }}
                         </div>
                     </div>
                 </td>
-                <td data-label="Pert." style="padding: 12px 12px; text-align: center;">
+                <td data-label="Pert." style="padding: 8px 8px; text-align: center;">
                     <div class="cell-col-right" style="align-items: center;">
                         <span class="badge"
-                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-weight: 800; font-size: var(--text-sm, 0.8125rem); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
+                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-weight: 800; font-size: var(--text-xs, 0.75rem); padding: 2px 6px; border-radius: var(--radius-sm, 4px);">
                             #{{ $item->pertemuan_ke }}
                         </span>
                     </div>
                 </td>
-                <td data-label="Kelas" style="padding: 12px 16px;">
+                <td data-label="Kelas" style="padding: 8px 12px;">
                     <div class="cell-col-right">
                         <div
-                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-chalkboard text-primary" style="font-size: var(--text-sm, 0.8125rem);"></i>
+                            style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-chalkboard text-primary" style="font-size: var(--text-xs, 0.75rem);"></i>
                             <span>{{ $item->nama_rombel }}</span>
                         </div>
                     </div>
                 </td>
-                <td data-label="Mapel" style="padding: 12px 16px; text-align: left;">
-                    <div class="cell-col-left" style="align-items: flex-start; text-align: left;">
-                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem); line-height: 1.35; text-align: left;">
+                <td data-label="Mapel" style="padding: 8px 12px; text-align: left; max-width: 155px;">
+                    <div class="cell-col-left" style="align-items: flex-start; text-align: left; max-width: 100%;">
+                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); line-height: 1.3; text-align: left; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->nama_mata_pelajaran }}">
                             {{ $item->nama_mata_pelajaran }}
                         </div>
                     </div>
                 </td>
-                <td data-label="Materi &amp; Uraian" style="padding: 12px 16px; text-align: left;">
-                    <div class="cell-col-left" style="align-items: flex-start; text-align: left;">
+                <td data-label="Materi &amp; Uraian" style="padding: 8px 12px; text-align: left; max-width: 260px;">
+                    <div class="cell-col-left" style="align-items: flex-start; text-align: left; max-width: 100%;">
                         <div
-                            style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); margin-bottom: 2px; line-height: 1.35; text-align: left;">
+                            style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); margin-bottom: 2px; line-height: 1.3; text-align: left; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->materi_pokok }}">
                             {{ $item->materi_pokok }}
                         </div>
                         @if (!empty($item->uraian_kegiatan))
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left;">
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-align: left;" title="{{ $item->uraian_kegiatan }}">
                                 {{ $item->uraian_kegiatan }}
                             </div>
                         @endif
                         @if ($item->penugasan)
                             <div
-                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; text-align: left;">
+                                style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); margin-top: 2px; display: inline-flex; align-items: center; gap: 3px; text-align: left; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $item->penugasan }}">
                                 <i class="fas fa-tasks"></i>
-                                <span>{{ \Illuminate\Support\Str::limit($item->penugasan, 45) }}</span>
+                                <span>{{ \Illuminate\Support\Str::limit($item->penugasan, 35) }}</span>
                             </div>
                         @endif
                     </div>
                 </td>
-                <td data-label="Status" style="padding: 12px 16px; text-align: center;">
+                <td data-label="Status" style="padding: 8px 12px; text-align: center;">
                     <div class="cell-col-right" style="align-items: center;">
                         {!! $item->status_badge !!}
                     </div>
                 </td>
-                <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
+                <td data-label="Aksi" style="padding: 8px 12px; text-align: center;">
                     <div class="cell-col-right" style="align-items: center;">
                         <div class="table-actions"
-                            style="display: inline-flex; gap: 6px; align-items: center; justify-content: center;">
+                            style="display: inline-flex; gap: 4px; align-items: center; justify-content: center;">
                             <button type="button" class="btn-icon btn-detail-agenda" data-id="{{ $item->id }}"
                                 title="Detail Agenda"
-                                style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                style="width: 28px; height: 28px; border-radius: var(--radius-md, 6px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-xs, 0.75rem);">
                                 <i class="fas fa-eye"></i>
                             </button>
                             @if ($canUpdate)
                                 <button type="button" class="btn-icon btn-edit-agenda" data-id="{{ $item->id }}"
                                     title="Edit Agenda"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--warning, #f59e0b); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 28px; height: 28px; border-radius: var(--radius-md, 6px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--warning, #f59e0b); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-xs, 0.75rem);">
                                     <i class="fas fa-pen-to-square"></i>
                                 </button>
                             @endif
@@ -136,7 +136,7 @@
                                 <button type="button" class="btn-icon btn-delete-agenda" data-id="{{ $item->id }}"
                                     data-name="Pertemuan #{{ $item->pertemuan_ke }} - {{ $item->materi_pokok }}"
                                     title="Hapus Agenda"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 28px; height: 28px; border-radius: var(--radius-md, 6px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-xs, 0.75rem);">
                                     <i class="fas fa-trash-can"></i>
                                 </button>
                             @endif

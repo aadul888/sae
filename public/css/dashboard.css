@@ -2903,6 +2903,23 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         word-break: break-word !important;
     }
 
+    /* Batasan Lebar Kolom Mapel & Materi agar Kompak & Tidak Melebar */
+    .table-pd tbody td[data-label="Mapel"],
+    .table-responsive-stack tbody td[data-label="Mapel"],
+    .table-pd tbody td[data-label*="Mata Pelajaran"],
+    .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] {
+        max-width: 160px;
+    }
+
+    .table-pd tbody td[data-label="Materi & Uraian"],
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"],
+    .table-pd tbody td[data-label*="Materi"],
+    .table-responsive-stack tbody td[data-label*="Materi"],
+    .table-pd tbody td[data-label*="Uraian"],
+    .table-responsive-stack tbody td[data-label*="Uraian"] {
+        max-width: 270px;
+    }
+
     .table-responsive-stack tbody td[data-label="Materi & Uraian"],
     .table-responsive-stack tbody td[data-label*="Materi"],
     .table-responsive-stack tbody td[data-label*="Uraian"],
