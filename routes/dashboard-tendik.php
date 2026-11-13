@@ -129,6 +129,10 @@ return function () {
                 ->name('show')->middleware('permission:menu_laboran,read');
         });
 
+        // 0b. Log Presensi Harian (baca-saja, dibatasi jurusan Laboran)
+        Route::get('/log-presensi', [\App\Http\Controllers\Laboran\LaboranLogPresensiController::class, 'index'])
+            ->name('log-presensi')->middleware('permission:menu_laboran,read');
+
         // 1. Analisis & Input Kebutuhan Alat/Bahan
         Route::prefix('kebutuhan')->name('kebutuhan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Laboran\LaboranKebutuhanController::class, 'index'])->name('index')->middleware('permission:menu_laboran,read');

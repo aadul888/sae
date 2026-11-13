@@ -382,6 +382,11 @@ final class PermissionDictionary
                     'icon' => 'fa-user-graduate',
                     'roles' => ['tugas_tambahan'],
                 ],
+                'menu_laboran_log_presensi' => [
+                    'label' => 'Laboratorium: Log Presensi Harian Jurusan',
+                    'icon' => 'fa-list-check',
+                    'roles' => ['tugas_tambahan'],
+                ],
                 'menu_laboran_perawatan' => [
                     'label' => 'Laboratorium: Perawatan & K3 Alat',
                     'icon' => 'fa-screwdriver-wrench',

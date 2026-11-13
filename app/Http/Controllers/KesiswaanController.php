@@ -691,11 +691,24 @@ class KesiswaanController extends Controller
     }
 
     /**
-     * Cetak Surat Keterangan Pindah / Mutasi Siswa Resmi Ber-Kop Sekolah.
+     * Cetak Surat Mutasi: Buka berkas Surat Mutasi Dapodik (S-2) resmi.
+     * Jika berkas fisik S-2 belum ada, fallback ke cetak template resmi ber-kop sekolah.
      */
     public function cetakMutasi(Request $request, $id)
     {
         $mutasi = KesiswaanMutasi::with('siswa')->findOrFail($id);
+
+        // Jika sudah ada file surat mutasi Dapodik (S-2), langsung tampilkan file PDF tersebut
+        if (!empty($mutasi->file_surat_mutasi) && Storage::disk('public')->exists($mutasi->file_surat_mutasi)) {
+            $fullPath = Storage::disk('public')->path($mutasi->file_surat_mutasi);
+            $mime = Storage::disk('public')->mimeType($mutasi->file_surat_mutasi) ?: 'application/pdf';
+
+            return response()->file($fullPath, [
+                'Content-Type' => $mime,
+                'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
+            ]);
+        }
+
         $siswa = $mutasi->siswa;
         $sekolah = DB::table('sekolah')->first();
         $sekolahMeta = \App\Models\SekolahMeta::first();

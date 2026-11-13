@@ -6,10 +6,15 @@
                 <form id="formFilterLog" action="{{ route('dashboard.presensi.index') }}" method="GET"
                     style="margin: 0;">
                     <input type="hidden" name="tab" value="log">
+                    @if (request('sort'))
+                        <input type="hidden" name="sort" value="{{ request('sort') }}">
+                    @endif
+                    @if (request('sort_dir'))
+                        <input type="hidden" name="sort_dir" value="{{ request('sort_dir') }}">
+                    @endif
 
-                    <div
-                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-row" style="margin-bottom: 0;">
+                        <div class="toolbar-left" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                             <div class="toolbar-entries">
                                 <label for="perPageLogSelect" style="margin: 0;">Tampilkan</label>
                                 <select id="perPageLogSelect" name="perPageLog" class="per-page-select"
@@ -22,13 +27,14 @@
                                 <span>entri</span>
                             </div>
 
-                            <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
-                                style="height: 38px; padding: 0 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);"
+                            <input type="date" name="tanggal" id="filterTanggalLog" value="{{ $tanggal }}"
+                                class="form-control toolbar-filter-select"
+                                style="height: 38px; width: auto; min-width: 140px; padding: 7px 10px; font-size: var(--text-sm, 0.8125rem); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--card-bg); color: var(--text-color); cursor: pointer;"
                                 title="Pilih Tanggal Presensi">
 
                             <select name="rombel_id" id="filterRombel" class="toolbar-filter-select"
-                                style="min-width: 150px; height: 38px;">
-                                <option value="">Semua Kelas</option>
+                                style="min-width: 160px; height: 38px;">
+                                <option value="">Semua Rombel / Kelas</option>
                                 @foreach ($rombelList as $r)
                                     <option value="{{ $r->rombongan_belajar_id }}"
                                         {{ request('rombel_id') == $r->rombongan_belajar_id ? 'selected' : '' }}>
@@ -38,35 +44,36 @@
                             </select>
 
                             <select name="status" id="filterStatus" class="toolbar-filter-select"
-                                style="min-width: 140px; height: 38px;">
-                                <option value="">Semua Status</option>
-                                <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir Tepat Waktu
-                                </option>
-                                <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Terlambat
-                                </option>
-                                <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
-                                <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
-                                <option value="A" {{ request('status') === 'A' ? 'selected' : '' }}>Alpha</option>
+                                style="min-width: 160px; height: 38px;">
+                                <option value="">Semua Status Presensi</option>
+                                <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>H - Hadir Tepat Waktu</option>
+                                <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>T - Terlambat</option>
+                                <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>I - Izin</option>
+                                <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>S - Sakit</option>
+                                <option value="D" {{ request('status') === 'D' ? 'selected' : '' }}>D - Dispensasi</option>
+                                <option value="A" {{ request('status') === 'A' ? 'selected' : '' }}>A - Alpha</option>
                             </select>
 
-                            @if (request('rombel_id') || request('status') || request('search') || $tanggal !== now()->toDateString())
+                            @if (request('rombel_id') || request('status') || request('search') || request('sort') || $tanggal !== now()->toDateString())
                                 <a href="{{ route('dashboard.presensi.index', ['tab' => 'log']) }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
-                                    title="Reset filter" data-live-reset>
+                                    title="Reset semua filter" data-live-reset>
                                     <i class="fas fa-undo"></i>
                                 </a>
                             @endif
                         </div>
 
-                        <div class="live-search-wrap" style="height: 38px;">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="logSearchInput" name="search" value="{{ request('search') }}"
-                                placeholder="Cari nama / NISN..." autocomplete="off">
-                            <button type="button" id="clearLogSearch"
-                                class="clear-search {{ request('search') ? 'visible' : '' }}" title="Hapus pencarian">
-                                <i class="fas fa-times"></i>
-                            </button>
+                        <div class="toolbar-right" style="display: flex; align-items: center; gap: 8px;">
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="logSearchInput" name="search" value="{{ request('search') }}"
+                                    placeholder="Cari nama siswa / NISN..." autocomplete="off">
+                                <button type="button" id="clearLogSearch"
+                                    class="clear-search {{ request('search') ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>

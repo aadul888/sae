@@ -435,7 +435,7 @@
                                     <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
                                         @if (!empty($item->file_surat_mutasi))
                                             <a href="{{ route('dashboard.kesiswaan.administrasi.mutasi.cetak', $item->id) }}"
-                                                target="_blank" class="btn-icon" title="Cetak Surat Mutasi Sekolah Resmi">
+                                                target="_blank" class="btn-icon" title="Cetak / Buka Surat Mutasi Dapodik (S-2)">
                                                 <i class="fas fa-print"></i>
                                             </a>
                                         @else

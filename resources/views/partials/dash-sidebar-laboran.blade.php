@@ -29,6 +29,15 @@
                                 <span class="nav-label">Data Peserta Didik</span>
                             </a>
                         @endif
+                        @if ($can('menu_laboran_log_presensi') || $can('menu_laboran'))
+                            <a href="{{ route('dashboard.laboran.log-presensi') }}"
+                                class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.log-presensi*') ? 'active' : '' }}"
+                                title="Log presensi harian peserta didik jurusan Anda (baca-saja)">
+                                <span class="nav-icon nested-icon"><i
+                                        class="fas fa-fw fa-list-check"></i></span>
+                                <span class="nav-label">Log Presensi</span>
+                            </a>
+                        @endif
                         @if ($can('menu_laboran_kebutuhan') || $can('menu_laboran'))
                             <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                                 class="dash-nav-nested-link {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"

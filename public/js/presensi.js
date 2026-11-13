@@ -84,19 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
         switchTab(initialTab);
     }
 
-    // --- Per-Page Select Handlers ---
-    const perPageLogSelect = document.getElementById('perPageLogSelect');
-    if (perPageLogSelect) {
-        perPageLogSelect.addEventListener('change', function () {
-            const hiddenPerPage = document.getElementById('inputHiddenPerPageLog');
-            if (hiddenPerPage) hiddenPerPage.value = this.value;
-            const url = new URL(window.location.href);
-            url.searchParams.set('perPageLog', this.value);
-            url.searchParams.set('tab', 'log');
-            url.searchParams.set('page', '1');
-            window.location.href = url.toString();
-        });
-    }
 
     // --- AJAX Live Search & Filter for RFID Management (Table-only Refresh) ---
     const rfidTableContainer = document.getElementById('rfidTableContainer');

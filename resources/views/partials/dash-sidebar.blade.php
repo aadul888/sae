@@ -1017,6 +1017,12 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
                     <span class="nav-label">Data Peserta Didik</span>
                 </a>
+                <a href="{{ route('dashboard.laboran.log-presensi') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.log-presensi*') ? 'active' : '' }}"
+                    title="Log presensi harian peserta didik jurusan Anda">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-list-check"></i></span>
+                    <span class="nav-label">Log Presensi</span>
+                </a>
                 <a href="{{ route('dashboard.laboran.kebutuhan.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.kebutuhan*') ? 'active' : '' }}"
                     title="Tupoksi #6 — Pendataan Kebutuhan">
