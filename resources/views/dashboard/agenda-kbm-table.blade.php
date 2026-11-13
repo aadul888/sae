@@ -21,7 +21,7 @@
             </th>
             <th class="sortable-th {{ ($sort ?? '') === 'nama_mata_pelajaran' ? 'sorted' : '' }}"
                 data-sort="nama_mata_pelajaran"
-                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 145px; max-width: 155px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer; width: 150px; max-width: 155px;">
                 <i class="fas fa-book me-1 text-primary"></i> Mapel
                 <span class="sort-icon">{!! ($sort ?? '') === 'nama_mata_pelajaran'
                     ? (($sortDir ?? '') === 'asc'
@@ -30,7 +30,7 @@
                     : '&#9650;&#9660;' !!}</span>
             </th>
             <th
-                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; max-width: 260px;">
+                style="padding: 9px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 260px; max-width: 260px;">
                 <i class="fas fa-file-lines me-1 text-primary"></i> Materi &amp; Uraian
             </th>
             <th class="sortable-th {{ ($sort ?? '') === 'status_kbm' ? 'sorted' : '' }}" data-sort="status_kbm"
@@ -83,22 +83,22 @@
                         </div>
                     </div>
                 </td>
-                <td data-label="Mapel" style="padding: 8px 12px; text-align: left; max-width: 155px;">
+                <td data-label="Mapel" style="padding: 8px 12px; text-align: left; width: 150px; max-width: 155px;">
                     <div class="cell-col-left" style="align-items: flex-start; text-align: left; max-width: 100%;">
-                        <div style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); line-height: 1.3; text-align: left; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->nama_mata_pelajaran }}">
+                        <div class="text-clamp-2" style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); line-height: 1.25; text-align: left; max-width: 100%;" title="{{ $item->nama_mata_pelajaran }}">
                             {{ $item->nama_mata_pelajaran }}
                         </div>
                     </div>
                 </td>
-                <td data-label="Materi &amp; Uraian" style="padding: 8px 12px; text-align: left; max-width: 260px;">
+                <td data-label="Materi &amp; Uraian" style="padding: 8px 12px; text-align: left; width: 260px; max-width: 260px;">
                     <div class="cell-col-left" style="align-items: flex-start; text-align: left; max-width: 100%;">
-                        <div
-                            style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); margin-bottom: 2px; line-height: 1.3; text-align: left; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $item->materi_pokok }}">
+                        <div class="text-clamp-1"
+                            style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); margin-bottom: 2px; line-height: 1.25; text-align: left; max-width: 100%;" title="{{ $item->materi_pokok }}">
                             {{ $item->materi_pokok }}
                         </div>
                         @if (!empty($item->uraian_kegiatan))
-                            <div
-                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-align: left;" title="{{ $item->uraian_kegiatan }}">
+                            <div class="text-clamp-1"
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.25; text-align: left; max-width: 100%;" title="{{ $item->uraian_kegiatan }}">
                                 {{ $item->uraian_kegiatan }}
                             </div>
                         @endif

@@ -7215,7 +7215,126 @@ input:disabled + .slider-toggle-crud {
         word-break: normal !important;
         overflow-wrap: normal !important;
     }
+
+    /* Pengecualian Khusus Kolom Teks / Mapel / Materi: Tetap Kompak, Wrap & Line-Clamp */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Mapel"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Mapel"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Mata Pelajaran"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Mata Pelajaran"] {
+        max-width: 155px !important;
+        width: 155px !important;
+        min-width: 120px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Materi & Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Materi & Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Materi"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Materi"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Uraian"] {
+        max-width: 260px !important;
+        width: 260px !important;
+        min-width: 180px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Mapel"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Mapel"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Mata Pelajaran"] > * {
+        max-width: 155px !important;
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Materi & Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Materi & Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Materi"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Materi"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-left,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .cell-col-left {
+        max-width: 260px !important;
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .text-clamp-1,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .text-clamp-1 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .text-clamp-2,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .text-clamp-2 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+    }
 }
+
+/* Utility clamp teks tabel agar compact dan tidak memanjang/melebar */
+.text-clamp-1 {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 1 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.text-clamp-2 {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.table-pd tbody td[data-label="Mapel"],
+.table-responsive-stack tbody td[data-label="Mapel"],
+.table-pd tbody td[data-label*="Mata Pelajaran"],
+.table-responsive-stack tbody td[data-label*="Mata Pelajaran"] {
+    max-width: 160px !important;
+    width: 160px !important;
+    white-space: normal !important;
+}
+
+.table-pd tbody td[data-label="Materi & Uraian"],
+.table-responsive-stack tbody td[data-label="Materi & Uraian"],
+.table-pd tbody td[data-label*="Materi"],
+.table-responsive-stack tbody td[data-label*="Materi"],
+.table-pd tbody td[data-label*="Uraian"],
+.table-responsive-stack tbody td[data-label*="Uraian"] {
+    max-width: 260px !important;
+    width: 260px !important;
+    white-space: normal !important;
+}
+
 
 /* ==========================================================================
    PIP — Tab Verifikasi Laporan (warna khusus amber)
