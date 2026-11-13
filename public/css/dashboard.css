@@ -6740,8 +6740,10 @@ input:disabled + .slider-toggle-crud {
         order: 0 !important;
     }
 
-    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan]:not(.d-none),
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan]:not(.d-none) {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[colspan]:not(.d-none):not(.d-none-mobile),
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[colspan]:not(.d-none):not(.d-none-mobile),
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td.cell-empty,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td.cell-empty {
         text-align: center !important;
         white-space: normal !important;
     }

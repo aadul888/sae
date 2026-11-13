@@ -6,6 +6,238 @@
 @push('styles')
     <link rel="stylesheet"
         href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">
+    <style>
+        .log-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+
+        .log-toolbar__filters {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            min-width: 0;
+        }
+
+        .log-toolbar__search {
+            flex: 0 1 280px;
+            min-width: 200px;
+            height: 38px;
+        }
+
+        .log-toolbar__search input {
+            width: 100%;
+            height: 38px;
+        }
+
+        /* ---- Segmented Control Tabs untuk Modal Cetak Compact ---- */
+        .modal-segmented {
+            display: grid;
+            background: var(--bg-surface, rgba(0, 0, 0, 0.04));
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md, 8px);
+            padding: 3px;
+            gap: 3px;
+            user-select: none;
+        }
+
+        .modal-segmented--2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .modal-segmented--4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+
+        .modal-segmented-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 0;
+            padding: 7px 10px;
+            font-size: var(--text-xs, 0.75rem);
+            font-weight: var(--font-semibold, 600);
+            color: var(--text-muted);
+            border-radius: var(--radius-sm, 6px);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border: 1px solid transparent;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .modal-segmented-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+            margin: 0;
+        }
+
+        .modal-segmented-item:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-segmented-item:has(input:checked) {
+            background: var(--bg-card, #ffffff);
+            color: var(--primary, #6366f1);
+            border-color: rgba(99, 102, 241, 0.25);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] .modal-segmented-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="dark"] .modal-segmented-item:has(input:checked) {
+            background: var(--bg-card, #1e293b);
+            color: var(--primary, #818cf8);
+            border-color: rgba(129, 140, 248, 0.3);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Modal Select & Grid Fixes (selalu berdampingan & teks tidak tabrakan dengan icon) */
+        .modal-row-grid-2 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+        }
+
+        .modal-row-grid-2-1 {
+            display: grid !important;
+            grid-template-columns: 2fr 1fr !important;
+            gap: 10px !important;
+        }
+
+        #modalCetakPresensi select.form-control,
+        #modalCetakPresensi select.toolbar-filter-select,
+        #modalCetakPresensi .modal-select {
+            height: 38px !important;
+            padding: 0 32px 0 10px !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 10px center !important;
+            background-size: 13px 13px !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            font-size: var(--text-xs, 0.75rem) !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+        }
+
+        [data-theme="dark"] #modalCetakPresensi select.form-control,
+        [data-theme="dark"] #modalCetakPresensi select.toolbar-filter-select,
+        [data-theme="dark"] #modalCetakPresensi .modal-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+        }
+
+        #modalCetakPresensi input.form-control {
+            height: 38px !important;
+            font-size: var(--text-xs, 0.75rem) !important;
+            padding: 0 10px !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+        }
+
+        /* Empty State Table Centering (Desktop & Mobile) */
+        .table-responsive-stack:has(tr.empty-row) table,
+        .table-presensi-log:has(tr.empty-row) {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+
+        .table-presensi-log tbody tr.empty-row,
+        .table-presensi-log tbody tr.empty-row td,
+        .table-presensi-log tbody td.cell-empty,
+        .table-presensi-log tbody td[colspan] {
+            text-align: center !important;
+            white-space: normal !important;
+        }
+
+        .table-presensi-log tbody td.cell-empty .empty-state-wrap,
+        .table-presensi-log tbody td[colspan] .empty-state-wrap {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+        }
+
+        .table-presensi-log tbody td.cell-empty .empty-state-wrap i,
+        .table-presensi-log tbody td[colspan] .empty-state-wrap i {
+            display: block !important;
+            margin: 0 auto 8px auto !important;
+            text-align: center !important;
+        }
+
+        .table-presensi-log tbody td.cell-empty .empty-state-wrap div,
+        .table-presensi-log tbody td[colspan] .empty-state-wrap div {
+            text-align: center !important;
+            white-space: normal !important;
+            word-break: normal !important;
+            margin: 0 auto !important;
+        }
+
+        @media (max-width: 768px) {
+            .log-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-4);
+            }
+
+            .log-toolbar__filters {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--space-3);
+                align-items: stretch;
+            }
+
+            .log-toolbar__filters .toolbar-entries {
+                width: auto;
+                margin-right: 0;
+            }
+
+            .log-toolbar__filters #filterTanggal {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 130px;
+                height: 38px !important;
+                box-sizing: border-box !important;
+            }
+
+            .log-toolbar__filters select.toolbar-filter-select {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 130px;
+                height: 38px !important;
+                box-sizing: border-box !important;
+            }
+
+            .log-toolbar__filters .btn-reset-filter {
+                width: 38px !important;
+                height: 38px !important;
+                flex: 0 0 38px !important;
+            }
+
+            .log-toolbar__search {
+                width: 100%;
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -33,10 +265,10 @@
                 </div>
             </div>
             <div class="dash-banner-actions dash-banner-access">
-                <span class="badge badge-{{ $scopeBadge['tone'] }}"
-                    title="{{ $scopeBadge['label'] }}">
-                    <i class="fas {{ $scopeBadge['icon'] }} me-1"></i>{{ $scopeBadge['label'] }}
-                </span>
+                <button type="button" class="btn btn-outline" id="btnOpenModalCetak"
+                    title="Cetak Laporan Presensi Jurusan (A4)" aria-label="Cetak Laporan Presensi">
+                    <i class="fas fa-print"></i>
+                </button>
             </div>
         </div>
 
@@ -89,8 +321,8 @@
         {{-- 3. Datatable Terpadu --}}
         <div class="card datatable-card-wrapper" id="tableDataContainer">
             <div class="datatable-toolbar">
-                <div style="display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between; align-items: center;">
-                    <div style="display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center;">
+                <div class="log-toolbar">
+                    <div class="log-toolbar__filters">
                         <div class="toolbar-entries">
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                             <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
@@ -138,7 +370,7 @@
                         @endif
                     </div>
 
-                    <div class="live-search-wrap" style="height: 38px;">
+                    <div class="live-search-wrap log-toolbar__search">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="liveSearch" name="q" value="{{ $q }}"
                             placeholder="Cari nama / NISN..." autocomplete="off">
@@ -312,12 +544,15 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="8"
-                                    style="padding: var(--space-11); text-align: center; color: var(--text-muted); font-size: var(--text-base);">
-                                    <i class="fas fa-clipboard-question mb-2"
-                                        style="font-size: var(--text-3xl); opacity: 0.4;"></i>
-                                    <div>Belum ada data presensi yang tercatat untuk filter tanggal dan kelas ini.</div>
+                            <tr class="empty-row">
+                                <td colspan="8" class="cell-empty"
+                                    style="padding: var(--space-11) var(--space-4); text-align: center !important; white-space: normal !important; color: var(--text-muted); font-size: var(--text-base);">
+                                    <div class="empty-state-wrap"
+                                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: 0 auto; width: 100%;">
+                                        <i class="fas fa-clipboard-question mb-2"
+                                            style="font-size: var(--text-3xl); opacity: 0.4; display: block; margin: 0 auto 8px auto;"></i>
+                                        <div style="text-align: center !important; white-space: normal !important; max-width: 480px; margin: 0 auto;">Belum ada data presensi yang tercatat untuk filter tanggal dan kelas ini.</div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -330,6 +565,194 @@
                     @include('partials.datatable-pagination', ['paginator' => $logs])
                 </div>
             @endif
+        </div>
+    </div>
+
+    {{-- ===================== MODAL OPSION CETAK PRESENSI ===================== --}}
+    <div id="modalCetakPresensi" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card"
+            style="max-width: 480px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 18px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary, #6366f1); display: flex; align-items: center; justify-content: center; font-size: var(--text-base); flex-shrink: 0;">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-color); margin: 0;">
+                            Cetak Laporan Presensi
+                        </h4>
+                        <div style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); margin-top: 1px;">
+                            Jurusan: {{ $context['jurusan_nama'] ?: ($context['jurusan_id'] ?: 'Semua Jurusan') }}
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="btnCloseModalCetak"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-base); padding: 4px;"
+                    aria-label="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="formCetakPresensi" action="{{ route('dashboard.laboran.log-presensi.cetak') }}" method="GET" target="_blank"
+                style="display: flex; flex-direction: column; gap: var(--space-3); overflow-y: auto;">
+                
+                {{-- 1. Tipe Laporan: Per Kelas vs Per Murid --}}
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">
+                        Tipe Laporan
+                    </label>
+                    <div class="modal-segmented modal-segmented--2">
+                        <label class="modal-segmented-item" id="labelTipeKelas">
+                            <input type="radio" name="tipe_laporan" value="kelas" checked id="radioTipeKelas">
+                            <i class="fas fa-users"></i>
+                            <span>Per Kelas</span>
+                        </label>
+                        <label class="modal-segmented-item" id="labelTipeMurid">
+                            <input type="radio" name="tipe_laporan" value="murid" id="radioTipeMurid">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Per Murid</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- 2. Pilih Kelas / Rombel --}}
+                <div class="form-group" id="groupPilihRombel" style="margin: 0;">
+                    <label for="modalCetakRombelId" class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">
+                        Kelas / Rombel
+                    </label>
+                    <select name="rombel_id" id="modalCetakRombelId" class="form-control" style="height: 36px; font-size: var(--text-xs); padding: 0 10px;">
+                        <option value="">Semua Kelas (Jurusan)</option>
+                        @foreach ($rombelList as $r)
+                            <option value="{{ $r->rombongan_belajar_id }}" {{ $rombelId === (string) $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                {{ $r->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- 3. Pilih Peserta Didik (Hanya tampil saat tipe_laporan = murid) --}}
+                <div class="form-group" id="groupPilihSiswa" style="margin: 0; display: none;">
+                    <label for="modalCetakSiswaId" class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">
+                        Peserta Didik <span style="color: var(--danger);">*</span>
+                    </label>
+                    <select name="peserta_didik_id" id="modalCetakSiswaId" class="form-control" style="height: 36px; font-size: var(--text-xs); padding: 0 10px;">
+                        <option value="">-- Pilih Siswa --</option>
+                    </select>
+                    <div id="siswaLoadingHelp" style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: none;">
+                        <i class="fas fa-spinner fa-spin me-1"></i> Memuat daftar siswa...
+                    </div>
+                </div>
+
+                {{-- 4. Rentang Periode: Hari, Bulan, Semester, Tahun Ajaran --}}
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">
+                        Rentang Periode
+                    </label>
+                    <div class="modal-segmented modal-segmented--4">
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="periode" value="hari" checked>
+                            <span>Hari</span>
+                        </label>
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="periode" value="bulan">
+                            <span>Bulan</span>
+                        </label>
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="periode" value="semester">
+                            <span>Semester</span>
+                        </label>
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="periode" value="tahun">
+                            <span>Tahun</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Input dinamis berdasarkan periode --}}
+                <div id="fieldPeriodeHari" class="form-group" style="margin: 0;">
+                    <label for="modalCetakTanggal" class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">
+                        Pilih Tanggal
+                    </label>
+                    <input type="date" name="tanggal" id="modalCetakTanggal" class="form-control" value="{{ $tanggal }}">
+                </div>
+
+                <div id="fieldPeriodeBulan" class="form-group" style="margin: 0; display: none;">
+                    <div class="modal-row-grid-2-1">
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Bulan</label>
+                            <select name="bulan" class="form-control">
+                                @foreach ([1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'] as $num => $namaBulan)
+                                    <option value="{{ $num }}" {{ (int) date('n') === $num ? 'selected' : '' }}>{{ $namaBulan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Tahun</label>
+                            <input type="number" name="tahun" class="form-control" value="{{ date('Y') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fieldPeriodeSemester" class="form-group" style="margin: 0; display: none;">
+                    <div class="modal-row-grid-2">
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Semester</label>
+                            <select name="semester" class="form-control">
+                                <option value="1" {{ (int) date('n') >= 7 ? 'selected' : '' }}>Semester Ganjil</option>
+                                <option value="2" {{ (int) date('n') < 7 ? 'selected' : '' }}>Semester Genap</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Tahun Ajaran</label>
+                            @php
+                                $curY = (int) date('Y');
+                                $activeTa = date('n') >= 7 ? "{$curY}/" . ($curY + 1) : ($curY - 1) . "/{$curY}";
+                            @endphp
+                            <select name="tahun_ajaran" class="form-control">
+                                @for ($i = $curY - 1; $i <= $curY + 1; $i++)
+                                    @php $ta = $i . '/' . ($i + 1); @endphp
+                                    <option value="{{ $ta }}" {{ $ta === $activeTa ? 'selected' : '' }}>{{ $ta }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fieldPeriodeTahun" class="form-group" style="margin: 0; display: none;">
+                    <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Tahun Ajaran</label>
+                    <select name="tahun_ajaran" class="form-control">
+                        @for ($i = $curY - 1; $i <= $curY + 1; $i++)
+                            @php $ta = $i . '/' . ($i + 1); @endphp
+                            <option value="{{ $ta }}" {{ $ta === $activeTa ? 'selected' : '' }}>Tahun Ajaran {{ $ta }}</option>
+                        @endfor
+                    </select>
+                </div>
+
+                {{-- 5. Format Tampilan (Khusus Per Kelas) --}}
+                <div class="form-group" id="groupModeTampilan" style="margin: 0;">
+                    <label class="form-label" style="font-size: var(--text-2xs, 0.72rem); font-weight: var(--font-bold); margin-bottom: 4px; text-transform: uppercase; color: var(--text-muted);">Mode Tampilan</label>
+                    <div class="modal-segmented modal-segmented--2">
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="mode" value="ringkasan" checked>
+                            <span>Ringkasan</span>
+                        </label>
+                        <label class="modal-segmented-item">
+                            <input type="radio" name="mode" value="lengkap">
+                            <span>Lengkap</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: var(--space-3); margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" id="btnCancelModalCetak" style="height: 38px; font-size: var(--text-xs);">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitModalCetak" style="height: 38px; font-size: var(--text-xs);">
+                        <i class="fas fa-print me-1"></i> Buka Lembar Cetak
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

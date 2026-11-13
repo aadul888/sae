@@ -46,6 +46,7 @@ class LaboranDokumenService
     public const DOKUMEN = [
         'dashboard'          => ['label' => 'Rekapitulasi Supervisi Laboratorium', 'kategori' => 'administrasi'],
         'peserta-didik'      => ['label' => 'Data Peserta Didik Jurusan', 'kategori' => 'administrasi'],
+        'log-presensi'       => ['label' => 'Laporan Presensi Harian Jurusan', 'kategori' => 'laporan'],
         'inventaris'         => ['label' => 'Buku Induk Inventaris Alat Praktik', 'kategori' => 'buku_inventaris'],
         'bhp'                => ['label' => 'Buku Daftar Bahan Habis Pakai', 'kategori' => 'buku_inventaris'],
         'jadwal'             => ['label' => 'Jadwal Penggunaan Lokasi Praktik', 'kategori' => 'administrasi'],

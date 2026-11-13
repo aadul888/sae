@@ -251,4 +251,133 @@ class LaboranLogPresensiTest extends LaboranTestCase
         $this->assertLessThan($posLog, $posPd, 'Menu "Log Presensi" harus setelah "Data Peserta Didik".');
         $this->assertLessThan($posKebutuhan, $posLog, 'Menu "Log Presensi" harus sebelum "Analisis & Kebutuhan".');
     }
+
+    public function test_cetak_laporan_presensi_ringkasan_dan_lengkap(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $tanggal = $this->atphLogDate();
+
+        // 1. Mode Ringkasan (default)
+        $res = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tanggal' => $tanggal,
+            'mode'    => 'ringkasan',
+        ]));
+
+        $res->assertStatus(200);
+        $res->assertSee('LAPORAN PRESENSI PESERTA DIDIK', false);
+        $res->assertSee('Rekapitulasi Presensi per Kelas', false);
+        $this->assertSame('ringkasan', $res->viewData('mode'));
+        $this->assertNotEmpty($res->viewData('rekap'));
+
+        // 2. Mode Lengkap
+        $resLengkap = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tanggal' => $tanggal,
+            'mode'    => 'lengkap',
+        ]));
+
+        $resLengkap->assertStatus(200);
+        $resLengkap->assertSee('Daftar Rinci Presensi Peserta Didik', false);
+        $this->assertSame('lengkap', $resLengkap->viewData('mode'));
+        $this->assertSame($this->atphLogCount($tanggal), $resLengkap->viewData('items')->count());
+
+        // Pastikan tidak ada data jurusan lain pada items cetak
+        $allowed = $this->atphRombelIds();
+        foreach ($resLengkap->viewData('items') as $row) {
+            $this->assertContains((string) $row->rombongan_belajar_id, $allowed);
+        }
+
+        // 3. Cetak per Rombel / Kelas tertentu
+        $rombelId = DB::table('presensi_harian as ph')
+            ->join('rombongan_belajar as rb', 'ph.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->where('rb.jurusan_id', self::JUR_ATPH)
+            ->where('ph.tanggal', $tanggal)
+            ->value('ph.rombongan_belajar_id');
+
+        $resPerKelas = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tanggal'   => $tanggal,
+            'rombel_id' => $rombelId,
+            'mode'      => 'lengkap',
+        ]));
+
+        $resPerKelas->assertStatus(200);
+        $this->assertNotNull($resPerKelas->viewData('rombelObj'));
+        $this->assertSame((string) $rombelId, (string) $resPerKelas->viewData('rombelId'));
+        $this->assertSame($this->atphLogCount($tanggal, (string) $rombelId), $resPerKelas->viewData('items')->count());
+        foreach ($resPerKelas->viewData('items') as $row) {
+            $this->assertSame((string) $rombelId, (string) $row->rombongan_belajar_id);
+        }
+    }
+
+    public function test_cetak_laporan_presensi_per_murid_dan_multi_periode(): void
+    {
+        $session = $this->laboranSession(self::JUR_ATPH);
+        $tanggal = $this->atphLogDate();
+
+        // Ambil salah satu siswa ATPH yang memiliki log presensi
+        $logSample = DB::table('presensi_harian as ph')
+            ->join('rombongan_belajar as rb', 'ph.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->join('peserta_didik as pd', 'ph.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->where('rb.jurusan_id', self::JUR_ATPH)
+            ->where('ph.tanggal', $tanggal)
+            ->select('ph.peserta_didik_id', 'pd.nama', 'ph.rombongan_belajar_id')
+            ->first();
+
+        $this->assertNotNull($logSample);
+
+        // 1. Endpoint siswa-options JSON ter-scope jurusan
+        $resOptions = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.siswa-options', [
+            'rombel_id' => $logSample->rombongan_belajar_id,
+        ]));
+        $resOptions->assertStatus(200);
+        $resOptions->assertJsonFragment(['peserta_didik_id' => $logSample->peserta_didik_id]);
+
+        // 2. Cetak per Murid - Periode Harian
+        $resMuridHari = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tipe_laporan'     => 'murid',
+            'peserta_didik_id' => $logSample->peserta_didik_id,
+            'periode'          => 'hari',
+            'tanggal'          => $tanggal,
+        ]));
+        $resMuridHari->assertStatus(200);
+        $resMuridHari->assertSee('LAPORAN REKAPITULASI PRESENSI PESERTA DIDIK', false);
+        $resMuridHari->assertSee($logSample->nama, false);
+        $this->assertSame('murid', $resMuridHari->viewData('tipeLaporan'));
+        $this->assertNotNull($resMuridHari->viewData('siswa'));
+        $this->assertSame($logSample->peserta_didik_id, $resMuridHari->viewData('siswa')->peserta_didik_id);
+
+        // 3. Cetak per Murid - Periode Bulanan
+        $resMuridBulan = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tipe_laporan'     => 'murid',
+            'peserta_didik_id' => $logSample->peserta_didik_id,
+            'periode'          => 'bulan',
+            'bulan'            => (int) date('m', strtotime($tanggal)),
+            'tahun'            => (int) date('Y', strtotime($tanggal)),
+        ]));
+        $resMuridBulan->assertStatus(200);
+        $resMuridBulan->assertSee('Hari Efektif (HEB)', false);
+        $this->assertArrayHasKey('hari_efektif_berjalan', $resMuridBulan->viewData('stats'));
+
+        // 4. Cetak per Kelas - Periode Bulanan & Semester
+        $resKelasBulan = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tipe_laporan' => 'kelas',
+            'rombel_id'    => $logSample->rombongan_belajar_id,
+            'periode'      => 'bulan',
+            'bulan'        => (int) date('m', strtotime($tanggal)),
+            'tahun'        => (int) date('Y', strtotime($tanggal)),
+            'mode'         => 'lengkap',
+        ]));
+        $resKelasBulan->assertStatus(200);
+        $this->assertSame('kelas', $resKelasBulan->viewData('tipeLaporan'));
+        $this->assertNotEmpty($resKelasBulan->viewData('range'));
+
+        $resKelasSemester = $this->withSession($session)->get(route('dashboard.laboran.log-presensi.cetak', [
+            'tipe_laporan' => 'kelas',
+            'periode'      => 'semester',
+            'semester'     => '1',
+            'tahun_ajaran' => '2025/2026',
+            'mode'         => 'ringkasan',
+        ]));
+        $resKelasSemester->assertStatus(200);
+        $this->assertStringContainsString('Semester Ganjil', $resKelasSemester->viewData('range')['label']);
+    }
 }
