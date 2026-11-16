@@ -89,6 +89,13 @@
                         <div style="font-size:var(--text-xs); color:var(--text-muted); margin-top:2px;">{{ $periodeList[$row->periode_jadwal] ?? $row->periode_jadwal }}</div>
                         @if ($row->uraian)<div style="font-size:var(--text-xs); color:var(--text-muted); margin-top:2px;">{{ \Illuminate\Support\Str::limit($row->uraian, 60) }}</div>@endif
                         @if ($row->temuan)<div style="font-size:var(--text-xs); color:var(--warning,#f59e0b); margin-top:2px;"><i class="fas fa-triangle-exclamation"></i> {{ \Illuminate\Support\Str::limit($row->temuan, 60) }}</div>@endif
+                        @if (!empty($row->foto))
+                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                target="_blank" rel="noopener" title="Lihat bukti foto">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                    alt="Bukti foto" style="margin-top:6px; width:56px; height:56px; object-fit:cover; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                            </a>
+                        @endif
                     </td>
                     <td style="padding:14px 18px;">
                         <div style="font-weight:600; color:var(--text-heading);">{{ $pjRuang[$row->ruang_id] ?? $row->petugas_nama }}</div>
@@ -97,16 +104,14 @@
                         <div style="display:flex; gap:6px; justify-content:center;">
                             @if ($canUpdate)
                                 @if ($row->status === 'belum')
-                                    <form action="{{ route('dashboard.teknisi.pelaksanaan-harian.status', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Tandai tugas ini sudah dikerjakan?" style="display:inline;">
-                                        @csrf @method('PUT')
-                                        <input type="hidden" name="status" value="selesai">
-                                        <button type="submit" class="btn-icon" title="Tandai Selesai"
-                                            style="background:var(--success,#10b981); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
-                                            <i class="fas fa-check" style="font-size:var(--text-sm);"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn-icon" title="Tandai Selesai"
+                                        data-selesai-pelaksanaan="{{ route('dashboard.teknisi.pelaksanaan-harian.status', $row->id) }}"
+                                        data-area="{{ $row->area }}"
+                                        style="background:var(--success,#10b981); color:#fff; width:32px; height:32px; border-radius:var(--radius-sm, 6px); border:none; cursor:pointer;">
+                                        <i class="fas fa-check" style="font-size:var(--text-sm);"></i>
+                                    </button>
                                 @else
-                                    <form action="{{ route('dashboard.teknisi.pelaksanaan-harian.status', $row->id) }}" method="POST" data-confirm="delete" data-confirm-message="Tandai tugas ini BELUM dikerjakan?" style="display:inline;">
+                                    <form action="{{ route('dashboard.teknisi.pelaksanaan-harian.status', $row->id) }}" method="POST" data-confirm="Tandai tugas ini BELUM dikerjakan?" data-confirm-title="Ubah Status Tugas" style="display:inline;">
                                         @csrf @method('PUT')
                                         <input type="hidden" name="status" value="belum">
                                         <button type="submit" class="btn-icon" title="Tandai Belum"
@@ -160,8 +165,27 @@
         'modalAction' => route('dashboard.teknisi.pelaksanaan-harian.store'),
         'modalBodyView' => 'dashboard.teknisi._partials.form-pelaksanaan-harian',
     ])
+
+    @include('dashboard.teknisi._partials.modal-pelaksanaan-selesai')
 @endsection
 
 @push('scripts')
     @include('dashboard.teknisi._partials.scripts')
+    <script>
+        (function() {
+            // Buka modal "Tandai Selesai" (isi action form + area) dari tombol baris.
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('[data-selesai-pelaksanaan]');
+                if (!btn) return;
+                var modal = document.getElementById('modalSelesaiPelaksanaan');
+                if (!modal) return;
+                var form = document.getElementById('formSelesaiPelaksanaan');
+                form.setAttribute('action', btn.getAttribute('data-selesai-pelaksanaan'));
+                form.reset();
+                var area = document.getElementById('selesaiAreaPelaksanaan');
+                if (area) area.textContent = btn.getAttribute('data-area') || '-';
+                modal.style.display = 'flex';
+            });
+        })();
+    </script>
 @endpush

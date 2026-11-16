@@ -22,6 +22,9 @@ class TeknisiFotoBuktiTest extends TestCase
     /** @var array<int, int> */
     private array $pmIds = [];
 
+    /** @var array<int, int> */
+    private array $pelaksanaanIds = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,6 +47,9 @@ class TeknisiFotoBuktiTest extends TestCase
         if ($this->pmIds !== [] || Table::exists('teknisi_pemeliharaan')) {
             DB::table('teknisi_pemeliharaan')->when(!empty($this->pmIds), fn ($q) => $q->whereNotIn('id', $this->pmIds))
                 ->where('nama_kegiatan', 'like', 'Uji Foto%')->delete();
+        }
+        if (Table::exists('teknisi_pelaksanaan_harian') && !empty($this->pelaksanaanIds)) {
+            DB::table('teknisi_pelaksanaan_harian')->whereIn('id', $this->pelaksanaanIds)->delete();
         }
 
         parent::tearDown();
@@ -152,5 +158,34 @@ class TeknisiFotoBuktiTest extends TestCase
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('foto');
+    }
+
+    public function test_tandai_selesai_pelaksanaan_menyimpan_bukti_foto(): void
+    {
+        $sesi = $this->adminSession();
+
+        $id = DB::table('teknisi_pelaksanaan_harian')->insertGetId([
+            'nomor_pelaksanaan' => 'PLK-UJI-' . uniqid(),
+            'tanggal'           => now()->toDateString(),
+            'shift'             => 'pagi',
+            'area'              => 'Area Uji Foto',
+            'status'            => 'belum',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+        $this->pelaksanaanIds[] = $id;
+
+        $this->withSession($sesi)
+            ->putJson(route('dashboard.teknisi.pelaksanaan-harian.status', $id), [
+                'status' => 'selesai',
+                'foto'   => $this->gambar(),
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'success');
+
+        $row = DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->first();
+        $this->assertSame('selesai', $row->status);
+        $this->assertNotEmpty($row->foto, 'Foto bukti harus tersimpan saat tandai selesai.');
+        Storage::disk('public')->assertExists($row->foto);
     }
 }

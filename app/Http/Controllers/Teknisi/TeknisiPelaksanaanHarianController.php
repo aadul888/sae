@@ -240,7 +240,10 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         [$res, $context] = $this->boot($request);
         if ($res) return $res;
 
-        $data = $request->validate(['status' => 'required|in:belum,selesai']);
+        $data = $request->validate([
+            'status' => 'required|in:belum,selesai',
+            'foto'   => TeknisiFoto::RULES,
+        ]);
 
         $row = $this->findRow('teknisi_pelaksanaan_harian', $id);
         if (!$row) return $this->respond($request, false, 'Data tidak ditemukan.', 404);
@@ -248,12 +251,23 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
             return $this->respond($request, false, 'Anda hanya dapat mengubah data milik Anda.', 403);
         }
 
-        DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->update([
+        $update = [
             'status'     => $data['status'],
             'updated_at' => now(),
-        ]);
+        ];
 
-        return $this->respond($request, true, 'Status pelaksanaan diperbarui.');
+        // Bukti foto opsional saat menandai selesai (atau mengganti foto lama).
+        if ($request->hasFile('foto')) {
+            $update['foto'] = TeknisiFoto::simpan($request->file('foto'), 'pelaksanaan-harian', $row->foto ?? null);
+        }
+
+        DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->update($update);
+
+        $pesan = $data['status'] === 'selesai'
+            ? 'Tugas berhasil ditandai selesai.'
+            : 'Tugas ditandai belum dikerjakan.';
+
+        return $this->respond($request, true, $pesan);
     }
 
     public function destroy(Request $request, $id)
