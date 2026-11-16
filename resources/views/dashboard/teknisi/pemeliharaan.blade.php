@@ -247,6 +247,13 @@
                                             <i class="fas fa-check-circle"></i> {{ Str::limit($row->catatan_hasil, 60) }}
                                         </div>
                                     @endif
+                                    @if (!empty($row->foto))
+                                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                            target="_blank" rel="noopener" title="Lihat bukti foto">
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                                alt="Bukti foto" style="margin-top:6px; width:56px; height:56px; object-fit:cover; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                                        </a>
+                                    @endif
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
@@ -346,7 +353,7 @@
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <form action="{{ route('dashboard.teknisi.pemeliharaan.store') }}" method="POST"
-                    style="padding: 20px;">
+                    enctype="multipart/form-data" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div>
@@ -436,6 +443,14 @@
                                     step="5000">
                             </div>
                         </div>
+                        <div>
+                            <label class="form-label"
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bukti
+                                Foto</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">JPG/PNG/WEBP,
+                                maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.</small>
+                        </div>
                     </div>
                     <div
                         style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
@@ -460,7 +475,7 @@
                     <button type="button" onclick="closeModalUpdatePM()"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
-                <form id="formUpdatePM" action="" method="POST" style="padding: 20px;">
+                <form id="formUpdatePM" action="" method="POST" enctype="multipart/form-data" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div style="background: var(--bg-card-hover); padding: 12px; border-radius: var(--radius-md, 8px);">
@@ -502,6 +517,14 @@
                                 Biaya Aktual (Rp)</label>
                             <input type="number" name="biaya" id="updateBiayaPMVal" class="form-control"
                                 value="0" min="0" step="1000">
+                        </div>
+                        <div>
+                            <label class="form-label"
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bukti
+                                Foto</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Kosongkan
+                                bila tidak mengganti. Maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.</small>
                         </div>
                     </div>
                     <div

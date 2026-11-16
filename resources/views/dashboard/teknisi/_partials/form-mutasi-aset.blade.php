@@ -48,4 +48,12 @@
         <label class="form-label" style="font-weight:600;">Nomor Berita Acara</label>
         <input type="text" name="berita_acara" class="form-control" placeholder="Opsional">
     </div>
+    <div style="grid-column:1 / -1;">
+        <label class="form-label" style="font-weight:600;">Bukti Foto</label>
+        <input type="file" name="foto" class="form-control" accept="image/*"
+            data-max-kb="{{ \App\Support\TeknisiFoto::MAX_KB }}">
+        <small style="display:block;margin-top:4px;font-size:var(--text-xs);color:var(--text-muted);">
+            JPG/PNG/WEBP, maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.
+        </small>
+    </div>
 </div>

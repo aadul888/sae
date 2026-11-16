@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TeknisiPemeliharaan;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
+use App\Support\TeknisiFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -114,6 +115,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             'tgl_jadwal'       => 'required|date',
             'penanggung_jawab' => 'nullable|string|max:100',
             'biaya'            => 'nullable|numeric|min:0',
+            'foto'             => TeknisiFoto::RULES,
         ]);
 
         $prefix = 'PM-' . date('Ym') . '-';
@@ -137,6 +139,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             'tgl_jadwal'       => $request->tgl_jadwal,
             'penanggung_jawab' => $context['nama'] ?: $request->penanggung_jawab,
             'biaya'            => $request->biaya ?? 0,
+            'foto'             => TeknisiFoto::simpan($request->file('foto'), 'pemeliharaan'),
             'user_id'          => $context['user_id'],
             'status'           => 'terjadwal',
         ]);
@@ -324,6 +327,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             'tgl_realisasi'  => 'nullable|date',
             'catatan_hasil'  => 'nullable|string',
             'biaya'          => 'nullable|numeric|min:0',
+            'foto'           => TeknisiFoto::RULES,
         ]);
 
         $pm = TeknisiPemeliharaan::findOrFail($id);
@@ -332,6 +336,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
         }
         $pm->status = $request->status;
         $pm->catatan_hasil = $request->catatan_hasil;
+        $pm->foto = TeknisiFoto::simpan($request->file('foto'), 'pemeliharaan', $pm->foto);
         if ($request->has('biaya')) {
             $pm->biaya = $request->biaya;
         }
@@ -356,6 +361,7 @@ class TeknisiPemeliharaanController extends Teknisi\TeknisiBaseController
             return $this->respond($request, false, 'Anda hanya dapat menghapus jadwal milik Anda.', 403);
         }
         $pm->delete();
+        TeknisiFoto::hapus($pm->foto);
 
         return redirect()->route('dashboard.teknisi.pemeliharaan')
             ->with('success', "Data pemeliharaan {$pm->kode_pemeliharaan} berhasil dihapus.");

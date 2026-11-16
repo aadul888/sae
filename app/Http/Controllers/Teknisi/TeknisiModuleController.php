@@ -6,6 +6,7 @@ use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
 use App\Support\PeriodeLaporan;
 use App\Support\Table;
+use App\Support\TeknisiFoto;
 use App\Support\TeknisiModuleRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -109,6 +110,7 @@ class TeknisiModuleController extends TeknisiBaseController
             return $this->respond($request, false, 'Modul ini hanya untuk memindahkan aset — tambah data tidak tersedia.', 422);
         }
         $payload = $this->payload($request, $spec, $context);
+        $this->lampirkanFoto($request, $payload, $spec, $modul);
 
         [$nomorCol, $prefix] = $spec['nomor'];
         $payload[$nomorCol] = $this->generateNomor($spec['table'], $nomorCol, $prefix);
@@ -139,6 +141,7 @@ class TeknisiModuleController extends TeknisiBaseController
         }
 
         $payload = $this->payload($request, $spec, $context);
+        $this->lampirkanFoto($request, $payload, $spec, $modul, $row->foto ?? null);
         $payload['updated_at'] = now();
 
         DB::table($spec['table'])->where('id', $id)->update($payload);
@@ -163,6 +166,7 @@ class TeknisiModuleController extends TeknisiBaseController
         }
 
         DB::table($spec['table'])->where('id', $id)->delete();
+        TeknisiFoto::hapus($row->foto ?? null);
         if (!empty($spec['pelaksana']) && Table::exists('teknisi_pelaksanaan_harian')
             && Schema::hasColumn('teknisi_pelaksanaan_harian', 'log_harian_id')) {
             DB::table('teknisi_pelaksanaan_harian')->where('log_harian_id', $id)->delete();
@@ -258,6 +262,7 @@ class TeknisiModuleController extends TeknisiBaseController
             'kondisi'     => 'nullable|string|max:40',
             'alasan'      => 'nullable|string|max:2000',
             'berita_acara' => 'nullable|string|max:255',
+            'foto'        => TeknisiFoto::RULES,
         ], [
             'ke_ruang_id.required' => 'Ruang tujuan wajib dipilih.',
             'ke_ruang_id.exists'   => 'Ruang tujuan tidak dikenal.',
@@ -272,7 +277,9 @@ class TeknisiModuleController extends TeknisiBaseController
         }
 
         // Riwayat + pemindahan harus satu paket.
-        DB::transaction(function () use ($spec, $context, $aset, $data, $keRuangId, $keNama, $dariNama) {
+        $fotoPath = TeknisiFoto::simpan($request->file('foto'), 'aset-mutasi');
+
+        DB::transaction(function () use ($spec, $context, $aset, $data, $keRuangId, $keNama, $dariNama, $fotoPath) {
             [$nomorCol, $prefix] = $spec['nomor'];
             DB::table($spec['table'])->insert([
                 $nomorCol       => $this->generateNomor($spec['table'], $nomorCol, $prefix),
@@ -288,6 +295,7 @@ class TeknisiModuleController extends TeknisiBaseController
                 'alasan'        => $data['alasan'] ?? null,
                 'berita_acara'  => $data['berita_acara'] ?? null,
                 'status'        => 'selesai',
+                'foto'          => $fotoPath,
                 'petugas_ptk_id' => $context['ptk_id'] ?? null,
                 'petugas_nama'   => $context['nama'] ?? null,
                 'user_id'        => $context['user_id'] ?? null,
@@ -621,7 +629,7 @@ class TeknisiModuleController extends TeknisiBaseController
         foreach ($spec['columns'] as $col => $conf) {
             $type = $conf['type'] ?? 'string';
 
-            if ($type === 'hidden') {
+            if ($type === 'hidden' || $type === 'file') {
                 continue;
             }
 
@@ -662,6 +670,22 @@ class TeknisiModuleController extends TeknisiBaseController
         }
 
         return $payload + ($spec['fixed'] ?? []) + $this->ownerColumns($context);
+    }
+
+    /**
+     * Simpan bukti foto modul (bila kolom `foto` ada di spec & berkas diunggah).
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function lampirkanFoto(Request $request, array &$payload, array $spec, string $modul, ?string $lama = null): void
+    {
+        if (!isset($spec['columns']['foto'])) {
+            return;
+        }
+
+        $request->validate(['foto' => TeknisiFoto::RULES]);
+
+        $payload['foto'] = TeknisiFoto::simpan($request->file('foto'), $modul, $lama);
     }
 
     /** @return array<string, mixed> */

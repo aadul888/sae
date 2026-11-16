@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teknisi;
 
+use App\Support\TeknisiFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -218,6 +219,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
             'uraian'  => 'nullable|string|max:2000',
             'temuan'  => 'nullable|string|max:1000',
             'catatan' => 'nullable|string|max:1000',
+            'foto'    => TeknisiFoto::RULES,
         ]);
 
         DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->update([
@@ -225,6 +227,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
             'uraian'     => $data['uraian'] ?? null,
             'temuan'     => $data['temuan'] ?? null,
             'catatan'    => $data['catatan'] ?? null,
+            'foto'       => TeknisiFoto::simpan($request->file('foto'), 'pelaksanaan-harian', $row->foto ?? null),
             'updated_at' => now(),
         ]);
 
@@ -265,6 +268,7 @@ class TeknisiPelaksanaanHarianController extends TeknisiBaseController
         }
 
         DB::table('teknisi_pelaksanaan_harian')->where('id', $id)->delete();
+        TeknisiFoto::hapus($row->foto ?? null);
 
         return $this->respond($request, true, 'Baris pelaksanaan berhasil dihapus.');
     }

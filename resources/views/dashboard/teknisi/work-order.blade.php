@@ -268,6 +268,13 @@
                                             Oleh: <strong>{{ $row->pelapor_nama }}</strong>
                                         </div>
                                     @endif
+                                    @if (!empty($row->foto))
+                                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                            target="_blank" rel="noopener" title="Lihat bukti foto">
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                                alt="Bukti foto" style="margin-top:6px; width:56px; height:56px; object-fit:cover; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                                        </a>
+                                    @endif
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
@@ -363,7 +370,8 @@
                     <button type="button" onclick="closeModalCreateWO()"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
-                <form action="{{ route('dashboard.teknisi.work-order.store') }}" method="POST" style="padding: 20px;">
+                <form action="{{ route('dashboard.teknisi.work-order.store') }}" method="POST"
+                    enctype="multipart/form-data" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -459,6 +467,14 @@
                             <textarea name="deskripsi_kerusakan" class="form-control" rows="3"
                                 placeholder="Jelaskan secara rinci tanda-tanda kerusakan atau permasalahan yang terjadi..." required></textarea>
                         </div>
+                        <div>
+                            <label class="form-label"
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bukti
+                                Foto</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Foto kondisi
+                                kerusakan, maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.</small>
+                        </div>
                     </div>
                     <div
                         style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
@@ -484,7 +500,7 @@
                     <button type="button" onclick="closeModalUpdateWO()"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
-                <form id="formUpdateWO" action="" method="POST" style="padding: 20px;">
+                <form id="formUpdateWO" action="" method="POST" enctype="multipart/form-data" style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
                         <div style="background: var(--bg-card-hover); padding: 12px; border-radius: var(--radius-md, 8px);">
@@ -540,6 +556,15 @@
                                 <input type="date" name="tgl_selesai" id="updateTglSelesaiVal" class="form-control"
                                     value="{{ date('Y-m-d') }}">
                             </div>
+                        </div>
+                        <div>
+                            <label class="form-label"
+                                style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Bukti
+                                Foto</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <small style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">Foto hasil
+                                perbaikan. Kosongkan bila tidak mengganti. Maks
+                                {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.</small>
                         </div>
                     </div>
                     <div

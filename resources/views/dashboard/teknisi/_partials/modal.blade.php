@@ -23,7 +23,7 @@
             <button type="button" data-modal-close="{{ $modalId ?? 'modalCreate' }}"
                 style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
         </div>
-        <form method="POST" action="{{ $modalAction ?? '#' }}" data-modal-form>
+        <form method="POST" action="{{ $modalAction ?? '#' }}" data-modal-form enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="_method" value="POST" data-modal-method>
             <div style="padding: 20px;">

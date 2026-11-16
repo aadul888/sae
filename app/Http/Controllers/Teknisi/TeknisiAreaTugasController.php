@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teknisi;
 
+use App\Support\TeknisiFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -129,6 +130,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             'uraian'         => $data['uraian'] ?? null,
             'catatan'        => $data['catatan'] ?? null,
             'status'         => $data['status'] ?? 'aktif',
+            'foto'           => TeknisiFoto::simpan($request->file('foto'), 'area-tugas'),
             'created_at'     => now(),
             'updated_at'     => now(),
         ]);
@@ -167,6 +169,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             'uraian'         => $data['uraian'] ?? null,
             'catatan'        => $data['catatan'] ?? null,
             'status'         => $data['status'] ?? $row->status,
+            'foto'           => TeknisiFoto::simpan($request->file('foto'), 'area-tugas', $row->foto ?? null),
             'updated_at'     => now(),
         ]);
 
@@ -185,6 +188,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
         }
 
         DB::table('teknisi_area_tugas')->where('id', $id)->delete();
+        TeknisiFoto::hapus($row->foto ?? null);
 
         return $this->respond($request, true, 'Jadwal area tugas berhasil dihapus.');
     }
@@ -207,6 +211,7 @@ class TeknisiAreaTugasController extends TeknisiBaseController
             'uraian'          => 'nullable|string|max:2000',
             'catatan'         => 'nullable|string|max:1000',
             'status'          => 'nullable|in:draf,aktif,selesai',
+            'foto'            => TeknisiFoto::RULES,
         ], [
             'area.required'         => 'Area tugas wajib diisi.',
         ]);

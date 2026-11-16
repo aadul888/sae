@@ -26,6 +26,7 @@ class TeknisiWorkOrder extends Model
         'status',
         'aset_id',
         'ruang_id',
+        'foto',
         'user_id',
     ];
 

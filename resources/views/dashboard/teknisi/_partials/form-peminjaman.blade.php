@@ -93,3 +93,11 @@
     <label class="form-label" style="font-weight:600;">Catatan</label>
     <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan tambahan...">{{ $edit->catatan ?? '' }}</textarea>
 </div>
+
+<div style="margin-top:12px;">
+    <label class="form-label" style="font-weight:600;">Bukti Foto</label>
+    <input type="file" name="foto" class="form-control" accept="image/*">
+    <small style="display:block;margin-top:4px;font-size:var(--text-xs);color:var(--text-muted);">
+        JPG/PNG/WEBP, maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB. Kosongkan bila tidak mengganti.
+    </small>
+</div>

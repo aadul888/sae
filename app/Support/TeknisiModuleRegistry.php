@@ -152,6 +152,7 @@ final class TeknisiModuleRegistry
                     'spesifikasi'    => ['label' => 'Spesifikasi', 'type' => 'text', 'wide' => true],
                     'status'         => ['label' => 'Status', 'type' => 'select', 'options' => ['draf' => 'Draf', 'diajukan' => 'Diajukan', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak', 'terealisasi' => 'Terealisasi'], 'default' => 'diajukan'],
                     'catatan_verifikasi' => ['label' => 'Catatan Verifikasi', 'type' => 'text', 'wide' => true],
+                    'foto'           => ['label' => 'Bukti Foto', 'type' => 'file', 'wide' => true],
                 ],
                 'list' => ['nama_barang', 'unit_pemohon', 'urgensi', 'estimasi_biaya', 'status'],
             ],
@@ -186,6 +187,7 @@ final class TeknisiModuleRegistry
                     'alasan'      => ['label' => 'Alasan Pemindahan', 'type' => 'text', 'wide' => true],
                     'berita_acara' => ['label' => 'Nomor Berita Acara', 'type' => 'string'],
                     'status'      => ['label' => 'Status', 'type' => 'select', 'options' => ['draf' => 'Draf', 'selesai' => 'Selesai'], 'default' => 'selesai'],
+                    'foto'        => ['label' => 'Bukti Foto', 'type' => 'file', 'wide' => true],
                 ],
                 'list' => ['aset_nama', 'dari_ruang', 'ke_ruang', 'kondisi', 'status'],
             ],
@@ -227,6 +229,7 @@ final class TeknisiModuleRegistry
         $columns['temuan'] = ['label' => 'Temuan', 'type' => 'text', 'wide' => true];
         $columns['tindak_lanjut'] = ['label' => 'Tindak Lanjut', 'type' => 'text', 'wide' => true];
         $columns['hasil'] = ['label' => 'Hasil', 'type' => 'text', 'wide' => true];
+        $columns['foto'] = ['label' => 'Bukti Foto', 'type' => 'file', 'wide' => true];
         $columns['biaya'] = ['label' => 'Biaya', 'type' => 'decimal'];
         $columns['tanggal_berikutnya'] = ['label' => 'Jadwal Berikutnya', 'type' => 'date'];
         $columns['status'] = ['label' => 'Status', 'type' => 'select', 'options' => self::STATUS_UMUM, 'default' => 'selesai'];

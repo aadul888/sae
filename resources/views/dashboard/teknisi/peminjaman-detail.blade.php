@@ -122,6 +122,18 @@
                     <div style="font-size:var(--text-sm); color:var(--text-color);">{{ $peminjaman->catatan_pengembalian }}</div>
                 </div>
             @endif
+            @foreach (['foto' => 'Bukti Foto Peminjaman', 'foto_kembali' => 'Bukti Foto Pengembalian'] as $kolom => $judul)
+                @if (!empty($peminjaman->{$kolom}))
+                    <div style="margin-top:12px;">
+                        <div style="font-size:var(--text-2xs); text-transform:uppercase; font-weight:700; color:var(--text-muted);">{{ $judul }}</div>
+                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($peminjaman->{$kolom}) }}"
+                            target="_blank" rel="noopener">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($peminjaman->{$kolom}) }}"
+                                alt="{{ $judul }}" style="margin-top:6px; max-width:220px; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                        </a>
+                    </div>
+                @endif
+            @endforeach
         </div>
     </div>
 

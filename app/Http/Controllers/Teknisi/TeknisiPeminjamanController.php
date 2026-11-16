@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teknisi;
 
+use App\Support\TeknisiFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -155,6 +156,7 @@ class TeknisiPeminjamanController extends TeknisiBaseController
             'aset_ids.*'              => 'integer',
             'aset_jumlah'             => 'nullable|array',
             'aset_jumlah.*'           => 'integer|min:1',
+            'foto'                    => TeknisiFoto::RULES,
         ], [
             'tanggal_kembali_rencana.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
             'aset_jumlah.*.min'     => 'Jumlah aset minimal 1.',
@@ -257,6 +259,7 @@ class TeknisiPeminjamanController extends TeknisiBaseController
             'petugas_nama'            => $pj['nama'],
             'user_id'                 => $context['user_id'],
             'catatan'                 => $data['catatan'] ?? null,
+            'foto'                    => TeknisiFoto::simpan($request->file('foto'), 'peminjaman'),
             'created_at'              => now(),
             'updated_at'              => now(),
         ]);
@@ -371,6 +374,7 @@ class TeknisiPeminjamanController extends TeknisiBaseController
         $data = $request->validate([
             'kondisi_kembali'      => 'required|in:baik,rusak_ringan,rusak_berat,hilang',
             'catatan_pengembalian' => 'nullable|string|max:1000',
+            'foto_kembali'         => TeknisiFoto::RULES,
         ]);
 
         $items = DB::table('teknisi_peminjaman_item')->where('peminjaman_id', $id)->get();
@@ -397,6 +401,7 @@ class TeknisiPeminjamanController extends TeknisiBaseController
             'tanggal_kembali_aktual' => now()->toDateString(),
             'kondisi_kembali'        => $data['kondisi_kembali'],
             'catatan_pengembalian'   => $data['catatan_pengembalian'] ?? null,
+            'foto_kembali'           => TeknisiFoto::simpan($request->file('foto_kembali'), 'peminjaman', $row->foto_kembali ?? null),
             'petugas_ptk_id'         => $context['ptk_id'] ?: $row->petugas_ptk_id,
             'updated_at'             => now(),
         ]);
@@ -431,6 +436,8 @@ class TeknisiPeminjamanController extends TeknisiBaseController
 
         DB::table('teknisi_peminjaman_item')->where('peminjaman_id', $id)->delete();
         DB::table('teknisi_peminjaman')->where('id', $id)->delete();
+        TeknisiFoto::hapus($row->foto ?? null);
+        TeknisiFoto::hapus($row->foto_kembali ?? null);
 
         foreach (array_unique($asetTersentuh) as $asetId) {
             $this->syncStatusAset($asetId);

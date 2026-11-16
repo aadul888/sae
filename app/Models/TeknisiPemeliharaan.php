@@ -24,6 +24,7 @@ class TeknisiPemeliharaan extends Model
         'status',
         'biaya',
         'catatan_hasil',
+        'foto',
         'user_id',
     ];
 

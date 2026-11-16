@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teknisi;
 
+use App\Support\TeknisiFoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -125,6 +126,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'catatan_kebutuhan'  => $data['catatan_kebutuhan'] ?? null,
             'catatan'            => $data['catatan'] ?? null,
             'file_path'          => $data['file_path'] ?? null,
+            'foto'               => TeknisiFoto::simpan($request->file('foto'), 'sarana-rapat'),
             'petugas_ptk_id'     => $pj['ptk_id'],
             'petugas_nama'       => $pj['nama'],
             'user_id'            => $context['user_id'],
@@ -167,6 +169,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'catatan_kebutuhan'  => $data['catatan_kebutuhan'] ?? null,
             'catatan'            => $data['catatan'] ?? null,
             'file_path'          => $data['file_path'] ?? $row->file_path,
+            'foto'               => TeknisiFoto::simpan($request->file('foto'), 'sarana-rapat', $row->foto ?? null),
             'status'             => $data['status'] ?? $row->status,
             'petugas_ptk_id'     => $pj['ptk_id'],
             'petugas_nama'       => $pj['nama'],
@@ -191,6 +194,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
 
         DB::table('teknisi_sarana_rapat')->where('id', $id)->delete();
         DB::table('teknisi_pelaksanaan_harian')->where('sarana_rapat_id', $id)->delete();
+        TeknisiFoto::hapus($row->foto ?? null);
 
         return $this->respond($request, true, 'Ceklist persiapan rapat berhasil dihapus.');
     }
@@ -284,6 +288,7 @@ class TeknisiSaranaRapatController extends TeknisiBaseController
             'catatan_kebutuhan'  => 'nullable|string|max:2000',
             'catatan'            => 'nullable|string|max:1000',
             'file_path'          => 'nullable|string|max:255',
+            'foto'               => TeknisiFoto::RULES,
             'status'             => 'nullable|in:draf,selesai,terverifikasi',
         ], [
             'tanggal_rapat.required' => 'Tanggal rapat wajib diisi.',

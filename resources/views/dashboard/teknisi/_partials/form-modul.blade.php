@@ -45,6 +45,12 @@
                     value="{{ ($conf['default'] ?? null) === 'today' ? now()->toDateString() : '' }}">
             @elseif ($type === 'time')
                 <input type="time" name="{{ $col }}" class="form-control">
+            @elseif ($type === 'file')
+                <input type="file" name="{{ $col }}" class="form-control" accept="image/*"
+                    data-max-kb="{{ \App\Support\TeknisiFoto::MAX_KB }}">
+                <small style="display:block;margin-top:4px;font-size:var(--text-xs);color:var(--text-muted);">
+                    JPG/PNG/WEBP, maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB. Kosongkan bila tidak mengganti.
+                </small>
             @elseif (in_array($type, ['int', 'decimal'], true))
                 <input type="number" step="{{ $type === 'decimal' ? '0.01' : '1' }}" name="{{ $col }}" class="form-control"
                     value="{{ $conf['default'] ?? '' }}">

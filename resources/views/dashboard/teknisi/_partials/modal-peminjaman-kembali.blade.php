@@ -8,7 +8,7 @@
                 style="background:none; border:none; font-size:var(--text-xl); color:var(--text-muted); cursor:pointer;" title="Tutup">&times;</button>
         </div>
 
-        <form id="formKembaliPeminjaman" method="POST" action="">
+        <form id="formKembaliPeminjaman" method="POST" action="" enctype="multipart/form-data">
             @csrf
             <p id="kembaliDesc" style="font-size:var(--text-base); color:var(--text-color); margin-bottom:18px;"></p>
 
@@ -29,6 +29,14 @@
             <div class="form-group" style="margin-bottom:20px;">
                 <label style="display:block; font-size:var(--text-base); font-weight:600; margin-bottom:8px; color:var(--text-color);">Catatan Pengembalian</label>
                 <textarea name="catatan_pengembalian" class="form-control" rows="2" placeholder="Catatan kondisi atau keterlambatan..."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label style="display:block; font-size:var(--text-base); font-weight:600; margin-bottom:8px; color:var(--text-color);">Bukti Foto</label>
+                <input type="file" name="foto_kembali" class="form-control" accept="image/*">
+                <div style="font-size:var(--text-xs); color:var(--text-muted); margin-top:6px;">
+                    Foto kondisi barang/ruang saat dikembalikan. Maks {{ intdiv(\App\Support\TeknisiFoto::MAX_KB, 1024) }} MB.
+                </div>
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:12px;">

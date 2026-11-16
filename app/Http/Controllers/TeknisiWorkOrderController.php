@@ -8,6 +8,7 @@ use App\Models\TeknisiWorkOrder;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxReader;
 use App\Support\PeriodeLaporan;
+use App\Support\TeknisiFoto;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -117,6 +118,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
             'pelapor_nama'        => 'nullable|string|max:100',
             'aset_id'             => 'nullable|integer|exists:sarpras_aset,id',
             'ruang_id'            => 'nullable|integer|exists:sarpras_ruang,id',
+            'foto'                => TeknisiFoto::RULES,
         ]);
 
         $nomorWo = $this->nomorBerikutnya();
@@ -131,6 +133,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
             'pelapor_nama'        => $request->pelapor_nama,
             'aset_id'             => $request->aset_id,
             'ruang_id'            => $request->ruang_id,
+            'foto'                => TeknisiFoto::simpan($request->file('foto'), 'work-order'),
             'user_id'             => $context['user_id'],
             'status'              => 'antrean',
         ]);
@@ -150,6 +153,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
             'tindakan_perbaikan'  => 'nullable|string',
             'estimasi_biaya_part' => 'nullable|numeric|min:0',
             'tgl_selesai'         => 'nullable|date',
+            'foto'                => TeknisiFoto::RULES,
         ]);
 
         $order = TeknisiWorkOrder::findOrFail($id);
@@ -161,6 +165,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         $order->teknisi_ptk_id = $request->teknisi_ptk_id ?: $order->teknisi_ptk_id;
         $order->tindakan_perbaikan = $request->tindakan_perbaikan;
         $order->estimasi_biaya_part = $request->estimasi_biaya_part ?? 0;
+        $order->foto = TeknisiFoto::simpan($request->file('foto'), 'work-order', $order->foto);
 
         if ($request->status === 'selesai') {
             $order->tgl_selesai = $request->tgl_selesai ?: Carbon::today()->toDateString();
@@ -183,6 +188,7 @@ class TeknisiWorkOrderController extends Teknisi\TeknisiBaseController
         }
 
         $order->delete();
+        TeknisiFoto::hapus($order->foto);
 
         return redirect()->route('dashboard.teknisi.work-order')
             ->with('success', "Work Order {$order->nomor_wo} berhasil dihapus.");

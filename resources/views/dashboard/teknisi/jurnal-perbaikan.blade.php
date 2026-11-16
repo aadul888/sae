@@ -76,6 +76,13 @@
                     <td style="padding:14px 18px;">
                         <div style="font-size:var(--text-sm); color:var(--text-heading); max-width:320px;">{{ \Illuminate\Support\Str::limit($row->deskripsi_kerusakan, 90) }}</div>
                         @if ($row->tindakan_perbaikan)<div style="font-size:var(--text-xs); color:var(--success,#10b981); margin-top:2px;"><i class="fas fa-wrench"></i> {{ \Illuminate\Support\Str::limit($row->tindakan_perbaikan, 60) }}</div>@endif
+                        @if (!empty($row->foto))
+                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                target="_blank" rel="noopener" title="Lihat bukti foto">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                    alt="Bukti foto" style="margin-top:6px; width:56px; height:56px; object-fit:cover; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                            </a>
+                        @endif
                     </td>
                     <td style="padding:14px 18px; font-weight:600; color:var(--text-heading);">
                         {{ $row->estimasi_biaya_part ? 'Rp ' . number_format((float) $row->estimasi_biaya_part, 0, ',', '.') : '—' }}

@@ -77,6 +77,13 @@
                                 {{ $row->{$spec['dateCol']} ? \Carbon\Carbon::parse($row->{$spec['dateCol']})->format('d M Y') : '—' }}
                             </div>
                         @endif
+                        @if (!empty($row->foto))
+                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                target="_blank" rel="noopener" title="Lihat bukti foto">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($row->foto) }}"
+                                    alt="Bukti foto" style="margin-top:6px; width:56px; height:56px; object-fit:cover; border-radius:var(--radius-sm,6px); border:1px solid var(--border-color);">
+                            </a>
+                        @endif
                     </td>
                     @foreach ($spec['list'] as $col)
                         @php
