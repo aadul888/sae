@@ -2635,6 +2635,14 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     text-align: left;
     gap: 2px;
 }
+.cell-col-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    gap: 2px;
+}
 
 /* --------------------------------------------------------------------------
    Tabel data (datatable) — tema seragam, mengikuti .sae-table global.
@@ -2871,6 +2879,102 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     .table-responsive-stack tbody td .cell-col-right > div[style*="display: flex"],
     .table-responsive-stack tbody td .cell-col-right > div.d-flex {
         justify-content: flex-end !important;
+    }
+
+    /* Kolom Teks / Deskripsi / Mapel / Materi: Selalu Rata Kiri & Rapi pada Datatable Global */
+    .table-responsive-stack tbody td.cell-align-left,
+    .table-responsive-stack tbody td[data-label="Mapel"],
+    .table-responsive-stack tbody td[data-label*="Mata Pelajaran"],
+    .table-responsive-stack tbody td.cell-pd-mapel,
+    .table-responsive-stack tbody td.cell-slot-mapel {
+        text-align: left !important;
+    }
+
+    .table-responsive-stack tbody td.cell-align-left > *,
+    .table-responsive-stack tbody td[data-label="Mapel"] > *,
+    .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] > *,
+    .table-responsive-stack tbody td.cell-pd-mapel > *,
+    .table-responsive-stack tbody td.cell-slot-mapel > *,
+    .table-responsive-stack tbody td .cell-col-left {
+        align-items: flex-start !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    /* Batasan Lebar Kolom Mapel & Materi agar Kompak & Tidak Melebar */
+    .table-pd tbody td[data-label="Mapel"],
+    .table-responsive-stack tbody td[data-label="Mapel"],
+    .table-pd tbody td[data-label*="Mata Pelajaran"],
+    .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] {
+        max-width: 160px;
+    }
+
+    .table-pd tbody td[data-label="Materi & Uraian"],
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"],
+    .table-pd tbody td[data-label*="Materi"],
+    .table-responsive-stack tbody td[data-label*="Materi"],
+    .table-pd tbody td[data-label*="Uraian"],
+    .table-responsive-stack tbody td[data-label*="Uraian"] {
+        max-width: 270px;
+    }
+
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"],
+    .table-responsive-stack tbody td[data-label*="Materi"],
+    .table-responsive-stack tbody td[data-label*="Uraian"],
+    .table-responsive-stack tbody td.cell-pd-materi,
+    .table-responsive-stack tbody td.cell-slot-materi,
+    .table-responsive-stack tbody td.cell-pd-alasan,
+    .table-responsive-stack tbody td.cell-pd-keterangan,
+    .table-responsive-stack tbody td.cell-block-text {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+        gap: 4px !important;
+        padding: 6px 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"]::before,
+    .table-responsive-stack tbody td[data-label*="Materi"]::before,
+    .table-responsive-stack tbody td[data-label*="Uraian"]::before,
+    .table-responsive-stack tbody td.cell-pd-materi::before,
+    .table-responsive-stack tbody td.cell-slot-materi::before,
+    .table-responsive-stack tbody td.cell-pd-alasan::before,
+    .table-responsive-stack tbody td.cell-pd-keterangan::before,
+    .table-responsive-stack tbody td.cell-block-text::before {
+        display: block !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        text-align: left !important;
+        margin-bottom: 2px !important;
+        font-size: var(--text-2xs, 0.6875rem) !important;
+        color: var(--text-muted) !important;
+    }
+
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"] > *:not(style):not(script),
+    .table-responsive-stack tbody td[data-label*="Materi"] > *:not(style):not(script),
+    .table-responsive-stack tbody td[data-label*="Uraian"] > *:not(style):not(script),
+    .table-responsive-stack tbody td.cell-pd-materi > *:not(style):not(script),
+    .table-responsive-stack tbody td.cell-slot-materi > *:not(style):not(script),
+    .table-responsive-stack tbody td.cell-pd-alasan > *:not(style):not(script),
+    .table-responsive-stack tbody td.cell-pd-keterangan > *:not(style):not(script),
+    .table-responsive-stack tbody td.cell-block-text > *:not(style):not(script),
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"] .cell-col-right,
+    .table-responsive-stack tbody td[data-label*="Materi"] .cell-col-right,
+    .table-responsive-stack tbody td[data-label*="Uraian"] .cell-col-right,
+    .table-responsive-stack tbody td[data-label="Materi & Uraian"] .cell-col-left,
+    .table-responsive-stack tbody td[data-label*="Materi"] .cell-col-left,
+    .table-responsive-stack tbody td[data-label*="Uraian"] .cell-col-left {
+        max-width: 100% !important;
+        width: 100% !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        white-space: normal !important;
     }
 
     /* Footer Aksi Baris Tabel Mobile */
@@ -5617,22 +5721,17 @@ input:disabled + .slider-toggle-crud {
     margin-bottom: 12px !important;
 }
 
-#modalFormAgenda .form-grid-2,
-#modalFormAgenda .form-grid-3,
 #modalFormPresensi .form-grid-2,
 #modalFormPresensi .form-grid-3 {
     margin-bottom: 10px !important;
     gap: 10px !important;
 }
 
-#modalFormAgenda label,
 #modalFormPresensi label {
     font-size: var(--text-sm, 0.8125rem) !important;
     margin-bottom: 4px !important;
 }
 
-#modalFormAgenda input,
-#modalFormAgenda select,
 #modalFormPresensi input,
 #modalFormPresensi select {
     height: 38px !important;
@@ -5640,11 +5739,90 @@ input:disabled + .slider-toggle-crud {
     border-radius: var(--radius-md, 8px) !important;
 }
 
-#modalFormAgenda textarea,
 #modalFormPresensi textarea {
     min-height: 48px !important;
     font-size: var(--text-sm, 0.8125rem) !important;
     border-radius: var(--radius-md, 8px) !important;
+}
+
+/* Compact Modal Form Agenda KBM */
+#modalFormAgenda .modal-card-responsive {
+    max-width: 560px !important;
+    padding: 14px 16px !important;
+    border-radius: var(--radius-xl, 14px) !important;
+}
+
+#modalFormAgenda .ma-modal-head {
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+#modalFormAgenda .ma-modal-head h3 {
+    font-size: var(--text-sm, 0.875rem) !important;
+}
+
+#modalFormAgenda label {
+    font-size: var(--text-2xs, 0.6875rem) !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    color: var(--text-muted) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#modalFormAgenda label i {
+    font-size: 0.725rem !important;
+}
+
+#modalFormAgenda input,
+#modalFormAgenda select {
+    height: 33px !important;
+    min-height: 33px !important;
+    font-size: var(--text-xs, 0.75rem) !important;
+    padding: 0 8px !important;
+    border-radius: var(--radius-md, 6px) !important;
+    box-sizing: border-box !important;
+}
+
+#modalFormAgenda textarea {
+    min-height: 40px !important;
+    font-size: var(--text-xs, 0.75rem) !important;
+    padding: 5px 8px !important;
+    border-radius: var(--radius-md, 6px) !important;
+    box-sizing: border-box !important;
+}
+
+#modalFormAgenda .form-grid-2,
+#modalFormAgenda .form-grid-3,
+#modalFormAgenda .form-grid-jam {
+    margin-bottom: 6px !important;
+    gap: 6px !important;
+}
+
+#modalFormAgenda .form-group-compact {
+    margin-bottom: 6px !important;
+}
+
+#modalFormAgenda #wrapWaktuKbm {
+    margin-top: -2px !important;
+    margin-bottom: 6px !important;
+    padding: 4px 8px !important;
+    font-size: var(--text-2xs, 0.6875rem) !important;
+    border-radius: var(--radius-md, 6px) !important;
+}
+
+#modalFormAgenda .ma-actions {
+    flex-shrink: 0 !important;
+    padding-top: 8px !important;
+    margin-top: 6px !important;
+}
+
+#modalFormAgenda .ma-actions .btn {
+    height: 32px !important;
+    padding: 0 14px !important;
+    font-size: var(--text-xs, 0.75rem) !important;
+    border-radius: var(--radius-md, 6px) !important;
 }
 
 #modalFormAgenda #infoKalenderTanggalAgenda,
@@ -5695,11 +5873,34 @@ input:disabled + .slider-toggle-crud {
         width: 96% !important;
     }
 
-    #modalFormAgenda .form-grid-2,
-    #modalFormAgenda .form-grid-3,
     #modalFormPresensi .form-grid-2,
     #modalFormPresensi .form-grid-3 {
         grid-template-columns: 1fr !important;
+    }
+
+    #modalFormAgenda .form-grid-2 {
+        display: grid !important;
+        grid-template-columns: 1fr 1.35fr !important;
+        gap: 6px !important;
+    }
+
+    #modalFormAgenda .form-grid-3 {
+        display: grid !important;
+        grid-template-columns: 1.2fr 0.75fr 1fr !important;
+        gap: 5px !important;
+    }
+
+    #modalFormAgenda .form-grid-jam,
+    #modalFormPresensi .pm-grid-jam,
+    #modalFormPresensi .pm-grid-waktu {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+
+    #modalFormAgenda input[type="date"] {
+        padding: 0 4px !important;
+        font-size: 0.72rem !important;
     }
 
     #modalFormPresensi .pm-grid-jam,
@@ -6874,8 +7075,8 @@ input:disabled + .slider-toggle-crud {
         padding: 10px 14px !important;
     }
 
-    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-right,
-    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .cell-col-right {
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td:not([data-label="Mapel"]):not([data-label*="Mata Pelajaran"]):not([data-label*="Materi"]):not([data-label*="Uraian"]):not(.cell-align-left) .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td:not([data-label="Mapel"]):not([data-label*="Mata Pelajaran"]):not([data-label*="Materi"]):not([data-label*="Uraian"]):not(.cell-align-left) .cell-col-right {
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
@@ -6883,6 +7084,22 @@ input:disabled + .slider-toggle-crud {
         max-width: none !important;
         width: 100% !important;
         white-space: nowrap !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-left,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .cell-col-left,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Mapel"] .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Materi"] .cell-col-right,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Uraian"] .cell-col-right {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        white-space: normal !important;
     }
 
     /* Formasi Tombol Kolom Aksi: Maksimal 3 Kolom x 2 Baris (Maksimal 3x2 bila ada 6 tombol) */
@@ -6998,7 +7215,126 @@ input:disabled + .slider-toggle-crud {
         word-break: normal !important;
         overflow-wrap: normal !important;
     }
+
+    /* Pengecualian Khusus Kolom Teks / Mapel / Materi: Tetap Kompak, Wrap & Line-Clamp */
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Mapel"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Mapel"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Mata Pelajaran"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Mata Pelajaran"] {
+        max-width: 155px !important;
+        width: 155px !important;
+        min-width: 120px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Materi & Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Materi & Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Materi"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Materi"],
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Uraian"],
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Uraian"] {
+        max-width: 260px !important;
+        width: 260px !important;
+        min-width: 180px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Mapel"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Mapel"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Mata Pelajaran"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Mata Pelajaran"] > * {
+        max-width: 155px !important;
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label="Materi & Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label="Materi & Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Materi"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Materi"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td[data-label*="Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td[data-label*="Uraian"] > *,
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .cell-col-left,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .cell-col-left {
+        max-width: 260px !important;
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .text-clamp-1,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .text-clamp-1 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+    }
+
+    .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td .text-clamp-2,
+    .dashboard-wrapper .dash-main .dash-body .table-pd tbody td .text-clamp-2 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+    }
 }
+
+/* Utility clamp teks tabel agar compact dan tidak memanjang/melebar */
+.text-clamp-1 {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 1 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.text-clamp-2 {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.table-pd tbody td[data-label="Mapel"],
+.table-responsive-stack tbody td[data-label="Mapel"],
+.table-pd tbody td[data-label*="Mata Pelajaran"],
+.table-responsive-stack tbody td[data-label*="Mata Pelajaran"] {
+    max-width: 160px !important;
+    width: 160px !important;
+    white-space: normal !important;
+}
+
+.table-pd tbody td[data-label="Materi & Uraian"],
+.table-responsive-stack tbody td[data-label="Materi & Uraian"],
+.table-pd tbody td[data-label*="Materi"],
+.table-responsive-stack tbody td[data-label*="Materi"],
+.table-pd tbody td[data-label*="Uraian"],
+.table-responsive-stack tbody td[data-label*="Uraian"] {
+    max-width: 260px !important;
+    width: 260px !important;
+    white-space: normal !important;
+}
+
 
 /* ==========================================================================
    PIP — Tab Verifikasi Laporan (warna khusus amber)
