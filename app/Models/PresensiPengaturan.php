@@ -109,7 +109,25 @@ class PresensiPengaturan extends Model
             return true;
         }
 
-        return in_array((string) $jurusanId, array_map('strval', $this->jurusan_aktif), true);
+        $jurusanId = (string) $jurusanId;
+        if (in_array($jurusanId, array_map('strval', $this->jurusan_aktif), true)) {
+            return true;
+        }
+
+        // Daftar tersimpan bisa berisi id program (kelas X) sementara yang diperiksa
+        // id konsentrasi (kelas XI/XII) untuk jurusan yang sama.
+        $program = \App\Support\ProgramKeahlian::programOfId($jurusanId);
+        if ($program === '') {
+            return false;
+        }
+
+        foreach ($this->jurusan_aktif as $id) {
+            if (\App\Support\ProgramKeahlian::programOfId((string) $id) === $program) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -117,26 +135,34 @@ class PresensiPengaturan extends Model
      */
     public static function getJurusanList()
     {
-        return DB::table('rombongan_belajar as rb')
-            ->whereNotNull('rb.jurusan_id_str')
-            ->where('rb.jurusan_id_str', '<>', '')
-            ->leftJoin('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
-            ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id')
-            ->select(
-                'rb.jurusan_id as kode',
-                'rb.jurusan_id_str as nama',
-                'jm.logo_path',
-                'jm.singkatan',
-                DB::raw('COUNT(DISTINCT rb.rombongan_belajar_id) as total_rombel'),
-                DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as total_siswa')
-            )
-            ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str', 'jm.logo_path', 'jm.singkatan')
-            ->orderBy('rb.jurusan_id_str')
-            ->get()
-            ->map(function ($j) {
+        // Digabung per program keahlian: kelas X (program) & XI/XII (konsentrasi)
+        // adalah jurusan yang sama, hanya beda jenjang.
+        $rows = \App\Support\RombelScope::reguler(
+            DB::table('rombongan_belajar as rb')
+                ->whereNotNull('rb.jurusan_id_str')
+                ->where('rb.jurusan_id_str', '<>', '')
+                ->leftJoin('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
+                ->leftJoin('jurusan_meta as jm', 'rb.jurusan_id', '=', 'jm.jurusan_id')
+                ->select(
+                    'rb.jurusan_id as kode',
+                    'rb.jurusan_id_str as nama',
+                    'jm.logo_path',
+                    'jm.singkatan',
+                    DB::raw('COUNT(DISTINCT rb.rombongan_belajar_id) as total_rombel'),
+                    DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as total_siswa')
+                )
+                ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str', 'jm.logo_path', 'jm.singkatan'),
+            'rb.'
+        )->get();
+
+        return collect(\App\Support\ProgramKeahlian::mergeRows($rows))
+            ->map(function ($row) {
+                $j = (object) $row;
                 $j->logo_url = !empty($j->logo_path) ? asset('storage/' . ltrim($j->logo_path, '/')) : null;
                 return $j;
-            });
+            })
+            ->sortBy(fn ($j) => mb_strtolower($j->nama))
+            ->values();
     }
 
     /**

@@ -68,7 +68,7 @@
                 <div class="dash-stat-value">
                     {{ $summary['jurusan'] }}
                 </div>
-                <div class="dash-stat-label">Jurusan Terdaftar</div>
+                <div class="dash-stat-label">Program Keahlian</div>
             </div>
         </div>
 
@@ -145,7 +145,7 @@
                     </select>
 
                     <select id="filterJurusan" name="jurusan" class="toolbar-filter-select" style="height: 38px;">
-                        <option value="">Semua Jurusan</option>
+                        <option value="">Semua Program Keahlian</option>
                         @foreach ($filterJurusan as $j)
                             <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>
                                 {{ $j }}
@@ -184,7 +184,7 @@
                             $cols = [
                                 ['nama', 'Nama Rombel'],
                                 ['tingkat', 'Tingkat'],
-                                ['jurusan', 'Kompetensi Keahlian'],
+                                ['jurusan', 'Program Keahlian'],
                                 ['wali_kelas', 'Wali Kelas'],
                                 ['ruang', 'Ruang'],
                                 ['total_peserta_didik', 'Jml Peserta Didik'],
@@ -230,8 +230,13 @@
                                 </span>
                             </td>
                             <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
-                                data-label="Jurusan">
-                                {{ $item->jurusan ?: '-' }}
+                                data-label="Program Keahlian">
+                                {{ $item->program ?: '-' }}
+                                @if ($item->program && $item->jurusan && $item->program !== $item->jurusan)
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
+                                        {{ $item->jurusan }}
+                                    </div>
+                                @endif
                             </td>
                             <td style="padding: 14px 18px; font-size: var(--text-base, 0.875rem); color: var(--text-color);"
                                 data-label="Wali">

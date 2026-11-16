@@ -419,6 +419,22 @@
     opacity: 1;
 }
 
+/* Badge jumlah notifikasi pada menu sidebar */
+.dash-nav-count {
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger, #ef4444);
+    color: #fff;
+    font-size: var(--text-2xs, 0.6875rem);
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
 /* Sub-submenu Level 2 (Nested Accordion) */
 .dash-nav-nested-group {
     display: flex;

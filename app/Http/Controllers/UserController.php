@@ -299,17 +299,31 @@ class UserController extends Controller
 
                 $groupName = '';
                 $groupSingkatan = '';
+                // Singkatan ikut level program (kelas X) supaya konsisten dengan judul grup.
                 foreach ($items as $it) {
-                    if (!$it->is_kelas_x && !empty($it->singkatan)) {
+                    if ($it->is_kelas_x && !empty($it->singkatan)) {
                         $groupSingkatan = $it->singkatan;
+                        break;
                     }
-                    if (!$it->is_kelas_x && !empty($it->nama_jurusan)) {
-                        $groupName = $it->nama_jurusan;
+                }
+                if ($groupSingkatan === '') {
+                    foreach ($items as $it) {
+                        if (!empty($it->singkatan)) {
+                            $groupSingkatan = $it->singkatan;
+                            break;
+                        }
+                    }
+                }
+                // Judul grup = nama program keahlian, bukan nama konsentrasi,
+                // agar satu jurusan tidak tampil sebagai dua nama berbeda.
+                foreach ($items as $it) {
+                    if (!empty($it->nama_jurusan)) {
+                        $groupName = \App\Support\ProgramKeahlian::resolve($it->nama_jurusan);
+                        break;
                     }
                 }
                 if (!$groupName && !empty($items[0])) {
                     $groupName = $items[0]->nama_jurusan;
-                    $groupSingkatan = $items[0]->singkatan ?? '';
                 }
 
                 $jurusanGroups[] = [

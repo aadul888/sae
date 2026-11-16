@@ -517,12 +517,12 @@
                     </a>
                     @foreach ($jurusanList as $j)
                         @php
-                            $jVal = (string) $j->jurusan_id;
-                            $jLabel = trim((string) ($j->singkatan ?? '')) ?: (trim((string) $j->jurusan_id_str) ?: 'Tanpa Jurusan');
+                            $jVal = (string) $j->kode;
+                            $jLabel = trim((string) ($j->singkatan ?? '')) ?: (trim((string) $j->nama) ?: 'Tanpa Jurusan');
                         @endphp
                         <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['jurusan' => $jVal, 'view_mode' => 'grid', 'hari' => $selectedHari])) }}"
                             class="btn {{ $jurusan === $jVal ? 'btn-primary' : 'btn-outline' }}"
-                            title="{{ $j->jurusan_id_str }} ({{ $j->total_rombel }} kelas)"
+                            title="{{ $j->nama }} ({{ $j->total_rombel }} kelas)"
                             style="padding: 4px 10px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px);">
                             {{ $jLabel }}
                             <span class="badge"

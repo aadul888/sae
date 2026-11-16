@@ -34,6 +34,30 @@
         ? route($routeName)
         : $fallback;
 
+    // Badge notifikasi sidebar: jumlah item belum dibaca per URL menu tujuan
+    $notifUnreadPaths = collect();
+    try {
+        $notifData = \App\Services\SystemNotificationService::getSystemNotifications($user);
+        $notifUnreadPaths = collect($notifData['items'] ?? [])
+            ->reject(fn($n) => !empty($n->is_read))
+            ->map(fn($n) => rtrim((string) parse_url($n->url ?? '', PHP_URL_PATH), '/'))
+            // Buang path root/dashboard agar badge tidak bocor ke semua menu
+            ->filter(fn($path) => substr_count(ltrim($path, '/'), '/') >= 1)
+            ->countBy();
+    } catch (\Throwable $e) {
+        // Sidebar tetap tampil walau notifikasi gagal dimuat
+    }
+
+    $notifBadge = function (?string $url) use ($notifUnreadPaths): int {
+        $path = rtrim((string) parse_url($url ?? '', PHP_URL_PATH), '/');
+        if ($path === '' || $path === '#' || $notifUnreadPaths->isEmpty()) {
+            return 0;
+        }
+        return (int) $notifUnreadPaths
+            ->filter(fn($count, $p) => $p === $path || str_starts_with($p, $path . '/'))
+            ->sum();
+    };
+
     // Ambil daftar tugas tambahan aktif pengguna saat ini untuk badge/info sidebar
     $userDuties = [];
     if (in_array($role, ['guru', 'tendik'])) {
@@ -495,6 +519,9 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') && request('ref') !== 'piket' ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
                             <span class="nav-label">Presensi Mengajar</span>
+                            @if (($n = $notifBadge(route('dashboard.presensi-mengajar.index'))) > 0)
+                                <span class="dash-nav-count">{{ $n }}</span>
+                            @endif
                         </a>
                     @endif
 
@@ -511,6 +538,9 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') && request('ref') !== 'piket' ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
                             <span class="nav-label">Jurnal &amp; Agenda KBM</span>
+                            @if (($n = $notifBadge(route('dashboard.agenda-kbm.index'))) > 0)
+                                <span class="dash-nav-count">{{ $n }}</span>
+                            @endif
                         </a>
                     @endif
 
@@ -556,19 +586,23 @@
             $isSarprasDuty = collect($userDuties)->contains('kode', 'STAF_SARPRAS');
             $isLaboranDuty = collect($userDuties)->contains('kode', 'LABORAN');
 
+            // Aset & Peminjaman dipakai bersama Sarpras dan Laboran
+            $isSarprasSharedPage =
+                request()->routeIs('dashboard.sarpras.aset*') ||
+                request()->routeIs('dashboard.sarpras.peminjaman*');
+
             $isSarprasActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'sarpras') ||
-                request()->routeIs('dashboard.sarpras.ruang*') ||
-                ((request()->routeIs('dashboard.sarpras.aset*') ||
-                    request()->routeIs('dashboard.sarpras.peminjaman*')) &&
-                    (!$isLaboranDuty || $isSarprasDuty));
+                (request()->routeIs('dashboard.sarpras.*') &&
+                    (!$isSarprasSharedPage || !$isLaboranDuty || $isSarprasDuty)) ||
+                // Tautan modul lain yang dititipkan pada grup Sarpras (hanya saat benar-benar dirender di sana)
+                ($can('menu_sarpras') && !$can('menu_laboran') && request()->routeIs('dashboard.laboran.bhp*')) ||
+                ($can('menu_teknisi') && !collect($userDuties)->contains('kode', 'TEKNISI_IT') && request()->routeIs('dashboard.teknisi.work-order*')) ||
+                ($can('menu_penjaga') && !collect($userDuties)->contains('kode', 'PENJAGA_SEKOLAH') && request()->routeIs('dashboard.penjaga.kebersihan*'));
             $isLaboranActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'laboran') ||
                 request()->routeIs('dashboard.laboran.*') ||
-                ((request()->routeIs('dashboard.sarpras.aset*') ||
-                    request()->routeIs('dashboard.sarpras.peminjaman*')) &&
-                    $isLaboranDuty &&
-                    !$isSarprasDuty);
+                ($isSarprasSharedPage && $isLaboranDuty && !$isSarprasDuty);
             $isPerpustakaanActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'perpustakaan') ||
                 request()->routeIs('dashboard.perpustakaan.*') ||
@@ -677,6 +711,9 @@
                 <div class="dash-nav-toggle-main">
                     <span class="nav-icon"><i class="fas fa-fw fa-id-card-alt"></i></span>
                     <span class="nav-label">Kepegawaian</span>
+                    @if (($n = $notifBadge(route('dashboard.kepegawaian.index'))) > 0)
+                        <span class="dash-nav-count">{{ $n }}</span>
+                    @endif
                 </div>
                 <i class="fas fa-chevron-right arrow-icon"></i>
             </button>
@@ -724,6 +761,9 @@
                 <div class="dash-nav-toggle-main">
                     <span class="nav-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
                     <span class="nav-label">Persuratan</span>
+                    @if (($n = $notifBadge(route('dashboard.persuratan.index'))) > 0)
+                        <span class="dash-nav-count">{{ $n }}</span>
+                    @endif
                 </div>
                 <i class="fas fa-chevron-right arrow-icon"></i>
             </button>
@@ -789,6 +829,9 @@
                 <div class="dash-nav-toggle-main">
                     <span class="nav-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
                     <span class="nav-label">Kesiswaan</span>
+                    @if (($n = $notifBadge(route('dashboard.kesiswaan.index'))) > 0)
+                        <span class="dash-nav-count">{{ $n }}</span>
+                    @endif
                 </div>
                 <i class="fas fa-chevron-right arrow-icon"></i>
             </button>
@@ -1490,6 +1533,9 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
                         <span class="nav-label">Presensi Kelas</span>
+                        @if (($n = $notifBadge(route('dashboard.wali-kelas.presensi.index'))) > 0)
+                            <span class="dash-nav-count">{{ $n }}</span>
+                        @endif
                     </a>
                 @endif
 
@@ -1619,6 +1665,9 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') && !in_array(request('tab'), ['saya', 'wali', 'security'], true) ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
                         <span class="nav-label">e-Izin Siswa</span>
+                        @if (($n = $notifBadge(route('dashboard.e-izin.index'))) > 0)
+                            <span class="dash-nav-count">{{ $n }}</span>
+                        @endif
                     </a>
                 @endif
 

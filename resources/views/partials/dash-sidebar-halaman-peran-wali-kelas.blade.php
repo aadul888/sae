@@ -40,6 +40,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
             <span class="nav-label">Presensi Kelas</span>
+            @if (($n = $notifBadge(route('dashboard.wali-kelas.presensi.index'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.wali-kelas.agenda.index') }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.agenda*') ? 'active' : '' }}">

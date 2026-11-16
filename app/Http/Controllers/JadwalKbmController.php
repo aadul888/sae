@@ -164,7 +164,11 @@ class JadwalKbmController extends Controller
             $gridRombelsQuery->where('rb.tingkat_pendidikan_id', $tingkat);
         }
         if ($jurusan !== '') {
-            $gridRombelsQuery->where('rb.jurusan_id', $jurusan);
+            // Filter memakai kode program; rombel kelas XI/XII memakai id konsentrasi.
+            $idProgram = \App\Support\ProgramKeahlian::idsFor(
+                \App\Support\ProgramKeahlian::programOfId($jurusan)
+            );
+            $gridRombelsQuery->whereIn('rb.jurusan_id', $idProgram ?: [$jurusan]);
         }
         $gridRombels = $gridRombelsQuery->get();
 
@@ -204,17 +208,22 @@ class JadwalKbmController extends Controller
             })
             ->whereNotNull('rb.jurusan_id')
             ->select(
-                'rb.jurusan_id',
-                'rb.jurusan_id_str',
+                'rb.jurusan_id as kode',
+                'rb.jurusan_id_str as nama',
                 'jm.singkatan',
                 DB::raw('COUNT(*) as total_rombel')
             )
-            ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str', 'jm.singkatan')
-            ->orderBy('rb.jurusan_id_str', 'asc');
+            ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str', 'jm.singkatan');
         if ($tingkat !== '') {
             $jurusanFilterQuery->where('rb.tingkat_pendidikan_id', $tingkat);
         }
-        $jurusanList = $jurusanFilterQuery->get();
+
+        // Digabung per program keahlian: kelas X (program) & XI/XII (konsentrasi)
+        // adalah jurusan yang sama, hanya beda jenjang.
+        $jurusanList = collect(\App\Support\ProgramKeahlian::mergeRows($jurusanFilterQuery->get()))
+            ->map(fn ($row) => (object) $row)
+            ->sortBy(fn ($row) => mb_strtolower($row->nama))
+            ->values();
 
         $guruList = DB::table('gtk')
             ->select('ptk_id', 'nama', 'nip')

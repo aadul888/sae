@@ -50,7 +50,10 @@ class AdminAktivitas extends Model
             default => '[READ] ',
         };
 
-        return self::record($prefix . ltrim($aktivitas, '[' . strtoupper($action) . '] '), $modul, $keterangan, $tipe);
+        // Buang hanya prefix CRUD yang benar-benar ada (ltrim() salah: charlist, bukan prefix).
+        $clean = preg_replace('/^\[(CREATE|UPDATE|DELETE|READ)\]\s*/i', '', $aktivitas);
+
+        return self::record($prefix . $clean, $modul, $keterangan, $tipe);
     }
 
     /**
@@ -114,7 +117,7 @@ class AdminAktivitas extends Model
     }
 
     /**
-     * Konteks struktural aktivitas: Bidang, Menu, Fitur, dan Bagian / Target
+     * Konteks struktural aktivitas: Grup Menu (selaras sidebar), Menu, Fitur, dan Bagian / Target
      */
     public function getKonteksAttribute(): array
     {
@@ -123,51 +126,30 @@ class AdminAktivitas extends Model
         $ket = trim($this->keterangan ?? '');
         $actClean = preg_replace('/^\[(CREATE|UPDATE|DELETE|READ)\]\s*/i', '', $act);
 
-        // 1. BIDANG
-        $bidang = 'Infrastruktur & Sistem';
-        $bidangIcon = 'fa-server';
-        $bidangColor = 'var(--secondary, #64748b)';
-        $bidangBg = 'rgba(100, 116, 139, 0.12)';
-
-        if (in_array($modul, ['Kesiswaan', 'Siswa'], true) || str_contains(strtolower($act), 'siswa') || str_contains(strtolower($act), 'peserta didik') || str_contains(strtolower($act), 'pip') || str_contains(strtolower($act), 'kelulusan')) {
-            $bidang = 'Kesiswaan';
-            $bidangIcon = 'fa-user-graduate';
-            $bidangColor = 'var(--primary, #3b82f6)';
-            $bidangBg = 'rgba(59, 130, 246, 0.12)';
-        } elseif (in_array($modul, ['Guru', 'Tendik', 'Kepegawaian'], true) || str_contains(strtolower($act), 'guru') || str_contains(strtolower($act), 'tendik') || str_contains(strtolower($act), 'ptk')) {
-            $bidang = 'Kepegawaian';
-            $bidangIcon = 'fa-id-badge';
-            $bidangColor = 'var(--accent, #06b6d4)';
-            $bidangBg = 'rgba(6, 182, 212, 0.12)';
-        } elseif (in_array($modul, ['Jadwal', 'Pembelajaran', 'Kurikulum', 'Rombel'], true) || str_contains(strtolower($act), 'jadwal') || str_contains(strtolower($act), 'kbm') || str_contains(strtolower($act), 'mapel') || str_contains(strtolower($act), 'rombel')) {
-            $bidang = 'Kurikulum';
-            $bidangIcon = 'fa-book-bookmark';
-            $bidangColor = '#8b5cf6';
-            $bidangBg = 'rgba(139, 92, 246, 0.12)';
-        } elseif (in_array($modul, ['Formulir', 'Pengumuman', 'Presensi', 'RFID', 'Kartu Pelajar'], true) || str_contains(strtolower($act), 'presensi') || str_contains(strtolower($act), 'rfid') || str_contains(strtolower($act), 'pengumuman') || str_contains(strtolower($act), 'formulir')) {
-            $bidang = 'Layanan Digital';
-            $bidangIcon = 'fa-mobile-screen-button';
-            $bidangColor = 'var(--warning, #f59e0b)';
-            $bidangBg = 'rgba(245, 158, 11, 0.12)';
-        } elseif (in_array($modul, ['Autentikasi', 'Hak Akses', 'Pengguna', 'User'], true) || str_contains(strtolower($act), 'login') || str_contains(strtolower($act), 'logout') || str_contains(strtolower($act), 'rbac') || str_contains(strtolower($act), 'password')) {
-            $bidang = 'Keamanan & Akses';
-            $bidangIcon = 'fa-shield-halved';
-            $bidangColor = 'var(--success, #10b981)';
-            $bidangBg = 'rgba(16, 185, 129, 0.12)';
-        }
+        // 1. GRUP MENU SIDEBAR (sumber tunggal: MonitoringMenu)
+        $group = \App\Support\MonitoringMenu::meta($modul);
+        $bidang = $group['name'];
+        $bidangIcon = $group['icon'];
+        $bidangColor = $group['color'];
+        $bidangBg = $group['bg'];
 
         // 2. MENU DASHBOARD
         $menu = match ($modul) {
             'Kesiswaan', 'Siswa' => 'Manajemen Data > Peserta Didik',
-            'Dapodik' => 'Menu Utama > Tarik Data Dapodik',
+            'Buku Induk' => 'Kesiswaan > Buku Induk',
+            'Mutasi' => 'Kesiswaan > Administrasi Mutasi',
+            'Kedisiplinan' => 'Kesiswaan > Kedisiplinan',
+            'Dapodik' => 'Utama > Tarik Data Dapodik',
             'Formulir' => 'Layanan Digital > Formulir & Survei',
             'Pengumuman' => 'Layanan Digital > Pengumuman',
             'Presensi' => 'Layanan Digital > RFID & Presensi',
-            'Hak Akses' => 'Pengaturan > Hak Akses RBAC',
-            'Backup' => 'Pengaturan > Cadangan & Arsip',
-            'Autentikasi' => 'Portal > Autentikasi Pengguna',
-            'Sistem' => str_contains(strtolower($act), 'log') ? 'Menu Utama > Monitoring' : 'Pengaturan > Pembaruan Sistem',
-            default => 'Menu Utama > ' . ($modul ?: 'Sistem'),
+            'Hak Akses' => 'Sistem > Hak Akses RBAC',
+            'Backup' => 'Sistem > Cadangan & Arsip',
+            'Autentikasi' => 'Sistem > Autentikasi Pengguna',
+            'Persuratan' => 'Persuratan > Surat Masuk & Keluar',
+            'Kepegawaian' => 'Kepegawaian > Data Pegawai',
+            'Sistem' => str_contains(strtolower($act), 'log') ? 'Utama > Monitoring' : 'Sistem > Pembaruan Sistem',
+            default => $bidang . ' > ' . ($modul ?: 'Sistem'),
         };
 
         // 3. FITUR SPESIFIK

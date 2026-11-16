@@ -62,7 +62,15 @@ class TendikDashboardCharts
                 ? DB::table('peserta_didik')->selectRaw('jenis_kelamin, count(*) as total')->whereIn('jenis_kelamin', ['L', 'P'])->groupBy('jenis_kelamin')->pluck('total', 'jenis_kelamin')->toArray()
                 : [],
             'jurusanRombel' => Table::exists('rombongan_belajar')
-                ? DB::table('rombongan_belajar')->selectRaw('COALESCE(jurusan_id_str, "Reguler / Umum") as jurusan, count(*) as total')->whereNotNull('jurusan_id_str')->where('jurusan_id_str', '!=', '')->groupBy('jurusan')->orderByDesc('total')->limit(6)->pluck('total', 'jurusan')->toArray()
+                ? collect(\App\Support\ProgramKeahlian::mergeRows(
+                    \App\Support\RombelScope::reguler(DB::table('rombongan_belajar'))
+                        ->whereNotNull('jurusan_id_str')
+                        ->where('jurusan_id_str', '!=', '')
+                        ->select('jurusan_id as kode', 'jurusan_id_str as nama')
+                        ->groupBy('jurusan_id', 'jurusan_id_str')
+                        ->selectRaw('COUNT(*) as total')
+                        ->get()
+                ))->sortByDesc('total')->take(6)->pluck('total', 'nama')->toArray()
                 : [],
         ];
     }

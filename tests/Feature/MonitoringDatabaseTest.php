@@ -66,7 +66,6 @@ class MonitoringDatabaseTest extends TestCase
             'charts' => [
                 'hourly' => ['labels', 'create', 'update', 'delete', 'read'],
                 'crud' => ['labels', 'data'],
-                'modules' => ['labels', 'data'],
                 'bidang' => ['labels', 'data'],
                 'menu' => ['labels', 'data'],
                 'fitur' => ['labels', 'data'],
@@ -117,7 +116,7 @@ class MonitoringDatabaseTest extends TestCase
         $log->delete();
     }
 
-    public function test_admin_can_filter_monitoring_by_bidang(): void
+    public function test_admin_can_filter_monitoring_by_menu(): void
     {
         $response = $this->withSession([
             'user' => [
@@ -126,11 +125,51 @@ class MonitoringDatabaseTest extends TestCase
                 'nama' => 'Administrator Test',
                 'role' => 'admin',
             ],
-        ])->get(route('dashboard.aktivitas-database.index', ['bidang' => 'Kesiswaan', 'all_time' => 1]));
+        ])->get(route('dashboard.aktivitas-database.index', ['menu' => 'Kesiswaan', 'all_time' => 1]));
 
         $response->assertStatus(200);
-        $response->assertViewHas('bidang', 'Kesiswaan');
-        $response->assertSee('Semua Bidang');
+        $response->assertViewHas('menu', 'Kesiswaan');
+        $response->assertSee('Semua Menu');
+
+        // Filter harus benar-benar menyaring: hanya modul anggota grup Kesiswaan.
+        $list = $response->viewData('list');
+        foreach ($list as $row) {
+            $this->assertContains($row->modul, \App\Support\MonitoringMenu::modulesFor('Kesiswaan'));
+        }
+    }
+
+    public function test_menu_filter_does_not_leak_other_groups(): void
+    {
+        $response = $this->withSession([
+            'user' => [
+                'id' => 1,
+                'username' => 'admin_test',
+                'nama' => 'Administrator Test',
+                'role' => 'admin',
+            ],
+        ])->get(route('dashboard.aktivitas-database.index', ['menu' => 'Perpustakaan', 'all_time' => 1]));
+
+        $response->assertStatus(200);
+        // Grup tanpa data harus kosong, bukan menampilkan seluruh baris.
+        $this->assertSame(0, $response->viewData('list')->total());
+    }
+
+    public function test_every_database_write_is_logged_automatically(): void
+    {
+        $row = \App\Models\Pengumuman::query()->first();
+        if (!$row) {
+            $this->markTestSkipped('Tidak ada data pengumuman untuk diuji.');
+        }
+
+        $before = AdminAktivitas::where('aktivitas', 'like', '[UPDATE] pengumuman%')->count();
+
+        $row->touch();
+
+        $after = AdminAktivitas::where('aktivitas', 'like', '[UPDATE] pengumuman%')->count();
+        $this->assertGreaterThan($before, $after, 'Perubahan model harus tercatat otomatis tanpa AdminAktivitas::record().');
+
+        $log = AdminAktivitas::where('aktivitas', 'like', '[UPDATE] pengumuman%')->latest('id')->first();
+        $this->assertSame('Layanan Digital', \App\Support\MonitoringMenu::groupFor($log->modul));
     }
 
     public function test_delete_endpoint_removes_log(): void

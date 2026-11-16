@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminAktivitas;
 use App\Models\KesiswaanBerkasVerifikasi;
 use App\Models\KesiswaanBukuKlaper;
 use App\Models\KesiswaanKelulusan;
@@ -505,6 +506,14 @@ class KesiswaanController extends Controller
         }
 
         $mutasi->save();
+
+        AdminAktivitas::recordCrud(
+            'UPDATE',
+            'Unggah Berkas Mutasi: ' . ($jenis === 'dapodik' ? 'Surat Dapodik' : 'Surat Penerimaan'),
+            'Mutasi',
+            'Berkas ' . $originalName . ' (' . number_format($fileSize / 1024, 0, ',', '.') . ' KB) untuk mutasi #' . $mutasi->id,
+            'success'
+        );
 
         return response()->json([
             'status' => 'success',

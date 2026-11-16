@@ -235,7 +235,7 @@
                             style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-chart-column text-warning"></i> Sebaran Siswa per Konsentrasi Keahlian
                         </h4>
-                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">6 Program Keahlian / Jurusan
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">{{ ($stats['jurusanStats'] ?? collect())->count() }} Program Keahlian / Jurusan
                             Terbesar</span>
                     </div>
                     <span class="badge"

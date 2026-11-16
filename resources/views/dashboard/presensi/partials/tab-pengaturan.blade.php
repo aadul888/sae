@@ -426,16 +426,16 @@
                 </div>
 
                 @php
-                    $activeJurusans = is_array($pengaturan->jurusan_aktif) ? $pengaturan->jurusan_aktif : [];
+                    $activeJurusans = is_array($pengaturan->jurusan_aktif) ? array_map('strval', $pengaturan->jurusan_aktif) : [];
                     $isAllJurusan = empty($activeJurusans);
                 @endphp
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
                     @foreach ($jurusanList ?? [] as $j)
                         @php
-                            $isChecked =
-                                $isAllJurusan ||
-                                in_array((string) $j->kode, array_map('strval', $activeJurusans), true);
+                            // Pengaturan lama bisa menyimpan id konsentrasi (8 digit), bukan
+                            // id program — cocokkan lewat seluruh id anggota jurusan ini.
+                            $isChecked = $isAllJurusan || array_intersect(array_map('strval', $j->ids ?? [$j->kode]), $activeJurusans);
                         @endphp
                         <label
                             style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); background: rgba(255,255,255,0.015); cursor: pointer; transition: all 0.2s ease;">

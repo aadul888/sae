@@ -171,6 +171,7 @@
         </div>
     </div>
 
+@if (($tab ?? 'dapodik') === 'referensi')
     <!-- Unified Datatable Referensi Jurusan -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <!-- 1. Toolbar Header (Entries & Filters & Live Search) -->
@@ -186,15 +187,13 @@
                             @endforeach
                         </select>
                         <span>entri</span>
-                        <span class="badge badge-outline" style="margin-left: 8px; font-size: var(--text-xs, 0.75rem);">Total:
-                            {{ $refList->total() }}</span>
                     </div>
 
                     {{-- Filter Bidang Keahlian --}}
                     <div style="display: inline-block;">
                         <select id="filterBidang" name="bidang" class="toolbar-filter-select"
                             style="height: 38px; padding: 0 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); max-width: 240px;">
-                            <option value="">-- Semua Bidang Keahlian --</option>
+                            <option value="">-- Semua Bidang --</option>
                             @foreach ($bidangList as $b)
                                 <option value="{{ $b->kode_bidang }}" {{ ($bidang ?? '') == $b->kode_bidang ? 'selected' : '' }}>
                                     {{ $b->kode_bidang }}. {{ $b->nama_bidang }}
@@ -242,10 +241,9 @@
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         @php
                             $refCols = [
-                                ['kode_konsentrasi', 'Kode'],
-                                ['nama_konsentrasi', 'Konsentrasi Keahlian'],
-                                ['nama_program', 'Program Keahlian'],
                                 ['nama_bidang', 'Bidang Keahlian'],
+                                ['nama_program', 'Program Keahlian'],
+                                ['nama_konsentrasi', 'Konsentrasi Keahlian'],
                                 ['durasi', 'Durasi'],
                             ];
                         @endphp
@@ -268,27 +266,6 @@
                             $isAtSchool = in_array(mb_strtolower(trim($item->nama_konsentrasi)), $schoolJurusanNames ?? [], true);
                         @endphp
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-family: monospace;" data-label="Kode">
-                                <span class="badge badge-primary copyable" data-copy="{{ $item->kode_konsentrasi }}"
-                                    data-label="Kode Konsentrasi" title="Klik untuk salin kode"
-                                    style="font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; font-family: monospace;">
-                                    {{ $item->kode_konsentrasi }}
-                                </span>
-                            </td>
-                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color);" data-label="Konsentrasi Keahlian">
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-weight: 700; font-size: var(--text-base, 0.875rem);">{{ $item->nama_konsentrasi }}</span>
-                                    @if ($isAtSchool)
-                                        <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;" title="Konsentrasi keahlian ini ada di sekolah">
-                                            <i class="fas fa-check-circle me-1"></i>Di Sekolah
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px; color: var(--text-color); font-size: var(--text-sm, 0.8125rem);" data-label="Program Keahlian">
-                                <span class="badge badge-outline" style="font-family: monospace; font-size: var(--text-xs, 0.75rem); margin-right: 4px;">{{ $item->kode_program }}</span>
-                                <span>{{ $item->nama_program }}</span>
-                            </td>
                             <td style="padding: 14px 18px; color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);" data-label="Bidang Keahlian">
                                 <div>
                                     <span class="badge badge-outline" style="font-family: monospace; font-size: var(--text-xs, 0.75rem); margin-right: 4px;">{{ $item->kode_bidang }}</span>
@@ -299,6 +276,25 @@
                                         <span style="opacity: 0.7;">K13:</span> {{ $item->bidang_k13 }}
                                     </div>
                                 @endif
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-color); font-size: var(--text-sm, 0.8125rem);" data-label="Program Keahlian">
+                                <span class="badge badge-outline" style="font-family: monospace; font-size: var(--text-xs, 0.75rem); margin-right: 4px;">{{ $item->kode_program }}</span>
+                                <span>{{ $item->nama_program }}</span>
+                            </td>
+                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color);" data-label="Konsentrasi Keahlian">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="badge badge-primary copyable" data-copy="{{ $item->kode_konsentrasi }}"
+                                        data-label="Kode Konsentrasi" title="Klik untuk salin kode"
+                                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 7px; font-family: monospace;">
+                                        {{ $item->kode_konsentrasi }}
+                                    </span>
+                                    <span style="font-weight: 700; font-size: var(--text-base, 0.875rem);">{{ $item->nama_konsentrasi }}</span>
+                                    @if ($isAtSchool)
+                                        <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;" title="Konsentrasi keahlian ini ada di sekolah">
+                                            <i class="fas fa-check-circle me-1"></i>Di Sekolah
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Durasi">
                                 @if ($item->durasi == 4)
@@ -352,8 +348,6 @@
                             @endforeach
                         </select>
                         <span>entri</span>
-                        <span class="badge badge-outline" style="margin-left: 8px; font-size: var(--text-xs, 0.75rem);">Total:
-                            {{ $total }}</span>
                     </div>
 
                     @if ($q)
@@ -386,7 +380,7 @@
                         @php
                             $cols = [
                                 ['kode', 'Kode Jurusan'],
-                                ['nama', 'Kompetensi Keahlian'],
+                                ['nama', 'Program Keahlian'],
                                 ['total_rombel', 'Jml Rombel'],
                                 ['total_peserta_didik', 'Jml Peserta Didik'],
                             ];
@@ -457,6 +451,16 @@
                                                 @endif
                                             </span>
                                         </div>
+                                        @php
+                                            // Konsentrasi kelas XI/XII yang tergabung di bawah program ini
+                                            $konsTergabung = array_diff($item->konsentrasi_list ?? [], [$item->nama]);
+                                        @endphp
+                                        @if (!empty($konsTergabung))
+                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 3px;"
+                                                title="Konsentrasi keahlian yang tergabung pada program ini">
+                                                <i class="fas fa-diagram-project me-1" style="opacity: 0.6;"></i>{{ implode(' · ', $konsTergabung) }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>

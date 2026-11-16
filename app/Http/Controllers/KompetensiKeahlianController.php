@@ -30,13 +30,18 @@ class KompetensiKeahlianController extends Controller
             $tab = 'dapodik';
         }
 
-        $countDapodik = Table::exists('rombongan_belajar')
-            ? DB::table('rombongan_belajar')
+        // Jurusan dihitung per PROGRAM keahlian (bukan per jurusan_id Dapodik),
+        // karena kelas X memakai id program dan kelas XI/XII memakai id konsentrasi.
+        $countDapodik = 0;
+        if (Table::exists('rombongan_belajar')) {
+            $rawJurusan = DB::table('rombongan_belajar')
                 ->whereNotNull('jurusan_id_str')
                 ->where('jurusan_id_str', '<>', '')
-                ->distinct('jurusan_id')
-                ->count('jurusan_id')
-            : 0;
+                ->select('jurusan_id as kode', 'jurusan_id_str as nama')
+                ->distinct()
+                ->get();
+            $countDapodik = count(\App\Support\ProgramKeahlian::mergeRows($rawJurusan));
+        }
 
         $countReferensi = Table::exists('referensi_jurusan')
             ? \App\Models\ReferensiJurusan::count()
@@ -44,11 +49,11 @@ class KompetensiKeahlianController extends Controller
 
         // TAB MASTER REFERENSI JURUSAN (SPEKTRUM SMK NASIONAL)
         if ($tab === 'referensi') {
-            $q       = trim($request->get('q', ''));
-            $bidang  = trim($request->get('bidang', ''));
-            $durasi  = trim($request->get('durasi', ''));
+            $q      = trim($request->get('q', ''));
+            $bidang = trim($request->get('bidang', ''));
+            $durasi = trim($request->get('durasi', ''));
             $perPage = (int) $request->get('perPage', 15);
-            $sort    = in_array($request->get('sort'), self::SORTABLE_REF, true) ? $request->get('sort') : 'kode_konsentrasi';
+            $sort    = in_array($request->get('sort'), self::SORTABLE_REF, true) ? $request->get('sort') : 'kode_bidang';
             $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
             $query = \App\Models\ReferensiJurusan::query()
@@ -151,12 +156,21 @@ class KompetensiKeahlianController extends Controller
             $baseQuery->addSelect(DB::raw('0 as total_peserta_didik'));
         }
 
+        // Rekap mentah per jurusan_id, lalu digabung ke level program keahlian
+        $rawRows = $baseQuery->get();
+
+        $allResults = collect(\App\Support\ProgramKeahlian::mergeRows($rawRows))
+            ->map(fn ($row) => (object) $row);
+
+        // Pencarian dilakukan setelah penggabungan agar konsentrasi ikut tercakup
         if ($q !== '') {
-            $baseQuery->havingRaw('kode LIKE ? OR nama LIKE ?', ["%{$q}%", "%{$q}%"]);
+            $needle = mb_strtolower($q);
+            $allResults = $allResults->filter(function ($item) use ($needle) {
+                return str_contains(mb_strtolower($item->nama), $needle)
+                    || str_contains(mb_strtolower($item->kode), $needle);
+            })->values();
         }
 
-        // Hitung total data
-        $allResults = $baseQuery->get();
         $total = $allResults->count();
 
         // Summary metrics
@@ -184,7 +198,7 @@ class KompetensiKeahlianController extends Controller
         $itemsForPage = $sorted->slice($offset, $perPage)->values();
 
         // Ambil info rombel, kurikulum, dan logo persisten untuk baris yang tampil
-        $jurusanIds = $itemsForPage->pluck('kode')->toArray();
+        $jurusanIds = $itemsForPage->flatMap(fn ($item) => $item->ids ?? [])->unique()->values()->all();
         $detailMap = [];
         $metaMap = collect();
 
@@ -196,12 +210,30 @@ class KompetensiKeahlianController extends Controller
                 ->get()
                 ->groupBy('jurusan_id');
 
+            // Petakan detail dari tiap jurusan_id mentah ke kode program induknya
+            $idToKode = [];
+            foreach ($itemsForPage as $item) {
+                foreach ($item->ids ?? [] as $id) {
+                    $idToKode[$id] = $item->kode;
+                }
+            }
+
             foreach ($details as $jid => $rows) {
-                $detailMap[$jid] = [
-                    'rombel' => $rows->pluck('nama')->unique()->values()->all(),
-                    'kurikulum' => $rows->pluck('kurikulum_id_str')->filter()->unique()->values()->all(),
-                    'tingkat' => $rows->pluck('tingkat_pendidikan_id_str')->filter()->unique()->values()->all(),
-                ];
+                $kode = $idToKode[$jid] ?? $jid;
+                $detailMap[$kode] ??= ['rombel' => [], 'kurikulum' => [], 'tingkat' => []];
+
+                $detailMap[$kode]['rombel'] = array_values(array_unique(array_merge(
+                    $detailMap[$kode]['rombel'],
+                    $rows->pluck('nama')->filter()->all()
+                )));
+                $detailMap[$kode]['kurikulum'] = array_values(array_unique(array_merge(
+                    $detailMap[$kode]['kurikulum'],
+                    $rows->pluck('kurikulum_id_str')->filter()->all()
+                )));
+                $detailMap[$kode]['tingkat'] = array_values(array_unique(array_merge(
+                    $detailMap[$kode]['tingkat'],
+                    $rows->pluck('tingkat_pendidikan_id_str')->filter()->all()
+                )));
             }
 
             if (Table::exists('jurusan_meta')) {
@@ -216,11 +248,23 @@ class KompetensiKeahlianController extends Controller
             $item->kurikulum_list = $detailMap[$item->kode]['kurikulum'] ?? [];
             $item->tingkat_list = $detailMap[$item->kode]['tingkat'] ?? [];
 
+            // Meta dicari pada kode induk; bila belum ada, pakai meta id konsentrasi
             $meta = $metaMap[$item->kode] ?? null;
+            if (!$meta) {
+                foreach ($item->ids ?? [] as $id) {
+                    if (isset($metaMap[$id])) { $meta = $metaMap[$id]; break; }
+                }
+            }
+
             $item->singkatan = $meta?->singkatan;
             $item->logo_url = $meta?->logo_url;
             $item->logo_path = $meta?->logo_path;
             $item->logo_size = $meta?->formatted_logo_size;
+
+            // Nama konsentrasi yang tergabung di bawah program ini
+            $item->konsentrasi_list = $item->nama
+                ? \App\Support\ProgramKeahlian::jurusanNamesOf($item->nama)
+                : [];
         }
 
         $list = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -261,8 +305,16 @@ class KompetensiKeahlianController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
         }
 
+        // Kode yang dikirim adalah kode program keahlian; rombel kelas XI/XII
+        // memakai jurusan_id konsentrasi, jadi ikut disertakan.
+        $namaJurusan = DB::table('rombongan_belajar')->where('jurusan_id', $kode)->value('jurusan_id_str');
+        $kodeIds = \App\Support\ProgramKeahlian::idsFor($namaJurusan ?: (string) $kode);
+        if (empty($kodeIds)) {
+            $kodeIds = [(string) $kode];
+        }
+
         $baseRombel = \App\Support\RombelScope::query()
-            ->where('jurusan_id', $kode)
+            ->whereIn('jurusan_id', $kodeIds)
             ->select(
                 'rombongan_belajar_id',
                 'nama as nama_rombel',
@@ -296,9 +348,7 @@ class KompetensiKeahlianController extends Controller
             $r->jumlah_peserta_didik = $count;
         }
 
-        $jurusan = DB::table('rombongan_belajar')
-            ->where('jurusan_id', $kode)
-            ->value('jurusan_id_str') ?: $kode;
+        $jurusan = \App\Support\ProgramKeahlian::resolve($namaJurusan ?: (string) $kode) ?: $kode;
 
         return response()->json([
             'status' => 'success',

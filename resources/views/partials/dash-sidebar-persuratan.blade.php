@@ -10,6 +10,9 @@
                             <span class="nav-icon sub-icon"><i
                                     class="fas fa-fw fa-envelope-open-text"></i></span>
                             <span class="nav-label">Persuratan</span>
+                            @if (($n = $notifBadge(route('dashboard.persuratan.index'))) > 0)
+                                <span class="dash-nav-count">{{ $n }}</span>
+                            @endif
                         </div>
                         <i class="fas fa-chevron-right nested-arrow-icon"></i>
                     </button>

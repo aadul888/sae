@@ -720,17 +720,16 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.set("perPage", perPageSelect.value);
         }
 
-        if (filterBidang && filterBidang.value) {
-            url.searchParams.set("bidang", filterBidang.value);
-        } else {
-            url.searchParams.delete("bidang");
-        }
-
-        if (filterDurasi && filterDurasi.value) {
-            url.searchParams.set("durasi", filterDurasi.value);
-        } else {
-            url.searchParams.delete("durasi");
-        }
+        [
+            ["bidang", filterBidang],
+            ["durasi", filterDurasi],
+        ].forEach(([param, el]) => {
+            if (el && el.value) {
+                url.searchParams.set(param, el.value);
+            } else {
+                url.searchParams.delete(param);
+            }
+        });
 
         Object.keys(overrideParams).forEach((k) => {
             const v = overrideParams[k];
@@ -750,10 +749,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Delegated Change Handler untuk perPageSelect & toolbar filters
     document.addEventListener("change", function (e) {
         if (!e.target || e.target.tagName !== "SELECT") return;
-        if (
-            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
-            (e.target.id === "perPageSelect" || e.target.id === "filterBidang" || e.target.id === "filterDurasi")
-        ) {
+        if (!e.target.closest("#tableDataContainer, .datatable-toolbar")) return;
+
+        const id = e.target.id;
+        if (id === "perPageSelect" || id === "filterBidang" || id === "filterDurasi") {
             e.preventDefault();
             e.stopPropagation();
             applyFilter();
@@ -771,7 +770,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const url = new URL(window.location.href);
         const isRef = url.searchParams.get("tab") === "referensi";
-        const currentSort = url.searchParams.get("sort") || (isRef ? "kode_konsentrasi" : "nama");
+        const currentSort = url.searchParams.get("sort") || (isRef ? "kode_bidang" : "nama");
         const currentDir = url.searchParams.get("sort_dir") || "asc";
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });

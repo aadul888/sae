@@ -44,8 +44,7 @@ class AktivitasDatabaseController extends Controller
 
         $q = trim($request->get('q', ''));
         $crud = strtolower(trim($request->get('crud', 'all')));
-        $bidang = trim($request->get('bidang', ''));
-        $modul = trim($request->get('modul', ''));
+        $menu = trim($request->get('menu', ''));
         $tipe = trim($request->get('tipe', ''));
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
@@ -56,6 +55,10 @@ class AktivitasDatabaseController extends Controller
             $startDate = '';
             $endDate = '';
             $range = 'all';
+        } elseif ($range === 'all') {
+            // Preset "Semua" harus tetap tanpa batas tanggal meski input tanggal dikosongkan.
+            $startDate = '';
+            $endDate = '';
         } elseif ($request->has('start_date') || $request->has('end_date')) {
             $startDate = $request->get('start_date', '');
             $endDate = $request->get('end_date', '');
@@ -87,40 +90,10 @@ class AktivitasDatabaseController extends Controller
             $query->filterCrud($crud);
         }
 
-        if (!empty($bidang)) {
-            $query->where(function ($b) use ($bidang) {
-                match ($bidang) {
-                    'Kesiswaan' => $b->whereIn('modul', ['Kesiswaan', 'Siswa'])
-                        ->orWhere('aktivitas', 'like', '%siswa%')
-                        ->orWhere('aktivitas', 'like', '%peserta didik%'),
-                    'Kepegawaian' => $b->whereIn('modul', ['Guru', 'Tendik', 'Kepegawaian'])
-                        ->orWhere('aktivitas', 'like', '%guru%')
-                        ->orWhere('aktivitas', 'like', '%tendik%')
-                        ->orWhere('aktivitas', 'like', '%ptk%'),
-                    'Kurikulum' => $b->whereIn('modul', ['Jadwal', 'Pembelajaran', 'Kurikulum', 'Rombel'])
-                        ->orWhere('aktivitas', 'like', '%jadwal%')
-                        ->orWhere('aktivitas', 'like', '%kbm%')
-                        ->orWhere('aktivitas', 'like', '%rombel%'),
-                    'Layanan Digital' => $b->whereIn('modul', ['Formulir', 'Pengumuman', 'Presensi', 'RFID', 'Kartu Pelajar'])
-                        ->orWhere('aktivitas', 'like', '%presensi%')
-                        ->orWhere('aktivitas', 'like', '%rfid%')
-                        ->orWhere('aktivitas', 'like', '%pengumuman%')
-                        ->orWhere('aktivitas', 'like', '%formulir%'),
-                    'Keamanan & Akses' => $b->whereIn('modul', ['Autentikasi', 'Hak Akses', 'Pengguna', 'User'])
-                        ->orWhere('aktivitas', 'like', '%login%')
-                        ->orWhere('aktivitas', 'like', '%rbac%'),
-                    'Infrastruktur & Sistem' => $b->whereIn('modul', ['Sistem', 'Backup', 'Dapodik'])
-                        ->orWhere('aktivitas', 'like', '%sistem%')
-                        ->orWhere('aktivitas', 'like', '%backup%')
-                        ->orWhere('aktivitas', 'like', '%dapodik%')
-                        ->orWhere('aktivitas', 'like', '%log%'),
-                    default => null,
-                };
-            });
-        }
-
-        if (!empty($modul)) {
-            $query->where('modul', $modul);
+        // Filter menu sidebar: pencocokan persis (tanpa LIKE) supaya hasilnya benar-benar tersaring.
+        $menuModules = \App\Support\MonitoringMenu::modulesFor($menu);
+        if ($menuModules !== []) {
+            $query->whereIn('modul', $menuModules);
         }
 
         if (!empty($tipe)) {
@@ -155,29 +128,16 @@ class AktivitasDatabaseController extends Controller
 
         $chartData = $this->getChartData($startDate, $endDate);
 
-        $availableBidang = [
-            'Kesiswaan',
-            'Kepegawaian',
-            'Kurikulum',
-            'Layanan Digital',
-            'Keamanan & Akses',
-            'Infrastruktur & Sistem',
-        ];
-
-        $availableModules = Table::exists('admin_aktivitas')
-            ? AdminAktivitas::distinct()->pluck('modul')->filter()->sort()->values()
-            : collect(['Sistem', 'Autentikasi', 'Kesiswaan', 'Dapodik']);
+        $availableMenus = \App\Support\MonitoringMenu::names();
 
         return view('dashboard.aktivitas-database', compact(
             'list',
             'stats',
             'chartData',
-            'availableBidang',
-            'availableModules',
+            'availableMenus',
             'crud',
             'range',
-            'bidang',
-            'modul',
+            'menu',
             'tipe',
             'startDate',
             'endDate',
@@ -274,7 +234,6 @@ class AktivitasDatabaseController extends Controller
             return [
                 'hourly' => ['labels' => [], 'create' => [], 'update' => [], 'delete' => [], 'read' => []],
                 'crud' => ['labels' => ['CREATE', 'UPDATE', 'DELETE', 'READ'], 'data' => [0, 0, 0, 0]],
-                'modules' => ['labels' => [], 'data' => []],
                 'bidang' => ['labels' => [], 'data' => []],
                 'menu' => ['labels' => [], 'data' => []],
                 'fitur' => ['labels' => [], 'data' => []],
@@ -295,7 +254,6 @@ class AktivitasDatabaseController extends Controller
             ->get();
 
         $crudCounts = ['create' => 0, 'update' => 0, 'delete' => 0, 'read' => 0];
-        $modulCounts = [];
         $bidangCounts = [];
         $menuCounts = [];
         $fiturCounts = [];
@@ -310,18 +268,12 @@ class AktivitasDatabaseController extends Controller
                 $hours[$h][$act]++;
             }
 
-            $mod = $log->modul ?: 'Sistem';
-            $modulCounts[$mod] = ($modulCounts[$mod] ?? 0) + 1;
-
             // Dimensi kontekstual (dihitung dari accessor yang sama dengan tabel)
             $k = $log->konteks;
             $bidangCounts[$k['bidang']] = ($bidangCounts[$k['bidang']] ?? 0) + 1;
             $menuCounts[$k['menu']] = ($menuCounts[$k['menu']] ?? 0) + 1;
             $fiturCounts[$k['fitur']] = ($fiturCounts[$k['fitur']] ?? 0) + 1;
         }
-
-        arsort($modulCounts);
-        $topModules = array_slice($modulCounts, 0, 6, true);
 
         arsort($bidangCounts);
         arsort($menuCounts);
@@ -367,10 +319,6 @@ class AktivitasDatabaseController extends Controller
                     $crudCounts['delete'],
                     $crudCounts['read'],
                 ],
-            ],
-            'modules' => [
-                'labels' => array_keys($topModules),
-                'data' => array_values($topModules),
             ],
             'bidang' => [
                 'labels' => array_keys($bidangCounts),
@@ -440,7 +388,7 @@ class AktivitasDatabaseController extends Controller
 
         $q = trim($request->get('q', ''));
         $crud = strtolower(trim($request->get('crud', 'all')));
-        $bidang = trim($request->get('bidang', ''));
+        $menu = trim($request->get('menu', ''));
         $modul = trim($request->get('modul', ''));
         $tipe = trim($request->get('tipe', ''));
         $startDate = $request->get('start_date');
@@ -451,36 +399,9 @@ class AktivitasDatabaseController extends Controller
         if ($crud !== 'all' && in_array($crud, ['create', 'read', 'update', 'delete'], true)) {
             $query->filterCrud($crud);
         }
-        if (!empty($bidang)) {
-            $query->where(function ($b) use ($bidang) {
-                match ($bidang) {
-                    'Kesiswaan' => $b->whereIn('modul', ['Kesiswaan', 'Siswa'])
-                        ->orWhere('aktivitas', 'like', '%siswa%')
-                        ->orWhere('aktivitas', 'like', '%peserta didik%'),
-                    'Kepegawaian' => $b->whereIn('modul', ['Guru', 'Tendik', 'Kepegawaian'])
-                        ->orWhere('aktivitas', 'like', '%guru%')
-                        ->orWhere('aktivitas', 'like', '%tendik%')
-                        ->orWhere('aktivitas', 'like', '%ptk%'),
-                    'Kurikulum' => $b->whereIn('modul', ['Jadwal', 'Pembelajaran', 'Kurikulum', 'Rombel'])
-                        ->orWhere('aktivitas', 'like', '%jadwal%')
-                        ->orWhere('aktivitas', 'like', '%kbm%')
-                        ->orWhere('aktivitas', 'like', '%rombel%'),
-                    'Layanan Digital' => $b->whereIn('modul', ['Formulir', 'Pengumuman', 'Presensi', 'RFID', 'Kartu Pelajar'])
-                        ->orWhere('aktivitas', 'like', '%presensi%')
-                        ->orWhere('aktivitas', 'like', '%rfid%')
-                        ->orWhere('aktivitas', 'like', '%pengumuman%')
-                        ->orWhere('aktivitas', 'like', '%formulir%'),
-                    'Keamanan & Akses' => $b->whereIn('modul', ['Autentikasi', 'Hak Akses', 'Pengguna', 'User'])
-                        ->orWhere('aktivitas', 'like', '%login%')
-                        ->orWhere('aktivitas', 'like', '%rbac%'),
-                    'Infrastruktur & Sistem' => $b->whereIn('modul', ['Sistem', 'Backup', 'Dapodik'])
-                        ->orWhere('aktivitas', 'like', '%sistem%')
-                        ->orWhere('aktivitas', 'like', '%backup%')
-                        ->orWhere('aktivitas', 'like', '%dapodik%')
-                        ->orWhere('aktivitas', 'like', '%log%'),
-                    default => null,
-                };
-            });
+        $menuModules = \App\Support\MonitoringMenu::modulesFor($menu);
+        if ($menuModules !== []) {
+            $query->whereIn('modul', $menuModules);
         }
         if (!empty($modul)) {
             $query->where('modul', $modul);

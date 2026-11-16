@@ -64,6 +64,9 @@ class AppServiceProvider extends ServiceProvider
             throw new \RuntimeException('System integrity verification failed.');
         }
 
+        // Catat setiap transaksi CRUD basis data ke Monitoring secara otomatis.
+        \App\Support\DatabaseActivityLogger::register();
+
         View::composer('*', function ($view) {
             static $appVersion = null;
             if ($appVersion === null) {

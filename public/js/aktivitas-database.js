@@ -14,7 +14,6 @@
     // Instance Chart.js
     let hourlyChartInstance = null;
     let crudChartInstance = null;
-    let modulesChartInstance = null;
     let bidangChartInstance = null;
     let menuChartInstance = null;
     let fiturChartInstance = null;
@@ -210,52 +209,7 @@
             });
         }
 
-        // 3. Grafik Modul Tersibuk (Horizontal Bar Chart)
-        const modCtx = document.getElementById('chartTopModules');
-        if (modCtx && payload.modules) {
-            modulesChartInstance = new Chart(modCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: payload.modules.labels.length > 0 ? payload.modules.labels : ['Sistem'],
-                    datasets: [{
-                        label: 'Transaksi',
-                        data: payload.modules.data.length > 0 ? payload.modules.data : [0],
-                        backgroundColor: 'rgba(99, 102, 241, 0.75)',
-                        hoverBackgroundColor: 'rgba(99, 102, 241, 0.95)',
-                        borderRadius: 4,
-                        barThickness: 14,
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            padding: 8,
-                            callbacks: {
-                                label: function (ctx) {
-                                    return ` ${ctx.raw} aktivitas`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: { color: colors.gridColor },
-                            ticks: { precision: 0, font: { size: 9 } }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { font: { size: 10, weight: '600' }, color: colors.textColor }
-                        }
-                    }
-                }
-            });
-        }
-        // 4. Trafik per Bidang (Doughnut Chart)
+        // 3. Trafik per Menu Sidebar (Doughnut Chart)
         const bidangCtx = document.getElementById('chartBidangTraffic');
         if (bidangCtx && payload.bidang) {
             bidangChartInstance = new Chart(bidangCtx.getContext('2d'), {
@@ -443,12 +397,6 @@
                     crudChartInstance.data.labels = data.charts.crud.labels;
                     crudChartInstance.data.datasets[0].data = data.charts.crud.data;
                     crudChartInstance.update('none');
-                }
-
-                if (modulesChartInstance && data.charts.modules) {
-                    modulesChartInstance.data.labels = data.charts.modules.labels.length > 0 ? data.charts.modules.labels : ['Sistem'];
-                    modulesChartInstance.data.datasets[0].data = data.charts.modules.data.length > 0 ? data.charts.modules.data : [0];
-                    modulesChartInstance.update('none');
                 }
 
                 if (bidangChartInstance && data.charts.bidang) {
@@ -812,16 +760,10 @@
         const perPage = document.getElementById('perPageSelect');
         if (perPage) url.searchParams.set('perPage', perPage.value);
 
-        const bidang = document.getElementById('filterBidang');
-        if (bidang) {
-            if (bidang.value) url.searchParams.set('bidang', bidang.value);
-            else url.searchParams.delete('bidang');
-        }
-
-        const modul = document.getElementById('filterModul');
-        if (modul) {
-            if (modul.value) url.searchParams.set('modul', modul.value);
-            else url.searchParams.delete('modul');
+        const menu = document.getElementById('filterMenu');
+        if (menu) {
+            if (menu.value) url.searchParams.set('menu', menu.value);
+            else url.searchParams.delete('menu');
         }
 
         const startDate = document.getElementById('filterStartDate');
@@ -864,11 +806,8 @@
         const perPage = document.getElementById('perPageSelect');
         if (perPage) perPage.addEventListener('change', updateFilters);
 
-        const filterBidang = document.getElementById('filterBidang');
-        if (filterBidang) filterBidang.addEventListener('change', updateFilters);
-
-        const filterModul = document.getElementById('filterModul');
-        if (filterModul) filterModul.addEventListener('change', updateFilters);
+        const filterMenu = document.getElementById('filterMenu');
+        if (filterMenu) filterMenu.addEventListener('change', updateFilters);
 
         const filterStartDate = document.getElementById('filterStartDate');
         if (filterStartDate) filterStartDate.addEventListener('change', updateFilters);

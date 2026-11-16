@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\Table;
+use App\Support\ProgramKeahlian;
 
 class RombelController extends Controller
 {
@@ -96,14 +97,16 @@ class RombelController extends Controller
             ->sort()
             ->values();
 
-        $filterJurusan = DB::table('rombongan_belajar')
-            ->where($typeFilter)
-            ->whereNotNull('jurusan_id_str')
-            ->where('jurusan_id_str', '<>', '')
-            ->distinct()
-            ->pluck('jurusan_id_str')
-            ->sort()
-            ->values();
+        // Filter jurusan memakai program keahlian, bukan nama mentah jurusan:
+        // kelas X berisi program keahlian, kelas XI/XII berisi konsentrasi.
+        $filterJurusan = ProgramKeahlian::listFrom(
+            DB::table('rombongan_belajar')
+                ->where($typeFilter)
+                ->whereNotNull('jurusan_id_str')
+                ->where('jurusan_id_str', '<>', '')
+                ->distinct()
+                ->pluck('jurusan_id_str')
+        );
 
         // Hitung peserta didik per rombel dari tabel peserta_didik dan anggota_rombel
         $pdCounts = Table::exists('peserta_didik')
@@ -143,6 +146,16 @@ class RombelController extends Controller
                     ->orWhere('rombongan_belajar.jurusan_id_str', 'LIKE', "%{$q}%")
                     ->orWhere('rombongan_belajar.ptk_id_str', 'LIKE', "%{$q}%")
                     ->orWhere('rombongan_belajar.id_ruang_str', 'LIKE', "%{$q}%");
+
+                // Cari lewat nama program keahlian (mis. "Teknik Otomotif"
+                // mencakup rombel berkonsentrasi "Teknik Kendaraan Ringan").
+                $names = [];
+                foreach (ProgramKeahlian::map() as $nama => $program) {
+                    if (mb_stripos($program, $q) !== false) $names[] = $nama;
+                }
+                if ($names) {
+                    $sub->orWhereIn(DB::raw('LOWER(rombongan_belajar.jurusan_id_str)'), array_values(array_unique($names)));
+                }
             });
         }
 
@@ -151,7 +164,7 @@ class RombelController extends Controller
             $baseQuery->where('rombongan_belajar.tingkat_pendidikan_id_str', $tingkat);
         }
         if ($jurusan !== '') {
-            $baseQuery->where('rombongan_belajar.jurusan_id_str', $jurusan);
+            $baseQuery->whereIn('rombongan_belajar.jurusan_id_str', ProgramKeahlian::jurusanNamesOf($jurusan));
         }
 
         $allResults = $baseQuery->get()->map(function ($item) use ($pdCounts, $arCounts) {
@@ -159,6 +172,9 @@ class RombelController extends Controller
             $c1 = (int) ($pdCounts[$id] ?? 0);
             $c2 = (int) ($arCounts[$id] ?? 0);
             $item->total_peserta_didik = max($c1, $c2);
+            // Rekap memakai program keahlian; nama konsentrasi tetap disimpan
+            // untuk detail rombel.
+            $item->program = ProgramKeahlian::resolve($item->jurusan);
             return $item;
         });
 
@@ -168,12 +184,15 @@ class RombelController extends Controller
         $summary = [
             'rombel' => $total,
             'peserta_didik' => $allResults->sum('total_peserta_didik'),
-            'jurusan' => $allResults->pluck('jurusan')->filter()->unique()->count(),
+            'jurusan' => $allResults->pluck('program')->filter()->unique()->count(),
             'wali' => $allResults->pluck('wali_kelas')->filter()->unique()->count(),
         ];
 
         // Sorting collection
         $sorted = $allResults->sortBy(function ($item) use ($sort) {
+            if ($sort === 'jurusan') {
+                return mb_strtolower((string) ($item->program ?? ''));
+            }
             return $item->{$sort} ?? '';
         }, SORT_REGULAR, $sortDir === 'desc');
 

@@ -525,6 +525,31 @@
                 </div>
             </div>
 
+            <!-- Ringkasan L/P & Rombel (mengikuti filter) -->
+            <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 1.25rem;">
+                <div class="kpi-card">
+                    <div class="kpi-icon blue"><i class="fas fa-mars"></i></div>
+                    <div>
+                        <div class="kpi-num" id="sumL">0</div>
+                        <div class="kpi-desc">Laki-laki</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon purple"><i class="fas fa-venus"></i></div>
+                    <div>
+                        <div class="kpi-num" id="sumP">0</div>
+                        <div class="kpi-desc">Perempuan</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon orange"><i class="fas fa-door-open"></i></div>
+                    <div>
+                        <div class="kpi-num" id="sumRombel">0</div>
+                        <div class="kpi-desc">Total Rombel</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dynamic Filter Bar -->
             <div class="filter-strip">
                 <select id="filterMajor" class="filter-select" aria-label="Pilih Jurusan">

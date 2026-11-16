@@ -29,6 +29,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.orang-tua.kehadiran*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
             <span class="nav-label">Riwayat Kehadiran</span>
+            @if (($n = $notifBadge(route('dashboard.orang-tua.kehadiran'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'siswa']) }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') && request('view') === 'siswa' ? 'active' : '' }}">
@@ -39,6 +42,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.orang-tua.izin*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-ticket-alt"></i></span>
             <span class="nav-label">e-Izin &amp; Surat Sakit</span>
+            @if (($n = $notifBadge(route('dashboard.orang-tua.izin'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.identitas.index') }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas.*') || request()->routeIs('dashboard.identitas') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">

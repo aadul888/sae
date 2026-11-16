@@ -195,6 +195,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateSummary() {
+        const selectedMajor = filterMajor ? filterMajor.value : '';
+        const selectedGrade = filterGrade ? filterGrade.value : '';
+
+        let l = 0,
+            p = 0,
+            rombel = 0;
+
+        if (!selectedMajor && !selectedGrade) {
+            majorData.forEach(m => {
+                l += Number(m.total_l) || 0;
+                p += Number(m.total_p) || 0;
+                rombel += Number(m.total_rombel) || 0;
+            });
+        } else {
+            let filtered = chartDetail;
+            if (selectedMajor) filtered = filtered.filter(item => item.j === selectedMajor);
+            if (selectedGrade) filtered = filtered.filter(item => item.tg === selectedGrade);
+
+            const kelas = new Set();
+            filtered.forEach(item => {
+                l += item.L;
+                p += item.P;
+                kelas.add(item.k);
+            });
+            rombel = kelas.size;
+        }
+
+        const set = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = Number(value).toLocaleString('id-ID');
+        };
+        set('sumL', l);
+        set('sumP', p);
+        set('sumRombel', rombel);
+    }
+
     function updateCharts() {
         const selectedMajor = filterMajor ? filterMajor.value : '';
         const selectedGrade = filterGrade ? filterGrade.value : '';
@@ -254,10 +291,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pieChart.data.datasets[0].data = [countX, countXI, countXII];
             pieChart.update();
         }
+
+        updateSummary();
     }
 
     if (filterMajor) filterMajor.addEventListener('change', updateCharts);
     if (filterGrade) filterGrade.addEventListener('change', updateCharts);
+
+    updateCharts();
 
     const themeObserver = new MutationObserver(() => {
         if (barChart) barChart.update();

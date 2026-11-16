@@ -12,6 +12,9 @@
                         <div class="dash-nav-nested-toggle-main">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
                             <span class="nav-label">Kesiswaan</span>
+                            @if (($n = $notifBadge(route('dashboard.kesiswaan.index'))) > 0)
+                                <span class="dash-nav-count">{{ $n }}</span>
+                            @endif
                         </div>
                         <i class="fas fa-chevron-right nested-arrow-icon"></i>
                     </button>

@@ -5,19 +5,16 @@
 
 @section('content')
     @php
-        $isFiltered = !empty($q) || !empty($bidang) || !empty($modul) || !empty($tipe) || !empty($startDate) || !empty($endDate) || ($crud !== 'all') || ($range !== 'today');
+        $isFiltered = !empty($q) || !empty($menu) || !empty($tipe) || !empty($startDate) || !empty($endDate) || ($crud !== 'all') || ($range !== 'today');
         $resetUrl = route('dashboard.aktivitas-database.index');
 
-        $filterUrl = function ($c) use ($perPage, $bidang, $modul, $tipe, $startDate, $endDate, $range, $q) {
+        $filterUrl = function ($c) use ($perPage, $menu, $tipe, $startDate, $endDate, $range, $q) {
             $params = [];
             if ($c !== 'all') {
                 $params['crud'] = $c;
             }
-            if (!empty($bidang)) {
-                $params['bidang'] = $bidang;
-            }
-            if (!empty($modul)) {
-                $params['modul'] = $modul;
+            if (!empty($menu)) {
+                $params['menu'] = $menu;
             }
             if (!empty($tipe)) {
                 $params['tipe'] = $tipe;
@@ -40,7 +37,7 @@
             return route('dashboard.aktivitas-database.index', $params);
         };
 
-        $sortUrl = function (string $col) use ($sort, $sortDir, $crud, $bidang, $modul, $tipe, $startDate, $endDate, $range, $q, $perPage) {
+        $sortUrl = function (string $col) use ($sort, $sortDir, $crud, $menu, $tipe, $startDate, $endDate, $range, $q, $perPage) {
             $dir = ($sort === $col && $sortDir === 'asc') ? 'desc' : 'asc';
             $params = [
                 'sort' => $col,
@@ -49,11 +46,8 @@
             if ($crud !== 'all') {
                 $params['crud'] = $crud;
             }
-            if (!empty($bidang)) {
-                $params['bidang'] = $bidang;
-            }
-            if (!empty($modul)) {
-                $params['modul'] = $modul;
+            if (!empty($menu)) {
+                $params['menu'] = $menu;
             }
             if (!empty($tipe)) {
                 $params['tipe'] = $tipe;
@@ -78,8 +72,7 @@
 
         $exportUrl = route('dashboard.aktivitas-database.export', array_filter([
             'crud' => $crud !== 'all' ? $crud : null,
-            'bidang' => $bidang ?: null,
-            'modul' => $modul ?: null,
+            'menu' => $menu ?: null,
             'tipe' => $tipe ?: null,
             'start_date' => $startDate ?: null,
             'end_date' => $endDate ?: null,
@@ -272,24 +265,21 @@
             </div>
         </div>
 
-        <!-- Chart 2: Komposisi CRUD & Modul Teraktif -->
+        <!-- Chart 2: Komposisi Operasi CRUD -->
         <div class="card" style="padding: var(--space-6); border-radius: var(--radius-xl); margin-bottom: 0; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
                 <div>
                     <h3 style="font-size: var(--text-base); font-weight: 700; color: var(--text-color); margin: 0;">
-                        <i class="fas fa-chart-pie text-accent me-2"></i> Proporsi Operasi & Modul Teraktif
+                        <i class="fas fa-chart-pie text-accent me-2"></i> Proporsi Operasi CRUD
                     </h3>
                     <p style="font-size: var(--text-xs); color: var(--text-muted); margin: var(--space-1) 0 0 0;">
-                        Rasio operasi basis data dan beban kerja modul tersibuk.
+                        Rasio operasi CREATE, READ, UPDATE, dan DELETE pada rentang terpilih.
                     </p>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: center; height: 230px;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-4); align-items: center; height: 230px;">
                 <div style="position: relative; height: 210px; width: 100%;">
                     <canvas id="chartCrudDistribution"></canvas>
-                </div>
-                <div style="position: relative; height: 210px; width: 100%;">
-                    <canvas id="chartTopModules"></canvas>
                 </div>
             </div>
         </div>
@@ -299,10 +289,10 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-9);">
         <div class="card" style="padding: var(--space-6); border-radius: var(--radius-xl); margin-bottom: 0;">
             <h3 style="font-size: var(--text-base); font-weight: 700; color: var(--text-color); margin: 0;">
-                <i class="fas fa-sitemap text-primary me-2"></i> Trafik per Bidang
+                <i class="fas fa-sitemap text-primary me-2"></i> Trafik per Menu Sidebar
             </h3>
             <p style="font-size: var(--text-xs); color: var(--text-muted); margin: var(--space-1) 0 var(--space-4) 0;">
-                Distribusi aktivitas menurut bidang kerja.
+                Distribusi aktivitas menurut grup menu di sidebar.
             </p>
             <div style="position: relative; height: 240px; width: 100%;">
                 <canvas id="chartBidangTraffic"></canvas>
@@ -380,23 +370,12 @@
                     </div>
 
                     <div class="toolbar-filter-item">
-                        <select id="filterBidang" class="form-select"
-                            style="height: 38px; font-size: var(--text-sm); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color); padding: 0 var(--space-5);">
-                            <option value="">Semua Bidang</option>
-                            @foreach ($availableBidang as $b)
-                                <option value="{{ $b }}" {{ ($bidang ?? '') === $b ? 'selected' : '' }}>
-                                    {{ $b }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="toolbar-filter-item">
-                        <select id="filterModul" class="form-select"
-                            style="height: 38px; font-size: var(--text-sm); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color); padding: 0 var(--space-5);">
-                            <option value="">Semua Modul</option>
-                            @foreach ($availableModules as $m)
-                                <option value="{{ $m }}" {{ $modul === $m ? 'selected' : '' }}>
+                        <select id="filterMenu" class="form-select"
+                            style="height: 38px; font-size: var(--text-sm); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color); padding: 0 var(--space-5);"
+                            title="Filter berdasarkan menu sidebar">
+                            <option value="">Semua Menu</option>
+                            @foreach ($availableMenus as $m)
+                                <option value="{{ $m }}" {{ $menu === $m ? 'selected' : '' }}>
                                     {{ $m }}
                                 </option>
                             @endforeach
@@ -463,7 +442,7 @@
                         <th class="sortable-th {{ $sort === 'modul' ? 'sorted' : '' }}"
                             style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             <a href="{{ $sortUrl('modul') }}" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2);">
-                                <span>Bidang & Menu</span>
+                                <span>Menu Sidebar</span>
                                 <span class="sort-icon">{!! $sort === 'modul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </a>
                         </th>
@@ -521,7 +500,7 @@
                                 </span>
                             </td>
                             <td style="padding: var(--space-6) var(--space-8); font-size: var(--text-sm);"
-                                data-label="Bidang & Menu">
+                                data-label="Menu Sidebar">
                                 <div>
                                     <span class="badge"
                                         style="background: {{ $konteks['bidang_bg'] }}; color: {{ $konteks['bidang_color'] }}; font-weight: 700; padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-xs); display: inline-flex; align-items: center; gap: var(--space-2);">

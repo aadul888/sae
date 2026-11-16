@@ -32,6 +32,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
             <span class="nav-label">Presensi Mengajar</span>
+            @if (($n = $notifBadge(route('dashboard.presensi-mengajar.index'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.presensi.kelas') }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
@@ -42,6 +45,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
             <span class="nav-label">Jurnal &amp; Agenda KBM</span>
+            @if (($n = $notifBadge(route('dashboard.agenda-kbm.index'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
     </div>
 </div>

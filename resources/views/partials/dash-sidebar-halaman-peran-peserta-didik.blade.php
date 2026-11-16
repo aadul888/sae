@@ -44,6 +44,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.izin*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
             <span class="nav-label">Surat Izin &amp; Sakit</span>
+            @if (($n = $notifBadge(route('dashboard.peserta-didik.izin.index'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.e-izin.index', ['tab' => 'saya']) }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.e-izin*') && request('tab') === 'saya' ? 'active' : '' }}">
@@ -54,6 +57,9 @@
             class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.presensi*') || request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
             <span class="nav-label">Riwayat Presensi Harian</span>
+            @if (($n = $notifBadge(route('dashboard.peserta-didik.presensi.index'))) > 0)
+                <span class="dash-nav-count">{{ $n }}</span>
+            @endif
         </a>
         <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'siswa']) }}"
             class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') && request('view') === 'siswa' ? 'active' : '' }}">

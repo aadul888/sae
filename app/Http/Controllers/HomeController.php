@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\Table;
+use App\Support\RombelScope;
+use App\Support\ProgramKeahlian;
 use App\Models\Berita;
 use App\Models\Pengumuman;
 
@@ -19,23 +21,31 @@ class HomeController extends Controller
         $maleCount = $hasPd ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 0;
         $femaleCount = $hasPd ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 0;
 
-        $gradeX = $hasPd ? DB::table('peserta_didik')->where(function ($q) {
-            $q->whereIn('tingkat_pendidikan_id', ['10', 'X'])
-                ->orWhere('nama_rombel', 'LIKE', 'X %')
-                ->orWhere('nama_rombel', 'LIKE', 'X-%');
-        })->count() : 0;
+        // Distribusi tingkat hanya dari rombel reguler agar mapil/ekskul tidak
+        // menghitung siswa yang sama lebih dari sekali.
+        $gradeCounts = ['X' => 0, 'XI' => 0, 'XII' => 0];
+        if ($hasPd && $hasRb) {
+            $rows = RombelScope::reguler(
+                DB::table('rombongan_belajar as rb')
+                    ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id'),
+                'rb.'
+            )
+                ->select('rb.tingkat_pendidikan_id as tingkat', DB::raw('COUNT(DISTINCT pd.peserta_didik_id) as total'))
+                ->groupBy('rb.tingkat_pendidikan_id')
+                ->get();
 
-        $gradeXI = $hasPd ? DB::table('peserta_didik')->where(function ($q) {
-            $q->whereIn('tingkat_pendidikan_id', ['11', 'XI'])
-                ->orWhere('nama_rombel', 'LIKE', 'XI %')
-                ->orWhere('nama_rombel', 'LIKE', 'XI-%');
-        })->count() : 0;
+            foreach ($rows as $row) {
+                $tg = (string) $row->tingkat;
+                if ($tg === '10') $tg = 'X';
+                elseif ($tg === '11') $tg = 'XI';
+                elseif ($tg === '12') $tg = 'XII';
+                if (isset($gradeCounts[$tg])) $gradeCounts[$tg] = (int) $row->total;
+            }
+        }
 
-        $gradeXII = $hasPd ? DB::table('peserta_didik')->where(function ($q) {
-            $q->whereIn('tingkat_pendidikan_id', ['12', 'XII'])
-                ->orWhere('nama_rombel', 'LIKE', 'XII %')
-                ->orWhere('nama_rombel', 'LIKE', 'XII-%');
-        })->count() : 0;
+        $gradeX = $gradeCounts['X'];
+        $gradeXI = $gradeCounts['XI'];
+        $gradeXII = $gradeCounts['XII'];
 
         $totalClasses = $hasRb ? DB::table('rombongan_belajar')->where(function ($q) {
             $q->where('jenis_rombel', '1')
@@ -45,11 +55,18 @@ class HomeController extends Controller
                 ->orWhere('jenis_rombel_str', '');
         })->count() : 0;
 
-        $totalMajors = $hasRb ? DB::table('rombongan_belajar')
-            ->whereNotNull('jurusan_id_str')
-            ->where('jurusan_id_str', '<>', '')
-            ->distinct()
-            ->count('jurusan_id_str') : 0;
+        // Jurusan nyata = program keahlian, bukan tiap jurusan_id Dapodik
+        // (kelas X dan XI/XII punya id berbeda untuk jurusan yang sama).
+        $totalMajors = $hasRb
+            ? count(\App\Support\ProgramKeahlian::mergeRows(
+                DB::table('rombongan_belajar')
+                    ->whereNotNull('jurusan_id_str')
+                    ->where('jurusan_id_str', '<>', '')
+                    ->select('jurusan_id as kode', 'jurusan_id_str as nama')
+                    ->distinct()
+                    ->get()
+            ))
+            : 0;
 
         $stats = [
             'total_peserta_didik' => $totalPd,
@@ -95,40 +112,65 @@ class HomeController extends Controller
             'Akuntansi Keuangan Lembaga' => 'AKL',
         ];
 
+        // Spektrum keahlian: rombel kelas X memakai nama program keahlian,
+        // kelas XI/XII memakai nama konsentrasi keahlian. Semua rekap
+        // dipetakan ke program induk (lihat App\Support\ProgramKeahlian).
+        $toProgram = fn($nama) => ProgramKeahlian::resolve($nama);
+
         $major_data = [];
         if ($hasRb && $hasPd) {
-            $major_data = DB::table('rombongan_belajar')
-                ->join('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
+            $perJurusan = RombelScope::reguler(
+                DB::table('rombongan_belajar')
+                    ->join('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id'),
+                'rombongan_belajar.'
+            )
                 ->whereNotNull('rombongan_belajar.jurusan_id_str')
                 ->where('rombongan_belajar.jurusan_id_str', '<>', '')
                 ->select(
                     'rombongan_belajar.jurusan_id_str as nama_jurusan',
-                    DB::raw('COUNT(peserta_didik.peserta_didik_id) as total_peserta_didik')
+                    DB::raw('COUNT(peserta_didik.peserta_didik_id) as total_peserta_didik'),
+                    DB::raw('SUM(CASE WHEN peserta_didik.jenis_kelamin = "L" THEN 1 ELSE 0 END) as total_l'),
+                    DB::raw('SUM(CASE WHEN peserta_didik.jenis_kelamin = "P" THEN 1 ELSE 0 END) as total_p'),
+                    DB::raw('COUNT(DISTINCT rombongan_belajar.rombongan_belajar_id) as total_rombel')
                 )
                 ->groupBy('rombongan_belajar.jurusan_id_str')
-                ->orderByDesc('total_peserta_didik')
-                ->get()
-                ->map(function ($item) use ($metaMap, $knownCodes) {
-                    $name = $item->nama_jurusan;
-                    $code = $metaMap[$name] ?? ($knownCodes[$name] ?? null);
-                    if (!$code) {
-                        preg_match_all('/\b\w/u', $name, $matches);
-                        $code = strtoupper(implode('', $matches[0] ?? []));
-                    }
-                    return [
-                        'nama_jurusan'        => $name,
-                        'total_peserta_didik' => (int) $item->total_peserta_didik,
-                        'code'                => $code,
-                    ];
-                })
-                ->values()
-                ->toArray();
+                ->get();
+
+            $agg = [];
+            foreach ($perJurusan as $item) {
+                $program = $toProgram($item->nama_jurusan);
+                $agg[$program] ??= ['pd' => 0, 'l' => 0, 'p' => 0, 'rombel' => 0];
+                $agg[$program]['pd']     += (int) $item->total_peserta_didik;
+                $agg[$program]['l']      += (int) $item->total_l;
+                $agg[$program]['p']      += (int) $item->total_p;
+                $agg[$program]['rombel'] += (int) $item->total_rombel;
+            }
+            uasort($agg, fn($a, $b) => $b['pd'] <=> $a['pd']);
+
+            foreach ($agg as $program => $row) {
+                $code = $metaMap[$program] ?? ($knownCodes[$program] ?? null);
+                if (!$code) {
+                    preg_match_all('/\b\w/u', $program, $matches);
+                    $code = strtoupper(implode('', $matches[0] ?? []));
+                }
+                $major_data[] = [
+                    'nama_jurusan'        => $program,
+                    'total_peserta_didik' => $row['pd'],
+                    'total_l'             => $row['l'],
+                    'total_p'             => $row['p'],
+                    'total_rombel'        => $row['rombel'],
+                    'code'                => $code,
+                ];
+            }
         }
 
         $chart_detail = [];
         if ($hasRb && $hasPd) {
-            $chart_detail = DB::table('rombongan_belajar')
-                ->join('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
+            $chart_detail = RombelScope::reguler(
+                DB::table('rombongan_belajar')
+                    ->join('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id'),
+                'rombongan_belajar.'
+            )
                 ->whereNotNull('rombongan_belajar.jurusan_id_str')
                 ->where('rombongan_belajar.jurusan_id_str', '<>', '')
                 ->select(
@@ -146,14 +188,14 @@ class HomeController extends Controller
                 )
                 ->orderBy('rombongan_belajar.nama')
                 ->get()
-                ->map(function ($row) {
+                ->map(function ($row) use ($toProgram) {
                     $tg = (string) $row->tg;
                     if ($tg === '10') $tg = 'X';
                     elseif ($tg === '11') $tg = 'XI';
                     elseif ($tg === '12') $tg = 'XII';
 
                     return [
-                        'j'  => $row->j,
+                        'j'  => $toProgram($row->j),
                         'tg' => $tg,
                         'k'  => $row->k,
                         'L'  => (int) $row->L,

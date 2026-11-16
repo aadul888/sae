@@ -182,30 +182,37 @@ class AdminDashboardStatsService
         // Chart Bar: Sebaran Siswa per Jurusan
         $jurusanStats = collect();
         if (Table::exists('rombongan_belajar') && Table::exists('peserta_didik')) {
+            // Digabung per program keahlian: kelas X & XI/XII satu jurusan nyata.
             $rawJurusan = DB::table('rombongan_belajar as rb')
                 ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
                 ->select(
-                    'rb.jurusan_id',
-                    DB::raw('COALESCE(rb.jurusan_id_str, "Umum") as jurusan'),
+                    'rb.jurusan_id as kode',
+                    DB::raw('COALESCE(rb.jurusan_id_str, "Umum") as nama'),
                     DB::raw('count(pd.peserta_didik_id) as total')
                 )
                 ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str')
-                ->orderByDesc('total')
-                ->limit(6)
                 ->get();
 
             $singkatanMap = Table::exists('jurusan_meta')
                 ? DB::table('jurusan_meta')->whereNotNull('singkatan')->where('singkatan', '<>', '')->pluck('singkatan', 'jurusan_id')
                 : collect();
 
-            $jurusanStats = $rawJurusan->map(function ($item) use ($singkatanMap) {
-                $singkatan = $singkatanMap->get($item->jurusan_id);
-                return [
-                    'jurusan'      => !empty($singkatan) ? $singkatan : $item->jurusan,
-                    'nama_lengkap' => $item->jurusan,
-                    'total'        => (int) $item->total,
-                ];
-            });
+            $jurusanStats = collect(\App\Support\ProgramKeahlian::mergeRows($rawJurusan))
+                ->sortByDesc('total')
+                ->take(6)
+                ->map(function ($item) use ($singkatanMap) {
+                    $singkatan = $singkatanMap->get($item['kode']);
+                    foreach ($item['ids'] as $id) {
+                        if (empty($singkatan)) $singkatan = $singkatanMap->get($id);
+                    }
+
+                    return [
+                        'jurusan'      => !empty($singkatan) ? $singkatan : $item['nama'],
+                        'nama_lengkap' => $item['nama'],
+                        'total'        => (int) $item['total'],
+                    ];
+                })
+                ->values();
         }
 
         // Chart Doughnut: Komposisi GTK Pendidik vs Tendik

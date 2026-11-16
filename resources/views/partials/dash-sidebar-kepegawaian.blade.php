@@ -5,6 +5,9 @@
                         <div class="dash-nav-nested-toggle-main">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-alt"></i></span>
                             <span class="nav-label">Kepegawaian</span>
+                            @if (($n = $notifBadge(route('dashboard.kepegawaian.index'))) > 0)
+                                <span class="dash-nav-count">{{ $n }}</span>
+                            @endif
                         </div>
                         <i class="fas fa-chevron-right nested-arrow-icon"></i>
                     </button>
