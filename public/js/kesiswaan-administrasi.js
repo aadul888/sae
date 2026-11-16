@@ -27,6 +27,69 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // 1b. Salin NISN ke clipboard (klik / sentuh)
+    function fallbackCopyText(text, cb) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            if (cb) cb();
+        } catch (err) {
+            console.error('Fallback copy NISN gagal:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-copy-nisn');
+        if (!btn) return;
+        e.preventDefault();
+
+        const nisn = (btn.getAttribute('data-nisn') || btn.querySelector('.nisn-text')?.textContent || '').trim();
+        if (!nisn || nisn === '-') return;
+
+        const onSuccess = () => {
+            const icon = btn.querySelector('.fa-copy') || btn.querySelector('i');
+            const origClass = icon ? icon.className : '';
+            if (icon) icon.className = 'fas fa-check';
+            btn.style.borderColor = '#10b981';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+            btn.style.color = '#10b981';
+
+            setTimeout(() => {
+                if (icon) icon.className = origClass;
+                btn.style.borderColor = 'rgba(6,182,212,0.45)';
+                btn.style.background = 'rgba(6,182,212,0.12)';
+                btn.style.color = '#38bdf8';
+            }, 1500);
+
+            if (typeof Swal !== 'undefined') {
+                Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).fire({
+                    icon: 'success',
+                    title: `NISN ${nisn} berhasil disalin!`
+                });
+            }
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(nisn).then(onSuccess).catch(() => fallbackCopyText(nisn, onSuccess));
+        } else {
+            fallbackCopyText(nisn, onSuccess);
+        }
+    });
+
     // 2. Tombol Buka Modal
     const btnOpenMutasi = document.getElementById('btnOpenMutasiModal');
     if (btnOpenMutasi) {

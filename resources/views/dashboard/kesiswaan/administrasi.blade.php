@@ -350,8 +350,15 @@
                                     <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
                                         {{ $namaPd }}
                                     </div>
-                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                        NISN: {{ $nisnPd }} &bull; Rombel: <span class="badge badge-secondary" style="font-size: 10px; padding: 2px 6px;">{{ $rombelPd }}</span>
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <button type="button" class="btn-copy-nisn" data-nisn="{{ $nisnPd }}"
+                                                title="Nomor Induk Siswa Nasional (NISN) — Klik untuk salin"
+                                                style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; background: rgba(6,182,212,0.12); border: 1px dashed rgba(6,182,212,0.45); border-radius: var(--radius-sm, 6px); color: #38bdf8; font-family: monospace; font-size: var(--text-xs, 0.75rem); font-weight: 700; cursor: pointer;">
+                                            <i class="fas fa-barcode"></i>
+                                            <span class="nisn-text">{{ $nisnPd }}</span>
+                                            <i class="fas fa-copy" style="font-size: 10px; opacity: 0.8;"></i>
+                                        </button>
+                                        <span>&bull; Rombel: <span class="badge badge-secondary" style="font-size: 10px; padding: 2px 6px;">{{ $rombelPd }}</span></span>
                                     </div>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">

@@ -534,6 +534,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/manajemen-data/gtk-non-asn/{id}', [\App\Http\Controllers\GtkNonAsnController::class, 'destroy'])->name('gtk-non-asn.destroy')->middleware('permission:menu_gtk_non_asn,delete');
     Route::post('/manajemen-data/gtk-non-asn/{id}/buat-akun', [\App\Http\Controllers\GtkNonAsnController::class, 'buatAkun'])->name('gtk-non-asn.buat-akun')->middleware('permission:menu_pengguna,create|menu_gtk_non_asn,create');
 
+    // Modul Aktivitas & Transaksi CRUD Database (Monitoring)
+    Route::get('/aktivitas-database', [\App\Http\Controllers\AktivitasDatabaseController::class, 'index'])->name('aktivitas-database.index')->middleware('permission:menu_aktivitas_database,read');
+    Route::get('/aktivitas-database/live', [\App\Http\Controllers\AktivitasDatabaseController::class, 'live'])->name('aktivitas-database.live')->middleware('permission:menu_aktivitas_database,read');
+    Route::get('/aktivitas-database/export', [\App\Http\Controllers\AktivitasDatabaseController::class, 'export'])->name('aktivitas-database.export')->middleware('permission:menu_aktivitas_database,read');
+    Route::post('/aktivitas-database/purge', [\App\Http\Controllers\AktivitasDatabaseController::class, 'purge'])->name('aktivitas-database.purge')->middleware('permission:menu_aktivitas_database,delete');
+    Route::get('/aktivitas-database/{id}', [\App\Http\Controllers\AktivitasDatabaseController::class, 'show'])->name('aktivitas-database.show')->middleware('permission:menu_aktivitas_database,read');
+    Route::delete('/aktivitas-database/{id}', [\App\Http\Controllers\AktivitasDatabaseController::class, 'destroy'])->name('aktivitas-database.destroy')->middleware('permission:menu_aktivitas_database,delete');
+
     // Kartu Pelajar Digital — Pengelolaan Pembayaran, Status Cetak & Layanan WhatsApp (Khusus Admin)
     Route::get('/kartu-pelajar', [\App\Http\Controllers\KartuPelajarController::class, 'manageIndex'])->name('kartu-pelajar.index');
     Route::post('/kartu-pelajar/pembayaran', [\App\Http\Controllers\KartuPelajarController::class, 'updatePembayaran'])->name('kartu-pelajar.update-pembayaran');

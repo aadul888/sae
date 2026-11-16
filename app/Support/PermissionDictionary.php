@@ -21,6 +21,11 @@ final class PermissionDictionary
                     'icon' => 'fa-cloud-arrow-down',
                     'roles' => ['admin'],
                 ],
+                'menu_aktivitas_database' => [
+                    'label' => 'Monitoring',
+                    'icon' => 'fa-database',
+                    'roles' => ['admin'],
+                ],
             ],
 
             'Master Data' => [

@@ -94,7 +94,7 @@
     $hasManajemenData = $hasPesertaDidik || $hasGuru || $hasTendik || $canRole('menu_gtk_non_asn');
 
     // Section: Utama
-    $hasUtama = $can('menu_dashboard') || $can('menu_dapodik') || $hasMasterData || $hasManajemenData;
+    $hasUtama = $can('menu_dashboard') || $can('menu_dapodik') || $hasMasterData || $hasManajemenData || $can('menu_aktivitas_database') || $role === 'admin';
 
     // Section: Layanan Digital
     $hasLayananDigital =
@@ -435,6 +435,15 @@
                         @endif
                     </div>
                 </div>
+            @endif
+
+            {{-- Monitoring (Posisi di bawah Manajemen Data) --}}
+            @if ($role === 'admin' || $can('menu_aktivitas_database'))
+                <a href="{{ route('dashboard.aktivitas-database.index') }}"
+                    class="dash-nav-link {{ request()->routeIs('dashboard.aktivitas-database*') ? 'active' : '' }}">
+                    <span class="nav-icon"><i class="fas fa-fw fa-database"></i></span>
+                    <span class="nav-label">Monitoring</span>
+                </a>
             @endif
         @endif
 
