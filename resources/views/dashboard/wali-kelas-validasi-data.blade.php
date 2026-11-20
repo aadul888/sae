@@ -80,26 +80,11 @@
                 </div>
                 <div class="dash-stat-info">
                     <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
-                        {{ number_format($summary['sudah_konfirmasi'], 0, ',', '.') }}
+                        {{ number_format($summary['sudah_konfirmasi'], 0, ',', '.') }}<span
+                            style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); font-weight: 700;"> /
+                            {{ number_format($summary['belum_konfirmasi'], 0, ',', '.') }}</span>
                     </div>
-                    <div class="dash-stat-label">
-                        Sudah Konfirmasi
-                        <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
-                            ({{ $summary['sesuai'] }} sesuai &bull; {{ $summary['perlu_perbaikan'] }} usul perbaikan)
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                        {{ number_format($summary['belum_konfirmasi'], 0, ',', '.') }}
-                    </div>
-                    <div class="dash-stat-label">Belum Konfirmasi</div>
+                    <div class="dash-stat-label">Konfirmasi / Belum</div>
                 </div>
             </div>
 
@@ -109,12 +94,26 @@
                 </div>
                 <div class="dash-stat-info">
                     <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent);">
-                        {{ number_format($summary['berkas_lengkap'], 0, ',', '.') }}
+                        {{ number_format($summary['berkas_lengkap'], 0, ',', '.') }}<span
+                            style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); font-weight: 700;"> /
+                            {{ number_format(max($summary['total'] - $summary['berkas_lengkap'], 0), 0, ',', '.') }}</span>
+                    </div>
+                    <div class="dash-stat-label">Berkas Valid / Belum</div>
+                </div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">
+                    <i class="fas fa-gauge-high"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #8b5cf6;">
+                        {{ $summary['kualitas_persen'] }}%
                     </div>
                     <div class="dash-stat-label">
-                        Berkas Lengkap &amp; Valid
+                        Kualitas Data
                         <span style="font-size: var(--text-xs, 0.75rem); opacity: 0.8; display: block;">
-                            ({{ number_format($summary['berkas_menunggu'], 0, ',', '.') }} menunggu verifikasi)
+                            {{ number_format($summary['kualitas_count'], 0, ',', '.') }}/{{ number_format($summary['total'], 0, ',', '.') }} PD
                         </span>
                     </div>
                 </div>
@@ -379,14 +378,6 @@
                                             <div class="konfirm-hint"
                                                 style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                                 Menunggu respon siswa
-                                            </div>
-                                        @endif
-
-                                        @if (!empty($item->catatan_siswa) && $stKonf === 'perlu_perbaikan')
-                                            <div class="catatan-siswa-preview"
-                                                style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #d97706); max-width: 210px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-top: 2px;"
-                                                title="{{ $item->catatan_siswa }}">
-                                                <i class="fas fa-comment-dots me-1"></i> "{{ $item->catatan_siswa }}"
                                             </div>
                                         @endif
                                     </div>

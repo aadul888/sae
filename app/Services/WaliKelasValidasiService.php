@@ -44,6 +44,8 @@ class WaliKelasValidasiService
                     'berkas_lengkap'   => 0,
                     'berkas_menunggu'  => 0,
                     'berkas_kurang'    => 0,
+                    'kualitas_count'   => 0,
+                    'kualitas_persen'  => 0,
                 ],
                 'q'            => $q,
                 'konfirmasi'   => $konfirmasi,
@@ -93,6 +95,7 @@ class WaliKelasValidasiService
         $statBerkasLengkap   = 0;
         $statBerkasMenunggu  = 0;
         $statBerkasKurang    = 0;
+        $statKualitas        = 0;
 
         foreach ($allPdIds as $idSiswa) {
             $idRec = $identitasAll->get($idSiswa);
@@ -125,12 +128,18 @@ class WaliKelasValidasiService
                 }
             }
 
+            // Berkas valid & lengkap = keempat berkas wajib sudah valid.
             if ($valCount === count($wajibKeys)) {
                 $statBerkasLengkap++;
             } elseif ($menungguExist) {
                 $statBerkasMenunggu++;
             } else {
                 $statBerkasKurang++;
+            }
+
+            // Kualitas data = PD yang sudah konfirmasi DAN berkas wajibnya lengkap valid.
+            if ($isSudah && $valCount === count($wajibKeys)) {
+                $statKualitas++;
             }
         }
 
@@ -143,6 +152,8 @@ class WaliKelasValidasiService
             'berkas_lengkap'   => $statBerkasLengkap,
             'berkas_menunggu'  => $statBerkasMenunggu,
             'berkas_kurang'    => $statBerkasKurang,
+            'kualitas_count'   => $statKualitas,
+            'kualitas_persen'  => $totalSiswa > 0 ? round($statKualitas / $totalSiswa * 100, 1) : 0,
         ];
 
         $query = (clone $baseQuery)

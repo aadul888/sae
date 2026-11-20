@@ -585,32 +585,47 @@
                 request()->routeIs('dashboard.kepegawaian');
             $isSarprasDuty = collect($userDuties)->contains('kode', 'STAF_SARPRAS');
             $isLaboranDuty = collect($userDuties)->contains('kode', 'LABORAN');
+            $isTeknisiDuty = collect($userDuties)->contains('kode', 'TEKNISI_IT');
 
-            // Aset & Peminjaman dipakai bersama Sarpras dan Laboran
-            $isSarprasSharedPage =
-                request()->routeIs('dashboard.sarpras.aset*') ||
-                request()->routeIs('dashboard.sarpras.peminjaman*');
+            // Halaman yang dipakai bersama antar bidang
+            $isBhpPage = request()->routeIs('dashboard.laboran.bhp*');
+            $isAsetPage = request()->routeIs('dashboard.sarpras.aset*');
+            $isPeminjamanPage = request()->routeIs('dashboard.sarpras.peminjaman*');
+            $isSarprasMasterPage = request()->routeIs('dashboard.sarpras.ruang*') || $isAsetPage;
+
+            // Prioritas pemilik halaman bersama: Sarpras > Laboran > Teknisi
+            $teknisiOwnsPage =
+                $isTeknisiDuty && !$isSarprasDuty && !$isLaboranDuty &&
+                ($isSarprasMasterPage || $isBhpPage);
+            $laboranOwnsPage =
+                $isLaboranDuty && !$isSarprasDuty && !$isTeknisiDuty &&
+                ($isAsetPage || $isPeminjamanPage || $isBhpPage);
 
             $isSarprasActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'sarpras') ||
-                (request()->routeIs('dashboard.sarpras.*') &&
-                    (!$isSarprasSharedPage || !$isLaboranDuty || $isSarprasDuty)) ||
-                // Tautan modul lain yang dititipkan pada grup Sarpras (hanya saat benar-benar dirender di sana)
-                ($can('menu_sarpras') && !$can('menu_laboran') && request()->routeIs('dashboard.laboran.bhp*')) ||
-                ($can('menu_teknisi') && !collect($userDuties)->contains('kode', 'TEKNISI_IT') && request()->routeIs('dashboard.teknisi.work-order*')) ||
+                // Semua halaman inti Sarpras, kecuali yang dimiliki Teknisi/Laboran
+                (request()->routeIs('dashboard.sarpras.*') && !$teknisiOwnsPage && !$laboranOwnsPage) ||
+                // BHP yang dititipkan di grup Sarpras (hanya saat tidak ada modul Laboran/Teknisi)
+                ($isBhpPage && $can('menu_sarpras') && !$can('menu_laboran') && !$isTeknisiDuty) ||
+                // Work Order & kebersihan yang dititipkan di grup Sarpras
+                ($can('menu_teknisi') && !$isTeknisiDuty && request()->routeIs('dashboard.teknisi.work-order*')) ||
                 ($can('menu_penjaga') && !collect($userDuties)->contains('kode', 'PENJAGA_SEKOLAH') && request()->routeIs('dashboard.penjaga.kebersihan*'));
+
             $isLaboranActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'laboran') ||
-                request()->routeIs('dashboard.laboran.*') ||
-                ($isSarprasSharedPage && $isLaboranDuty && !$isSarprasDuty);
+                (request()->routeIs('dashboard.laboran.*') && !$isBhpPage) ||
+                $laboranOwnsPage;
+
             $isPerpustakaanActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'perpustakaan') ||
                 request()->routeIs('dashboard.perpustakaan.*') ||
                 request()->routeIs('dashboard.perpustakaan');
+
             $isTeknisiActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi') ||
                 request()->routeIs('dashboard.teknisi.*') ||
-                request()->routeIs('dashboard.teknisi');
+                request()->routeIs('dashboard.teknisi') ||
+                $teknisiOwnsPage;
             $isKeamananActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'keamanan') ||
                 request()->routeIs('dashboard.keamanan.*');

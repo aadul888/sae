@@ -227,13 +227,14 @@
                 </div>
             </div>
 
-            <!-- Ringkasan Global Progress -->
+            <!-- Ringkasan Global Progress (hanya metrik tervalidasi) -->
             @php
                 $totSemuaSiswa = array_sum(array_column($progres_rombel, 'total_siswa'));
                 $totSesuai = array_sum(array_column($progres_rombel, 'sesuai'));
                 $totTidakSesuai = array_sum(array_column($progres_rombel, 'tidak_sesuai'));
                 $totBelum = array_sum(array_column($progres_rombel, 'belum_konfirmasi'));
                 $totBerkas = array_sum(array_column($progres_rombel, 'berkas_valid'));
+                $totKualitas = array_sum(array_column($progres_rombel, 'kualitas'));
 
                 $persenTotSesuai = $totSemuaSiswa > 0 ? round(($totSesuai / $totSemuaSiswa) * 100, 1) : 0;
                 $persenTotTidak = $totSemuaSiswa > 0 ? round(($totTidakSesuai / $totSemuaSiswa) * 100, 1) : 0;
@@ -242,24 +243,23 @@
             @endphp
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Konfirmasi Sesuai</div>
+                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Data Valid</div>
                     <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ $persenTotSesuai }}%</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totSesuai) }} siswa terverifikasi</div>
+                    <div style="display: flex; height: 6px; border-radius: 99px; overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
+                        <div style="width: {{ $persenTotSesuai }}%; background: var(--success);"></div>
+                        <div style="width: {{ $persenTotTidak }}%; background: var(--warning, #f59e0b);"></div>
+                        <div style="width: {{ $persenTotBelum }}%; background: rgba(148, 163, 184, 0.6);"></div>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">{{ number_format($totSesuai) }} siswa terverifikasi</div>
                 </div>
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--warning, #f59e0b); font-weight: 700; text-transform: uppercase;">Perlu Perbaikan</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--warning, #f59e0b); line-height: 1.2; margin-top: 4px;">{{ $persenTotTidak }}%</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totTidakSesuai) }} data tidak sesuai</div>
-                </div>
-                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Belum Konfirmasi</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 4px;">{{ $persenTotBelum }}%</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totBelum) }} siswa belum lapor</div>
-                </div>
-                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Siswa Berkas Valid</div>
+                    <div style="font-size: 0.75rem; color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Berkas Valid</div>
                     <div style="font-size: 1.5rem; font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ $persenTotBerkas }}%</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
+                    <div style="display: flex; height: 6px; border-radius: 99px; overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
+                        <div style="width: {{ $persenTotBerkas }}%; background: #8b5cf6;"></div>
+                        <div style="width: {{ max(0, 100 - $persenTotBerkas) }}%; background: rgba(148, 163, 184, 0.6);"></div>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
                 </div>
             </div>
 
@@ -281,10 +281,10 @@
                     </span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: var(--text-muted); flex-wrap: wrap;">
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Sesuai</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Data Valid</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Berkas Valid</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></span> Belum</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Berkas Valid</span>
                 </div>
             </div>
 
@@ -297,16 +297,10 @@
                             <th class="th-sortable" data-col="rombel" style="padding: 12px 14px; min-width: 180px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Rombel / Jurusan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="sesuai" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
-                                <span>Konfirmasi Sesuai</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
+                            <th class="th-sortable" data-col="sesuai" style="padding: 12px 14px; min-width: 210px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
+                                <span>Data Valid</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
-                            <th class="th-sortable" data-col="tidak_sesuai" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
-                                <span>Perlu Perbaikan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
-                            </th>
-                            <th class="th-sortable" data-col="belum" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
-                                <span>Belum Konfirmasi</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
-                            </th>
-                            <th class="th-sortable" data-col="berkas" style="padding: 12px 14px; min-width: 170px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
+                            <th class="th-sortable" data-col="berkas" style="padding: 12px 14px; min-width: 210px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Berkas Valid</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
                             </th>
                             <th class="th-sortable sorted-desc" data-col="kualitas" style="padding: 12px 14px; min-width: 120px; text-align: center; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
@@ -332,40 +326,21 @@
                                     <div style="font-weight: 700; color: var(--text-main);">{{ $r['rombel'] }}</div>
                                     <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r['jurusan'] }}</div>
                                 </td>
-                                <!-- Bar 1: Konfirmasi Sesuai -->
+                                <!-- Kolom Data Valid: bar bertumpuk Sesuai / Perbaikan / Belum -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--success);">
-                                        <span>{{ $r['persen_sesuai'] }}%</span>
-                                    </div>
-                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_sesuai'] }}%; height: 100%; background: var(--success); border-radius: 99px;"></div>
+                                    <div style="font-size: 0.78rem; margin-bottom: 4px; font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
+                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_sesuai'] }}%; background: var(--success);" title="Sesuai: {{ $r['persen_sesuai'] }}%"></div>
+                                        <div style="width: {{ $r['persen_tidak_sesuai'] }}%; background: var(--warning, #f59e0b);" title="Perlu Perbaikan: {{ $r['persen_tidak_sesuai'] }}%"></div>
+                                        <div style="width: {{ $r['persen_belum'] }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Konfirmasi: {{ $r['persen_belum'] }}%"></div>
                                     </div>
                                 </td>
-                                <!-- Bar 2: Perlu Perbaikan (Tidak Sesuai) -->
+                                <!-- Kolom Berkas Valid: bar valid vs sisa -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--warning, #f59e0b);">
-                                        <span>{{ $r['persen_tidak_sesuai'] }}%</span>
-                                    </div>
-                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_tidak_sesuai'] }}%; height: 100%; background: var(--warning, #f59e0b); border-radius: 99px;"></div>
-                                    </div>
-                                </td>
-                                <!-- Bar 3: Belum Konfirmasi -->
-                                <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: var(--text-muted);">
-                                        <span>{{ $r['persen_belum'] }}%</span>
-                                    </div>
-                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_belum'] }}%; height: 100%; background: rgba(148, 163, 184, 0.6); border-radius: 99px;"></div>
-                                    </div>
-                                </td>
-                                <!-- Bar 4: Berkas Valid -->
-                                <td style="padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; font-weight: 700; color: #8b5cf6;">
-                                        <span>{{ $r['persen_berkas'] }}%</span>
-                                    </div>
-                                    <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_berkas'] }}%; height: 100%; background: #8b5cf6; border-radius: 99px;"></div>
+                                    <div style="font-size: 0.78rem; margin-bottom: 4px; font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
+                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                        <div style="width: {{ $r['persen_berkas'] }}%; background: #8b5cf6;" title="Berkas Valid: {{ $r['persen_berkas'] }}%"></div>
+                                        <div style="width: {{ max(0, 100 - $r['persen_berkas']) }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Valid: {{ max(0, 100 - $r['persen_berkas']) }}%"></div>
                                     </div>
                                 </td>
                                 <!-- Kualitas Data -->
@@ -377,7 +352,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="padding: 24px; text-align: center; color: var(--text-muted);">
+                                <td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">
                                     Belum ada data rombongan belajar aktif yang terdata.
                                 </td>
                             </tr>
