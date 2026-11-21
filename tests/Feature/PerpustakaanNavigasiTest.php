@@ -34,6 +34,36 @@ class PerpustakaanNavigasiTest extends TestCase
         return $res->getContent();
     }
 
+    /**
+     * Sesi tendik pemegang tugas tambahan PUSTAKAWAN. Sidebar perpustakaan
+     * hanya tampil untuk peran ini (bukan lagi lewat blok "Halaman Peran" admin).
+     */
+    private function pustakawanSession(): array
+    {
+        $duty = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->where('rtt.kode', 'PUSTAKAWAN')
+            ->where('ptt.is_active', true)
+            ->where('rtt.is_active', true)
+            ->select('ptt.*')
+            ->first();
+
+        $this->assertNotNull($duty, 'Baris tugas tambahan PUSTAKAWAN tidak tersedia.');
+        $user = DB::table('pengguna')->where('pengguna_id', $duty->user_id)->first();
+        $this->assertNotNull($user, 'Data pengguna pustakawan tidak ditemukan.');
+
+        return ['user' => [
+            'id' => $user->pengguna_id,
+            'pengguna_id' => $user->pengguna_id,
+            'name' => $user->nama,
+            'nama' => $user->nama,
+            'username' => $user->username,
+            'role' => 'tendik',
+            'peran_id_str' => $user->peran_id_str,
+            'ptk_id' => $duty->ptk_id,
+        ]];
+    }
+
     public function test_urutan_tab_utama_mengikuti_alur_kerja_pustakawan(): void
     {
         $html = $this->halaman('/dashboard/perpustakaan/koleksi');
@@ -126,7 +156,9 @@ class PerpustakaanNavigasiTest extends TestCase
 
     public function test_sidebar_perpustakaan_memuat_tautan_laporan_tahun_ajaran(): void
     {
-        $html = $this->halaman('/dashboard/perpustakaan/laporan');
+        $res = $this->withSession($this->pustakawanSession())->get('/dashboard/perpustakaan/laporan');
+        $this->assertSame(200, $res->getStatusCode(), 'Halaman laporan perpustakaan gagal dimuat.');
+        $html = $res->getContent();
 
         $this->assertStringContainsString('Import &amp; Scan Barcode', $html);
         $this->assertStringContainsString('Laporan Tahun Ajaran', $html);

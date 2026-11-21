@@ -131,6 +131,11 @@
             $canRole('menu_e_izin') ||
             $canRole('menu_kebutuhan_mbg'));
 
+    // Section: Akademik Digital (E-Learning & CBT)
+    $hasAkademikDigital =
+        !in_array($role, ['orang_tua'], true) &&
+        ($canRole('menu_elearning') || $canRole('menu_cbt'));
+
     // Section: Sistem
     $hasPengaturan =
         $can('menu_pengguna') || $can('menu_hak_akses') || $can('menu_pengaturan') || $can('menu_maintenance');
@@ -207,6 +212,8 @@
         'menu_pengaturan',
         'menu_maintenance',
         'menu_update',
+        'menu_elearning',
+        'menu_cbt',
     ];
     $extraModules = [];
     foreach ($allKnownModules as $mKey => $mMeta) {
@@ -1589,6 +1596,44 @@
         </div>
     @endif
 
+    {{-- Akademik Digital (E-Learning & CBT) --}}
+    @if ($hasAkademikDigital)
+        @php
+            $isAkademikDigitalActive =
+                request()->routeIs('dashboard.elearning.*') ||
+                request()->routeIs('dashboard.elearning') ||
+                request()->routeIs('dashboard.cbt.*') ||
+                request()->routeIs('dashboard.cbt');
+        @endphp
+        <span class="nav-section-label">Akademik Digital</span>
+        <div class="dash-nav-group {{ $isAkademikDigitalActive ? 'open active-group' : '' }}">
+            <button type="button" class="dash-nav-toggle">
+                <div class="dash-nav-toggle-main">
+                    <span class="nav-icon"><i class="fas fa-fw fa-laptop-code"></i></span>
+                    <span class="nav-label">Akademik Digital</span>
+                </div>
+                <i class="fas fa-chevron-right arrow-icon"></i>
+            </button>
+            <div class="dash-nav-submenu">
+                @if ($canRole('menu_elearning'))
+                    <a href="{{ $href('dashboard.elearning.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.elearning*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
+                        <span class="nav-label">E-Learning</span>
+                    </a>
+                @endif
+
+                @if ($canRole('menu_cbt'))
+                    <a href="{{ $href('dashboard.cbt.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.cbt*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-pen"></i></span>
+                        <span class="nav-label">CBT &amp; Asesmen</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     {{-- Layanan Digital (Collapsible) --}}
     @if ($hasLayananDigital && !in_array($role, ['orang_tua', 'peserta_didik'], true))
         <span class="nav-section-label">Layanan Digital</span>
@@ -1697,17 +1742,8 @@
         </div>
     @endif
 
-    {{-- Section: Halaman Peran (Akses Penuh Seluruh Peran & Kontrol CRUD untuk Administrator) --}}
-    @if ($role === 'admin')
-        <span class="nav-section-label">Halaman Peran</span>
-
-        @include('partials.dash-sidebar-halaman-peran-guru')
-        @include('partials.dash-sidebar-halaman-peran-wali-kelas')
-        @include('partials.dash-sidebar-halaman-peran-tendik')
-        @include('partials.dash-sidebar-halaman-peran-peserta-didik')
-        @include('partials.dash-sidebar-halaman-peran-orang-tua')
-
-    @endif
+    {{-- Halaman peran (Guru/Tendik/Peserta Didik/Orang Tua) tidak lagi diakses dari
+         sidebar admin. Admin masuk ke halaman peran lewat menu Pengguna → "Masuk sebagai". --}}
 
     {{-- Konfigurasi & Pengaturan Sistem (Collapsible) --}}
     @if ($hasSistem)

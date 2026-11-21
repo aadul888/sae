@@ -437,6 +437,18 @@
                                 </td>
                                 <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                     <div class="table-actions">
+                                        <form
+                                            action="{{ route('dashboard.pengguna.masuk-sebagai', $item->pengguna_id) }}"
+                                            method="POST" style="display: inline; margin: 0;"
+                                            data-action-type="impersonate" data-name="{{ $item->nama }}"
+                                            data-role="{{ $item->peran_id_str ?: 'Pengguna' }}">
+                                            @csrf
+                                            <button type="submit" class="btn-icon"
+                                                title="Masuk sebagai pengguna ini (lihat halaman perannya)"
+                                                style="color: var(--primary, #6366f1);">
+                                                <i class="fas fa-right-to-bracket"></i>
+                                            </button>
+                                        </form>
                                         @if ($canUpdate)
                                             <button type="button" class="btn-icon" title="Edit"
                                                 onclick="openEditModal({{ json_encode($item) }})">

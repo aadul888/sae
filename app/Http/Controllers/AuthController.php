@@ -286,11 +286,16 @@ class AuthController extends Controller
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
         }
 
+        // Login dari mode PWA (standalone) → aktifkan remember token agar
+        // pengguna tidak perlu login lagi saat membuka aplikasi terpasang.
+        $remember = $request->boolean('pwa');
+
         $this->establishUserSession(
             $user,
             'Autentikasi akun berhasil via Portal SAE (IP: ' . $request->ip() . ')',
             $request->ip(),
-            'Login Portal'
+            'Login Portal',
+            $remember
         );
 
         // Arahkan kembali ke formulir jika ada antrean URL yang dituju
@@ -413,7 +418,10 @@ class AuthController extends Controller
                 return redirect()->route('login')->with('error', "Peran '{$user->peran_id_str}' tidak memiliki hak akses masuk portal ini.");
             }
 
-            // Bangun sesi pengguna dan catat aktivitas sistem
+            // Bangun sesi pengguna dan catat aktivitas sistem.
+            // ponytail: login Google OAuth tidak memakai remember token karena
+            // flag mode-PWA tidak terbawa saat redirect ke Google. Tambahkan bila
+            // pengguna PWA melapor sering diminta login ulang lewat Google.
             $userData = $this->establishUserSession(
                 $user,
                 "Autentikasi akun Google Belajar.id ({$email}) berhasil via OAuth 2.0 (IP: " . $request->ip() . ")",
@@ -596,75 +604,13 @@ class AuthController extends Controller
     /**
      * Membangun payload sesi multi-user dan mencatat log aktivitas
      */
-    private function establishUserSession(User $user, ?string $keterangan = null, ?string $ip = null, string $aktivitas = 'Login Portal'): array
+    private function establishUserSession(User $user, ?string $keterangan = null, ?string $ip = null, string $aktivitas = 'Login Portal', bool $remember = false): array
     {
-        $userData = $user->toArray();
-        $userData['name'] = $user->name ?? $user->nama;
-        $userData['role'] = $user->role;
-        if (!empty($user->foto_url)) {
-            $userData['foto_url'] = $user->foto_url;
-        }
-
-        // Ambil relasi GTK atau Peserta Didik jika ada
-        if (!empty($user->ptk_id)) {
-            $gtk = DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
-            if ($gtk) {
-                $userData['nip'] = $gtk->nip;
-
-                if ($user->role === 'tendik') {
-                    $bagianTugas = null;
-                    if (Table::exists('ptk_tugas_tambahan') && Table::exists('ref_tugas_tambahan')) {
-                        $activeDuties = DB::table('ptk_tugas_tambahan as ptt')
-                            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-                            ->where('ptt.is_active', true)
-                            ->where('rtt.is_active', true)
-                            ->where(function ($q) use ($user) {
-                                $q->where('ptt.user_id', $user->pengguna_id)
-                                    ->orWhere('ptt.ptk_id', $user->ptk_id);
-                            })
-                            ->pluck('rtt.nama')
-                            ->filter()
-                            ->unique();
-
-                        if ($activeDuties->isNotEmpty()) {
-                            $bagianTugas = $activeDuties->implode(', ');
-                        }
-                    }
-                    $userData['mapel'] = $bagianTugas ?: ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
-                } else {
-                    $mapelUtama = null;
-                    if (Table::exists('pembelajaran')) {
-                        $topMapel = DB::table('pembelajaran')
-                            ->where('ptk_id', $user->ptk_id)
-                            ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
-                            ->groupBy('nama_mata_pelajaran')
-                            ->orderByDesc('total_jam')
-                            ->first();
-                        $mapelUtama = $topMapel?->nama_mata_pelajaran;
-                    }
-                    $userData['mapel'] = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran'));
-                }
-            }
-        } elseif (!empty($user->peserta_didik_id)) {
-            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();
-            if ($pd) {
-                $userData['nisn'] = $pd->nisn;
-                $userData['kelas'] = $pd->nama_rombel;
-            }
-            if (Table::exists('peserta_didik_meta')) {
-                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
-                if ($meta) {
-                    if (!empty($meta->foto_path)) {
-                        $userData['foto_url'] = $meta->foto_url;
-                    }
-                    $userData['is_koordinator'] = (bool) ($meta->is_koordinator ?? false);
-                    $userData['jabatan_koordinator'] = $meta->jabatan_koordinator ?? 'Koordinator Kelas';
-                }
-            }
-        }
+        // Bangun data sesi terpusat (dipakai bersama alur "masuk sebagai" admin).
+        $userData = \App\Support\AuthSession::dataFor($user);
 
         // Isi guard Laravel sekaligus sesi aplikasi (lihat App\Support\AuthSession).
-        \App\Support\AuthSession::login($user, $userData);
+        \App\Support\AuthSession::login($user, $userData, $remember);
 
         try {
             if (Table::exists('admin_aktivitas')) {

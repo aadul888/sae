@@ -39,6 +39,9 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            // Durasi cookie "ingat saya" (menit). 129600 = 90 hari. Dipakai
+            // hanya untuk login dari mode PWA (lihat AuthController & pwa.js).
+            'remember' => (int) env('AUTH_REMEMBER_MINUTES', 129600),
         ],
     ],
 

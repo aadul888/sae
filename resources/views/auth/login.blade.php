@@ -71,6 +71,7 @@
             <form id="formLoginUmum" action="{{ route('login.post') }}" method="POST">
                 @csrf
                 <input type="hidden" name="login_type" value="umum">
+                <input type="hidden" name="pwa" value="0">
                 <div style="margin-bottom: 18px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
@@ -135,6 +136,7 @@
                 style="display: none;">
                 @csrf
                 <input type="hidden" name="login_type" value="orang_tua">
+                <input type="hidden" name="pwa" value="0">
                 <div style="margin-bottom: 16px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">

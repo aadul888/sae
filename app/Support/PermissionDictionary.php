@@ -94,6 +94,19 @@ final class PermissionDictionary
                 ],
             ],
 
+            'Akademik Digital' => [
+                'menu_elearning' => [
+                    'label' => 'E-Learning',
+                    'icon' => 'fa-graduation-cap',
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                ],
+                'menu_cbt' => [
+                    'label' => 'CBT & Asesmen',
+                    'icon' => 'fa-file-pen',
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                ],
+            ],
+
             'Layanan Digital' => [
                 'menu_formulir' => [
                     'label' => 'Formulir & Survei',

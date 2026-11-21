@@ -38,6 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\EnsureInstalled::class,
             \App\Http\Middleware\BroadcastDataChanges::class,
+            \App\Http\Middleware\RestoreRememberedSession::class,
         ],
 
         'api' => [

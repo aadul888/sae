@@ -14,6 +14,17 @@ class HomeController extends Controller
 {
     public function index()
     {
+        // PWA: saat aplikasi terpasang dibuka (start_url `/?source=pwa`), pengguna
+        // yang sesinya sudah dipulihkan langsung diarahkan ke beranda perannya,
+        // bukan halaman publik. Browser biasa tetap melihat halaman utama.
+        if (request('source') === 'pwa') {
+            $user = session('user');
+            $role = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+            if ($role && \Illuminate\Support\Facades\Route::has('dashboard.' . $role)) {
+                return redirect()->route('dashboard.' . $role);
+            }
+        }
+
         $hasPd = Table::exists('peserta_didik');
         $hasRb = Table::exists('rombongan_belajar');
 

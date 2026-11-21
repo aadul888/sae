@@ -70,6 +70,17 @@ window.switchLoginTab = function (type) {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Tandai login yang berasal dari mode PWA (standalone) agar sesi dapat
+    // dipertahankan (remember token) dan pengguna tidak perlu login lagi.
+    const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+    if (isStandalone) {
+        document.querySelectorAll('form input[name="pwa"]').forEach(function (el) {
+            el.value = '1';
+        });
+    }
+
     const params = new URLSearchParams(window.location.search);
     const ortuForm = document.getElementById('formLoginOrtu');
     if (params.get('tab') === 'ortu' || params.get('type') === 'orang_tua' || (ortuForm && ortuForm.dataset.active === '1')) {

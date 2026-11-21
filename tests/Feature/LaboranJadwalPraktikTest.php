@@ -174,7 +174,8 @@ class LaboranJadwalPraktikTest extends TestCase
             'rombel_id'            => $rombel->rombongan_belajar_id,
             'mata_pelajaran'       => 'Bahasa Indonesia',
             'topik_praktik'        => '',
-            'tanggal'              => now()->addDay()->toDateString(),
+            // Tanggal tetap (Selasa) agar tidak flaky di akhir pekan (Sabtu/Minggu tanpa KBM).
+            'tanggal'              => '2026-11-03',
             'jam_mulai'            => '08:00',
             'jam_selesai'          => '09:30',
             'alat_bahan_digunakan' => 'Cangkul, bibit',

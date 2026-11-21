@@ -499,6 +499,85 @@ class UserController extends Controller
     }
 
     /**
+     * Masuk sebagai pengguna lain (impersonasi).
+     *
+     * Hanya Administrator yang boleh. Identitas admin asli disimpan di sesi
+     * (`impersonator`) agar dapat kembali lewat `kembaliKeAdmin()`.
+     */
+    public function masukSebagai(Request $request, string|int $id)
+    {
+        $authUser = session('user');
+        $authRole = is_array($authUser) ? ($authUser['role'] ?? null) : ($authUser->role ?? null);
+
+        if ($authRole !== 'admin') {
+            abort(403, 'Hanya Administrator yang dapat masuk sebagai pengguna lain.');
+        }
+
+        $target = User::findOrFail($id);
+
+        // Simpan admin asli sekali saja (agar admin yang sudah di dalam peran
+        // tidak menimpa identitas aslinya bila menekan lagi).
+        if (!session()->has('impersonator')) {
+            $adminId = is_array($authUser) ? ($authUser['pengguna_id'] ?? ($authUser['id'] ?? null)) : ($authUser->pengguna_id ?? null);
+            session(['impersonator' => $adminId]);
+        }
+
+        $userData = \App\Support\AuthSession::dataFor($target);
+        \App\Support\AuthSession::login($target, $userData);
+
+        $this->catatAktivitasImpersonasi($userData['name'] ?? $target->nama, 'Masuk sebagai ' . ($userData['peran_id_str'] ?? $target->peran_id_str), $request->ip());
+
+        return redirect()->route('dashboard.' . $target->role)
+            ->with('success', 'Anda masuk sebagai ' . ($userData['name'] ?? $target->nama) . '. Klik "Kembali ke Admin" untuk keluar dari peran ini.');
+    }
+
+    /**
+     * Kembali ke akun Administrator asli setelah impersonasi.
+     */
+    public function kembaliKeAdmin(Request $request)
+    {
+        $adminId = session('impersonator');
+        if (!$adminId) {
+            return redirect()->route('dashboard.admin');
+        }
+
+        $admin = User::find($adminId);
+        if (!$admin) {
+            session()->forget('impersonator');
+            return redirect()->route('login')->with('error', 'Akun admin asal tidak ditemukan. Silakan login kembali.');
+        }
+
+        $userData = \App\Support\AuthSession::dataFor($admin);
+        \App\Support\AuthSession::login($admin, $userData);
+        session()->forget('impersonator');
+
+        $this->catatAktivitasImpersonasi($userData['name'] ?? $admin->nama, 'Kembali ke peran Administrator', $request->ip());
+
+        return redirect()->route('dashboard.admin')->with('success', 'Anda kembali ke peran Administrator.');
+    }
+
+    /**
+     * Catat log aktivitas impersonasi (diam bila tabel belum ada).
+     */
+    private function catatAktivitasImpersonasi(string $nama, string $aktivitas, ?string $ip): void
+    {
+        try {
+            if (\App\Support\Table::exists('admin_aktivitas')) {
+                \App\Models\AdminAktivitas::create([
+                    'admin_name'     => $nama,
+                    'admin_username' => $nama,
+                    'modul'          => 'Pengguna',
+                    'aktivitas'      => $aktivitas,
+                    'keterangan'     => 'Impersonasi peran via Manajemen Pengguna (IP: ' . ($ip ?: request()->ip()) . ')',
+                    'ip_address'     => $ip ?: request()->ip(),
+                    'tipe'           => 'warning',
+                ]);
+            }
+        } catch (\Throwable) {
+        }
+    }
+
+    /**
      * Reset password pengguna (Peserta Didik, Guru, Tendik, Administrator)
      */
     public function resetPassword(string|int $id)

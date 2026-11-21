@@ -2277,6 +2277,37 @@ select:autofill {
     margin-bottom: 10px;
 }
 
+/* Kartu ringkas rekap kuis (modal guru): 4 kolom, turun ke 2 kolom di layar kecil. */
+.rekap-ringkas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+@media (max-width: 640px) {
+    .rekap-ringkas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Rendering isi materi (HTML dari editor) di modal baca. */
+.materi-isi-render h1, .materi-isi-render h2, .materi-isi-render h3 {
+    margin: 14px 0 8px;
+    color: var(--text-main);
+}
+.materi-isi-render p { margin: 0 0 10px; }
+.materi-isi-render ul, .materi-isi-render ol { margin: 0 0 10px 22px; }
+.materi-isi-render blockquote {
+    margin: 12px 0;
+    padding: 8px 14px;
+    border-left: 3px solid var(--primary);
+    background: rgba(99, 102, 241, 0.06);
+    border-radius: 4px;
+}
+.materi-isi-render table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+.materi-isi-render th, .materi-isi-render td { border: 1px solid var(--border-color); padding: 6px 10px; }
+.materi-isi-render a { color: var(--primary); text-decoration: underline; }
+
 /* Drag and Drop File Upload Area */
 .drag-drop-zone {
     border: 2px dashed var(--border-color, #cbd5e1);

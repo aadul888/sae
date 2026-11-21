@@ -31,9 +31,19 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 10080),
 
-    'expire_on_close' => false,
+    /*
+     * true = cookie sesi hanya berlaku selama browser/aplikasi masih terbuka
+     * (session cookie), sehingga menutup browser = keluar. Selama browser
+     * dibiarkan terbuka, sesi tidak pernah kedaluwarsa (aktivitas dashboard
+     * memperbarui sesi terus-menerus).
+     *
+     * Khusus PWA: cookie sesi memang hilang saat app ditutup, tetapi cookie
+     * "ingat saya" (90 hari) tetap ada dan memulihkan sesi lewat middleware
+     * RestoreRememberedSession — jadi pengguna PWA tidak perlu login lagi.
+     */
+    'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', true),
 
     /*
     |--------------------------------------------------------------------------

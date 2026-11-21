@@ -190,6 +190,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const nama = targetForm.dataset.name || "item ini";
         const role = (targetForm.dataset.role || "").toLowerCase();
         const isDelete = type === "delete" || type === "delete-duty";
+        const isImpersonate = type === "impersonate";
+
+        if (isImpersonate) {
+            const ok = await window.SAE.confirm(
+                `Masuk sebagai <strong>${nama}</strong> (${role || "Pengguna"})? Anda akan melihat halaman perannya. Klik "Kembali ke Admin" untuk keluar.`,
+                "Masuk Sebagai Pengguna?",
+                "info",
+                "Ya, Masuk",
+                "Batal"
+            );
+            if (ok) targetForm.submit();
+            return;
+        }
 
         const title = isDelete ? (type === "delete-duty" ? "Hapus Penugasan?" : "Hapus Pengguna?") : "Reset Password?";
         let msg = "";

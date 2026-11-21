@@ -77,6 +77,23 @@
             <!-- Header Khusus Dashboard -->
             @include('partials.dash-header')
 
+            @if (session()->has('impersonator'))
+                <div class="dash-impersonate-banner"
+                    style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 20px 0;padding:10px 16px;border-radius:var(--radius-lg,12px);background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);color:var(--text-color);font-size:var(--text-sm,0.8125rem);">
+                    <span style="display:flex;align-items:center;gap:8px;font-weight:600;">
+                        <i class="fas fa-user-secret" style="color:var(--warning,#f59e0b);"></i>
+                        Anda sedang masuk sebagai pengguna lain.
+                    </span>
+                    <form action="{{ route('dashboard.kembali-ke-admin') }}" method="POST" style="margin:0;">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-sm"
+                            style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;">
+                            <i class="fas fa-arrow-left"></i> Kembali ke Admin
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             <!-- Body View -->
             <main class="dash-body">
                 @include('partials.flash-messages')
@@ -107,6 +124,9 @@
         </script>
         <script
             src="{{ asset('js/dashboard-live-search.js') }}?v={{ file_exists(public_path('js/dashboard-live-search.js')) ? filemtime(public_path('js/dashboard-live-search.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/datatable-sort-default.js') }}?v={{ file_exists(public_path('js/datatable-sort-default.js')) ? filemtime(public_path('js/datatable-sort-default.js')) : time() }}">
         </script>
         <script
             src="{{ asset('js/sae-realtime.js') }}?v={{ file_exists(public_path('js/sae-realtime.js')) ? filemtime(public_path('js/sae-realtime.js')) : time() }}">

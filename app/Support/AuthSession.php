@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Jembatan autentikasi antara sesi lama dan guard Laravel.
@@ -39,12 +40,90 @@ final class AuthSession
     }
 
     /**
+     * Bangun data siap pakai untuk view & controller dari model User.
+     *
+     * Dipakai oleh login biasa (AuthController) maupun "masuk sebagai"
+     * (impersonasi) oleh admin, agar sesi yang terbentuk identik.
+     *
+     * @return array<string, mixed>
+     */
+    public static function dataFor(User $user): array
+    {
+        $userData = $user->toArray();
+        $userData['name'] = $user->name ?? $user->nama;
+        $userData['role'] = $user->role;
+        if (!empty($user->foto_url)) {
+            $userData['foto_url'] = $user->foto_url;
+        }
+
+        // Ambil relasi GTK atau Peserta Didik jika ada
+        if (!empty($user->ptk_id)) {
+            $gtk = DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
+            if ($gtk) {
+                $userData['nip'] = $gtk->nip;
+
+                if ($user->role === 'tendik') {
+                    $bagianTugas = null;
+                    if (\App\Support\Table::exists('ptk_tugas_tambahan') && \App\Support\Table::exists('ref_tugas_tambahan')) {
+                        $activeDuties = DB::table('ptk_tugas_tambahan as ptt')
+                            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                            ->where('ptt.is_active', true)
+                            ->where('rtt.is_active', true)
+                            ->where(function ($q) use ($user) {
+                                $q->where('ptt.user_id', $user->pengguna_id)
+                                    ->orWhere('ptt.ptk_id', $user->ptk_id);
+                            })
+                            ->pluck('rtt.nama')
+                            ->filter()
+                            ->unique();
+
+                        if ($activeDuties->isNotEmpty()) {
+                            $bagianTugas = $activeDuties->implode(', ');
+                        }
+                    }
+                    $userData['mapel'] = $bagianTugas ?: ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
+                } else {
+                    $mapelUtama = null;
+                    if (\App\Support\Table::exists('pembelajaran')) {
+                        $topMapel = DB::table('pembelajaran')
+                            ->where('ptk_id', $user->ptk_id)
+                            ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
+                            ->groupBy('nama_mata_pelajaran')
+                            ->orderByDesc('total_jam')
+                            ->first();
+                        $mapelUtama = $topMapel?->nama_mata_pelajaran;
+                    }
+                    $userData['mapel'] = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran'));
+                }
+            }
+        } elseif (!empty($user->peserta_didik_id)) {
+            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();
+            if ($pd) {
+                $userData['nisn'] = $pd->nisn;
+                $userData['kelas'] = $pd->nama_rombel;
+            }
+            if (\App\Support\Table::exists('peserta_didik_meta')) {
+                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
+                if ($meta) {
+                    if (!empty($meta->foto_path)) {
+                        $userData['foto_url'] = $meta->foto_url;
+                    }
+                    $userData['is_koordinator'] = (bool) ($meta->is_koordinator ?? false);
+                    $userData['jabatan_koordinator'] = $meta->jabatan_koordinator ?? 'Koordinator Kelas';
+                }
+            }
+        }
+
+        return $userData;
+    }
+
+    /**
      * Keluar: bersihkan guard dan sesi aplikasi.
      */
     public static function logout(): void
     {
         Auth::logout();
-        session()->forget('user');
+        session()->forget(['user', 'impersonator']);
     }
 
     /**

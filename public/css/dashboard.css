@@ -2758,6 +2758,41 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         overflow-wrap: anywhere;
     }
 
+    /* Baris kosong (empty state) JANGAN ikut mode kartu: tampil satu blok
+       terpusat agar ikon + teks tidak pecah seperti kolom data. */
+    .table-responsive-stack tbody tr:has(> td[colspan]),
+    .table-pd tbody tr:has(> td[colspan]) {
+        border: 1px dashed var(--border-color) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .table-responsive-stack tbody td[colspan],
+    .table-pd tbody td[colspan] {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        border-bottom: none !important;
+        padding: var(--space-8) var(--space-5) !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
+    .table-responsive-stack tbody td[colspan]::before,
+    .table-pd tbody td[colspan]::before {
+        content: none !important;
+    }
+    .table-responsive-stack tbody td[colspan] > *,
+    .table-pd tbody td[colspan] > * {
+        width: auto !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+        white-space: normal !important;
+    }
+
     /* Sembunyikan kolom urutan No/No. pada mode kartu mobile agar hemat ruang vertikal */
     .table-responsive-stack tbody td[data-label="No"],
     .table-responsive-stack tbody td[data-label="No."],
@@ -3674,6 +3709,23 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
+    }
+
+    /* Modal berbasis `.card` (mis. CBT bank soal): kartu sendiri yang digulir,
+       karena isinya banyak div sejajar (bukan satu form body). Tanpa ini
+       `overflow:hidden` memotong isi form panjang di HP. */
+    .modal-backdrop > .card {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    .modal-backdrop > .card > form > div {
+        min-height: 0;
+    }
+
+    /* Akordeon bank soal CBT: panah berputar saat terbuka */
+    .cbt-mapel-acc[open] > summary .cbt-acc-caret {
+        transform: rotate(90deg);
     }
 
     /* Gagang geser nonaktif di layar sentuh kecil */
