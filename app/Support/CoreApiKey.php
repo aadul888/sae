@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
 final class CoreApiKey
 {
     private static ?string $cached = null;
+    private static bool $enrollTried = false;
 
     /** Kunci efektif: dari .env bila diisi, else dari settings (buat bila belum ada). */
     public static function resolve(): string
@@ -60,6 +61,13 @@ final class CoreApiKey
     {
         $existing = self::stored();
         if ($existing !== null) {
+            // Kunci sudah ada tapi belum pernah sukses enroll (mis. core sempat
+            // mati saat pembuatan) → coba daftarkan lagi, maksimal sekali per 10
+            // menit agar page-load tidak tertahan saat pusat tak terjangkau.
+            if (self::storedEnrolledAt() === null) {
+                self::enrollThrottled($existing);
+            }
+
             return $existing;
         }
 
@@ -82,10 +90,46 @@ final class CoreApiKey
 
         self::$cached = $key;
 
-        // Daftarkan ke pusat (best-effort). Kegagalan tidak menghalangi operasi.
+        // Daftarkan ke pusat (best-effort). Kegagalan tidak menghalangi operasi;
+        // percobaan ulang terjadi di pemanggilan berikutnya bila belum terdaftar.
+        self::$enrollTried = true;
         self::enroll($key);
 
         return $key;
+    }
+
+    private static function storedEnrolledAt(): ?string
+    {
+        try {
+            if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_enrolled_at')) {
+                return null;
+            }
+
+            $val = DB::table('settings')->where('id', 1)->value('core_enrolled_at');
+
+            return is_string($val) && $val !== '' ? $val : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Coba enroll ulang, maksimal sekali per 10 menit (hemat saat pusat mati). */
+    private static function enrollThrottled(string $key): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Cache::get('sae_core_enroll_tried')) {
+                return;
+            }
+            \Illuminate\Support\Facades\Cache::put('sae_core_enroll_tried', true, 600);
+        } catch (\Throwable) {
+            // Cache tak tersedia → batasi lewat flag proses.
+            if (self::$enrollTried) {
+                return;
+            }
+            self::$enrollTried = true;
+        }
+
+        self::enroll($key);
     }
 
     /** Kirim hash kunci ke sae-core. First-wins di sisi pusat. */
