@@ -37,8 +37,44 @@ class CoreControlService
     ];
 
     /**
+     * Katalog fitur yang dilaporkan ke sae-core secara otomatis.
+     *
+     * Diambil dari modul menu sistem (RolePermission::getAllSystemModules) dan
+     * dikelompokkan per grup sidebar. sae-core memakai ini untuk menampilkan
+     * seluruh fitur yang bisa dibuka-tutup per sekolah — termasuk fitur baru
+     * tanpa perlu diperbarui manual di pusat.
+     *
+     * @return array<int,array{name:string,items:array<int,array{key:string,label:string}>}>
+     */
+    public static function catalog(): array
+    {
+        try {
+            $modules = \App\Models\RolePermission::getAllSystemModules();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $groups = [];
+        foreach ($modules as $key => $meta) {
+            $group = (string) ($meta['group'] ?? 'Lainnya');
+            $groups[$group][] = [
+                'key' => (string) $key,
+                'label' => (string) ($meta['label'] ?? $key),
+            ];
+        }
+
+        $out = [];
+        foreach ($groups as $name => $items) {
+            $out[] = ['name' => $name, 'items' => $items];
+        }
+
+        return $out;
+    }
+
+    /**
      * Peta fitur sae-core → awalan permission_key menu sae-smk.
-     * Dipakai saat mode = limited: menu yang tidak tercakup fitur terpilih ditutup.
+     * Cadangan lama; gating modern memakai daftar permission key langsung
+     * dari katalog yang dilaporkan klien.
      */
     public const FEATURE_MENUS = [
         'Data Induk' => [
@@ -111,6 +147,7 @@ class CoreControlService
                     'nama_sekolah' => self::namaSekolah(),
                     'app_code' => self::APP_CODE,
                     'app_version' => $version,
+                    'features_catalog' => self::catalog(),
                 ]);
 
             if (!$response->successful()) {
@@ -161,6 +198,10 @@ class CoreControlService
     /**
      * Apakah menu boleh diakses menurut kontrol pusat.
      * Fail-open: true kecuali kontrol menyatakan tertutup/terbatas.
+     *
+     * Fitur terpilih berisi permission_key persis (mis. "menu_poin") dari
+     * katalog yang dilaporkan klien. Bila pusat mengirim label grup lama,
+     * peta FEATURE_MENUS tetap dipakai sebagai cadangan.
      */
     public static function moduleAllowed(string $permissionKey): bool
     {
@@ -174,22 +215,25 @@ class CoreControlService
             return false;
         }
 
-        // mode = limited: hanya menu yang tercakup fitur terpilih.
-        $allowedPrefixes = [];
-        foreach ((array) $state['features'] as $feature) {
-            foreach ((self::FEATURE_MENUS[$feature] ?? []) as $prefix) {
-                $allowedPrefixes[] = $prefix;
-            }
-        }
-
-        if (empty($allowedPrefixes)) {
+        $features = (array) $state['features'];
+        if (empty($features)) {
             return false;
         }
 
-        foreach ($allowedPrefixes as $prefix) {
-            if ($permissionKey === $prefix || str_starts_with($permissionKey, $prefix . '_')
-                || str_starts_with($permissionKey, $prefix)) {
+        foreach ($features as $feature) {
+            $feature = (string) $feature;
+
+            // Cocok langsung: fitur berisi permission_key menu.
+            if ($feature === $permissionKey || str_starts_with($permissionKey, $feature . '_')) {
                 return true;
+            }
+
+            // Cadangan: fitur berisi nama grup (mis. "Tata Tertib").
+            foreach ((self::FEATURE_MENUS[$feature] ?? []) as $prefix) {
+                if ($permissionKey === $prefix || str_starts_with($permissionKey, $prefix . '_')
+                    || str_starts_with($permissionKey, $prefix)) {
+                    return true;
+                }
             }
         }
 
