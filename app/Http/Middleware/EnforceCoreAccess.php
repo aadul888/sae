@@ -33,7 +33,15 @@ class EnforceCoreAccess
             : ($user->role ?? ($user->peran_id_str ?? null));
 
         if ($role !== null && !CoreControlService::roleAllowed($role)) {
-            session()->forget(['user', 'force_update_password']);
+            // Putus penuh: guard + cookie "ingat saya", bukan hanya sesi — kalau
+            // tidak, RestoreRememberedSession memulihkannya lagi → loop login.
+            try {
+                \App\Support\AuthSession::logout();
+            } catch (\Throwable) {
+                session()->forget(['user', 'impersonator', 'force_update_password']);
+            }
+            session()->forget(['user', 'impersonator', 'force_update_password']);
+            session()->regenerateToken();
 
             if ($request->expectsJson()) {
                 return response()->json([
