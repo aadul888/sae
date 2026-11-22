@@ -197,11 +197,12 @@ class CoreControlService
 
     /**
      * Apakah menu boleh diakses menurut kontrol pusat.
-     * Fail-open: true kecuali kontrol menyatakan tertutup/terbatas.
+     * Fail-open: true kecuali kontrol menyatakan tertutup, atau menu ada di
+     * daftar yang dimatikan (mode limited).
      *
-     * Fitur terpilih berisi permission_key persis (mis. "menu_poin") dari
-     * katalog yang dilaporkan klien. Bila pusat mengirim label grup lama,
-     * peta FEATURE_MENUS tetap dipakai sebagai cadangan.
+     * Semantik denylist: `features` berisi permission_key yang DIMATIKAN
+     * (mis. "menu_poin"). Menu baru yang belum dikenal otomatis tetap aktif,
+     * sehingga tak perlu diperbarui tiap ada fitur baru di aplikasi.
      */
     public static function moduleAllowed(string $permissionKey): bool
     {
@@ -215,29 +216,24 @@ class CoreControlService
             return false;
         }
 
-        $features = (array) $state['features'];
-        if (empty($features)) {
-            return false;
-        }
-
-        foreach ($features as $feature) {
+        foreach ((array) $state['features'] as $feature) {
             $feature = (string) $feature;
 
-            // Cocok langsung: fitur berisi permission_key menu.
+            // Cocok langsung: daftar berisi permission_key menu.
             if ($feature === $permissionKey || str_starts_with($permissionKey, $feature . '_')) {
-                return true;
+                return false;
             }
 
-            // Cadangan: fitur berisi nama grup (mis. "Tata Tertib").
+            // Cadangan: daftar berisi nama grup (mis. "Tata Tertib").
             foreach ((self::FEATURE_MENUS[$feature] ?? []) as $prefix) {
                 if ($permissionKey === $prefix || str_starts_with($permissionKey, $prefix . '_')
                     || str_starts_with($permissionKey, $prefix)) {
-                    return true;
+                    return false;
                 }
             }
         }
 
-        return false;
+        return true;
     }
 
     /** Haruskah banner iklan donasi tampil? */
