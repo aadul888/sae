@@ -22,14 +22,26 @@ final class AppLicense
 {
     private static ?array $state = null;
 
+    /** Buang state dalam memori (dipakai setelah token/kolom berubah). */
+    public static function flush(): void
+    {
+        self::$state = null;
+    }
+
     /** Ambil/segarkan lisensi dari pusat. Aman gagal (kembalikan state lama). */
-    public static function refresh(): array
+    public static function refresh(bool $force = false): array
     {
         $coreUrl = CoreApiKey::coreUrl();
         $apiKey = CoreApiKey::resolve();
         $npsn = self::npsn();
 
         if ($coreUrl === '' || $apiKey === '' || $npsn === '') {
+            return self::state();
+        }
+
+        // Throttle: hindari panggilan pusat tiap muat halaman. Tombol manual
+        // memakai $force = true.
+        if (!$force && self::syncedRecently(120)) {
             return self::state();
         }
 
@@ -166,7 +178,13 @@ final class AppLicense
             return true; // belum ada lisensi → jangan kunci instalasi
         }
 
-        if (!$state['verified'] || $state['status'] !== 'active') {
+        // Tanda-tangan tak sah ATAU dibekukan pusat → langsung ditolak.
+        if (!$state['verified'] || $state['status'] === 'suspended') {
+            return false;
+        }
+
+        // Kedaluwarsa → hanya boleh selama masa tenggang.
+        if ($state['days_left'] !== null && $state['days_left'] < 0) {
             return self::withinGrace($state);
         }
 
@@ -252,6 +270,21 @@ final class AppLicense
             'license_synced_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    /** Apakah lisensi baru disegarkan dalam $seconds detik terakhir. */
+    private static function syncedRecently(int $seconds): bool
+    {
+        $at = self::row()->license_synced_at ?? null;
+        if (!$at) {
+            return false;
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($at)->diffInSeconds(now()) < $seconds;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     private static function row(): object

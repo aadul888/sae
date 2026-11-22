@@ -54,19 +54,6 @@
             </div>
         </div>
 
-        <div class="dash-stat-card" title="{{ count($status['pending_migrations']) }} Migrasi Database Pending">
-            <div class="dash-stat-icon"
-                style="background: {{ count($status['pending_migrations']) > 0 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ count($status['pending_migrations']) > 0 ? '#f59e0b' : 'var(--success, #10b981)' }};">
-                <i class="fas fa-database"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" id="pendingMigCount">
-                    {{ count($status['pending_migrations']) }}
-                </div>
-                <div class="dash-stat-label">Migrasi Pending</div>
-            </div>
-        </div>
-
         <div class="dash-stat-card" title="Status Lisensi dari pusat (sae-core)">
             <div class="dash-stat-icon" style="background: {{ ($license['present'] && $license['verified']) ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ ($license['present'] && $license['verified']) ? 'var(--success,#10b981)' : '#f59e0b' }};">
                 <i class="fas fa-certificate"></i>

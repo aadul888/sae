@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             if (data.status === "success") {
                 const s = data.data;
-                pendingMigCount.textContent = s.pending_migrations.length;
+                if (pendingMigCount) pendingMigCount.textContent = s.pending_migrations.length;
                 if (s.last_update_at) {
                     lastUpdateText.title = "Riwayat Update Terakhir: " + s.last_update_at;
                     lastUpdateText.textContent = formatDateTime(s.last_update_at);
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateBanner.style.borderColor = "rgba(16, 185, 129, 0.3)";
                 statusBadge.className = "badge badge-primary";
                 statusBadge.textContent = "Versi Terkini";
-                pendingMigCount.textContent = "0";
+                if (pendingMigCount) pendingMigCount.textContent = "0";
                 migrationList.classList.add("hidden");
                 if (data.data.timestamp) {
                     lastUpdateText.title = "Riwayat Update Terakhir: " + data.data.timestamp;

@@ -26,7 +26,10 @@ class UpdateController extends Controller
         if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $status = $this->updateService->checkUpdate();
-        $license = \App\Support\AppLicense::state();
+        // Segarkan lisensi saat halaman dibuka agar pembekuan/perpanjangan dari
+        // pusat langsung tercermin (bukan menunggu jadwal harian). Aman gagal:
+        // bila pusat tak terjangkau, state lisensi lama tetap dipakai.
+        $license = \App\Support\AppLicense::refresh();
         return view('dashboard.update', compact('status', 'license'));
     }
 
@@ -79,7 +82,7 @@ class UpdateController extends Controller
         }
 
         // Sekaligus ambil/segarkan lisensi bertanda-tangan dari pusat.
-        $license = \App\Support\AppLicense::refresh();
+        $license = \App\Support\AppLicense::refresh(true);
 
         return response()->json([
             'status' => !empty($license['present']) ? 'success' : 'error',
