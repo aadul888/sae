@@ -655,6 +655,60 @@ class ElearningModuleTest extends TestCase
         }
     }
 
+    /**
+     * Token ujian: tersimpan, "auto" menghasilkan token acak, dan tampil di
+     * daftar ujian + dasbor PD.
+     */
+    public function test_cbt_ujian_token_tersimpan_dan_tampil(): void
+    {
+        DB::beginTransaction();
+        try {
+            $rombelId = 'rombel-cbt-token';
+            $pembelajaranId = 'pemb-cbt-token';
+            $now = now();
+            DB::table('rombongan_belajar')->insertOrIgnore(['rombongan_belajar_id' => $rombelId, 'nama' => 'Rombel Token', 'created_at' => $now, 'updated_at' => $now]);
+            DB::table('peserta_didik')->insertOrIgnore(['peserta_didik_id' => 'pd-el-test-uuid', 'nama' => 'Siswa E-Learning', 'rombongan_belajar_id' => $rombelId, 'created_at' => $now, 'updated_at' => $now]);
+            DB::table('pembelajaran')->insertOrIgnore(['pembelajaran_id' => $pembelajaranId, 'rombongan_belajar_id' => $rombelId, 'nama_mata_pelajaran' => 'Mapel Token', 'created_at' => $now, 'updated_at' => $now]);
+
+            // Token manual (dibersihkan jadi huruf besar tanpa spasi).
+            $res = $this->withSession($this->adminSession())->postJson(route('dashboard.cbt.ujian.store'), [
+                'pembelajaran_id' => $pembelajaranId,
+                'judul' => 'Ujian Token',
+                'tipe' => 'ulangan',
+                'durasi_menit' => 30,
+                'status' => 'terbit',
+                'token' => 'ab 12',
+            ]);
+            $res->assertStatus(200);
+            $id = $res->json('id');
+            $this->assertSame('ab12', DB::table('ujian')->where('id', $id)->value('token'));
+
+            // "auto" → token acak 6 karakter.
+            $res2 = $this->withSession($this->adminSession())->postJson(route('dashboard.cbt.ujian.store'), [
+                'pembelajaran_id' => $pembelajaranId,
+                'judul' => 'Ujian Token Auto',
+                'tipe' => 'ulangan',
+                'durasi_menit' => 30,
+                'token' => 'auto',
+            ]);
+            $res2->assertStatus(200);
+            $token = DB::table('ujian')->where('id', $res2->json('id'))->value('token');
+            $this->assertMatchesRegularExpression('/^[A-Z0-9]{6}$/', (string) $token);
+
+            // Tampil di daftar ujian (admin).
+            $this->withSession($this->adminSession())
+                ->get(route('dashboard.cbt.index', ['tab' => 'ujian']))
+                ->assertStatus(200)->assertSee('data-copy="ab12"', false);
+
+            // Tampil di dasbor PD (jadwal ujian).
+            $this->withSession($this->pdSession())
+                ->get(route('dashboard.cbt.index', ['tab' => 'dasbor']))
+                ->assertStatus(200)->assertSee('data-copy="ab12"', false);
+        } finally {
+            DB::rollBack();
+        }
+    }
+
     public function test_cbt_sesi_ujian_lifecycle(): void
     {
         DB::beginTransaction();

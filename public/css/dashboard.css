@@ -2816,7 +2816,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"],
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"],
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"],
-    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) {
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]):not([colspan]) {
         display: flex !important;
         align-items: center !important;
         justify-content: flex-start !important;
@@ -2840,7 +2840,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"]::before,
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"]::before,
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"]::before,
-    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"])::before {
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]):not([colspan])::before {
         display: none !important;
     }
     .table-responsive-stack tbody tr:not(.dt-card) td.cell-pd-nama > *,
@@ -2854,7 +2854,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Barang"] > *,
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Mata Pelajaran"] > *,
     .table-responsive-stack tbody tr:not(.dt-card) td[data-label="Agenda"] > *,
-    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) > * {
+    .table-responsive-stack tbody tr:not(.dt-card) td:first-child:not([data-label*="No"]):not([data-label="Aksi"]):not([colspan]) > * {
         max-width: 100% !important;
         width: 100% !important;
         justify-content: flex-start !important;
