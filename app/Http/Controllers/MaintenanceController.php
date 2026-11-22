@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use ZipArchive;
 
 use App\Services\BackupService;
 use App\Services\RestoreService;
@@ -69,24 +68,8 @@ class MaintenanceController extends Controller
         return view('dashboard.maintenance', compact('settings', 'hasActiveData', 'isArchiveRequired', 'lastSync', 'archiveDownloadedAt', 'syncAllowed', 'counts', 'tab'));
     }
 
-    public function downloadArchive()
-    {
-        if ($res = $this->checkAdmin()) return $res;
-
-        try {
-            $result = (new BackupService())->createComprehensiveBackup($this->adminName());
-            $this->markArchiveDownloaded($result['filename']);
-
-            return response()->download($result['zip_path'], $result['filename'], [
-                'Content-Type' => 'application/zip',
-            ])->deleteFileAfterSend(true);
-        } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Gagal memproses paket arsip: ' . $e->getMessage());
-        }
-    }
-
     /**
-     * Unduh dump SQL LENGKAP (seluruh tabel database) saja, tanpa aset/CSV.
+     * Unduh dump SQL LENGKAP (seluruh tabel database) saja — ringkas & cepat.
      */
     public function downloadSql()
     {
@@ -105,32 +88,12 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Unduh arsip ZIP berisi HANYA berkas aset yang diunggah (foto, logo, dokumen).
-     */
-    public function downloadAssets()
-    {
-        if ($res = $this->checkAdmin()) return $res;
-
-        try {
-            $result = (new BackupService())->createMediaBackup();
-
-            return response()->download($result['path'], $result['filename'], [
-                'Content-Type' => 'application/zip',
-            ])->deleteFileAfterSend(true);
-        } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Gagal mengarsipkan berkas aset: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Buat paket arsip via AJAX untuk tab Backup (full / sql / assets).
-     * Mengembalikan JSON berisi URL unduhan sementara; berkas di-stream oleh fetchFile().
+     * Buat dump SQL via AJAX untuk tab Backup. Mengembalikan JSON berisi URL
+     * unduhan sementara; berkas di-stream oleh fetchFile().
      */
     public function backup(Request $request)
     {
         if ($res = $this->checkAdmin()) return $res;
-
-        $type = (string) $request->input('type', 'full');
 
         // Tutup file session PHP agar request concurrent/SSE tidak deadlock atau worker starvation
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -142,31 +105,19 @@ class MaintenanceController extends Controller
         @ini_set('memory_limit', '1024M');
 
         try {
-            $service = new BackupService();
-
-            if ($type === 'sql') {
-                $result = $service->createSqlBackup($this->adminName());
-                $this->markArchiveDownloaded($result['filename']);
-                $message = 'Dump SQL lengkap (seluruh tabel) berhasil dibuat.';
-            } elseif ($type === 'assets') {
-                $result = $service->createMediaBackup();
-                $message = 'Arsip berkas aset (foto, logo, dokumen) berhasil dibuat.';
-            } else {
-                $result = $service->createComprehensiveBackup($this->adminName());
-                $this->markArchiveDownloaded($result['filename']);
-                $message = 'Paket arsip lengkap (SQL, CSV, aset, JSON) berhasil dibuat & kunci feeder dibuka.';
-            }
+            $result = (new BackupService())->createSqlBackup($this->adminName());
+            $this->markArchiveDownloaded($result['filename']);
 
             return response()->json([
                 'status'       => 'success',
-                'message'      => $message,
+                'message'      => 'Dump SQL lengkap (seluruh tabel) berhasil dibuat & kunci feeder dibuka.',
                 'filename'     => $result['filename'],
                 'download_url' => route('dashboard.maintenance.fetch', ['filename' => $result['filename']], false),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Gagal memproses paket arsip: ' . $e->getMessage(),
+                'message' => 'Gagal memproses dump SQL: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -186,7 +137,7 @@ class MaintenanceController extends Controller
         }
 
         return response()->download($path, $safe, [
-            'Content-Type' => str_ends_with($safe, '.sql') ? 'application/sql' : 'application/zip',
+            'Content-Type' => 'application/sql',
         ])->deleteFileAfterSend(true);
     }
 
@@ -250,71 +201,6 @@ class MaintenanceController extends Controller
             'sync_allowed'          => true,
             'updated_at'            => now(),
         ]);
-    }
-
-    /**
-     * Generator ZIP murni PHP tanpa ekstensi ZipArchive (100% fail-safe)
-     */
-    private function createPurePhpZip(string $zipPath, array $files): bool
-    {
-        $zipData = '';
-        $centralDir = '';
-        $offset = 0;
-
-        foreach ($files as $name => $content) {
-            $uncompressedSize = strlen($content);
-            $crc = crc32($content);
-            $hasGz = function_exists('gzdeflate');
-            $compressed = $hasGz ? gzdeflate($content) : $content;
-            $compressedSize = strlen($compressed);
-            $method = $hasGz ? "\x08\x00" : "\x00\x00"; // 8 = deflate, 0 = store
-
-            $time = time();
-            $dtime = dechex((date('Y', $time) - 1980) << 25 | date('m', $time) << 21 | date('d', $time) << 16 |
-                date('H', $time) << 11 | date('i', $time) << 5 | date('s', $time) >> 1);
-            $dtime = str_pad($dtime, 8, '0', STR_PAD_LEFT);
-            $hexdtime = chr(hexdec(substr($dtime, 6, 2))) . chr(hexdec(substr($dtime, 4, 2))) .
-                chr(hexdec(substr($dtime, 2, 2))) . chr(hexdec(substr($dtime, 0, 2)));
-
-            // Local file header
-            $fr = "\x50\x4b\x03\x04\x14\x00\x00\x00" . $method . $hexdtime
-                . pack('V', $crc)
-                . pack('V', $compressedSize)
-                . pack('V', $uncompressedSize)
-                . pack('v', strlen($name))
-                . pack('v', 0)
-                . $name
-                . $compressed;
-
-            $zipData .= $fr;
-
-            // Central directory record
-            $cdrec = "\x50\x4b\x01\x02\x00\x00\x14\x00\x00\x00" . $method . $hexdtime
-                . pack('V', $crc)
-                . pack('V', $compressedSize)
-                . pack('V', $uncompressedSize)
-                . pack('v', strlen($name))
-                . pack('v', 0)
-                . pack('v', 0)
-                . pack('v', 0)
-                . pack('v', 0)
-                . pack('V', 32)
-                . pack('V', $offset)
-                . $name;
-
-            $centralDir .= $cdrec;
-            $offset = strlen($zipData);
-        }
-
-        // End of central directory record
-        $endOfCentral = "\x50\x4b\x05\x06\x00\x00\x00\x00"
-            . pack('v', count($files))
-            . pack('v', count($files))
-            . pack('V', strlen($centralDir))
-            . pack('V', $offset)
-            . "\x00\x00";
-
-        return (bool) file_put_contents($zipPath, $zipData . $centralDir . $endOfCentral);
     }
 
     public function cleanOldData(Request $request)

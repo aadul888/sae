@@ -12,7 +12,7 @@
                 <i class="fas fa-server text-primary me-2"></i> Arsip Data Terpadu &amp; Maintenance Sistem
             </h2>
             <p class="dash-banner-subtitle" style="color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
-                Fasilitas pencadangan berkas arsip mandiri (SQL, Excel CSV, Pasfoto &amp; Media) sebelum pergantian tahun ajaran serta pembersihan residu sistem.
+                Fasilitas pencadangan database mandiri (dump SQL seluruh tabel) sebelum pergantian tahun ajaran serta pembersihan residu sistem.
             </p>
         </div>
         <div class="dash-banner-actions">
@@ -40,7 +40,7 @@
                 </div>
                 <p style="color: var(--text-color); font-size: var(--text-base, 0.875rem); margin: 0; line-height: 1.5;">
                     Terdapat data aktif di sistem SAE (<b>{{ number_format($counts['peserta_didik']) }} Peserta Didik Aktif</b>, <b>{{ number_format($counts['gtk']) }} Guru/Tendik</b>, dan <b>{{ number_format($counts['rombongan_belajar']) }} Rombel</b>).
-                    Untuk mencegah hilangnya riwayat semester sebelumnya, proses sinkronisasi dari <b>SAE Feeder</b> ditolak sampai Anda mengklik <b>"Unduh Paket Arsip Data (.ZIP)"</b> di bawah ini.
+                    Untuk mencegah hilangnya riwayat semester sebelumnya, proses sinkronisasi dari <b>SAE Feeder</b> ditolak sampai Anda mengklik <b>"Unduh Dump SQL Database (.sql)"</b> di bawah ini.
                 </p>
             </div>
         </div>
@@ -91,30 +91,26 @@
                     </div>
                     <div>
                         <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; margin-bottom: 2px; color: var(--text-color);">
-                            Cadangkan &amp; Unduh Paket Arsip
+                            Cadangkan &amp; Unduh Database
                         </h3>
                         <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                            Paket Arsip Mandiri (SQL Dump, Excel CSV Siap Buka, &amp; Media Foto)
+                            Dump SQL Seluruh Tabel (Ringkas, Ringan, Cepat)
                         </span>
                     </div>
                 </div>
 
                 <p style="font-size: var(--text-base, 0.875rem); color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
-                    Menghasilkan paket berkas arsip terpadu yang <strong>dapat dibuka langsung di masa depan</strong> tanpa bergantung pada format JSON mentah semata:
+                    Menghasilkan berkas <strong>.sql</strong> berisi struktur dan seluruh isi tabel database, siap di-import kembali kapan saja:
                 </p>
 
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; font-size: var(--text-sm, 0.8125rem);">
                     <div style="display: flex; align-items: flex-start; gap: 8px;">
                         <i class="fas fa-database text-primary" style="margin-top: 2px;"></i>
-                        <div><strong>01_DATABASE_SQL:</strong> Dump SQL lengkap (semua tabel) siap di-import ke phpMyAdmin / MySQL.</div>
+                        <div><strong>Dump SQL Lengkap:</strong> Semua tabel (DROP + CREATE + INSERT) siap di-import ke phpMyAdmin / MySQL.</div>
                     </div>
                     <div style="display: flex; align-items: flex-start; gap: 8px;">
-                        <i class="fas fa-file-excel text-success" style="margin-top: 2px;"></i>
-                        <div><strong>02_DATA_EXCEL_CSV:</strong> Format CSV UTF-8 BOM siap double-click di Microsoft Excel (Peserta Didik, Alumni, GTK, Rombel, Jadwal).</div>
-                    </div>
-                    <div style="display: flex; align-items: flex-start; gap: 8px;">
-                        <i class="fas fa-images text-info" style="margin-top: 2px;"></i>
-                        <div><strong>03_BERKAS_MEDIA:</strong> Seluruh pasfoto peserta didik, logo jurusan, dan berkas/kop sekolah.</div>
+                        <i class="fas fa-bolt text-success" style="margin-top: 2px;"></i>
+                        <div><strong>Ringkas &amp; Cepat:</strong> Hanya database tanpa aset/media, sehingga proses cepat dan hemat penyimpanan.</div>
                     </div>
                 </div>
 
@@ -142,23 +138,10 @@
                 </div>
             </div>
 
-            <a href="{{ route('dashboard.maintenance.download', [], false) }}" class="btn btn-primary js-backup-btn" data-backup-type="full"
+            <a href="{{ route('dashboard.maintenance.download', [], false) }}" class="btn btn-primary js-backup-btn" data-backup-type="sql"
                 style="padding: 12px 24px; font-weight: 700; border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fas fa-file-zipper"></i> Unduh Paket Arsip Lengkap (.ZIP) &amp; Buka Kunci Feeder
+                <i class="fas fa-database"></i> Unduh Dump SQL Database (.sql) &amp; Buka Kunci Feeder
             </a>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px;">
-                <a href="{{ route('dashboard.maintenance.download.sql', [], false) }}" class="btn btn-outline js-backup-btn" data-backup-type="sql"
-                    style="padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color);"
-                    title="Unduh berkas .sql berisi seluruh tabel database">
-                    <i class="fas fa-database text-primary"></i> Unduh SQL Saja (.sql)
-                </a>
-                <a href="{{ route('dashboard.maintenance.download.assets', [], false) }}" class="btn btn-outline js-backup-btn" data-backup-type="assets"
-                    style="padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color);"
-                    title="Unduh berkas aset/media (foto, logo, stempel, dokumen)">
-                    <i class="fas fa-images text-info"></i> Unduh Berkas Aset (.zip)
-                </a>
-            </div>
         </div>
 
         <!-- Card Bersihkan Data -->
