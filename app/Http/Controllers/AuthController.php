@@ -286,6 +286,11 @@ class AuthController extends Controller
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
         }
 
+        // Kontrol pusat: peran ini mungkin ditutup untuk sekolah.
+        if (!\App\Services\CoreControlService::roleAllowed($user->role)) {
+            return back()->withInput()->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
+        }
+
         // Login dari mode PWA (standalone) → aktifkan remember token agar
         // pengguna tidak perlu login lagi saat membuka aplikasi terpasang.
         $remember = $request->boolean('pwa');
@@ -416,6 +421,10 @@ class AuthController extends Controller
             $allowedRoles = ['admin', 'guru', 'tendik', 'peserta_didik'];
             if (!in_array($user->role, $allowedRoles, true)) {
                 return redirect()->route('login')->with('error', "Peran '{$user->peran_id_str}' tidak memiliki hak akses masuk portal ini.");
+            }
+
+            if (!\App\Services\CoreControlService::roleAllowed($user->role)) {
+                return redirect()->route('login')->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
             }
 
             // Bangun sesi pengguna dan catat aktivitas sistem.

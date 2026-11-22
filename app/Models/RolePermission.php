@@ -490,8 +490,8 @@ class RolePermission extends Model
 
         // Kontrol pusat sae-core: mode akses aplikasi per sekolah. Fail-open saat
         // sae-core tak terjangkau atau mode 'full'. Menutup akses seluruh modul
-        // bila mode 'none', atau membatasi ke fitur terpilih bila 'limited'.
-        if (!\App\Services\CoreControlService::moduleAllowed($permissionKey)) {
+        // bila mode 'none', atau membatasi per peran / menu Tarik Data Dapodik.
+        if (!\App\Services\CoreControlService::moduleAllowed($permissionKey, $role)) {
             return false;
         }
 

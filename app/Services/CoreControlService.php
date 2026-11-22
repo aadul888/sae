@@ -29,6 +29,8 @@ class CoreControlService
         'reachable' => false,
         'mode' => 'full',
         'features' => [],
+        'roles' => [],
+        'dapodik_enabled' => true,
         'show_ads' => false,
         'is_donor' => false,
         'update_enabled' => true,
@@ -164,6 +166,8 @@ class CoreControlService
                     ? $access['mode']
                     : 'full',
                 'features' => is_array($access['features'] ?? null) ? $access['features'] : [],
+                'roles' => is_array($access['roles'] ?? null) ? $access['roles'] : [],
+                'dapodik_enabled' => (bool) ($access['dapodik_enabled'] ?? true),
                 'show_ads' => (bool) ($donation['show_ads'] ?? false),
                 'is_donor' => (bool) ($donation['is_donor'] ?? false),
                 'update_enabled' => (bool) ($data['update_enabled'] ?? true),
@@ -196,15 +200,15 @@ class CoreControlService
     }
 
     /**
-     * Apakah menu boleh diakses menurut kontrol pusat.
-     * Fail-open: true kecuali kontrol menyatakan tertutup, atau menu ada di
-     * daftar yang dimatikan (mode limited).
+     * Apakah menu boleh diakses menurut kontrol pusat (mode + peran + dapodik).
      *
-     * Semantik denylist: `features` berisi permission_key yang DIMATIKAN
-     * (mis. "menu_poin"). Menu baru yang belum dikenal otomatis tetap aktif,
-     * sehingga tak perlu diperbarui tiap ada fitur baru di aplikasi.
+     * - mode none    → tutup total.
+     * - menu_dapodik → ikut saklar dapodik_enabled.
+     * - mode limited → bila peran user ada di daftar `roles` (yang dimatikan),
+     *                  tutup. Peran yang tak dikenal / menu baru tetap aktif.
+     * Fail-open bila sae-core tak terjangkau atau mode full.
      */
-    public static function moduleAllowed(string $permissionKey): bool
+    public static function moduleAllowed(string $permissionKey, ?string $role = null): bool
     {
         $state = self::state();
 
@@ -216,24 +220,83 @@ class CoreControlService
             return false;
         }
 
-        foreach ((array) $state['features'] as $feature) {
-            $feature = (string) $feature;
+        // Menu Tarik Data Dapodik dikontrol terpisah.
+        if ($permissionKey === 'menu_dapodik') {
+            return (bool) ($state['dapodik_enabled'] ?? true);
+        }
 
-            // Cocok langsung: daftar berisi permission_key menu.
-            if ($feature === $permissionKey || str_starts_with($permissionKey, $feature . '_')) {
-                return false;
-            }
-
-            // Cadangan: daftar berisi nama grup (mis. "Tata Tertib").
-            foreach ((self::FEATURE_MENUS[$feature] ?? []) as $prefix) {
-                if ($permissionKey === $prefix || str_starts_with($permissionKey, $prefix . '_')
-                    || str_starts_with($permissionKey, $prefix)) {
+        // Mode limited: cek peran yang dimatikan.
+        $role = self::normalizeRole($role);
+        if ($role !== null) {
+            foreach ((array) $state['roles'] as $blockedRole) {
+                if (self::roleMatches($role, (string) $blockedRole)) {
                     return false;
                 }
             }
         }
 
         return true;
+    }
+
+    /**
+     * Apakah peran pengguna diizinkan masuk (dipakai saat login). Mengikuti
+     * mode 'none' dan daftar peran yang dimatikan. Fail-open.
+     */
+    public static function roleAllowed(?string $role): bool
+    {
+        $state = self::state();
+
+        if (!$state['reachable'] || $state['mode'] === 'full') {
+            return true;
+        }
+
+        if ($state['mode'] === 'none') {
+            return false;
+        }
+
+        $role = self::normalizeRole($role);
+        if ($role !== null) {
+            foreach ((array) $state['roles'] as $blockedRole) {
+                if (self::roleMatches($role, (string) $blockedRole)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /** Petakan variasi label peran ke kode internal. */
+    private static function normalizeRole(?string $role): ?string
+    {
+        if ($role === null) {
+            return null;
+        }
+
+        return match (strtolower(trim($role))) {
+            'admin', 'administrator', 'operator', 'superadmin' => 'admin',
+            'guru', 'ptk' => 'guru',
+            'tendik', 'tenaga kependidikan', 'tata usaha', 'pegawai' => 'tendik',
+            'tugas_tambahan', 'tugas tambahan' => 'tugas_tambahan',
+            'peserta_didik', 'peserta didik', 'siswa', 'murid' => 'peserta_didik',
+            'orang_tua', 'orang tua', 'wali murid', 'wali_murid' => 'orang_tua',
+            default => strtolower(trim($role)),
+        };
+    }
+
+    /** Apakah role termasuk kelompok yang dimatikan (GTK = guru+tendik+tugas_tambahan). */
+    private static function roleMatches(string $role, string $blockedRole): bool
+    {
+        if ($role === $blockedRole) {
+            return true;
+        }
+
+        // Kompatibilitas bila pusat mengirim grup "gtk".
+        if ($blockedRole === 'gtk') {
+            return in_array($role, ['guru', 'tendik', 'tugas_tambahan'], true);
+        }
+
+        return false;
     }
 
     /** Haruskah banner iklan donasi tampil? */
