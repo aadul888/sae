@@ -199,6 +199,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/identitas-sekolah/upload-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadKop'])->name('identitas-sekolah.upload-kop')->middleware('permission:menu_pengaturan,update');
     Route::delete('/identitas-sekolah/delete-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'deleteKop'])->name('identitas-sekolah.delete-kop')->middleware('permission:menu_pengaturan,delete');
     Route::post('/identitas-sekolah/google-config', [\App\Http\Controllers\IdentitasSekolahController::class, 'updateGoogleConfig'])->name('identitas-sekolah.google-config')->middleware('permission:menu_pengaturan,update');
+    Route::post('/identitas-sekolah/core-config', [\App\Http\Controllers\IdentitasSekolahController::class, 'updateCoreConfig'])->name('identitas-sekolah.core-config')->middleware('permission:menu_pengaturan,update');
 
     // Layanan Digital — Pengumuman & Broadcast
     Route::get('/informasi', [\App\Http\Controllers\PengumumanController::class, 'pengguna'])->name('informasi.index');

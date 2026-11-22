@@ -310,6 +310,57 @@
     </div>
 
     <!-- Section: Integrasi Akun Google Belajar.id (OAuth 2.0) -->
+    <div class="card" id="cardCoreConfig"
+        style="padding: 22px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div
+            style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div
+                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(6,182,212,0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-cloud" style="font-size: var(--text-lg, 1.125rem);"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">
+                        Koneksi Pusat SAE-Core
+                    </h3>
+                    <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
+                        Alamat pusat kontrol pembaruan &amp; akses. Berbeda untuk tiap sekolah &mdash; atur sesuai server Anda.
+                    </div>
+                </div>
+            </div>
+            @php $coreUrlNow = \App\Support\CoreApiKey::storedCoreUrl(); @endphp
+            <span class="badge {{ $coreUrlNow ? 'badge-success' : 'badge-outline' }}"
+                style="font-size: var(--text-sm, 0.8125rem); padding: 5px 12px;">
+                {{ $coreUrlNow ? 'Diatur khusus' : 'Bawaan sistem' }}
+            </span>
+        </div>
+
+        <form action="{{ route('dashboard.identitas-sekolah.core-config') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+            @csrf
+            <div>
+                <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                    Alamat Pusat (URL)
+                </label>
+                <input type="url" name="core_url"
+                    value="{{ old('core_url', $coreUrlNow) }}"
+                    placeholder="{{ \App\Support\CoreApiKey::coreUrl() }}"
+                    style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); padding: 10px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); border-radius: var(--radius-lg, 12px); outline: none; font-family: monospace;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 6px;">
+                    Kosongkan untuk memakai bawaan sistem ({{ \App\Support\CoreApiKey::coreUrl() }}). Contoh: <code>https://appsae.com</code>
+                </div>
+            </div>
+
+            @if ($canUpdate)
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem);">
+                        <i class="fas fa-floppy-disk me-1"></i> Simpan Alamat Pusat
+                    </button>
+                </div>
+            @endif
+        </form>
+    </div>
+
+    <!-- Section: Integrasi Akun Google Belajar.id (OAuth 2.0) -->
     <div class="card" id="cardGoogleOauth"
         style="padding: 22px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color); margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
         <div

@@ -315,6 +315,38 @@ class IdentitasSekolahController extends Controller
     }
 
     /**
+     * Simpan URL pusat (sae-core) per instalasi. Berbeda antar server sekolah,
+     * jadi tidak ditanam di kode.
+     */
+    public function updateCoreConfig(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update')) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk mengubah alamat pusat.');
+        }
+
+        $request->validate([
+            'core_url' => ['nullable', 'url', 'max:255'],
+        ], [
+            'core_url.url' => 'Alamat pusat harus berupa URL lengkap, mis. https://appsae.com',
+        ]);
+
+        \App\Support\CoreApiKey::saveCoreUrl($request->input('core_url'));
+
+        try {
+            Artisan::call('config:clear');
+        } catch (\Throwable) {
+        }
+
+        return back()->with('success', 'Alamat pusat sae-core berhasil disimpan.');
+    }
+
+    /**
      * Simpan konfigurasi kredensial Google Belajar.id ke basis data (tabel settings).
      * Tidak menyentuh .env — diatur murni dari halaman Pengaturan.
      */

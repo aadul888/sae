@@ -38,10 +38,53 @@ final class CoreApiKey
         return self::$cached = self::local();
     }
 
-    /** URL pusat sae-core (default aman, bisa ditimpa .env). */
+    /**
+     * URL pusat sae-core. Urutan: pengaturan per-instalasi (DB) → .env → bawaan.
+     *
+     * Alamat pusat berbeda antar server sekolah, jadi tidak ditanam di kode:
+     * admin dapat mengubahnya dari halaman Pengaturan instalasi masing-masing.
+     */
     public static function coreUrl(): string
     {
+        $fromDb = self::storedCoreUrl();
+        if ($fromDb !== null) {
+            return $fromDb;
+        }
+
         return rtrim((string) (config('services.sae_core.url') ?: 'https://appsae.com'), '/');
+    }
+
+    /** URL pusat tersimpan per instalasi (settings.core_url), null bila kosong. */
+    public static function storedCoreUrl(): ?string
+    {
+        try {
+            if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_url')) {
+                return null;
+            }
+
+            $url = DB::table('settings')->where('id', 1)->value('core_url');
+
+            return is_string($url) && trim($url) !== '' ? rtrim(trim($url), '/') : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Simpan URL pusat per instalasi (dipanggil dari halaman Pengaturan). */
+    public static function saveCoreUrl(?string $url): void
+    {
+        if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_url')) {
+            return;
+        }
+
+        DB::table('settings')->where('id', 1)->update([
+            'core_url' => ($url !== null && trim($url) !== '') ? rtrim(trim($url), '/') : null,
+            'updated_at' => now(),
+        ]);
+
+        // Pusat baru → kunci lama tak dikenal di sana. Bersihkan penanda enroll
+        // agar instalasi mendaftar ulang otomatis ke pusat yang baru.
+        self::forgetEnrollment();
     }
 
     /** Kunci lokal tersimpan (tanpa efek samping). */

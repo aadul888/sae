@@ -13,6 +13,20 @@ use Tests\TestCase;
  */
 class CoreAccessEnforcementTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Bersihkan state kontrol antar-test agar tak bocor ke test lain.
+        Cache::forget('sae_core_control_state');
+        Cache::forget('sae_core_control_last_good');
+
+        $ref = new \ReflectionClass(CoreControlService::class);
+        $prop = $ref->getProperty('state');
+        $prop->setAccessible(true);
+        $prop->setValue(null, null);
+    }
+
     private function blockedState(array $roles): array
     {
         return [
@@ -133,5 +147,25 @@ class CoreAccessEnforcementTest extends TestCase
         // Pusat gagal, tapi aturan terakhir tetap berlaku — tidak fail-open.
         $res->assertRedirect(route('login'));
         $this->assertNull(session('user'));
+    }
+
+    public function test_core_url_can_be_set_per_install(): void
+    {
+        // Bawaan: tanpa pengaturan DB, memakai .env / bawaan.
+        $this->assertNull(\App\Support\CoreApiKey::storedCoreUrl());
+
+        \App\Support\CoreApiKey::saveCoreUrl('https://core.sekolah-ku.sch.id/');
+
+        // Tersimpan tanpa garis miring di ujung & dipakai oleh coreUrl().
+        $this->assertSame('https://core.sekolah-ku.sch.id', \App\Support\CoreApiKey::storedCoreUrl());
+        $this->assertSame('https://core.sekolah-ku.sch.id', \App\Support\CoreApiKey::coreUrl());
+
+        // Dikosongkan → kembali ke bawaan (.env/default), bukan hardcoded.
+        \App\Support\CoreApiKey::saveCoreUrl(null);
+        $this->assertNull(\App\Support\CoreApiKey::storedCoreUrl());
+        $this->assertSame(
+            rtrim((string) (config('services.sae_core.url') ?: 'https://appsae.com'), '/'),
+            \App\Support\CoreApiKey::coreUrl()
+        );
     }
 }
