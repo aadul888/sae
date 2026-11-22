@@ -26,7 +26,8 @@ class UpdateController extends Controller
         if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $status = $this->updateService->checkUpdate();
-        return view('dashboard.update', compact('status'));
+        $license = \App\Support\AppLicense::state();
+        return view('dashboard.update', compact('status', 'license'));
     }
 
     /**
@@ -77,11 +78,12 @@ class UpdateController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        $diag = \App\Services\CoreControlService::diagnostics();
+        // Sekaligus ambil/segarkan lisensi bertanda-tangan dari pusat.
+        $license = \App\Support\AppLicense::refresh();
 
         return response()->json([
-            'status' => !empty($diag['reachable']) ? 'success' : 'error',
-            'data' => $diag,
+            'status' => !empty($license['present']) ? 'success' : 'error',
+            'data' => $license,
         ]);
     }
 

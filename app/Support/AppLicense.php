@@ -1,0 +1,269 @@
+<?php
+
+namespace App\Support;
+
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Lisensi bertanda-tangan dari sae-core (sisi klien).
+ *
+ * Alur:
+ *  1. Minta lisensi ke pusat (POST /api/license/issue) — memakai kunci instalasi.
+ *  2. Verifikasi tanda-tangan Ed25519 dengan KUNCI PUBLIK tertanam.
+ *  3. Simpan token + payload ke settings, sediakan state untuk UI/gate.
+ *
+ * Bila pusat tak terjangkau, lisensi sah terakhir tetap berlaku sampai
+ * kedaluwarsa + masa tenggang.
+ */
+final class AppLicense
+{
+    private static ?array $state = null;
+
+    /** Ambil/segarkan lisensi dari pusat. Aman gagal (kembalikan state lama). */
+    public static function refresh(): array
+    {
+        $coreUrl = CoreApiKey::coreUrl();
+        $apiKey = CoreApiKey::resolve();
+        $npsn = self::npsn();
+
+        if ($coreUrl === '' || $apiKey === '' || $npsn === '') {
+            return self::state();
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders(['X-API-Key' => $apiKey, 'Accept' => 'application/json'])
+                ->post($coreUrl . '/api/license/issue', [
+                    'npsn' => $npsn,
+                    'app_code' => 'SAE-SMK',
+                ]);
+
+            if ($response->status() === 401) {
+                CoreApiKey::forgetEnrollment();
+            }
+
+            if (!$response->successful()) {
+                return self::state();
+            }
+
+            $data = $response->json() ?? [];
+            $token = (string) ($data['license'] ?? '');
+            $publicKey = (string) ($data['public_key'] ?? '');
+
+            if ($token === '' || $publicKey === '') {
+                return self::state();
+            }
+
+            if (!self::verify($token, $publicKey)) {
+                return self::state();
+            }
+
+            self::persist($token, $publicKey, (int) ($data['grace_days'] ?? 14));
+            self::$state = null;
+
+            return self::state();
+        } catch (\Throwable) {
+            return self::state();
+        }
+    }
+
+    /** State lisensi terkini: valid?, exp, entitlements, status, sumber. */
+    public static function state(): array
+    {
+        if (self::$state !== null) {
+            return self::$state;
+        }
+
+        $row = self::row();
+        $token = $row->license_token ?? null;
+        $publicKey = $row->license_public_key ?? null;
+        $graceDays = (int) ($row->license_grace_days ?? 14);
+
+        $out = [
+            'present' => false,
+            'verified' => false,
+            'entitlements' => [],
+            'exp' => null,
+            'grace_days' => $graceDays,
+            'status' => 'none',
+            'days_left' => null,
+        ];
+
+        if ($token && $publicKey) {
+            $out['present'] = true;
+            $payload = self::decodePayload($token);
+            $out['verified'] = $payload !== null && self::verify($token, $publicKey);
+
+            if (is_array($payload)) {
+                $out['entitlements'] = array_values((array) ($payload['entitlements'] ?? []));
+                $out['exp'] = $payload['exp'] ?? null;
+                $out['status'] = (string) ($payload['status'] ?? 'active');
+            }
+        }
+
+        if ($out['exp']) {
+            try {
+                $exp = \Illuminate\Support\Carbon::parse($out['exp']);
+                $out['days_left'] = (int) now()->diffInDays($exp, false);
+            } catch (\Throwable) {
+            }
+        }
+
+        return self::$state = $out;
+    }
+
+    /**
+     * Apakah fitur/modul tertentu berlisensi. Bila belum pernah ada lisensi
+     * sama sekali (instalasi baru, pusat belum diatur), anggap berlaku (fail-open
+     * terkendali) — penegakan keras baru aktif setelah lisensi diterbitkan.
+     */
+    public static function allows(string $entitlement): bool
+    {
+        $state = self::state();
+
+        if (!$state['present']) {
+            return true; // belum ada lisensi → jangan kunci instalasi
+        }
+
+        if (!$state['verified'] || $state['status'] !== 'active') {
+            return self::withinGrace($state);
+        }
+
+        return in_array($entitlement, $state['entitlements'], true)
+            || in_array('*', $state['entitlements'], true)
+            || in_array('core', $state['entitlements'], true);
+    }
+
+    /** Apakah lisensi masih dalam masa tenggang (habis tapi belum dikunci). */
+    public static function withinGrace(?array $state = null): bool
+    {
+        $state ??= self::state();
+
+        if ($state['exp'] === null || $state['days_left'] === null) {
+            return true;
+        }
+
+        return $state['days_left'] >= -1 * (int) $state['grace_days'];
+    }
+
+    /** Apakah lisensi perlu perhatian (belum ada / dekat atau lewat masa berlaku). */
+    public static function needsAttention(): bool
+    {
+        $state = self::state();
+
+        // Belum pernah ada lisensi → instalasi baru; jangan dipanggil tiap halaman.
+        if (!$state['present']) {
+            return false;
+        }
+
+        return !$state['verified']
+            || $state['status'] !== 'active'
+            || ($state['days_left'] !== null && $state['days_left'] <= 30);
+    }
+
+    /** Verifikasi tanda-tangan Ed25519 (token "b64url(payload).b64url(sig)"). */
+    public static function verify(string $token, string $publicKeyHex): bool
+    {
+        if (!function_exists('sodium_crypto_sign_verify_detached')) {
+            return false;
+        }
+
+        $parts = explode('.', $token);
+        if (count($parts) !== 2) {
+            return false;
+        }
+
+        $json = self::b64urlDecode($parts[0]);
+        $signature = self::b64urlDecode($parts[1]);
+        $publicKey = @hex2bin($publicKeyHex);
+
+        if ($json === null || $signature === null || $publicKey === false || strlen($publicKey) !== 32) {
+            return false;
+        }
+
+        try {
+            return sodium_crypto_sign_verify_detached($signature, $json, $publicKey);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private static function decodePayload(string $token): ?array
+    {
+        $parts = explode('.', $token);
+        if (count($parts) !== 2) {
+            return null;
+        }
+        $json = self::b64urlDecode($parts[0]);
+        $data = $json !== null ? json_decode($json, true) : null;
+
+        return is_array($data) ? $data : null;
+    }
+
+    private static function persist(string $token, string $publicKeyHex, int $graceDays): void
+    {
+        self::ensureColumns();
+
+        DB::table('settings')->where('id', 1)->update([
+            'license_token' => $token,
+            'license_public_key' => $publicKeyHex,
+            'license_grace_days' => $graceDays,
+            'license_synced_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private static function row(): object
+    {
+        try {
+            if (!Schema::hasTable('settings')) {
+                return new \stdClass();
+            }
+
+            return DB::table('settings')->where('id', 1)->first() ?? new \stdClass();
+        } catch (\Throwable) {
+            return new \stdClass();
+        }
+    }
+
+    private static function ensureColumns(): void
+    {
+        foreach (['license_token', 'license_public_key', 'license_grace_days', 'license_synced_at'] as $col) {
+            if (!Schema::hasColumn('settings', $col)) {
+                return;
+            }
+        }
+    }
+
+    private static function npsn(): string
+    {
+        try {
+            if (\App\Support\Table::exists('sekolah')) {
+                $npsn = DB::table('sekolah')->value('npsn');
+                if ($npsn) {
+                    return (string) $npsn;
+                }
+            }
+            if (Schema::hasTable('settings')) {
+                $npsn = DB::table('settings')->where('id', 1)->value('npsn');
+                if ($npsn) {
+                    return (string) $npsn;
+                }
+            }
+        } catch (\Throwable) {
+        }
+
+        return '';
+    }
+
+    private static function b64urlDecode(string $value): ?string
+    {
+        $padded = $value . str_repeat('=', (4 - strlen($value) % 4) % 4);
+        $decoded = base64_decode(strtr($padded, '-_', '+/'), true);
+
+        return $decoded === false ? null : $decoded;
+    }
+}

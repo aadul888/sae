@@ -220,6 +220,17 @@ class UpdateService
             ];
         }
 
+        // Lisensi bertanda-tangan: setelah pusat menerbitkan lisensi, pembaruan
+        // hanya boleh bila lisensi sah & belum lewat masa tenggang. Belum pernah
+        // ada lisensi → fail-open (instalasi baru tak terkunci).
+        if (!\App\Support\AppLicense::allows('update')) {
+            return [
+                'success' => false,
+                'message' => 'Lisensi sekolah tidak sah / sudah berakhir. Hubungi pusat untuk memperpanjang.',
+                'logs' => ['[BLOKIR] lisensi tidak sah atau melewati masa tenggang.'],
+            ];
+        }
+
         $logs = [];
         $success = true;
         $newCommit = null;

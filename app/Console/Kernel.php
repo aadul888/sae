@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // Otomatis lapor statistik data ke sae-core dua kali sehari
         $schedule->command('sae:report-monitoring')->twiceDaily(7, 13)->withoutOverlapping();
+
+        // Segarkan lisensi bertanda-tangan dari pusat sekali sehari.
+        $schedule->call(fn () => \App\Support\AppLicense::refresh())->dailyAt(2)->withoutOverlapping();
     }
 
     /**
