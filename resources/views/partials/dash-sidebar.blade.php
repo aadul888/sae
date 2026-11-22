@@ -1818,6 +1818,14 @@
             <span class="nav-icon"><i class="fas fa-fw fa-circle-info"></i></span>
             <span class="nav-label">Tentang Aplikasi</span>
         </a>
+
+        @if ($role === 'admin')
+            <a href="https://t.me/+CLDfb8uBIqQwNzg1" target="_blank" rel="noopener"
+                class="dash-nav-link">
+                <span class="nav-icon"><i class="fas fa-fw fa-paper-plane"></i></span>
+                <span class="nav-label">Gabung Grup Telegram</span>
+            </a>
+        @endif
     @endif
     </div>
 

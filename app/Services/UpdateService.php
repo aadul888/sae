@@ -210,6 +210,16 @@ class UpdateService
         @set_time_limit(300);
         @ini_set('max_execution_time', '300');
 
+        // Kontrol pusat (sae-core): bila distribusi update untuk aplikasi ini
+        // dimatikan, tolak pembaruan. Fail-open saat sae-core tak terjangkau.
+        if (!\App\Services\CoreControlService::updatesAllowed()) {
+            return [
+                'success' => false,
+                'message' => 'Distribusi pembaruan untuk aplikasi ini sedang dinonaktifkan oleh pusat (sae-core).',
+                'logs' => ['[BLOKIR] update_enabled = false dari sae-core.'],
+            ];
+        }
+
         $logs = [];
         $success = true;
         $newCommit = null;

@@ -488,6 +488,13 @@ class RolePermission extends Model
             $actionCol = 'can_read';
         }
 
+        // Kontrol pusat sae-core: mode akses aplikasi per sekolah. Fail-open saat
+        // sae-core tak terjangkau atau mode 'full'. Menutup akses seluruh modul
+        // bila mode 'none', atau membatasi ke fitur terpilih bila 'limited'.
+        if (!\App\Services\CoreControlService::moduleAllowed($permissionKey)) {
+            return false;
+        }
+
         // Khusus Administrator: Superadmin memiliki wewenang penuh tanpa batasan terhadap seluruh modul dan aksi CRUD
         if ($role === 'admin') {
             return true;

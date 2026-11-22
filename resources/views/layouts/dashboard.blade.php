@@ -77,6 +77,8 @@
             <!-- Header Khusus Dashboard -->
             @include('partials.dash-header')
 
+            @include('partials.donation-banner')
+
             @if (session()->has('impersonator'))
                 <div class="dash-impersonate-banner"
                     style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 20px 0;padding:10px 16px;border-radius:var(--radius-lg,12px);background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);color:var(--text-color);font-size:var(--text-sm,0.8125rem);">
