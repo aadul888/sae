@@ -177,6 +177,11 @@ class AuthController extends Controller
                 'foto_url'         => $fotoUrl,
             ];
 
+            // Kontrol pusat: peran Orang Tua mungkin ditutup untuk sekolah ini.
+            if (!\App\Services\CoreControlService::roleAllowed('orang_tua')) {
+                return back()->withInput()->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
+            }
+
             session(['user' => $userData]);
 
             // Catatan: Portal Orang Tua tidak memiliki baris pada tabel `pengguna`
