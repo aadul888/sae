@@ -96,7 +96,7 @@ Dijaga otomatis oleh `DesignConsistencyTest`.
    Masuk ke menu **Files** atau Terminal panel, clone repositori ke root direktori situs:
     ```bash
     cd /www/wwwroot/sae.smakpal.sch.id
-    git clone https://github.com/aadul888/sae.git .
+    git clone https://github.com/aadul888/sae-smk.git .
     composer install --no-dev --optimize-autoloader
     chmod +x deploy.sh && ./deploy.sh
     ```
@@ -120,8 +120,8 @@ Dijaga otomatis oleh `DesignConsistencyTest`.
 1. **Clone Repositori & Install Dependensi:**
     ```bash
     cd /var/www
-    git clone https://github.com/aadul888/sae.git
-    cd sae
+    git clone https://github.com/aadul888/sae-smk.git
+    cd sae-smk
     composer install --no-dev --optimize-autoloader
     chmod +x deploy.sh && ./deploy.sh
     ```
@@ -275,8 +275,8 @@ curl -I https://domain-anda.sch.id/storage/assets/sekolah/<nama-file-logo>
 1. **Clone & Install Dependensi**
 
     ```bash
-    git clone https://github.com/aadul888/sae.git
-    cd sae
+    git clone https://github.com/aadul888/sae-smk.git
+    cd sae-smk
     composer install
     ```
 
