@@ -117,6 +117,13 @@ class UpdateController extends Controller
         // disabled functions
         $info['disabled_functions'] = ini_get('disable_functions');
 
+        // Kontrol pusat sae-core: kondisi nyata yang dilihat klien saat ini.
+        try {
+            $info['core_control'] = \App\Services\CoreControlService::diagnostics();
+        } catch (\Throwable $e) {
+            $info['core_control'] = ['error' => $e->getMessage()];
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => $info,

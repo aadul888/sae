@@ -104,4 +104,34 @@ class CoreAccessEnforcementTest extends TestCase
         $res->assertStatus(200);
         $this->assertNotNull(session('user'));
     }
+
+    public function test_last_good_rule_survives_core_outage(): void
+    {
+        // Tidak ada state segar; hanya hasil terakhir yang berhasil.
+        Cache::forget('sae_core_control_state');
+        Cache::put('sae_core_control_last_good', $this->blockedState(['guru']), 3600);
+
+        \Illuminate\Support\Facades\Http::fake([
+            '*' => \Illuminate\Support\Facades\Http::response('', 500),
+        ]);
+
+        $ref = new \ReflectionClass(CoreControlService::class);
+        $prop = $ref->getProperty('state');
+        $prop->setAccessible(true);
+        $prop->setValue(null, null);
+
+        $this->withSession(['user' => [
+            'id' => 'guru-sticky-test',
+            'pengguna_id' => 'guru-sticky-test',
+            'username' => 'guru1',
+            'nama' => 'Guru Ditutup',
+            'role' => 'guru',
+        ]]);
+
+        $res = $this->get('/dashboard/guru');
+
+        // Pusat gagal, tapi aturan terakhir tetap berlaku — tidak fail-open.
+        $res->assertRedirect(route('login'));
+        $this->assertNull(session('user'));
+    }
 }

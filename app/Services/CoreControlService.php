@@ -23,6 +23,8 @@ class CoreControlService
     public const APP_CODE = 'SAE-SMK';
     private const CACHE_KEY = 'sae_core_control_state';
     private const CACHE_TTL = 300; // detik
+    /** Hasil terakhir yang berhasil dari pusat — tetap dipakai saat pusat gagal. */
+    private const CACHE_KEY_LAST_GOOD = 'sae_core_control_last_good';
 
     /** Status penuh bawaan (fail-open). */
     private const DEFAULT = [
@@ -138,7 +140,7 @@ class CoreControlService
         $version = UpdateService::CURRENT_VERSION;
 
         if ($coreUrl === '' || $apiKey === '' || $npsn === '') {
-            return self::DEFAULT;
+            return self::lastGood() ?? self::DEFAULT;
         }
 
         try {
@@ -160,7 +162,10 @@ class CoreControlService
                     \App\Support\CoreApiKey::forgetEnrollment();
                 }
 
-                return self::DEFAULT;
+                // Gagal → pakai hasil terakhir yang berhasil bila ada. Ini menjaga
+                // pembatasan tetap berlaku meski pusat sempat tak terjangkau,
+                // alih-alih gagal-terbuka (semua aktif) di tiap kegagalan.
+                return self::lastGood() ?? self::DEFAULT;
             }
 
             $data = $response->json() ?? [];
@@ -184,14 +189,33 @@ class CoreControlService
 
             try {
                 Cache::put(self::CACHE_KEY, $state, self::CACHE_TTL);
+                // Simpan juga sebagai hasil terakhir yang berhasil (masa simpan lebih
+                // lama), agar pembatasan tetap berlaku saat pusat sempat gagal.
+                Cache::put(self::CACHE_KEY_LAST_GOOD, $state, 86400 * 7);
             } catch (\Throwable) {
                 // abaikan
             }
 
             return $state;
         } catch (\Throwable) {
-            return self::DEFAULT;
+            return self::lastGood() ?? self::DEFAULT;
         }
+    }
+
+    /** Hasil kontrol terakhir yang berhasil diterima dari pusat (bila ada). */
+    private static function lastGood(): ?array
+    {
+        try {
+            $cached = Cache::get(self::CACHE_KEY_LAST_GOOD);
+            if (is_array($cached)) {
+                // Aturan terakhir tetap berlaku (reachable tetap true) agar
+                // pembatasan tidak hilang saat pusat sempat gagal.
+                return $cached;
+            }
+        } catch (\Throwable) {
+        }
+
+        return null;
     }
 
     /** Ping ke sae-core + segarkan cache. Aman dipanggil terjadwal. */
@@ -316,6 +340,43 @@ class CoreControlService
     public static function updatesAllowed(): bool
     {
         return (bool) self::state()['update_enabled'];
+    }
+
+    /**
+     * Diagnostik kontrol pusat: kondisi nyata yang diterima klien saat ini.
+     * Dipakai halaman Update → Diagnostik untuk menelusuri kenapa pembatasan
+     * belum berlaku di satu instalasi.
+     */
+    public static function diagnostics(): array
+    {
+        // Paksa ambil ulang dari pusat agar hasil mencerminkan kondisi terkini.
+        self::$state = null;
+        try {
+            Cache::forget(self::CACHE_KEY);
+        } catch (\Throwable) {
+        }
+
+        $state = self::state();
+
+        $enrolledAt = null;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('settings', 'core_enrolled_at')) {
+                $enrolledAt = DB::table('settings')->where('id', 1)->value('core_enrolled_at');
+            }
+        } catch (\Throwable) {
+        }
+
+        return [
+            'core_url' => \App\Support\CoreApiKey::coreUrl(),
+            'npsn' => self::npsn(),
+            'app_code' => self::APP_CODE,
+            'reachable' => (bool) ($state['reachable'] ?? false),
+            'mode' => $state['mode'] ?? null,
+            'roles_blocked' => $state['roles'] ?? [],
+            'dapodik_enabled' => (bool) ($state['dapodik_enabled'] ?? true),
+            'install_key_set' => \App\Support\CoreApiKey::stored() !== null,
+            'enrolled_at' => $enrolledAt,
+        ];
     }
 
     private static function npsn(): string
