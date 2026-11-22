@@ -153,6 +153,13 @@ class CoreControlService
                 ]);
 
             if (!$response->successful()) {
+                // 401 = kunci instalasi tak dikenal pusat (mis. hash direset atau
+                // pernah tergantikan). Bersihkan penanda enroll agar panggilan
+                // berikutnya mendaftar ulang otomatis — memulihkan diri.
+                if ($response->status() === 401) {
+                    \App\Support\CoreApiKey::forgetEnrollment();
+                }
+
                 return self::DEFAULT;
             }
 

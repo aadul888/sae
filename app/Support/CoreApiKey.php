@@ -164,6 +164,22 @@ final class CoreApiKey
         }
     }
 
+    /**
+     * Bersihkan penanda "sudah enroll" agar kunci lokal didaftarkan ulang ke
+     * pusat pada panggilan berikutnya. Dipakai saat pusat menolak kunci (401) —
+     * mis. hash tersimpan direset admin — sehingga klien memulihkan diri.
+     */
+    public static function forgetEnrollment(): void
+    {
+        try {
+            if (Schema::hasColumn('settings', 'core_enrolled_at')) {
+                DB::table('settings')->where('id', 1)->update(['core_enrolled_at' => null]);
+            }
+        } catch (\Throwable) {
+            // abaikan
+        }
+    }
+
     private static function npsn(): string
     {
         try {
