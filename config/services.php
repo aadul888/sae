@@ -34,6 +34,10 @@ return [
     'sae_core' => [
         'url' => env('SAE_CORE_URL', 'https://appsae.com'),
         'api_key' => env('SAE_CORE_API_KEY'),
+        // Kunci publik pusat (hex Ed25519) untuk verifikasi lisensi. Bila diisi
+        // di sini, klien HANYA percaya kunci ini (hard-pin, tahan MITM). Bila
+        // kosong, kunci dipatok otomatis pada pengambilan pertama (TOFU).
+        'license_public_key' => env('SAE_CORE_LICENSE_PUBLIC_KEY'),
     ],
 
     'google' => [

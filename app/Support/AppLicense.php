@@ -51,7 +51,7 @@ final class AppLicense
 
             $data = $response->json() ?? [];
             $token = (string) ($data['license'] ?? '');
-            $publicKey = (string) ($data['public_key'] ?? '');
+            $publicKey = self::resolvePublicKey((string) ($data['public_key'] ?? ''));
 
             if ($token === '' || $publicKey === '') {
                 return self::state();
@@ -70,6 +70,41 @@ final class AppLicense
         }
     }
 
+    /**
+     * Kunci publik tepercaya untuk verifikasi. Urutan:
+     *  1. Kunci tertanam di konfigurasi (.env SAE_CORE_LICENSE_PUBLIC_KEY) — utama.
+     *  2. Kunci yang dipatok sebelumnya (first-run).
+     *  3. TOFU: patok kunci dari pusat pada pengambilan pertama.
+     *  Kunci bercabang dari yang sudah dipatok → ditolak (indikasi MITM).
+     */
+    public static function resolvePublicKey(string $fromCore): string
+    {
+        $pinned = self::trustedPublicKey();
+
+        if ($pinned === '') {
+            return $fromCore; // first-run: patok belum ada
+        }
+
+        // Selalu pakai kunci tepercaya; abaikan yang dikirim pusat.
+        return $pinned;
+    }
+
+    /** Kunci publik tepercaya yang sudah dipegang klien (env atau tersimpan). */
+    public static function trustedPublicKey(): string
+    {
+        $env = trim((string) config('services.sae_core.license_public_key'));
+        if (preg_match('/^[0-9a-f]{64}$/i', $env)) {
+            return strtolower($env);
+        }
+
+        $stored = (string) (self::row()->license_public_key ?? '');
+        if (preg_match('/^[0-9a-f]{64}$/i', $stored)) {
+            return strtolower($stored);
+        }
+
+        return '';
+    }
+
     /** State lisensi terkini: valid?, exp, entitlements, status, sumber. */
     public static function state(): array
     {
@@ -79,7 +114,6 @@ final class AppLicense
 
         $row = self::row();
         $token = $row->license_token ?? null;
-        $publicKey = $row->license_public_key ?? null;
         $graceDays = (int) ($row->license_grace_days ?? 14);
 
         $out = [
@@ -91,6 +125,10 @@ final class AppLicense
             'status' => 'none',
             'days_left' => null,
         ];
+
+        // Verifikasi HANYA dengan kunci tepercaya (tertanam/terpatok), bukan
+        // kunci yang kebetulan tersimpan dari respons.
+        $publicKey = self::trustedPublicKey();
 
         if ($token && $publicKey) {
             $out['present'] = true;

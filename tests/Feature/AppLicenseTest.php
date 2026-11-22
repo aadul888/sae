@@ -64,4 +64,30 @@ class AppLicenseTest extends TestCase
     {
         $this->assertFalse(AppLicense::verify('not-a-token', str_repeat('0', 64)));
     }
+
+    public function test_env_pin_overrides_core_supplied_key(): void
+    {
+        [$token, $attackerKey] = $this->sign(['app_code' => 'SAE-SMK', 'status' => 'active']);
+
+        // Kunci disematkan di config = kunci sah. Kunci dari "pusat" palsu diabaikan.
+        [$legitToken, $legitKey] = $this->sign(['app_code' => 'SAE-SMK', 'status' => 'active']);
+        config(['services.sae_core.license_public_key' => $legitKey]);
+
+        $resolved = \App\Support\AppLicense::resolvePublicKey($attackerKey);
+        $this->assertSame(strtolower($legitKey), $resolved, 'Kunci tertanam harus dipakai, bukan dari respons.');
+
+        // Token penyerang tak lolos verifikasi dengan kunci tepercaya.
+        $this->assertFalse(\App\Support\AppLicense::verify($token, $resolved));
+        // Token sah lolos dengan kunci tepercaya.
+        $this->assertTrue(\App\Support\AppLicense::verify($legitToken, $resolved));
+    }
+
+    public function test_tofu_pins_when_no_env_key(): void
+    {
+        config(['services.sae_core.license_public_key' => null]);
+
+        // Belum ada pin → pakai kunci yang dikirim (first-run).
+        [$token, $key] = $this->sign(['app_code' => 'SAE-SMK', 'status' => 'active']);
+        $this->assertSame($key, \App\Support\AppLicense::resolvePublicKey($key));
+    }
 }
