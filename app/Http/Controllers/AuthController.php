@@ -177,11 +177,6 @@ class AuthController extends Controller
                 'foto_url'         => $fotoUrl,
             ];
 
-            // Kontrol pusat: peran Orang Tua mungkin ditutup untuk sekolah ini.
-            if (!\App\Services\CoreControlService::roleAllowed('orang_tua')) {
-                return back()->withInput()->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
-            }
-
             session(['user' => $userData]);
 
             // Catatan: Portal Orang Tua tidak memiliki baris pada tabel `pengguna`
@@ -289,11 +284,6 @@ class AuthController extends Controller
         // (lihat SaeKredensialService::cekPassword()).
         if (!\App\Services\SaeKredensialService::cekPassword($user, (string) $identifier, $password)) {
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
-        }
-
-        // Kontrol pusat: peran ini mungkin ditutup untuk sekolah.
-        if (!\App\Services\CoreControlService::roleAllowed($user->role)) {
-            return back()->withInput()->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
         }
 
         // Login dari mode PWA (standalone) → aktifkan remember token agar
@@ -426,10 +416,6 @@ class AuthController extends Controller
             $allowedRoles = ['admin', 'guru', 'tendik', 'peserta_didik'];
             if (!in_array($user->role, $allowedRoles, true)) {
                 return redirect()->route('login')->with('error', "Peran '{$user->peran_id_str}' tidak memiliki hak akses masuk portal ini.");
-            }
-
-            if (!\App\Services\CoreControlService::roleAllowed($user->role)) {
-                return redirect()->route('login')->with('error', 'Akses portal untuk peran ini sedang ditutup oleh administrator pusat.');
             }
 
             // Bangun sesi pengguna dan catat aktivitas sistem.

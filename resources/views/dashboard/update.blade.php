@@ -15,6 +15,11 @@
             </p>
         </div>
         <div class="dash-banner-actions">
+            <button type="button" id="btnPullRule" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
+                title="Uji Koneksi Pusat (sae-core)" aria-label="Uji Koneksi Pusat">
+                <i class="fas fa-tower-broadcast"></i>
+            </button>
             <button type="button" id="btnCheckUpdate" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                 title="Periksa Pembaruan Sistem" aria-label="Periksa Pembaruan Sistem">

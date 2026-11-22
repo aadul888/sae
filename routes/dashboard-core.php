@@ -173,6 +173,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check')->middleware('permission:menu_update');
     Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute')->middleware('permission:fitur_system_update');
     Route::get('/update/diagnose', [UpdateController::class, 'diagnose'])->name('update.diagnose')->middleware('permission:menu_update');
+    Route::post('/update/pull-core-rule', [UpdateController::class, 'pullCoreRule'])->name('update.pull-core-rule')->middleware('permission:menu_update');
 
     // Pengaturan Hak Akses (Role & Permission)
     Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index')->middleware('permission:menu_hak_akses,read');

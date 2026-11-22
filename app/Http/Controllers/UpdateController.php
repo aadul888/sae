@@ -66,6 +66,26 @@ class UpdateController extends Controller
     }
 
     /**
+     * Uji koneksi ke pusat (sae-core) dan kembalikan hasilnya — status
+     * donasi/iklan & pembaruan serta info kunci instalasi.
+     */
+    public function pullCoreRule(): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $diag = \App\Services\CoreControlService::diagnostics();
+
+        return response()->json([
+            'status' => !empty($diag['reachable']) ? 'success' : 'error',
+            'data' => $diag,
+        ]);
+    }
+
+    /**
      * Diagnostic endpoint - cek environment server untuk debugging update
      */
     public function diagnose(): JsonResponse

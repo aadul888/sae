@@ -49,6 +49,42 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    const btnPull = document.getElementById("btnPullRule");
+    if (btnPull) {
+        btnPull.addEventListener("click", async () => {
+            appendLog("Menguji koneksi ke pusat (sae-core)...", "#38bdf8");
+            try {
+                const token = getCsrfToken();
+                const res = await fetch("/dashboard/update/pull-core-rule", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": token,
+                        "X-XSRF-TOKEN": token,
+                        Accept: "application/json",
+                    },
+                });
+                const json = await res.json();
+                const d = json.data || {};
+                appendLog(
+                    `Pusat: ${d.core_url || "-"} | NPSN: ${d.npsn || "-"} | terhubung: ${d.reachable ? "ya" : "tidak"} | kunci terpasang: ${d.install_key_set ? "ya" : "tidak"}`,
+                    "#e2e8f0",
+                );
+                if (d.reachable) {
+                    appendLog(
+                        `Iklan donasi: ${d.show_ads ? "tampil" : "tidak"} | distributor: ${d.is_donor ? "donatur" : "belum"} | pembaruan: ${d.update_enabled ? "diizinkan" : "dimatikan"}`,
+                        "#4ade80",
+                    );
+                    if (window.SAE && window.SAE.toast) window.SAE.toast("Terhubung ke pusat sae-core.", "success");
+                } else {
+                    appendLog("Tak terhubung ke pusat. Periksa Alamat Pusat & kunci di Identitas Sekolah.", "#f87171");
+                    if (window.SAE && window.SAE.toast) window.SAE.toast("Gagal menghubungi pusat.", "danger");
+                }
+            } catch (err) {
+                appendLog("Error menghubungi pusat: " + err.message, "#f87171");
+            }
+        });
+    }
+
     function getCsrfToken() {
         const meta = document
             .querySelector('meta[name="csrf-token"]')
@@ -60,8 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
     }
 
-    btnCheck.addEventListener("click", async () => {
-        checkIcon.classList.add("fa-spin");
+    btnCheck.addEventListener("click", async () => {        checkIcon.classList.add("fa-spin");
         appendLog("Memeriksa update sistem...", "#94a3b8");
         try {
             const res = await fetch("/dashboard/update/check");
