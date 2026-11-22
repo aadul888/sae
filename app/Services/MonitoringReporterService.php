@@ -89,6 +89,7 @@ class MonitoringReporterService
         return [
             'npsn' => (string) $npsn,
             'nama_sekolah' => (string) $namaSekolah,
+            'app_code' => \App\Services\CoreControlService::APP_CODE,
             'bentuk_pendidikan' => $bentukPendidikan,
             'tipe_instalasi' => $tipeInstalasi,
             'app_url' => $appUrl,
@@ -115,8 +116,8 @@ class MonitoringReporterService
     public static function send(): array
     {
         $payload = self::collectCounts();
-        $coreUrl = rtrim(config('services.sae_core.url') ?: env('SAE_CORE_URL', 'https://appsae.com'), '/');
-        $apiKey = config('services.sae_core.api_key');
+        $coreUrl = \App\Support\CoreApiKey::coreUrl();
+        $apiKey = \App\Support\CoreApiKey::resolve();
 
         if (empty($coreUrl)) {
             return [

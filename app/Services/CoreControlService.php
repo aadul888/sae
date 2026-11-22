@@ -94,8 +94,8 @@ class CoreControlService
     /** Ambil status dari sae-core (dipakai juga untuk ping sekaligus). */
     public static function fetch(): array
     {
-        $coreUrl = rtrim((string) (config('services.sae_core.url') ?: env('SAE_CORE_URL', '')), '/');
-        $apiKey = (string) config('services.sae_core.api_key');
+        $coreUrl = \App\Support\CoreApiKey::coreUrl();
+        $apiKey = \App\Support\CoreApiKey::resolve();
         $npsn = self::npsn();
         $version = UpdateService::CURRENT_VERSION;
 

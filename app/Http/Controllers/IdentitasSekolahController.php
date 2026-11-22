@@ -315,7 +315,8 @@ class IdentitasSekolahController extends Controller
     }
 
     /**
-     * Simpan konfigurasi kredensial Google Belajar.id ke berkas .env
+     * Simpan konfigurasi kredensial Google Belajar.id ke basis data (tabel settings).
+     * Tidak menyentuh .env — diatur murni dari halaman Pengaturan.
      */
     public function updateGoogleConfig(Request $request)
     {
@@ -347,47 +348,33 @@ class IdentitasSekolahController extends Controller
             $redirectUri = route('auth.google.callback');
         }
 
-        $this->writeEnvFile([
-            'GOOGLE_CLIENT_ID'     => $clientId,
-            'GOOGLE_CLIENT_SECRET' => $clientSecret,
-            'GOOGLE_REDIRECT_URI'  => $redirectUri,
-        ]);
-
-        return back()->with('success', 'Konfigurasi kredensial Google Belajar.id berhasil disimpan ke .env.');
-    }
-
-    /**
-     * Tulis pembaruan konfigurasi ke file .env secara aman
-     */
-    private function writeEnvFile(array $data): void
-    {
-        $envPath = base_path('.env');
-        $examplePath = base_path('.env.example');
-
-        $content = File::exists($envPath) ? File::get($envPath) : (File::exists($examplePath) ? File::get($examplePath) : '');
-
-        foreach ($data as $key => $value) {
-            $escapedValue = addcslashes((string) $value, '"\\$');
-            $lineValue = '"' . $escapedValue . '"';
-
-            if (preg_match("/^{$key}=.*/m", $content)) {
-                $content = preg_replace("/^{$key}=.*/m", "{$key}={$lineValue}", $content);
-            } else {
-                $content .= "\n{$key}={$lineValue}";
-            }
+        if (!Table::exists('settings') || !\Illuminate\Support\Facades\Schema::hasColumn('settings', 'google_client_id')) {
+            return back()->withInput()->with('error', 'Skema pengaturan belum siap. Jalankan migrasi terlebih dahulu.');
         }
 
-        File::put($envPath, $content);
-        @chmod($envPath, 0664);
+        // Secret kosong = pertahankan nilai lama (field sengaja tidak diisi ulang).
+        $existingSecret = DB::table('settings')->where('id', 1)->value('google_client_secret');
+        $secretToSave = $clientSecret !== '' ? $clientSecret : ($existingSecret ?: null);
 
-        $cachedConfig = base_path('bootstrap/cache/config.php');
-        if (File::exists($cachedConfig)) {
-            @unlink($cachedConfig);
+        if (($clientId !== '' && $secretToSave === null)) {
+            return back()->withInput()->with('error', 'Client Secret wajib diisi saat pertama kali mengaktifkan integrasi Google.');
         }
+
+        DB::table('settings')->updateOrInsert(
+            ['id' => 1],
+            [
+                'google_client_id'     => $clientId ?: null,
+                'google_client_secret' => $secretToSave,
+                'google_redirect_uri'  => $redirectUri ?: null,
+                'updated_at'           => now(),
+            ]
+        );
 
         try {
-            Artisan::call('optimize:clear');
+            Artisan::call('config:clear');
         } catch (\Throwable) {
         }
+
+        return back()->with('success', 'Konfigurasi kredensial Google Belajar.id berhasil disimpan.');
     }
 }

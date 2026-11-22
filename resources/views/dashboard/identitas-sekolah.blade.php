@@ -334,7 +334,7 @@
                 </div>
             </div>
             @php
-                $googleConfigured = !empty(config('services.google.client_id')) && !empty(config('services.google.client_secret'));
+                $googleConfigured = \App\Support\GoogleOAuthConfig::isConfigured();
             @endphp
             <span class="badge {{ $googleConfigured ? 'badge-success' : 'badge-warning' }}"
                 style="font-size: var(--text-sm, 0.8125rem); padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px;">
@@ -365,28 +365,28 @@
             </div>
         </div>
 
-        <!-- Form Simpan Kredensial ke .env -->
+        <!-- Form Simpan Kredensial (disimpan di basis data, bukan .env) -->
         <form action="{{ route('dashboard.identitas-sekolah.google-config') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
             @csrf
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
                 <div>
                     <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                        GOOGLE_CLIENT_ID <span style="color: var(--danger, #ef4444);">*</span>
+                        Client ID Google <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
-                    <input type="text" name="google_client_id" required
-                        value="{{ old('google_client_id', config('services.google.client_id')) }}"
+                    <input type="text" name="google_client_id"
+                        value="{{ old('google_client_id', \App\Support\GoogleOAuthConfig::clientId()) }}"
                         placeholder="Contoh: 1234567890-xxx.apps.googleusercontent.com"
                         style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); padding: 10px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); border-radius: var(--radius-lg, 12px); outline: none; font-family: monospace;">
                 </div>
 
                 <div>
                     <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                        GOOGLE_CLIENT_SECRET <span style="color: var(--danger, #ef4444);">*</span>
+                        Client Secret Google <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <div style="position: relative; display: flex; align-items: center;">
-                        <input type="password" name="google_client_secret" id="googleClientSecret" required
-                            value="{{ old('google_client_secret', config('services.google.client_secret')) }}"
-                            placeholder="Contoh: GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
+                        <input type="password" name="google_client_secret" id="googleClientSecret"
+                            value=""
+                            placeholder="{{ \App\Support\GoogleOAuthConfig::clientSecret() !== '' ? '•••••••• (terisi — kosongkan bila tidak diubah)' : 'Contoh: GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx' }}"
                             style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); padding: 10px 42px 10px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); border-radius: var(--radius-lg, 12px); outline: none; font-family: monospace;">
                         <button type="button" onclick="toggleGoogleSecret('googleClientSecret', 'eyeSecretIcon')"
                             style="position: absolute; right: 12px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" aria-label="Tampilkan password">
@@ -398,10 +398,10 @@
 
             <div>
                 <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                    GOOGLE_REDIRECT_URI <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">(Opsional, otomatis mengikuti URL domain jika dikosongkan)</span>
+                    Redirect URI <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">(Opsional, otomatis mengikuti URL domain jika dikosongkan)</span>
                 </label>
                 <input type="text" name="google_redirect_uri"
-                    value="{{ old('google_redirect_uri', config('services.google.redirect_uri') ?: route('auth.google.callback')) }}"
+                    value="{{ old('google_redirect_uri', \App\Support\GoogleOAuthConfig::redirectUri()) }}"
                     placeholder="{{ route('auth.google.callback') }}"
                     style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); padding: 10px 14px; color: var(--text-color); font-size: var(--text-base, 0.875rem); border-radius: var(--radius-lg, 12px); outline: none; font-family: monospace;">
             </div>
@@ -409,7 +409,7 @@
             @if ($canUpdate)
                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px;">
                     <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem);">
-                        <i class="fas fa-floppy-disk me-1"></i> Simpan Konfigurasi ke .env
+                        <i class="fas fa-floppy-disk me-1"></i> Simpan Konfigurasi
                     </button>
                 </div>
             @endif
