@@ -834,7 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!id) return;
 
         if (typeof Swal !== "undefined") {
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus presensi mengajar <strong>${name}</strong>? Data jurnal yang terhubung akan dilepaskan relasinya.", "Hapus Catatan Presensi?", 'warning', "Ya, Hapus Data", "Batal").then((result) => {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus presensi mengajar <strong>${name}</strong>? Data jurnal yang terhubung akan dilepaskan relasinya.`, "Hapus Catatan Presensi?", 'warning', "Ya, Hapus Data", "Batal").then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/dashboard/presensi-mengajar/${id}`, {
                         method: "DELETE",

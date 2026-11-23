@@ -409,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.pipHapusUsulan = async function (id, nama, status) {
         if (status === "sudah_diajukan" || status === "ditolak") {
             const label = status === "sudah_diajukan" ? "Sudah Diusulkan" : "Ditolak";
-            window.SAE.alert("Usulan PIP untuk ${nama} berstatus \"${label}\" sehingga tidak dapat dihapus.", "Tidak Dapat Dihapus", 'warning');
+            window.SAE.alert(`Usulan PIP untuk ${nama} berstatus "${label}" sehingga tidak dapat dihapus.`, "Tidak Dapat Dihapus", 'warning');
             return;
         }
 

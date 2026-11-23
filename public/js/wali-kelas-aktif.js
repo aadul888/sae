@@ -697,7 +697,10 @@ document.addEventListener("click", async function (e) {
     const pdNama = btnReset.dataset.nama || "Peserta Didik";
     const pdNisn = btnReset.dataset.nisn || "NISN";
 
-    const result = await window.SAE.confirm("Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +\n            `<div style=\"font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;\">` +\n            `<i class=\"fas fa-info-circle text-warning me-1\"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +\n            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>", "Reset Password Akun?", 'warning', "<i class=\"fas fa-key me-1\"></i> Ya, Reset Password", "Batal");
+    const result = await window.SAE.confirm(`Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +
+            `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
+            `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
+            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`, "Reset Password Akun?", 'warning', "<i class=\"fas fa-key me-1\"></i> Ya, Reset Password", "Batal");
 
     if (!result.isConfirmed) return;
 

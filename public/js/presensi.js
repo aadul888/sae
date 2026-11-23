@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (inLat) inLat.value = lat;
                     if (inLon) inLon.value = lon;
                     updateGoogleMapsLink();
-                    window.SAE.alert("Lintang: ${lat}, Bujur: ${lon}", "Titik Dapodik Diterapkan", 'info');
+                    window.SAE.alert(`Lintang: ${lat}, Bujur: ${lon}`, "Titik Dapodik Diterapkan", 'info');
                 } else {
                     Swal.fire('Informasi', 'Data koordinat sekolah di Dapodik belum terisi.', 'warning');
                 }
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (inLat) inLat.value = lat;
                         if (inLon) inLon.value = lon;
                         updateGoogleMapsLink();
-                        window.SAE.alert("GPS: ${lat}, ${lon} (Akurasi: ±${Math.round(pos.coords.accuracy)}m)", "Lokasi Terdeteksi!", 'success');
+                        window.SAE.alert(`GPS: ${lat}, ${lon} (Akurasi: ±${Math.round(pos.coords.accuracy)}m)`, "Lokasi Terdeteksi!", 'success');
                     },
                     (err) => {
                         Swal.fire({

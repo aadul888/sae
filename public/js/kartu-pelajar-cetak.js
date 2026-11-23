@@ -289,7 +289,7 @@ window.unduhMasalSemuaJpg = async function (sideFilter) {
         URL.revokeObjectURL(link.href);
 
         if (typeof Swal !== 'undefined') {
-            window.SAE.alert("${totalFiles} berkas JPG berhasil dikompresi ke dalam ZIP.", "Berhasil Diunduh!", 'success');
+            window.SAE.alert(`${totalFiles} berkas JPG berhasil dikompresi ke dalam ZIP.`, "Berhasil Diunduh!", 'success');
         }
     } catch (err) {
         console.error('Error saat proses masal JPG:', err);

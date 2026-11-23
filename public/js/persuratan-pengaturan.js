@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     btnTestHdd.innerHTML = '<i class="fas fa-plug-circle-check me-1"></i> Uji Akses Folder';
 
                     if (data.success) {
-                        window.SAE.alert("Direktori harddisk valid dan siap digunakan untuk membaca &amp; menulis berkas.<br><br>\n                                   <strong>Kapasitas Tersedia:</strong> ${data.free_formatted} dari ${data.total_formatted}", "Koneksi HDD Berhasil!", 'success');
+                        window.SAE.alert(`Direktori harddisk valid dan siap digunakan untuk membaca &amp; menulis berkas.<br><br>\n                                   <strong>Kapasitas Tersedia:</strong> ${data.free_formatted} dari ${data.total_formatted}`, "Koneksi HDD Berhasil!", 'success');
 
                         if (hddStatusIndicator) {
                             hddStatusIndicator.className = 'badge-compact badge-success';

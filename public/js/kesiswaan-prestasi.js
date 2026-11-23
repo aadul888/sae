@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         const itemName = form.getAttribute('data-name') || 'data ini';
 
-        window.SAE.confirm("Apakah Anda yakin ingin menghapus ${itemName}? Tindakan ini tidak dapat dibatalkan.", "Hapus Prestasi?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
+        window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${itemName}? Tindakan ini tidak dapat dibatalkan.`, "Hapus Prestasi?", 'warning', "Ya, Hapus!", "Batal").then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
                     title: 'Menghapus...',
