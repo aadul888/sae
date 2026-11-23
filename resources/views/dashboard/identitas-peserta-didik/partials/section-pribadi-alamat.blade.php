@@ -13,7 +13,7 @@
                             &amp; Kartu Keluarga</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    <div class="sae-field-grid">
                         <!-- Nama Lengkap -->
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Lengkap Siswa
@@ -166,9 +166,9 @@
 
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px;">
+                    <div class="sae-field-grid" style="margin-top: 16px;">
                         <!-- Alamat Jalan / Kampung / Dusun -->
-                        <div style="grid-column: 1 / -1;">
+                        <div class="sae-col-full">
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Alamat Jalan / Kampung
                                 / Dusun <span class="text-danger">*</span></label>
                             <input type="text" name="alamat_jalan" class="form-control"

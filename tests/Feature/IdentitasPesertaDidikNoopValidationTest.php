@@ -130,4 +130,47 @@ class IdentitasPesertaDidikNoopValidationTest extends TestCase
         PesertaDidik::where('peserta_didik_id', $pdId)->delete();
         PesertaDidikIdentitas::where('peserta_didik_id', $pdId)->delete();
     }
+
+    public function test_field_type_validation_rejects_wrong_kind_of_input(): void
+    {
+        $pdId = 'PD-' . time() . '-' . random_int(100, 999);
+
+        PesertaDidik::create([
+            'peserta_didik_id' => $pdId,
+            'nama' => 'Citra Dewi',
+            'nisn' => '1234567892',
+            'jenis_kelamin' => 'P',
+            'nama_rombel' => 'X-B',
+        ]);
+
+        PesertaDidikIdentitas::create([
+            'peserta_didik_id' => $pdId,
+            'nisn' => '1234567892',
+            'nama' => 'Citra Dewi',
+            'jenis_kelamin' => 'P',
+            'status_konfirmasi' => 'perlu_perbaikan',
+        ]);
+
+        $response = $this->withSession([
+            'user' => [
+                'role' => 'tendik',
+                'nama' => 'Operator',
+                'username' => 'operator',
+            ],
+        ])->post(route('dashboard.identitas.update'), [
+            'peserta_didik_id' => $pdId,
+            'nama' => 'Citra123',          // nama tidak boleh mengandung angka
+            'nik' => '3200AB',             // NIK hanya angka
+            'kode_pos' => '12x45',         // kode pos hanya angka
+            'email' => 'bukan-email',      // format email harus valid
+            'waktu_tempuh_menit' => '90',  // menit maksimal 59
+            'lintang' => 'bukan-angka',    // koordinat hanya angka
+        ]);
+
+        $response->assertSessionHasErrors(['nama', 'nik', 'kode_pos', 'email', 'waktu_tempuh_menit', 'lintang']);
+        $this->assertSame(0, SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)->count());
+
+        PesertaDidik::where('peserta_didik_id', $pdId)->delete();
+        PesertaDidikIdentitas::where('peserta_didik_id', $pdId)->delete();
+    }
 }

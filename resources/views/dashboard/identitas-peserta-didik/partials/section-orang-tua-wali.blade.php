@@ -23,7 +23,7 @@
                     </div>
 
                     <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                        class="sae-field-grid sae-field-grid--tight">
                             <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Ayah
                                     Kandung</label>
@@ -134,7 +134,7 @@
                     </div>
 
                     <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                        class="sae-field-grid sae-field-grid--tight">
                             <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Ibu
                                     Kandung</label>
@@ -238,7 +238,7 @@
                     <div id="containerDataWali"
                         style="display: {{ old('mempunyai_wali', $identitas->mempunyai_wali) ? 'block' : 'none' }};">
                         <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                            class="sae-field-grid sae-field-grid--tight">
                             <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Lengkap
                                     Wali</label>

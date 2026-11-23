@@ -1,7 +1,7 @@
 /**
- * Penjaga tipe input (global semua formulir): field numerik tidak menerima teks biasa.
- * Mode mengikuti atribut inputmode (numeric | decimal | tel) atau daftar nama field
- * yang memang numerik. Karakter di luar mode dibuang saat diketik/di-paste.
+ * Penjaga tipe input (global semua formulir): field numerik tidak menerima teks biasa,
+ * field nama tidak menerima angka. Mode mengikuti atribut inputmode (numeric | decimal | tel),
+ * pola nama berindeks, atau daftar nama field. Karakter di luar mode dibuang saat diketik/di-paste.
  */
 (function () {
     'use strict';
@@ -9,6 +9,8 @@
     const DIGITS = /[^0-9]/g;
     const DECIMAL = /[^0-9.,-]/g;
     const TEL = /[^0-9+\-() ]/g;
+    const NAME = /[^\p{L}\s.'-]/gu;
+    const NAME_ARRAY = /\[(nama|nama_di_kartu)\]$/;
 
     // ponytail: kurasi nama field, bukan deteksi otomatis semantik. Tambah nama baru bila perlu.
     const NAMED_MODES = {
@@ -36,6 +38,10 @@
         lingkar_kepala: 'numeric',
         waktu_tempuh_jam: 'numeric',
         waktu_tempuh_menit: 'numeric',
+        nama: 'name',
+        nama_ayah: 'name',
+        nama_ibu: 'name',
+        nama_wali: 'name',
     };
 
     const MAXLENGTH = {
@@ -54,6 +60,7 @@
         if (mode === 'numeric') return value.replace(DIGITS, '');
         if (mode === 'decimal') return value.replace(DECIMAL, '').replace(/(?!^)-/g, '');
         if (mode === 'tel') return value.replace(TEL, '');
+        if (mode === 'name') return value.replace(NAME, '');
         return value;
     }
 
@@ -61,14 +68,17 @@
         if (el.type === 'number' || el.type === 'email') return null;
         const mode = String(el.getAttribute('inputmode') || '').toLowerCase();
         if (mode === 'numeric' || mode === 'decimal' || mode === 'tel') return mode;
-        return NAMED_MODES[el.name] || null;
+        if (NAMED_MODES[el.name]) return NAMED_MODES[el.name];
+        // Field berindeks (mis. riwayat_prestasi[0][nama]) tetap dikenali lewat pola nama.
+        if (NAME_ARRAY.test(el.name)) return 'name';
+        return null;
     }
 
     function apply(el) {
         const mode = resolveMode(el);
         if (!mode) return;
 
-        el.setAttribute('inputmode', mode);
+        if (mode !== 'name') el.setAttribute('inputmode', mode);
 
         const max = MAXLENGTH[el.name];
         if (max) el.setAttribute('maxlength', String(max));

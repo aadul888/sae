@@ -12,7 +12,7 @@
                             &amp; Email</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    <div class="sae-field-grid">
                         <!-- Nomor Telepon Rumah -->
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">No. Telepon Rumah
@@ -60,7 +60,7 @@
                         </button>
                     </div>
 
-                    <div style="overflow-x: auto;">
+                    <div class="sae-table-scroll">
                         <table class="table mb-0" style="width: 100%; border-collapse: collapse; font-size: var(--text-base, 0.875rem);">
                             <thead>
                                 <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
@@ -177,7 +177,7 @@
                         </button>
                     </div>
 
-                    <div style="overflow-x: auto;">
+                    <div class="sae-table-scroll">
                         <table class="table mb-0" style="width: 100%; border-collapse: collapse; font-size: var(--text-base, 0.875rem);">
                             <thead>
                                 <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
@@ -279,7 +279,7 @@
                     </div>
 
                     <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        class="sae-field-grid" style="margin-bottom: 20px;">
                         <!-- Jenis Pendaftaran -->
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Jenis
@@ -349,7 +349,7 @@
                     </div>
 
                     <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                        class="sae-field-grid" style="margin-top: 16px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Hobi / Kegemaran
                                 Siswa</label>

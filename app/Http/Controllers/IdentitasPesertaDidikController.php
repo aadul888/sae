@@ -445,6 +445,138 @@ class IdentitasPesertaDidikController extends Controller
     }
 
     /**
+     * Aturan validasi tipe data identitas peserta didik (satu sumber, dipakai update()).
+     * Mengikuti .agents/docs/Form_Dapodik_2027_Validasi_Lengkap_rev2.md — semua rule bersifat
+     * `nullable` (tipe & format diperiksa bila field terisi; kewajiban isi ditangani atribut HTML required).
+     */
+    private function identityValidationRules(): array
+    {
+        $name = ['nullable', 'string', 'max:100', 'regex:/^[\p{L}\s.\'\-]+$/u'];        // huruf & spasi saja
+        $nameText = ['nullable', 'string', 'max:150', 'regex:/\p{L}/u'];                 // tak boleh angka murni
+        $digits = static fn (int $max) => ['nullable', 'string', "max:{$max}", 'regex:/^[0-9]+$/'];
+        $year = ['nullable', 'integer', 'between:1900,' . (date('Y') + 1)];
+        $phone = ['nullable', 'string', 'max:20', 'regex:/^[0-9+()\-\s]+$/'];
+
+        return [
+            // 1. Data Pribadi
+            'nama' => $name,
+            'jenis_kelamin' => ['nullable', 'in:L,P'],
+            'nik' => $digits(16),
+            'no_kk' => $digits(16),
+            'tempat_lahir' => $nameText,
+            'tanggal_lahir' => ['nullable', 'date'],
+            'no_registrasi_akta_lahir' => ['nullable', 'string', 'max:80'],
+            'anak_keberapa' => ['nullable', 'integer', 'min:0'],
+
+            // 2. Alamat & Domisili
+            'alamat_jalan' => ['nullable', 'string', 'max:200'],
+            'rt' => $digits(3),
+            'rw' => $digits(3),
+            'nama_dusun' => $nameText,
+            'kode_pos' => $digits(5),
+            'lintang' => ['nullable', 'numeric', 'between:-90,90'],
+            'bujur' => ['nullable', 'numeric', 'between:-180,180'],
+
+            // 3. Ayah Kandung
+            'status_hidup_ayah' => ['nullable', 'in:0,1'],
+            'nama_ayah' => $name,
+            'nik_ayah' => $digits(16),
+            'tahun_lahir_ayah' => $year,
+
+            // 4. Ibu Kandung
+            'status_hidup_ibu' => ['nullable', 'in:0,1'],
+            'nama_ibu' => $name,
+            'nik_ibu' => $digits(16),
+            'tahun_lahir_ibu' => $year,
+
+            // 5. Wali
+            'nama_wali' => $name,
+            'nik_wali' => $digits(16),
+            'tahun_lahir_wali' => $year,
+
+            // 6. Kontak
+            'nomor_telepon_rumah' => $phone,
+            'nomor_telepon_seluler' => $phone,
+            'email' => ['nullable', 'email:rfc', 'max:120'],
+
+            // 7. Prestasi
+            'riwayat_prestasi' => ['nullable', 'array'],
+            'riwayat_prestasi.*.nama' => $nameText,
+            'riwayat_prestasi.*.tahun' => $year,
+            'riwayat_prestasi.*.penyelenggara' => $nameText,
+
+            // 8. Kesejahteraan
+            'perlindungan_sosial' => ['nullable', 'array'],
+            'perlindungan_sosial.*.no_kartu' => $digits(30),
+            'perlindungan_sosial.*.nama_di_kartu' => $name,
+            'perlindungan_sosial.*.tahun_mulai' => $year,
+            'perlindungan_sosial.*.tahun_selesai' => $year,
+
+            // 9. Pendaftaran Masuk
+            'tanggal_masuk_sekolah' => ['nullable', 'date'],
+            'sekolah_asal' => $nameText,
+            'pernah_paud_formal' => ['nullable', 'in:0,1'],
+            'pernah_paud_non_formal' => ['nullable', 'in:0,1'],
+
+            // 10. Data Periodik
+            'tinggi_badan' => ['nullable', 'integer', 'min:0'],
+            'berat_badan' => ['nullable', 'integer', 'min:0'],
+            'lingkar_kepala' => ['nullable', 'integer', 'min:0'],
+            'jarak_rumah_sekolah' => ['nullable', 'in:kurang_dari_1_km,lebih_dari_1_km'],
+            'jarak_rumah_sekolah_km' => ['nullable', 'numeric', 'min:0'],
+            'waktu_tempuh_jam' => ['nullable', 'integer', 'min:0'],
+            'waktu_tempuh_menit' => ['nullable', 'integer', 'between:0,59'],
+            'jumlah_saudara_kandung' => ['nullable', 'integer', 'min:0'],
+        ];
+    }
+
+    /** Pesan validasi Bahasa Indonesia, dibangun dari daftar field agar tidak duplikatif. */
+    private function identityValidationMessages(): array
+    {
+        $messages = [];
+        $apply = function (array $fields, string $rule, string $text) use (&$messages) {
+            foreach ($fields as $field) {
+                $messages[$field . '.' . $rule] = $text;
+            }
+        };
+
+        $apply([
+            'nama', 'nama_ayah', 'nama_ibu', 'nama_wali', 'perlindungan_sosial.*.nama_di_kartu',
+        ], 'regex', 'Hanya boleh berisi huruf dan spasi.');
+
+        $apply([
+            'nik', 'no_kk', 'nik_ayah', 'nik_ibu', 'nik_wali', 'rt', 'rw', 'kode_pos',
+            'perlindungan_sosial.*.no_kartu',
+        ], 'regex', 'Hanya boleh berisi angka 0-9.');
+
+        $apply([
+            'tempat_lahir', 'nama_dusun', 'sekolah_asal',
+            'riwayat_prestasi.*.nama', 'riwayat_prestasi.*.penyelenggara',
+        ], 'regex', 'Tidak boleh hanya berisi angka.');
+
+        $apply([
+            'nomor_telepon_rumah', 'nomor_telepon_seluler',
+        ], 'regex', 'Hanya boleh berisi angka dan tanda + ( ) - .');
+
+        $apply(['tanggal_lahir', 'tanggal_masuk_sekolah'], 'date', 'Format tanggal tidak valid.');
+        $apply(['email'], 'email', 'Format email tidak valid.');
+        $apply([
+            'lintang', 'bujur', 'jarak_rumah_sekolah_km',
+        ], 'numeric', 'Harus berupa angka (boleh desimal).');
+        $apply([
+            'anak_keberapa', 'tinggi_badan', 'berat_badan', 'lingkar_kepala',
+            'waktu_tempuh_jam', 'waktu_tempuh_menit', 'jumlah_saudara_kandung',
+        ], 'integer', 'Harus berupa angka bulat.');
+        $apply(['waktu_tempuh_menit'], 'between', 'Menit harus antara 0 sampai 59.');
+        $apply([
+            'tahun_lahir_ayah', 'tahun_lahir_ibu', 'tahun_lahir_wali',
+            'riwayat_prestasi.*.tahun', 'perlindungan_sosial.*.tahun_mulai', 'perlindungan_sosial.*.tahun_selesai',
+        ], 'between', 'Tahun tidak valid.');
+
+        return $messages;
+    }
+
+    /**
      * Siswa/Orang Tua/Admin memperbarui data identitas & mengajukan usulan revisi ke kesiswaan
      * NISN dan NIPD dikunci permanen dan tidak dapat diubah oleh siswa/orang tua.
      */
@@ -484,20 +616,10 @@ class IdentitasPesertaDidikController extends Controller
 
         $identitas = PesertaDidikIdentitas::getOrCreateFromPd($pd);
 
-        // Kolom bertipe numerik/decimal di DB wajib divalidasi: input teks bebas
-        // (mis. lintang/bujur) kalau diteruskan apa adanya memicu SQLSTATE 1366.
-        $request->validate([
-            'lintang'                 => ['nullable', 'numeric', 'between:-90,90'],
-            'bujur'                   => ['nullable', 'numeric', 'between:-180,180'],
-            'anak_keberapa'           => ['nullable', 'integer', 'min:0'],
-            'tinggi_badan'            => ['nullable', 'integer', 'min:0'],
-            'berat_badan'             => ['nullable', 'integer', 'min:0'],
-            'lingkar_kepala'          => ['nullable', 'integer', 'min:0'],
-            'jarak_rumah_sekolah_km'  => ['nullable', 'numeric', 'min:0'],
-            'waktu_tempuh_jam'        => ['nullable', 'integer', 'min:0'],
-            'waktu_tempuh_menit'      => ['nullable', 'integer', 'min:0'],
-            'jumlah_saudara_kandung'  => ['nullable', 'integer', 'min:0'],
-        ]);
+        // Validasi tipe data sesuai makna field (lihat .agents/docs/Form_Dapodik_2027_Validasi_Lengkap_rev2.md).
+        // Mencegah input salah tipe lolos (mis. NIK berisi huruf, nama berisi angka, lintang berisi teks)
+        // sekaligus menghindari SQLSTATE 1366 pada kolom numerik/decimal.
+        $request->validate($this->identityValidationRules(), $this->identityValidationMessages());
 
         // Nilai lama untuk perbandingan audit log usulan
         $oldSnapshot = $identitas->toArray();

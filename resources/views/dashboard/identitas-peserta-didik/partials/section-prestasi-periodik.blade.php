@@ -12,7 +12,7 @@
                             jarak ke sekolah</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                    <div class="sae-field-grid">
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Tinggi Badan (cm)
                                 <span class="text-danger">*</span></label>

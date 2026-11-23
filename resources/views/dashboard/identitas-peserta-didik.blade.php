@@ -830,10 +830,42 @@
         .identitas-form-section.is-collapsed .identitas-section-chevron { transform: rotate(-90deg); }
         .identitas-form-section.is-collapsed .identitas-section-body { display: none; }
 
+        /* Header kartu: judul + tombol aksi tidak meluber di layar sempit */
+        .identitas-form-section > div:first-child { flex-wrap: wrap; gap: 8px; }
+
+        /* Grid isian identitas: proporsional, seragam, dan tidak meluber di layar sempit */
+        .sae-field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: 14px 16px;
+            align-items: start;
+        }
+        .sae-field-grid--tight { gap: 12px 14px; }
+        /* Kalahkan `.card select.form-select { width:auto; height:38px }` (dashboard.css) yang membuat dropdown menyusut */
+        .identitas-form-section .sae-field-grid select.form-select,
+        .identitas-form-section .sae-field-grid input.form-control {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            height: 38px !important;
+            padding-top: 0;
+            padding-bottom: 0;
+            box-sizing: border-box;
+        }
+        .sae-field-grid > .sae-col-full { grid-column: 1 / -1; }
+
+        /* Tabel isian (prestasi/kesejahteraan): geser horizontal, jangan digepengkan */
+        .sae-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .sae-table-scroll > table { min-width: 640px; }
+
         @media (max-width: 768px) {
             .identitas-form-section { padding: 14px 16px !important; margin-bottom: 14px !important; }
             .identitas-panel-progress .card, .identitas-panel-progress.card,
             .identitas-panel-riwayat .card, .identitas-panel-riwayat.card { margin-bottom: 12px !important; }
+        }
+
+        @media (max-width: 560px) {
+            .sae-field-grid { grid-template-columns: 1fr; gap: 12px; }
         }
     </style>
 @endpush
