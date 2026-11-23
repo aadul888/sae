@@ -99,7 +99,7 @@
                             <td>{{ \Illuminate\Support\Str::limit($k->uraian_kegiatan, 110) ?: '—' }}</td>
                             <td class="center">{{ $k->jumlah_petugas }}</td>
                             <td class="center">{{ $kondisiList[$k->kondisi_akhir] ?? $k->kondisi_akhir }}</td>
-                            <td style="font-size: 9px;">{{ \Illuminate\Support\Str::limit($k->tindak_lanjut, 60) ?: '—' }}</td>
+                            <td style="font-size: var(--text-2xs, 9px);">{{ \Illuminate\Support\Str::limit($k->tindak_lanjut, 60) ?: '—' }}</td>
                         </tr>
                     @empty
                         <tr>

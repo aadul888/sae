@@ -27,8 +27,8 @@
                     <a href="{{ route('dashboard.sarpras.aset.export', request()->only(['q', 'kategori', 'kondisi', 'ruang_id', 'jurusan_id'])) }}"
                         class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
-                        title="Unduh daftar Inventaris &amp; Aset sebagai Excel sesuai filter"
-                        aria-label="Unduh daftar Inventaris &amp; Aset sebagai Excel">
+                        title="Unduh Excel — daftar Inventaris &amp; Aset sesuai filter"
+                        aria-label="Unduh Excel daftar Inventaris &amp; Aset sesuai filter">
                         <i class="fas fa-file-excel text-success"></i>
                     </a>
                 @endif

@@ -110,7 +110,7 @@
                         @if (!empty($mapel))
                             <span class="badge badge-outline" style="font-weight: 700;">{{ count($mapel) }} mapel aktif</span>
                             @if (in_array((int) $semester, $pklSemester ?? [], true))
-                                <span class="badge" style="background: rgba(245,158,11,0.15); color: #d97706; font-weight: 700;">
+                                <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning, #d97706); font-weight: 700;">
                                     <i class="fas fa-lock"></i> Terkunci PKL
                                 </span>
                             @endif
@@ -162,7 +162,7 @@
                                 @foreach ($mapel as $nama)
                                     @php $sing = $singkatan[$nama] ?? ''; @endphp
                                     <th title="{{ $nama }}" style="padding: 12px 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 90px;">
-                                        <span class="bi-nilai-dot" style="background: {{ ($kelompok[$nama] ?? 'umum') === 'kejuruan' ? '#f59e0b' : '#10b981' }};"></span>
+                                        <span class="bi-nilai-dot" style="background: {{ ($kelompok[$nama] ?? 'umum') === 'kejuruan' ? 'var(--warning, #f59e0b)' : 'var(--success, #10b981)' }};"></span>
                                         {{ $sing !== '' ? $sing : $nama }}
                                     </th>
                                 @endforeach
@@ -174,7 +174,7 @@
                                     $rowNumber = ($siswa instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $siswa->firstItem() + $i : $i + 1;
                                 @endphp
                                 <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                    <td data-label="No" style="text-align: center; color: var(--text-muted); padding: 10px 14px; font-weight: 700; font-size: 0.82rem;">{{ $rowNumber }}</td>
+                                    <td data-label="No" style="text-align: center; color: var(--text-muted); padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.82rem);">{{ $rowNumber }}</td>
                                     <td data-label="No. Induk / NISN" style="padding: 10px 16px;">
                                         <div style="font-family: monospace; font-weight: 700; color: var(--primary, #3b82f6);">
                                             {{ ($s->nipd ?? '') !== '' ? $s->nipd : '—' }}
@@ -266,7 +266,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px;">
                         <div>
                             <label for="modalSelectKelas" style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                                <i class="fas fa-chalkboard-user text-primary me-1"></i> Pilih Kelas <span style="color: #ef4444;">*</span>
+                                <i class="fas fa-chalkboard-user text-primary me-1"></i> Pilih Kelas <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="modalSelectKelas" class="bi-input" style="width: 100%; height: 38px; background: var(--bg-card); color: var(--text-color); font-weight: 600;">
                                 @foreach ($kelasList as $kOption)
@@ -278,7 +278,7 @@
                         </div>
                         <div>
                             <label for="modalSelectSemester" style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                                <i class="fas fa-layer-group text-primary me-1"></i> Target Semester <span style="color: #ef4444;">*</span>
+                                <i class="fas fa-layer-group text-primary me-1"></i> Target Semester <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="modalSelectSemester" class="bi-input" style="width: 100%; height: 38px; background: var(--bg-card); color: var(--text-color); font-weight: 600;">
                                 @foreach ($semesterList as $sOption)
@@ -316,7 +316,7 @@
 
                     <div style="margin-bottom: 18px;">
                         <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
+                            Pilih Berkas Excel / CSV <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="file" name="file_excel" accept=".xlsx,.xls,.csv,.txt" class="bi-input" required style="width: 100%;">
                         <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 4px;">

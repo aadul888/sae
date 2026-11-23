@@ -219,7 +219,7 @@
                                             <img src="{{ $fotoUrl }}" alt="Foto {{ $item->nama }}"
                                                 style="width: 100%; height: 100%; object-fit: cover;">
                                         @else
-                                            <i class="fas fa-camera" style="font-size: 0.68rem;"></i>
+                                            <i class="fas fa-camera" style="font-size: var(--text-2xs, 0.68rem);"></i>
                                         @endif
                                     </div>
                                     <div>

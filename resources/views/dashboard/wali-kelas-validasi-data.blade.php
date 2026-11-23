@@ -103,7 +103,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6);">
                     <i class="fas fa-gauge-high"></i>
                 </div>
                 <div class="dash-stat-info">

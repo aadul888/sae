@@ -118,7 +118,7 @@
             {{-- A. REKAP ANGKA KUNCI --}}
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                 @foreach ($ringkas as $item)
-                    <div style="flex: 1 1 150px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; background: #f8fafc;">
+                    <div style="flex: 1 1 150px; border: 1px solid #cbd5e1; border-radius: var(--radius-sm, 6px); padding: 6px 10px; background: #f8fafc;">
                         <div style="font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: .3px;">{{ $item['label'] }}</div>
                         <div style="font-size: 14pt; font-weight: 800; color: #0f172a;">{{ $item['value'] }}</div>
                     </div>
@@ -131,7 +131,7 @@
                 @foreach ($grup as $g)
                     @php $jumlah = collect($g['items'])->sum('count'); @endphp
                     @if ($jumlah > 0)
-                        <div style="flex: 1 1 31%; min-width: 210px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px;">
+                        <div style="flex: 1 1 31%; min-width: 210px; border: 1px solid #cbd5e1; border-radius: var(--radius-sm, 6px); padding: 8px 10px;">
                             <div style="font-size: 8pt; font-weight: 800; text-transform: uppercase; color: #334155; margin-bottom: 6px;">{{ $g['judul'] }}</div>
                             @foreach ($g['items'] as $it)
                                 @if ($it['count'] > 0)
@@ -140,7 +140,7 @@
                                             <span style="color: #1e293b;">{{ $it['label'] }}</span>
                                             <span style="font-weight: 700; color: #0f172a;">{{ number_format($it['count'], 0, ',', '.') }} <span style="color: #64748b;">({{ $it['pct'] }}%)</span></span>
                                         </div>
-                                        <div style="height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                        <div style="height: 5px; background: #e2e8f0; border-radius: var(--radius-xs, 3px); overflow: hidden;">
                                             <div style="height: 100%; width: {{ $it['pct'] }}%; background: {{ $it['warna'] }};"></div>
                                         </div>
                                     </div>

@@ -61,7 +61,7 @@
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            font-size: 12px;
+            font-size: var(--text-xs, 12px);
             color: #fff;
             background: #2563eb;
             display: inline-flex;
@@ -69,7 +69,7 @@
             gap: 6px;
         }
         .no-print .btn-back { background: #334155; }
-        .no-print .lbl { font-size: 12px; opacity: .85; margin-right: auto; }
+        .no-print .lbl { font-size: var(--text-xs, 12px); opacity: .85; margin-right: auto; }
 
         .sheet {
             background: #fff;

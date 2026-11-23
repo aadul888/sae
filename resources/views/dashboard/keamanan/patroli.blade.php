@@ -478,7 +478,7 @@
                     <input type="text" name="rute_zona" id="patroli_rute" class="form-control"
                         placeholder="Ketik nama rute atau pilih ruang..." autocomplete="off" required>
                     <div id="patroli_rute_results"
-                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
                     </div>
                 </div>
 
@@ -557,7 +557,7 @@
                         <input type="text" name="lokasi_kejadian" id="insiden_lokasi" class="form-control"
                             placeholder="Ketik lokasi atau cari ruang..." autocomplete="off" required>
                         <div id="insiden_lokasi_results"
-                            style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                            style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
                         </div>
                     </div>
                     <div>
@@ -585,14 +585,14 @@
                 {{-- Siswa di Luar Saat KBM & Pelanggaran Tata Tertib --}}
                 <div style="margin-bottom: 14px; padding: 14px; background: rgba(239,68,68,0.04); border: 1px dashed rgba(239,68,68,0.35); border-radius: var(--radius-md, 8px);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                        <div style="font-weight: 700; font-size: 0.8125rem; color: var(--danger); display: flex; align-items: center; gap: 6px;">
+                        <div style="font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--danger); display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-person-walking-arrow-right"></i> Temuan Siswa di Luar saat KBM / Pelanggaran Disiplin
                         </div>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">Sinkron otomatis ke Kesiswaan</span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">Sinkron otomatis ke Kesiswaan</span>
                     </div>
 
                     <div style="margin-bottom: 10px;">
-                        <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Cari Siswa Terkait (Ketik Nama / NISN)</label>
+                        <label class="form-label" style="font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">Cari Siswa Terkait (Ketik Nama / NISN)</label>
                         <input type="search" id="insiden_cari_siswa" class="form-control"
                             placeholder="Ketik nama siswa atau NISN..." autocomplete="off"
                             data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
@@ -602,29 +602,29 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div style="position: relative;">
-                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Pilih Aturan Tata Tertib (Ketik / Pilih)</label>
-                            <input type="search" id="insiden_tatib_search" class="form-control" style="font-size: 0.8125rem;"
+                            <label class="form-label" style="font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">Pilih Aturan Tata Tertib (Ketik / Pilih)</label>
+                            <input type="search" id="insiden_tatib_search" class="form-control" style="font-size: var(--text-sm, 0.8125rem);"
                                 placeholder="Ketik kode atau nama aturan..." autocomplete="off">
                             <input type="hidden" name="tata_tertib_id" id="insiden_tata_tertib_id">
 
                             <!-- Dropdown Hasil Pencarian Aturan Insiden -->
                             <div id="insiden_tatib_results"
-                                style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                                style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 200px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
                             </div>
 
                             <!-- Badge Aturan Terpilih -->
                             <div id="insiden_tatib_selected_badge"
-                                style="display: none; margin-top: 6px; padding: 6px 10px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; font-size: 0.75rem; color: var(--danger); font-weight: 700; align-items: center; justify-content: space-between;">
+                                style="display: none; margin-top: 6px; padding: 6px 10px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem); color: var(--danger); font-weight: 700; align-items: center; justify-content: space-between;">
                                 <span id="insiden_tatib_selected_label"></span>
                                 <button type="button" id="insiden_tatib_btn_clear"
-                                    style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.7rem; font-weight: 700;">
+                                    style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: var(--text-2xs, 0.7rem); font-weight: 700;">
                                     <i class="fas fa-times"></i> Ganti
                                 </button>
                             </div>
                         </div>
                         <div>
-                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Kategori Insiden</label>
-                            <select name="kategori_insiden" id="insiden_kategori" class="form-control" style="font-size: 0.8125rem;">
+                            <label class="form-label" style="font-size: var(--text-xs, 0.75rem); margin-bottom: 4px;">Kategori Insiden</label>
+                            <select name="kategori_insiden" id="insiden_kategori" class="form-control" style="font-size: var(--text-sm, 0.8125rem);">
                                 <option value="siswa_kbm" selected>Siswa di Luar Saat KBM / Membolos</option>
                                 <option value="umum">Insiden Lingkungan Umum</option>
                                 <option value="keamanan_aset">Keamanan &amp; Aset Gedung</option>

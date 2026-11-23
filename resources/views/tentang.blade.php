@@ -186,7 +186,7 @@
 
                 <div class="service-card">
                     <div>
-                        <div class="service-icon" style="color:#8b5cf6;"><i class="fas fa-calendar-days"></i></div>
+                        <div class="service-icon" style="color:var(--purple, #8b5cf6);"><i class="fas fa-calendar-days"></i></div>
                         <h3 class="service-title">Agenda &amp; Akademik</h3>
                         <ul class="service-list">
                             <li><i class="fas fa-check text-success me-2"></i> Jadwal Pelajaran Dinamis</li>
@@ -251,7 +251,7 @@
 
                 <div class="service-card">
                     <div>
-                        <div class="service-icon" style="color: #f59e0b;"><i class="fas fa-building-circle-check"></i></div>
+                        <div class="service-icon" style="color: var(--warning, #f59e0b);"><i class="fas fa-building-circle-check"></i></div>
                         <h3 class="service-title">Sarana &amp; Prasarana</h3>
                         <ul class="service-list">
                             <li><i class="fas fa-check text-success me-2"></i> Inventaris Ruang &amp; Barang Habis Pakai</li>
@@ -264,7 +264,7 @@
 
                 <div class="service-card">
                     <div>
-                        <div class="service-icon" style="color: #10b981;"><i class="fas fa-clipboard-question"></i></div>
+                        <div class="service-icon" style="color: var(--success, #10b981);"><i class="fas fa-clipboard-question"></i></div>
                         <h3 class="service-title">Formulir &amp; Survei</h3>
                         <ul class="service-list">
                             <li><i class="fas fa-check text-success me-2"></i> Pembuat Formulir Dinamis Tanpa Koding</li>

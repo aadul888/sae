@@ -509,7 +509,7 @@
                                             <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                 {{ $b->nama_asli ?: 'Lampiran' }}
                                             </span>
-                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.6;"></i>
+                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: var(--text-2xs, 0.65rem); opacity: 0.6;"></i>
                                         </a>
                                     @endforeach
                                 </div>

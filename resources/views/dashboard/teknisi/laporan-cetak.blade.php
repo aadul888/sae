@@ -40,7 +40,7 @@
         .lap-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: var(--text-xs, 12px);
             margin-top: 10px;
         }
 
@@ -69,7 +69,7 @@
         }
 
         .lap-detail {
-            font-size: 11px;
+            font-size: var(--text-2xs, 11px);
         }
 
         .lap-detail td,
@@ -88,7 +88,7 @@
 
         .lap-meta {
             width: 100%;
-            font-size: 12px;
+            font-size: var(--text-xs, 12px);
             margin: 4px 0 8px;
         }
 
@@ -98,7 +98,7 @@
 
         .lap-pageno {
             margin-top: 14px;
-            font-size: 10px;
+            font-size: var(--text-2xs, 10px);
             color: #555;
             text-align: right;
         }
@@ -106,7 +106,7 @@
         .lap-rekap {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: var(--text-xs, 12px);
             margin-top: 8px;
         }
 
@@ -234,7 +234,7 @@
                 </tr>
             </table>
 
-            <p style="font-size:12px; margin-top:10px;">
+            <p style="font-size:var(--text-xs, 12px); margin-top:10px;">
                 Rekapitulasi jumlah catatan pada periode di atas. Pilih
                 <strong>Lengkap</strong> pada bar alat untuk rincian setiap catatan.
             </p>

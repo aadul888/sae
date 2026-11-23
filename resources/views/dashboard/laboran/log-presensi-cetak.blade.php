@@ -126,7 +126,7 @@
             <tbody>
                 <tr>
                     <td class="center font-bold" style="color: #16a34a;">{{ $stats['hadir'] }} hari</td>
-                    <td class="center font-bold" style="color: #d97706;">
+                    <td class="center font-bold" style="color: var(--warning, #d97706);">
                         {{ $stats['terlambat'] }} hari
                         @if (!empty($stats['menit_terlambat']))
                             <div style="font-size: 7.5pt; font-weight: normal; color: #6b7280;">({{ $stats['menit_terlambat'] }}m)</div>
@@ -135,7 +135,7 @@
                     <td class="center font-bold">{{ $stats['izin'] }} hari</td>
                     <td class="center font-bold">{{ $stats['sakit'] }} hari</td>
                     <td class="center font-bold">{{ $stats['dispen'] }} hari</td>
-                    <td class="center font-bold" style="color: #dc2626;">{{ $stats['alpha'] }} hari</td>
+                    <td class="center font-bold" style="color: var(--danger, #dc2626);">{{ $stats['alpha'] }} hari</td>
                     <td class="center font-mono font-bold">{{ $stats['hari_efektif_berjalan'] ?? $stats['total'] }} hari</td>
                     <td class="center font-mono font-bold" style="color: #16a34a; font-size: 10.5pt;">{{ $stats['persen'] }}%</td>
                 </tr>
@@ -169,18 +169,18 @@
                             @if ($l->status === 'H')
                                 <strong style="color: #16a34a;">Hadir</strong>
                             @elseif ($l->status === 'T')
-                                <strong style="color: #d97706;">Terlambat</strong>
+                                <strong style="color: var(--warning, #d97706);">Terlambat</strong>
                                 @if (!empty($l->menit_terlambat))
                                     <span style="font-size: 8pt; color: #6b7280;">(+{{ $l->menit_terlambat }}m)</span>
                                 @endif
                             @elseif ($l->status === 'I')
-                                <strong style="color: #2563eb;">Izin</strong>
+                                <strong style="color: var(--primary-hover, #2563eb);">Izin</strong>
                             @elseif ($l->status === 'S')
                                 <strong style="color: #7e22ce;">Sakit</strong>
                             @elseif ($l->status === 'D')
-                                <strong style="color: #0284c7;">Dispen</strong>
+                                <strong style="color: var(--accent, #0284c7);">Dispen</strong>
                             @else
-                                <strong style="color: #dc2626;">Alpha</strong>
+                                <strong style="color: var(--danger, #dc2626);">Alpha</strong>
                             @endif
                         </td>
                         <td class="center" style="font-size: 8pt; text-transform: uppercase;">
@@ -222,7 +222,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Tingkat Kehadiran:</span>
-                    <span class="info-val font-bold" style="color: #10b981;">
+                    <span class="info-val font-bold" style="color: var(--success, #10b981);">
                         {{ $stats['persen'] }}%
                         @if (!empty($stats['total_siswa']))
                             ({{ $stats['hadir'] + $stats['terlambat'] }} Hadir / {{ $stats['total_siswa'] }} Siswa terdaftar)
@@ -265,11 +265,11 @@
                             <td class="center font-mono">{{ $i + 1 }}</td>
                             <td><strong>{{ $r->kelas }}</strong></td>
                             <td class="center" style="color: #16a34a; font-weight: bold;">{{ $r->hadir }}</td>
-                            <td class="center" style="color: #d97706;">{{ $r->terlambat }}</td>
+                            <td class="center" style="color: var(--warning, #d97706);">{{ $r->terlambat }}</td>
                             <td class="center">{{ $r->izin }}</td>
                             <td class="center">{{ $r->sakit }}</td>
                             <td class="center">{{ $r->dispen }}</td>
-                            <td class="center" style="color: #dc2626;">{{ $r->alpha }}</td>
+                            <td class="center" style="color: var(--danger, #dc2626);">{{ $r->alpha }}</td>
                             <td class="center font-bold">{{ $r->total }}</td>
                             <td class="center font-mono font-bold">{{ $persen }}%</td>
                         </tr>
@@ -285,11 +285,11 @@
                     <tr>
                         <td colspan="2" class="right">Total Tercatat</td>
                         <td class="center font-bold" style="color: #16a34a;">{{ $items->where('status', 'H')->count() }}</td>
-                        <td class="center font-bold" style="color: #d97706;">{{ $items->where('status', 'T')->count() }}</td>
+                        <td class="center font-bold" style="color: var(--warning, #d97706);">{{ $items->where('status', 'T')->count() }}</td>
                         <td class="center font-bold">{{ $items->where('status', 'I')->count() }}</td>
                         <td class="center font-bold">{{ $items->where('status', 'S')->count() }}</td>
                         <td class="center font-bold">{{ $items->where('status', 'D')->count() }}</td>
-                        <td class="center font-bold" style="color: #dc2626;">{{ $items->where('status', 'A')->count() }}</td>
+                        <td class="center font-bold" style="color: var(--danger, #dc2626);">{{ $items->where('status', 'A')->count() }}</td>
                         <td class="center font-bold">{{ $items->count() }}</td>
                         <td class="center font-mono font-bold">
                             @php
@@ -347,18 +347,18 @@
                                 @if ($item->status === 'H')
                                     <strong style="color: #16a34a;">Hadir</strong>
                                 @elseif ($item->status === 'T')
-                                    <strong style="color: #d97706;">Terlambat</strong>
+                                    <strong style="color: var(--warning, #d97706);">Terlambat</strong>
                                     @if (!empty($item->menit_terlambat))
                                         <span style="font-size: 8pt; color: #6b7280;">(+{{ $item->menit_terlambat }}m)</span>
                                     @endif
                                 @elseif ($item->status === 'I')
-                                    <strong style="color: #2563eb;">Izin</strong>
+                                    <strong style="color: var(--primary-hover, #2563eb);">Izin</strong>
                                 @elseif ($item->status === 'S')
                                     <strong style="color: #7e22ce;">Sakit</strong>
                                 @elseif ($item->status === 'D')
-                                    <strong style="color: #0284c7;">Dispen</strong>
+                                    <strong style="color: var(--accent, #0284c7);">Dispen</strong>
                                 @else
-                                    <strong style="color: #dc2626;">Alpha</strong>
+                                    <strong style="color: var(--danger, #dc2626);">Alpha</strong>
                                 @endif
                             </td>
                             <td class="center" style="font-size: 8pt; text-transform: uppercase;">

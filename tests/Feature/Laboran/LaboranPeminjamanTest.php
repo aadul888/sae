@@ -187,14 +187,16 @@ class LaboranPeminjamanTest extends LaboranTestCase
             ->getContent();
 
         $this->assertStringContainsString('Aset Sarpras', $html);
-        $this->assertStringContainsString('name="aset_ids[]"', $html);
+        $this->assertStringContainsString('id="daftarSumberPeminjaman"', $html);
         $this->assertStringContainsString('Mikroskop Umum Uji', $html);
         $this->assertStringContainsString('Traktor Mini ATPH', $html);
         $this->assertStringNotContainsString('Router TKJ Uji', $html);
 
-        $this->assertStringContainsString('name="aset_ids[]" value="' . $umum . '"', $html);
-        $this->assertStringContainsString('name="aset_ids[]" value="' . $atph . '"', $html);
-        $this->assertStringNotContainsString('name="aset_ids[]" value="' . $tkj . '"', $html);
+        // Pemilih cari-tambah mengirim id opsi terpilih lewat JS (bukan input
+        // checkbox server-render), jadi cek id tersedia di data JSON sumber.
+        $this->assertStringContainsString('"id":' . $umum, $html);
+        $this->assertStringContainsString('"id":' . $atph, $html);
+        $this->assertStringNotContainsString('"id":' . $tkj, $html);
     }
 
     /**

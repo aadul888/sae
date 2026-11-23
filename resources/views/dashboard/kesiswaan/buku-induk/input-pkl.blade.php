@@ -100,7 +100,7 @@
                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); display: flex; gap: 12px; align-items: center; margin-left: 4px;">
                         <span>Total: <strong style="color: var(--text-color);">{{ $totalSiswa ?? count($siswa) }}</strong></span>
                         <span>Terisi: <strong style="color: #0d9488;">{{ $terisi }}</strong></span>
-                        <span>Belum: <strong style="color: #f59e0b;">{{ ($totalSiswa ?? count($siswa)) - $terisi }}</strong></span>
+                        <span>Belum: <strong style="color: var(--warning, #f59e0b);">{{ ($totalSiswa ?? count($siswa)) - $terisi }}</strong></span>
                     </div>
                 </div>
 
@@ -170,7 +170,7 @@
                                 $rowNumber = ($siswa instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $siswa->firstItem() + $i : $i + 1;
                             @endphp
                             <tr id="row-{{ $pdId }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                                <td data-label="No" style="text-align: center; color: var(--text-muted); padding: 12px 14px; font-weight: 700; font-size: 0.82rem;">
+                                <td data-label="No" style="text-align: center; color: var(--text-muted); padding: 12px 14px; font-weight: 700; font-size: var(--text-sm, 0.82rem);">
                                     {{ $rowNumber }}
                                 </td>
                                 <td data-label="No. Induk / NISN" style="padding: 12px 16px;">
@@ -188,7 +188,7 @@
                                     <span class="badge badge-outline">{{ $s->rombel_nama ?: ($s->nama_rombel ?: '—') }}</span>
                                 </td>
                                 <td data-label="L/P" style="text-align: center; padding: 12px 10px;">
-                                    <span class="badge" style="background: {{ $s->jenis_kelamin === 'L' ? 'rgba(59,130,246,0.1)' : 'rgba(236,72,153,0.1)' }}; color: {{ $s->jenis_kelamin === 'L' ? '#2563eb' : '#db2777' }}; text-transform: uppercase;">
+                                    <span class="badge" style="background: {{ $s->jenis_kelamin === 'L' ? 'rgba(59,130,246,0.1)' : 'rgba(236,72,153,0.1)' }}; color: {{ $s->jenis_kelamin === 'L' ? 'var(--primary-hover, #2563eb)' : '#db2777' }}; text-transform: uppercase;">
                                         {{ $s->jenis_kelamin }}
                                     </span>
                                 </td>
@@ -292,7 +292,7 @@
 
                     <div style="margin-bottom: 18px;">
                         <label style="display: block; font-size: var(--text-xs, 0.75rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
+                            Pilih Berkas Excel / CSV <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="file" name="file_excel" accept=".xlsx,.xls,.csv,.txt" class="bi-input" required style="width: 100%;">
                         <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 4px;">
@@ -356,7 +356,7 @@ async function saveRowPkl(pdId) {
             body: fd,
         });
         const json = await res.json();
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i>'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check" style="color: var(--success, #10b981);"></i>'; }
 
         if (res.ok && json.status === 'success') {
             const Toast = Swal.mixin({

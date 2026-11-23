@@ -86,7 +86,7 @@
             <div>
                 <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
                     <div
-                        style="width: 54px; height: 54px; background: rgba(99,102,241,0.12); color: var(--primary); font-size: 24px; border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        style="width: 54px; height: 54px; background: rgba(99,102,241,0.12); color: var(--primary); font-size: var(--text-2xl, 24px); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fas fa-file-zipper"></i>
                     </div>
                     <div>
@@ -150,7 +150,7 @@
             <div>
                 <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
                     <div
-                        style="width: 54px; height: 54px; background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); font-size: 24px; border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        style="width: 54px; height: 54px; background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); font-size: var(--text-2xl, 24px); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fas fa-broom"></i>
                     </div>
                     <div>
@@ -193,7 +193,7 @@
             style="padding: 24px; border-top: 3px solid var(--warning, #f59e0b); max-width: 760px;">
             <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
                 <div
-                    style="width: 54px; height: 54px; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: 24px; border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    style="width: 54px; height: 54px; background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-2xl, 24px); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fas fa-rotate-left"></i>
                 </div>
                 <div>

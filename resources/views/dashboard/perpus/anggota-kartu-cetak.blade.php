@@ -42,7 +42,7 @@
         </div>
     @else
         <div style="text-align:center;padding:48px;background:#fff;border-radius:var(--radius-lg,12px);max-width:560px;margin:80px auto;">
-            <i class="fas fa-id-card" style="font-size:40px;color:var(--text-muted,#94a3b8);"></i>
+            <i class="fas fa-id-card" style="font-size:var(--text-4xl, 40px);color:var(--text-muted,#94a3b8);"></i>
             <h3 style="font-size:var(--text-lg,1.125rem);color:#1e293b;margin:12px 0 6px;">Tidak Ada Anggota untuk Dicetak</h3>
             <p style="font-size:var(--text-base,0.875rem);color:var(--text-muted,#64748b);margin:0;">
                 Daftarkan anggota terlebih dahulu, atau pilih anggota tertentu lewat parameter <code>ids</code>.

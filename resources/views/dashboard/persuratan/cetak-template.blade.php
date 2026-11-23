@@ -16,7 +16,7 @@
         @endphp
 
         @if ($isDraft)
-            <div style="background: rgba(245,158,11,0.12); border: 1px dashed #d97706; color: #b45309; padding: 6px 12px; border-radius: 6px; text-align: center; font-size: 9.5pt; font-weight: 700; margin-bottom: 12px;">
+            <div style="background: rgba(245,158,11,0.12); border: 1px dashed #d97706; color: #b45309; padding: 6px 12px; border-radius: var(--radius-sm, 6px); text-align: center; font-size: 9.5pt; font-weight: 700; margin-bottom: 12px;">
                 PRATINJAU DRAF NASKAH DINAS — NOMOR RESMI DITERBITKAN SAAT DIKIRIM KE SURAT KELUAR
             </div>
         @endif
@@ -31,7 +31,7 @@
                         <td style="width: 15px; vertical-align: top;">:</td>
                         <td style="font-weight: 700; vertical-align: top;">
                             @if ($isDraft)
-                                <span style="color: #dc2626; font-style: italic;">— (DRAFT - BELUM DITERBITKAN) —</span>
+                                <span style="color: var(--danger, #dc2626); font-style: italic;">— (DRAFT - BELUM DITERBITKAN) —</span>
                             @else
                                 {{ $doc->nomor_surat }}
                             @endif

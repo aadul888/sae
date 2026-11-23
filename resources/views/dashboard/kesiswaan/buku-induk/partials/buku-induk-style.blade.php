@@ -35,7 +35,7 @@
         .bi-mapel-col-locked .bi-sel-item { background: rgba(13,148,136,0.1); border-color: rgba(13,148,136,0.3); }
         .bi-count {
             font-size: var(--text-2xs, 0.6875rem); font-weight: 700; color: var(--text-muted);
-            background: rgba(0,0,0,0.05); border-radius: 999px; padding: 2px 8px;
+            background: rgba(0,0,0,0.05); border-radius: var(--radius-pill, 999px); padding: 2px 8px;
         }
         .bi-ref-search-wrap {
             position: relative;

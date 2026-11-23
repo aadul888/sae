@@ -136,11 +136,11 @@
                         <td>
                             <strong>{{ $j->kegiatan }}</strong>
                             @if ($j->uraian)
-                                <div style="font-size: 9px; color: #4b5563;">{{ \Illuminate\Support\Str::limit($j->uraian, 110) }}</div>
+                                <div style="font-size: var(--text-2xs, 9px); color: #4b5563;">{{ \Illuminate\Support\Str::limit($j->uraian, 110) }}</div>
                             @endif
                         </td>
                         <td>{{ $meta[0] }}{{ $meta[1] > 0 ? ' (#' . $meta[1] . ')' : '' }}</td>
-                        <td style="font-size: 9px;">{{ \Illuminate\Support\Str::limit($j->hasil, 60) ?: '—' }}</td>
+                        <td style="font-size: var(--text-2xs, 9px);">{{ \Illuminate\Support\Str::limit($j->hasil, 60) ?: '—' }}</td>
                     </tr>
                 @empty
                     <tr>

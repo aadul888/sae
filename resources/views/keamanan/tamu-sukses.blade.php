@@ -13,7 +13,7 @@
             @if (!empty($tamu->foto_tamu))
                 <div style="margin-bottom: 12px;">
                     <img src="{{ asset('storage/' . $tamu->foto_tamu) }}" alt="Foto {{ $tamu->nama_tamu }}"
-                        style="width: 84px; height: 84px; object-fit: cover; border-radius: 50%; border: 3px solid #10b981; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); display: inline-block;">
+                        style="width: 84px; height: 84px; object-fit: cover; border-radius: 50%; border: 3px solid var(--success, #10b981); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); display: inline-block;">
                 </div>
             @endif
 

@@ -26,14 +26,14 @@
         }
 
         .sched-head h1 {
-            font-size: 15px;
+            font-size: var(--text-md, 15px);
             font-weight: 800;
             margin: 0;
             text-transform: uppercase;
         }
 
         .sched-head .sub {
-            font-size: 10.5px;
+            font-size: var(--text-2xs, 10.5px);
             margin-top: 3px;
             color: #475569;
         }
@@ -41,7 +41,7 @@
         .meta {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: var(--text-2xs, 11px);
             margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 6px;
@@ -50,7 +50,7 @@
         table.tbl-bhp {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: var(--text-2xs, 10px);
         }
 
         table.tbl-bhp th,
@@ -64,7 +64,7 @@
             background: #e2e8f0;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 9px;
+            font-size: var(--text-2xs, 9px);
             text-align: center;
         }
 
@@ -80,7 +80,7 @@
             margin-top: 24px;
             display: flex;
             justify-content: space-between;
-            font-size: 10.5px;
+            font-size: var(--text-2xs, 10.5px);
             page-break-inside: avoid;
         }
 
@@ -171,7 +171,7 @@
                         <td>
                             <strong>{{ $it->nama_item }}</strong>
                             @if (!empty($it->spesifikasi))
-                                <div style="font-size: 8.5px; color: #475569;">{{ $it->spesifikasi }}</div>
+                                <div style="font-size: var(--text-2xs, 8.5px); color: #475569;">{{ $it->spesifikasi }}</div>
                             @endif
                         </td>
                         <td>{{ $it->ruang_lab_nama }}</td>

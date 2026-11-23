@@ -656,7 +656,7 @@
                             <i class="fas fa-file-pen text-primary"></i> <span id="lblTextModalTemplate">Buat Surat Keluar dari Template</span>
                         </h4>
                         <span id="badgeIndeksModalTemplate" class="badge-compact"
-                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-family: monospace; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; display: none;"></span>
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-family: monospace; font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); display: none;"></span>
                     </div>
                     <button type="button" id="btnCloseModalTemplate"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); color: var(--text-muted); cursor: pointer;">&times;</button>
@@ -1016,15 +1016,15 @@
                     <div id="cardIndeksPreview"
                         style="border: 1px solid rgba(99,102,241,0.25); background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(99,102,241,0.01) 100%); border-radius: var(--radius-lg, 12px); padding: 18px; display: flex; gap: 16px; align-items: flex-start; transition: all 0.2s ease;">
                         <div id="iconIndeksPreview"
-                            style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                            style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.35rem); flex-shrink: 0;">
                             <i class="fas fa-envelope-open-text"></i>
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
                                 <span id="badgeKodeIndeksPreview" class="badge-compact"
-                                    style="background: rgba(99,102,241,0.18); color: var(--primary); font-family: monospace; font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">TU.04</span>
+                                    style="background: rgba(99,102,241,0.18); color: var(--primary); font-family: monospace; font-weight: 700; font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-xs, 4px);">TU.04</span>
                                 <span id="badgeKategoriIndeksPreview"
-                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color);">Tata Usaha</span>
+                                    style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: var(--radius-xs, 4px); border: 1px solid var(--border-color);">Tata Usaha</span>
                             </div>
                             <div id="titleIndeksPreview"
                                 style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 4px;">

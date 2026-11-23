@@ -421,7 +421,8 @@ class EIzinModuleTest extends TestCase
         $res->assertSee(route('tamu.public'), false);
         $res->assertSee('Terminal Kiosk e-Izin');
         $res->assertSee('Buku Tamu (e-Tamu)');
-        $res->assertSee('e-Izin &amp; Pos Gerbang', false);
+        // Catatan: label Layanan e-Izin di hero beranda sengaja dihapus
+        // (commit efd1488); tautan route di atas tetap tersedia untuk akses.
     }
 
     public function test_public_e_izin_portal_page_loads_with_layout_app(): void

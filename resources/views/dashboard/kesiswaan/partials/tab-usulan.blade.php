@@ -45,7 +45,7 @@
                                             <div class="pd-foto-thumb empty" data-biodata-id="{{ $usulanPdId }}"
                                                 role="button" tabindex="0"
                                                 title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
-                                                style="width: 38px; height: 38px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                                style="width: 38px; height: 38px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: var(--text-md, 1rem); flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                                 <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                             </div>
                                         @endif
@@ -95,7 +95,7 @@
                                                 data-title="Bukti Usulan - {{ $item->siswa?->nama }}"
                                                 title="Lihat Bukti Usulan (PDF)"
                                                 style="width: 26px; height: 26px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; cursor: pointer;">
-                                                <i class="fas fa-file-pdf" style="font-size: 0.75rem;"></i>
+                                                <i class="fas fa-file-pdf" style="font-size: var(--text-xs, 0.75rem);"></i>
                                             </button>
                                         @endif
                                     </div>

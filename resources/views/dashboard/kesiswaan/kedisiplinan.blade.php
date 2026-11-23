@@ -46,7 +46,7 @@
         }
         .table-responsive-stack::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
+            border-radius: var(--radius-xs, 4px);
         }
         @media (max-width: 900px) {
             .rekap-charts-grid {
@@ -256,38 +256,38 @@
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'tata_tertib']) }}"
                 class="periode-nav-tab {{ $activeTab === 'tata_tertib' ? 'active' : '' }}">
                 <i class="fas fa-book-bookmark"></i> Tata Tertib
-                <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ $stats['total_aturan'] ?? 0 }}</span>
+                <span class="badge badge-secondary" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ $stats['total_aturan'] ?? 0 }}</span>
             </a>
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'poin']) }}"
                 class="periode-nav-tab {{ $activeTab === 'poin' ? 'active' : '' }}">
                 <i class="fas fa-triangle-exclamation"></i> Poin &amp; Sanggah
                 @if (($stats['total_pending'] ?? 0) > 0)
-                    <span class="badge badge-warning" style="font-size: 0.65rem; margin-left: 4px;">{{ $stats['total_pending'] }}</span>
+                    <span class="badge badge-warning" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ $stats['total_pending'] }}</span>
                 @endif
             </a>
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'pembinaan']) }}"
                 class="periode-nav-tab {{ $activeTab === 'pembinaan' ? 'active' : '' }}">
                 <i class="fas fa-user-doctor"></i> Pembinaan
-                <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ $stats['total_pembinaan'] ?? 0 }}</span>
+                <span class="badge badge-secondary" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ $stats['total_pembinaan'] ?? 0 }}</span>
             </a>
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'pemanggilan']) }}"
                 class="periode-nav-tab {{ $activeTab === 'pemanggilan' ? 'active' : '' }}">
                 <i class="fas fa-envelope-open-text"></i> Pemanggilan Wali
                 @if (($stats['total_lewat_sanggah'] ?? 0) > 0)
-                    <span class="badge badge-danger" style="font-size: 0.65rem; margin-left: 4px;" title="Perlu Pemanggilan Ortu (Lewat 7 Hari Sanggah)">{{ $stats['total_lewat_sanggah'] }}</span>
+                    <span class="badge badge-danger" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;" title="Perlu Pemanggilan Ortu (Lewat 7 Hari Sanggah)">{{ $stats['total_lewat_sanggah'] }}</span>
                 @endif
             </a>
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'tindak_lanjut']) }}"
                 class="periode-nav-tab {{ $activeTab === 'tindak_lanjut' ? 'active' : '' }}">
                 <i class="fas fa-scale-balanced"></i> Tindak Lanjut
                 @if (($stats['total_tindak_lanjut'] ?? 0) > 0)
-                    <span class="badge badge-danger" style="font-size: 0.65rem; margin-left: 4px;" title="Kasus Eskalasi SOP">{{ $stats['total_tindak_lanjut'] }}</span>
+                    <span class="badge badge-danger" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;" title="Kasus Eskalasi SOP">{{ $stats['total_tindak_lanjut'] }}</span>
                 @endif
             </a>
             <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index', ['tab' => 'riwayat']) }}"
                 class="periode-nav-tab {{ $activeTab === 'riwayat' ? 'active' : '' }}">
                 <i class="fas fa-clock-rotate-left"></i> Riwayat Pelanggaran
-                <span class="badge badge-success" style="font-size: 0.65rem; margin-left: 4px;">{{ $stats['total_disanggah'] ?? 0 }} Selesai</span>
+                <span class="badge badge-success" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ $stats['total_disanggah'] ?? 0 }} Selesai</span>
             </a>
         </div>
 
@@ -464,8 +464,8 @@
                                     {{ $item->kode }}
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;" data-label="Tingkat">
-                                    <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
-                                        <i class="fas {{ $tingkatIcon }}"></i> {{ $tingkat }}
+                                    <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill, 9999px); font-size: var(--text-xs, 0.75rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
+                                        <i class="fas {{ $tingkatIcon }}"></i> {{ strtoupper($tingkat) }}
                                     </span>
                                 </td>
                                 <td style="padding: 12px 16px;" data-label="Kategori">
@@ -561,17 +561,17 @@
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);" data-label="Tanggal">
                                     {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">{{ $selisihHari }} hari lalu</div>
+                                    <div style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">{{ $selisihHari }} hari lalu</div>
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);" data-label="Pelanggaran">
                                     <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran Khusus' }}</strong>
                                     @if ($item->aturan?->tingkat)
-                                        <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem; margin-left: 4px;">
+                                        <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">
                                             {{ strtoupper($item->aturan->tingkat) }}
                                         </span>
                                     @endif
                                     @if ($item->aturan?->sanksi_rekomendasi)
-                                        <div style="font-size: 0.75rem; color: #059669; margin-top: 2px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: #059669; margin-top: 2px;">
                                             <i class="fas fa-hand-holding-hand me-1"></i>Sanksi: {{ $item->aturan->sanksi_rekomendasi }}
                                         </div>
                                     @endif
@@ -585,7 +585,7 @@
                                         +{{ $item->poin }}
                                     </div>
                                     @if ($item->sanggah_status === 'proses')
-                                        <div style="font-size: 0.7rem; color: #d97706; font-weight: 700;">Rencana Potong -{{ $item->sanggah_poin_potong }}</div>
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: #d97706; font-weight: 700;">Rencana Potong -{{ $item->sanggah_poin_potong }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);" data-label="Pelapor">
@@ -593,22 +593,22 @@
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;" data-label="Status &amp; SOP">
                                     @if ($item->sanggah_status === 'proses')
-                                        <span class="badge badge-warning" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.75rem;">
+                                        <span class="badge badge-warning" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: var(--text-xs, 0.75rem);">
                                             <i class="fas fa-hourglass-half"></i> PROSES SANGGAH
                                         </span>
-                                        <div style="font-size: 0.7rem; color: #d97706; font-weight: 700; margin-top: 3px;">
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: #d97706; font-weight: 700; margin-top: 3px;">
                                             Masuk Pembinaan
                                         </div>
                                     @elseif ($isLewat7Hari)
-                                        <span class="badge badge-danger" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.75rem;">
+                                        <span class="badge badge-danger" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: var(--text-xs, 0.75rem);">
                                             <i class="fas fa-triangle-exclamation"></i> LEWAT 7 HARI
                                         </span>
-                                        <div style="font-size: 0.7rem; color: var(--danger); font-weight: 700; margin-top: 3px;">
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: var(--danger); font-weight: 700; margin-top: 3px;">
                                             Wajib Panggil Ortu
                                         </div>
                                     @else
                                         <span class="badge badge-danger">PENDING</span>
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); margin-top: 3px;">
                                             Sisa: {{ max(1, 7 - $selisihHari) }} Hari Sanggah
                                         </div>
                                     @endif
@@ -732,13 +732,13 @@
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);" data-label="Tanggal">
                                     {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}
                                     @if ($item->sanggah_tanggal)
-                                        <div style="font-size: 0.7rem; color: #059669;">Selesai: {{ date('d/m/Y', strtotime($item->sanggah_tanggal)) }}</div>
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: #059669;">Selesai: {{ date('d/m/Y', strtotime($item->sanggah_tanggal)) }}</div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);" data-label="Pelanggaran">
                                     <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran Khusus' }}</strong>
                                     @if ($item->aturan?->tingkat)
-                                        <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem; margin-left: 4px;">
+                                        <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">
                                             {{ strtoupper($item->aturan->tingkat) }}
                                         </span>
                                     @endif
@@ -762,15 +762,15 @@
                                 <td style="padding: 12px 16px;" data-label="Resolusi / Sanggah">
                                     @if ($item->sanggah_status)
                                         <div style="display: flex; align-items: center; gap: 6px;">
-                                            <span class="badge badge-success" style="font-size: 0.7rem;"><i class="fas fa-circle-check"></i> DISANGGAH</span>
-                                            <span style="font-weight: 700; color: #059669; font-size: 0.8125rem;">{{ $item->sanggah_jenis }}</span>
+                                            <span class="badge badge-success" style="font-size: var(--text-2xs, 0.7rem);"><i class="fas fa-circle-check"></i> DISANGGAH</span>
+                                            <span style="font-weight: 700; color: #059669; font-size: var(--text-sm, 0.8125rem);">{{ $item->sanggah_jenis }}</span>
                                         </div>
-                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                             Diputihkan: <strong>-{{ $item->sanggah_poin_potong }} Poin</strong> &bull; {{ \Illuminate\Support\Str::limit($item->sanggah_keterangan, 60) }}
                                         </div>
                                     @else
                                         <span class="badge badge-success">SELESAI BIASA</span>
-                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Telah ditindaklanjuti tanpa sanggah</div>
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">Telah ditindaklanjuti tanpa sanggah</div>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);" data-label="Validator">
@@ -804,7 +804,7 @@
                                             </button>
                                         @endif
                                         @if (!$item->sanggah_status && !$canDelete)
-                                            <span class="text-muted" style="font-size: 0.75rem;">-</span>
+                                            <span class="text-muted" style="font-size: var(--text-xs, 0.75rem);">-</span>
                                         @endif
                                     </div>
                                 </td>
@@ -856,11 +856,11 @@
                                     <tr style="border-bottom: 1px solid var(--border-color);">
                                         <td style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem);">
                                             {{ date('d/m/Y', strtotime($item->tanggal_kejadian)) }}
-                                            <div style="font-size: 0.7rem; color: var(--danger); font-weight: 700;">Lewat {{ (int) now()->diffInDays(\Carbon\Carbon::parse($item->tanggal_kejadian)) }} hari</div>
+                                            <div style="font-size: var(--text-2xs, 0.7rem); color: var(--danger); font-weight: 700;">Lewat {{ (int) now()->diffInDays(\Carbon\Carbon::parse($item->tanggal_kejadian)) }} hari</div>
                                         </td>
                                         <td style="padding: 10px 14px; font-weight: 700; font-size: var(--text-sm, 0.8125rem);">
                                             {{ $item->siswa?->nama }}
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">NISN: {{ $item->siswa?->nisn }}</div>
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">NISN: {{ $item->siswa?->nisn }}</div>
                                         </td>
                                         <td style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem);">
                                             {{ $item->aturan?->nama_aturan }}
@@ -921,7 +921,7 @@
                                         </td>
                                         <td style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem);">
                                             {{ date('d/m/Y', strtotime($item->tanggal_hadir)) }}
-                                            <div style="font-size: 0.7rem; color: var(--danger); font-weight: 700;">Lewat {{ (int) now()->diffInDays(\Carbon\Carbon::parse($item->tanggal_hadir)) }} hari tanpa hadir</div>
+                                            <div style="font-size: var(--text-2xs, 0.7rem); color: var(--danger); font-weight: 700;">Lewat {{ (int) now()->diffInDays(\Carbon\Carbon::parse($item->tanggal_hadir)) }} hari tanpa hadir</div>
                                         </td>
                                         <td style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem);">
                                             {{ $item->alasan }}
@@ -975,11 +975,11 @@
                                         </td>
                                         <td style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem);">
                                             <strong>{{ $item->aturan?->nama_aturan }}</strong>
-                                            <div style="font-size: 0.75rem; color: #059669; margin-top: 2px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: #059669; margin-top: 2px;">
                                                 <i class="fas fa-hand-holding-hand me-1"></i>{{ $item->sanggah_jenis }} &bull; {{ \Illuminate\Support\Str::limit($item->sanggah_keterangan, 50) }}
                                             </div>
                                         </td>
-                                        <td style="padding: 10px 14px; text-align: center; font-weight: 800; color: #d97706;">
+                                        <td style="padding: 10px 14px; text-align: center; font-weight: 800; color: var(--warning, #d97706);">
                                             +{{ $item->poin }} (-{{ $item->sanggah_poin_potong }})
                                         </td>
                                         <td style="padding: 10px 14px; text-align: center;">
@@ -1156,7 +1156,7 @@
                             <div style="font-weight: 800; font-size: var(--text-base, 0.9375rem); color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-chart-line" style="color: var(--primary);"></i> Tren Pelanggaran (6 Bulan)
                             </div>
-                            <span class="badge badge-primary" style="font-size: 0.7rem;">Realtime</span>
+                            <span class="badge badge-primary" style="font-size: var(--text-2xs, 0.7rem);">Realtime</span>
                         </div>
                         <div style="height: 220px; position: relative; width: 100%; min-width: 0;">
                             <canvas id="chartTrenPelanggaran"></canvas>
@@ -1167,9 +1167,9 @@
                     <div class="rekap-chart-card" style="background: var(--bg-card, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: var(--radius-md, 10px); padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                             <div style="font-weight: 800; font-size: var(--text-base, 0.9375rem); color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-chart-pie" style="color: #f59e0b;"></i> Tingkat Keparahan
+                                <i class="fas fa-chart-pie" style="color: var(--warning, #f59e0b);"></i> Tingkat Keparahan
                             </div>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">Ringan vs Sedang vs Berat</span>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Ringan vs Sedang vs Berat</span>
                         </div>
                         <div style="height: 220px; position: relative; width: 100%; min-width: 0;">
                             <canvas id="chartTingkatPelanggaran"></canvas>
@@ -1182,7 +1182,7 @@
                             <div style="font-weight: 800; font-size: var(--text-base, 0.9375rem); color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-chart-column" style="color: #6366f1;"></i> Distribusi Kategori Aturan
                             </div>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">4 Kategori</span>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">4 Kategori</span>
                         </div>
                         <div style="height: 220px; position: relative; width: 100%; min-width: 0;">
                             <canvas id="chartKategoriPelanggaran"></canvas>
@@ -1193,9 +1193,9 @@
                     <div class="rekap-chart-card" style="background: var(--bg-card, #fff); border: 1px solid var(--border-color, #e2e8f0); border-radius: var(--radius-md, 10px); padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                             <div style="font-weight: 800; font-size: var(--text-base, 0.9375rem); color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-hand-holding-hand" style="color: #10b981;"></i> Status &amp; Sanggah Bakti
+                                <i class="fas fa-hand-holding-hand" style="color: var(--success, #10b981);"></i> Status &amp; Sanggah Bakti
                             </div>
-                            <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">{{ $stats['total_disanggah'] ?? 0 }} Sanggah</span>
+                            <span style="font-size: var(--text-xs, 0.75rem); color: #10b981; font-weight: 700;">{{ $stats['total_disanggah'] ?? 0 }} Sanggah</span>
                         </div>
                         <div style="height: 220px; position: relative; width: 100%; min-width: 0;">
                             <canvas id="chartStatusPelanggaran"></canvas>
@@ -1214,10 +1214,10 @@
                                 <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--radius-md, 8px); background: var(--bg-card, #fff); border: 1px solid var(--border-color); font-size: var(--text-xs, 0.75rem);">
                                     <span style="font-family: monospace; font-weight: 700; color: var(--primary);">{{ $top->kode }}</span>
                                     <span style="font-weight: 600; color: var(--text-color); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $top->nama_aturan }}">{{ $top->nama_aturan }}</span>
-                                    <span class="badge {{ $top->tingkat === 'berat' ? 'badge-danger' : ($top->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem;">
+                                    <span class="badge {{ $top->tingkat === 'berat' ? 'badge-danger' : ($top->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: var(--text-2xs, 0.65rem);">
                                         {{ strtoupper($top->tingkat) }}
                                     </span>
-                                    <span style="font-weight: 800; color: var(--danger, #ef4444); background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px;">
+                                    <span style="font-weight: 800; color: var(--danger, #ef4444); background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: var(--radius-xs, 4px);">
                                         {{ $top->total_pelanggaran }}x
                                     </span>
                                 </div>
@@ -1231,7 +1231,7 @@
             <div class="rekap-leaderboard-header" style="padding: 0 20px 10px 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                     <div style="font-weight: 800; font-size: var(--text-base, 0.9375rem); color: var(--text-color); display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-trophy" style="color: #f59e0b;"></i> Leaderboard Akumulasi Poin Siswa (Netto)
+                        <i class="fas fa-trophy" style="color: var(--warning, #f59e0b);"></i> Leaderboard Akumulasi Poin Siswa (Netto)
                     </div>
                     <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Akumulasi poin setelah dikurangi kompensasi sanggah/bakti sekolah</span>
                 </div>
@@ -1275,7 +1275,7 @@
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td
                                     style="padding: 12px 16px; font-weight: 800; color: var(--text-muted); text-align: center;" data-label="Peringkat">
-                                    <span class="badge badge-secondary" style="font-size: 0.75rem;">#{{ $idx + 1 }}</span>
+                                    <span class="badge badge-secondary" style="font-size: var(--text-xs, 0.75rem);">#{{ $idx + 1 }}</span>
                                 </td>
                                 <td class="cell-card-header" style="padding: 12px 16px; font-weight: 700; color: var(--text-color);" data-label="Nama Siswa">
                                     {{ $sw->nama }}
@@ -1517,7 +1517,7 @@
                         <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">
                             Pilih Siswa (Dari Kasus Poin &amp; Sanggah) <span class="text-danger">*</span>
                         </label>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">{{ count($siswaPoinList ?? []) }} siswa terdata</span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">{{ count($siswaPoinList ?? []) }} siswa terdata</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <input type="search" id="pembinaanSiswaSearch" class="form-control"
@@ -1537,7 +1537,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div id="pembinaanSiswaDetail" style="margin-top: 6px; font-size: 0.75rem; color: #059669; display: none;"></div>
+                    <div id="pembinaanSiswaDetail" style="margin-top: 6px; font-size: var(--text-xs, 0.75rem); color: #059669; display: none;"></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
@@ -1615,7 +1615,7 @@
                         <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin: 0;">
                             Pilih Siswa (Dari Kasus Poin &amp; Sanggah) <span class="text-danger">*</span>
                         </label>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">{{ count($siswaPoinList ?? []) }} siswa terdata</span>
+                        <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted);">{{ count($siswaPoinList ?? []) }} siswa terdata</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <input type="search" id="panggilanSiswaSearch" class="form-control"
@@ -1635,7 +1635,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div id="panggilanSiswaDetail" style="margin-top: 6px; font-size: 0.75rem; color: #dc2626; display: none;"></div>
+                    <div id="panggilanSiswaDetail" style="margin-top: 6px; font-size: var(--text-xs, 0.75rem); color: #dc2626; display: none;"></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
@@ -1802,9 +1802,9 @@
                         <option value="Klarifikasi / Pembatalan Sah (Salah identifikasi / memiliki izin resmi)">
                         <option value="Pembiasaan &amp; Pembinaan Karakter (Piket ibadah, pembiasaan pagi)">
                     </datalist>
-                    <div id="sanggahRekomendasiInfo" style="margin-top: 6px; font-size: 0.75rem; color: #059669; display: none;">
+                    <div id="sanggahRekomendasiInfo" style="margin-top: 6px; font-size: var(--text-xs, 0.75rem); color: #059669; display: none;">
                         <i class="fas fa-hand-holding-hand me-1"></i> Rekomendasi Sanksi: <strong id="sanggahRekomendasiText">-</strong>
-                        <button type="button" id="btnGunakanRekomendasi" class="btn btn-sm btn-outline" style="padding: 1px 8px; font-size: 0.7rem; margin-left: 6px; border-radius: 4px; border-color: #059669; color: #059669;">
+                        <button type="button" id="btnGunakanRekomendasi" class="btn btn-sm btn-outline" style="padding: 1px 8px; font-size: var(--text-2xs, 0.7rem); margin-left: 6px; border-radius: var(--radius-xs, 4px); border-color: #059669; color: #059669;">
                             Gunakan Rekomendasi
                         </button>
                     </div>

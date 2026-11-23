@@ -87,14 +87,14 @@
                             <img src="{{ $fotoSrc }}" data-fallback-url="{{ $rawFotoUrl }}" alt="Foto {{ $card['nama'] }}" class="main-photo"
                                 onerror="if(this.dataset.fallbackUrl && this.src !== this.dataset.fallbackUrl){ this.src = this.dataset.fallbackUrl; } else { this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex'; }">
                             <div style="display: none; position: relative; z-index: 2; text-align: center; color: var(--text-muted, #94a3b8);">
-                                <i class="fas fa-user-tie" style="font-size: 42px; opacity: 0.65;"></i>
+                                <i class="fas fa-user-tie" style="font-size: var(--text-4xl, 42px); opacity: 0.65;"></i>
                                 <div style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">
                                     PASFOTO
                                 </div>
                             </div>
                         @else
                             <div style="position: relative; z-index: 2; text-align: center; color: var(--text-muted, #94a3b8);">
-                                <i class="fas fa-user-tie" style="font-size: 42px; opacity: 0.65;"></i>
+                                <i class="fas fa-user-tie" style="font-size: var(--text-4xl, 42px); opacity: 0.65;"></i>
                                 <div style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">
                                     PASFOTO
                                 </div>

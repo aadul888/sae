@@ -69,6 +69,7 @@
 
     <main id="main">
         @include('partials.flash-messages')
+        @include('partials.form-error-focus')
         @yield('content')
     </main>
 
@@ -78,6 +79,8 @@
     <script src="{{ asset('js/sae.js') }}?v={{ @filemtime(public_path('js/sae.js')) ?: '1' }}"></script>
     <script src="{{ asset('js/pwa.js') }}?v={{ @filemtime(public_path('js/pwa.js')) ?: '1' }}"></script>
     <script src="{{ asset('js/upload-dropzone.js') }}?v={{ @filemtime(public_path('js/upload-dropzone.js')) ?: '1' }}"></script>
+    <script src="{{ asset('js/form-error-focus.js') }}?v={{ @filemtime(public_path('js/form-error-focus.js')) ?: '1' }}"></script>
+    <script src="{{ asset('js/field-mask.js') }}?v={{ @filemtime(public_path('js/field-mask.js')) ?: '1' }}"></script>
     @yield('scripts')
     @stack('scripts')
 </body>

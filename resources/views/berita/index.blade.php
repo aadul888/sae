@@ -98,7 +98,7 @@
                                 <img src="{{ asset($item->gambar) }}" alt="{{ $item->judul }}" class="news-hero-img" loading="lazy">
                             @else
                                 <div class="news-placeholder-banner">
-                                    <i class="fas fa-newspaper news-placeholder-icon" style="font-size: 2.75rem;"></i>
+                                    <i class="fas fa-newspaper news-placeholder-icon" style="font-size: var(--text-5xl, 2.75rem);"></i>
                                     <span class="news-placeholder-tag">{{ $item->kategori }}</span>
                                 </div>
                             @endif

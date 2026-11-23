@@ -316,7 +316,7 @@
             border: 1px solid #cbd5e1;
             padding: 1.5px;
             background: #fff;
-            border-radius: 2px;
+            border-radius: var(--radius-xs, 2px);
             flex-shrink: 0;
         }
 
@@ -380,7 +380,7 @@
             border: 1px solid #cbd5e1;
             padding: 1.5px;
             background: #fff;
-            border-radius: 3px;
+            border-radius: var(--radius-xs, 3px);
         }
     </style>
 </head>

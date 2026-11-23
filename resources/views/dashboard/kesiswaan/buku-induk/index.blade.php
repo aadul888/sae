@@ -18,7 +18,7 @@
                 </h2>
                 <p style="margin: 2px 0 0 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                     Register induk siswa: identitas pokok, data orang tua/wali, domisili, dan status kependidikan.
-                    <span style="display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; padding: 2px 9px; border-radius: 999px; background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); font-weight: 700; font-size: var(--text-xs, 0.75rem);">
+                    <span style="display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; padding: 2px 9px; border-radius: var(--radius-pill, 999px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); font-weight: 700; font-size: var(--text-xs, 0.75rem);">
                         <i class="fas fa-calendar-days"></i> T.A. {{ $tahunAjaranTerpilih ?? '-' }}
                     </span>
                 </p>
@@ -62,7 +62,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: #0284c7;">
+            <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: var(--accent, #0284c7);">
                 <i class="fas fa-mars"></i>
             </div>
             <div class="dash-stat-info">

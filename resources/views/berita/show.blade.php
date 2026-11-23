@@ -52,7 +52,7 @@
                     </div>
                 @else
                     <div class="news-placeholder-banner" style="height: 240px; border-radius: var(--radius-lg); margin-bottom: var(--space-8);">
-                        <i class="fas fa-newspaper news-placeholder-icon" style="font-size: 3.5rem;"></i>
+                        <i class="fas fa-newspaper news-placeholder-icon" style="font-size: var(--text-5xl, 3.5rem);"></i>
                         <span class="news-placeholder-tag">{{ $berita->kategori }}</span>
                     </div>
                 @endif

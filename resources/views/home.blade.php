@@ -221,7 +221,7 @@
                     </p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <a href="{{ route('about') }}#modul" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                    <a href="{{ route('about') }}#modul" class="btn btn-outline" style="font-size: var(--text-sm, 0.8rem); padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-layer-group text-primary"></i> Seluruh Layanan &amp; Modul
                     </a>
                 </div>
@@ -243,23 +243,23 @@
             @endphp
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">Data Valid</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ $persenTotSesuai }}%</div>
-                    <div style="display: flex; height: 6px; border-radius: 99px; overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--success); font-weight: 700; text-transform: uppercase;">Data Valid</div>
+                    <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success); line-height: 1.2; margin-top: 4px;">{{ $persenTotSesuai }}%</div>
+                    <div style="display: flex; height: 6px; border-radius: var(--radius-pill, 99px); overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
                         <div style="width: {{ $persenTotSesuai }}%; background: var(--success);"></div>
                         <div style="width: {{ $persenTotTidak }}%; background: var(--warning, #f59e0b);"></div>
                         <div style="width: {{ $persenTotBelum }}%; background: rgba(148, 163, 184, 0.6);"></div>
                     </div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">{{ number_format($totSesuai) }} siswa terverifikasi</div>
+                    <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-top: 4px;">{{ number_format($totSesuai) }} siswa terverifikasi</div>
                 </div>
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
-                    <div style="font-size: 0.75rem; color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Berkas Valid</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ $persenTotBerkas }}%</div>
-                    <div style="display: flex; height: 6px; border-radius: 99px; overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
-                        <div style="width: {{ $persenTotBerkas }}%; background: #8b5cf6;"></div>
+                    <div style="font-size: var(--text-xs, 0.75rem); color: #8b5cf6; font-weight: 700; text-transform: uppercase;">Berkas Valid</div>
+                    <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: #8b5cf6; line-height: 1.2; margin-top: 4px;">{{ $persenTotBerkas }}%</div>
+                    <div style="display: flex; height: 6px; border-radius: var(--radius-pill, 99px); overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
+                        <div style="width: {{ $persenTotBerkas }}%; background: var(--purple, #8b5cf6);"></div>
                         <div style="width: {{ max(0, 100 - $persenTotBerkas) }}%; background: rgba(148, 163, 184, 0.6);"></div>
                     </div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
+                    <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-top: 4px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
                 </div>
             </div>
 
@@ -267,22 +267,22 @@
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                     <input type="text" id="rombelSearch" placeholder="Cari rombel atau jurusan..." 
-                        style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 12px; font-size: 0.85rem; min-width: 240px; outline: none;">
+                        style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 12px; font-size: var(--text-base, 0.85rem); min-width: 240px; outline: none;">
                     
-                    <select id="rombelTingkat" style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 10px; font-size: 0.85rem; outline: none;">
+                    <select id="rombelTingkat" style="background: var(--input-bg); border: 1px solid var(--border-glass); color: var(--text-main); border-radius: var(--radius-md, 8px); padding: 6px 10px; font-size: var(--text-base, 0.85rem); outline: none;">
                         <option value="">Semua Tingkat</option>
                         <option value="X">Kelas X</option>
                         <option value="XI">Kelas XI</option>
                         <option value="XII">Kelas XII</option>
                     </select>
 
-                    <span id="rombelCountBadge" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 6px;">
+                    <span id="rombelCountBadge" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 600; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: var(--radius-sm, 6px);">
                         Menampilkan {{ count($progres_rombel) }} rombel
                     </span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: var(--text-muted); flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 12px; font-size: var(--text-xs, 0.72rem); color: var(--text-muted); flex-wrap: wrap;">
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Data Valid</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Berkas Valid</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--purple, #8b5cf6);"></span> Berkas Valid</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></span> Belum</span>
                 </div>
@@ -290,9 +290,9 @@
 
             <!-- Tabel Progres Rombel (Maksimal 10 Baris Default, Dapat Discroll) -->
             <div style="max-height: 540px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); position: relative;">
-                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: left;" id="tableProgresRombel">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--text-base, 0.85rem); text-align: left;" id="tableProgresRombel">
                     <thead style="position: sticky; top: 0; z-index: 5;">
-                        <tr style="background: var(--bg-card, #ffffff); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <tr style="background: var(--bg-card, #ffffff); border-bottom: 2px solid var(--border-glass); color: var(--text-muted); font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <th style="padding: 12px 14px; width: 45px; text-align: center; background: inherit; border-bottom: 2px solid var(--border-glass);">No</th>
                             <th class="th-sortable" data-col="rombel" style="padding: 12px 14px; min-width: 180px; cursor: pointer; user-select: none; background: inherit; border-bottom: 2px solid var(--border-glass);">
                                 <span>Rombel / Jurusan</span> <i class="fas fa-sort ms-1 sort-icon" style="opacity: 0.4;"></i>
@@ -324,12 +324,12 @@
                                 <td class="row-num" style="padding: 10px 14px; text-align: center; color: var(--text-muted); font-weight: 600;">{{ $idx + 1 }}</td>
                                 <td style="padding: 10px 14px;">
                                     <div style="font-weight: 700; color: var(--text-main);">{{ $r['rombel'] }}</div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r['jurusan'] }}</div>
+                                    <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted);">{{ $r['jurusan'] }}</div>
                                 </td>
                                 <!-- Kolom Data Valid: bar bertumpuk Sesuai / Perbaikan / Belum -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="font-size: 0.78rem; margin-bottom: 4px; font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
-                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
+                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
+                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
                                         <div style="width: {{ $r['persen_sesuai'] }}%; background: var(--success);" title="Sesuai: {{ $r['persen_sesuai'] }}%"></div>
                                         <div style="width: {{ $r['persen_tidak_sesuai'] }}%; background: var(--warning, #f59e0b);" title="Perlu Perbaikan: {{ $r['persen_tidak_sesuai'] }}%"></div>
                                         <div style="width: {{ $r['persen_belum'] }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Konfirmasi: {{ $r['persen_belum'] }}%"></div>
@@ -337,15 +337,15 @@
                                 </td>
                                 <!-- Kolom Berkas Valid: bar valid vs sisa -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="font-size: 0.78rem; margin-bottom: 4px; font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
-                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden;">
-                                        <div style="width: {{ $r['persen_berkas'] }}%; background: #8b5cf6;" title="Berkas Valid: {{ $r['persen_berkas'] }}%"></div>
+                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
+                                    <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
+                                        <div style="width: {{ $r['persen_berkas'] }}%; background: var(--purple, #8b5cf6);" title="Berkas Valid: {{ $r['persen_berkas'] }}%"></div>
                                         <div style="width: {{ max(0, 100 - $r['persen_berkas']) }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Valid: {{ max(0, 100 - $r['persen_berkas']) }}%"></div>
                                     </div>
                                 </td>
                                 <!-- Kualitas Data -->
                                 <td style="padding: 10px 14px; text-align: center; background: rgba(16, 185, 129, 0.03);">
-                                    <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 4px 8px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 4px 8px; border-radius: var(--radius-md, 8px); font-weight: 800; font-size: var(--text-base, 0.85rem); {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
                                         {{ $r['kualitas'] }}%
                                     </span>
                                 </td>

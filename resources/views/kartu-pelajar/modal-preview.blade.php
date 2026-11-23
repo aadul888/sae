@@ -36,7 +36,7 @@
             <div id="kpModalLoading"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; padding: 32px; color: #475569; gap: 14px;">
                 <i class="fas fa-circle-notch fa-spin"
-                    style="font-size: 40px; color: var(--accent, #0284c7); filter: drop-shadow(0 0 10px rgba(2,132,199,0.3));"></i>
+                    style="font-size: var(--text-4xl, 40px); color: var(--accent, #0284c7); filter: drop-shadow(0 0 10px rgba(2,132,199,0.3));"></i>
                 <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; letter-spacing: 0.2px;">Memuat Kartu Pelajar
                     Digital...</div>
             </div>

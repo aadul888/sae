@@ -75,7 +75,7 @@
     </table>
 
     <div
-        style="font-size: 11px; font-style: italic; color: #333; margin-top: 5px; border-left: 3px solid #666; padding-left: 8px;">
+        style="font-size: var(--text-2xs, 11px); font-style: italic; color: #333; margin-top: 5px; border-left: 3px solid #666; padding-left: 8px;">
         *Catatan: Slip izin ini wajib ditunjukkan kepada petugas Satpam di pos gerbang sekolah saat keluar dan kembali.
     </div>
 

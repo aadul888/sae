@@ -17,7 +17,7 @@
             </tr>
         </table>
 
-        <div class="sppd-title">SURAT PERINTAH PERJALANAN DINAS (SPPD)</div>
+        <div class="sppd-title">Surat Perintah Perjalanan Dinas (SPPD)</div>
 
         <table class="sppd-table">
             <tbody>

@@ -641,7 +641,7 @@
                     <select name="peserta_didik_id" id="modalCetakSiswaId" class="form-control" style="height: 36px; font-size: var(--text-xs); padding: 0 10px;">
                         <option value="">-- Pilih Siswa --</option>
                     </select>
-                    <div id="siswaLoadingHelp" style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: none;">
+                    <div id="siswaLoadingHelp" style="font-size: var(--text-2xs, 11px); color: var(--text-muted); margin-top: 3px; display: none;">
                         <i class="fas fa-spinner fa-spin me-1"></i> Memuat daftar siswa...
                     </div>
                 </div>

@@ -229,10 +229,10 @@
                                                     @if ($isGambar)
                                                         <img src="{{ $buktiUrl }}" alt="{{ $b->nama_asli ?: 'Bukti' }}"
                                                             loading="lazy"
-                                                            style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); flex-shrink: 0;">
+                                                            style="width: 48px; height: 48px; object-fit: cover; border-radius: var(--radius-sm, 6px); border: 1px solid var(--border-color); flex-shrink: 0;">
                                                     @else
                                                         <span
-                                                            style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: rgba(239,68,68,0.1); color: var(--danger, #ef4444); font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                                                            style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm, 6px); background: rgba(239,68,68,0.1); color: var(--danger, #ef4444); font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                                                             <i class="fas fa-file-pdf"></i>
                                                         </span>
                                                     @endif

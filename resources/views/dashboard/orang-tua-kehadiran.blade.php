@@ -78,7 +78,7 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
         }
         .cal-day-num {
-            font-size: 0.8125rem;
+            font-size: var(--text-sm, 0.8125rem);
             font-weight: 800;
             line-height: 1;
         }
@@ -86,7 +86,7 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.65rem);
             font-weight: 700;
             padding: 1px 5px;
             border-radius: var(--radius-sm, 5px);
@@ -98,7 +98,7 @@
             margin-top: 1px;
         }
         .cal-time {
-            font-size: 0.625rem;
+            font-size: var(--text-2xs, 0.625rem);
             color: var(--text-muted);
             margin-top: 1px;
             white-space: nowrap;
@@ -188,7 +188,7 @@
             background: var(--bg-card);
             color: var(--text-color);
             text-decoration: none;
-            font-size: 0.8125rem;
+            font-size: var(--text-sm, 0.8125rem);
             transition: all 0.15s ease;
             flex-shrink: 0;
             white-space: nowrap;
@@ -290,7 +290,7 @@
                 width: 40px;
                 height: 32px;
                 padding: 0;
-                font-size: 0.9rem;
+                font-size: var(--text-base, 0.9rem);
             }
             /* Sejajarkan maju mundur, dropdown, dan reset dalam 1 baris tanpa wrap */
             .cal-toolbar-group {
@@ -315,7 +315,7 @@
                 min-width: 0 !important;
                 width: auto !important;
                 height: 32px !important;
-                font-size: 0.78rem !important;
+                font-size: var(--text-sm, 0.78rem) !important;
                 padding: 2px 4px !important;
                 text-align: center !important;
             }
@@ -330,7 +330,7 @@
                 align-items: center;
             }
             .cal-day-num {
-                font-size: 0.78rem;
+                font-size: var(--text-sm, 0.78rem);
             }
             /* Minimalisir teks: hanya warna dan icon saja */
             .cal-badge-text {
@@ -347,7 +347,7 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 0.65rem;
+                font-size: var(--text-2xs, 0.65rem);
                 margin: 1px auto 0 auto;
             }
             .cal-indicators {
@@ -357,7 +357,7 @@
             }
             .cal-indicator-badge {
                 padding: 1px 3px !important;
-                font-size: 0.55rem !important;
+                font-size: var(--text-2xs, 0.55rem) !important;
             }
         }
 
@@ -373,13 +373,13 @@
             .dash-stat-card .dash-stat-icon {
                 width: 34px !important;
                 height: 34px !important;
-                font-size: 0.875rem !important;
+                font-size: var(--text-base, 0.875rem) !important;
             }
             .dash-stat-card .dash-stat-value {
-                font-size: 1.05rem !important;
+                font-size: var(--text-md, 1.05rem) !important;
             }
             .dash-stat-card .dash-stat-label {
-                font-size: 0.6875rem !important;
+                font-size: var(--text-2xs, 0.6875rem) !important;
             }
             .dash-banner {
                 padding: 12px 14px !important;
@@ -398,7 +398,7 @@
             }
             .cal-th {
                 padding: 6px 1px;
-                font-size: 0.6875rem;
+                font-size: var(--text-2xs, 0.6875rem);
             }
             .cal-day-cell {
                 min-height: 48px;
@@ -406,12 +406,12 @@
                 border-radius: var(--radius-sm, 6px);
             }
             .cal-day-num {
-                font-size: 0.75rem;
+                font-size: var(--text-xs, 0.75rem);
             }
             .cal-legend-bar {
                 gap: 4px 8px;
                 padding: 4px 0;
-                font-size: 0.6875rem;
+                font-size: var(--text-2xs, 0.6875rem);
                 margin-bottom: 10px;
             }
             .cal-detail-card {
@@ -427,13 +427,13 @@
                 width: 100%;
             }
             #selectBulanKalender {
-                font-size: 0.75rem !important;
+                font-size: var(--text-xs, 0.75rem) !important;
                 height: 32px !important;
             }
             #selectKategoriKehadiran {
                 min-width: 100% !important;
                 width: 100% !important;
-                font-size: 0.8125rem !important;
+                font-size: var(--text-sm, 0.8125rem) !important;
             }
             .table-pd th, .table-pd td {
                 padding: 8px 10px !important;
@@ -452,7 +452,7 @@
             .cal-badge {
                 width: 22px;
                 height: 22px;
-                font-size: 0.65rem;
+                font-size: var(--text-2xs, 0.65rem);
             }
         }
     </style>
@@ -657,22 +657,22 @@
             <!-- Legenda Warna Status Presensi (Simpel & di Tengah) -->
             <div id="calLegendBar" class="cal-legend-bar" style="justify-content: center; margin-bottom: 12px; gap: 6px 14px; border: none; background: transparent; padding: 0;">
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #10b981;"></span> Hadir
+                    <span class="cal-legend-dot" style="background: var(--success, #10b981);"></span> Hadir
                 </span>
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #f59e0b;"></span> Terlambat
+                    <span class="cal-legend-dot" style="background: var(--warning, #f59e0b);"></span> Terlambat
                 </span>
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #3b82f6;"></span> Izin
+                    <span class="cal-legend-dot" style="background: var(--primary, #3b82f6);"></span> Izin
                 </span>
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #8b5cf6;"></span> Sakit
+                    <span class="cal-legend-dot" style="background: var(--purple, #8b5cf6);"></span> Sakit
                 </span>
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #06b6d4;"></span> Dispen
+                    <span class="cal-legend-dot" style="background: var(--accent, #06b6d4);"></span> Dispen
                 </span>
                 <span class="cal-legend-item">
-                    <span class="cal-legend-dot" style="background: #ef4444;"></span> Alpha
+                    <span class="cal-legend-dot" style="background: var(--danger, #ef4444);"></span> Alpha
                 </span>
                 <span class="cal-legend-item">
                     <span class="cal-legend-dot" style="background: #64748b;"></span> Libur
@@ -680,9 +680,9 @@
             </div>
 
             <!-- Banner Filter Kalender Aktif -->
-            <div id="calFilterAlert" style="display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; align-items: center; justify-content: space-between;">
+            <div id="calFilterAlert" style="display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 600; align-items: center; justify-content: space-between;">
                 <div id="calFilterAlertText"></div>
-                <button type="button" id="btnResetFilter" title="Kembali ke Presensi Harian" style="background: transparent; border: 1px solid currentColor; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: inherit;">
+                <button type="button" id="btnResetFilter" title="Kembali ke Presensi Harian" style="background: transparent; border: 1px solid currentColor; border-radius: var(--radius-sm, 6px); padding: 3px 8px; font-size: var(--text-xs, 0.75rem); font-weight: 700; cursor: pointer; color: inherit;">
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>

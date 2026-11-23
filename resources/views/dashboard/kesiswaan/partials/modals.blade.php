@@ -354,7 +354,7 @@
                             <span id="docKkStatusBadge"></span>
                             <span id="docKkFileName" style="display: none;"></span>
                             <button type="button" id="docKkPreviewBtn" class="btn-icon" title="Lihat KK" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: 0.7rem;"></i>
+                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
                             </button>
                         </div>
                         <!-- Ijazah -->
@@ -363,7 +363,7 @@
                             <span id="docIjazahStatusBadge"></span>
                             <span id="docIjazahFileName" style="display: none;"></span>
                             <button type="button" id="docIjazahPreviewBtn" class="btn-icon" title="Lihat Ijazah" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: 0.7rem;"></i>
+                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
                             </button>
                         </div>
                         <!-- Akta -->
@@ -372,7 +372,7 @@
                             <span id="docAktaStatusBadge"></span>
                             <span id="docAktaFileName" style="display: none;"></span>
                             <button type="button" id="docAktaPreviewBtn" class="btn-icon" title="Lihat Akta" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: 0.7rem;"></i>
+                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
                             </button>
                         </div>
                     </div>
@@ -391,12 +391,12 @@
                                         <span>Verifikasi</span>
                                         <span style="display: inline-flex; align-items: center; gap: 6px;">
                                             <button type="button" id="btnCeklisSemuaUsulan" class="btn-icon" title="Tandai semua Setujui"
-                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(16,185,129,0.4); background: transparent; color: #10b981; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
-                                                <i class="fas fa-check" style="font-size: 0.65rem;"></i>
+                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(16,185,129,0.4); background: transparent; color: var(--success, #10b981); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
+                                                <i class="fas fa-check" style="font-size: var(--text-2xs, 0.65rem);"></i>
                                             </button>
                                             <button type="button" id="btnXSemuaUsulan" class="btn-icon" title="Tandai semua Tolak"
-                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(239,68,68,0.4); background: transparent; color: #ef4444; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
-                                                <i class="fas fa-xmark" style="font-size: 0.65rem;"></i>
+                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(239,68,68,0.4); background: transparent; color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
+                                                <i class="fas fa-xmark" style="font-size: var(--text-2xs, 0.65rem);"></i>
                                             </button>
                                         </span>
                                     </div>

@@ -131,7 +131,7 @@
                             <td><strong>Sakit (S):</strong> {{ $stats['sakit'] }} hari</td>
                             <td><strong>Alpha (A):</strong> {{ $stats['alpha'] }} hari</td>
                             <td><strong>% Kehadiran:</strong> <span
-                                    style="font-size: 12px; font-weight: bold; color: #16a34a;">{{ $stats['persen'] }}%</span>
+                                    style="font-size: var(--text-xs, 12px); font-weight: bold; color: #16a34a;">{{ $stats['persen'] }}%</span>
                             </td>
                         </tr>
                     </table>
@@ -349,7 +349,7 @@
                     </tbody>
                 </table>
 
-                <div style="font-size: 9px; color: #475569; margin-bottom: 10px;">
+                <div style="font-size: var(--text-2xs, 9px); color: #475569; margin-bottom: 10px;">
                     <strong>Keterangan Kode:</strong>
                     <span style="color: #15803d; font-weight: bold; margin-right: 8px;">H = Hadir Tepat Waktu</span>
                     <span style="color: #b45309; font-weight: bold; margin-right: 8px;">T = Terlambat</span>

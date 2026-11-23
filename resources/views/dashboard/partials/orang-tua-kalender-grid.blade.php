@@ -7,7 +7,7 @@
                 <th class="cal-th">Rab</th>
                 <th class="cal-th">Kam</th>
                 <th class="cal-th">Jum</th>
-                <th class="cal-th" style="color: #3b82f6;">Sab</th>
+                <th class="cal-th" style="color: var(--primary, #3b82f6);">Sab</th>
                 <th class="cal-th" style="color: var(--danger, #ef4444);">Min</th>
             </tr>
         </thead>
@@ -66,28 +66,28 @@
                                     <div class="cal-indicators" style="display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px;">
                                         @if (!empty($day['has_izin_keluar']))
                                             <span class="badge cal-indicator-badge"
-                                                style="background: rgba(245, 158, 11, 0.18); color: #d97706; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.35);"
+                                                style="background: rgba(245, 158, 11, 0.18); color: #d97706; font-size: var(--text-2xs, 0.65rem); padding: 2px 4px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(245, 158, 11, 0.35);"
                                                 title="Ada Tiket e-Izin Keluar Sekolah">
                                                 <i class="fas fa-ticket-alt"></i>
                                             </span>
                                         @endif
                                         @if (!empty($day['has_surat_izin']))
                                             <span class="badge cal-indicator-badge"
-                                                style="background: rgba(99, 102, 241, 0.18); color: #6366f1; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.35);"
+                                                style="background: rgba(99, 102, 241, 0.18); color: #6366f1; font-size: var(--text-2xs, 0.65rem); padding: 2px 4px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(99, 102, 241, 0.35);"
                                                 title="Ada Surat Permohonan Izin / Sakit">
                                                 <i class="fas fa-envelope-open-text"></i>
                                             </span>
                                         @endif
                                         @if (!empty($day['has_kedisiplinan']))
                                             <span class="badge cal-indicator-badge"
-                                                style="background: rgba(239, 68, 68, 0.18); color: #ef4444; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.35);"
+                                                style="background: rgba(239, 68, 68, 0.18); color: #ef4444; font-size: var(--text-2xs, 0.65rem); padding: 2px 4px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(239, 68, 68, 0.35);"
                                                 title="Ada Catatan Tata Tertib / Kedisiplinan">
                                                 <i class="fas fa-triangle-exclamation"></i>
                                             </span>
                                         @endif
                                         @if (!empty($day['has_mapel']))
                                             <span class="badge cal-indicator-badge"
-                                                style="background: rgba(16, 185, 129, 0.18); color: #10b981; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.35);"
+                                                style="background: rgba(16, 185, 129, 0.18); color: #10b981; font-size: var(--text-2xs, 0.65rem); padding: 2px 4px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(16, 185, 129, 0.35);"
                                                 title="Ada Presensi Mata Pelajaran">
                                                 <i class="fas fa-book-open"></i>
                                             </span>
@@ -107,7 +107,7 @@
 <div id="detailPresensiBox" class="cal-detail-card">
     <div class="cal-detail-header" style="display: flex; align-items: center; gap: 12px; min-width: 200px;">
         <div id="detailIconBox"
-            style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; background: rgba(16, 185, 129, 0.15); color: #10b981; flex-shrink: 0;">
+            style="width: 40px; height: 40px; border-radius: var(--radius-lg, 10px); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.15rem); background: rgba(16, 185, 129, 0.15); color: #10b981; flex-shrink: 0;">
             <i id="detailIcon" class="fas fa-calendar-day"></i>
         </div>
         <div>
@@ -126,7 +126,7 @@
                 Status:
             </div>
             <div id="detailStatusBadge">
-                <span class="badge badge-success" style="font-weight: 700; padding: 3px 8px; font-size: 0.75rem;">-</span>
+                <span class="badge badge-success" style="font-weight: 700; padding: 3px 8px; font-size: var(--text-xs, 0.75rem);">-</span>
             </div>
         </div>
 

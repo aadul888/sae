@@ -356,9 +356,9 @@
                                                 style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; background: rgba(6,182,212,0.12); border: 1px dashed rgba(6,182,212,0.45); border-radius: var(--radius-sm, 6px); color: #38bdf8; font-family: monospace; font-size: var(--text-xs, 0.75rem); font-weight: 700; cursor: pointer;">
                                             <i class="fas fa-barcode"></i>
                                             <span class="nisn-text">{{ $nisnPd }}</span>
-                                            <i class="fas fa-copy" style="font-size: 10px; opacity: 0.8;"></i>
+                                            <i class="fas fa-copy" style="font-size: var(--text-2xs, 10px); opacity: 0.8;"></i>
                                         </button>
-                                        <span>&bull; Rombel: <span class="badge badge-secondary" style="font-size: 10px; padding: 2px 6px;">{{ $rombelPd }}</span></span>
+                                        <span>&bull; Rombel: <span class="badge badge-secondary" style="font-size: var(--text-2xs, 10px); padding: 2px 6px;">{{ $rombelPd }}</span></span>
                                     </div>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
@@ -390,12 +390,12 @@
                                                     data-judul="Surat Penerimaan / Permohonan (Surat 1)"
                                                     data-nosurat="{{ $item->nomor_surat_penerimaan ?: '-' }}"
                                                     data-url="{{ route('dashboard.kesiswaan.administrasi.mutasi.berkas', ['id' => $item->id, 'jenis' => 'penerimaan']) }}"
-                                                    style="background: rgba(59,130,246,0.1); color: var(--primary); font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(59,130,246,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                                                    style="background: rgba(59,130,246,0.1); color: var(--primary); font-size: var(--text-2xs, 11px); padding: 3px 8px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(59,130,246,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
                                                     title="Klik untuk tinjau dokumen PDF & ganti berkas">
                                                 <i class="fas fa-file-pdf"></i> S-1 Penerimaan
                                             </button>
                                         @else
-                                            <span style="font-size: 11px; color: var(--text-muted);"><i class="fas fa-minus"></i> S-1 Kosong</span>
+                                            <span style="font-size: var(--text-2xs, 11px); color: var(--text-muted);"><i class="fas fa-minus"></i> S-1 Kosong</span>
                                         @endif
 
                                         {{-- Surat 2: Surat Mutasi Dapodik --}}
@@ -407,7 +407,7 @@
                                                     data-judul="Surat Mutasi Resmi Dapodik (Surat 2)"
                                                     data-nosurat="{{ $item->nomor_surat_dapodik ?: ($item->nomor_surat_mutasi ?: '-') }}"
                                                     data-url="{{ route('dashboard.kesiswaan.administrasi.mutasi.berkas', ['id' => $item->id, 'jenis' => 'dapodik']) }}"
-                                                    style="background: rgba(16,185,129,0.1); color: var(--success); font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                                                    style="background: rgba(16,185,129,0.1); color: var(--success); font-size: var(--text-2xs, 11px); padding: 3px 8px; border-radius: var(--radius-xs, 4px); border: 1px solid rgba(16,185,129,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
                                                     title="Klik untuk tinjau dokumen PDF & ganti berkas">
                                                 <i class="fas fa-file-circle-check"></i> S-2 Dapodik
                                             </button>
@@ -417,7 +417,7 @@
                                                     data-nama="{{ $namaPd }}"
                                                     data-nosurat="{{ $item->nomor_surat_penerimaan ?: '-' }}"
                                                     data-suggested-no="{{ $item->nomor_surat_mutasi ?: ($nextNomorSuratKeluar ?? '') }}"
-                                                    style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px dashed #d97706; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                                    style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px dashed #d97706; font-size: var(--text-2xs, 11px); padding: 3px 8px; border-radius: var(--radius-xs, 4px); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                                                 <i class="fas fa-upload"></i> Unggah S-2
                                             </button>
                                         @endif
@@ -425,15 +425,15 @@
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
                                     @if ($item->status_proses === 'selesai' || (!empty($item->file_surat_mutasi) && $item->dapodik_synced_at))
-                                        <span class="badge badge-success" style="font-size: 11px; padding: 4px 8px;" title="Tersinkron Feeder dan Berkas Arsip Lengkap">
+                                        <span class="badge badge-success" style="font-size: var(--text-2xs, 11px); padding: 4px 8px;" title="Tersinkron Feeder dan Berkas Arsip Lengkap">
                                             <i class="fas fa-check-double"></i> Selesai
                                         </span>
                                     @elseif ($item->status_proses === 'tersinkron_dapodik' || $item->dapodik_synced_at)
-                                        <span class="badge badge-info" style="font-size: 11px; padding: 4px 8px;" title="Sudah sinkron Feeder ke Tidak Aktif, menunggu upload surat Dapodik">
+                                        <span class="badge badge-info" style="font-size: var(--text-2xs, 11px); padding: 4px 8px;" title="Sudah sinkron Feeder ke Tidak Aktif, menunggu upload surat Dapodik">
                                             <i class="fas fa-cloud-arrow-down"></i> Di Feeder
                                         </span>
                                     @else
-                                        <span class="badge badge-warning" style="font-size: 11px; padding: 4px 8px;" title="Tahap 1 dicatat, menunggu operator mutasi Dapodik & sinkron Feeder">
+                                        <span class="badge badge-warning" style="font-size: var(--text-2xs, 11px); padding: 4px 8px;" title="Tahap 1 dicatat, menunggu operator mutasi Dapodik & sinkron Feeder">
                                             <i class="fas fa-clock"></i> Tunggu Dapodik
                                         </span>
                                     @endif
@@ -698,7 +698,7 @@
                         <input type="text" name="nomor_surat_penerimaan" class="form-control"
                             placeholder="Contoh: 421.5/089/SMKN2-BDG/2026 atau No. Permohonan Ortu" required
                             style="width: 100%; border-radius: var(--radius-md, 8px);">
-                        <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-muted);">
+                        <p style="margin: 4px 0 0 0; font-size: var(--text-2xs, 11px); color: var(--text-muted);">
                             <i class="fas fa-info-circle"></i> Nomor ini otomatis dicatat sebagai nomor surat pada modul <strong>Surat Masuk</strong> persuratan.
                         </p>
                     </div>
@@ -722,7 +722,7 @@
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
                             Berkas Surat Bersedia Menerima / Permohonan (Wajib PDF) <span class="text-danger">*</span>
                         </label>
-                        <p style="margin: 0 0 6px 0; font-size: 11px; color: var(--text-muted);">
+                        <p style="margin: 0 0 6px 0; font-size: var(--text-2xs, 11px); color: var(--text-muted);">
                             Hanya berkas format PDF (maksimal 5 MB). Berkas otomatis diarsipkan ke sistem persuratan.
                         </p>
                         <input type="file" name="file_surat_penerimaan" class="form-control" accept="application/pdf,.pdf" required
@@ -840,7 +840,7 @@
                     </div>
                     <div>
                         <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">Unggah Surat Mutasi Dapodik</h3>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Tahap 2: Arsip resmi setelah mutasi disetujui & disinkronkan</div>
+                        <div style="font-size: var(--text-2xs, 11px); color: var(--text-muted); margin-top: 2px;">Tahap 2: Arsip resmi setelah mutasi disetujui & disinkronkan</div>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalUploadSuratDapodik"
@@ -854,19 +854,19 @@
                     <input type="hidden" id="uploadMutasiId" name="mutasi_id">
 
                     <div style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 14px;">
-                        <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Siswa Mutasi / Keluar</div>
+                        <div style="font-size: var(--text-2xs, 11px); text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Siswa Mutasi / Keluar</div>
                         <div id="uploadMutasiSiswaNama" style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-top: 2px;">-</div>
-                        <div id="uploadMutasiNoSurat" style="font-size: 11px; font-family: monospace; color: var(--primary); margin-top: 2px;">-</div>
+                        <div id="uploadMutasiNoSurat" style="font-size: var(--text-2xs, 11px); font-family: monospace; color: var(--primary); margin-top: 2px;">-</div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
-                            Nomor Surat Mutasi Dapodik / Registrasi Keluar <span class="badge badge-secondary" style="font-size: 10px; font-weight: 600; padding: 2px 6px;">Otomatis Modul Persuratan</span>
+                            Nomor Surat Mutasi Dapodik / Registrasi Keluar <span class="badge badge-secondary" style="font-size: var(--text-2xs, 10px); font-weight: 600; padding: 2px 6px;">Otomatis Modul Persuratan</span>
                         </label>
                         <input type="text" id="uploadMutasiNoDapodik" name="nomor_surat_dapodik" class="form-control"
                             readonly
                             style="width: 100%; border-radius: var(--radius-md, 8px); background-color: var(--bg-hover, rgba(0,0,0,0.04)); cursor: not-allowed; font-family: monospace; font-weight: 700; color: var(--primary);">
-                        <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-muted);">
+                        <p style="margin: 4px 0 0 0; font-size: var(--text-2xs, 11px); color: var(--text-muted);">
                             <i class="fas fa-lock"></i> Terbaca otomatis dari antrean nomor Surat Keluar yang belum digunakan.
                         </p>
                     </div>
@@ -875,7 +875,7 @@
                         <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
                             Berkas Surat Mutasi Dapodik (Wajib PDF) <span class="text-danger">*</span>
                         </label>
-                        <p style="margin: 0 0 6px 0; font-size: 11px; color: var(--text-muted);">
+                        <p style="margin: 0 0 6px 0; font-size: var(--text-2xs, 11px); color: var(--text-muted);">
                             Hanya format PDF (maks. 5 MB). Berkas otomatis tercatat di <strong>Surat Keluar</strong> persuratan.
                         </p>
                         <input type="file" name="file_surat_mutasi" class="form-control" accept="application/pdf,.pdf" required
@@ -908,12 +908,12 @@
                     </div>
                     <div>
                         <h3 id="reviewDokumenJudul" style="font-size: var(--text-base, 1rem); font-weight: 700; color: var(--text-color); margin: 0;">Pratinjau Dokumen</h3>
-                        <div id="reviewDokumenSub" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="reviewDokumenSub" style="font-size: var(--text-2xs, 11px); color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <a id="reviewDokumenDownloadBtn" href="#" target="_blank" class="btn btn-outline"
-                       style="padding: 5px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                       style="padding: 5px 10px; font-size: var(--text-xs, 12px); display: inline-flex; align-items: center; gap: 4px;">
                         <i class="fas fa-external-link-alt"></i> Tab Baru
                     </a>
                     <button type="button" class="close-modal" data-target="#modalReviewDokumenMutasi"
@@ -934,14 +934,14 @@
                 @csrf
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
                     <div style="flex: 1; min-width: 250px;">
-                        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
+                        <label style="display: block; font-size: var(--text-2xs, 11px); font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
                             Ganti / Unggah Ulang Dokumen (Hanya PDF, maks 5 MB):
                         </label>
                         <input type="file" id="reviewDokumenFileInput" name="file_dokumen" class="form-control" accept="application/pdf,.pdf" required
-                               style="width: 100%; font-size: 12px; padding: 5px 8px; border-radius: var(--radius-md, 8px);">
+                               style="width: 100%; font-size: var(--text-xs, 12px); padding: 5px 8px; border-radius: var(--radius-md, 8px);">
                     </div>
                     <div style="display: flex; gap: 8px; align-items: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="padding: 7px 16px; font-size: 12px; white-space: nowrap;">
+                        <button type="submit" class="btn btn-primary" style="padding: 7px 16px; font-size: var(--text-xs, 12px); white-space: nowrap;">
                             <i class="fas fa-sync-alt me-1"></i> Perbarui Dokumen
                         </button>
                     </div>
@@ -963,7 +963,7 @@
                     </div>
                     <div>
                         <h3 style="font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-color); margin: 0;">Ubah Data Mutasi</h3>
-                        <div id="editMutasiSiswaSub" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="editMutasiSiswaSub" style="font-size: var(--text-2xs, 11px); color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#modalEditMutasi"
@@ -1028,22 +1028,22 @@
                     </div>
 
                     <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 12px; margin-bottom: 16px;">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-color); margin-bottom: 10px;">
+                        <div style="font-size: var(--text-xs, 12px); font-weight: 700; color: var(--text-color); margin-bottom: 10px;">
                             <i class="fas fa-paperclip"></i> Perbarui Lampiran Berkas (Opsional - Hanya PDF)
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
-                            <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
+                            <label style="display: flex; justify-content: space-between; font-size: var(--text-2xs, 11px); font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
                                 <span>Surat 1 (Penerimaan / Permohonan)</span>
-                                <span id="editMutasiS1Status" class="badge badge-secondary" style="font-size: 10px; padding: 1px 5px;">-</span>
+                                <span id="editMutasiS1Status" class="badge badge-secondary" style="font-size: var(--text-2xs, 10px); padding: 1px 5px;">-</span>
                             </label>
-                            <input type="file" name="file_surat_penerimaan" class="form-control" accept="application/pdf,.pdf" style="width: 100%; font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md, 8px);">
+                            <input type="file" name="file_surat_penerimaan" class="form-control" accept="application/pdf,.pdf" style="width: 100%; font-size: var(--text-xs, 12px); padding: 4px 8px; border-radius: var(--radius-md, 8px);">
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
+                            <label style="display: flex; justify-content: space-between; font-size: var(--text-2xs, 11px); font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
                                 <span>Surat 2 (Surat Mutasi Dapodik)</span>
-                                <span id="editMutasiS2Status" class="badge badge-secondary" style="font-size: 10px; padding: 1px 5px;">-</span>
+                                <span id="editMutasiS2Status" class="badge badge-secondary" style="font-size: var(--text-2xs, 10px); padding: 1px 5px;">-</span>
                             </label>
-                            <input type="file" name="file_surat_mutasi" class="form-control" accept="application/pdf,.pdf" style="width: 100%; font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md, 8px);">
+                            <input type="file" name="file_surat_mutasi" class="form-control" accept="application/pdf,.pdf" style="width: 100%; font-size: var(--text-xs, 12px); padding: 4px 8px; border-radius: var(--radius-md, 8px);">
                         </div>
                     </div>
 

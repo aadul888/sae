@@ -301,7 +301,7 @@
                         @elseif ($activeTab === 'template')
                             <span class="badge"
                                 style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(124,58,237,0.1); color: var(--purple, #7c3aed); border: 1px solid rgba(124,58,237,0.25);">
-                                62 Klasifikasi Indeks Surat
+                                 Autocrat &mdash; 62 Klasifikasi Indeks Surat
                             </span>
                         @endif
                     </div>
@@ -486,7 +486,7 @@
                                     </td>
                                     <td style="padding: 12px 16px;" data-label="Kode Indeks">
                                         <span class="badge-compact"
-                                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-family: monospace; font-weight: 700; font-size: 0.8125rem;">
+                                            style="background: rgba(99,102,241,0.12); color: var(--primary); font-family: monospace; font-weight: 700; font-size: var(--text-sm, 0.8125rem);">
                                             <i class="fas fa-hashtag me-1"></i> {{ $tmpl->kode }}
                                         </span>
                                     </td>

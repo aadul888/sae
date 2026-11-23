@@ -199,30 +199,30 @@
                                                 onclick="previewFotoTamu('{{ asset('storage/' . $item->foto_tamu) }}', '{{ addslashes($item->nama_tamu) }}')"
                                                 title="Klik untuk perbesar foto tamu">
                                                 <img src="{{ asset('storage/' . $item->foto_tamu) }}" alt="Foto {{ $item->nama_tamu }}"
-                                                    style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 2px solid rgba(14, 165, 233, 0.4); box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-                                                <span style="position: absolute; bottom: -2px; right: -2px; background: #0ea5e9; color: #fff; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    style="width: 44px; height: 44px; object-fit: cover; border-radius: var(--radius-md, 8px); border: 2px solid rgba(14, 165, 233, 0.4); box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                                                <span style="position: absolute; bottom: -2px; right: -2px; background: #0ea5e9; color: #fff; border-radius: 50%; width: 14px; height: 14px; font-size: var(--text-2xs, 8px); display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-magnifying-glass"></i>
                                                 </span>
                                             </div>
                                         @else
-                                            <div style="width: 44px; height: 44px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted);">
-                                                <i class="fas fa-user" style="font-size: 1.1rem; opacity: 0.5;"></i>
+                                            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 8px); background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted);">
+                                                <i class="fas fa-user" style="font-size: var(--text-lg, 1.1rem); opacity: 0.5;"></i>
                                             </div>
                                         @endif
                                         <div style="min-width: 0;">
                                             <div style="font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                                 <span>{{ $item->nama_tamu }}</span>
                                                 @if ($item->is_mandiri)
-                                                    <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: var(--purple, #8b5cf6); font-size: 10px; padding: 2px 6px;">
+                                                    <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: var(--purple, #8b5cf6); font-size: var(--text-2xs, 10px); padding: 2px 6px;">
                                                         <i class="fas fa-qrcode me-1"></i>Mandiri
                                                     </span>
                                                 @endif
                                                 @if ($item->jenis_tamu === 'orang_tua')
-                                                    <span class="badge" style="background: rgba(2, 132, 199, 0.12); color: var(--primary, #0284c7); font-size: 10px; padding: 2px 6px;">
+                                                    <span class="badge" style="background: rgba(2, 132, 199, 0.12); color: var(--primary, #0284c7); font-size: var(--text-2xs, 10px); padding: 2px 6px;">
                                                         <i class="fas fa-user-graduate me-1"></i>Orang Tua
                                                     </span>
                                                 @elseif ($item->jenis_tamu === 'kedinasan')
-                                                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 10px; padding: 2px 6px;">
+                                                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: var(--text-2xs, 10px); padding: 2px 6px;">
                                                         <i class="fas fa-building me-1"></i>Dinas
                                                     </span>
                                                 @endif
@@ -234,7 +234,7 @@
                                                 @endif
                                             </div>
                                             @if ($item->nama_siswa)
-                                                <div style="font-size: 11px; color: var(--primary, #0284c7); margin-top: 3px;">
+                                                <div style="font-size: var(--text-2xs, 11px); color: var(--primary, #0284c7); margin-top: 3px;">
                                                     <i class="fas fa-child me-1"></i> Siswa: <strong>{{ $item->nama_siswa }}</strong>
                                                     @if ($item->rombel_siswa) ({{ $item->rombel_siswa }}) @endif
                                                 </div>
@@ -336,7 +336,7 @@
                         </p>
                     </div>
                     <button type="button" onclick="closeModalTamu()"
-                        style="background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-2xl, 1.5rem); line-height: 1; cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
 
                 <form id="formTamu" method="POST" action="{{ route('dashboard.keamanan.buku-tamu.store') }}"
@@ -363,38 +363,38 @@
                     {{-- Langkah 1: Kategori Tamu (Kartu Pilihan seperti Formulir Mandiri) --}}
                     <div class="category-step" id="manualCategoryStep" style="margin-bottom: 12px; padding: 12px;">
                         <div class="category-step-head" style="margin-bottom: 10px; gap: 8px;">
-                            <span class="category-step-num" style="width: 28px; height: 28px; font-size: 0.85rem;">1</span>
+                            <span class="category-step-num" style="width: 28px; height: 28px; font-size: var(--text-base, 0.85rem);">1</span>
                             <div>
-                                <div class="category-step-title" style="font-size: 0.875rem;">Pilih Kategori Tamu</div>
-                                <div class="category-step-sub" style="font-size: 0.7rem;">Pilih kategori kunjungan tamu</div>
+                                <div class="category-step-title" style="font-size: var(--text-base, 0.875rem);">Pilih Kategori Tamu</div>
+                                <div class="category-step-sub" style="font-size: var(--text-2xs, 0.7rem);">Pilih kategori kunjungan tamu</div>
                             </div>
-                            <span class="category-step-tag" style="font-size: 0.6rem; padding: 2px 8px;">KATEGORI</span>
+                            <span class="category-step-tag" style="font-size: var(--text-2xs, 0.6rem); padding: 2px 8px;">KATEGORI</span>
                         </div>
 
                         <div class="etamu-category-grid" id="manualCategoryGrid" style="gap: 8px;">
                             <label class="category-option active" data-type="orang_tua" style="padding: 10px 6px;">
                                 <input type="radio" name="jenis_tamu" value="orang_tua" checked>
-                                <span class="category-icon text-primary" style="font-size: 1.25rem;"><i class="fas fa-user-graduate"></i></span>
-                                <span class="category-label" style="font-size: 0.72rem;">Orang Tua / Wali</span>
-                                <span class="category-hint" style="font-size: 0.62rem;">Wali murid</span>
+                                <span class="category-icon text-primary" style="font-size: var(--text-xl, 1.25rem);"><i class="fas fa-user-graduate"></i></span>
+                                <span class="category-label" style="font-size: var(--text-xs, 0.72rem);">Orang Tua / Wali</span>
+                                <span class="category-hint" style="font-size: var(--text-2xs, 0.62rem);">Wali murid</span>
                             </label>
                             <label class="category-option" data-type="kedinasan" style="padding: 10px 6px;">
                                 <input type="radio" name="jenis_tamu" value="kedinasan">
-                                <span class="category-icon text-info" style="font-size: 1.25rem;"><i class="fas fa-building"></i></span>
-                                <span class="category-label" style="font-size: 0.72rem;">Kedinasan</span>
-                                <span class="category-hint" style="font-size: 0.62rem;">Instansi / dinas</span>
+                                <span class="category-icon text-info" style="font-size: var(--text-xl, 1.25rem);"><i class="fas fa-building"></i></span>
+                                <span class="category-label" style="font-size: var(--text-xs, 0.72rem);">Kedinasan</span>
+                                <span class="category-hint" style="font-size: var(--text-2xs, 0.62rem);">Instansi / dinas</span>
                             </label>
                             <label class="category-option" data-type="umum" style="padding: 10px 6px;">
                                 <input type="radio" name="jenis_tamu" value="umum">
-                                <span class="category-icon text-success" style="font-size: 1.25rem;"><i class="fas fa-user-group"></i></span>
-                                <span class="category-label" style="font-size: 0.72rem;">Umum</span>
-                                <span class="category-hint" style="font-size: 0.62rem;">Masyarakat umum</span>
+                                <span class="category-icon text-success" style="font-size: var(--text-xl, 1.25rem);"><i class="fas fa-user-group"></i></span>
+                                <span class="category-label" style="font-size: var(--text-xs, 0.72rem);">Umum</span>
+                                <span class="category-hint" style="font-size: var(--text-2xs, 0.62rem);">Masyarakat umum</span>
                             </label>
                             <label class="category-option" data-type="alumni" style="padding: 10px 6px;">
                                 <input type="radio" name="jenis_tamu" value="alumni">
-                                <span class="category-icon text-warning" style="font-size: 1.25rem;"><i class="fas fa-user-tie"></i></span>
-                                <span class="category-label" style="font-size: 0.72rem;">Alumni</span>
-                                <span class="category-hint" style="font-size: 0.62rem;">Siswa Lulus</span>
+                                <span class="category-icon text-warning" style="font-size: var(--text-xl, 1.25rem);"><i class="fas fa-user-tie"></i></span>
+                                <span class="category-label" style="font-size: var(--text-xs, 0.72rem);">Alumni</span>
+                                <span class="category-hint" style="font-size: var(--text-2xs, 0.62rem);">Siswa Lulus</span>
                             </label>
                         </div>
                     </div>
@@ -410,7 +410,7 @@
 
                         {{-- Search Input with Floating Results Dropdown --}}
                         <div class="student-search-wrapper" id="manualStudentSearchWrapper" style="position: relative; margin-bottom: 6px;">
-                            <label class="form-label" for="manual_cari_siswa" style="font-size: 0.75rem;">Cari Data Siswa</label>
+                            <label class="form-label" for="manual_cari_siswa" style="font-size: var(--text-xs, 0.75rem);">Cari Data Siswa</label>
                             <div class="student-search-input-wrap" style="position: relative;">
                                 <input type="text" id="manual_cari_siswa" class="form-control"
                                     placeholder="Ketik nama siswa, NISN, atau NIK..." autocomplete="off">
@@ -454,11 +454,11 @@
                         <div id="manualStudentInputWrap" style="display: none; margin-top: 8px; border-top: 1px dashed var(--border-color, rgba(255,255,255,0.1)); padding-top: 8px;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
-                                    <label class="form-label" style="font-size: 0.72rem;">Nama Siswa</label>
+                                    <label class="form-label" style="font-size: var(--text-xs, 0.72rem);">Nama Siswa</label>
                                     <input type="text" id="manual_custom_nama_siswa" class="form-control" placeholder="Nama Putra/Putri">
                                 </div>
                                 <div>
-                                    <label class="form-label" style="font-size: 0.72rem;">Kelas / Rombel</label>
+                                    <label class="form-label" style="font-size: var(--text-xs, 0.72rem);">Kelas / Rombel</label>
                                     <input type="text" id="manual_custom_rombel_siswa" class="form-control" placeholder="Kelas Siswa">
                                 </div>
                             </div>
@@ -655,7 +655,7 @@
                             <span style="font-weight: 700; font-size: var(--text-xs, 0.78rem); color: var(--text-heading);">
                                 <i class="fas fa-camera text-primary me-1"></i> Bukti Foto Tamu (Opsional)
                             </span>
-                            <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 999px;">
+                            <span style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: var(--radius-pill, 999px);">
                                 Kompresi Otomatis
                             </span>
                         </div>
@@ -675,7 +675,7 @@
                             <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto; aspect-ratio: 4/3; background: #000; border-radius: var(--radius-md, 8px); overflow: hidden; display: flex; align-items: center; justify-content: center;">
                                 <video id="modalWebcamVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
                                 <div id="modalCameraPlaceholder" style="text-align: center; color: var(--text-muted); padding: 16px;">
-                                    <i class="fas fa-video-slash" style="font-size: 1.8rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                                    <i class="fas fa-video-slash" style="font-size: var(--text-3xl, 1.8rem); margin-bottom: 6px; opacity: 0.5;"></i>
                                     <div style="font-size: var(--text-xs, 0.75rem);">Kamera web belum aktif</div>
                                     <button type="button" id="modalBtnStartCamera" class="btn btn-primary" style="margin-top: 8px; padding: 5px 12px; font-size: var(--text-xs, 0.75rem); display: inline-flex; align-items: center; gap: 5px;">
                                         <i class="fas fa-camera"></i> Buka Kamera
@@ -699,7 +699,7 @@
                         {{-- Panel Unggah --}}
                         <div id="modalPanelUnggah" style="display: none;">
                             <div style="border: 1px dashed var(--border-glass, rgba(255,255,255,0.25)); border-radius: var(--radius-md, 8px); padding: 14px; text-align: center; background: rgba(255,255,255,0.02);">
-                                <i class="fas fa-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary, #0ea5e9); margin-bottom: 4px;"></i>
+                                <i class="fas fa-cloud-arrow-up" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #0ea5e9); margin-bottom: 4px;"></i>
                                 <div style="font-size: var(--text-xs, 0.78rem); font-weight: 600; color: var(--text-heading); margin-bottom: 2px;">
                                     Pilih Berkas Foto Tamu
                                 </div>
@@ -714,7 +714,7 @@
                         <div id="modalPhotoPreviewWrap" style="display: none; margin-top: 10px; text-align: center;">
                             <div style="position: relative; display: inline-block; max-width: 220px; border-radius: var(--radius-md, 8px); overflow: hidden; border: 2px solid #10b981; box-shadow: 0 4px 10px rgba(16,185,129,0.2);">
                                 <img id="modalImgPhotoPreview" src="" alt="Preview Foto Tamu" style="width: 100%; height: auto; display: block; object-fit: cover;">
-                                <span style="position: absolute; top: 4px; left: 4px; background: rgba(16, 185, 129, 0.9); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px;">
+                                <span style="position: absolute; top: 4px; left: 4px; background: rgba(16, 185, 129, 0.9); color: #fff; font-size: var(--text-2xs, 9px); font-weight: 700; padding: 2px 5px; border-radius: var(--radius-xs, 4px);">
                                     <i class="fas fa-check"></i> Foto Siap
                                 </span>
                             </div>
@@ -749,10 +749,10 @@
                     <button type="button" onclick="closeModalQr()"
                         style="background: none; border: none; font-size: var(--text-xl, 1.25rem); cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
-                <div style="background: #ffffff; border: 2px solid var(--primary, #0284c7); border-radius: 16px; padding: 14px; display: inline-block; margin-bottom: 12px;">
+                <div style="background: #ffffff; border: 2px solid var(--primary, #0284c7); border-radius: var(--radius-xl, 16px); padding: 14px; display: inline-block; margin-bottom: 12px;">
                     {!! $qrSvg !!}
                 </div>
-                <div style="font-size: 11px; font-family: monospace; color: var(--primary, #0284c7); margin-bottom: 8px; word-break: break-all;">
+                <div style="font-size: var(--text-2xs, 11px); font-family: monospace; color: var(--primary, #0284c7); margin-bottom: 8px; word-break: break-all;">
                     {{ $publicFormUrl }}
                 </div>
                 <p style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin: 0 0 16px;">
@@ -778,7 +778,7 @@
                         Foto Tamu
                     </h3>
                     <button type="button" onclick="closeModalFotoPreview()"
-                        style="background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--text-muted);">&times;</button>
+                        style="background: none; border: none; font-size: var(--text-2xl, 1.5rem); line-height: 1; cursor: pointer; color: var(--text-muted);">&times;</button>
                 </div>
                 <div style="max-height: 70vh; overflow: hidden; border-radius: var(--radius-md, 8px); background: #000; display: flex; align-items: center; justify-content: center;">
                     <img id="modalFotoPreviewImg" src="" alt="Foto Tamu" style="max-width: 100%; max-height: 70vh; object-fit: contain; display: block;">
@@ -838,7 +838,7 @@
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: var(--text-md, 1rem);
             color: #fff;
             background: linear-gradient(135deg, #0ea5e9, #06b6d4);
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
@@ -857,7 +857,7 @@
         .category-step-tag {
             margin-left: auto;
             align-self: flex-start;
-            font-size: 0.65rem;
+            font-size: var(--text-2xs, 0.65rem);
             font-weight: 800;
             letter-spacing: 0.06em;
             color: #fff;
@@ -919,11 +919,11 @@
             position: absolute;
             top: 6px;
             right: 8px;
-            font-size: 0.95rem;
+            font-size: var(--text-md, 0.95rem);
             color: var(--primary, #0ea5e9);
         }
         .category-icon {
-            font-size: 1.6rem;
+            font-size: var(--text-2xl, 1.6rem);
             line-height: 1;
             margin-bottom: 2px;
         }
@@ -937,7 +937,7 @@
             color: var(--primary, #0ea5e9);
         }
         .category-hint {
-            font-size: 0.68rem;
+            font-size: var(--text-2xs, 0.68rem);
             color: var(--text-muted);
             line-height: 1.1;
         }
@@ -1028,7 +1028,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: var(--text-lg, 1.1rem);
             flex-shrink: 0;
         }
         .student-selected-info {
@@ -1047,9 +1047,9 @@
             background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-sm, 6px);
             padding: 4px 8px;
-            font-size: 0.75rem;
+            font-size: var(--text-xs, 0.75rem);
             font-weight: 600;
             cursor: pointer;
             display: flex;

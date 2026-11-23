@@ -137,12 +137,12 @@
                 <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'pelanggaran']) }}"
                     class="periode-nav-tab {{ $tab === 'pelanggaran' ? 'active' : '' }}">
                     <i class="fas fa-triangle-exclamation"></i> Catatan Pelanggaran
-                    <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ number_format($totalSemua) }}</span>
+                    <span class="badge badge-secondary" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ number_format($totalSemua) }}</span>
                 </a>
                 <a href="{{ route('dashboard.keamanan.pelanggaran.index', ['tab' => 'tata_tertib']) }}"
                     class="periode-nav-tab {{ $tab === 'tata_tertib' ? 'active' : '' }}">
                     <i class="fas fa-book-bookmark"></i> Tata Tertib &amp; Poin
-                    <span class="badge badge-secondary" style="font-size: 0.65rem; margin-left: 4px;">{{ number_format($totalTatibAktif) }} Aturan</span>
+                    <span class="badge badge-secondary" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">{{ number_format($totalTatibAktif) }} Aturan</span>
                 </a>
             </div>
 
@@ -251,7 +251,7 @@
                                     <td style="padding: 12px 16px;" data-label="Aturan Dilanggar">
                                         <strong>{{ $item->aturan?->nama_aturan ?: 'Pelanggaran' }}</strong>
                                         @if ($item->aturan?->tingkat)
-                                            <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: 0.65rem; margin-left: 4px;">
+                                            <span class="badge {{ $item->aturan->tingkat === 'berat' ? 'badge-danger' : ($item->aturan->tingkat === 'sedang' ? 'badge-warning' : 'badge-success') }}" style="font-size: var(--text-2xs, 0.65rem); margin-left: 4px;">
                                                 {{ strtoupper($item->aturan->tingkat) }}
                                             </span>
                                         @endif
@@ -266,15 +266,15 @@
                                     </td>
                                     <td style="padding: 12px 16px; text-align: center;" data-label="Poin">
                                         @if ($item->sanggah_status)
-                                            <span style="text-decoration: line-through; font-size: 0.75rem; color: var(--text-muted);">+{{ $item->poin }}</span>
-                                            <div style="font-weight: 800; color: #059669; font-size: 0.875rem;">+{{ $item->poin_netto }}</div>
+                                            <span style="text-decoration: line-through; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">+{{ $item->poin }}</span>
+                                            <div style="font-weight: 800; color: #059669; font-size: var(--text-base, 0.875rem);">+{{ $item->poin_netto }}</div>
                                         @else
-                                            <span style="font-weight: 800; color: var(--danger, #ef4444); font-size: 1rem;">+{{ $item->poin }}</span>
+                                            <span style="font-weight: 800; color: var(--danger, #ef4444); font-size: var(--text-md, 1rem);">+{{ $item->poin }}</span>
                                         @endif
                                     </td>
                                     <td style="padding: 12px 16px; text-align: center;" data-label="Status">
                                         @if ($item->sanggah_status)
-                                            <span class="badge badge-success" style="font-size: 0.7rem;"><i class="fas fa-check"></i> DISANGGAH</span>
+                                            <span class="badge badge-success" style="font-size: var(--text-2xs, 0.7rem);"><i class="fas fa-check"></i> DISANGGAH</span>
                                         @else
                                             @php
                                                 $badgeSt = match ($item->status_tindak_lanjut) {
@@ -283,14 +283,14 @@
                                                     default   => 'badge-danger',
                                                 };
                                             @endphp
-                                            <span class="badge {{ $badgeSt }}" style="font-size: 0.7rem;">{{ strtoupper($item->status_tindak_lanjut) }}</span>
+                                            <span class="badge {{ $badgeSt }}" style="font-size: var(--text-2xs, 0.7rem);">{{ strtoupper($item->status_tindak_lanjut) }}</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        <i class="fas fa-folder-open" style="font-size: var(--text-3xl, 2rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                         Belum ada catatan pelanggaran siswa dari pos satpam.
                                     </td>
                                 </tr>
@@ -431,7 +431,7 @@
                                         {{ $item->kode }}
                                     </td>
                                     <td style="padding: 12px 16px; text-align: center;" data-label="Tingkat">
-                                        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
+                                        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill, 9999px); font-size: var(--text-xs, 0.75rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; {{ $tingkatStyle }}">
                                             <i class="fas {{ $tingkatIcon }}"></i> {{ $itemTingkat }}
                                         </span>
                                     </td>
@@ -449,7 +449,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        <i class="fas fa-folder-open" style="font-size: var(--text-3xl, 2rem); opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                         Tidak ada aturan tata tertib yang sesuai kriteria pencarian.
                                     </td>
                                 </tr>
@@ -498,14 +498,14 @@
                 <div style="margin-bottom: 14px; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <label class="form-label" style="margin: 0;">Aturan Tata Tertib (Bisa > 1 Aturan) <span style="color:red;">*</span></label>
-                        <span id="pelanggaran_total_poin_label" style="font-size: 0.75rem; font-weight: 700; color: var(--danger);">0 Poin Terpilih</span>
+                        <span id="pelanggaran_total_poin_label" style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--danger);">0 Poin Terpilih</span>
                     </div>
                     <input type="search" id="pelanggaran_tatib_search" class="form-control"
                         placeholder="Ketik kode atau nama aturan untuk menambahkan..." autocomplete="off">
 
                     <!-- Dropdown Hasil Pencarian Aturan -->
                     <div id="pelanggaran_tatib_results"
-                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 220px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                        style="display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg-card, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 220px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
                     </div>
 
                     <!-- Container Daftar Aturan Terpilih (Chips / Tags Multi Aturan) -->
@@ -626,13 +626,13 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-weight: 800; color: var(--primary);">[${item.kode}]</span>
                         <span style="font-weight: 600; color: var(--text-color);">${item.nama_aturan}</span>
-                        <span class="badge ${item.tingkat === 'berat' ? 'badge-danger' : (item.tingkat === 'sedang' ? 'badge-warning' : 'badge-success')}" style="font-size: 0.65rem;">
+                        <span class="badge ${item.tingkat === 'berat' ? 'badge-danger' : (item.tingkat === 'sedang' ? 'badge-warning' : 'badge-success')}" style="font-size: var(--text-2xs, 0.65rem);">
                             ${(item.tingkat || 'ringan').toUpperCase()}
                         </span>
                         <span style="font-weight: 800; color: var(--danger);">+${item.bobot_poin} Poin</span>
                     </div>
                     <button type="button" class="btn-remove-tatib" data-id="${id}"
-                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 6px; font-size: 0.875rem;"
+                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 6px; font-size: var(--text-base, 0.875rem);"
                         title="Hapus Aturan" aria-label="Hapus Aturan">
                         <i class="fas fa-trash-can"></i>
                     </button>
@@ -678,7 +678,7 @@
                         .then(data => {
                             resultsTatib.innerHTML = '';
                             if (!data.length) {
-                                resultsTatib.innerHTML = '<div style="padding: 10px 14px; font-size: 0.8125rem; color: var(--text-muted);">Aturan tidak ditemukan.</div>';
+                                resultsTatib.innerHTML = '<div style="padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">Aturan tidak ditemukan.</div>';
                             } else {
                                 data.forEach(item => {
                                     const isSelected = selectedTatibMap.has(item.id);
@@ -693,11 +693,11 @@
                                             <div>
                                                 <strong style="color: var(--primary);">[${item.kode}]</strong>
                                                 <span style="font-weight: 600; color: var(--text-color); margin-left: 4px;">${item.nama_aturan}</span>
-                                                ${isSelected ? '<span class="badge badge-success" style="font-size: 0.65rem; margin-left: 6px;">Sudah Dipilih</span>' : ''}
+                                                ${isSelected ? '<span class="badge badge-success" style="font-size: var(--text-2xs, 0.65rem); margin-left: 6px;">Sudah Dipilih</span>' : ''}
                                             </div>
-                                            <span style="font-weight: 800; color: var(--danger); font-size: 0.75rem;">+${item.bobot_poin} Poin</span>
+                                            <span style="font-weight: 800; color: var(--danger); font-size: var(--text-xs, 0.75rem);">+${item.bobot_poin} Poin</span>
                                         </div>
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                        <div style="font-size: var(--text-2xs, 0.7rem); color: var(--text-muted); margin-top: 2px;">
                                             Kategori: ${item.kategori} &bull; Tingkat: ${(item.tingkat || 'ringan').toUpperCase()}
                                         </div>
                                     `;

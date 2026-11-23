@@ -99,6 +99,7 @@
             <!-- Body View -->
             <main class="dash-body">
                 @include('partials.flash-messages')
+                @include('partials.form-error-focus')
 
                 @yield('content')
             </main>
@@ -148,6 +149,12 @@
         </script>
         <script
             src="{{ asset('js/upload-dropzone.js') }}?v={{ file_exists(public_path('js/upload-dropzone.js')) ? filemtime(public_path('js/upload-dropzone.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/form-error-focus.js') }}?v={{ file_exists(public_path('js/form-error-focus.js')) ? filemtime(public_path('js/form-error-focus.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/field-mask.js') }}?v={{ file_exists(public_path('js/field-mask.js')) ? filemtime(public_path('js/field-mask.js')) : time() }}">
         </script>
         @stack('scripts')
 </body>

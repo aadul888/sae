@@ -130,7 +130,7 @@
                         </div>
                     </div>
                     <span style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); padding: 3px 10px; border-radius: var(--radius-sm, 6px); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-circle" style="font-size: 8px;"></i> Live Monitoring
+                        <i class="fas fa-circle" style="font-size: var(--text-2xs, 8px);"></i> Live Monitoring
                     </span>
                 </div>
 
