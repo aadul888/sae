@@ -30,6 +30,7 @@ class CoreControlService
         'reachable' => false,
         'show_ads' => false,
         'is_donor' => false,
+        'saweria_username' => '',
         'update_enabled' => true,
         'latest_version' => null,
         'update_available' => false,
@@ -94,6 +95,7 @@ class CoreControlService
                 'reachable' => true,
                 'show_ads' => (bool) ($donation['show_ads'] ?? false),
                 'is_donor' => (bool) ($donation['is_donor'] ?? false),
+                'saweria_username' => (string) ($donation['saweria_username'] ?? ''),
                 'update_enabled' => (bool) ($data['update_enabled'] ?? true),
                 'latest_version' => $data['latest_version'] ?? null,
                 'update_available' => (bool) ($data['update_available'] ?? false),
@@ -127,6 +129,12 @@ class CoreControlService
     public static function showAds(): bool
     {
         return (bool) self::state()['show_ads'];
+    }
+
+    /** Username Saweria pusat (untuk tautan donasi). */
+    public static function saweriaUsername(): string
+    {
+        return (string) (self::state()['saweria_username'] ?? '');
     }
 
     /** Apakah distribusi update diizinkan pusat? */
@@ -165,13 +173,15 @@ class CoreControlService
             'reachable' => (bool) ($state['reachable'] ?? false),
             'show_ads' => (bool) ($state['show_ads'] ?? false),
             'is_donor' => (bool) ($state['is_donor'] ?? false),
+            'saweria_username' => (string) ($state['saweria_username'] ?? ''),
             'update_enabled' => (bool) ($state['update_enabled'] ?? true),
             'install_key_set' => \App\Support\CoreApiKey::stored() !== null,
             'enrolled_at' => $enrolledAt,
         ];
     }
 
-    private static function npsn(): string
+    /** NPSN sekolah ini (untuk ditampilkan di iklan donasi). */
+    public static function npsn(): string
     {
         try {
             if (\App\Support\Table::exists('sekolah')) {

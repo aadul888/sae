@@ -1,10 +1,24 @@
 @php
     // Iklan donasi dikendalikan pusat (sae-core): tampil hanya bila sekolah
     // belum donatur dan admin pusat mengaktifkan iklan. Ditampilkan sebagai
-    // pop-up berkala (maksimal sekali per 6 jam per browser). Halaman
-    // autentikasi & installer dikecualikan agar tidak mengganggu alur masuk.
-    $saeShowAds = \App\Services\CoreControlService::showAds()
+    // pop-up berkala (maksimal sekali per 6 jam per browser).
+    // HANYA di panel admin — bukan di halaman publik/portal siswa/guru.
+    $saeAuthUser = session('user');
+    $saeRole = is_array($saeAuthUser)
+        ? ($saeAuthUser['role'] ?? '')
+        : ($saeAuthUser->role ?? '');
+    $saeShowAds = $saeRole === 'admin'
+        && \App\Services\CoreControlService::showAds()
         && !request()->routeIs('login', 'auth.*', 'installer.*', 'install.*');
+
+    // Tautan donasi: Saweria bila pusat mengonfigurasi username, jika tidak
+    // jatuh ke WhatsApp. NPSN ditampilkan agar donatur menuliskannya di kolom
+    // pesan → webhook pusat menandai sekolah ini sebagai donatur otomatis.
+    $saeSaweriaUser = trim(\App\Services\CoreControlService::saweriaUsername());
+    $saeNpsn = \App\Services\CoreControlService::npsn();
+    $saeDonateUrl = $saeSaweriaUser !== ''
+        ? 'https://saweria.co/' . rawurlencode($saeSaweriaUser)
+        : 'https://wa.me/6285860605060';
 @endphp
 
 @if ($saeShowAds)
@@ -29,10 +43,17 @@
                     Iklan ini hilang otomatis setelah donasi tercatat.
                 </p>
 
+                @if ($saeNpsn !== '')
+                    <p class="sae-donasi-popup__desc" style="margin-top:-6px;">
+                        Tulis <b>NPSN {{ $saeNpsn }}</b> di kolom <b>pesan</b> saat berdonasi
+                        agar iklan di sistem sekolah ini langsung berhenti.
+                    </p>
+                @endif
+
                 <div class="sae-donasi-popup__actions">
-                    <a href="https://wa.me/6285860605060" target="_blank" rel="noopener"
+                    <a href="{{ $saeDonateUrl }}" target="_blank" rel="noopener"
                         class="btn btn-primary sae-donasi-popup__btn" data-sae-donasi-donasi>
-                        <i class="fab fa-whatsapp" aria-hidden="true"></i> Donasi Sekarang
+                        <i class="fas fa-heart" aria-hidden="true"></i> Donasi Sekarang
                     </a>
                     <button type="button" class="btn btn-outline sae-donasi-popup__btn" data-sae-donasi-close>
                         Nanti Saja
