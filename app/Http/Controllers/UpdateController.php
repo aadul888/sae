@@ -26,11 +26,7 @@ class UpdateController extends Controller
         if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $status = $this->updateService->checkUpdate();
-        // Segarkan lisensi saat halaman dibuka agar pembekuan/perpanjangan dari
-        // pusat langsung tercermin (bukan menunggu jadwal harian). Aman gagal:
-        // bila pusat tak terjangkau, state lisensi lama tetap dipakai.
-        $license = \App\Support\AppLicense::refresh();
-        return view('dashboard.update', compact('status', 'license'));
+        return view('dashboard.update', compact('status'));
     }
 
     /**
@@ -70,8 +66,7 @@ class UpdateController extends Controller
     }
 
     /**
-     * Uji koneksi ke pusat (sae-core) dan kembalikan hasilnya — status
-     * donasi/iklan & pembaruan serta info kunci instalasi.
+     * Uji koneksi ke pusat (sae-core): status donasi/iklan + info kunci.
      */
     public function pullCoreRule(): JsonResponse
     {
@@ -81,12 +76,11 @@ class UpdateController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        // Sekaligus ambil/segarkan lisensi bertanda-tangan dari pusat.
-        $license = \App\Support\AppLicense::refresh(true);
+        $diag = \App\Services\CoreControlService::diagnostics();
 
         return response()->json([
-            'status' => !empty($license['present']) ? 'success' : 'error',
-            'data' => $license,
+            'status' => !empty($diag['reachable']) ? 'success' : 'error',
+            'data' => $diag,
         ]);
     }
 

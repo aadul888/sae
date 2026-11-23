@@ -54,15 +54,16 @@
             </div>
         </div>
 
-        <div class="dash-stat-card" title="Status Lisensi dari pusat (sae-core)">
-            <div class="dash-stat-icon" style="background: {{ ($license['present'] && $license['verified']) ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ ($license['present'] && $license['verified']) ? 'var(--success,#10b981)' : '#f59e0b' }};">
-                <i class="fas fa-certificate"></i>
+        <div class="dash-stat-card" title="Status donasi & iklan dari pusat (sae-core)">
+            @php $saeAd = \App\Services\CoreControlService::state(); @endphp
+            <div class="dash-stat-icon" style="background: {{ ($saeAd['is_donor'] ?? false) ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)' }}; color: {{ ($saeAd['is_donor'] ?? false) ? 'var(--success,#10b981)' : 'var(--primary,#3b82f6)' }};">
+                <i class="fas fa-heart"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value">
-                    {{ $license['present'] ? ($license['verified'] ? ($license['days_left'] !== null ? $license['days_left'] . ' hari' : 'Aktif') : 'Tak sah') : 'Belum ada' }}
+                    {{ ($saeAd['is_donor'] ?? false) ? 'Donatur' : (($saeAd['show_ads'] ?? false) ? 'Iklan tampil' : 'Non-donatur') }}
                 </div>
-                <div class="dash-stat-label">Lisensi</div>
+                <div class="dash-stat-label">Donasi</div>
             </div>
         </div>
 
@@ -78,28 +79,6 @@
             </div>
         </div>
     </div>
-
-    @if (\App\Support\AppLicense::needsAttention())
-        @php $lic = $license; @endphp
-        <div class="card"
-            style="margin-bottom: 20px; padding: 14px 16px; border-radius: var(--radius-lg,12px); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:12px;">
-            <i class="fas fa-triangle-exclamation" style="color:#f59e0b; font-size:1.2rem;"></i>
-            <div style="font-size: var(--text-sm,0.8125rem); color: var(--text-color);">
-                <b>Perhatian lisensi.</b>
-                @if (!$lic['present'])
-                    Sekolah ini belum menerima lisensi dari pusat. Klik <b>Uji Koneksi Pusat</b> (ikon menara) untuk mengambilnya.
-                @elseif (!$lic['verified'])
-                    Lisensi ada tetapi tanda-tangannya tidak sah. Minta pusat menerbitkan ulang.
-                @elseif ($lic['status'] !== 'active')
-                    Lisensi sedang dibekukan/ditangguhkan oleh pusat.
-                @elseif ($lic['days_left'] !== null && $lic['days_left'] < 0)
-                    Lisensi sudah kedaluwarsa {{ abs($lic['days_left']) }} hari — dalam masa tenggang.
-                @else
-                    Lisensi akan berakhir {{ $lic['days_left'] }} hari lagi ({{ \Illuminate\Support\Carbon::parse($lic['exp'])->format('d/m/Y') }}).
-                @endif
-            </div>
-        </div>
-    @endif
 
     <!-- Main Section: Grid 2 Column -->
     <div class="dash-grid-2 update-main-grid">

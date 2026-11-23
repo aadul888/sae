@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnPull = document.getElementById("btnPullRule");
     if (btnPull) {
         btnPull.addEventListener("click", async () => {
-            appendLog("Mengambil & memverifikasi lisensi dari pusat (sae-core)...", "#38bdf8");
+            appendLog("Menguji koneksi ke pusat (sae-core)...", "#38bdf8");
             try {
                 const token = getCsrfToken();
                 const res = await fetch("/dashboard/update/pull-core-rule", {
@@ -66,19 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const json = await res.json();
                 const d = json.data || {};
                 appendLog(
-                    `Lisensi: ${d.present ? "ada" : "belum"} | terverifikasi: ${d.verified ? "ya" : "tidak"} | status: ${d.status || "-"} | berlaku: ${d.exp ? String(d.exp).slice(0, 10) : "-"} (${d.days_left ?? "-"} hari)`,
+                    `Pusat: ${d.core_url || "-"} | NPSN: ${d.npsn || "-"} | terhubung: ${d.reachable ? "ya" : "tidak"} | kunci terpasang: ${d.install_key_set ? "ya" : "tidak"}`,
                     "#e2e8f0",
                 );
-                if (d.verified) {
+                if (d.reachable) {
                     appendLog(
-                        `Entitlement: ${(d.entitlements || []).join(", ") || "-"}`,
+                        `Iklan donasi: ${d.show_ads ? "tampil" : "tidak"} | sekolah: ${d.is_donor ? "donatur" : "belum"} | pembaruan: ${d.update_enabled ? "diizinkan" : "dimatikan"}`,
                         "#4ade80",
                     );
-                    if (window.SAE && window.SAE.toast) window.SAE.toast("Lisensi terverifikasi.", "success");
-                } else if (d.present) {
-                    appendLog("Lisensi ada tapi belum terverifikasi/tidak aktif. Periksa masa berlaku atau minta pusat terbitkan ulang.", "#f59e0b");
+                    if (window.SAE && window.SAE.toast) window.SAE.toast("Terhubung ke pusat sae-core.", "success");
                 } else {
-                    appendLog("Belum ada lisensi dari pusat. Periksa Alamat Pusat & kunci instalasi.", "#f87171");
+                    appendLog("Tak terhubung ke pusat. Periksa Alamat Pusat & kunci di Identitas Sekolah.", "#f87171");
+                    if (window.SAE && window.SAE.toast) window.SAE.toast("Gagal menghubungi pusat.", "danger");
                 }
             } catch (err) {
                 appendLog("Error menghubungi pusat: " + err.message, "#f87171");
