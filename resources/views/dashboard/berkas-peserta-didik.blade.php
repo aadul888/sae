@@ -290,13 +290,15 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-outline btn-preview-pdf-inline"
-                                    data-url="{{ route('dashboard.berkas.preview', $berkas->id) }}"
-                                    data-title="{{ $slot['label'] }} - {{ $pd->nama }}"
-                                    style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); flex-shrink: 0; cursor: pointer;"
-                                    title="Lihat Pratinjau Dokumen PDF">
-                                    <i class="fas fa-eye me-1"></i> Lihat PDF
-                                </button>
+                                @if (!empty($berkas->file_path))
+                                    <button type="button" class="btn btn-outline btn-preview-pdf-inline"
+                                        data-url="{{ route('dashboard.berkas.preview', $berkas->id) }}"
+                                        data-title="{{ $slot['label'] }} - {{ $pd->nama }}"
+                                        style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); flex-shrink: 0; cursor: pointer;"
+                                        title="Lihat Pratinjau Dokumen PDF">
+                                        <i class="fas fa-eye me-1"></i> Lihat PDF
+                                    </button>
+                                @endif
                             </div>
                         @endif
                     </div>

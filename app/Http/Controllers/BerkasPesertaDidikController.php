@@ -194,40 +194,53 @@ class BerkasPesertaDidikController extends Controller
             ->where('jenis_berkas', $jenisBerkas)
             ->first();
 
-        if ($existing && !empty($existing->file_path)) {
+        // `file_path` bisa kosong (mis. verifikasi fisik/manual) — Storage::delete('') akan
+        // menghapus direktori akar. Hanya hapus bila benar-benar ada berkas.
+        if ($existing && !empty($existing->file_path) && Storage::disk('public')->exists($existing->file_path)) {
             Storage::disk('public')->delete($existing->file_path);
         }
 
-        // Simpan file ke direktori khusus per siswa di storage/app/public/berkas_siswa/{pd_id}
-        $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
-        $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
-            $file,
-            storage_path('app/public/' . $directory),
-            $jenisBerkas
-        );
-        $savedPath = $directory . '/' . $hasil['filename'];
+        try {
+            // Simpan file ke direktori khusus per siswa di storage/app/public/berkas_siswa/{pd_id}
+            $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
+            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
+                $file,
+                storage_path('app/public/' . $directory),
+                $jenisBerkas
+            );
+            $savedPath = $directory . '/' . $hasil['filename'];
 
-        // Simpan atau perbarui record di tabel `peserta_didik_berkas`
-        // Status di-reset ke 'menunggu', catatan penolakan dibersihkan
-        $berkas = PesertaDidikBerkas::updateOrCreate(
-            [
-                'peserta_didik_id' => $pd->peserta_didik_id,
-                'jenis_berkas' => $jenisBerkas,
-            ],
-            [
-                'nama_berkas' => $namaBerkas,
-                'file_path' => $savedPath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $hasil['size'],
-                'mime_type' => $hasil['mime'],
-                'status' => 'menunggu',
-                'catatan_penolakan' => null,
-                'rekomendasi_penolakan' => null,
-                'verified_by' => null,
-                'verified_at' => null,
-                'uploaded_by' => $userName . ' (' . ucfirst($userRole) . ')',
-            ]
-        );
+            // Simpan atau perbarui record di tabel `peserta_didik_berkas`
+            // Status di-reset ke 'menunggu', catatan penolakan dibersihkan
+            $berkas = PesertaDidikBerkas::updateOrCreate(
+                [
+                    'peserta_didik_id' => $pd->peserta_didik_id,
+                    'jenis_berkas' => $jenisBerkas,
+                ],
+                [
+                    'nama_berkas' => $namaBerkas,
+                    'file_path' => $savedPath,
+                    'file_name' => mb_substr($file->getClientOriginalName(), 0, 255),
+                    'file_size' => $hasil['size'],
+                    'mime_type' => mb_substr($hasil['mime'], 0, 50),
+                    'status' => 'menunggu',
+                    'catatan_penolakan' => null,
+                    'rekomendasi_penolakan' => null,
+                    'verified_by' => null,
+                    'verified_at' => null,
+                    'uploaded_by' => mb_substr($userName . ' (' . ucfirst($userRole) . ')', 0, 100),
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Kesalahan pemrosesan berkas (jenis/konten ditolak, penyimpanan gagal,
+            // nama berkas terlalu panjang, dsb.) harus muncul sebagai pesan validasi —
+            // bukan 500 Server Internal.
+            if (!$e instanceof \InvalidArgumentException) {
+                report($e);
+            }
+
+            return back()->with('error', 'Berkas gagal diunggah: ' . $e->getMessage());
+        }
 
         if (class_exists(AdminAktivitas::class)) {
             AdminAktivitas::record(
@@ -265,16 +278,16 @@ class BerkasPesertaDidikController extends Controller
             }
         }
 
-        if (!Storage::disk('public')->exists($berkas->file_path)) {
+        if (empty($berkas->file_path) || !Storage::disk('public')->exists($berkas->file_path)) {
             abort(404, 'File PDF tidak ditemukan di server penyimpanan.');
         }
 
         $fullPath = Storage::disk('public')->path($berkas->file_path);
 
-        return response()->file($fullPath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . addslashes($berkas->file_name) . '"',
-        ]);
+        // setContentDisposition menangani nama non-ASCII/kutip/baris-baru dengan aman
+        // (RFC 6266), berbeda dari menyusun header manual yang bisa memicu error 500.
+        return response()->file($fullPath, ['Content-Type' => 'application/pdf'])
+            ->setContentDisposition('inline', $berkas->file_name ?: basename($fullPath));
     }
 
     /**
