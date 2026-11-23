@@ -697,6 +697,7 @@
                         <i class="fas fa-cloud-arrow-up drag-drop-icon"></i>
                         <div class="drag-drop-title">Tarik &amp; lepas gambar ke sini, atau <span style="color: var(--primary); text-decoration: underline;">pilih file</span></div>
                         <div class="drag-drop-hint">Format didukung: JPG, PNG, WEBP, SVG (Maks. 3 MB)</div>
+                        <div class="drag-drop-hint" style="margin-top: 4px;">Ukuran disarankan: <strong>1200 &times; 675 px</strong> (rasio 16:9) agar tampil seragam</div>
                         <input type="file" name="gambar" id="inputBeritaGambar" accept="image/jpeg,image/png,image/webp,image/svg+xml" style="position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
                     </div>
                     <!-- Preview Foto Terpilih / Baru -->
