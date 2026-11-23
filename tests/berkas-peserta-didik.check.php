@@ -98,6 +98,7 @@ $checks['preview cek file_path kosong'] = str_contains($src, 'empty($berkas->fil
 
 // --- 5. Berkas pribadi siswa tidak boleh disajikan lewat URL /storage statis ---
 $checks['nama berkas unggahan acak (opaque)'] = str_contains($src, 'Str::random(24)');
+$checks['validasi PDF pakai MIME isi (tahan octet-stream)'] = str_contains($src, 'mime_content_type');
 
 try {
     app(\App\Http\Controllers\StorageFallbackController::class)->show($rel);

@@ -10,6 +10,7 @@ use App\Models\RolePermission;
 use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -178,30 +179,45 @@ class BerkasPesertaDidikController extends Controller
 
         $file = $request->file('file_berkas');
 
-        // Validasi ekstra ketat: pastikan ekstensi & MIME type benar-benar PDF
-        $extension = strtolower($file->getClientOriginalExtension());
-        $mimeType = $file->getClientMimeType();
+        // Validasi PDF yang tahan perangkat: sebagian browser HP/Android melaporkan
+        // MIME client sebagai application/octet-stream walau berkasnya PDF sah.
+        // Jadi patokan utamanya ekstensi + MIME nyata dari isi berkas, bukan MIME client.
+        $extension  = strtolower($file->getClientOriginalExtension());
+        $clientMime = (string) $file->getClientMimeType();
+        $realMime   = (string) (@mime_content_type($file->getRealPath()) ?: '');
 
-        if ($extension !== 'pdf' || !str_contains($mimeType, 'pdf')) {
-            return back()->with('error', 'File yang diunggah bukan file PDF yang valid.');
+        $isPdf = $extension === 'pdf'
+            && ($realMime === '' || str_contains($realMime, 'pdf') || str_contains($clientMime, 'pdf'));
+
+        if (!$isPdf) {
+            Log::error('Unggah berkas ditolak: bukan PDF', [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'user_role'        => $userRole,
+                'extension'        => $extension,
+                'client_mime'      => $clientMime,
+                'real_mime'        => $realMime,
+                'file_name'        => $file->getClientOriginalName(),
+            ]);
+
+            return back()->with('error', 'File yang diunggah bukan file PDF yang valid. Pastikan berkas berekstensi .pdf dan isinya benar-benar PDF.');
         }
 
         $jenisBerkas = $request->input('jenis_berkas');
         $slots = PesertaDidikBerkas::getJenisBerkasOptions();
         $namaBerkas = $slots[$jenisBerkas]['label'] ?? 'Dokumen PDF Siswa';
 
-        // Cek jika berkas lama ada di database dan storage, hapus file lama untuk menghemat kapasitas
-        $existing = PesertaDidikBerkas::where('peserta_didik_id', $pd->peserta_didik_id)
-            ->where('jenis_berkas', $jenisBerkas)
-            ->first();
-
-        // `file_path` bisa kosong (mis. verifikasi fisik/manual) — Storage::delete('') akan
-        // menghapus direktori akar. Hanya hapus bila benar-benar ada berkas.
-        if ($existing && !empty($existing->file_path) && Storage::disk('public')->exists($existing->file_path)) {
-            Storage::disk('public')->delete($existing->file_path);
-        }
-
         try {
+            // Cek jika berkas lama ada di database dan storage, hapus file lama untuk menghemat kapasitas
+            $existing = PesertaDidikBerkas::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->where('jenis_berkas', $jenisBerkas)
+                ->first();
+
+            // `file_path` bisa kosong (mis. verifikasi fisik/manual) — Storage::delete('') akan
+            // menghapus direktori akar. Hanya hapus bila benar-benar ada berkas.
+            if ($existing && !empty($existing->file_path) && Storage::disk('public')->exists($existing->file_path)) {
+                Storage::disk('public')->delete($existing->file_path);
+            }
+
             // Simpan file ke direktori khusus per siswa di storage/app/public/berkas_siswa/{pd_id}
             $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
             // Nama berkas digenerate acak saat unggah — tidak memakai nama asli
@@ -234,24 +250,32 @@ class BerkasPesertaDidikController extends Controller
                     'uploaded_by' => mb_substr($userName . ' (' . ucfirst($userRole) . ')', 0, 100),
                 ]
             );
+
+            if (class_exists(AdminAktivitas::class)) {
+                AdminAktivitas::record(
+                    "Upload Berkas Siswa ({$namaBerkas}): {$pd->nama}",
+                    'Kesiswaan',
+                    "File PDF {$file->getClientOriginalName()} berhasil diunggah dan menunggu verifikasi.",
+                    'info'
+                );
+            }
         } catch (\Throwable $e) {
             // Kesalahan pemrosesan berkas (jenis/konten ditolak, penyimpanan gagal,
             // nama berkas terlalu panjang, dsb.) harus muncul sebagai pesan validasi —
-            // bukan 500 Server Internal.
-            if (!$e instanceof \InvalidArgumentException) {
-                report($e);
-            }
+            // bukan 500 Server Internal. Detail lengkap ditulis ke log agar bisa dilacak.
+            Log::error('Gagal unggah berkas peserta didik', [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'user_role'        => $userRole,
+                'jenis_berkas'     => $jenisBerkas,
+                'file_name'        => $file->getClientOriginalName(),
+                'file_size'        => $file->getSize(),
+                'client_mime'      => $clientMime,
+                'real_mime'        => $realMime,
+                'exception'        => $e::class,
+                'message'          => $e->getMessage(),
+            ]);
 
             return back()->with('error', 'Berkas gagal diunggah: ' . $e->getMessage());
-        }
-
-        if (class_exists(AdminAktivitas::class)) {
-            AdminAktivitas::record(
-                "Upload Berkas Siswa ({$namaBerkas}): {$pd->nama}",
-                'Kesiswaan',
-                "File PDF {$file->getClientOriginalName()} berhasil diunggah dan menunggu verifikasi.",
-                'info'
-            );
         }
 
         return back()->with('success', "Berkas \"{$namaBerkas}\" berhasil diunggah dalam format PDF. Tim Kesiswaan akan memvalidasi dokumen Anda.");
