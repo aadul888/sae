@@ -11,6 +11,7 @@ use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;
@@ -203,10 +204,12 @@ class BerkasPesertaDidikController extends Controller
         try {
             // Simpan file ke direktori khusus per siswa di storage/app/public/berkas_siswa/{pd_id}
             $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
+            // Nama berkas digenerate acak saat unggah — tidak memakai nama asli
+            // maupun jenis dokumen, agar tidak bisa ditebak dari URL.
             $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
                 $file,
                 storage_path('app/public/' . $directory),
-                $jenisBerkas
+                Str::random(24)
             );
             $savedPath = $directory . '/' . $hasil['filename'];
 

@@ -10,6 +10,7 @@ use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 use App\Support\Table;
@@ -206,10 +207,11 @@ class KesiswaanBerkasService
         }
 
         $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
+        // Nama berkas digenerate acak saat unggah (lihat BerkasPesertaDidikController).
         $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
             $file,
             storage_path('app/public/' . $directory),
-            $jenisBerkas
+            Str::random(24)
         );
         $savedPath = $directory . '/' . $hasil['filename'];
 

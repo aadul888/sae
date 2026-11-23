@@ -96,6 +96,18 @@ $checks['upload dibungkus try/catch'] = str_contains($src, 'catch (\\Throwable $
     && str_contains($src, "with('error', 'Berkas gagal diunggah:");
 $checks['preview cek file_path kosong'] = str_contains($src, 'empty($berkas->file_path)');
 
+// --- 5. Berkas pribadi siswa tidak boleh disajikan lewat URL /storage statis ---
+$checks['nama berkas unggahan acak (opaque)'] = str_contains($src, 'Str::random(24)');
+
+try {
+    app(\App\Http\Controllers\StorageFallbackController::class)->show($rel);
+    $checks['fallback storage tolak berkas_siswa -> 404'] = false;
+} catch (HttpExceptionInterface $e) {
+    $checks['fallback storage tolak berkas_siswa -> 404'] = ($e->getStatusCode() === 404);
+} catch (\Throwable $e) {
+    $checks['fallback storage tolak berkas_siswa -> 404'] = false;
+}
+
 foreach ($cleanup as $row) {
     $row->delete();
 }

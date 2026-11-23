@@ -8,6 +8,10 @@
 
     RewriteEngine On
 
+    # Berkas pribadi siswa tidak boleh diakses langsung lewat /storage.
+    # Selalu lewat route ber-login (dashboard.berkas.preview).
+    RewriteRule ^storage/berkas_siswa/ - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

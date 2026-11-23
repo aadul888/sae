@@ -19,6 +19,12 @@ class StorageFallbackController extends Controller
             abort(404);
         }
 
+        // Berkas pribadi siswa hanya boleh disajikan lewat route ber-login
+        // (dashboard.berkas.preview), bukan URL statis langsung.
+        if (str_starts_with($cleanPath, 'berkas_siswa/')) {
+            abort(404);
+        }
+
         $fullPath = storage_path('app/public/' . $cleanPath);
         $realStorageRoot = realpath(storage_path('app/public'));
         $realFile = realpath($fullPath);

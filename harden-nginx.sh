@@ -253,6 +253,7 @@ $guard = "{$indent}{$MARK_START}\n"
     . "{$indent}location ~ \.php\$ { deny all; return 403; }\n"
     . "{$indent}location ~ ^/(app|bootstrap|config|database|resources|tests|vendor)/ { deny all; return 404; }\n"
     . "{$indent}location ~ ^/storage/(logs|framework|app/private|app/archives)/ { deny all; return 404; }\n"
+    . "{$indent}location ^~ /storage/berkas_siswa/ { deny all; return 404; }\n"
     . "{$indent}{$MARK_END}\n";
 
 // ---- 4. Sisipkan ke `server { ... }` yang ber-root dan cocok domain --------
