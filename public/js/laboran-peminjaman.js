@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (kembali) kembali.value = daysFromNow(3);
             const cariAlat = document.getElementById('pjAlatCari');
             if (cariAlat) cariAlat.dispatchEvent(new Event('input', { bubbles: true }));
+            if (typeof window.resetAlatPeminjaman === 'function') window.resetAlatPeminjaman();
             L.openModal(modal);
         });
     }
@@ -81,11 +82,13 @@ document.addEventListener('DOMContentLoaded', function () {
             input.value = String(v);
         }
 
-        form.querySelectorAll('input[type="number"][name^="item_jumlah"], input[type="number"][name^="aset_jumlah"]')
-            .forEach(function (input) {
-                input.addEventListener('change', function () { bulatkanJumlah(input); });
-                input.addEventListener('blur', function () { bulatkanJumlah(input); });
-            });
+        // Delegasi: input jumlah dibuat dinamis saat alat ditambahkan.
+        form.addEventListener('change', function (e) {
+            const el = e.target;
+            if (el && el.matches && el.matches('input[type="number"][name^="item_jumlah"], input[type="number"][name^="aset_jumlah"]')) {
+                bulatkanJumlah(el);
+            }
+        });
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -96,10 +99,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!input.disabled) bulatkanJumlah(input);
                 });
 
-            // Validasi minimal satu alat dipilih
-            const checked = form.querySelectorAll('.pj-item:checked');
-            if (checked.length === 0) {
-                L.notifyError('Data Belum Lengkap', 'Pilih minimal satu alat yang akan dipinjam.');
+            // Validasi minimal satu alat/ruang dipilih
+            const terpilihWrap = document.getElementById('pjAlatTerpilih');
+            const adaTerpilih = terpilihWrap && terpilihWrap.children.length > 0;
+            if (!adaTerpilih) {
+                L.notifyError('Data Belum Lengkap', 'Cari lalu tambahkan minimal satu alat yang akan dipinjam.');
                 return;
             }
 
@@ -200,47 +204,176 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 
     // =====================================================================
-    // 1c. Live search & filter Alat Lab (inventaris per jurusan)
+    // 1c. Pemilih alat: cari -> tambah -> isi kuantitas
     // =====================================================================
-    (function initAlatSearch() {
+    (function initAlatPicker() {
         const input = document.getElementById('pjAlatCari');
-        const list = document.getElementById('pjAlatList');
+        const hasil = document.getElementById('pjAlatHasil');
+        const terpilih = document.getElementById('pjAlatTerpilih');
         const kosong = document.getElementById('pjAlatKosong');
-        if (!input || !list) return;
+        const dataEl = document.getElementById('daftarSumberPeminjaman');
+        if (!input || !hasil || !terpilih || !dataEl) return;
 
-        const rows = Array.prototype.slice.call(list.querySelectorAll('.pj-alat-row'));
-        if (!rows.length) return;
+        const NAME_BY_TIPE = { lab: 'item_ids[]', aset: 'aset_ids[]', ruang: 'ruang_ids[]' };
+        const JUMLAH_BY_TIPE = { lab: 'item_jumlah', aset: 'aset_jumlah', ruang: 'ruang_jumlah' };
 
-        function rapikan() {
-            // Bersihkan label jurusan dari render sebelumnya.
-            list.querySelectorAll('.pj-alat-label').forEach(function (el) { el.remove(); });
+        let daftar = [];
+        try {
+            daftar = JSON.parse(dataEl.textContent || '[]') || [];
+        } catch (e) {
+            daftar = [];
+        }
+        const ditambah = {};
 
-            const term = input.value.trim().toLowerCase();
-            let tampil = 0;
-            let grupTerakhir = '';
-            rows.forEach(function (row) {
-                const cocok = row.dataset.search.indexOf(term) !== -1;
-                row.style.display = cocok ? '' : 'none';
-                if (!cocok) return;
-                tampil++;
+        function kunci(s) { return s.tipe + ':' + s.id; }
 
-                // Label jurusan muncul saat grup berubah, hanya untuk baris tampil.
-                const grup = row.dataset.group || '';
-                if (grup !== grupTerakhir) {
-                    grupTerakhir = grup;
-                    const el = document.createElement('div');
-                    el.className = 'pj-alat-label';
-                    el.style.cssText = 'font-size: var(--text-2xs); font-weight: var(--font-bold); '
-                        + 'color: var(--primary); text-transform: uppercase; margin: var(--space-4) 0 var(--space-2);';
-                    el.textContent = grup;
-                    row.parentNode.insertBefore(el, row);
-                }
-            });
-            if (kosong) kosong.style.display = tampil ? 'none' : 'block';
+        function perbaruiKosong() {
+            const ada = Object.keys(ditambah).length > 0;
+            if (kosong) kosong.style.display = ada ? 'none' : 'block';
         }
 
-        input.addEventListener('input', rapikan);
-        input.addEventListener('search', rapikan);
+        function sembunyikanHasil() {
+            hasil.classList.remove('is-open');
+            hasil.replaceChildren();
+        }
+
+        function renderHasil(term) {
+            hasil.replaceChildren();
+            const t = term.trim().toLowerCase();
+            if (t.length < 2) {
+                sembunyikanHasil();
+                return;
+            }
+
+            const cocok = daftar
+                .filter(function (s) { return !ditambah[kunci(s)] && s.cari.indexOf(t) !== -1; })
+                .slice(0, 30);
+
+            if (!cocok.length) {
+                const empty = document.createElement('div');
+                empty.className = 'people-autocomplete-empty';
+                empty.style.padding = '9px 12px';
+                empty.textContent = 'Alat tidak ditemukan.';
+                hasil.appendChild(empty);
+                hasil.classList.add('is-open');
+                return;
+            }
+
+            cocok.forEach(function (s) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.setAttribute('role', 'option');
+                btn.className = 'people-autocomplete-option';
+                btn.disabled = s.stok <= 0;
+
+                const nama = document.createElement('span');
+                nama.className = 'people-autocomplete-name';
+                nama.textContent = s.nama + (s.merk ? ' — ' + s.merk : '');
+                const meta = document.createElement('span');
+                meta.className = 'people-autocomplete-meta';
+                meta.textContent = [s.label, s.kode, s.lokasi,
+                    s.stok > 0 ? ('Stok: ' + s.stok + ' ' + (s.satuan || '')) : 'Stok habis']
+                    .filter(Boolean).join(' • ');
+                btn.appendChild(nama);
+                btn.appendChild(meta);
+
+                if (s.stok <= 0) btn.style.opacity = '.55';
+                btn.addEventListener('click', function () { tambah(s); });
+                hasil.appendChild(btn);
+            });
+            hasil.classList.add('is-open');
+        }
+
+        function tambah(s) {
+            if (s.stok <= 0 || ditambah[kunci(s)]) return;
+            const k = kunci(s);
+            ditambah[k] = s;
+
+            const row = document.createElement('div');
+            row.className = 'people-autocomplete-selected';
+            row.setAttribute('data-kunci', k);
+            row.style.flexWrap = 'wrap';
+
+            const info = document.createElement('div');
+            info.style.cssText = 'flex: 1; min-width: 0;';
+            const judul = document.createElement('div');
+            judul.style.cssText = 'font-weight: var(--font-semibold);';
+            judul.textContent = s.nama + (s.merk ? ' — ' + s.merk : '');
+            const meta = document.createElement('div');
+            meta.className = 'people-autocomplete-meta';
+            meta.textContent = [s.label, s.kode, s.lokasi,
+                'Stok: ' + s.stok + ' ' + (s.satuan || '')].filter(Boolean).join(' • ');
+            info.appendChild(judul);
+            info.appendChild(meta);
+
+            if (s.tipe !== 'ruang') {
+                const jumlah = document.createElement('input');
+                jumlah.type = 'number';
+                jumlah.step = '1';
+                jumlah.min = '1';
+                jumlah.max = String(Math.max(1, s.stok));
+                jumlah.value = '1';
+                jumlah.className = 'form-control';
+                jumlah.name = JUMLAH_BY_TIPE[s.tipe] + '[' + s.id + ']';
+                jumlah.style.cssText = 'width: 86px; height: 34px; font-size: var(--text-sm);';
+                jumlah.title = 'Jumlah dipinjam';
+                row.appendChild(info);
+                row.appendChild(jumlah);
+            } else {
+                row.appendChild(info);
+            }
+
+            const hapus = document.createElement('button');
+            hapus.type = 'button';
+            hapus.className = 'btn btn-outline btn-sm';
+            hapus.style.cssText = 'padding: 4px 9px;';
+            hapus.title = 'Hapus dari daftar';
+            hapus.innerHTML = '<i class="fas fa-xmark"></i>';
+            hapus.addEventListener('click', function () {
+                delete ditambah[k];
+                row.remove();
+                perbaruiKosong();
+            });
+            row.appendChild(hapus);
+
+            // Input tersembunyi ID (nama field selaras validasi backend).
+            const id = document.createElement('input');
+            id.type = 'hidden';
+            id.name = NAME_BY_TIPE[s.tipe];
+            id.value = s.id;
+            row.appendChild(id);
+
+            terpilih.appendChild(row);
+
+            input.value = '';
+            sembunyikanHasil();
+            perbaruiKosong();
+            input.focus();
+        }
+
+        input.addEventListener('input', function () { renderHasil(input.value); });
+        input.addEventListener('focus', function () { renderHasil(input.value); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { sembunyikanHasil(); input.blur(); }
+            if (e.key === 'ArrowDown') {
+                const first = hasil.querySelector('button[role="option"]:not([disabled])');
+                if (first) { e.preventDefault(); first.focus(); }
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (!input.parentElement.contains(e.target)) sembunyikanHasil();
+        });
+
+        // Reset daftar terpilih tiap modal dibuka.
+        window.resetAlatPeminjaman = function () {
+            Object.keys(ditambah).forEach(function (k) { delete ditambah[k]; });
+            terpilih.replaceChildren();
+            input.value = '';
+            sembunyikanHasil();
+            perbaruiKosong();
+        };
+
+        perbaruiKosong();
     })();
 
     // =====================================================================

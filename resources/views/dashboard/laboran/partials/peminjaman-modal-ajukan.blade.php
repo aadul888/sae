@@ -78,119 +78,23 @@
                         <label style="display: block; font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-3); color: var(--text-color);">
                             Pilih Alat yang Dipinjam <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
-                        <div style="max-height: 260px; overflow-y: auto; padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                            {{-- Seksi Ruang/Bangunan (master Ruang & Gedung) --}}
-                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--success, #10b981); text-transform: uppercase; margin-bottom: var(--space-3);">
-                                <i class="fas fa-door-open me-1"></i> Ruang & Bangunan
-                            </div>
-                            @forelse ($ruangOptions as $ro)
-                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color);">
-                                    <input type="checkbox" name="ruang_ids[]" value="{{ $ro->id }}" class="pj-item" style="cursor: pointer;">
-                                    <div style="flex: 1; min-width: 0;">
-                                        <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $ro->nama_ruang }}</div>
-                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                            {{ $ro->kode_ruang ?: '—' }}
-                                            @if ($ro->gedung) &bull; {{ $ro->gedung }} @endif
-                                            &bull; Kondisi: {{ $ro->kondisi ?: 'baik' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-4) 0;">
-                                    Belum ada ruang pada master Ruang & Gedung.
-                                </p>
-                            @endforelse
+                        <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-4);">
+                            <i class="fas fa-magnifying-glass me-1"></i> Cari alat/ruang, klik hasilnya untuk menambahkan, lalu isi jumlah yang dipinjam.
+                        </p>
 
-                            {{-- Seksi Alat Lab (inventaris laboran, dikelompokkan per jurusan) --}}
-                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--primary); text-transform: uppercase; margin-bottom: var(--space-3);">
-                                <i class="fas fa-flask me-1"></i> Alat Praktik Laboratorium / Bengkel
-                                <span style="font-weight: var(--font-normal); color: var(--text-muted); text-transform: none;">
-                                    — ketik untuk mencari (nama / kode / merk / jurusan)
-                                </span>
-                            </div>
-
-                            <div style="position: relative; margin-bottom: var(--space-4);">
-                                <input type="search" id="pjAlatCari" class="form-control" autocomplete="off"
-                                    placeholder="Cari &amp; ketik nama, kode, atau merk alat...">
-                            </div>
-
-                            <div id="pjAlatList">
-                                @forelse ($itemOptions as $io)
-                                    @php $ioStok = (int) $io->stok_tersedia; @endphp
-                                    <div class="pj-alat-row"
-                                        data-search="{{ trim(strtolower(($io->nama_item ?? '') . ' ' . ($io->kode_item ?? '') . ' ' . ($io->merk ?? '') . ' ' . ($io->nama_jurusan ?? '') . ' ' . ($io->singkatan ?? ''))) }}"
-                                        data-group="{{ $io->nama_jurusan ?: ($io->jurusan_id ?: 'Tanpa Jurusan') }}"
-                                        style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); {{ $ioStok <= 0 ? 'opacity: .55;' : '' }}">
-                                        <input type="checkbox" name="item_ids[]" value="{{ $io->id }}" class="pj-item"
-                                            style="cursor: pointer;" {{ $ioStok <= 0 ? 'disabled' : '' }}>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">
-                                                {{ $io->nama_item }}
-                                                @if ($io->merk)
-                                                    <span style="font-weight: var(--font-normal); color: var(--text-muted);">— {{ $io->merk }}</span>
-                                                @endif
-                                            </div>
-                                            <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                                {{ $io->kode_item }} &bull; Stok: {{ $ioStok }} {{ $io->satuan }}
-                                                @if ($io->nama_jurusan || $io->singkatan) &bull; <span style="color: var(--primary);">{{ $io->singkatan ?: $io->nama_jurusan }}</span> @endif
-                                                @if ($io->ruang_lab_nama) &bull; {{ $io->ruang_lab_nama }} @endif
-                                                @if ($ioStok <= 0)
-                                                    &bull; <span style="color: var(--danger, #ef4444); font-weight: var(--font-semibold);">Stok habis</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <input type="number" step="1" min="1" max="{{ max(1, $ioStok) }}"
-                                            name="item_jumlah[{{ $io->id }}]" value="1" class="form-control"
-                                            style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam"
-                                            {{ $ioStok <= 0 ? 'disabled' : '' }}>
-                                    </div>
-                                @empty
-                                    <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-4) 0;">
-                                        Belum ada alat dalam inventaris laboratorium.
-                                    </p>
-                                @endforelse
-                                <p id="pjAlatKosong" style="display: none; font-size: var(--text-xs); color: var(--text-muted); margin: var(--space-4) 0;">
-                                    Alat tidak ditemukan — coba kata kunci lain.
-                                </p>
-                            </div>
-
-                            {{-- Seksi Aset Sarpras (seluruh aset dalam cakupan jurusan) --}}
-                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--info, #0ea5e9); text-transform: uppercase; margin: var(--space-6) 0 var(--space-3);">
-                                <i class="fas fa-boxes-stacked me-1"></i> Aset Sarpras
-                            </div>
-                            @forelse ($asetOptions as $ao)
-                                @php
-                                    $aoTersedia = (int) floor((float) ($ao->unit_tersedia ?? 0));
-                                    $aoDipinjam = (int) floor((float) ($ao->unit_dipinjam ?? 0));
-                                    $aoTidakBisa = in_array($ao->status_ketersediaan ?? 'tersedia', ['dipinjam', 'hilang'], true) || $aoTersedia <= 0;
-                                @endphp
-                                <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--border-color); {{ $aoTidakBisa ? 'opacity: .55;' : '' }}">
-                                    <input type="checkbox" name="aset_ids[]" value="{{ $ao->id }}" class="pj-item"
-                                        style="cursor: pointer;" {{ $aoTidakBisa ? 'disabled' : '' }}>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <div style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-color);">{{ $ao->nama_barang }}</div>
-                                        <div style="font-size: var(--text-xs); color: var(--text-muted);">
-                                            {{ $ao->kode_aset ?: '—' }}
-                                            @if ($ao->merk_tipe) &bull; {{ $ao->merk_tipe }} @endif
-                                            &bull; Tersedia: {{ $aoTersedia }} {{ $ao->satuan ?: 'unit' }}
-                                            @if ($aoDipinjam > 0) &bull; Sedang dipinjam: {{ $aoDipinjam }} @endif
-                                            @if ($ao->ruang_nama) &bull; {{ $ao->ruang_nama }} @endif
-                                            @if ($aoTidakBisa)
-                                                &bull; <span style="color: var(--danger, #ef4444); font-weight: var(--font-semibold);">{{ in_array($ao->status_ketersediaan ?? '', ['dipinjam', 'hilang'], true) ? ucfirst($ao->status_ketersediaan) : 'Stok habis' }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <input type="number" step="1" min="1" max="{{ max(1, $aoTersedia) }}"
-                                        name="aset_jumlah[{{ $ao->id }}]" value="1" class="form-control"
-                                        style="width: 90px; height: 34px; font-size: var(--text-sm);" title="Jumlah pinjam"
-                                        {{ $aoTidakBisa ? 'disabled' : '' }}>
-                                </div>
-                            @empty
-                                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">
-                                    Belum ada aset Sarpras dalam cakupan jurusan Anda.
-                                </p>
-                            @endforelse
+                        {{-- Kolom pencarian dengan daftar hasil (dropdown) --}}
+                        <div class="people-autocomplete" style="margin-bottom: var(--space-5);">
+                            <input type="search" id="pjAlatCari" class="form-control" autocomplete="off"
+                                placeholder="Cari alat / aset / ruang — nama, kode, atau merk...">
+                            <div id="pjAlatHasil" class="people-autocomplete-results" role="listbox"></div>
                         </div>
+
+                        {{-- Daftar alat yang sudah ditambahkan + isian kuantitas --}}
+                        <div id="pjAlatTerpilih" class="people-autocomplete-selected-list" style="max-height: 320px;"></div>
+                        <p id="pjAlatKosong" style="font-size: var(--text-xs); color: var(--text-muted); margin: var(--space-3) 0 0;">
+                            Belum ada alat dipilih.
+                        </p>
+                        <script type="application/json" id="daftarSumberPeminjaman">@json($sumberPeminjaman ?? [])</script>
                     </div>
 
                     <div class="form-group" style="margin-bottom: var(--space-9);">

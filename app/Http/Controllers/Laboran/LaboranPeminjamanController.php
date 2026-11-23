@@ -125,7 +125,7 @@ class LaboranPeminjamanController extends LaboranBaseController
                 'context'        => $context,
                 'scopeBadge'     => LaboranScope::badge($context),
                 'itemOptions'    => $this->itemOptions($context, 'alat'),
-                'asetOptions'    => $this->asetOptions($context),
+                'sumberPeminjaman' => $this->sumberPeminjamanOptions($context),
                 'ruangOptions'   => $this->ruangOptions(),
                 'lokasiOptions'  => $this->lokasiOptions(),
                 'statusList'     => self::STATUS,
@@ -799,6 +799,71 @@ class LaboranPeminjamanController extends LaboranBaseController
         }
 
         return $rows;
+    }
+
+    /**
+     * Katalog tunggal sumber peminjaman (alat lab + aset Sarpras + ruang).
+     * Dikirim sekali sebagai JSON ke modal: pengguna mencari, menambahkan alat,
+     * lalu mengisi kuantitas — daftar panjang tidak lagi dirender di HTML.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function sumberPeminjamanOptions(array $context): array
+    {
+        $out = [];
+
+        foreach ($this->itemOptions($context, 'alat') as $io) {
+            $stok = (int) $io->stok_tersedia;
+            $out[] = [
+                'tipe'    => 'lab',
+                'id'      => (int) $io->id,
+                'nama'    => $io->nama_item,
+                'kode'    => $io->kode_item,
+                'merk'    => $io->merk,
+                'stok'    => $stok,
+                'satuan'  => $io->satuan ?: 'unit',
+                'lokasi'  => $io->ruang_lab_nama,
+                'group'   => 'Inventaris Lab — ' . ($io->nama_jurusan ?: ($io->jurusan_id ?: 'Tanpa Jurusan')),
+                'label'   => 'Alat Lab',
+                'cari'    => strtolower(trim(($io->nama_item ?? '') . ' ' . ($io->kode_item ?? '') . ' ' . ($io->merk ?? '') . ' ' . ($io->nama_jurusan ?? '') . ' ' . ($io->singkatan ?? ''))),
+            ];
+        }
+
+        foreach ($this->asetOptions($context) as $ao) {
+            $tersedia = (int) floor((float) ($ao->unit_tersedia ?? 0));
+            $tidakBisa = in_array($ao->status_ketersediaan ?? 'tersedia', ['dipinjam', 'hilang'], true) || $tersedia <= 0;
+            $out[] = [
+                'tipe'    => 'aset',
+                'id'      => (int) $ao->id,
+                'nama'    => $ao->nama_barang,
+                'kode'    => $ao->kode_aset,
+                'merk'    => $ao->merk_tipe,
+                'stok'    => $tidakBisa ? 0 : $tersedia,
+                'satuan'  => $ao->satuan ?: 'unit',
+                'lokasi'  => $ao->ruang_nama,
+                'group'   => 'Aset Sarpras',
+                'label'   => 'Aset Sarpras',
+                'cari'    => strtolower(trim(($ao->nama_barang ?? '') . ' ' . ($ao->kode_aset ?? '') . ' ' . ($ao->merk_tipe ?? '') . ' ' . ($ao->kategori ?? '') . ' ' . ($ao->ruang_nama ?? ''))),
+            ];
+        }
+
+        foreach ($this->ruangOptions() as $ro) {
+            $out[] = [
+                'tipe'    => 'ruang',
+                'id'      => (int) $ro->id,
+                'nama'    => $ro->nama_ruang,
+                'kode'    => $ro->kode_ruang,
+                'merk'    => null,
+                'stok'    => 1,
+                'satuan'  => null,
+                'lokasi'  => $ro->gedung,
+                'group'   => 'Ruang & Bangunan',
+                'label'   => 'Ruang',
+                'cari'    => strtolower(trim(($ro->nama_ruang ?? '') . ' ' . ($ro->kode_ruang ?? '') . ' ' . ($ro->gedung ?? ''))),
+            ];
+        }
+
+        return $out;
     }
 
     /**
