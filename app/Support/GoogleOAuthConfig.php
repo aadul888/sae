@@ -57,7 +57,7 @@ final class GoogleOAuthConfig
     private static function settingsRow(): ?object
     {
         try {
-            if (Schema::hasTable('settings') && Schema::hasColumn('settings', 'google_client_id')) {
+            if (Table::exists('settings') && Schema::hasColumn('settings', 'google_client_id')) {
                 return DB::table('settings')->where('id', 1)->first();
             }
         } catch (\Throwable) {

@@ -58,7 +58,7 @@ final class CoreApiKey
     public static function storedCoreUrl(): ?string
     {
         try {
-            if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_url')) {
+            if (!Table::exists('settings') || !Schema::hasColumn('settings', 'core_url')) {
                 return null;
             }
 
@@ -73,7 +73,7 @@ final class CoreApiKey
     /** Simpan URL pusat per instalasi (dipanggil dari halaman Pengaturan). */
     public static function saveCoreUrl(?string $url): void
     {
-        if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_url')) {
+        if (!Table::exists('settings') || !Schema::hasColumn('settings', 'core_url')) {
             return;
         }
 
@@ -90,7 +90,7 @@ final class CoreApiKey
     /** Kunci lokal tersimpan (tanpa efek samping). */
     public static function stored(): ?string
     {
-        if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_install_key')) {
+        if (!Table::exists('settings') || !Schema::hasColumn('settings', 'core_install_key')) {
             return null;
         }
 
@@ -114,7 +114,7 @@ final class CoreApiKey
             return $existing;
         }
 
-        if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_install_key')) {
+        if (!Table::exists('settings') || !Schema::hasColumn('settings', 'core_install_key')) {
             // Skema belum siap (mis. saat instalasi): pakai kunci sesi agar aplikasi
             // tetap jalan. Tidak disimpan; akan dibuat permanen setelah migrasi.
             return self::$cached ?: ('SAE_' . bin2hex(random_bytes(16)));
@@ -144,7 +144,7 @@ final class CoreApiKey
     private static function storedEnrolledAt(): ?string
     {
         try {
-            if (!Schema::hasTable('settings') || !Schema::hasColumn('settings', 'core_enrolled_at')) {
+            if (!Table::exists('settings') || !Schema::hasColumn('settings', 'core_enrolled_at')) {
                 return null;
             }
 
@@ -241,7 +241,7 @@ final class CoreApiKey
                     return (string) $row->npsn;
                 }
             }
-            if (Schema::hasTable('settings')) {
+            if (Table::exists('settings')) {
                 $row = DB::table('settings')->where('id', 1)->first();
                 if ($row && !empty($row->npsn)) {
                     return (string) $row->npsn;
@@ -262,7 +262,7 @@ final class CoreApiKey
                     return (string) $row->nama;
                 }
             }
-            if (Schema::hasTable('settings')) {
+            if (Table::exists('settings')) {
                 $row = DB::table('settings')->where('id', 1)->first();
                 if ($row && !empty($row->app_name)) {
                     return (string) $row->app_name;

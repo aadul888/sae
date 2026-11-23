@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Models\AdminAktivitas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -117,7 +116,7 @@ final class DatabaseActivityLogger
     private static function tableReady(): bool
     {
         if (self::$tableReady === null) {
-            self::$tableReady = Schema::hasTable('admin_aktivitas');
+            self::$tableReady = Table::exists('admin_aktivitas');
         }
         return self::$tableReady;
     }
