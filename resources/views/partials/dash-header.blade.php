@@ -62,6 +62,23 @@
             }
         @endphp
 
+        @php
+            // Tombol donasi di header — hanya admin & saat iklan donasi aktif.
+            // Membuka popup donasi (bukan langsung ke Saweria).
+            $saeHeaderRole = is_array($currentUser)
+                ? ($currentUser['role'] ?? '')
+                : ($currentUser->role ?? '');
+            $saeShowDonateBtn = $saeHeaderRole === 'admin'
+                && \App\Services\CoreControlService::showAds();
+        @endphp
+
+        @if ($saeShowDonateBtn)
+            <button type="button" class="dash-icon-btn sae-header-donate" data-sae-donasi-open
+                title="Dukung SAE — Donasi" aria-label="Donasi untuk SAE">
+                <i class="fas fa-heart"></i>
+            </button>
+        @endif
+
         <!-- 1. Notification Bell & 2-Tab Dropdown Popup -->
         <div class="dash-notif-container" style="position: relative;">
             <button type="button" class="dash-icon-btn" id="notifBellBtn" title="Pengumuman & Notifikasi"

@@ -76,7 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                     if (window.SAE && window.SAE.toast) window.SAE.toast("Terhubung ke pusat sae-core.", "success");
                 } else {
-                    appendLog("Tak terhubung ke pusat. Periksa Alamat Pusat & kunci di Identitas Sekolah.", "#f87171");
+                    appendLog(
+                        `Tak terhubung ke pusat${d.error ? " — " + d.error : ""}. Periksa Alamat Pusat & kunci di Identitas Sekolah.`,
+                        "#f87171",
+                    );
                     if (window.SAE && window.SAE.toast) window.SAE.toast("Gagal menghubungi pusat.", "danger");
                 }
             } catch (err) {

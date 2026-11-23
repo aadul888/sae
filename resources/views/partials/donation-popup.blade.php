@@ -197,7 +197,7 @@
             (function () {
                 var KEY = 'sae_donasi_popup_until';
                 var INTERVAL = 6 * 60 * 60 * 1000; // 6 jam
-                var DELAY = 4000; // muncul setelah 4 detik
+                var DELAY = 4000; // muncul otomatis setelah 4 detik
                 var el = document.getElementById('saeDonasiPopup');
                 if (!el) return;
 
@@ -206,7 +206,6 @@
                 try {
                     until = parseInt(localStorage.getItem(KEY) || '0', 10) || 0;
                 } catch (e) { /* localStorage diblokir */ }
-                if (until > now) return;
 
                 var lastFocus = null;
                 var closeTimer = null;
@@ -218,6 +217,7 @@
                 }
 
                 function open() {
+                    if (!el.hidden) return;
                     lastFocus = document.activeElement;
                     el.hidden = false;
                     el.setAttribute('aria-hidden', 'false');
@@ -253,11 +253,22 @@
                     }
                 });
 
+                // Tombol donasi di header: buka popup (abaikan cooldown auto).
+                document.querySelectorAll('[data-sae-donasi-open]').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        open();
+                    });
+                });
+
                 document.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape' && !el.hidden) close();
                 });
 
-                setTimeout(open, DELAY);
+                // Auto-buka berkala hanya bila belum dalam masa jeda.
+                if (until <= now) {
+                    setTimeout(open, DELAY);
+                }
             })();
         </script>
     @endonce

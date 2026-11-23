@@ -37,6 +37,13 @@ class CoreControlService
     ];
 
     private static ?array $state = null;
+    private static ?string $lastError = null;
+
+    /** Alasan kegagalan terakhir (untuk diagnostik; null bila sukses). */
+    public static function lastError(): ?string
+    {
+        return self::$lastError;
+    }
 
     /** Status kontrol saat ini (fail-open bila gagal). */
     public static function state(): array
@@ -60,11 +67,14 @@ class CoreControlService
     /** Ambil status dari sae-core (sekaligus ping). */
     public static function fetch(): array
     {
+        self::$lastError = null;
         $coreUrl = \App\Support\CoreApiKey::coreUrl();
         $apiKey = \App\Support\CoreApiKey::resolve();
         $npsn = self::npsn();
 
         if ($coreUrl === '' || $apiKey === '' || $npsn === '') {
+            self::$lastError = 'URL pusat / kunci / NPSN belum lengkap.';
+
             return self::DEFAULT;
         }
 
@@ -82,7 +92,10 @@ class CoreControlService
                 // 401 = kunci instalasi tak dikenal pusat. Bersihkan penanda
                 // enroll agar panggilan berikutnya mendaftar ulang otomatis.
                 if ($response->status() === 401) {
+                    self::$lastError = 'HTTP 401 — kunci instalasi ditolak pusat; mendaftar ulang otomatis.';
                     \App\Support\CoreApiKey::forgetEnrollment();
+                } else {
+                    self::$lastError = 'HTTP ' . $response->status() . ' dari pusat.';
                 }
 
                 return self::DEFAULT;
@@ -108,7 +121,9 @@ class CoreControlService
             }
 
             return $state;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            self::$lastError = 'Koneksi gagal: ' . $e->getMessage();
+
             return self::DEFAULT;
         }
     }
@@ -171,6 +186,7 @@ class CoreControlService
             'npsn' => self::npsn(),
             'app_code' => self::APP_CODE,
             'reachable' => (bool) ($state['reachable'] ?? false),
+            'error' => self::$lastError,
             'show_ads' => (bool) ($state['show_ads'] ?? false),
             'is_donor' => (bool) ($state['is_donor'] ?? false),
             'saweria_username' => (string) ($state['saweria_username'] ?? ''),

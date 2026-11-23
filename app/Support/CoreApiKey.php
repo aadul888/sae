@@ -221,6 +221,15 @@ final class CoreApiKey
         } catch (\Throwable) {
             // abaikan
         }
+
+        // Buang juga throttle enroll, agar pemulihan (mis. setelah admin pusat
+        // mereset kunci) terjadi pada panggilan berikutnya, bukan menunggu 10 menit.
+        try {
+            \Illuminate\Support\Facades\Cache::forget('sae_core_enroll_tried');
+        } catch (\Throwable) {
+            // abaikan
+        }
+        self::$enrollTried = false;
     }
 
     private static function npsn(): string

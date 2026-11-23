@@ -680,6 +680,15 @@ select:autofill {
     border-color: var(--border-glow);
     transform: scale(1.05);
 }
+/* Tombol donasi di header: hati beraksen, tetap sejajar tombol ikon lain. */
+.dash-icon-btn.sae-header-donate {
+    color: #e11d48;
+    text-decoration: none;
+}
+.dash-icon-btn.sae-header-donate:hover {
+    color: #be123c;
+    border-color: #e11d48;
+}
 .nav-toggle {
     display: none;
     background: transparent;
