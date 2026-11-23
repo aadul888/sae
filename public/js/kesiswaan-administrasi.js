@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnSyncKlaper) {
         btnSyncKlaper.addEventListener('click', function () {
             window.SAE.confirm("Data seluruh peserta didik aktif dari Dapodik akan disinkronkan ke Buku Klaper.", "Sinkronkan Buku Klaper?", 'info', "Ya, Sinkronkan", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     Swal.fire({
                         title: 'Memproses...',
                         text: 'Menyinkronkan Buku Klaper...',

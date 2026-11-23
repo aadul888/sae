@@ -254,8 +254,8 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = form.getAttribute('data-name') || 'Item ini';
 
-            window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Kode Indeks?", 'warning', "Ya, Hapus", "Batal").then(result => {
-                if (result.isConfirmed) {
+            window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`, "Hapus Kode Indeks?", 'warning', "Ya, Hapus", "Batal").then(result => {
+                if (result) {
                     form.submit();
                 }
             });

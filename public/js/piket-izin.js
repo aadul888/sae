@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const name = delForm.dataset.name || 'tiket ini';
             window.SAE.confirm(`Apakah Anda yakin ingin menghapus ${name}?`, "Konfirmasi Hapus", 'warning', "Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     delForm.submit();
                 }
             });

@@ -606,7 +606,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!id) return;
 
         window.SAE.confirm("Data agenda kegiatan ini akan dihapus dari arsip kelas binaan.", "Hapus Agenda Kelas?", 'warning', "Ya, Hapus!", "Batal").then(async (result) => {
-            if (!result.isConfirmed) return;
+            if (!result) return;
 
             const csrfToken =
                 document.querySelector('meta[name="csrf-token"]')?.content ||

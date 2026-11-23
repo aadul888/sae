@@ -129,8 +129,8 @@ window.addField = function (type, defaultLabel) {
  */
 window.removeField = function (index) {
     if (typeof Swal !== 'undefined') {
-        window.SAE.confirm("Hapus pertanyaan \"${questions[index].label || 'ini'}\"?", "Hapus Pertanyaan?", 'info', "Hapus", "Batal").then((res) => {
-            if (res.isConfirmed) {
+        window.SAE.confirm(`Hapus pertanyaan "${questions[index].label || 'ini'}"?`, "Hapus Pertanyaan?", 'info', "Hapus", "Batal").then((res) => {
+            if (res) {
                 questions.splice(index, 1);
                 renderQuestions();
             }

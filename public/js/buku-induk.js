@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnSync) {
         btnSync.addEventListener('click', function () {
             window.SAE.confirm("Seluruh peserta didik akan diinisialisasi ke <strong>Buku Klaper</strong> dan <strong>profil identitas</strong> bila belum ada.", "Sinkronkan Buku Induk?", 'info', "Ya, Sinkronkan", "Batal").then(async (result) => {
-                if (!result.isConfirmed) return;
+                if (!result) return;
 
                 Swal.fire({
                     title: 'Memproses...',

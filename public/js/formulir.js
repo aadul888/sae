@@ -92,7 +92,7 @@ function initDeleteConfirmations() {
 
         if (typeof Swal !== 'undefined') {
             window.SAE.confirm(`Apakah Anda yakin ingin menghapus <b>${itemName}</b>?<br><small style="color: #ef4444;">Tindakan ini tidak dapat dibatalkan dan seluruh data terkait akan dihapus permanen.</small>`, "Konfirmasi Hapus", 'warning', "<i class=\"fas fa-trash me-1\"></i> Ya, Hapus!", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }

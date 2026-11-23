@@ -603,7 +603,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (form && form.matches(".delete-request-form, .form-destroy-request, form[action*='/delete']")) {
             e.preventDefault();
             const result = await window.SAE.confirm("Data antrean cetak kartu ini akan dihapus permanen.", "Hapus Request?", 'warning', "Ya, Hapus!", "Batal");
-            if (!result.isConfirmed) return;
+            if (!result) return;
 
             try {
                 const res = await fetch(form.action, {
@@ -842,7 +842,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (form && (form.matches('form.delete-pengeluaran-form') || form.matches('form[action*="destroy-pengeluaran"]'))) {
             e.preventDefault();
             const result = await window.SAE.confirm("Catatan belanja/pengeluaran ini akan dihapus permanen.", "Hapus Pengeluaran?", 'warning', "Ya, Hapus!", "Batal");
-            if (!result.isConfirmed) return;
+            if (!result) return;
 
             try {
                 const res = await fetch(form.action, {

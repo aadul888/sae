@@ -702,7 +702,7 @@ document.addEventListener("click", async function (e) {
             `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
             `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`, "Reset Password Akun?", 'warning', "<i class=\"fas fa-key me-1\"></i> Ya, Reset Password", "Batal");
 
-    if (!result.isConfirmed) return;
+    if (!result) return;
 
     Swal.fire({
         title: "Memproses Reset...",

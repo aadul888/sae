@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (typeof Swal !== 'undefined') {
             window.SAE.confirm(`Apakah Anda yakin ingin menghapus catatan agenda <strong>${name}</strong>?`, "Hapus Jurnal KBM?", 'warning', "Ya, Hapus", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     fetch(`/dashboard/agenda-kbm/${id}`, {
                         method: 'DELETE',
                         headers: {

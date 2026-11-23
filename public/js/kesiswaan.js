@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnSyncKlaper) {
         btnSyncKlaper.addEventListener('click', function () {
             window.SAE.confirm("Sistem akan mendaftarkan seluruh peserta didik aktif dari database ke buku klaper & induk secara otomatis.", "Sinkronkan Buku Klaper?", 'info', "Ya, Sinkronkan!", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     Swal.fire({
                         title: 'Memproses...',
                         text: 'Mohon tunggu, sedang menyinkronkan data peserta didik.',
@@ -210,8 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const jenis = document.getElementById('mutasi_jenis')?.value || 'Mutasi';
 
-            window.SAE.confirm("Pastikan nomor surat dan data sekolah asal/tujuan sudah sesuai.", "Simpan Data ${jenis}?", 'info', "Ya, Simpan", "Batal").then((result) => {
-                if (result.isConfirmed) {
+            window.SAE.confirm(`Pastikan nomor surat dan data sekolah asal/tujuan sudah sesuai.`, `Simpan Data ${jenis}?`, 'info', "Ya, Simpan", "Batal").then((result) => {
+                if (result) {
                     form.submit();
                 }
             });

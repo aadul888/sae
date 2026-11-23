@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const tanggal = this.getAttribute('data-tanggal') || document.getElementById('filterTanggal')?.value || new Date().toISOString().slice(0, 10);
 
             window.SAE.confirm("Seluruh catatan presensi manual untuk tanggal terpilih akan dikosongkan kembali agar dapat diulangi. Presensi mandiri (RFID/QR) tetap terlindungi.", "Reset Presensi Kelas?", 'warning', "<i class=\"fas fa-rotate-left me-1\"></i> Ya, Reset Presensi", "Batal").then(async (result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     try {
                         Swal.fire({
                             title: 'Mereset Presensi...',

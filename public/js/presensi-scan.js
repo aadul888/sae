@@ -1131,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const targetUrl = this.getAttribute('href');
             if (this.id === 'btnKioskLock') {
                 window.SAE.confirm("Terminal pemindai akan dikunci dan memerlukan kode akses / RFID untuk dibuka kembali.", "Kunci Terminal?", 'warning', "<i class=\"fas fa-lock me-1\"></i> Kunci Sekarang", "Batal").then((result) => {
-                    if (result.isConfirmed) {
+                    if (result) {
                         window.location.replace(targetUrl);
                     }
                 });

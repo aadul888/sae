@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (window.Swal) {
             window.SAE.confirm("Format pesan WhatsApp akan dikembalikan ke template bawaan sistem.", "Reset Template WhatsApp?", 'warning', "Ya, Reset ke Default", "Batal").then((result) => {
-                if (result.isConfirmed) {
+                if (result) {
                     doReset();
                 }
             });

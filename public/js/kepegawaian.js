@@ -267,8 +267,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const name = this.dataset.name || 'berkas ini';
 
             if (window.Swal) {
-                window.SAE.confirm("Apakah Anda yakin ingin menghapus \"${name}\"? Tindakan ini tidak dapat dibatalkan.", "Hapus Berkas?", 'warning', "Ya, Hapus", "Batal").then((result) => {
-                    if (result.isConfirmed) {
+                window.SAE.confirm(`Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`, "Hapus Berkas?", 'warning', "Ya, Hapus", "Batal").then((result) => {
+                    if (result) {
                         form.submit();
                     }
                 });
