@@ -77,7 +77,7 @@
             <!-- Header Khusus Dashboard -->
             @include('partials.dash-header')
 
-            @include('partials.donation-banner')
+            @include('partials.donation-popup')
 
             @if (session()->has('impersonator'))
                 <div class="dash-impersonate-banner"

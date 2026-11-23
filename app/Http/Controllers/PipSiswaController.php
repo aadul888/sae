@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PipPenggunaanBukti;
 use App\Models\PipPenggunaanDana;
 use App\Models\PipRiwayat;
+use App\Services\ImageOptimizerService;
 use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -250,18 +251,7 @@ class PipSiswaController extends Controller
                 'status'           => 'diajukan',
             ]);
 
-            foreach ($request->file('bukti', []) as $file) {
-                if (!$file) {
-                    continue;
-                }
-                $path = $file->store('pip-penggunaan/' . $pd->peserta_didik_id, 'public');
-                PipPenggunaanBukti::create([
-                    'penggunaan_dana_id' => $laporan->id,
-                    'file_path'          => $path,
-                    'nama_asli'          => Str::limit($file->getClientOriginalName(), 250),
-                    'keterangan'         => null,
-                ]);
-            }
+            $this->simpanBukti($request, $pd->peserta_didik_id, $laporan->id);
         });
 
         return redirect()
@@ -368,23 +358,38 @@ class PipSiswaController extends Controller
                 'diverifikasi_pada' => null,
             ]);
 
-            foreach ($request->file('bukti', []) as $file) {
-                if (!$file) {
-                    continue;
-                }
-                $path = $file->store('pip-penggunaan/' . $pd->peserta_didik_id, 'public');
-                PipPenggunaanBukti::create([
-                    'penggunaan_dana_id' => $laporan->id,
-                    'file_path'          => $path,
-                    'nama_asli'          => Str::limit($file->getClientOriginalName(), 250),
-                    'keterangan'         => null,
-                ]);
-            }
+            $this->simpanBukti($request, $pd->peserta_didik_id, $laporan->id);
         });
 
         return redirect()
             ->route('dashboard.pip-siswa.index', ['tab' => 'riwayat'])
             ->with('success', 'Laporan penggunaan dana PIP berhasil diperbarui dan diajukan kembali. Status kembali Menunggu Verifikasi.');
+    }
+
+    /**
+     * Simpan bukti unggahan laporan (gambar dikompres via ImageOptimizerService,
+     * dokumen PDF disimpan apa adanya).
+     */
+    private function simpanBukti(Request $request, $pesertaDidikId, $laporanId): void
+    {
+        $optimizer = app(ImageOptimizerService::class);
+        $directory = storage_path('app/public/pip-penggunaan/' . $pesertaDidikId);
+
+        foreach ($request->file('bukti', []) as $file) {
+            if (!$file) {
+                continue;
+            }
+
+            $hasil = $optimizer->optimizeAndSaveImage($file, $directory, 'bukti', 1600, 78);
+            $relative = 'pip-penggunaan/' . $pesertaDidikId . '/' . $hasil['filename'];
+
+            PipPenggunaanBukti::create([
+                'penggunaan_dana_id' => $laporanId,
+                'file_path'          => $relative,
+                'nama_asli'          => Str::limit($file->getClientOriginalName(), 250),
+                'keterangan'         => null,
+            ]);
+        }
     }
 
     private function riwayatQuery($pd)

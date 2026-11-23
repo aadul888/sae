@@ -217,7 +217,7 @@
                                                     $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
                                                     $isGambar = in_array(
                                                         strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
-                                                        ['jpg', 'jpeg', 'png'],
+                                                        ['jpg', 'jpeg', 'png', 'webp'],
                                                         true,
                                                     );
                                                 @endphp

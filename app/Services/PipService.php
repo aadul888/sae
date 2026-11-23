@@ -838,7 +838,11 @@ class PipService
                     ->all();
 
                 foreach ($buktiFiles as $filePath) {
-                    if ($filePath && Storage::disk('public')->exists($filePath)) {
+                    if ($filePath && Storage::disk('public')->exists($filePath)
+                        && !DB::table('pip_penggunaan_bukti')
+                            ->where('file_path', $filePath)
+                            ->whereNotIn('penggunaan_dana_id', $laporanIds)
+                            ->exists()) {
                         Storage::disk('public')->delete($filePath);
                     }
                 }
@@ -880,7 +884,11 @@ class PipService
                 ->all();
 
             foreach ($buktiFiles as $filePath) {
-                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                if ($filePath && Storage::disk('public')->exists($filePath)
+                    && !DB::table('pip_penggunaan_bukti')
+                        ->where('file_path', $filePath)
+                        ->whereNotIn('penggunaan_dana_id', $orphanedIds)
+                        ->exists()) {
                     Storage::disk('public')->delete($filePath);
                 }
             }

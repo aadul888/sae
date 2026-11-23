@@ -252,7 +252,7 @@
                                                                 $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
                                                                 $isGambar = in_array(
                                                                     strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION)),
-                                                                    ['jpg', 'jpeg', 'png'],
+                                                                    ['jpg', 'jpeg', 'png', 'webp'],
                                                                     true,
                                                                 );
                                                             @endphp
@@ -501,7 +501,7 @@
                                         @php
                                             $buktiUrl = asset('storage/' . ltrim($b->file_path, '/'));
                                             $ext = strtolower(pathinfo($b->file_path, PATHINFO_EXTENSION));
-                                            $isGambar = in_array($ext, ['jpg', 'jpeg', 'png'], true);
+                                            $isGambar = in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true);
                                         @endphp
                                         <a href="{{ $buktiUrl }}" target="_blank" rel="noopener"
                                             style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); padding: 5px 9px; border-radius: var(--radius-md, 6px); background: var(--bg-hover, rgba(255,255,255,0.05)); border: 1px solid var(--border-color); color: var(--text-color); text-decoration: none;">
