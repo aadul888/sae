@@ -398,6 +398,16 @@ class IdentitasPesertaDidikController extends Controller
         $pilihan = $request->input('status', 'sesuai'); // 'sesuai' atau 'perlu_perbaikan'
         $catatan = trim((string)$request->input('catatan_siswa', ''));
 
+        // Konfirmasi "Data Sesuai" hanya boleh bila berkas KK & Ijazah SMP sudah Valid.
+        $prereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
+        if ($pilihan === 'sesuai' && !$prereq['is_valid']) {
+            $missing = [];
+            if (!$prereq['kk_valid']) $missing[] = 'Kartu Keluarga (KK)';
+            if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah SMP';
+
+            return back()->with('warning', 'Konfirmasi "Data Sesuai" belum dapat dilakukan. Dokumen berikut wajib berstatus Valid terlebih dahulu: ' . implode(' & ', $missing) . '.');
+        }
+
         $identitas = PesertaDidikIdentitas::getOrCreateFromPd($pd);
         $identitas->status_konfirmasi = $pilihan;
         $identitas->dikonfirmasi_pada = now();
@@ -422,7 +432,6 @@ class IdentitasPesertaDidikController extends Controller
             $identitas->catatan_siswa = $catatan ?: 'Siswa/Orang Tua menyatakan terdapat ketidaksesuaian data identitas.';
             $identitas->save();
 
-            $prereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
             if ($prereq['is_valid']) {
                 return back()->with('success', 'Konfirmasi tercatat: Data belum sesuai. Berkas KK dan Ijazah Anda telah terverifikasi Valid, sehingga formulir sekarang terbuka untuk perbaikan data.');
             } else {
@@ -474,6 +483,21 @@ class IdentitasPesertaDidikController extends Controller
         }
 
         $identitas = PesertaDidikIdentitas::getOrCreateFromPd($pd);
+
+        // Kolom bertipe numerik/decimal di DB wajib divalidasi: input teks bebas
+        // (mis. lintang/bujur) kalau diteruskan apa adanya memicu SQLSTATE 1366.
+        $request->validate([
+            'lintang'                 => ['nullable', 'numeric', 'between:-90,90'],
+            'bujur'                   => ['nullable', 'numeric', 'between:-180,180'],
+            'anak_keberapa'           => ['nullable', 'integer', 'min:0'],
+            'tinggi_badan'            => ['nullable', 'integer', 'min:0'],
+            'berat_badan'             => ['nullable', 'integer', 'min:0'],
+            'lingkar_kepala'          => ['nullable', 'integer', 'min:0'],
+            'jarak_rumah_sekolah_km'  => ['nullable', 'numeric', 'min:0'],
+            'waktu_tempuh_jam'        => ['nullable', 'integer', 'min:0'],
+            'waktu_tempuh_menit'      => ['nullable', 'integer', 'min:0'],
+            'jumlah_saudara_kandung'  => ['nullable', 'integer', 'min:0'],
+        ]);
 
         // Nilai lama untuk perbandingan audit log usulan
         $oldSnapshot = $identitas->toArray();

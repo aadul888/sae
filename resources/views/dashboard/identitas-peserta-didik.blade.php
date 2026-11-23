@@ -26,6 +26,14 @@
         </div>
     @endif
 
+    @if (session('warning'))
+        <div class="alert alert-warning"
+            style="padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-triangle-exclamation" style="font-size: var(--text-lg, 1.125rem);"></i>
+            <span>{{ session('warning') }}</span>
+        </div>
+    @endif
+
     @if ($pd)
         <!-- 1. Header Banner Profil Siswa -->
         <div class="dash-banner"
@@ -164,15 +172,15 @@
             </div>
         @endif
 
-        <!-- TAB UTAMA: Identitas | Progress & Riwayat -->
+        <!-- TAB UTAMA: Identitas | Riwayat -->
         <div class="identitas-page-tabs" style="margin-bottom: 16px;">
                 <button type="button" class="btn btn-primary identitas-page-tab active" data-ptab="identitas"
                     style="padding: 9px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-id-card me-1"></i> Identitas
                 </button>
-                <button type="button" class="btn btn-outline identitas-page-tab" data-ptab="progress"
+                <button type="button" class="btn btn-outline identitas-page-tab" data-ptab="riwayat"
                     style="padding: 9px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-diagram-project me-1"></i> Progress &amp; Riwayat
+                    <i class="fas fa-clock-rotate-left me-1"></i> Riwayat
                 </button>
         </div>
 
@@ -190,7 +198,7 @@
             $step5Done = $statusKonfirmasi === 'disinkronkan_dapodik' || $dapodikUsulanCount > 0;
         @endphp
 
-        <div class="card identitas-panel-progress" style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px);">
+        <div class="card identitas-panel-identitas" style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px);">
             <div
                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -335,7 +343,7 @@
         </div>
 
         <!-- 3. Status Konfirmasi Siswa & Quick Action Card -->
-        <div class="card identitas-panel-progress"
+        <div class="card identitas-panel-identitas"
             style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px); border: 1.5px solid {{ $statusKonfirmasi === 'sesuai' ? '#10b981' : ($statusKonfirmasi === 'perlu_perbaikan' ? ($berkasPrereq['is_valid'] ? 'var(--primary)' : '#ef4444') : '#f59e0b') }}; background: var(--card-bg);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="flex: 1; min-width: 280px;">
@@ -454,7 +462,7 @@
                 </button>
                 <button type="button" class="btn btn-outline identitas-tab-btn" data-target="prestasi_minat"
                     style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-trophy me-1"></i> Prestasi &amp; Minat
+                    <i class="fas fa-trophy me-1"></i> Prestasi
                 </button>
                 <button type="button" class="btn btn-outline identitas-tab-btn" data-target="periodik"
                     style="padding: 8px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px);">
@@ -536,18 +544,41 @@
                     };
                 };
             @endphp
-            <div class="card table-responsive-stack identitas-panel-progress" style="margin-bottom: 16px; padding: 0;">
-                <div
-                    style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <h3
-                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Pengajuan Usulan Revisi Data
-                    </h3>
-                    <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">{{ $riwayatBatches->count() }}
-                        Pengajuan</span>
+            <div class="card datatable-card-wrapper identitas-panel-riwayat" id="riwayatTableContainer"
+                style="margin-bottom: 16px; padding: 0;">
+                <div class="datatable-toolbar">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <h3
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Pengajuan Usulan Revisi Data
+                            </h3>
+                            <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">{{ $riwayatBatches->count() }}
+                                Pengajuan</span>
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="toolbar-entries">
+                                <label for="riwayatPerPage" style="margin: 0;">Tampilkan</label>
+                                <select id="riwayatPerPage" data-no-live-search class="per-page-select" style="height: 38px;">
+                                    @foreach ([10, 25, 50] as $n)
+                                        <option value="{{ $n }}" {{ $n === 10 ? 'selected' : '' }}>{{ $n }}</option>
+                                    @endforeach
+                                    <option value="0">Semua</option>
+                                </select>
+                                <span>entri</span>
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="riwayatSearch" placeholder="Cari status / catatan..."
+                                    autocomplete="off" data-no-live-search>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="overflow-x: auto;">
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd mb-0"
                         style="width: 100%; border-collapse: collapse; font-size: var(--text-xs, 0.75rem);">
                         <thead>
@@ -560,8 +591,8 @@
                                 <th style="padding: 8px 12px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach ($riwayatBatches as $i => $batch)
+                        <tbody id="riwayatTableBody">
+                            @forelse ($riwayatBatches as $i => $batch)
                                 @php ($sb = $statusBadge($batch['status']))
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td data-label="Waktu Usulan" style="padding: 8px 12px; color: var(--text-muted); white-space: nowrap;">
@@ -589,22 +620,32 @@
                                         <button type="button" class="btn-icon btn-riwayat-detail" data-tpl="riwayatTpl{{ $i }}"
                                             title="Lihat rincian data usulan"
                                             style="width: 28px; height: 28px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); cursor: pointer;">
-                                            <i class="fas fa-magnifying-glass" style="font-size: 0.75rem;"></i>
+                                            <i class="fas fa-magnifying-glass" style="font-size: var(--text-xs, 0.75rem);"></i>
                                         </button>
                                         @if ($batch['ditolak_count'] > 0 && $isFormEditable)
                                             <button type="button" class="btn-icon btn-riwayat-ulang"
                                                 data-kolom="{{ implode(',', $batch['kolom_ditolak']) }}"
                                                 title="Perbaiki & ajukan ulang data yang ditolak"
                                                 style="width: 28px; height: 28px; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); cursor: pointer;">
-                                                <i class="fas fa-pen-to-square" style="font-size: 0.75rem;"></i>
+                                                <i class="fas fa-pen-to-square" style="font-size: var(--text-xs, 0.75rem);"></i>
                                             </button>
                                         @endif
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" style="padding: 22px 16px; text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-inbox" style="display: block; font-size: var(--text-2xl, 1.5rem); opacity: .35; margin-bottom: 6px;"></i>
+                                        Belum ada riwayat pengajuan usulan perubahan data.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                <div class="datatable-footer" id="riwayatTableFooter"
+                    style="padding: 10px 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"></div>
             </div>
 
             {{-- Template rincian per transaksi (dibaca oleh modal) --}}
@@ -613,7 +654,7 @@
                     <template id="riwayatTpl{{ $i }}">
                         <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                             <span><i class="fas fa-calendar-day me-1"></i>{{ $batch['waktu'] ? $batch['waktu']->translatedFormat('d F Y, H:i') : '-' }}</span>
-                            <span>{{ $batch['jumlah'] }} data @if ($batch['ditolak_count'] > 0) • <span style="color:#ef4444;">{{ $batch['ditolak_count'] }} ditolak</span> @endif</span>
+                            <span>{{ $batch['jumlah'] }} data @if ($batch['ditolak_count'] > 0) • <span style="color:var(--danger, #ef4444);">{{ $batch['ditolak_count'] }} ditolak</span> @endif</span>
                         </div>
                         <div style="overflow-x: auto;">
                             <table class="table table-pd mb-0" style="width: 100%; border-collapse: collapse; font-size: var(--text-xs, 0.75rem);">
@@ -703,10 +744,21 @@
             </div>
 
             <!-- Pilihan 2 Tombol Tile Berukuran Besar dengan Icon Utama -->
+            @php ($prereqValid = $berkasPrereq['is_valid'] ?? true)
+            @if (!$prereqValid)
+                <div
+                    style="margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35); font-size: var(--text-xs, 0.75rem); color: var(--text-color); line-height: 1.45;">
+                    <i class="fas fa-circle-info me-1" style="color: var(--warning, #f59e0b);"></i>
+                    Pilihan <strong>"Data Sesuai"</strong> baru aktif setelah berkas
+                    <strong>Kartu Keluarga (KK)</strong> dan <strong>Ijazah SMP</strong> berstatus
+                    <strong>Valid</strong>.
+                </div>
+            @endif
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                 <!-- Opsi 1: Data Sesuai -->
                 <button type="button" class="btn btn-tile-konfirmasi" data-status="sesuai"
-                    style="background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    @if (!$prereqValid) disabled aria-disabled="true" title="Lengkapi berkas KK & Ijazah Valid terlebih dahulu" @endif
+                    style="background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: {{ $prereqValid ? 'pointer' : 'not-allowed' }}; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px; {{ $prereqValid ? '' : 'opacity: 0.5; filter: grayscale(0.4);' }}">
                     <div
                         style="width: 46px; height: 46px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
                         <i class="fas fa-circle-check"></i>
@@ -774,13 +826,14 @@
         .identitas-page-tabs .btn { flex: 0 0 auto; white-space: nowrap; }
 
         .identitas-section-header { cursor: pointer; user-select: none; }
-        .identitas-section-chevron { margin-left: 8px; transition: transform .2s ease; font-size: .8rem; opacity: .7; }
+        .identitas-section-chevron { margin-left: 8px; transition: transform .2s ease; font-size: var(--text-sm, .8rem); opacity: .7; }
         .identitas-form-section.is-collapsed .identitas-section-chevron { transform: rotate(-90deg); }
         .identitas-form-section.is-collapsed .identitas-section-body { display: none; }
 
         @media (max-width: 768px) {
             .identitas-form-section { padding: 14px 16px !important; margin-bottom: 14px !important; }
-            .identitas-panel-progress .card, .identitas-panel-progress.card { margin-bottom: 12px !important; }
+            .identitas-panel-progress .card, .identitas-panel-progress.card,
+            .identitas-panel-riwayat .card, .identitas-panel-riwayat.card { margin-bottom: 12px !important; }
         }
     </style>
 @endpush

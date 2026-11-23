@@ -30,7 +30,7 @@
                             <div style="display: flex; gap: 18px; align-items: center; height: 38px;">
                                 <label
                                     style="font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="jenis_kelamin" value="L"
+                                    <input type="radio" name="jenis_kelamin" value="L" required
                                         {{ old('jenis_kelamin', $identitas->jenis_kelamin ?: $pd->jenis_kelamin) === 'L' ? 'checked' : '' }}>
                                     Laki-laki
                                 </label>
@@ -78,6 +78,22 @@
                                 title="Nomor Induk Peserta Didik lokal sekolah bersifat permanen.">
                         </div>
 
+                        <!-- Kewarganegaraan -->
+                        <div>
+                            <label class="form-label"
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Kewarganegaraan</label>
+                            <select name="kewarganegaraan" class="form-select" required style="font-size: var(--text-base, 0.875rem);">
+                                <option value="WNI"
+                                    {{ old('kewarganegaraan', $identitas->kewarganegaraan) === 'WNI' ? 'selected' : '' }}>
+                                    Warga
+                                    Negara Indonesia (WNI)</option>
+                                <option value="WNA"
+                                    {{ old('kewarganegaraan', $identitas->kewarganegaraan) === 'WNA' ? 'selected' : '' }}>
+                                    Warga
+                                    Negara Asing (WNA)</option>
+                            </select>
+                        </div>
+
                         <!-- NIK Siswa -->
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">NIK Siswa (16 Digit)
@@ -97,31 +113,6 @@
                                 style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
                         </div>
 
-                        <!-- No. Registrasi Akta Lahir -->
-                        <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">No. Registrasi Akta
-                                Lahir</label>
-                            <input type="text" name="no_registrasi_akta_lahir" class="form-control"
-                                value="{{ old('no_registrasi_akta_lahir', $identitas->no_registrasi_akta_lahir) }}"
-                                placeholder="Contoh: 3203-LT-xxxx" style="font-size: var(--text-base, 0.875rem);">
-                        </div>
-
-                        <!-- Kewarganegaraan -->
-                        <div>
-                            <label class="form-label"
-                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Kewarganegaraan</label>
-                            <select name="kewarganegaraan" class="form-select" style="font-size: var(--text-base, 0.875rem);">
-                                <option value="WNI"
-                                    {{ old('kewarganegaraan', $identitas->kewarganegaraan) === 'WNI' ? 'selected' : '' }}>
-                                    Warga
-                                    Negara Indonesia (WNI)</option>
-                                <option value="WNA"
-                                    {{ old('kewarganegaraan', $identitas->kewarganegaraan) === 'WNA' ? 'selected' : '' }}>
-                                    Warga
-                                    Negara Asing (WNA)</option>
-                            </select>
-                        </div>
-
                         <!-- Tempat Lahir -->
                         <div>
                             <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Tempat Lahir</label>
@@ -138,17 +129,13 @@
                                 style="font-size: var(--text-base, 0.875rem);">
                         </div>
 
-                        <!-- Agama & Kepercayaan -->
+                        <!-- No. Registrasi Akta Lahir -->
                         <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Agama &amp;
-                                Kepercayaan</label>
-                            <select name="agama_id" class="form-select" required style="font-size: var(--text-base, 0.875rem);">
-                                @foreach ($ref['agama'] as $aId => $aName)
-                                    <option value="{{ $aId }}"
-                                        {{ old('agama_id', $identitas->agama_id ?: $pd->agama_id) == $aId ? 'selected' : '' }}>
-                                        {{ $aName }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">No. Registrasi Akta
+                                Lahir</label>
+                            <input type="text" name="no_registrasi_akta_lahir" class="form-control"
+                                value="{{ old('no_registrasi_akta_lahir', $identitas->no_registrasi_akta_lahir) }}"
+                                placeholder="Contoh: 3203-LT-xxxx" style="font-size: var(--text-base, 0.875rem);">
                         </div>
 
                         <!-- Kebutuhan Khusus -->
@@ -164,35 +151,58 @@
                             </select>
                         </div>
 
-                        <!-- Anak ke-berapa -->
+                        <!-- Agama & Kepercayaan -->
                         <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Anak Ke-berapa (di
-                                KK)</label>
-                            <input type="number" name="anak_keberapa" class="form-control" min="1"
-                                max="25" required
-                                value="{{ old('anak_keberapa', $identitas->anak_keberapa ?: ($pd->anak_keberapa ?: 1)) }}"
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Agama &amp;
+                                Kepercayaan</label>
+                            <select name="agama_id" class="form-select" required style="font-size: var(--text-base, 0.875rem);">
+                                @foreach ($ref['agama'] as $aId => $aName)
+                                    <option value="{{ $aId }}"
+                                        {{ old('agama_id', $identitas->agama_id ?: $pd->agama_id) == $aId ? 'selected' : '' }}>
+                                        {{ $aName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px;">
+                        <!-- Alamat Jalan / Kampung / Dusun -->
+                        <div style="grid-column: 1 / -1;">
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Alamat Jalan / Kampung
+                                / Dusun <span class="text-danger">*</span></label>
+                            <input type="text" name="alamat_jalan" class="form-control"
+                                value="{{ old('alamat_jalan', $identitas->alamat_jalan ?: $pd->alamat_jalan) }}"
+                                placeholder="Nama jalan, nomor rumah, blok/gang (Sesuai Kartu Keluarga)" required
                                 style="font-size: var(--text-base, 0.875rem);">
+                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px; display: block;">
+                                Sesuai KK: Alamat mikro tingkat lingkungan/blok (misal: Kp. Saluyu / Jl. Pasirpari No. 12).
+                            </span>
                         </div>
 
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- SEKSI 2: ALAMAT & DOMISILI -->
-                <!-- ========================================== -->
-                <div class="card identitas-form-section" data-section="pribadi_alamat"
-                    style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
-                    <div
-                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: var(--accent, #0284c7); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-location-dot"></i> Bagian 1: Data Pribadi &amp; Domisili
+                        <!-- RT -->
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">RT</label>
+                            <input type="text" name="rt" maxlength="4" class="form-control" placeholder="001"
+                                value="{{ old('rt', $identitas->rt) }}" style="font-size: var(--text-base, 0.875rem);">
                         </div>
-                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">Sesuai Kartu
-                            Keluarga
-                            / Domisili Aktual</span>
-                    </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                        <!-- RW -->
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">RW</label>
+                            <input type="text" name="rw" maxlength="4" class="form-control" placeholder="002"
+                                value="{{ old('rw', $identitas->rw) }}" style="font-size: var(--text-base, 0.875rem);">
+                        </div>
+
+                        <!-- Nama Dusun -->
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Dusun /
+                                Wilayah</label>
+                            <input type="text" name="nama_dusun" class="form-control"
+                                placeholder="Contoh: Dusun Saluyu"
+                                value="{{ old('nama_dusun', $identitas->nama_dusun) }}" style="font-size: var(--text-base, 0.875rem);">
+                        </div>
+
                         <!-- 1. Provinsi (Dropdown Bertingkat) -->
                         <div>
                             <label class="form-label"
@@ -269,40 +279,21 @@
                                 style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
                         </div>
 
-                        <!-- Alamat Jalan / Kampung / Dusun -->
-                        <div style="grid-column: 1 / -1;">
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Alamat Jalan / Kampung
-                                / Dusun <span class="text-danger">*</span></label>
-                            <input type="text" name="alamat_jalan" class="form-control"
-                                value="{{ old('alamat_jalan', $identitas->alamat_jalan ?: $pd->alamat_jalan) }}"
-                                placeholder="Nama jalan, nomor rumah, blok/gang (Sesuai Kartu Keluarga)" required
-                                style="font-size: var(--text-base, 0.875rem);">
-                            <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px; display: block;">
-                                Sesuai KK: Alamat mikro tingkat lingkungan/blok (misal: Kp. Saluyu / Jl. Pasirpari No. 12).
-                            </span>
+                        <!-- Titik Lintang & Bujur (Geotagging) -->
+                        <div>
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Titik Lintang
+                                (Latitude)</label>
+                            <input type="text" name="lintang" class="form-control" placeholder="-7.1234567"
+                                value="{{ old('lintang', $identitas->lintang) }}" inputmode="decimal"
+                                style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
                         </div>
 
-                        <!-- RT -->
                         <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">RT</label>
-                            <input type="text" name="rt" maxlength="4" class="form-control" placeholder="001"
-                                value="{{ old('rt', $identitas->rt) }}" style="font-size: var(--text-base, 0.875rem);">
-                        </div>
-
-                        <!-- RW -->
-                        <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">RW</label>
-                            <input type="text" name="rw" maxlength="4" class="form-control" placeholder="002"
-                                value="{{ old('rw', $identitas->rw) }}" style="font-size: var(--text-base, 0.875rem);">
-                        </div>
-
-                        <!-- Nama Dusun -->
-                        <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Dusun /
-                                Wilayah</label>
-                            <input type="text" name="nama_dusun" class="form-control"
-                                placeholder="Contoh: Dusun Saluyu"
-                                value="{{ old('nama_dusun', $identitas->nama_dusun) }}" style="font-size: var(--text-base, 0.875rem);">
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Titik Bujur
+                                (Longitude)</label>
+                            <input type="text" name="bujur" class="form-control" placeholder="107.1234567"
+                                value="{{ old('bujur', $identitas->bujur) }}" inputmode="decimal"
+                                style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
                         </div>
 
                         <!-- Tempat Tinggal -->
@@ -331,21 +322,14 @@
                             </select>
                         </div>
 
-                        <!-- Titik Lintang & Bujur (Geotagging) -->
+                        <!-- Anak ke-berapa -->
                         <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Titik Lintang
-                                (Latitude)</label>
-                            <input type="text" name="lintang" class="form-control" placeholder="-7.1234567"
-                                value="{{ old('lintang', $identitas->lintang) }}"
-                                style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
-                        </div>
-
-                        <div>
-                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Titik Bujur
-                                (Longitude)</label>
-                            <input type="text" name="bujur" class="form-control" placeholder="107.1234567"
-                                value="{{ old('bujur', $identitas->bujur) }}"
-                                style="font-size: var(--text-base, 0.875rem); font-family: monospace;">
+                            <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Anak Ke-berapa (di
+                                KK)</label>
+                            <input type="number" name="anak_keberapa" class="form-control" min="1"
+                                max="25" required
+                                value="{{ old('anak_keberapa', $identitas->anak_keberapa ?: ($pd->anak_keberapa ?: 1)) }}"
+                                style="font-size: var(--text-base, 0.875rem);">
                         </div>
                     </div>
                 </div>

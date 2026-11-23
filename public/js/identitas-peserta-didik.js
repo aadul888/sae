@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 9. Inisialisasi Riwayat Usulan per Transaksi (rincian + ajukan ulang)
     initRiwayatUsulan();
+
+    // 10. Datatable riwayat usulan (cari, per-halaman, navigasi)
+    initRiwayatTable();
 });
 
 /**
@@ -272,16 +275,28 @@ function initSectionTabs() {
  * Tile 2: Data Belum Sesuai (Perlu Perbaikan / Buka Usulan)
  */
 function initKonfirmasiDialog() {
+    const modal = document.getElementById('modalKonfirmasiData');
+    if (!modal) return;
+
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    // Tombol X dan Batal di dalam modal penutup
+    modal.querySelectorAll('.close-modal').forEach((b) => b.addEventListener('click', closeModal));
+    // Klik area gelap di luar kartu juga menutup
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    // Escape menutup
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
+
     // Buka Modal Konfirmasi saat tombol diklik
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-konfirmasi-dialog, .btn-konfirmasi-trigger');
         if (btn) {
             e.preventDefault();
-            const modal = document.getElementById('modalKonfirmasiData');
-            if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            }
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
     });
 
@@ -690,7 +705,7 @@ function initIdentitasPageTabs() {
 
     const panels = {
         identitas: document.querySelectorAll('.identitas-panel-identitas'),
-        progress: document.querySelectorAll('.identitas-panel-progress'),
+        riwayat: document.querySelectorAll('.identitas-panel-riwayat'),
     };
 
     const show = (key) => {
@@ -703,13 +718,79 @@ function initIdentitasPageTabs() {
             t.classList.toggle('btn-primary', on);
             t.classList.toggle('btn-outline', !on);
         });
-        try { history.replaceState(null, '', key === 'progress' ? '#progress' : '#identitas'); } catch (e) {}
+        try { history.replaceState(null, '', key === 'riwayat' ? '#riwayat' : '#identitas'); } catch (e) {}
     };
 
     tabs.forEach((t) => t.addEventListener('click', () => show(t.getAttribute('data-ptab'))));
 
+    // '#progress' = hash lama (masih dipakai bookmark/tautan) → tab Riwayat.
     const hash = (location.hash || '').replace('#', '');
-    show(hash === 'progress' ? 'progress' : 'identitas');
+    show((hash === 'riwayat' || hash === 'progress') ? 'riwayat' : 'identitas');
+}
+
+/**
+ * Datatable riwayat usulan (sisi klien): pencarian, per-halaman, dan navigasi.
+ * Data sudah dirender penuh oleh server (maks. 20 batch), jadi cukup difilter di DOM.
+ */
+function initRiwayatTable() {
+    const card = document.getElementById('riwayatTableContainer');
+    const tbody = document.getElementById('riwayatTableBody');
+    if (!card || !tbody) return;
+
+    const search = document.getElementById('riwayatSearch');
+    const perPage = document.getElementById('riwayatPerPage');
+    const footer = document.getElementById('riwayatTableFooter');
+    // Baris data saja (baris "belum ada riwayat" punya colspan).
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter((tr) => tr.children.length > 1);
+
+    let page = 1;
+
+    const render = () => {
+        const q = (search && search.value ? search.value : '').trim().toLowerCase();
+        const size = parseInt((perPage && perPage.value) || '10', 10) || 0;
+
+        const match = q ? rows.filter((tr) => tr.textContent.toLowerCase().includes(q)) : rows;
+        const total = match.length;
+        const pages = size > 0 ? Math.max(1, Math.ceil(total / size)) : 1;
+        if (page > pages) page = pages;
+
+        const start = size > 0 ? (page - 1) * size : 0;
+        const end = size > 0 ? Math.min(start + size, total) : total;
+
+        rows.forEach((tr) => { tr.style.display = 'none'; });
+        match.slice(start, end).forEach((tr) => { tr.style.display = ''; });
+
+        if (!footer) return;
+        if (total === 0) {
+            footer.innerHTML = '<span><i class="fas fa-inbox me-1"></i>Tidak ada data yang cocok dengan pencarian.</span>';
+            return;
+        }
+
+        let html = '<span>Menampilkan ' + (start + 1) + '–' + end + ' dari ' + total + ' pengajuan</span>';
+        if (pages > 1) {
+            html += '<div style="display:flex;gap:4px;align-items:center;">'
+                + '<button type="button" class="page-btn ' + (page === 1 ? 'disabled' : '') + '" data-riwayat-page="' + (page - 1) + '" ' + (page === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
+            for (let p = 1; p <= pages; p++) {
+                html += '<button type="button" class="page-btn ' + (p === page ? 'current' : '') + '" data-riwayat-page="' + p + '">' + p + '</button>';
+            }
+            html += '<button type="button" class="page-btn ' + (page === pages ? 'disabled' : '') + '" data-riwayat-page="' + (page + 1) + '" ' + (page === pages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button></div>';
+        }
+        footer.innerHTML = html;
+
+        footer.querySelectorAll('[data-riwayat-page]').forEach((b) => {
+            b.addEventListener('click', () => {
+                const next = parseInt(b.getAttribute('data-riwayat-page'), 10);
+                if (!next || next < 1 || next > pages || next === page) return;
+                page = next;
+                render();
+            });
+        });
+    };
+
+    if (search) search.addEventListener('input', () => { page = 1; render(); });
+    if (perPage) perPage.addEventListener('change', () => { page = 1; render(); });
+
+    render();
 }
 
 /**

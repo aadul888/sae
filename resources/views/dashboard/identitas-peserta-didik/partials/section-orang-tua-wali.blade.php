@@ -2,37 +2,28 @@
                 <div class="card identitas-form-section" data-section="orang_tua"
                     style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
                     <div
-                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #16a34a; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #16a34a; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-people-roof"></i> Bagian 2 &amp; 3: Data Ayah dan Ibu Kandung
+                            <i class="fas fa-person"></i> Bagian 2: Data Ayah Kandung
                         </div>
-                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: normal;">Ayah Kandung &amp;
-                            Ibu
-                            Kandung</span>
+                        <div
+                            style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem); align-items: center; font-weight: normal;">
+                            <span style="color: var(--text-muted);">Status Hidup:</span>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="status_hidup_ayah" value="1"
+                                    {{ old('status_hidup_ayah', $identitas->status_hidup_ayah) !== '0' ? 'checked' : '' }}>
+                                Masih Hidup
+                            </label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="status_hidup_ayah" value="0"
+                                    {{ old('status_hidup_ayah', $identitas->status_hidup_ayah) === '0' ? 'checked' : '' }}>
+                                Sudah Meninggal
+                            </label>
+                        </div>
                     </div>
 
-                    <!-- Sub-Kolom 1: Data Ayah Kandung -->
                     <div
-                        style="margin-bottom: 24px; background: var(--bg-hover); padding: 18px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color);">
-                        <div
-                            style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-person me-2 text-primary"></i> Data Ayah Kandung</span>
-                            <div style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem);">
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <input type="radio" name="status_hidup_ayah" value="1"
-                                        {{ old('status_hidup_ayah', $identitas->status_hidup_ayah) !== '0' ? 'checked' : '' }}>
-                                    Masih Hidup
-                                </label>
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <input type="radio" name="status_hidup_ayah" value="0"
-                                        {{ old('status_hidup_ayah', $identitas->status_hidup_ayah) === '0' ? 'checked' : '' }}>
-                                    Sudah Meninggal
-                                </label>
-                            </div>
-                        </div>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
                             <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Ayah
                                     Kandung</label>
@@ -88,6 +79,19 @@
                             </div>
 
                             <div>
+                                <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Berkebutuhan Khusus
+                                    Ayah</label>
+                                <select name="kebutuhan_khusus_ayah_id" class="form-select form-select-sm"
+                                    style="font-size: var(--text-base, 0.875rem);">
+                                    @foreach ($ref['kebutuhan_khusus'] as $kbId => $kbName)
+                                        <option value="{{ $kbId }}"
+                                            {{ old('kebutuhan_khusus_ayah_id', $identitas->kebutuhan_khusus_ayah_id) == $kbId ? 'selected' : '' }}>
+                                            {{ $kbName }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Penghasilan Bulanan
                                     Ayah</label>
                                 <select name="penghasilan_ayah_id" class="form-select form-select-sm" required
@@ -100,44 +104,37 @@
                                     @endforeach
                                 </select>
                             </div>
+                        </div>
+                </div>
 
-                            <div>
-                                <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Berkebutuhan Khusus
-                                    Ayah</label>
-                                <select name="kebutuhan_khusus_ayah_id" class="form-select form-select-sm"
-                                    style="font-size: var(--text-base, 0.875rem);">
-                                    @foreach ($ref['kebutuhan_khusus'] as $kbId => $kbName)
-                                        <option value="{{ $kbId }}"
-                                            {{ old('kebutuhan_khusus_ayah_id', $identitas->kebutuhan_khusus_ayah_id) == $kbId ? 'selected' : '' }}>
-                                            {{ $kbName }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                <!-- ========================================== -->
+                <!-- BAGIAN 3: DATA IBU KANDUNG -->
+                <!-- ========================================== -->
+                <div class="card identitas-form-section" data-section="orang_tua"
+                    style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
+                    <div
+                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #16a34a; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-person-dress"></i> Bagian 3: Data Ibu Kandung
+                        </div>
+                        <div
+                            style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem); align-items: center; font-weight: normal;">
+                            <span style="color: var(--text-muted);">Status Hidup:</span>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="status_hidup_ibu" value="1"
+                                    {{ old('status_hidup_ibu', $identitas->status_hidup_ibu) !== '0' ? 'checked' : '' }}>
+                                Masih Hidup
+                            </label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="status_hidup_ibu" value="0"
+                                    {{ old('status_hidup_ibu', $identitas->status_hidup_ibu) === '0' ? 'checked' : '' }}>
+                                Sudah Meninggal
+                            </label>
                         </div>
                     </div>
 
-                    <!-- Sub-Kolom 2: Data Ibu Kandung -->
                     <div
-                        style="background: var(--bg-hover); padding: 18px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color);">
-                        <div
-                            style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-person-dress me-2 text-primary"></i> Data Ibu Kandung</span>
-                            <div style="display: flex; gap: 14px; font-size: var(--text-sm, 0.8125rem);">
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <input type="radio" name="status_hidup_ibu" value="1"
-                                        {{ old('status_hidup_ibu', $identitas->status_hidup_ibu) !== '0' ? 'checked' : '' }}>
-                                    Masih Hidup
-                                </label>
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <input type="radio" name="status_hidup_ibu" value="0"
-                                        {{ old('status_hidup_ibu', $identitas->status_hidup_ibu) === '0' ? 'checked' : '' }}>
-                                    Sudah Meninggal
-                                </label>
-                            </div>
-                        </div>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
                             <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Nama Ibu
                                     Kandung</label>
@@ -192,6 +189,19 @@
                             </div>
 
                             <div>
+                                <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Berkebutuhan Khusus
+                                    Ibu</label>
+                                <select name="kebutuhan_khusus_ibu_id" class="form-select form-select-sm"
+                                    style="font-size: var(--text-base, 0.875rem);">
+                                    @foreach ($ref['kebutuhan_khusus'] as $kbId => $kbName)
+                                        <option value="{{ $kbId }}"
+                                            {{ old('kebutuhan_khusus_ibu_id', $identitas->kebutuhan_khusus_ibu_id) == $kbId ? 'selected' : '' }}>
+                                            {{ $kbName }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
                                 <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Penghasilan Bulanan
                                     Ibu</label>
                                 <select name="penghasilan_ibu_id" class="form-select form-select-sm" required
@@ -204,21 +214,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <div>
-                                <label class="form-label" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700;">Berkebutuhan Khusus
-                                    Ibu</label>
-                                <select name="kebutuhan_khusus_ibu_id" class="form-select form-select-sm"
-                                    style="font-size: var(--text-base, 0.875rem);">
-                                    @foreach ($ref['kebutuhan_khusus'] as $kbId => $kbName)
-                                        <option value="{{ $kbId }}"
-                                            {{ old('kebutuhan_khusus_ibu_id', $identitas->kebutuhan_khusus_ibu_id) == $kbId ? 'selected' : '' }}>
-                                            {{ $kbName }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
                         </div>
-                    </div>
                 </div>
 
                 <!-- ========================================== -->
