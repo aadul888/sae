@@ -67,22 +67,22 @@ class PesertaDidikBerkas extends Model
     public static function getJenisBerkasOptions(): array
     {
         return [
-            'akta_kelahiran' => [
-                'label' => 'Akta Kelahiran',
-                'deskripsi' => 'Scan/Foto Akta Kelahiran resmi dari Disdukcapil (format PDF).',
-                'icon' => 'fa-certificate',
-                'wajib' => true,
-            ],
             'kartu_keluarga' => [
-                'label' => 'Kartu Keluarga (KK)',
-                'deskripsi' => 'Scan/Foto Kartu Keluarga terbaru yang memuat nama siswa (format PDF).',
+                'label' => 'Kartu Keluarga (KK) (Asli Berwarna)',
+                'deskripsi' => 'Scan/foto Kartu Keluarga terbaru ASLI dan BERWARNA (bukan fotokopi) yang memuat nama siswa (format PDF).',
                 'icon' => 'fa-people-roof',
                 'wajib' => true,
             ],
             'ijazah_smp' => [
-                'label' => 'Ijazah / SKL SMP/MTs',
-                'deskripsi' => 'Scan Ijazah asli atau Surat Keterangan Lulus (SKL) jenjang SMP/MTs (format PDF).',
+                'label' => 'Ijazah SMP/MTs (Asli Berwarna)',
+                'deskripsi' => 'Scan Ijazah ASLI dan BERWARNA jenjang SMP/MTs (bukan fotokopi) (format PDF).',
                 'icon' => 'fa-graduation-cap',
+                'wajib' => true,
+            ],
+            'akta_kelahiran' => [
+                'label' => 'Akta Kelahiran',
+                'deskripsi' => 'Scan/foto Akta Kelahiran resmi dari Disdukcapil (format PDF).',
+                'icon' => 'fa-certificate',
                 'wajib' => true,
             ],
             'ktp_orang_tua' => [

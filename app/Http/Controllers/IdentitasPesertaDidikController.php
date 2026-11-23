@@ -459,7 +459,7 @@ class IdentitasPesertaDidikController extends Controller
             if (!$prereq['is_valid']) {
                 $missing = [];
                 if (!$prereq['kk_valid']) $missing[] = 'Kartu Keluarga (KK)';
-                if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah / SKL SMP';
+                if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah SMP/MTs';
 
                 return back()->with('error', 'Gagal mengajukan usulan perubahan data: Dokumen ' . implode(' dan ', $missing) . ' wajib berstatus Valid / Sesuai dari Tim Kesiswaan terlebih dahulu.');
             }

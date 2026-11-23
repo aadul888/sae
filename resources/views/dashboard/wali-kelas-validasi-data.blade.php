@@ -236,7 +236,7 @@
                             </th>
                             <th class="th-berkas"
                                 style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 240px;">
-                                Berkas Persyaratan (Akta &bull; KK &bull; Ijazah &bull; KTP)
+                                Berkas Persyaratan (KK &bull; Ijazah &bull; Akta &bull; KTP)
                             </th>
                             <th class="th-kelengkapan"
                                 style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 130px;">
@@ -266,22 +266,22 @@
 
                                 $berkasSlots = [
                                     [
-                                        'label' => 'Akta',
-                                        'title' => 'Akta Kelahiran',
-                                        'file' => $aktaF,
-                                        'isValid' => $aktaVal,
-                                    ],
-                                    [
                                         'label' => 'KK',
-                                        'title' => 'Kartu Keluarga (KK)',
+                                        'title' => 'Kartu Keluarga (KK) (Asli Berwarna)',
                                         'file' => $kkF,
                                         'isValid' => $kkVal,
                                     ],
                                     [
                                         'label' => 'Ijazah',
-                                        'title' => 'Ijazah SMP / SKL',
+                                        'title' => 'Ijazah SMP/MTs (Asli Berwarna)',
                                         'file' => $ijzF,
                                         'isValid' => $ijzVal,
+                                    ],
+                                    [
+                                        'label' => 'Akta',
+                                        'title' => 'Akta Kelahiran',
+                                        'file' => $aktaF,
+                                        'isValid' => $aktaVal,
                                     ],
                                     [
                                         'label' => 'KTP',

@@ -69,7 +69,7 @@ class TendikAktivitas extends Model
         'kesiswaan' => [
             ['judul' => 'Pembaruan Buku Induk & Buku Klaper Siswa', 'uraian' => 'Mencatat identitas nomor induk, NISN, NIK, dan data keluarga peserta didik ke dalam Buku Induk.', 'output' => 'Buku Induk termutakhirkan'],
             ['judul' => 'Pemrosesan Berkas Mutasi Peserta Didik', 'uraian' => 'Memeriksa kelengkapan surat permohonan mutasi masuk/keluar siswa dan menerbitkan surat keterangan mutasi.', 'output' => 'Surat mutasi diterbitkan'],
-            ['judul' => 'Pengarsipan Dokumen Siswa Baru', 'uraian' => 'Menyusun berkas dokumen siswa (Akta Kelahiran, Kartu Keluarga, Ijazah/SKL jenjang sebelumnya).', 'output' => 'Arsip siswa tersimpan rapi'],
+            ['judul' => 'Pengarsipan Dokumen Siswa Baru', 'uraian' => 'Menyusun berkas dokumen siswa (Kartu Keluarga, Ijazah, Akta Kelahiran jenjang sebelumnya).', 'output' => 'Arsip siswa tersimpan rapi'],
             ['judul' => 'Validasi Data Nominasi Peserta Didik Tingkat Akhir', 'uraian' => 'Mencocokkan data identitas siswa kelas akhir untuk keperluan penerbitan SKL dan blanko Ijazah.', 'output' => 'Daftar nominasi terverifikasi'],
         ],
         'persuratan' => [
