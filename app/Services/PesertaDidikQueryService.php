@@ -151,13 +151,8 @@ class PesertaDidikQueryService
             'rombel' => $allResults->pluck('nama_rombel')->filter()->unique()->count(),
         ];
 
-        $sorted = $allResults->sortBy(function ($item) use ($sort) {
-            $val = $item->{$sort} ?? '';
-            if (is_string($val)) {
-                return mb_strtolower(trim(preg_replace('/\s+/', ' ', $val)), 'UTF-8');
-            }
-            return $val;
-        }, SORT_NATURAL | SORT_FLAG_CASE, $sortDir === 'desc');
+        // Urutan sudah ditetapkan di level query (standar SAE: LOWER(TRIM(nama)) + nisn).
+        $sorted = $allResults;
 
         $currentPage = (int) $request->get('page', 1);
         $offset = ($currentPage - 1) * $perPage;

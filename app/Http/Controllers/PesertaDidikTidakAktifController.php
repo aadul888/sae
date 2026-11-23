@@ -123,7 +123,12 @@ class PesertaDidikTidakAktifController extends Controller
         }
 
         $totalFiltered = $query->count();
-        $query->orderBy($sort, $sortDir);
+        // Standar SAE direktori master data: alfabetis case-insensitive.
+        if ($sort === 'nama') {
+            $query->orderByRaw("LOWER(TRIM(nama)) {$sortDir}")->orderBy('nisn', 'asc');
+        } else {
+            $query->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(nama)) asc");
+        }
 
         $currentPage = (int) $request->get('page', 1);
         $offset = ($currentPage - 1) * $perPage;
