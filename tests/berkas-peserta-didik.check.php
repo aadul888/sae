@@ -73,7 +73,7 @@ $svc = app(ImageOptimizerService::class);
 $tmpDir = sys_get_temp_dir() . '/sae-chk-' . uniqid();
 @mkdir($tmpDir, 0777, true);
 
-$polyglot = "%PDF-1.4\n1 0 obj\n<?php phpinfo(); ?>\n%%EOF";
+$polyglot = "<?php phpinfo(); ?>\n%PDF-1.4\n%%EOF";
 try {
     $svc->optimizeAndSaveImage(
         Illuminate\Http\UploadedFile::fake()->createWithContent('x.pdf', $polyglot),

@@ -158,7 +158,9 @@ class ImageOptimizerUploadTest extends TestCase
 
     public function test_berkas_dokumen_berisi_kode_php_ditolak(): void
     {
-        $polyglot = "%PDF-1.4\n1 0 obj\n<?php phpinfo(); ?>\n%%EOF";
+        // Berkas yang benar-benar DIMULAI sebagai skrip PHP harus ditolak,
+        // walau ekstensinya .pdf.
+        $polyglot = "<?php phpinfo(); ?>\n%PDF-1.4\n%%EOF";
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -167,6 +169,21 @@ class ImageOptimizerUploadTest extends TestCase
             $this->dir,
             'polyglot'
         );
+    }
+
+    public function test_pdf_sah_dengan_urutan_kode_di_dalam_biner_diterima(): void
+    {
+        // PDF sah yang kebetulan memuat urutan "<?php" di dalam biner (stream/XMP)
+        // tidak boleh ditolak — dulu regex whole-binary bikin false-positive ini.
+        $pdf = "%PDF-1.4\n1 0 obj\n<< /S /JavaScript >>\n<?php bukan-skrip ?> more\n%%EOF";
+
+        $hasil = $this->service()->optimizeAndSaveImage(
+            UploadedFile::fake()->createWithContent('valid.pdf', $pdf),
+            $this->dir,
+            'valid'
+        );
+
+        $this->assertSame('pdf', $hasil['format']);
     }
 
     public function test_dokumen_tanpa_ekstensi_ditolak(): void

@@ -291,8 +291,15 @@ class ImageOptimizerService
             throw new InvalidArgumentException("Jenis berkas tidak diizinkan: {$label}.");
         }
 
-        // PDF/gambar polyglot + PHP: payload kode di dalam berkas dokumen yang sah.
-        if (preg_match('/<\?(php|=)|<%\s/i', $binary) || str_starts_with($binary, "#!\x2f") || str_starts_with($binary, "\x7FELF") || str_starts_with($binary, 'MZ')) {
+        // Dokumen polyglot: tolak HANYA bila berkasnya benar-benar dimulai sebagai
+        // skrip (<?php / <?= / <%) atau berupa binary executable. Memindai tag PHP
+        // ke SELURUH biner menimbulkan false-positive pada PDF sah — aliran
+        // terkompresi/hex di dalam PDF sering kebetulan memuat urutan "<?", sehingga
+        // dokumen murid yang normal ikut ditolak.
+        if (preg_match('/^(\xEF\xBB\xBF)?\s*(<\?(php|=)|<%)/i', $binary)
+            || str_starts_with($binary, "#!\x2f")
+            || str_starts_with($binary, "\x7FELF")
+            || str_starts_with($binary, 'MZ')) {
             throw new InvalidArgumentException('Berkas ditolak karena memuat kode yang dapat dieksekusi.');
         }
 
