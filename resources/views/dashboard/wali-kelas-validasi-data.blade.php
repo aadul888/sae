@@ -267,13 +267,13 @@
                                 $berkasSlots = [
                                     [
                                         'label' => 'KK',
-                                        'title' => 'Kartu Keluarga (KK) (Asli Berwarna)',
+                                        'title' => 'Kartu Keluarga (KK) (Asli)',
                                         'file' => $kkF,
                                         'isValid' => $kkVal,
                                     ],
                                     [
                                         'label' => 'Ijazah',
-                                        'title' => 'Ijazah SMP/MTs (Asli Berwarna)',
+                                        'title' => 'Ijazah SMP/MTs (Asli)',
                                         'file' => $ijzF,
                                         'isValid' => $ijzVal,
                                     ],

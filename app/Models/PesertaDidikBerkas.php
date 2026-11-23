@@ -68,14 +68,14 @@ class PesertaDidikBerkas extends Model
     {
         return [
             'kartu_keluarga' => [
-                'label' => 'Kartu Keluarga (KK) (Asli Berwarna)',
-                'deskripsi' => 'Scan/foto Kartu Keluarga terbaru ASLI dan BERWARNA (bukan fotokopi) yang memuat nama siswa (format PDF).',
+                'label' => 'Kartu Keluarga (KK) (Asli)',
+                'deskripsi' => 'Scan/foto Kartu Keluarga terbaru ASLI (bukan fotokopi) yang memuat nama siswa (format PDF).',
                 'icon' => 'fa-people-roof',
                 'wajib' => true,
             ],
             'ijazah_smp' => [
-                'label' => 'Ijazah SMP/MTs (Asli Berwarna)',
-                'deskripsi' => 'Scan Ijazah ASLI dan BERWARNA jenjang SMP/MTs (bukan fotokopi) (format PDF).',
+                'label' => 'Ijazah SMP/MTs (Asli)',
+                'deskripsi' => 'Scan Ijazah ASLI jenjang SMP/MTs (bukan fotokopi) (format PDF).',
                 'icon' => 'fa-graduation-cap',
                 'wajib' => true,
             ],
