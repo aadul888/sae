@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tgl) tgl.value = today();
             const kembali = document.getElementById('pjKembali');
             if (kembali) kembali.value = daysFromNow(3);
+            const cariAlat = document.getElementById('pjAlatCari');
+            if (cariAlat) cariAlat.dispatchEvent(new Event('input', { bubbles: true }));
             L.openModal(modal);
         });
     }
@@ -195,6 +197,50 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('click', function (e) {
             if (!wrap.contains(e.target)) hideResults();
         });
+    })();
+
+    // =====================================================================
+    // 1c. Live search & filter Alat Lab (inventaris per jurusan)
+    // =====================================================================
+    (function initAlatSearch() {
+        const input = document.getElementById('pjAlatCari');
+        const list = document.getElementById('pjAlatList');
+        const kosong = document.getElementById('pjAlatKosong');
+        if (!input || !list) return;
+
+        const rows = Array.prototype.slice.call(list.querySelectorAll('.pj-alat-row'));
+        if (!rows.length) return;
+
+        function rapikan() {
+            // Bersihkan label jurusan dari render sebelumnya.
+            list.querySelectorAll('.pj-alat-label').forEach(function (el) { el.remove(); });
+
+            const term = input.value.trim().toLowerCase();
+            let tampil = 0;
+            let grupTerakhir = '';
+            rows.forEach(function (row) {
+                const cocok = row.dataset.search.indexOf(term) !== -1;
+                row.style.display = cocok ? '' : 'none';
+                if (!cocok) return;
+                tampil++;
+
+                // Label jurusan muncul saat grup berubah, hanya untuk baris tampil.
+                const grup = row.dataset.group || '';
+                if (grup !== grupTerakhir) {
+                    grupTerakhir = grup;
+                    const el = document.createElement('div');
+                    el.className = 'pj-alat-label';
+                    el.style.cssText = 'font-size: var(--text-2xs); font-weight: var(--font-bold); '
+                        + 'color: var(--primary); text-transform: uppercase; margin: var(--space-4) 0 var(--space-2);';
+                    el.textContent = grup;
+                    row.parentNode.insertBefore(el, row);
+                }
+            });
+            if (kosong) kosong.style.display = tampil ? 'none' : 'block';
+        }
+
+        input.addEventListener('input', rapikan);
+        input.addEventListener('search', rapikan);
     })();
 
     // =====================================================================

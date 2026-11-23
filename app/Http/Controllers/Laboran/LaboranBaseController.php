@@ -139,14 +139,18 @@ abstract class LaboranBaseController extends Controller
      */
     protected function itemOptions(array $context, ?string $jenis = null, bool $hanyaPenanggungJawab = false)
     {
-        $q = DB::table('laboran_bahan_alat')
-            ->select('id', 'kode_item', 'nama_item', 'jenis', 'satuan', 'ruang_lab_nama', 'stok_tersedia', 'kondisi', 'jurusan_id')
-            ->orderBy('nama_item');
+        $q = DB::table('laboran_bahan_alat as lba')
+            ->leftJoin('jurusan_meta as jm', 'lba.jurusan_id', '=', 'jm.jurusan_id')
+            ->select('lba.id', 'lba.kode_item', 'lba.nama_item', 'lba.merk', 'lba.jenis', 'lba.satuan',
+                'lba.ruang_lab_nama', 'lba.stok_tersedia', 'lba.kondisi', 'lba.jurusan_id',
+                'jm.nama_jurusan', 'jm.singkatan')
+            ->orderBy('jm.nama_jurusan')
+            ->orderBy('lba.nama_item');
 
-        LaboranScope::apply($q, 'jurusan_id', $context);
+        LaboranScope::apply($q, 'lba.jurusan_id', $context);
 
         if ($jenis) {
-            $q->where('jenis', $jenis);
+            $q->where('lba.jenis', $jenis);
         }
 
         if ($hanyaPenanggungJawab && !empty($context['ptk_id'])) {
@@ -157,7 +161,7 @@ abstract class LaboranBaseController extends Controller
                 ->all();
 
             if (!empty($ruangPj)) {
-                $q->whereIn('ruang_lab_nama', $ruangPj);
+                $q->whereIn('lba.ruang_lab_nama', $ruangPj);
             }
         }
 

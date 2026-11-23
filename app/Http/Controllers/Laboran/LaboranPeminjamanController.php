@@ -124,7 +124,7 @@ class LaboranPeminjamanController extends LaboranBaseController
             [
                 'context'        => $context,
                 'scopeBadge'     => LaboranScope::badge($context),
-                'itemOptions'    => $this->itemOptions($context, 'alat', true),
+                'itemOptions'    => $this->itemOptions($context, 'alat'),
                 'asetOptions'    => $this->asetOptions($context),
                 'ruangOptions'   => $this->ruangOptions(),
                 'lokasiOptions'  => $this->lokasiOptions(),
