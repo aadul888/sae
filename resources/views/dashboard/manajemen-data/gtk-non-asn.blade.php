@@ -54,10 +54,10 @@
                     <button type="button" class="btn btn-outline" id="btnBuatSemuaAkun"
                         data-url="{{ route('dashboard.gtk-non-asn.buat-semua-akun') }}"
                         data-jumlah="{{ max(0, ($summary['total'] ?? 0) - ($summary['punya_akun'] ?? 0)) }}"
-                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); border-color: var(--purple, #8b5cf6); color: var(--purple, #8b5cf6);"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--purple, #8b5cf6); color: var(--purple, #8b5cf6);"
                         title="Buat akun untuk yang belum punya, dan rapikan peran akun yang sudah ada"
                         aria-label="Buat akun login untuk semua GTK Non-ASN">
-                        <i class="fas fa-key"></i> Buat Akun Semua
+                        <i class="fas fa-key"></i>
                     </button>
                 @endif
                 <button type="button" class="btn btn-primary" onclick="openNonAsnModal()"

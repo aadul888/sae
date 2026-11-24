@@ -99,7 +99,7 @@ class GtkNonAsnAkunTest extends TestCase
         $this->assertSame('19920817', \App\Http\Controllers\GtkNonAsnController::passwordDariTanggalLahir($tendik->tanggal_lahir));
     }
 
-    /** View menampilkan tombol "Buat Akun Semua" selama masih ada yang belum punya akun. */
+    /** View menampilkan tombol ikon "Buat Akun Semua" selama ada data. */
     public function test_tombol_buat_semua_akun_tampil_bila_ada_yang_belum_punya_akun(): void
     {
         if (!Table::exists('gtk_non_asn')) {
@@ -111,7 +111,7 @@ class GtkNonAsnAkunTest extends TestCase
         $this->withSession(['user' => $this->adminSession()])
             ->get(route('dashboard.gtk-non-asn.index'))
             ->assertStatus(200)
-            ->assertSee('Buat Akun Semua');
+            ->assertSee('id="btnBuatSemuaAkun"', false);
     }
 
     /** Baris yang sudah punya akun: dibuat=0, peran disinkronkan, tidak digandakan. */

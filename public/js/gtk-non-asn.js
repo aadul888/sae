@@ -264,7 +264,7 @@ document.addEventListener("click", async function (e) {
 
     btn.disabled = true;
     const original = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
 
