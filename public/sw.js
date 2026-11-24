@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.2.6 — Full Offline / Self-Hosted Assets
+   Version: 1.2.7 — Full Offline / Self-Hosted Assets
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.6";
+const CACHE_NAME = "sae-pwa-v1.2.7";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -64,7 +64,10 @@ self.addEventListener("install", (event) => {
                 // Gunakan addAll dengan toleransi kegagalan parsial jika beberapa vendor asset belum ada
                 for (const asset of PRECACHE_ASSETS) {
                     try {
-                        await cache.add(asset);
+                        // cache:"reload" → bypass cache HTTP. Tanpa ini, 404 lama
+                        // (mis. saat vhost sempat menolak /vendor/*) bisa tersimpan
+                        // berjam-jam di perangkat dan precache ikut gagal → tofu.
+                        await cache.add(new Request(asset, { cache: "reload" }));
                     } catch (err) {
                         console.warn(
                             "[SAE-PWA] Failed to precache:",
@@ -167,7 +170,14 @@ self.addEventListener("fetch", (event) => {
     // Untuk aset statis (CSS, JS, Gambar, Web Fonts): Stale-While-Revalidate
     event.respondWith(
         caches.match(request).then((cachedResponse) => {
-            const fetchPromise = fetch(request)
+            // Font: paksa ambil dari jaringan, bypass cache HTTP. Cache HTTP bisa
+            // menyimpan 404 lama (mis. vhost sempat menolak /vendor/*) selama
+            // berjam-jam → ikon tetap kotak walau origin sudah benar.
+            const netRequest =
+                request.destination === "font"
+                    ? new Request(request, { cache: "reload" })
+                    : request;
+            const fetchPromise = fetch(netRequest)
                 .then((networkResponse) => {
                     if (
                         networkResponse &&
