@@ -399,6 +399,53 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Delegasi: klik sel Konfirmasi (khusus admin) → ubah Sesuai <-> Perlu Perbaikan (tercatat riwayat).
+    const konfMeta = {
+        sesuai: ['Sesuai', 'fa-circle-check', 'success'],
+        perlu_perbaikan: ['Perlu Perbaikan', 'fa-triangle-exclamation', 'danger'],
+        belum_konfirmasi: ['Belum Dikonfirmasi', 'fa-circle-question', 'outline'],
+    };
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.berkas-konfirmasi-btn');
+        if (!btn) return;
+        e.preventDefault();
+
+        const id = btn.getAttribute('data-id');
+        const nama = btn.getAttribute('data-nama') || 'Peserta Didik';
+        const current = btn.getAttribute('data-status') || 'belum_konfirmasi';
+        const next = current === 'sesuai' ? 'perlu_perbaikan' : 'sesuai';
+        const nextLabel = next === 'sesuai' ? 'Sesuai' : 'Perlu Perbaikan';
+
+        const ok = await window.SAE.confirm(
+            `Ubah status konfirmasi data <b>${escapeHtml(nama)}</b> menjadi <b>${nextLabel}</b>?`,
+            'Ubah Status Konfirmasi?', next === 'sesuai' ? 'info' : 'warning', 'Ya, Ubah', 'Batal'
+        );
+        if (!ok) return;
+
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/dashboard/verval-pd/berkas/${encodeURIComponent(id)}/konfirmasi`, {
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ status: next }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                const applied = json.status_konfirmasi || next;
+                const meta = konfMeta[applied] || konfMeta.belum_konfirmasi;
+                btn.setAttribute('data-status', applied);
+                btn.innerHTML = `<span class="badge badge-${meta[2]}" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas ${meta[1]}"></i> ${meta[0]}</span>`;
+                window.SAE.toast ? window.SAE.toast(json.message || 'Status diperbarui.', 'success') : null;
+            } else {
+                Swal.fire('Gagal', json.message || 'Perubahan tidak tersimpan.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     // ==================================================== USULAN PERUBAHAN
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-kelola-usulan-modal, .btn-verif-usulan');

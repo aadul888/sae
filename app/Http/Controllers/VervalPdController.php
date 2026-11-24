@@ -78,6 +78,7 @@ class VervalPdController extends Controller
         $data['stats'] = $this->berkasStats();
         $data['filterRombel'] = $this->filterRombel();
         $data['page'] = 'berkas';
+        $data['isAdmin'] = $this->isAdmin($user);
 
         return view('dashboard.verval-pd', $data + compact('canCreate', 'canRead', 'canUpdate', 'canDelete'));
     }
@@ -184,6 +185,30 @@ class VervalPdController extends Controller
         }
 
         $res = $this->berkasService->uploadBerkasTendik($request, $id, $user, self::MODUL['berkas']);
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    /** Ubah kolom Konfirmasi identitas (sesuai / perlu_perbaikan) langsung dari datatable — khusus admin. */
+    public function updateKonfirmasiBerkas(Request $request, $id): JsonResponse
+    {
+        $user = $this->sessionUser();
+        if (!$this->isAdmin($user)) {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang dapat mengubah status konfirmasi.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:sesuai,perlu_perbaikan',
+            'catatan' => 'nullable|string|max:500',
+        ]);
+
+        $res = $this->berkasService->updateKonfirmasiIdentitas(
+            (string) $id,
+            $validated['status'],
+            $validated['catatan'] ?? null,
+            $user,
+            self::MODUL['berkas']
+        );
 
         return response()->json($res, $res['status_code'] ?? 200);
     }
@@ -354,5 +379,13 @@ class VervalPdController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
         return RolePermission::canAccess($user ?: $role, 'menu_verval_pd', $verb);
+    }
+
+    /** Apakah pengguna berperan admin (satu-satunya yang boleh ubah status konfirmasi Verval PD). */
+    protected function isAdmin(mixed $user): bool
+    {
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        return $role === 'admin';
     }
 }

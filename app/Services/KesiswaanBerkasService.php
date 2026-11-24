@@ -43,6 +43,64 @@ class KesiswaanBerkasService
     }
 
     /**
+     * Ubah status konfirmasi identitas (sesuai / perlu_perbaikan) langsung dari
+     * datatable Berkas Verval PD, dan catat ke riwayat (admin_aktivitas modul $modul).
+     */
+    public function updateKonfirmasiIdentitas(string|int $id, string $status, ?string $catatan, mixed $user, string $modul = 'Kesiswaan'): array
+    {
+        if (!Table::exists('peserta_didik_identitas')) {
+            return ['status' => 'error', 'message' => 'Tabel identitas peserta didik tidak tersedia.', 'status_code' => 422];
+        }
+
+        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+        if (!$pd) {
+            return ['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.', 'status_code' => 404];
+        }
+
+        $identitas = \App\Models\PesertaDidikIdentitas::getOrCreateFromPd($pd);
+        $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
+
+        $labelMap = [
+            'belum_konfirmasi' => 'Belum Dikonfirmasi',
+            'sesuai' => 'Sesuai',
+            'perlu_perbaikan' => 'Perlu Perbaikan',
+            'diverifikasi' => 'Diverifikasi',
+            'disinkronkan_dapodik' => 'Tersinkron Dapodik',
+        ];
+
+        $old = (string) ($identitas->status_konfirmasi ?: 'belum_konfirmasi');
+        if ($old === $status && ($catatan === null || $catatan === '')) {
+            return ['status' => 'success', 'message' => 'Tidak ada perubahan.', 'status_konfirmasi' => $status];
+        }
+
+        $identitas->status_konfirmasi = $status;
+        $identitas->dikonfirmasi_pada = now();
+        $identitas->dikonfirmasi_oleh = $userName . ' (Administrator)';
+        $identitas->terakhir_diubah_oleh = 'admin';
+        if ($catatan !== null && $catatan !== '') {
+            $identitas->catatan_kesiswaan = $catatan;
+        }
+        $identitas->save();
+
+        if (class_exists(AdminAktivitas::class)) {
+            AdminAktivitas::recordCrud(
+                'UPDATE',
+                "Konfirmasi Data: {$pd->nama} (NISN: " . ($pd->nisn ?: '-') . ')',
+                $modul,
+                'Status konfirmasi: ' . ($labelMap[$old] ?? $old) . ' → ' . ($labelMap[$status] ?? $status) . " oleh {$userName}."
+                    . ($catatan ? " Catatan: {$catatan}" : ''),
+                $status === 'sesuai' ? 'success' : 'warning'
+            );
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Status konfirmasi diperbarui: ' . ($labelMap[$status] ?? $status) . '.',
+            'status_konfirmasi' => $status,
+        ];
+    }
+
+    /**
      * Ambil data berkas digital lengkap per siswa (JSON) untuk Modal Verifikasi Berkas Kesiswaan.
      */
     public function getBerkasDetail(string|int $id): array

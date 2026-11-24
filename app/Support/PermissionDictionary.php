@@ -54,6 +54,11 @@ final class PermissionDictionary
                     'icon' => 'fa-calendar-days',
                     'roles' => ['admin'],
                 ],
+                'menu_peta_sekolah' => [
+                    'label' => 'Peta Sekolah',
+                    'icon' => 'fa-map-location-dot',
+                    'roles' => ['admin'],
+                ],
             ],
 
             'Manajemen Data' => [

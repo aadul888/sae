@@ -11,8 +11,8 @@
         ],
         'berkas' => [
             'icon' => 'fa-folder-open',
-            'title' => 'Berkas / Dokumen',
-            'desc' => 'Validasi berkas fisik & digital peserta didik.',
+            'title' => 'Data & Berkas',
+            'desc' => 'Identitas lengkap & validasi berkas peserta didik.',
         ],
         'perubahan' => [
             'icon' => 'fa-file-pen',
@@ -290,6 +290,11 @@
         @include('dashboard.verval-pd.partials.modals')
     @endif
 @endsection
+
+@push('styles')
+    <link rel="stylesheet"
+        href="{{ asset('css/wali-kelas.css') }}?v={{ file_exists(public_path('css/wali-kelas.css')) ? filemtime(public_path('css/wali-kelas.css')) : time() }}">
+@endpush
 
 @push('scripts')
     <script src="{{ asset('js/verval-pd.js') }}?v={{ file_exists(public_path('js/verval-pd.js')) ? filemtime(public_path('js/verval-pd.js')) : time() }}"></script>

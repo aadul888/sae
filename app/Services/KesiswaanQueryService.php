@@ -370,6 +370,14 @@ class KesiswaanQueryService
                 'kbv.verified_at'
             );
 
+        // Status konfirmasi identitas (sesuai / perlu_perbaikan) — dipakai kolom Konfirmasi Verval PD.
+        if (Table::exists('peserta_didik_identitas')) {
+            $berkasQuery->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
+                ->addSelect('pdi.status_konfirmasi');
+        } else {
+            $berkasQuery->addSelect(DB::raw('NULL as status_konfirmasi'));
+        }
+
         if ($q !== '') {
             $berkasQuery->where(function ($b) use ($q) {
                 $b->where('pd.nama', 'like', "%{$q}%")

@@ -34,6 +34,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/berkas/detail/{id}', [\App\Http\Controllers\VervalPdController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_verval_pd,read');
         Route::post('/berkas/verifikasi/{id}', [\App\Http\Controllers\VervalPdController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_verval_pd,update');
         Route::post('/berkas/upload/{id}', [\App\Http\Controllers\VervalPdController::class, 'uploadBerkasTendik'])->name('berkas.upload')->middleware('permission:menu_verval_pd,update');
+        Route::patch('/berkas/{id}/konfirmasi', [\App\Http\Controllers\VervalPdController::class, 'updateKonfirmasiBerkas'])->name('berkas.konfirmasi')->middleware('permission:menu_verval_pd,update');
 
         // Submenu 3: Usulan Perubahan Data
         Route::get('/perubahan', [\App\Http\Controllers\VervalPdController::class, 'perubahan'])->name('perubahan')->middleware('permission:menu_verval_pd,read');

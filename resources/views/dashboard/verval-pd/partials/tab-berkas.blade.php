@@ -1,4 +1,49 @@
-{{-- TAB BERKAS: validasi berkas fisik & digital peserta didik --}}
+{{-- TAB BERKAS: kolom tabel hanya KK & Ijazah + Konfirmasi; dokumen lain via modal --}}
+@php
+    $konfLabel = [
+        'sesuai' => ['Sesuai', 'fa-circle-check', 'success'],
+        'diverifikasi' => ['Diverifikasi', 'fa-circle-check', 'success'],
+        'disinkronkan_dapodik' => ['Tersinkron Dapodik', 'fa-cloud-arrow-up', 'primary'],
+        'perlu_perbaikan' => ['Perlu Perbaikan', 'fa-triangle-exclamation', 'danger'],
+    ];
+    // Chip status berkas (pola Wali Kelas) untuk kolom KK & Ijazah.
+    $renderBerkasChip = function ($label, $title, $file, $fallbackBool) {
+        $isValid = ($file && $file->status === 'valid') || $fallbackBool;
+        $st = $isValid ? 'valid' : ($file?->status ?? 'belum');
+        $class = match ($st) {
+            'valid' => 'valid',
+            'tidak_valid' => 'tidak_valid',
+            'menunggu' => 'menunggu',
+            default => 'belum',
+        };
+        $icon = match ($st) {
+            'valid' => 'fa-circle-check',
+            'tidak_valid' => 'fa-circle-xmark',
+            'menunggu' => 'fa-clock',
+            default => 'fa-minus',
+        };
+        $text = match ($st) {
+            'valid' => 'Valid / Sesuai',
+            'tidak_valid' => 'Ditolak / Tidak Sesuai',
+            'menunggu' => 'Menunggu Verifikasi',
+            default => 'Belum Diunggah',
+        };
+
+        $eye = '';
+        if (!empty($file?->file_path)) {
+            $eye = '<button type="button" class="btn-preview-pdf-inline berkas-chip-eye"'
+                . ' data-url="' . route('dashboard.berkas.preview', $file->id) . '"'
+                . ' data-title="' . e($title . ' - ' . ($file->nama_berkas ?: '')) . '"'
+                . ' title="Lihat Dokumen PDF ' . e($title) . '"><i class="fas fa-eye"></i></button>';
+        }
+
+        return '<div class="berkas-pill-group"><div class="berkas-chip berkas-chip--' . $class . '" title="' . e($title) . ': ' . $text . '">'
+            . '<i class="fas ' . $icon . ' berkas-chip-status-icon"></i>'
+            . '<span class="berkas-chip-label">' . e($label) . '</span>'
+            . $eye . '</div></div>';
+    };
+@endphp
+
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
         <thead>
@@ -16,16 +61,18 @@
                             class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
                 @endforeach
-                @foreach (['Akta Lahir', 'Kartu Keluarga', 'Ijazah SMP', 'KTP Ortu', 'KIP / PIP'] as $label)
-                    <th
-                        style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                        {{ $label }}
-                    </th>
-                @endforeach
                 <th
-                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                    Aksi
-                </th>
+                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                    Konfirmasi</th>
+                <th
+                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                    Kartu Keluarga</th>
+                <th
+                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                    Ijazah SMP</th>
+                <th
+                    style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                    Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -75,56 +122,64 @@
                         @endif
                     </td>
                     <td class="cell-pd-rombel"
-                        style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem); order: 3;"
+                        style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                         data-label="Rombel">
                         <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                             {{ $item->rombel_nama ?: '-' }}
                         </span>
                     </td>
+
+                    {{-- Kolom Konfirmasi: admin bisa klik ubah sesuai <-> perlu perbaikan (tercatat riwayat). --}}
                     @php
-                        $berkasCols = [
-                            'akta_kelahiran' => $item->files['akta_kelahiran'] ?? null,
-                            'kartu_keluarga' => $item->files['kartu_keluarga'] ?? null,
-                            'ijazah_smp' => $item->files['ijazah_smp'] ?? null,
-                            'ktp_orang_tua' => $item->files['ktp_orang_tua'] ?? null,
-                            'kip_pip' => $item->files['kip_pip'] ?? null,
-                        ];
+                        $stKonf = $item->status_konfirmasi ?: 'belum_konfirmasi';
+                        $kMeta = $konfLabel[$stKonf] ?? ['Belum Dikonfirmasi', 'fa-circle-question', 'muted'];
+                        $kBadge = '<span class="badge badge-' . ($kMeta[2] === 'muted' ? 'outline' : $kMeta[2]) . '" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas ' . $kMeta[1] . '"></i> ' . $kMeta[0] . '</span>';
                     @endphp
-                    @foreach ($berkasCols as $colKey => $file)
-                        <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center;"
-                            data-label="{{ str_replace('_', ' ', $colKey) }}">
-                            @if ($file)
-                                @if ($file->status === 'valid')
-                                    <span class="badge badge-success" title="Valid / Sesuai"><i
-                                            class="fas fa-circle-check"></i> Valid</span>
-                                @elseif ($file->status === 'tidak_valid')
-                                    <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                            class="fas fa-circle-xmark"></i> Ditolak</span>
-                                @else
-                                    <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                            class="fas fa-clock"></i> PDF</span>
-                                @endif
-                            @elseif ($item->{$colKey})
-                                <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                        class="fas fa-check"></i></span>
-                            @else
-                                <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);">-</span>
-                            @endif
-                        </td>
-                    @endforeach
-                    <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                        <div class="table-actions" style="justify-content: flex-end;">
+                    <td class="cell-pd-konfirmasi" style="padding: 14px 18px; text-align: center;" data-label="Konfirmasi">
+                        @if (!empty($isAdmin))
+                            <button type="button" class="berkas-konfirmasi-btn"
+                                data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                data-status="{{ $stKonf }}" title="Klik untuk ubah status konfirmasi"
+                                style="background: none; border: 0; padding: 0; cursor: pointer;">
+                                {!! $kBadge !!}
+                            </button>
+                        @else
+                            {!! $kBadge !!}
+                        @endif
+                    </td>
+
+                    @php
+                        $kkF = $item->files['kartu_keluarga'] ?? null;
+                        $ijzF = $item->files['ijazah_smp'] ?? null;
+                    @endphp
+                    <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center;"
+                        data-label="Kartu Keluarga">
+                        {!! $renderBerkasChip('KK', 'Kartu Keluarga (KK)', $kkF, $item->kartu_keluarga) !!}
+                    </td>
+                    <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center;"
+                        data-label="Ijazah SMP">
+                        {!! $renderBerkasChip('Ijazah', 'Ijazah SMP/MTs', $ijzF, $item->ijazah_smp) !!}
+                    </td>
+                    <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: center;" data-label="Aksi">
+                        <div class="table-actions"
+                            style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                            <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $item->peserta_didik_id]) }}"
+                                target="_blank" class="btn-icon" title="Detail Identitas Lengkap Peserta Didik"
+                                style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(6,182,212,0.12); color: var(--accent); border: 1px solid rgba(6,182,212,0.25);">
+                                <i class="fas fa-id-card"></i>
+                            </a>
                             <button type="button" class="btn-icon btn-validasi-berkas-detail"
                                 data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                title="Validasi Dokumen Siswa">
-                                <i class="fas fa-check-double" style="color: var(--primary);"></i>
+                                title="Validasi Dokumen Siswa (Akta, KTP, KIP, dll)"
+                                style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                <i class="fas fa-check-double"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9"
+                    <td colspan="7"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-folder-open mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>

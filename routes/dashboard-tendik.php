@@ -52,6 +52,20 @@ return function () {
         // Buku Induk Inventaris & Laporan Sarpras
         Route::get('/laporan', [\App\Http\Controllers\SarprasLaporanController::class, 'index'])->name('laporan.index')->middleware('permission:menu_sarpras|menu_inventaris,read');
         Route::get('/laporan/cetak', [\App\Http\Controllers\SarprasLaporanController::class, 'cetak'])->name('laporan.cetak')->middleware('permission:menu_sarpras|menu_inventaris,read');
+
+        // Peta / Denah Sekolah (Master Data) — lihat .agents/docs/RENCANA_PETA_DENAH_SARPRAS.md
+        Route::get('/peta', [\App\Http\Controllers\SarprasPetaController::class, 'index'])->name('peta.index')->middleware('permission:menu_peta_sekolah|menu_sarpras|menu_sarpras_ruang,read');
+        Route::get('/peta/cetak', [\App\Http\Controllers\SarprasPetaController::class, 'cetak'])->name('peta.cetak')->middleware('permission:menu_peta_sekolah|menu_sarpras|menu_sarpras_ruang,read');
+        Route::get('/peta/export', [\App\Http\Controllers\SarprasPetaController::class, 'exportExcel'])->name('peta.export')->middleware('permission:menu_peta_sekolah|menu_sarpras|menu_sarpras_ruang,read');
+        Route::get('/peta/ruang-tersedia', [\App\Http\Controllers\SarprasPetaController::class, 'ruangTersedia'])->name('peta.ruang-tersedia')->middleware('permission:menu_peta_sekolah|menu_sarpras|menu_sarpras_ruang,read');
+        Route::post('/peta/layout', [\App\Http\Controllers\SarprasPetaController::class, 'saveLayout'])->name('peta.layout')->middleware('permission:menu_peta_sekolah|menu_sarpras,update');
+        Route::post('/peta/area', [\App\Http\Controllers\SarprasPetaController::class, 'attachRuang'])->name('peta.area.attach')->middleware('permission:menu_peta_sekolah|menu_sarpras,create');
+        Route::delete('/peta/area/{id}', [\App\Http\Controllers\SarprasPetaController::class, 'destroyArea'])->name('peta.area.destroy')->middleware('permission:menu_peta_sekolah|menu_sarpras,delete');
+        Route::post('/peta/latar', [\App\Http\Controllers\SarprasPetaController::class, 'uploadLatar'])->name('peta.latar')->middleware('permission:menu_peta_sekolah|menu_sarpras,update');
+        Route::post('/peta/latar-opacity', [\App\Http\Controllers\SarprasPetaController::class, 'updateLatarOpacity'])->name('peta.latar-opacity')->middleware('permission:menu_peta_sekolah|menu_sarpras,update');
+        Route::post('/peta/area/{id}/status', [\App\Http\Controllers\SarprasPetaController::class, 'updateStatus'])->name('peta.status')->middleware('permission:menu_peta_sekolah|menu_sarpras,update');
+        Route::post('/peta/import-vision', [\App\Http\Controllers\SarprasPetaController::class, 'importVision'])->name('peta.import-vision')->middleware('permission:menu_peta_sekolah|menu_sarpras,create');
+        Route::post('/peta/import-commit', [\App\Http\Controllers\SarprasPetaController::class, 'importCommit'])->name('peta.import-commit')->middleware('permission:menu_peta_sekolah|menu_sarpras,create');
     });
 
     // 2. Laboratorium & Laboran

@@ -109,7 +109,8 @@
         $canRole('menu_rombel') ||
         $canRole('menu_pembelajaran') ||
         $canRole('menu_jadwal_kbm') ||
-        $canRole('menu_kalender_pendidikan');
+        $canRole('menu_kalender_pendidikan') ||
+        $canRole('menu_peta_sekolah');
 
     // Manajemen Data Submenus (Hanya jika diizinkan di tingkat role dasar atau admin)
     $hasPesertaDidik = $canRole('menu_peserta_didik_aktif') || $canRole('menu_peserta_didik_tidak_aktif');
@@ -349,7 +350,9 @@
                         (request()->routeIs('dashboard.jadwal-kbm.*') && !request()->routeIs('dashboard.jadwal-kbm.manual*')) ||
                         (request()->routeIs('dashboard.jadwal-kbm') && !request()->routeIs('dashboard.jadwal-kbm.manual*')) ||
                         request()->routeIs('dashboard.kalender-pendidikan.*') ||
-                        request()->routeIs('dashboard.kalender-pendidikan');
+                        request()->routeIs('dashboard.kalender-pendidikan') ||
+                        request()->routeIs('dashboard.sarpras.peta.*') ||
+                        request()->routeIs('dashboard.sarpras.peta');
                 @endphp
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
@@ -399,6 +402,14 @@
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.kalender-pendidikan*') ? 'active' : '' }}">
                                 <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                                 <span class="nav-label">Kalender Pendidikan</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_peta_sekolah'))
+                            <a href="{{ route('dashboard.sarpras.peta.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.peta*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-map-location-dot"></i></span>
+                                <span class="nav-label">Peta Sekolah</span>
                             </a>
                         @endif
                     </div>
@@ -491,7 +502,7 @@
                         <a href="{{ route('dashboard.verval-pd.berkas') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.verval-pd.berkas*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                            <span class="nav-label">Berkas</span>
+                            <span class="nav-label">Data &amp; Berkas</span>
                         </a>
                         <a href="{{ route('dashboard.verval-pd.perubahan') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.verval-pd.perubahan*') ? 'active' : '' }}">
