@@ -269,12 +269,17 @@ class WaliKelasValidasiService
                   ->orderBy('pdi.dikonfirmasi_pada', $sortDir)
                   ->orderBy('pd.nama', 'asc');
         } elseif ($sort === 'berkas') {
-            // Hitung jumlah berkas wajib (KK + Ijazah) yang valid, lalu urutkan.
+            // Skor progres berkas wajib (KK + Ijazah) agar urutan rapi & bergrup:
+            // belum ada berkas (0) < masih menunggu (tier ganjil) < sudah valid (tier genap).
+            // skor = (jumlah valid * 2) + (1 bila ada berkas menunggu).
             // ponytail: correlated subquery; pindah ke kolom tersimpan bila tabel berkas membesar.
-            $expr = collect($wajibKeys)->map(
+            $validExpr = collect($wajibKeys)->map(
                 fn($wk) => "(CASE WHEN EXISTS(SELECT 1 FROM peserta_didik_berkas b WHERE b.peserta_didik_id = pd.peserta_didik_id AND b.jenis_berkas = '{$wk}' AND b.status = 'valid') OR EXISTS(SELECT 1 FROM kesiswaan_berkas_verifikasi f WHERE f.peserta_didik_id = pd.peserta_didik_id AND f.{$wk} = 1) THEN 1 ELSE 0 END)"
             )->implode(' + ');
-            $query->orderByRaw("({$expr}) {$sortDir}")->orderBy('pd.nama', 'asc');
+            $wajibIn = "'" . implode("','", $wajibKeys) . "'";
+            $menungguExpr = "EXISTS(SELECT 1 FROM peserta_didik_berkas mb WHERE mb.peserta_didik_id = pd.peserta_didik_id AND mb.status = 'menunggu' AND mb.jenis_berkas IN ({$wajibIn}))";
+            $query->orderByRaw("(({$validExpr}) * 2 + (CASE WHEN {$menungguExpr} THEN 1 ELSE 0 END)) {$sortDir}")
+                  ->orderBy('pd.nama', 'asc');
         } else {
             $query->orderBy($sortCol, $sortDir);
         }
