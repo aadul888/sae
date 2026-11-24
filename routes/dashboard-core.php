@@ -595,6 +595,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/manajemen-data/gtk-non-asn/{id}', [\App\Http\Controllers\GtkNonAsnController::class, 'update'])->name('gtk-non-asn.update')->middleware('permission:menu_gtk_non_asn,update');
     Route::delete('/manajemen-data/gtk-non-asn/{id}', [\App\Http\Controllers\GtkNonAsnController::class, 'destroy'])->name('gtk-non-asn.destroy')->middleware('permission:menu_gtk_non_asn,delete');
     Route::post('/manajemen-data/gtk-non-asn/{id}/buat-akun', [\App\Http\Controllers\GtkNonAsnController::class, 'buatAkun'])->name('gtk-non-asn.buat-akun')->middleware('permission:menu_pengguna,create|menu_gtk_non_asn,create');
+    Route::post('/manajemen-data/gtk-non-asn/buat-semua-akun', [\App\Http\Controllers\GtkNonAsnController::class, 'buatSemuaAkun'])->name('gtk-non-asn.buat-semua-akun')->middleware('permission:menu_pengguna,create|menu_gtk_non_asn,create');
 
     // Modul Aktivitas & Transaksi CRUD Database (Monitoring)
     Route::get('/aktivitas-database', [\App\Http\Controllers\AktivitasDatabaseController::class, 'index'])->name('aktivitas-database.index')->middleware('permission:menu_aktivitas_database,read');

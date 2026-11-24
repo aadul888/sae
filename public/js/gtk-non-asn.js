@@ -237,6 +237,75 @@ document.addEventListener("click", async function (e) {
 });
 
 /* -------------------------------------------------------------------- */
+/* Buat akun login — SEMUA sekaligus                                     */
+/* -------------------------------------------------------------------- */
+
+document.addEventListener("click", async function (e) {
+    const btn = e.target.closest("#btnBuatSemuaAkun");
+    if (!btn) return;
+    e.preventDefault();
+
+    const url = btn.getAttribute("data-url");
+    const jumlah = btn.getAttribute("data-jumlah") || "semua";
+
+    const konfirmasi = window.Swal
+        ? await Swal.fire({
+              title: "Buat Akun Semua?",
+              html: `Akun login akan dibuatkan untuk <strong>${jumlah}</strong> GTK Non-ASN yang belum punya akun.<br><small>Peran mengikuti jenis: Guru → guru, Tenaga Kependidikan → tendik.</small>`,
+              icon: "question",
+              showCancelButton: true,
+              confirmButtonText: "Ya, Buat Semua",
+              cancelButtonText: "Batal",
+              confirmButtonColor: "#8b5cf6",
+          })
+        : { isConfirmed: confirm("Buat akun login untuk semua GTK Non-ASN yang belum punya akun?") };
+
+    if (!konfirmasi.isConfirmed) return;
+
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": csrf,
+            },
+        });
+        const json = await res.json();
+
+        if (res.ok && json.status === "success") {
+            let html = escapeHtmlNonAsn(json.message);
+            const galat = json.summary?.galat || [];
+            if (galat.length > 0) {
+                html +=
+                    "<br><br><small style='color:#f59e0b; text-align:left; display:block; max-height:140px; overflow-y:auto;'>" +
+                    galat.map((g) => escapeHtmlNonAsn(g)).join("<br>") +
+                    "</small>";
+            }
+            if (window.Swal) {
+                await Swal.fire({ title: "Selesai", html: html, icon: "success", confirmButtonColor: "#10b981" });
+            }
+            window.location.reload();
+        } else {
+            const msg = json.message || "Gagal membuat akun.";
+            window.Swal ? Swal.fire({ title: "Gagal", text: msg, icon: "error" }) : alert(msg);
+        }
+    } catch (err) {
+        const msg = "Kesalahan jaringan: " + (err.message || "tidak diketahui");
+        window.Swal ? Swal.fire({ title: "Kesalahan", text: msg, icon: "error" }) : alert(msg);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+    }
+});
+
+/* -------------------------------------------------------------------- */
 /* Modal Import                                                          */
 /* -------------------------------------------------------------------- */
 

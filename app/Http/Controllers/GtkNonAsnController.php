@@ -139,13 +139,23 @@ class GtkNonAsnController extends Controller
         $data = $this->validasi($request);
 
         $data['kode'] = $this->kodeBaru();
-        $data['status_kepegawaian'] = $data['status_kepegawaian'] ?: 'Non-ASN';
+        $data['status_kepegawaian'] = ($data['status_kepegawaian'] ?? '') ?: 'Non-ASN';
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
-        DB::table('gtk_non_asn')->insert($data);
+        $id = DB::table('gtk_non_asn')->insertGetId($data);
 
-        return back()->with('success', 'Data GTK Non-ASN berhasil ditambahkan.');
+        // Akun login langsung dibuatkan sesuai jenis GTK (Guru / Tendik).
+        $catatan = '';
+        try {
+            $row = DB::table('gtk_non_asn')->where('id', $id)->first();
+            $akun = $this->buatAkunUntukBaris($row);
+            $catatan = ' Akun login dibuat (username: ' . $akun['username'] . ', password awal: ' . $akun['password_awal'] . ').';
+        } catch (\Throwable $e) {
+            $catatan = ' Namun akun login gagal dibuat: ' . $e->getMessage();
+        }
+
+        return back()->with('success', 'Data GTK Non-ASN berhasil ditambahkan.' . $catatan);
     }
 
     /**
@@ -208,13 +218,7 @@ class GtkNonAsnController extends Controller
         }
 
         try {
-            $akun = $this->buatkanAkun($row);
-
-            DB::table('gtk_non_asn')->where('id', $row->id)->update([
-                'pengguna_id' => $akun['pengguna_id'],
-                'username' => $akun['username'],
-                'updated_at' => now(),
-            ]);
+            $akun = $this->buatAkunUntukBaris($row);
         } catch (\Throwable $e) {
             return response()->json(['status' => 'error', 'message' => 'Gagal membuat akun: ' . $e->getMessage()], 500);
         }
@@ -224,6 +228,57 @@ class GtkNonAsnController extends Controller
             'message' => 'Akun login dibuat. Username: ' . $akun['username'] . ' • Password awal: ' . $akun['password_awal'],
             'data' => $akun,
         ]);
+    }
+
+    /**
+     * Buatkan akun login untuk SEMUA data Non-ASN yang belum punya akun.
+     * Peran mengikuti jenis GTK (Guru → guru, Tenaga Kependidikan → tendik).
+     */
+    public function buatSemuaAkun(): JsonResponse
+    {
+        if (!$this->boleh('create')) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak berwenang membuat akun.'], 403);
+        }
+
+        $baris = DB::table('gtk_non_asn')
+            ->where(fn ($q) => $q->whereNull('pengguna_id')->orWhere('pengguna_id', ''))
+            ->get();
+
+        $dibuat = 0; $dilewati = 0; $galat = [];
+
+        foreach ($baris as $row) {
+            try {
+                $this->buatAkunUntukBaris($row);
+                $dibuat++;
+            } catch (\Throwable $e) {
+                $dilewati++;
+                $galat[] = ($row->nama ?? ('#' . $row->id)) . ': ' . $e->getMessage();
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Selesai: {$dibuat} akun dibuat, {$dilewati} gagal.",
+            'summary' => ['dibuat' => $dibuat, 'gagal' => $dilewati, 'galat' => $galat],
+        ]);
+    }
+
+    /**
+     * Buat akun login untuk satu baris Non-ASN lalu tautkan balik ke baris.
+     *
+     * @return array{pengguna_id: string, username: string, password_awal: string}
+     */
+    private function buatAkunUntukBaris(object $row): array
+    {
+        $akun = $this->buatkanAkun($row);
+
+        DB::table('gtk_non_asn')->where('id', $row->id)->update([
+            'pengguna_id' => $akun['pengguna_id'],
+            'username' => $akun['username'],
+            'updated_at' => now(),
+        ]);
+
+        return $akun;
     }
 
     /**
@@ -384,12 +439,7 @@ class GtkNonAsnController extends Controller
             if ($buatAkun) {
                 try {
                     $record = DB::table('gtk_non_asn')->where('id', $id)->first();
-                    $akun = $this->buatkanAkun($record);
-                    DB::table('gtk_non_asn')->where('id', $id)->update([
-                        'pengguna_id' => $akun['pengguna_id'],
-                        'username' => $akun['username'],
-                        'updated_at' => now(),
-                    ]);
+                    $this->buatAkunUntukBaris($record);
                     $akunDibuat++;
                 } catch (\Throwable $e) {
                     $galat[] = "Baris {$baris}: data masuk, akun gagal dibuat ({$e->getMessage()}).";

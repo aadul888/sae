@@ -50,6 +50,16 @@
                     title="Import GTK Non-ASN via Excel" aria-label="Import GTK Non-ASN via Excel">
                     <i class="fas fa-file-excel"></i>
                 </button>
+                @if (($summary['total'] ?? 0) > ($summary['punya_akun'] ?? 0))
+                    <button type="button" class="btn btn-outline" id="btnBuatSemuaAkun"
+                        data-url="{{ route('dashboard.gtk-non-asn.buat-semua-akun') }}"
+                        data-jumlah="{{ ($summary['total'] ?? 0) - ($summary['punya_akun'] ?? 0) }}"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); border-color: var(--purple, #8b5cf6); color: var(--purple, #8b5cf6);"
+                        title="Buatkan akun login untuk semua GTK Non-ASN yang belum punya akun"
+                        aria-label="Buat akun login untuk semua GTK Non-ASN">
+                        <i class="fas fa-key"></i> Buat Akun Semua
+                    </button>
+                @endif
                 <button type="button" class="btn btn-primary" onclick="openNonAsnModal()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem);"
                     title="Tambah Data GTK Non-ASN" aria-label="Tambah Data GTK Non-ASN">
