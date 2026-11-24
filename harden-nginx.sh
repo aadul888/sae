@@ -248,6 +248,10 @@ $handlerBlock = implode("\n", array_map(static fn ($l) => '        ' . trim($l),
 $indent = '    ';
 $guard = "{$indent}{$MARK_START}\n"
     . "{$indent}autoindex off;\n"
+    . "{$indent}# Service worker & manifest harus selalu revalidate; tanpa ini *.js immutable\n"
+    . "{$indent}# 30 hari membuat perangkat PWA tertahan di versi lama.\n"
+    . "{$indent}location = /sw.js { expires off; add_header Cache-Control \"no-cache, must-revalidate\" always; try_files \$uri =404; }\n"
+    . "{$indent}location = /manifest.json { expires off; add_header Cache-Control \"no-cache, must-revalidate\" always; try_files \$uri =404; }\n"
     . "{$handlerBlock}\n"
     . "{$indent}# Semua .php lain (termasuk di folder unggahan) tidak dieksekusi.\n"
     . "{$indent}location ~ \.php\$ { deny all; return 403; }\n"

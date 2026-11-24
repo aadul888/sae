@@ -69,7 +69,12 @@
             const swPath = (window.__SAE_PWA__ && window.__SAE_PWA__.swUrl) || '/sw.js';
             const swScope = (window.__SAE_PWA__ && window.__SAE_PWA__.scope) || '/';
 
-            navigator.serviceWorker.register(swPath, { scope: swScope })
+            // `updateViaCache: 'none'` penting: nginx menyajikan *.js dengan
+            // Cache-Control immutable 30 hari, sehingga sw.js baru bisa tertahan di
+            // cache HTTP browser selama itu. Dengan 'none', browser SELALU mengambil
+            // sw.js dari jaringan saat memeriksa pembaruan — jadi perbaikan yang
+            // di-deploy lewat fitur update langsung terdeteksi di perangkat PWA.
+            navigator.serviceWorker.register(swPath, { scope: swScope, updateViaCache: 'none' })
                 .then((registration) => {
                     // Cek jika sudah ada worker yang waiting
                     if (registration.waiting) {
