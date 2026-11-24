@@ -234,9 +234,11 @@
                                         : '&#9660;')
                                     : '&#9650;&#9660;' !!}</span>
                             </th>
-                            <th class="th-berkas"
-                                style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 200px;">
+                            <th class="sortable-th th-berkas {{ $sort === 'berkas' ? 'sorted' : '' }}"
+                                style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 200px;"
+                                data-sort="berkas">
                                 Berkas Persyaratan (KK &bull; Ijazah)
+                                <span class="sort-icon">{!! $sort === 'berkas' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="th-aksi"
                                 style="padding: 13px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 180px;">

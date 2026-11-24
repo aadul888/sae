@@ -268,6 +268,13 @@ class WaliKelasValidasiService
             $query->orderByRaw("pdi.dikonfirmasi_pada IS NULL ASC")
                   ->orderBy('pdi.dikonfirmasi_pada', $sortDir)
                   ->orderBy('pd.nama', 'asc');
+        } elseif ($sort === 'berkas') {
+            // Hitung jumlah berkas wajib (KK + Ijazah) yang valid, lalu urutkan.
+            // ponytail: correlated subquery; pindah ke kolom tersimpan bila tabel berkas membesar.
+            $expr = collect($wajibKeys)->map(
+                fn($wk) => "(CASE WHEN EXISTS(SELECT 1 FROM peserta_didik_berkas b WHERE b.peserta_didik_id = pd.peserta_didik_id AND b.jenis_berkas = '{$wk}' AND b.status = 'valid') OR EXISTS(SELECT 1 FROM kesiswaan_berkas_verifikasi f WHERE f.peserta_didik_id = pd.peserta_didik_id AND f.{$wk} = 1) THEN 1 ELSE 0 END)"
+            )->implode(' + ');
+            $query->orderByRaw("({$expr}) {$sortDir}")->orderBy('pd.nama', 'asc');
         } else {
             $query->orderBy($sortCol, $sortDir);
         }
