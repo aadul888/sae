@@ -137,8 +137,10 @@ class WaliKelasValidasiService
                 $statBerkasKurang++;
             }
 
-            // Kualitas data = berkas wajib (KK + Ijazah) sudah lengkap valid.
-            if ($valCount === count($wajibKeys)) {
+            // Kualitas data = PD dengan konfirmasi SESUAI dan berkas wajib (KK + Ijazah)
+            // lengkap valid. Definisi "sesuai" = kolom Data Valid (tanpa perlu_perbaikan).
+            $isSesuai = in_array($stKonf, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
+            if ($isSesuai && $valCount === count($wajibKeys)) {
                 $statKualitas++;
             }
         }

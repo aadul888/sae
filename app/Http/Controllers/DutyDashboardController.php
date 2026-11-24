@@ -434,7 +434,7 @@ class DutyDashboardController extends Controller
 
                 foreach ($siswaList as $s) {
                     $idRec = $identitasMap->get($s->peserta_didik_id);
-                    $isConfirmed = $idRec && in_array($idRec->status_konfirmasi, ['sesuai', 'perlu_perbaikan', 'diverifikasi', 'disinkronkan_dapodik'], true);
+                    $isConfirmed = $idRec && in_array($idRec->status_konfirmasi, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
                     if ($isConfirmed) $konfirmasiCount++;
 
                     $sBerkas = $berkasMap->get($s->peserta_didik_id) ?? collect();
@@ -446,7 +446,7 @@ class DutyDashboardController extends Controller
                     if ($kkValid) $kkCount++;
                     if ($ijzValid) $ijzCount++;
 
-                    if ($kkValid && $ijzValid) {
+                    if ($isConfirmed && $kkValid && $ijzValid) {
                         $validCount++;
                     }
                 }
@@ -503,10 +503,10 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'login',
                         'kategori_label' => 'Autentikasi Login',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6;"><i class="fas fa-right-to-bracket me-1"></i> Login Portal</span>',
+                        'tipe_badge' => '<span class="badge badge-primary"><i class="fas fa-right-to-bracket me-1"></i> Login Portal</span>',
                         'aktivitas' => $log->aktivitas,
                         'keterangan' => $log->keterangan ?: 'Berhasil login ke aplikasi SAE',
-                        'status_badge' => '<span class="badge badge-success" style="font-size: 0.72rem;"><i class="fas fa-circle-check me-1"></i> Berhasil</span>',
+                        'status_badge' => '<span class="badge badge-success"><i class="fas fa-circle-check me-1"></i> Berhasil</span>',
                     ]);
                 }
             }
@@ -525,9 +525,9 @@ class DutyDashboardController extends Controller
                 if ($siswa) {
                     $m = $metaMap->get($siswa->peserta_didik_id);
                     $stBadge = match ($izin->status) {
-                        'disetujui' => '<span class="badge badge-success" style="font-size: 0.72rem;"><i class="fas fa-check me-1"></i> Disetujui</span>',
-                        'ditolak'   => '<span class="badge badge-danger" style="font-size: 0.72rem;"><i class="fas fa-times me-1"></i> Ditolak</span>',
-                        default     => '<span class="badge badge-warning" style="font-size: 0.72rem;"><i class="fas fa-clock me-1"></i> Menunggu</span>',
+                        'disetujui' => '<span class="badge badge-success"><i class="fas fa-check me-1"></i> Disetujui</span>',
+                        'ditolak'   => '<span class="badge badge-danger"><i class="fas fa-times me-1"></i> Ditolak</span>',
+                        default     => '<span class="badge badge-warning"><i class="fas fa-clock me-1"></i> Menunggu</span>',
                     };
 
                     $activities->push((object)[
@@ -538,7 +538,7 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'izin',
                         'kategori_label' => 'e-Izin / Sakit',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b;"><i class="fas fa-envelope-open-text me-1"></i> ' . ucfirst($izin->jenis) . '</span>',
+                        'tipe_badge' => '<span class="badge badge-warning"><i class="fas fa-envelope-open-text me-1"></i> ' . ucfirst($izin->jenis) . '</span>',
                         'aktivitas' => 'Pengajuan Surat ' . ucfirst($izin->jenis),
                         'keterangan' => ($izin->alasan ?: 'Izin ketidakhadiran') . ' (' . Carbon::parse($izin->tanggal_mulai)->format('d/m') . ' s.d ' . Carbon::parse($izin->tanggal_selesai)->format('d/m/Y') . ')',
                         'status_badge' => $stBadge,
@@ -567,10 +567,10 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'izin_keluar',
                         'kategori_label' => 'Izin Keluar Kampus',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6;"><i class="fas fa-door-open me-1"></i> Keluar Gerbang</span>',
+                        'tipe_badge' => '<span class="badge badge-purple"><i class="fas fa-door-open me-1"></i> Keluar Gerbang</span>',
                         'aktivitas' => 'Izin Meninggalkan Sekolah',
                         'keterangan' => ($kl->alasan ?: 'Keperluan di luar') . ' | Pukul: ' . substr($kl->jam_izin_keluar, 0, 5),
-                        'status_badge' => '<span class="badge badge-success" style="font-size: 0.72rem;">' . strtoupper($kl->status) . '</span>',
+                        'status_badge' => '<span class="badge badge-success">' . strtoupper($kl->status) . '</span>',
                     ]);
                 }
             }
@@ -596,10 +596,10 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'usulan',
                         'kategori_label' => 'Usulan Data',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981;"><i class="fas fa-file-pen me-1"></i> Revisi Data</span>',
+                        'tipe_badge' => '<span class="badge badge-success"><i class="fas fa-file-pen me-1"></i> Revisi Data</span>',
                         'aktivitas' => 'Usulan Perubahan ' . ucwords(str_replace('_', ' ', $u->kolom_perubahan)),
                         'keterangan' => 'Nilai Baru: "' . $u->nilai_baru . '" | ' . ($u->alasan ?: 'Penyesuaian dokumen'),
-                        'status_badge' => '<span class="badge badge-outline" style="font-size: 0.72rem;">' . strtoupper($u->status) . '</span>',
+                        'status_badge' => '<span class="badge badge-outline">' . strtoupper($u->status) . '</span>',
                     ]);
                 }
             }
@@ -625,12 +625,12 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'berkas',
                         'kategori_label' => 'Berkas Dokumen',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;"><i class="fas fa-file-pdf me-1"></i> Unggah PDF</span>',
+                        'tipe_badge' => '<span class="badge badge-danger"><i class="fas fa-file-pdf me-1"></i> Unggah PDF</span>',
                         'aktivitas' => 'Unggah ' . $b->nama_berkas,
                         'keterangan' => $b->file_name . ' (' . number_format($b->file_size / 1024, 1) . ' KB)',
                         'status_badge' => $b->status === 'valid'
-                            ? '<span class="badge badge-success" style="font-size: 0.72rem;">Valid</span>'
-                            : ($b->status === 'tidak_valid' ? '<span class="badge badge-danger" style="font-size: 0.72rem;">Ditolak</span>' : '<span class="badge badge-warning" style="font-size: 0.72rem;">Menunggu</span>'),
+                            ? '<span class="badge badge-success">Valid</span>'
+                            : ($b->status === 'tidak_valid' ? '<span class="badge badge-danger">Ditolak</span>' : '<span class="badge badge-warning">Menunggu</span>'),
                     ]);
                 }
             }
@@ -658,12 +658,12 @@ class DutyDashboardController extends Controller
                         'foto_url' => !empty($m?->foto_path) ? asset('storage/' . ltrim($m->foto_path, '/')) : ($m?->foto_url ?? null),
                         'kategori' => 'identitas',
                         'kategori_label' => 'Konfirmasi Data',
-                        'tipe_badge' => '<span class="badge" style="background: rgba(6,182,212,0.15); color: #06b6d4;"><i class="fas fa-clipboard-check me-1"></i> Konfirmasi Data</span>',
+                        'tipe_badge' => '<span class="badge badge-accent"><i class="fas fa-clipboard-check me-1"></i> Konfirmasi Data</span>',
                         'aktivitas' => 'Konfirmasi Identitas Siswa',
                         'keterangan' => ($idl->catatan_siswa ?: ($isSesuai ? 'Siswa menyatakan data identitas telah sesuai' : 'Siswa menyatakan data perlu perbaikan')),
                         'status_badge' => $isSesuai
-                            ? '<span class="badge badge-success" style="font-size: 0.72rem;"><i class="fas fa-circle-check me-1"></i> Sesuai</span>'
-                            : '<span class="badge badge-warning" style="font-size: 0.72rem;"><i class="fas fa-pen me-1"></i> Perbaikan</span>',
+                            ? '<span class="badge badge-success"><i class="fas fa-circle-check me-1"></i> Sesuai</span>'
+                            : '<span class="badge badge-warning"><i class="fas fa-pen me-1"></i> Perbaikan</span>',
                     ]);
                 }
             }

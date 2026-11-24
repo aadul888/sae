@@ -271,9 +271,9 @@ class HomeController extends Controller
                 ->orderBy('rb.nama')
                 ->get();
 
-            // Berkas wajib = KK + Ijazah; Akta & KTP opsional. Kualitas Data memakai
-            // rumus yang sama dengan kartu Wali Kelas — Validasi Data: berkas wajib
-            // lengkap & valid (tanpa syarat konfirmasi).
+            // Berkas wajib = KK + Ijazah; Akta & KTP opsional. Kualitas Data = konfirmasi
+            // SESUAI + berkas wajib lengkap valid (irisan). Rumus sama dengan kartu
+            // Wali Kelas — Validasi Data.
             $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
             $berkasMap = collect();
 
@@ -306,20 +306,38 @@ class HomeController extends Controller
                 }
             }
 
-            $progres_rombel = $rows->map(function ($r) use ($berkasMap) {
+            // Kualitas Data = konfirmasi SESUAI + berkas wajib lengkap valid (irisan).
+            // Definisi "sesuai" mengikuti kolom Data Valid di tabel ini.
+            $kualitasSet = [];
+            if ($hasIdentitas) {
+                foreach (DB::table('peserta_didik_identitas')
+                    ->whereIn('status_konfirmasi', ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'])
+                    ->pluck('peserta_didik_id') as $pid) {
+                    if (isset($validKeysMap[$pid]) && count($validKeysMap[$pid]) >= count($wajibKeys)) {
+                        $kualitasSet[$pid] = true;
+                    }
+                }
+            }
+            $kualitasMap = collect();
+            foreach ($kualitasSet as $pid => $ok) {
+                $rid = $pdRombelMap[$pid] ?? null;
+                if ($rid) $kualitasMap[$rid] = ($kualitasMap[$rid] ?? 0) + 1;
+            }
+
+            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasMap) {
                 $total = (int) $r->total_siswa;
                 $sesuai = (int) $r->konfirm_sesuai;
                 $tidakSesuai = (int) $r->konfirm_tidak_sesuai;
                 $belum = (int) $r->belum_konfirmasi;
                 $bValid = (int) ($berkasMap[$r->rombongan_belajar_id] ?? 0);
-                $kualitasCount = $bValid;
+                $kualitasCount = (int) ($kualitasMap[$r->rombongan_belajar_id] ?? 0);
 
                 $persenSesuai = $total > 0 ? round(($sesuai / $total) * 100, 1) : 0;
                 $persenTidakSesuai = $total > 0 ? round(($tidakSesuai / $total) * 100, 1) : 0;
                 $persenBelum = $total > 0 ? round(($belum / $total) * 100, 1) : 0;
                 $persenBerkas = $total > 0 ? round(($bValid / $total) * 100, 1) : 0;
 
-                // Kualitas data = berkas wajib (KK + Ijazah) lengkap valid.
+                // Kualitas data = konfirmasi sesuai + berkas wajib (KK + Ijazah) lengkap valid.
                 // Rumus identik dengan halaman Wali Kelas — Validasi Data.
                 $skorKualitas = $total > 0 ? round(($kualitasCount / $total) * 100, 1) : 0;
 
