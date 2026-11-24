@@ -434,14 +434,15 @@ class DutyDashboardController extends Controller
 
                 foreach ($siswaList as $s) {
                     $idRec = $identitasMap->get($s->peserta_didik_id);
-                    $isConfirmed = $idRec && in_array($idRec->status_konfirmasi, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
+                    $stKonf = strtolower(trim((string) ($idRec?->status_konfirmasi ?? '')));
+                    $isConfirmed = $idRec && in_array($stKonf, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
                     if ($isConfirmed) $konfirmasiCount++;
 
                     $sBerkas = $berkasMap->get($s->peserta_didik_id) ?? collect();
                     $sFisik  = $fisikMap->get($s->peserta_didik_id);
 
-                    $kkValid  = ($sBerkas->firstWhere('jenis_berkas', 'kartu_keluarga')?->status === 'valid') || !empty($sFisik?->kartu_keluarga);
-                    $ijzValid = ($sBerkas->firstWhere('jenis_berkas', 'ijazah_smp')?->status === 'valid') || !empty($sFisik?->ijazah_smp);
+                    $kkValid  = (strtolower(trim((string) ($sBerkas->firstWhere('jenis_berkas', 'kartu_keluarga')?->status ?? ''))) === 'valid') || !empty($sFisik?->kartu_keluarga);
+                    $ijzValid = (strtolower(trim((string) ($sBerkas->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? ''))) === 'valid') || !empty($sFisik?->ijazah_smp);
 
                     if ($kkValid) $kkCount++;
                     if ($ijzValid) $ijzCount++;

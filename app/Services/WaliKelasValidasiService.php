@@ -99,7 +99,9 @@ class WaliKelasValidasiService
 
         foreach ($allPdIds as $idSiswa) {
             $idRec = $identitasAll->get($idSiswa);
-            $stKonf = $idRec?->status_konfirmasi ?? 'belum_konfirmasi';
+            // Normalisasi: status bisa datang beda huruf besar/kecil atau berspasi
+            // (hasil impor). SQL MySQL case-insensitive, jadi PHP harus disamakan.
+            $stKonf = strtolower(trim((string) ($idRec?->status_konfirmasi ?? 'belum_konfirmasi')));
             $isSudah = in_array($stKonf, ['sesuai', 'perlu_perbaikan', 'diverifikasi', 'disinkronkan_dapodik'], true);
 
             if ($isSudah) {
@@ -120,10 +122,11 @@ class WaliKelasValidasiService
             $menungguExist = false;
             foreach ($wajibKeys as $wk) {
                 $bf = $sB->firstWhere('jenis_berkas', $wk);
-                $isVal = ($bf?->status === 'valid') || !empty($sF?->{$wk});
+                $bfStatus = strtolower(trim((string) ($bf?->status ?? '')));
+                $isVal = ($bfStatus === 'valid') || !empty($sF?->{$wk});
                 if ($isVal) {
                     $valCount++;
-                } elseif ($bf?->status === 'menunggu') {
+                } elseif ($bfStatus === 'menunggu') {
                     $menungguExist = true;
                 }
             }

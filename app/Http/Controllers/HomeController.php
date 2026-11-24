@@ -250,9 +250,9 @@ class HomeController extends Controller
             }
 
             if ($hasIdentitas) {
-                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik') THEN pd.peserta_didik_id END) as konfirm_sesuai");
-                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi = 'perlu_perbaikan' THEN pd.peserta_didik_id END) as konfirm_tidak_sesuai");
-                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IS NULL OR pdi.status_konfirmasi = 'belum_konfirmasi' THEN pd.peserta_didik_id END) as belum_konfirmasi");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN LOWER(TRIM(pdi.status_konfirmasi)) IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik') THEN pd.peserta_didik_id END) as konfirm_sesuai");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN LOWER(TRIM(pdi.status_konfirmasi)) = 'perlu_perbaikan' THEN pd.peserta_didik_id END) as konfirm_tidak_sesuai");
+                $selects[] = DB::raw("COUNT(DISTINCT CASE WHEN pdi.status_konfirmasi IS NULL OR LOWER(TRIM(pdi.status_konfirmasi)) = 'belum_konfirmasi' THEN pd.peserta_didik_id END) as belum_konfirmasi");
             } else {
                 $selects[] = DB::raw('0 as konfirm_sesuai');
                 $selects[] = DB::raw('0 as konfirm_tidak_sesuai');
@@ -284,7 +284,7 @@ class HomeController extends Controller
             $validKeysMap = [];
             if ($hasBerkas) {
                 foreach (DB::table('peserta_didik_berkas')
-                    ->where('status', 'valid')
+                    ->whereRaw("LOWER(TRIM(status)) = 'valid'")
                     ->whereIn('jenis_berkas', $wajibKeys)
                     ->select('peserta_didik_id', 'jenis_berkas')
                     ->get() as $r) {
@@ -311,7 +311,7 @@ class HomeController extends Controller
             $kualitasSet = [];
             if ($hasIdentitas) {
                 foreach (DB::table('peserta_didik_identitas')
-                    ->whereIn('status_konfirmasi', ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'])
+                    ->whereRaw("LOWER(TRIM(status_konfirmasi)) IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik')")
                     ->pluck('peserta_didik_id') as $pid) {
                     if (isset($validKeysMap[$pid]) && count($validKeysMap[$pid]) >= count($wajibKeys)) {
                         $kualitasSet[$pid] = true;

@@ -242,13 +242,18 @@
                         @forelse ($list as $index => $item)
                             @php
                                 $rowNum = ($list->currentPage() - 1) * $list->perPage() + $index + 1;
-                                $stKonf = $item->status_konfirmasi ?? 'belum_konfirmasi';
+                                $stKonf = strtolower(trim((string) ($item->status_konfirmasi ?? 'belum_konfirmasi')));
+                                if ($stKonf === '') $stKonf = 'belum_konfirmasi';
 
                                 $kkF = $item->berkas_items->get('kartu_keluarga');
                                 $ijzF = $item->berkas_items->get('ijazah_smp');
 
-                                $kkVal = $kkF?->status === 'valid' || !empty($item->fisik_verif?->kartu_keluarga);
-                                $ijzVal = $ijzF?->status === 'valid' || !empty($item->fisik_verif?->ijazah_smp);
+                                // Samakan dgn SQL (MySQL case-insensitive): normalisasi status.
+                                $kkStatus = strtolower(trim((string) ($kkF?->status ?? '')));
+                                $ijzStatus = strtolower(trim((string) ($ijzF?->status ?? '')));
+
+                                $kkVal = $kkStatus === 'valid' || !empty($item->fisik_verif?->kartu_keluarga);
+                                $ijzVal = $ijzStatus === 'valid' || !empty($item->fisik_verif?->ijazah_smp);
 
                                 $berkasSlots = [
                                     [
@@ -365,7 +370,7 @@
                                             @php
                                                 $bFile = $slot['file'];
                                                 $bVal = $slot['isValid'];
-                                                $bSt = $bVal ? 'valid' : $bFile?->status ?? 'belum';
+                                                $bSt = $bVal ? 'valid' : strtolower(trim((string) ($bFile?->status ?? 'belum')));
 
                                                 $bClass = match ($bSt) {
                                                     'valid' => 'valid',
