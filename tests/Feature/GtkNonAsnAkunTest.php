@@ -135,4 +135,43 @@ class GtkNonAsnAkunTest extends TestCase
         $res->assertStatus(200)->assertJson(['status' => 'success']);
         $this->assertSame(0, $res->json('summary.dibuat'), 'Baris yang sudah punya akun harus dilewati.');
     }
+
+    /**
+     * Akun hasil Non-ASN harus MUNCUL di Manajemen Pengguna (tab Guru/Tendik)
+     * dan bisa di-impersonasi admin ("masuk sebagai").
+     */
+    public function test_akun_non_asn_muncul_di_pengguna_dan_bisa_diimpersonasi(): void
+    {
+        if (!Table::exists('gtk_non_asn')) {
+            $this->markTestSkipped('Tabel gtk_non_asn belum ada.');
+        }
+
+        $idGuru = $this->insertNonAsn([
+            'nama'          => 'Guru Muncul Uji',
+            'jenis_ptk'     => 'Guru',
+            'email'         => 'guru.muncul.' . Str::random(5) . '@sekolah.sch.id',
+            'tanggal_lahir' => '1987-03-09',
+        ]);
+
+        $this->withSession(['user' => $this->adminSession()])
+            ->postJson(route('dashboard.gtk-non-asn.buat-semua-akun'))
+            ->assertStatus(200);
+
+        $penggunaId = DB::table('gtk_non_asn')->where('id', $idGuru)->value('pengguna_id');
+        $this->assertNotEmpty($penggunaId);
+
+        // Muncul pada tab Guru di Manajemen Pengguna.
+        $this->withSession(['user' => $this->adminSession()])
+            ->get(route('dashboard.pengguna.index', ['tab' => 'guru', 'q' => 'Guru Muncul Uji']))
+            ->assertStatus(200)
+            ->assertSee('Guru Muncul Uji');
+
+        // Admin bisa masuk sebagai pengguna tsb.
+        $this->withSession(['user' => [
+            'id' => 'admin-uji', 'pengguna_id' => 'admin-uji', 'role' => 'admin', 'nama' => 'Admin Uji',
+        ]])->post('/dashboard/pengguna/' . $penggunaId . '/masuk-sebagai')
+            ->assertRedirect();
+
+        $this->assertSame($penggunaId, session('user.pengguna_id'));
+    }
 }
