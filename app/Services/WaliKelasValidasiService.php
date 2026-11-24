@@ -21,7 +21,6 @@ class WaliKelasValidasiService
         $q          = trim($request->get('q', ''));
         $konfirmasi = trim((string) $request->get('konfirmasi', ''));
         $berkas     = trim((string) $request->get('berkas', ''));
-        $gender     = trim($request->get('gender', ''));
         $perPage    = (int) $request->get('perPage', 15);
         $sort       = $request->get('sort', ($konfirmasi === 'sudah_konfirmasi' ? 'dikonfirmasi_pada' : 'nama'));
         $sortDir    = $request->get('sort_dir', ($konfirmasi === 'sudah_konfirmasi' && $sort === 'dikonfirmasi_pada' ? 'desc' : 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -50,7 +49,6 @@ class WaliKelasValidasiService
                 'q'            => $q,
                 'konfirmasi'   => $konfirmasi,
                 'berkas'       => $berkas,
-                'gender'       => $gender,
                 'perPage'      => $perPage,
                 'sort'         => $sort,
                 'sortDir'      => $sortDir,
@@ -183,10 +181,6 @@ class WaliKelasValidasiService
                   ->orWhere('pd.nipd', 'like', "%{$q}%")
                   ->orWhere('pd.nik', 'like', "%{$q}%");
             });
-        }
-
-        if ($gender !== '') {
-            $query->where('pd.jenis_kelamin', $gender);
         }
 
         if ($konfirmasi === 'sudah_konfirmasi') {
@@ -322,7 +316,6 @@ class WaliKelasValidasiService
             'q'            => $q,
             'konfirmasi'   => $konfirmasi,
             'berkas'       => $berkas,
-            'gender'       => $gender,
             'perPage'      => $perPage,
             'sort'         => $sort,
             'sortDir'      => $sortDir,
