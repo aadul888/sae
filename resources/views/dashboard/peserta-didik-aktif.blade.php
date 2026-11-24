@@ -366,6 +366,14 @@
                                             title="Reset Password Akun ke Default (NISN)">
                                             <i class="fas fa-key" style="color: var(--warning, #f59e0b);"></i>
                                         </button>
+
+                                        {{-- Tombol Reset Konfirmasi Identitas ke Posisi Awal (Belum Konfirmasi) --}}
+                                        <button type="button" class="btn-icon btn-reset-konfirmasi"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            data-nisn="{{ $item->nisn ?: ($item->nipd ?: ($item->nik ?: '-')) }}"
+                                            title="Reset Konfirmasi Identitas ke Posisi Awal (Belum Konfirmasi)">
+                                            <i class="fas fa-rotate-left" style="color: var(--accent, #0284c7);"></i>
+                                        </button>
                                     @else
                                         <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
                                     @endif

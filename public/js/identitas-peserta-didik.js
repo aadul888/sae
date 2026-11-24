@@ -762,7 +762,9 @@ function initRiwayatTable() {
 
         if (!footer) return;
         if (total === 0) {
-            footer.innerHTML = '<span><i class="fas fa-inbox me-1"></i>Tidak ada data yang cocok dengan pencarian.</span>';
+            footer.innerHTML = q
+                ? '<span><i class="fas fa-inbox me-1"></i>Tidak ada data yang cocok dengan pencarian.</span>'
+                : '<span>Menampilkan 0 dari 0 pengajuan</span>';
             return;
         }
 

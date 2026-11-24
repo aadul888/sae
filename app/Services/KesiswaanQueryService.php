@@ -8,6 +8,7 @@ use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use App\Models\SiswaUsulanPerubahan;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Support\Table;
@@ -15,7 +16,7 @@ use App\Support\Table;
 class KesiswaanQueryService
 {
     /**
-     * Kompilasi data untuk halaman index kesiswaan peserta didik (5 tab: aktif, tidak_aktif, alumni, berkas, usulan).
+     * Kompilasi data untuk halaman index kesiswaan peserta didik (tab: aktif, tidak_aktif, alumni, berkas).
      */
     public function getIndexData(Request $request, mixed $user): array
     {
@@ -82,12 +83,6 @@ class KesiswaanQueryService
             : 0;
         $berkasBelumLengkap = max(0, $totalAktif - $totalBerkasLengkap);
 
-        $totalUsulan = SiswaUsulanPerubahan::distinct()->count('peserta_didik_id');
-        $usulanMenunggu = SiswaUsulanPerubahan::where('status', 'menunggu')->distinct()->count('peserta_didik_id');
-        $usulanDisetujui = SiswaUsulanPerubahan::where('status', 'disetujui')->distinct()->count('peserta_didik_id');
-        $usulanDapodik = SiswaUsulanPerubahan::where('status', 'sudah_ke_dapodik')->distinct()->count('peserta_didik_id');
-        $usulanDitolak = SiswaUsulanPerubahan::where('status', 'ditolak')->distinct()->count('peserta_didik_id');
-
         $stats = [
             'total_aktif'          => $totalAktif,
             'aktif_laki'           => $aktifLaki,
@@ -105,11 +100,6 @@ class KesiswaanQueryService
             'berkas_menunggu'      => $berkasMenungguCount,
             'berkas_ditolak'       => $berkasDitolakCount,
             'berkas_belum_lengkap' => $berkasBelumLengkap,
-            'usulan_total'         => $totalUsulan,
-            'usulan_menunggu'      => $usulanMenunggu,
-            'usulan_disetujui'     => $usulanDisetujui,
-            'usulan_dapodik'       => $usulanDapodik,
-            'usulan_ditolak'       => $usulanDitolak,
             'total_alumni'         => $totalAlumni,
             'alumni_laki'          => $alumniLaki,
             'alumni_perempuan'     => $alumniPerempuan,
@@ -317,7 +307,48 @@ class KesiswaanQueryService
             $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : ($metaMapAlumni[$item->peserta_didik_id]?->foto_url ?? null);
         }
 
-        // 5. Tab: Verifikasi Berkas Fisik & Digital
+        // 5. Tab: Verifikasi Berkas Fisik & Digital (sumber tunggal: getBerkasTab)
+        $berkasList = $this->getBerkasTab($request);
+
+        return compact(
+            'stats',
+            'activeTab',
+            'q',
+            'rombel',
+            'gender',
+            'status',
+            'tahunLulus',
+            'sort',
+            'sortDir',
+            'perPage',
+            'filterRombel',
+            'filterRombelTidakAktif',
+            'filterTahunAlumni',
+            'aktifList',
+            'tidakAktifList',
+            'alumniList',
+            'berkasList',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete'
+        );
+    }
+
+    /**
+     * Data tab Verifikasi Berkas Fisik & Digital (dipakai Kesiswaan & Verval PD).
+     */
+    public function getBerkasTab(Request $request): LengthAwarePaginator
+    {
+        $q = trim($request->get('q', ''));
+        $rombel = trim($request->get('rombel', ''));
+        $status = trim($request->get('status', ''));
+        $sort = in_array($request->get('sort'), ['nama', 'nisn', 'nipd', 'nama_rombel'], true) ? $request->get('sort') : 'nama';
+        $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
+        $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int) $perPageVal : 25;
+
         $berkasQuery = DB::table('peserta_didik as pd')
             ->leftJoin('kesiswaan_berkas_verifikasi as kbv', 'pd.peserta_didik_id', '=', 'kbv.peserta_didik_id')
             ->select(
@@ -339,7 +370,7 @@ class KesiswaanQueryService
                 'kbv.verified_at'
             );
 
-        if ($q !== '' && $activeTab === 'berkas') {
+        if ($q !== '') {
             $berkasQuery->where(function ($b) use ($q) {
                 $b->where('pd.nama', 'like', "%{$q}%")
                   ->orWhere('pd.nisn', 'like', "%{$q}%")
@@ -347,10 +378,10 @@ class KesiswaanQueryService
                   ->orWhere('pd.nik', 'like', "%{$q}%");
             });
         }
-        if ($rombel !== '' && $activeTab === 'berkas') {
+        if ($rombel !== '') {
             $berkasQuery->where('pd.nama_rombel', $rombel);
         }
-        if ($status !== '' && $activeTab === 'berkas') {
+        if ($status !== '') {
             if ($status === 'lengkap') {
                 $berkasQuery->where('kbv.akta_kelahiran', true)
                             ->where('kbv.kartu_keluarga', true)
@@ -379,15 +410,15 @@ class KesiswaanQueryService
             }
         }
 
-        $hasCustomSortBerkas = ($activeTab === 'berkas' && $request->has('sort'));
-        if ($hasCustomSortBerkas) {
-            $sortBerkas = in_array($sort, ['nama', 'nisn', 'nipd', 'nama_rombel'], true) ? $sort : 'nama';
-            if ($sortBerkas === 'nama') {
+        if ($request->has('sort')) {
+            if ($sort === 'nama') {
                 $berkasQuery->orderByRaw("LOWER(TRIM(pd.nama)) {$sortDir}");
-            } elseif ($sortBerkas === 'nisn') {
+            } elseif ($sort === 'nisn') {
                 $berkasQuery->orderBy('pd.nisn', $sortDir);
-            } elseif ($sortBerkas === 'nama_rombel') {
+            } elseif ($sort === 'nama_rombel') {
                 $berkasQuery->orderBy('pd.nama_rombel', $sortDir);
+            } elseif ($sort === 'nipd') {
+                $berkasQuery->orderBy('pd.nipd', $sortDir);
             }
         } else {
             $berkasQuery->orderByRaw("CASE
@@ -420,6 +451,7 @@ class KesiswaanQueryService
             ) ASC")
             ->orderBy('pd.nama', 'asc');
         }
+
         $berkasList = $berkasQuery->paginate($perPage, ['*'], 'berkas_page')->withQueryString();
 
         $berkasPdIds = $berkasList->pluck('peserta_didik_id')->filter()->values()->all();
@@ -443,7 +475,22 @@ class KesiswaanQueryService
             $item->menunggu_count = $studentFiles->where('status', 'menunggu')->count();
         }
 
-        // 6. Tab: Usulan Perubahan Data Siswa
+        return $berkasList;
+    }
+
+    /**
+     * Data tab Usulan Perubahan Data (dipakai Verval PD).
+     */
+    public function getUsulanTab(Request $request): LengthAwarePaginator
+    {
+        $q = trim($request->get('q', ''));
+        $rombel = trim($request->get('rombel', ''));
+        $status = trim($request->get('status', ''));
+        $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
+        $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int) $perPageVal : 25;
+
         $usulanPdQuery = SiswaUsulanPerubahan::query()
             ->select(
                 'peserta_didik_id',
@@ -458,7 +505,7 @@ class KesiswaanQueryService
             )
             ->groupBy('peserta_didik_id');
 
-        if ($q !== '' && $activeTab === 'usulan') {
+        if ($q !== '') {
             $usulanPdQuery->where(function ($sub) use ($q) {
                 $sub->whereHas('siswa', function ($b) use ($q) {
                     $b->where('nama', 'like', "%{$q}%")
@@ -469,17 +516,16 @@ class KesiswaanQueryService
                   ->orWhere('alasan', 'like', "%{$q}%");
             });
         }
-        if ($rombel !== '' && $activeTab === 'usulan') {
+        if ($rombel !== '') {
             $usulanPdQuery->whereHas('siswa', function ($sq) use ($rombel) {
                 $sq->where('nama_rombel', $rombel);
             });
         }
-        if ($status !== '' && $activeTab === 'usulan') {
+        if ($status !== '') {
             $usulanPdQuery->where('status', $status);
         }
 
-        $hasCustomSortUsulan = ($activeTab === 'usulan' && $request->has('sort'));
-        if ($hasCustomSortUsulan) {
+        if ($request->has('sort')) {
             $usulanList = $usulanPdQuery->orderBy('latest_created_at', $sortDir)
                 ->paginate($perPage, ['*'], 'usulan_page')
                 ->withQueryString();
@@ -629,30 +675,7 @@ class KesiswaanQueryService
             return $item;
         });
 
-        return compact(
-            'stats',
-            'activeTab',
-            'q',
-            'rombel',
-            'gender',
-            'status',
-            'tahunLulus',
-            'sort',
-            'sortDir',
-            'perPage',
-            'filterRombel',
-            'filterRombelTidakAktif',
-            'filterTahunAlumni',
-            'aktifList',
-            'tidakAktifList',
-            'alumniList',
-            'berkasList',
-            'usulanList',
-            'canCreate',
-            'canRead',
-            'canUpdate',
-            'canDelete'
-        );
+        return $usulanList;
     }
 
     /**

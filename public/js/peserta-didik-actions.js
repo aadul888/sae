@@ -80,7 +80,88 @@ document.addEventListener("click", async function (e) {
 });
 
 // =========================================================================
-// AKSI 2: TUNJUK / CABUT STATUS KOORDINATOR KELAS (ASISTEN WALI KELAS)
+// AKSI 2: RESET KONFIRMASI IDENTITAS KE POSISI AWAL (BELUM KONFIRMASI)
+// Riwayat usulan perubahan TIDAK dihapus.
+// =========================================================================
+document.addEventListener("click", async function (e) {
+    const btnResetKonf = e.target.closest(".btn-reset-konfirmasi");
+    if (!btnResetKonf) return;
+
+    const pdId = btnResetKonf.dataset.id;
+    const pdNama = btnResetKonf.dataset.nama || "Peserta Didik";
+
+    const result = await Swal.fire({
+        title: "Reset Konfirmasi Identitas?",
+        html:
+            `Kembalikan status konfirmasi identitas <b>${pdNama}</b> ke posisi awal <b>"Belum Konfirmasi"</b>?<br><br>` +
+            `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(2,132,199,0.08); border: 1px dashed rgba(2,132,199,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
+            `<i class="fas fa-info-circle text-primary me-1"></i> Formulir identitas akan kembali <b>terkunci</b> dan peserta didik diminta konfirmasi ulang.<br>` +
+            `<i class="fas fa-clock-rotate-left me-1"></i> <b>Riwayat usulan perubahan tetap tersimpan</b> (tidak dihapus).</div>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#0284c7",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Reset Konfirmasi',
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+        title: "Memproses Reset...",
+        text: "Mengembalikan status konfirmasi ke posisi awal.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+        const csrfToken =
+            document.querySelector('meta[name="csrf-token"]')?.content || "";
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/reset-konfirmasi",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ peserta_didik_id: pdId }),
+            },
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            Swal.fire({
+                title: "Konfirmasi Direset!",
+                html: data.message,
+                icon: "success",
+                confirmButtonColor: "#10b981",
+            });
+        } else {
+            Swal.fire({
+                title: "Gagal Mereset",
+                text:
+                    data.message ||
+                    "Terjadi kesalahan sistem saat mereset konfirmasi identitas.",
+                icon: "error",
+                confirmButtonColor: "#ef4444",
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            title: "Kesalahan Jaringan",
+            text: "Gagal terhubung ke server. Silakan coba kembali.",
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+        });
+    }
+});
+
+// =========================================================================
+// AKSI 3: TUNJUK / CABUT STATUS KOORDINATOR KELAS (ASISTEN WALI KELAS)
 // =========================================================================
 document.addEventListener("click", async function (e) {
     const btnKoord = e.target.closest(".btn-toggle-koordinator");

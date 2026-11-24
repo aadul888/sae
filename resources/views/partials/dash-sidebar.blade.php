@@ -188,6 +188,7 @@
         'menu_tendik_tidak_aktif',
         'menu_berkas_peserta_didik',
         'menu_perubahan_data',
+        'menu_verval_pd',
         'menu_presensi_mengajar',
         'menu_agenda_kbm',
         'menu_presensi_peserta_didik',
@@ -464,6 +465,39 @@
                                 <span class="nav-label">GTK Non-ASN</span>
                             </a>
                         @endif
+                    </div>
+                </div>
+            @endif
+
+            {{-- Verval PD (Collapsible, khusus admin) --}}
+            @if ($can('menu_verval_pd'))
+                @php
+                    $isVervalPdActive = request()->routeIs('dashboard.verval-pd*');
+                @endphp
+                <div class="dash-nav-group {{ $isVervalPdActive ? 'open active-group' : '' }}">
+                    <button type="button" class="dash-nav-toggle">
+                        <div class="dash-nav-toggle-main">
+                            <span class="nav-icon"><i class="fas fa-fw fa-user-shield"></i></span>
+                            <span class="nav-label">Verval PD</span>
+                        </div>
+                        <i class="fas fa-chevron-right arrow-icon"></i>
+                    </button>
+                    <div class="dash-nav-submenu">
+                        <a href="{{ route('dashboard.verval-pd.residu') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.verval-pd.residu*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-circle-exclamation"></i></span>
+                            <span class="nav-label">Residu</span>
+                        </a>
+                        <a href="{{ route('dashboard.verval-pd.berkas') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.verval-pd.berkas*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                            <span class="nav-label">Berkas</span>
+                        </a>
+                        <a href="{{ route('dashboard.verval-pd.perubahan') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.verval-pd.perubahan*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-pen"></i></span>
+                            <span class="nav-label">Perubahan</span>
+                        </a>
                     </div>
                 </div>
             @endif

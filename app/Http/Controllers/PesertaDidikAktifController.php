@@ -220,6 +220,36 @@ class PesertaDidikAktifController extends Controller
     }
 
     /**
+     * Reset status konfirmasi identitas peserta didik ke posisi awal
+     * ('belum_konfirmasi') tanpa menghapus riwayat usulan perubahan.
+     */
+    public function resetKonfirmasi(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+
+        $canAccessUpdate = RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')
+            || RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')
+            || RolePermission::isWaliKelasOrAdmin($user);
+
+        if (!$canAccessUpdate) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mereset konfirmasi identitas peserta didik.',
+            ], 403);
+        }
+
+        $pdId = $request->input('peserta_didik_id');
+        if (!$pdId) {
+            return response()->json(['status' => 'error', 'message' => 'ID Peserta Didik wajib disertakan.'], 400);
+        }
+
+        $res = $this->queryService->resetKonfirmasi($pdId);
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    /**
      * Tunjuk atau cabut wewenang peserta didik sebagai Koordinator Kelas.
      */
     public function toggleKoordinator(Request $request)

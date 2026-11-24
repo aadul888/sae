@@ -8,7 +8,6 @@ use App\Models\PesertaDidik;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikMeta;
 use App\Models\SiswaUsulanPerubahan;
-use App\Services\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -89,7 +88,7 @@ class KesiswaanUsulanService
                 })
                 ->get();
 
-            $url = route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']);
+            $url = route('dashboard.verval-pd.perubahan');
 
             foreach ($kandidat as $admin) {
                 if ($excludePenggunaId && (string) $admin->pengguna_id === (string) $excludePenggunaId) {
@@ -97,7 +96,7 @@ class KesiswaanUsulanService
                 }
 
                 try {
-                    if (!\App\Models\RolePermission::canAccess($admin, 'menu_kesiswaan_peserta_didik', 'read')) {
+                    if (!\App\Models\RolePermission::canAccess($admin, 'menu_verval_pd', 'read')) {
                         continue;
                     }
                 } catch (\Throwable $e) {
@@ -119,68 +118,6 @@ class KesiswaanUsulanService
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi admin usulan: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Simpan Usulan Perubahan Data Siswa.
-     */
-    public function storeUsulan(Request $request, mixed $user): array
-    {
-        $validated = $request->validate([
-            'peserta_didik_id' => 'required|string',
-            'kolom_perubahan'  => 'required|string|max:100',
-            'nilai_lama'       => 'nullable|string',
-            'nilai_baru'       => 'required|string',
-            'alasan'           => 'required|string|max:255',
-            'berkas_bukti'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
-
-        $filePath = null;
-        if ($request->hasFile('berkas_bukti')) {
-            $hasil = app(ImageOptimizerService::class)->optimizeAndSaveImage(
-                $request->file('berkas_bukti'),
-                public_path('uploads/usulan_siswa'),
-                'usulan'
-            );
-            $filePath = '/uploads/usulan_siswa/' . $hasil['filename'];
-        }
-
-        $userName = is_array($user) ? ($user['nama'] ?? 'Pengguna') : ($user->nama ?? 'Pengguna');
-
-        $usulan = SiswaUsulanPerubahan::create([
-            'peserta_didik_id'   => $validated['peserta_didik_id'],
-            'batch_id'           => (string) \Illuminate\Support\Str::uuid(),
-            'kolom_perubahan'    => $validated['kolom_perubahan'],
-            'nilai_lama'         => $validated['nilai_lama'] ?? null,
-            'nilai_baru'         => $validated['nilai_baru'],
-            'alasan'             => $validated['alasan'],
-            'berkas_bukti'       => $filePath,
-            'status'             => 'menunggu',
-            'created_by'         => $userName,
-        ]);
-
-        // Notifikasi transaksi: siswa + admin kesiswaan
-        $pdNama = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->value('nama');
-        $this->notifyStudent(
-            $validated['peserta_didik_id'],
-            'Pengajuan Usulan Data Terkirim',
-            'Pengajuan perubahan data Anda telah terkirim dan menunggu verifikasi Tim Kesiswaan.',
-            'info',
-            'fas fa-paper-plane'
-        );
-        $this->notifyKesiswaanAdmins(
-            'Usulan Baru: ' . ($pdNama ?: 'Peserta Didik'),
-            'Pengajuan usulan perubahan data baru oleh ' . $userName . ($pdNama ? " untuk {$pdNama}" : '') . ' menunggu verifikasi.',
-            'warning',
-            'fas fa-file-pen',
-            is_array($user) ? ($user['pengguna_id'] ?? null) : ($user->pengguna_id ?? null)
-        );
-
-        return [
-            'status' => 'success',
-            'message' => 'Usulan perubahan data siswa berhasil dikirim dan menunggu verifikasi.',
-            'data' => $usulan,
-        ];
     }
 
     /**
@@ -372,7 +309,7 @@ class KesiswaanUsulanService
     /**
      * Verifikasi Usulan Perubahan Data Siswa (Setujui / Tolak).
      */
-    public function verifikasiUsulan(Request $request, string|int $id, mixed $user): array
+    public function verifikasiUsulan(Request $request, string|int $id, mixed $user, string $modul = 'Kesiswaan'): array
     {
         $validated = $request->validate([
             'status'             => 'nullable|string|in:disetujui,ditolak',
@@ -509,7 +446,7 @@ class KesiswaanUsulanService
             $count = count($usulanList);
             AdminAktivitas::record(
                 "Verifikasi Usulan Data Siswa: {$pd?->nama} ({$count} butir usulan) [{$labelStatus}]",
-                'Kesiswaan',
+                $modul,
                 $hasRejected ? "Alasan Penolakan: {$catatan}" : "Usulan perubahan data disetujui dan data siswa diperbarui.",
                 $hasRejected ? 'warning' : 'success'
             );
@@ -525,7 +462,7 @@ class KesiswaanUsulanService
     /**
      * Tandai Usulan Perubahan Data telah Di-update / Disinkronkan ke Aplikasi Dapodik.
      */
-    public function markDapodikUpdated(string|int $id, mixed $user): array
+    public function markDapodikUpdated(string|int $id, mixed $user, string $modul = 'Kesiswaan'): array
     {
         $userName = is_array($user) ? ($user['nama'] ?? 'Operator Dapodik') : ($user->nama ?? 'Operator Dapodik');
 
@@ -586,7 +523,7 @@ class KesiswaanUsulanService
             $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
             AdminAktivitas::record(
                 "Update Dapodik Selesai: {$pd?->nama}",
-                'Kesiswaan',
+                $modul,
                 "Perubahan data siswa berhasil ditandai selesai di-input ke Dapodik.",
                 'success'
             );

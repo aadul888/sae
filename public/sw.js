@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.2.4 — Full Offline / Self-Hosted Assets
+   Version: 1.2.6 — Full Offline / Self-Hosted Assets
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.5";
+const CACHE_NAME = "sae-pwa-v1.2.6";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -27,6 +27,11 @@ const PRECACHE_ASSETS = [
     "/js/presensi-scan.js",
     "/vendor/jsqr/jsqr.min.js",
     "/vendor/fontawesome/css/all.min.css",
+    // Webfont ikon FontAwesome WAJIB di-precache: tanpa ini, mode offline
+    // (atau buka pertama tanpa jaringan) kehilangan glyph → ikon jadi kotak (tofu).
+    "/vendor/fontawesome/webfonts/fa-solid-900.woff2",
+    "/vendor/fontawesome/webfonts/fa-regular-400.woff2",
+    "/vendor/fontawesome/webfonts/fa-brands-400.woff2",
     "/vendor/sweetalert2/sweetalert2.all.min.js",
     "/vendor/chartjs/chart.umd.min.js",
     "/img/logo-icon.png",

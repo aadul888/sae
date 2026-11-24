@@ -100,7 +100,7 @@ class KesiswaanBerkasService
     /**
      * Verifikasi Kebenaran Berkas Siswa (valid atau tidak_valid).
      */
-    public function verifikasiBerkasItem(Request $request, string|int $id, mixed $user): array
+    public function verifikasiBerkasItem(Request $request, string|int $id, mixed $user, string $modul = 'Kesiswaan'): array
     {
         $request->validate([
             'jenis_berkas' => 'required|string',
@@ -157,7 +157,7 @@ class KesiswaanBerkasService
             $statusLabel = $status === 'valid' ? 'Valid (Sesuai)' : 'Tidak Valid (Tidak Sesuai)';
             AdminAktivitas::record(
                 "Verifikasi Berkas Siswa: {$pd?->nama} - {$berkas->nama_berkas} ({$statusLabel})",
-                'Kesiswaan',
+                $modul,
                 $status === 'tidak_valid' ? "Penolakan: " . ($berkas->catatan_penolakan ?: '-') : "Dokumen diverifikasi valid dan sesuai persyaratan.",
                 $status === 'valid' ? 'success' : 'warning'
             );
@@ -173,7 +173,7 @@ class KesiswaanBerkasService
     /**
      * Upload berkas siswa langsung oleh Wali Kelas, Tendik, atau Admin (otomatis valid).
      */
-    public function uploadBerkasTendik(Request $request, string|int $id, mixed $user): array
+    public function uploadBerkasTendik(Request $request, string|int $id, mixed $user, string $modul = 'Kesiswaan'): array
     {
         $request->validate([
             'jenis_berkas' => 'required|string',
@@ -255,7 +255,7 @@ class KesiswaanBerkasService
         if (class_exists(AdminAktivitas::class)) {
             AdminAktivitas::record(
                 "Upload Berkas {$roleLabel}: {$pd->nama} - {$berkas->nama_berkas} (Valid)",
-                'Kesiswaan',
+                $modul,
                 "Dokumen diunggah langsung oleh {$userName} dan otomatis diverifikasi valid.",
                 'success'
             );

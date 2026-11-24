@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PesertaDidik;
+use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikIdentitas;
 use App\Models\SiswaUsulanPerubahan;
 use Tests\TestCase;
@@ -170,6 +171,83 @@ class IdentitasPesertaDidikNoopValidationTest extends TestCase
         $response->assertSessionHasErrors(['nama', 'nik', 'kode_pos', 'email', 'waktu_tempuh_menit', 'lintang']);
         $this->assertSame(0, SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)->count());
 
+        PesertaDidik::where('peserta_didik_id', $pdId)->delete();
+        PesertaDidikIdentitas::where('peserta_didik_id', $pdId)->delete();
+    }
+
+    public function test_unfinished_usulan_blocks_new_usulan_and_confirmation(): void
+    {
+        $pdId = 'PD-' . time() . '-' . random_int(100, 999);
+        $nisn = '12345' . random_int(10000, 99999);
+
+        PesertaDidik::create([
+            'peserta_didik_id' => $pdId,
+            'nama' => 'Dewi Lestari',
+            'nisn' => $nisn,
+            'jenis_kelamin' => 'P',
+            'nama_rombel' => 'X-C',
+        ]);
+
+        PesertaDidikIdentitas::create([
+            'peserta_didik_id' => $pdId,
+            'nisn' => $nisn,
+            'nama' => 'Dewi Lestari',
+            'jenis_kelamin' => 'P',
+            'status_konfirmasi' => 'perlu_perbaikan',
+        ]);
+
+        // Berkas KK & Ijazah valid -> syarat form terbuka terpenuhi.
+        foreach (['kartu_keluarga', 'ijazah_smp'] as $jenis) {
+            PesertaDidikBerkas::create([
+                'peserta_didik_id' => $pdId,
+                'jenis_berkas' => $jenis,
+                'nama_berkas' => $jenis,
+                'file_path' => 'uji/' . $jenis . '.pdf',
+                'file_name' => $jenis . '.pdf',
+                'file_size' => 0,
+                'mime_type' => 'application/pdf',
+                'status' => 'valid',
+            ]);
+        }
+
+        // Usulan lama sudah DISETUJUI tetapi belum masuk Dapodik => belum tuntas.
+        SiswaUsulanPerubahan::create([
+            'peserta_didik_id' => $pdId,
+            'batch_id' => 'uji-batch-1',
+            'kolom_perubahan' => 'nama',
+            'nilai_lama' => 'Dewi Lestari',
+            'nilai_baru' => 'Dewi Lestari P',
+            'status' => 'disetujui',
+            'created_by' => 'Dewi Lestari',
+        ]);
+
+        $session = [
+            'user' => [
+                'role' => 'peserta_didik',
+                'peserta_didik_id' => $pdId,
+                'nama' => 'Dewi Lestari',
+                'username' => $nisn,
+            ],
+        ];
+
+        // 1) Ajukan usulan baru -> ditolak karena belum tuntas.
+        $r1 = $this->withSession($session)->post(route('dashboard.identitas.update'), [
+            'peserta_didik_id' => $pdId,
+            'nama' => 'Dewi Lestari Puspita',
+        ]);
+        $r1->assertSessionHas('warning');
+        $this->assertSame(1, SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)->count());
+
+        // 2) Ubah pilihan konfirmasi -> ditolak selama usulan belum tuntas.
+        $r2 = $this->withSession($session)->post(route('dashboard.identitas.konfirmasi'), [
+            'peserta_didik_id' => $pdId,
+            'status' => 'sesuai',
+        ]);
+        $r2->assertSessionHas('warning');
+        $this->assertSame('perlu_perbaikan', PesertaDidikIdentitas::where('peserta_didik_id', $pdId)->value('status_konfirmasi'));
+
+        SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)->delete();
+        PesertaDidikBerkas::where('peserta_didik_id', $pdId)->delete();
         PesertaDidik::where('peserta_didik_id', $pdId)->delete();
         PesertaDidikIdentitas::where('peserta_didik_id', $pdId)->delete();
     }

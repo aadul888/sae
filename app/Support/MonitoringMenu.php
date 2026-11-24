@@ -34,6 +34,12 @@ final class MonitoringMenu
                 'bg' => 'rgba(59, 130, 246, 0.12)',
                 'modul' => ['Manajemen Data', 'Guru', 'Tendik', 'GTK Non-ASN'],
             ],
+            'Verval PD' => [
+                'icon' => 'fa-user-shield',
+                'color' => 'var(--accent, #06b6d4)',
+                'bg' => 'rgba(6, 182, 212, 0.12)',
+                'modul' => ['Verval PD', 'Verval PD Residu', 'Verval PD Berkas', 'Verval PD Perubahan'],
+            ],
             'Akademik' => [
                 'icon' => 'fa-chalkboard-user',
                 'color' => 'var(--accent, #06b6d4)',
@@ -161,6 +167,7 @@ final class MonitoringMenu
             'dashboard.guru-aktif' => 'Manajemen Data',
             'dashboard.tendik-aktif' => 'Manajemen Data',
             'dashboard.gtk-non-asn' => 'Manajemen Data',
+            'dashboard.verval-pd' => 'Verval PD',
             'dashboard.peserta-didik-aktif' => 'Manajemen Data',
             'dashboard.persuratan' => 'Persuratan',
             'dashboard.sarpras' => 'Sarpras',

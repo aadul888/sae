@@ -54,6 +54,13 @@ class PwaComplianceTest extends TestCase
         $this->assertStringContainsString('/offline', $swContent);
         $this->assertStringContainsString('sae-pwa-', $swContent);
         $this->assertStringContainsString('\/api\/', $swContent);
+
+        // Webfont FontAwesome wajib ada & ter-precache; bila hilang, ikon tampil
+        // sebagai kotak (tofu) — persis gejala yang pernah terjadi di produksi.
+        foreach (['fa-solid-900.woff2', 'fa-regular-400.woff2', 'fa-brands-400.woff2'] as $font) {
+            $this->assertFileExists(public_path("vendor/fontawesome/webfonts/{$font}"));
+            $this->assertStringContainsString("vendor/fontawesome/webfonts/{$font}", $swContent);
+        }
     }
 
     /**

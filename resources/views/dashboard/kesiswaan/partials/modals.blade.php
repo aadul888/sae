@@ -1,4 +1,4 @@
-    <!-- MODAL 1: DETAIL BIODATA LENGKAP PESERTA DIDIK (Persis seperti Manajemen Data) -->
+﻿    <!-- MODAL 1: DETAIL BIODATA LENGKAP PESERTA DIDIK (Persis seperti Manajemen Data) -->
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
@@ -174,83 +174,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: AJUKAN USULAN PERUBAHAN DATA (Clean Global SAE Modal Style) -->
-    <div id="modalUsulan" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card"
-            style="width: 100%; max-width: 520px; padding: 24px; border-radius: var(--radius-lg, 12px); margin: 16px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                    Ajukan Usulan
-                    Perubahan Data</h3>
-                <button type="button" class="close-modal" data-target="#modalUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
-                    aria-label="Tutup"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="formUsulan" method="POST"
-                action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}" enctype="multipart/form-data">
-                @csrf
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
-                        Siswa <span class="text-danger">*</span></label>
-                    <input type="search" id="usulanSiswaLookup" class="form-control"
-                        placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
-                        data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
-                        data-people-target="#usulanSiswaId" data-people-require-selection="true" required
-                        style="width: 100%; border-radius: var(--radius-md, 8px);">
-                    <input type="hidden" id="usulanSiswaId" name="peserta_didik_id">
-                </div>
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kolom
-                        yang Ingin Diubah <span class="text-danger">*</span></label>
-                    <select name="kolom_perubahan" class="form-control" required
-                        style="width: 100%; border-radius: var(--radius-md, 8px);">
-                        <option value="nama">Nama Lengkap</option>
-                        <option value="nisn">NISN</option>
-                        <option value="nik">NIK</option>
-                        <option value="tempat_lahir">Tempat Lahir</option>
-                        <option value="tanggal_lahir">Tanggal Lahir</option>
-                        <option value="nama_ibu">Nama Ibu Kandung</option>
-                        <option value="nama_ayah">Nama Ayah</option>
-                        <option value="alamat_jalan">Alamat</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Nilai
-                        Baru yang Benar <span class="text-danger">*</span></label>
-                    <input type="text" name="nilai_baru" class="form-control"
-                        placeholder="Tuliskan data yang benar sesuai dokumen resmi" required
-                        style="width: 100%; border-radius: var(--radius-md, 8px);">
-                </div>
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
-                        Perubahan <span class="text-danger">*</span></label>
-                    <input type="text" name="alasan" class="form-control"
-                        placeholder="Contoh: Menyesuaikan Akta Kelahiran asli" required
-                        style="width: 100%; border-radius: var(--radius-md, 8px);">
-                </div>
-                <div class="form-group" style="margin-bottom: 18px;">
-                    <label
-                        style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Unggah
-                        Berkas Bukti (PDF / Foto Akta / KK)</label>
-                    <input type="file" name="berkas_bukti" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
-                        style="width: 100%; border-radius: var(--radius-md, 8px);">
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                    <button type="button" class="btn btn-outline close-modal" data-target="#modalUsulan"
-                        style="border-radius: var(--radius-md, 8px);">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-md, 8px);"><i
-                            class="fas fa-paper-plane"></i> Kirim Usulan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: VERIFIKASI BERKAS DIGITAL SISWA (PDF ONLY, 2 STATUS) -->
+    <!-- MODAL: VERIFIKASI BERKAS DIGITAL SISWA (PDF ONLY, 2 STATUS) -->
     <div id="modalVerifikasiBerkasDigital" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
@@ -295,156 +219,6 @@
                     style="border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-base, 0.875rem);">
                     Tutup
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 4: DETAIL LENGKAP & PENGELOLAAN USULAN PERUBAHAN DATA (FIELD ASAL VS PENYESUAIAN) -->
-    <div id="modalPengelolaanUsulan" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card"
-            style="max-width: 860px; width: 95%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                        style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0; overflow: hidden; border: 1px solid var(--border-color);">
-                        <img id="modalUsulanFoto" src="" alt="Foto Siswa"
-                            style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                        <div id="modalUsulanFotoDefault"
-                            style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                            <i class="fas fa-file-pen"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 id="modalUsulanNama"
-                            style="font-size: var(--text-lg, 1.125rem); font-weight: 800; color: var(--text-color); margin: 0;">
-                            Pengelolaan Usulan Perubahan Data</h3>
-                        <div id="modalUsulanSubtitle"
-                            style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
-                            Memuat data usulan siswa...
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="close-modal close-modal-pengelolaan-usulan" data-target="#modalPengelolaanUsulan"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-lg, 1.125rem); padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"
-                    aria-label="Tutup">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div id="modalUsulanLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: var(--text-2xl, 1.5rem);"></i>
-                <div>Memuat rincian usulan perubahan data...</div>
-            </div>
-
-            <div id="modalUsulanContent" style="overflow-y: auto; flex: 1; display: none; padding-right: 4px;">
-                <!-- Kotak Catatan / Alasan Tunggal (Di atas Berkas) -->
-                <div id="modalUsulanAlasanBox" style="display: none; margin-bottom: 10px;"></div>
-
-                <!-- Strip Dokumen Berkas Pendukung (Ringkas 1 Baris) -->
-                <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: var(--bg-hover); padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px);">
-                    <span style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Berkas:
-                    </span>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <!-- KK -->
-                        <div style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); background: var(--card-bg); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
-                            <span style="font-weight: 600;">KK:</span>
-                            <span id="docKkStatusBadge"></span>
-                            <span id="docKkFileName" style="display: none;"></span>
-                            <button type="button" id="docKkPreviewBtn" class="btn-icon" title="Lihat KK" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
-                            </button>
-                        </div>
-                        <!-- Ijazah -->
-                        <div style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); background: var(--card-bg); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
-                            <span style="font-weight: 600;">Ijazah:</span>
-                            <span id="docIjazahStatusBadge"></span>
-                            <span id="docIjazahFileName" style="display: none;"></span>
-                            <button type="button" id="docIjazahPreviewBtn" class="btn-icon" title="Lihat Ijazah" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
-                            </button>
-                        </div>
-                        <!-- Akta -->
-                        <div style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.75rem); background: var(--card-bg); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
-                            <span style="font-weight: 600;">Akta:</span>
-                            <span id="docAktaStatusBadge"></span>
-                            <span id="docAktaFileName" style="display: none;"></span>
-                            <button type="button" id="docAktaPreviewBtn" class="btn-icon" title="Lihat Akta" style="width: 20px; height: 20px; border: none; background: transparent; color: var(--primary); cursor: pointer; padding: 0;">
-                                <i class="fas fa-eye" style="font-size: var(--text-2xs, 0.7rem);"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabel Perbandingan Usulan Data -->
-                <div style="margin-bottom: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); overflow: hidden;">
-                    <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                        <thead>
-                            <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 30%;">Data</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 26%;">Data Awal</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 28%;">Data Baru</th>
-                                <th style="padding: 10px 14px; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 16%;">
-                                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                                        <span>Verifikasi</span>
-                                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                            <button type="button" id="btnCeklisSemuaUsulan" class="btn-icon" title="Tandai semua Setujui"
-                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(16,185,129,0.4); background: transparent; color: var(--success, #10b981); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
-                                                <i class="fas fa-check" style="font-size: var(--text-2xs, 0.65rem);"></i>
-                                            </button>
-                                            <button type="button" id="btnXSemuaUsulan" class="btn-icon" title="Tandai semua Tolak"
-                                                style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(239,68,68,0.4); background: transparent; color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">
-                                                <i class="fas fa-xmark" style="font-size: var(--text-2xs, 0.65rem);"></i>
-                                            </button>
-                                        </span>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="modalUsulanTableBody">
-                            <!-- Diisi secara dinamis via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Catatan Verifikasi / Penolakan & Chip Rekomendasi -->
-                <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 10px;">
-                    <div style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">
-                        Rekomendasi Alasan / Catatan Penolakan
-                    </div>
-                    <div id="rekomendasiAlasanChips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
-                        <!-- Diisi via JavaScript -->
-                    </div>
-                    <textarea id="catatanVerifikasiUsulanInput" class="form-control" rows="2"
-                        placeholder="Catatan verifikasi atau alasan penolakan (opsional untuk setujui, wajib jika tolak)..."
-                        style="width: 100%; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);"></textarea>
-                </div>
-            </div>
-
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
-                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                    <i class="fas fa-shield-halved text-success me-1"></i>
-                    Verifikasi keputusan resmi untuk sinkronisasi Dapodik.
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" id="btnTandaiDapodikUsulan" class="btn btn-outline"
-                        style="display: none; border-color: var(--primary); color: var(--primary); border-radius: var(--radius-md, 8px); padding: 7px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;"
-                        title="Tandai selesai di-input ke Dapodik">
-                        <i class="fas fa-cloud-arrow-up"></i>
-                    </button>
-                    <button type="button" id="btnSimpanVerifikasiUsulan" class="btn btn-primary"
-                        style="display: none; border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700;"
-                        title="Simpan keputusan verifikasi">
-                        <i class="fas fa-save"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline close-modal close-modal-pengelolaan-usulan" data-target="#modalPengelolaanUsulan"
-                        style="border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-base, 0.875rem);">
-                        Tutup
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -568,8 +342,5 @@
         </script>
         <script
             src="{{ asset('js/kesiswaan-peserta-didik.js') }}?v={{ file_exists(public_path('js/kesiswaan-peserta-didik.js')) ? filemtime(public_path('js/kesiswaan-peserta-didik.js')) : time() }}">
-        </script>
-        <script
-            src="{{ asset('js/kesiswaan-usulan-manage.js') }}?v={{ file_exists(public_path('js/kesiswaan-usulan-manage.js')) ? filemtime(public_path('js/kesiswaan-usulan-manage.js')) : time() }}">
         </script>
     @endpush

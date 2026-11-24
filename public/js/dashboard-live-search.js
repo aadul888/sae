@@ -206,7 +206,7 @@
             url.searchParams.set("page", "1");
             [
                 "aktif_page", "tidak_aktif_page", "alumni_page", "berkas_page",
-                "usulan_page", "kuota_page", "riwayat_page", "klaper_page",
+                "usulan_page", "residu_page", "kuota_page", "riwayat_page", "klaper_page",
                 "mutasi_page", "kelulusan_page", "admin_page", "guru_page",
                 "tendik_page", "peserta_didik_page", "tugas_page",
                 "patroli_page", "insiden_page"

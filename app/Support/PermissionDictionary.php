@@ -92,6 +92,11 @@ final class PermissionDictionary
                     'icon' => 'fa-id-badge',
                     'roles' => ['admin'],
                 ],
+                'menu_verval_pd' => [
+                    'label' => 'Verval PD (Verifikasi & Validasi Peserta Didik)',
+                    'icon' => 'fa-user-shield',
+                    'roles' => ['admin'],
+                ],
             ],
 
             'Akademik Digital' => [

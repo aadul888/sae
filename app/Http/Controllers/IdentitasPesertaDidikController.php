@@ -39,7 +39,7 @@ class IdentitasPesertaDidikController extends Controller
                 })
                 ->get();
 
-            $url = route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']);
+            $url = route('dashboard.verval-pd.perubahan');
 
             foreach ($kandidat as $admin) {
                 if ($excludePenggunaId && (string) $admin->pengguna_id === (string) $excludePenggunaId) {
@@ -47,7 +47,7 @@ class IdentitasPesertaDidikController extends Controller
                 }
 
                 try {
-                    if (!RolePermission::canAccess($admin, 'menu_kesiswaan_peserta_didik', 'read')) {
+                    if (!RolePermission::canAccess($admin, 'menu_verval_pd', 'read')) {
                         continue;
                     }
                 } catch (\Throwable $e) {
@@ -354,9 +354,19 @@ class IdentitasPesertaDidikController extends Controller
             ->count();
         $hasPendingUsulan = $pendingUsulanCount > 0;
 
+        // Usulan yang BELUM TUNTAS: masih menunggu review ATAU sudah disetujui
+        // tetapi belum masuk Dapodik. Selama salah satu ada, alur belum selesai.
+        $unfinishedUsulanCount = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->whereIn('status', ['menunggu', 'disetujui'])
+            ->count();
+        $hasUnfinishedUsulan = $unfinishedUsulanCount > 0;
+
         // Formulir secara default terkunci. Terbuka HANYA jika siswa memilih 'perlu_perbaikan',
-        // berkas KK & Ijazah sudah valid, DAN tidak ada usulan yang masih menunggu review.
-        $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan') && $berkasPrereq['is_valid'] && !$hasPendingUsulan;
+        // berkas KK & Ijazah sudah valid, DAN tidak ada usulan yang belum tuntas
+        // (menunggu review / disetujui tapi belum masuk Dapodik).
+        $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan')
+            && $berkasPrereq['is_valid']
+            && !$hasUnfinishedUsulan;
         $isFormLocked = !$isFormEditable;
 
         return view('dashboard.identitas-peserta-didik', compact(
@@ -375,6 +385,8 @@ class IdentitasPesertaDidikController extends Controller
             'isFormLocked',
             'isFormEditable',
             'hasPendingUsulan',
+            'unfinishedUsulanCount',
+            'hasUnfinishedUsulan',
             'pendingUsulanCount'
         ));
     }
@@ -397,6 +409,16 @@ class IdentitasPesertaDidikController extends Controller
 
         $pilihan = $request->input('status', 'sesuai'); // 'sesuai' atau 'perlu_perbaikan'
         $catatan = trim((string)$request->input('catatan_siswa', ''));
+
+        // Selama masih ada usulan yang belum tuntas (menunggu review / disetujui tapi
+        // belum masuk Dapodik), pilihan konfirmasi dikunci agar tidak mengubah alur
+        // yang sedang berjalan.
+        $unfinished = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->whereIn('status', ['menunggu', 'disetujui'])
+            ->count();
+        if ($unfinished > 0) {
+            return back()->with('warning', "Pilihan konfirmasi dikunci sementara: masih ada {$unfinished} usulan perubahan data yang belum selesai (menunggu review / belum masuk Dapodik). Tunggu hingga proses selesai sebelum mengubah pilihan.");
+        }
 
         // Konfirmasi "Data Sesuai" hanya boleh bila berkas KK & Ijazah SMP sudah Valid.
         $prereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
@@ -605,12 +627,13 @@ class IdentitasPesertaDidikController extends Controller
                 return back()->with('error', 'Gagal mengajukan usulan perubahan data: Dokumen ' . implode(' dan ', $missing) . ' wajib berstatus Valid / Sesuai dari Tim Kesiswaan terlebih dahulu.');
             }
 
-            // Usulan yang masih menunggu review tidak boleh ditumpuk; tunggu hasil verifikasi.
+            // Usulan yang masih belum tuntas (menunggu review ATAU sudah disetujui
+            // tetapi belum masuk Dapodik) tidak boleh ditumpuk; tunggu proses selesai.
             $pendingCount = SiswaUsulanPerubahan::where('peserta_didik_id', $pd->peserta_didik_id)
-                ->where('status', 'menunggu')
+                ->whereIn('status', ['menunggu', 'disetujui'])
                 ->count();
             if ($pendingCount > 0) {
-                return back()->with('warning', "Usulan perubahan Anda ({$pendingCount} butir) masih menunggu review Tim Kesiswaan. Tunggu hasil verifikasi sebelum mengajukan perubahan baru.");
+                return back()->with('warning', "Usulan perubahan Anda ({$pendingCount} butir) belum selesai (menunggu review / belum masuk Dapodik). Tunggu proses selesai sebelum mengajukan perubahan baru.");
             }
         }
 

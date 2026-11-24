@@ -1,5 +1,5 @@
 /**
- * Logika JavaScript Modular: Peserta Didik (Aktif, Tidak Aktif, Alumni, Berkas, Usulan Perubahan)
+ * Logika JavaScript Modular: Peserta Didik (Aktif, Tidak Aktif, Alumni, Berkas)
  * Standar Resmi SAE (Vanilla JS + SweetAlert2)
  */
 
@@ -21,47 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (target) closeModal(target);
         });
     });
-
-    const btnOpenUsulan = document.getElementById('btnOpenUsulanModal');
-    if (btnOpenUsulan) {
-        btnOpenUsulan.addEventListener('click', () => openModal('#modalUsulan'));
-    }
-
-    // 2. Submit Usulan Perubahan Data
-    const formUsulan = document.getElementById('formUsulan');
-    if (formUsulan) {
-        formUsulan.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            Swal.fire({
-                title: 'Memproses...',
-                text: 'Mengirim usulan perubahan data...',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json',
-                },
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    Swal.fire('Berhasil!', data.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('Gagal!', data.message || 'Terjadi kesalahan.', 'error');
-                }
-            })
-            .catch(err => {
-                Swal.fire('Error!', 'Gagal mengirim usulan.', 'error');
-            });
-        });
-    }
 
     // 2b. Input Manual / Edit Data Alumni (tab Alumni)
     const formAlumni = document.getElementById('formAlumni');

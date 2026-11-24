@@ -100,11 +100,11 @@
                         title="Beranda Siswa">
                         <i class="fas fa-house"></i>
                     </a>
-                @else
-                    <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
+                @elseif ($userRole === 'admin')
+                    <a href="{{ route('dashboard.verval-pd.perubahan') }}"
                         class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); text-decoration: none;"
-                        title="Review Kesiswaan">
+                        title="Review Verval PD">
                         <i class="fas fa-file-pen text-primary"></i>
                     </a>
                 @endif
@@ -343,8 +343,17 @@
         </div>
 
         <!-- 3. Status Konfirmasi Siswa & Quick Action Card -->
-        <div class="card identitas-panel-identitas"
-            style="margin-bottom: 16px; padding: 14px 16px; border-radius: var(--radius-xl, 16px); border: 1.5px solid {{ $statusKonfirmasi === 'sesuai' ? '#10b981' : ($statusKonfirmasi === 'perlu_perbaikan' ? ($berkasPrereq['is_valid'] ? 'var(--primary)' : '#ef4444') : '#f59e0b') }}; background: var(--card-bg);">
+        @php
+            $statusAccent = $statusKonfirmasi === 'sesuai'
+                ? '#10b981'
+                : ($statusKonfirmasi === 'disinkronkan_dapodik'
+                    ? '#6366f1'
+                    : ($statusKonfirmasi === 'perlu_perbaikan'
+                        ? ($hasUnfinishedUsulan ? '#f59e0b' : ($berkasPrereq['is_valid'] ? '#6366f1' : '#ef4444'))
+                        : '#f59e0b'));
+        @endphp
+        <div class="card identitas-panel-identitas identitas-status-card"
+            style="margin-bottom: 16px; padding: 16px 18px; border-radius: var(--radius-xl, 16px); border: 1.5px solid {{ $statusAccent }}33; border-left: 5px solid {{ $statusAccent }}; background: linear-gradient(135deg, {{ $statusAccent }}12 0%, var(--card-bg) 55%); box-shadow: 0 6px 22px {{ $statusAccent }}1f;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="flex: 1; min-width: 280px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
@@ -365,9 +374,9 @@
                                 <i class="fas fa-cloud-arrow-up me-1"></i> Selesai Di-update ke Dapodik
                             </span>
                         @elseif ($statusKonfirmasi === 'perlu_perbaikan')
-                            @if ($hasPendingUsulan)
+                            @if ($hasUnfinishedUsulan)
                                 <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px;">
-                                    <i class="fas fa-hourglass-half me-1"></i> Menunggu Review Kesiswaan
+                                    <i class="fas fa-hourglass-half me-1"></i> Menunggu Usulan Selesai ({{ $unfinishedUsulanCount }})
                                 </span>
                             @elseif ($berkasPrereq['is_valid'])
                                 <span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px;">
@@ -391,9 +400,10 @@
                             {{ $identitas->dikonfirmasi_pada ? $identitas->dikonfirmasi_pada->translatedFormat('d F Y, H:i') : '-' }}
                             WIB oleh {{ $identitas->dikonfirmasi_oleh ?: 'Siswa' }}. Seluruh data terkunci aman.
                         @elseif ($statusKonfirmasi === 'perlu_perbaikan')
-                            @if ($hasPendingUsulan)
-                                Usulan perubahan data Anda sedang <strong>menunggu review</strong> Tim Kesiswaan. Formulir
-                                dikunci sementara hingga proses verifikasi selesai.
+                            @if ($hasUnfinishedUsulan)
+                                Usulan perubahan data Anda <strong>belum selesai</strong> (menunggu review Kesiswaan
+                                dan/atau sudah disetujui namun belum masuk Dapodik). Formulir dan pilihan konfirmasi
+                                <strong>dikunci sementara</strong> hingga proses selesai.
                             @elseif ($berkasPrereq['is_valid'])
                                 Berkas Kartu Keluarga dan Ijazah SMP telah berstatus <strong>Valid / Sesuai</strong>.
                                 Formulir sekarang <strong>terbuka</strong>. Silakan periksa dan perbaiki kolom data di
@@ -424,9 +434,10 @@
 
                     <button type="button"
                         class="btn {{ $statusKonfirmasi === 'belum_konfirmasi' ? 'btn-primary' : 'btn-outline' }} btn-konfirmasi-dialog"
-                        style="padding: 9px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-clipboard-check"></i>
-                        {{ $statusKonfirmasi === 'belum_konfirmasi' ? 'Konfirmasi Data Siswa' : 'Ubah Pilihan Konfirmasi' }}
+                        @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan yang belum selesai (menunggu review / belum masuk Dapodik)." @endif
+                        style="padding: 9px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; {{ $hasUnfinishedUsulan ? 'opacity: .55; cursor: not-allowed;' : '' }}">
+                        <i class="fas {{ $hasUnfinishedUsulan ? 'fa-lock' : 'fa-clipboard-check' }}"></i>
+                        {{ $hasUnfinishedUsulan ? 'Pilihan Konfirmasi Terkunci' : ($statusKonfirmasi === 'belum_konfirmasi' ? 'Konfirmasi Data Siswa' : 'Ubah Pilihan Konfirmasi') }}
                     </button>
                 </div>
             </div>
@@ -511,8 +522,9 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         @if ($isFormLocked)
                             <button type="button" class="btn btn-outline btn-konfirmasi-dialog"
-                                style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 8px; color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.4);">
-                                <i class="fas fa-lock"></i> Formulir Terkunci (Buka / Konfirmasi)
+                                @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan yang belum selesai (menunggu review / belum masuk Dapodik)." @endif
+                                style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 8px; color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.4); {{ $hasUnfinishedUsulan ? 'opacity: .55; cursor: not-allowed;' : '' }}">
+                                <i class="fas fa-lock"></i> {{ $hasUnfinishedUsulan ? 'Menunggu Proses Usulan Selesai' : 'Formulir Terkunci (Buka / Konfirmasi)' }}
                             </button>
                         @else
                             <button type="submit" class="btn btn-primary"
@@ -526,7 +538,7 @@
         </form>
 
         <!-- 5. Riwayat Usulan Perubahan Siswa (Tab Progress) - PER TRANSAKSI / PENGAJUAN -->
-        @if ($riwayatBatches->isNotEmpty())
+        {{-- Datatable selalu dirender walau belum ada usulan, agar kerangka tabel (header + pencarian) tetap terlihat. --}}
             @php
                 $fmtUsulanVal = function ($val) {
                     if ($val === null) return '-';
@@ -710,7 +722,6 @@
                     <div id="modalRiwayatUsulanBody" style="overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px);"></div>
                 </div>
             </div>
-        @endif
     @else
         <div style="padding: 40px 16px; text-align: center; color: var(--text-muted);">
             <i class="fas fa-user-xmark mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4; display: block;"></i>
@@ -745,6 +756,7 @@
 
             <!-- Pilihan 2 Tombol Tile Berukuran Besar dengan Icon Utama -->
             @php ($prereqValid = $berkasPrereq['is_valid'] ?? true)
+            @php ($sesuaiDisabled = !$prereqValid || $hasUnfinishedUsulan)
             @if (!$prereqValid)
                 <div
                     style="margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35); font-size: var(--text-xs, 0.75rem); color: var(--text-color); line-height: 1.45;">
@@ -754,11 +766,20 @@
                     <strong>Valid</strong>.
                 </div>
             @endif
+            @if ($hasUnfinishedUsulan)
+                <div
+                    style="margin-bottom: 14px; padding: 10px 12px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35); font-size: var(--text-xs, 0.75rem); color: var(--text-color); line-height: 1.45;">
+                    <i class="fas fa-lock me-1" style="color: var(--warning, #f59e0b);"></i>
+                    Pilihan konfirmasi <strong>dikunci</strong> karena masih ada usulan perubahan yang belum selesai
+                    (menunggu review / belum masuk Dapodik).
+                </div>
+            @endif
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                 <!-- Opsi 1: Data Sesuai -->
                 <button type="button" class="btn btn-tile-konfirmasi" data-status="sesuai"
-                    @if (!$prereqValid) disabled aria-disabled="true" title="Lengkapi berkas KK & Ijazah Valid terlebih dahulu" @endif
-                    style="background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: {{ $prereqValid ? 'pointer' : 'not-allowed' }}; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px; {{ $prereqValid ? '' : 'opacity: 0.5; filter: grayscale(0.4);' }}">
+                    @if ($sesuaiDisabled) disabled aria-disabled="true" @endif
+                    title="{{ $hasUnfinishedUsulan ? 'Pilihan konfirmasi dikunci: masih ada usulan belum selesai' : (!$prereqValid ? 'Lengkapi berkas KK & Ijazah Valid terlebih dahulu' : 'Tandai data sudah sesuai') }}"
+                    style="background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: {{ $sesuaiDisabled ? 'not-allowed' : 'pointer' }}; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px; {{ $sesuaiDisabled ? 'opacity: 0.5; filter: grayscale(0.4);' : '' }}">
                     <div
                         style="width: 46px; height: 46px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
                         <i class="fas fa-circle-check"></i>
@@ -770,7 +791,8 @@
 
                 <!-- Opsi 2: Belum Sesuai -->
                 <button type="button" class="btn btn-tile-konfirmasi" data-status="perlu_perbaikan"
-                    style="background: rgba(245, 158, 11, 0.08); border: 2px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan belum selesai" @endif
+                    style="background: rgba(245, 158, 11, 0.08); border: 2px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: {{ $hasUnfinishedUsulan ? 'not-allowed' : 'pointer' }}; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px; {{ $hasUnfinishedUsulan ? 'opacity: 0.5; filter: grayscale(0.4);' : '' }}">
                     <div
                         style="width: 46px; height: 46px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
                         <i class="fas fa-pen-to-square"></i>

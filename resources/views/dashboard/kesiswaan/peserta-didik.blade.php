@@ -24,14 +24,6 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            {{-- Hanya tampil saat tab "Usulan Perubahan" yang terbuka. --}}
-            @if ($canCreate && $activeTab === 'usulan')
-                <button type="button" class="btn btn-primary" id="btnOpenUsulanModal"
-                    title="Ajukan Usulan Perubahan Data Siswa" aria-label="Ajukan Usulan Perubahan Data Siswa"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                    <i class="fas fa-file-pen"></i>
-                </button>
-            @endif
         </div>
     </div>
 
@@ -162,48 +154,6 @@
                     <div class="dash-stat-label">Lengkap &amp; Valid</div>
                 </div>
             </div>
-        @elseif ($activeTab === 'usulan')
-            {{-- Rekap 4 Card untuk Tab Usulan Perubahan Data --}}
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                    <i class="fas fa-clock-rotate-left"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
-                        {{ number_format($stats['usulan_menunggu'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Menunggu Review</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
-                    <i class="fas fa-circle-check"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
-                        {{ number_format($stats['usulan_disetujui'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Disetujui (Siap Dapodik)</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
-                    <i class="fas fa-cloud-arrow-up"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
-                        {{ number_format($stats['usulan_dapodik'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Selesai di Dapodik</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
-                    <i class="fas fa-circle-xmark"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
-                        {{ number_format($stats['usulan_ditolak'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Ditolak Kesiswaan</div>
-                </div>
-            </div>
         @elseif ($activeTab === 'alumni')
             {{-- Rekap 4 Card untuk Tab Alumni --}}
             <div class="dash-stat-card">
@@ -263,10 +213,6 @@
                 class="periode-nav-tab {{ $activeTab === 'berkas' ? 'active' : '' }}">
                 <i class="fas fa-folder-open"></i> Berkas
             </a>
-            <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
-                class="periode-nav-tab {{ $activeTab === 'usulan' ? 'active' : '' }}">
-                <i class="fas fa-file-pen"></i> Usulan Perubahan
-            </a>
             <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'alumni']) }}"
                 class="periode-nav-tab {{ $activeTab === 'alumni' ? 'active' : '' }}">
                 <i class="fas fa-graduation-cap"></i> Alumni
@@ -291,11 +237,6 @@
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
                         {{ $activeTab === 'berkas' ? 'selected' : '' }}>
                         📁 Berkas
-                    </option>
-                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
-                        {{ $activeTab === 'usulan' ? 'selected' : '' }}>
-                        📝 Usulan Perubahan Data
-                        {{ ($stats['usulan_menunggu'] ?? 0) > 0 ? '(' . $stats['usulan_menunggu'] . ' Menunggu)' : '' }}
                     </option>
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'alumni']) }}"
                         {{ $activeTab === 'alumni' ? 'selected' : '' }}>
@@ -378,27 +319,6 @@
                                 Ditolak
                             </option>
                         </select>
-                    @elseif ($activeTab === 'usulan')
-                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
-                            <option value="">Semua Rombel</option>
-                            @foreach ($filterRombel as $r)
-                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                    {{ $r }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
-                            <option value="">Semua Status Usulan</option>
-                            <option value="menunggu" {{ $status === 'menunggu' ? 'selected' : '' }}>Menunggu Review
-                            </option>
-                            <option value="disetujui" {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui (Siap
-                                Dapodik)
-                            </option>
-                            <option value="sudah_ke_dapodik" {{ $status === 'sudah_ke_dapodik' ? 'selected' : '' }}>
-                                Selesai di
-                                Dapodik</option>
-                            <option value="ditolak" {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak Kesiswaan
-                            </option>
-                        </select>
                     @elseif ($activeTab === 'alumni')
                         <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
                             <option value="">Semua Rombel Terakhir</option>
@@ -456,8 +376,6 @@
             @include('dashboard.kesiswaan.partials.tab-tidak-aktif')
         @elseif ($activeTab === 'berkas')
             @include('dashboard.kesiswaan.partials.tab-berkas')
-        @elseif ($activeTab === 'usulan')
-            @include('dashboard.kesiswaan.partials.tab-usulan')
         @elseif ($activeTab === 'alumni')
             @include('dashboard.kesiswaan.partials.tab-alumni')
         @endif

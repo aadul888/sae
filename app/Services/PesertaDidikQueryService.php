@@ -375,6 +375,48 @@ class PesertaDidikQueryService
     }
 
     /**
+     * Reset status konfirmasi identitas peserta didik kembali ke posisi awal
+     * ('belum_konfirmasi') TANPA menghapus riwayat usulan perubahan.
+     */
+    public function resetKonfirmasi(string $pdId): array
+    {
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+        if (!$pd) {
+            return ['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.', 'status_code' => 404];
+        }
+
+        if (!Table::exists('peserta_didik_identitas')) {
+            return ['status' => 'error', 'message' => 'Tabel identitas peserta didik tidak tersedia.', 'status_code' => 422];
+        }
+
+        $identitas = DB::table('peserta_didik_identitas')->where('peserta_didik_id', $pdId)->first();
+        if (!$identitas) {
+            return ['status' => 'error', 'message' => 'Data identitas peserta didik belum pernah dibuat, tidak ada konfirmasi untuk direset.', 'status_code' => 404];
+        }
+
+        DB::table('peserta_didik_identitas')->where('peserta_didik_id', $pdId)->update([
+            'status_konfirmasi'  => 'belum_konfirmasi',
+            'dikonfirmasi_pada'  => null,
+            'dikonfirmasi_oleh'  => null,
+            'catatan_siswa'      => null,
+            'terakhir_diubah_oleh' => null,
+            'updated_at'         => now(),
+        ]);
+
+        // Riwayat usulan (siswa_usulan_perubahan) SENGAJA tidak disentuh.
+        $riwayatTersisa = Table::exists('siswa_usulan_perubahan')
+            ? DB::table('siswa_usulan_perubahan')->where('peserta_didik_id', $pdId)->count()
+            : 0;
+
+        return [
+            'status'  => 'success',
+            'message' => "Status konfirmasi identitas {$pd->nama} berhasil direset ke 'Belum Konfirmasi' (posisi awal). Formulir kembali terkunci. Riwayat usulan ({$riwayatTersisa} butir) tetap utuh.",
+            'nama'    => $pd->nama,
+            'riwayat_tersisa' => $riwayatTersisa,
+        ];
+    }
+
+    /**
      * Tunjuk atau cabut wewenang peserta didik sebagai Koordinator Kelas.
      */
     public function toggleKoordinator(string $pdId, ?string $jabatan): array
