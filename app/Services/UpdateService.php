@@ -288,6 +288,7 @@ class UpdateService
         $success = true;
         $newCommit = null;
         $zipResult = null;
+        $codeSynced = true;
 
         // 0. Pra-perbaikan hak akses agar git pull & zip fallback tidak Permission Denied
         $this->ensurePermissions();
@@ -377,11 +378,14 @@ class UpdateService
                     $newCommit = $zipResult['sha'] ?? null;
                     $logs[] = "[FALLBACK SUCCESS] Berhasil menyinkronkan file kode ke commit GitHub: " . ($newCommit ? substr($newCommit, 0, 7) : 'terbaru');
                 } else {
+                    // Kode TIDAK utuh: jangan lanjut migrate/catat versi, agar tidak
+                    // tercatat "sudah update" padahal isi masih separuh.
                     $success = false;
+                    $codeSynced = false;
                 }
             }
 
-            if (empty($newCommit) || str_contains($newCommit, 'fatal:')) {
+            if ($codeSynced && (empty($newCommit) || str_contains($newCommit, 'fatal:'))) {
                 $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
                 if (empty($newCommit) || str_contains($newCommit, 'fatal:')) {
                     $newCommit = $zipResult['sha'] ?? null;
@@ -396,8 +400,15 @@ class UpdateService
             }
             if (!$zipResult['success']) {
                 $success = false;
+                $codeSynced = false;
             }
             $newCommit = $zipResult['sha'] ?? null;
+        }
+
+        if (!$codeSynced) {
+            $logs[] = "[BERHENTI] Sinkronisasi file kode gagal. Migrasi & pencatatan versi dilewati. "
+                . "Perbaiki izin tulis (mis. 'chown -R www:www " . base_path() . "' atau 'chmod -R 775') "
+                . "lalu jalankan pembaruan lagi.";
         }
 
         // 2. Sinkronkan dependensi Composer SEBELUM migrasi.
@@ -406,15 +417,18 @@ class UpdateService
         //    "Method Illuminate\Database\MySqlConnection::hasDirectConnection
         //    does not exist" karena framework baru memanggil API yang belum ada
         //    di vendor lama.
-        $depsOk = $this->syncComposerDependencies($logs);
-        if (!$depsOk) {
-            $success = false;
-            $logs[] = "[DEPS] Dependensi Composer gagal disinkronkan. Migrasi dilewati "
-                . "agar database tidak berubah dengan vendor yang tidak sesuai.";
+        $depsOk = false;
+        if ($codeSynced) {
+            $depsOk = $this->syncComposerDependencies($logs);
+            if (!$depsOk) {
+                $success = false;
+                $logs[] = "[DEPS] Dependensi Composer gagal disinkronkan. Migrasi dilewati "
+                    . "agar database tidak berubah dengan vendor yang tidak sesuai.";
+            }
         }
 
-        // 3. Jalankan Migrasi Database (hanya bila dependensi siap)
-        if ($depsOk) {
+        // 3. Jalankan Migrasi Database (hanya bila kode & dependensi siap)
+        if ($codeSynced && $depsOk) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
                 $logs[] = "[MIGRATE] " . trim(Artisan::output());
@@ -424,9 +438,9 @@ class UpdateService
             }
         }
 
-        // 4. Catat Versi & Waktu Update ke Database
+        // 4. Catat Versi & Waktu Update ke Database (hanya bila kode benar-benar terpasang)
         try {
-            if (Table::exists('settings')) {
+            if ($codeSynced && Table::exists('settings')) {
                 $commitShort = $newCommit ? substr($newCommit, 0, 7) : null;
                 $updateData = [
                     'updated_at' => now(),
@@ -657,28 +671,107 @@ class UpdateService
     }
 
     /**
-     * Pastikan permission storage, cache, .git, dan direktori web writable oleh PHP
+     * Tulis paksa satu file ketika copy/file_put_contents biasa gagal karena
+     * file lama dimiliki user lain (mis. root). Strategi: pastikan direktori
+     * dapat ditulis, hapus file lama (butuh izin direktori saja), lalu salin
+     * ulang; terakhir coba pindahkan dari folder ekstraksi.
+     */
+    protected function forceWriteFile(string $src, string $dest, string $rel): bool
+    {
+        $dir = dirname($dest);
+        @chmod($dir, 0777);
+        @chmod($dest, 0666);
+
+        // Slot dikosongkan dulu: menulis file baru tak terhalang file lama.
+        @unlink($dest);
+        if (@copy($src, $dest)) {
+            return true;
+        }
+
+        // Salin isi secara manual setelah slot dikosongkan.
+        $content = @file_get_contents($src);
+        if ($content !== false && @file_put_contents($dest, $content) !== false) {
+            return true;
+        }
+
+        // Upaya terakhir di server: paksa lewat sudo bila tersedia (file ber-owner root).
+        if (DIRECTORY_SEPARATOR === '/' && $this->hasPasswordlessSudo()) {
+            @shell_exec('sudo -n cp -f ' . escapeshellarg($src) . ' ' . escapeshellarg($dest) . ' 2>&1');
+            if (is_file($dest) && @filesize($dest) === @filesize($src)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Pastikan permission storage, cache, .git, dan direktori web writable oleh PHP.
+     * Termasuk upaya memperbaiki file yang dimiliki root (mis. sisa akses SSH)
+     * agar web user bisa menimpanya saat update.
      */
     protected function ensurePermissions(): void
     {
-        if (DIRECTORY_SEPARATOR === '/') {
-            $base = escapeshellarg(base_path());
-            $storage = escapeshellarg(storage_path());
-            $cache = escapeshellarg(base_path('bootstrap/cache'));
-            $gitDir = escapeshellarg(base_path('.git'));
-
-            // Pastikan runtime Laravel selalu writable
-            @shell_exec("chmod -R 777 $storage $cache 2>/dev/null");
-
-            // Pastikan repository .git writable agar git fetch/pull/unpack tidak permission denied
-            if (is_dir(base_path('.git'))) {
-                @shell_exec("chmod -R 777 $gitDir 2>/dev/null");
-            }
-
-            // Pastikan folder-folder target deploy dapat ditulis
-            @shell_exec("chmod -R 777 " . escapeshellarg(public_path('img')) . " 2>/dev/null");
-            @shell_exec("chmod -R 775 " . escapeshellarg(app_path()) . " " . escapeshellarg(resource_path()) . " " . escapeshellarg(database_path()) . " " . escapeshellarg(public_path()) . " " . escapeshellarg(base_path('routes')) . " 2>/dev/null");
+        if (DIRECTORY_SEPARATOR !== '/') {
+            return;
         }
+
+        $base = escapeshellarg(base_path());
+        $storage = escapeshellarg(storage_path());
+        $cache = escapeshellarg(base_path('bootstrap/cache'));
+        $gitDir = escapeshellarg(base_path('.git'));
+
+        // 1. Perbaiki kepemilikan bila memungkinkan: file sisa akses SSH sering
+        //    dimiliki root, sehingga web user tak bisa menimpanya. Bila kita root,
+        //    tulisan selalu berhasil. Bila bukan, coba lewat sudo NOPASSWD.
+        $me = trim(@shell_exec('id -un 2>&1') ?: '');
+        $myGroup = trim(@shell_exec('id -gn 2>&1') ?: '');
+        if ($me !== '' && $me !== 'root' && $myGroup !== '') {
+            $target = escapeshellarg($me . ':' . $myGroup);
+            if ($this->hasPasswordlessSudo()) {
+                @shell_exec('sudo -n chown -R ' . $target . ' ' . $base . ' 2>&1');
+            }
+        }
+
+        // 2. Pastikan runtime Laravel selalu writable
+        @shell_exec("chmod -R 777 $storage $cache 2>/dev/null");
+
+        // 3. Pastikan repository .git writable agar git fetch/pull/unpack tidak permission denied
+        if (is_dir(base_path('.git'))) {
+            @shell_exec("chmod -R 777 $gitDir 2>/dev/null");
+        }
+
+        // 4. Pastikan folder target deploy dapat ditulis
+        @shell_exec("chmod -R 777 " . escapeshellarg(public_path('img')) . " 2>/dev/null");
+        @shell_exec("chmod -R 775 " . escapeshellarg(app_path()) . " " . escapeshellarg(resource_path()) . " " . escapeshellarg(database_path()) . " " . escapeshellarg(public_path()) . " " . escapeshellarg(base_path('routes')) . " 2>/dev/null");
+
+        // 5. Bila masih ada yang tak bisa ditulis, coba lagi lewat sudo (file ber-owner root).
+        if ($this->hasPasswordlessSudo() && !$this->isProjectWritable()) {
+            @shell_exec('sudo -n chmod -R 775 ' . $base . ' 2>&1');
+        }
+    }
+
+    /** True bila bisa memakai sudo tanpa prompt password (mis. user punya NOPASSWD). */
+    protected function hasPasswordlessSudo(): bool
+    {
+        if (DIRECTORY_SEPARATOR !== '/') {
+            return false;
+        }
+
+        $out = (string) @shell_exec('sudo -n true 2>&1 && echo __SAE_SUDO__');
+        return str_contains($out, '__SAE_SUDO__');
+    }
+
+    /** Cek cepat apakah file aplikasi kunci dapat ditulis ulang. */
+    protected function isProjectWritable(): bool
+    {
+        foreach ([base_path('routes/web.php'), base_path('artisan')] as $probe) {
+            if (is_file($probe) && !is_writable($probe)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -752,16 +845,35 @@ class UpdateService
                     @File::makeDirectory($destDir, 0777, true, true);
                 }
 
-                // Coba chmod target file bila writable issue
+                $src = $file->getPathname();
+
+                // Isi sudah sama → lewati. Ini yang paling penting: tanpa cek ini
+                // updater menulis ulang SEMUA file (1000+) setiap kali, sehingga
+                // ribuan file ber-owner lain ikut gagal padahal tidak berubah.
+                if (is_file($dest)
+                    && @filesize($dest) === @filesize($src)
+                    && @md5_file($dest) === @md5_file($src)) {
+                    $copied++;
+                    continue;
+                }
+
                 if (file_exists($dest) && !is_writable($dest)) {
                     @chmod($dest, 0666);
                 }
 
-                $ok = @copy($file->getPathname(), $dest);
+                // File lama bisa dimiliki user lain (mis. root). Menghapus file
+                // cukup butuh izin TULIS DIREKTORI, bukan kepemilikan file, lalu
+                // file baru dibuat PHP dan otomatis writable.
+                if (file_exists($dest)) {
+                    @unlink($dest);
+                }
+
+                $ok = @copy($src, $dest);
                 if (!$ok) {
-                    // Fallback pakai file_put_contents
-                    $content = @file_get_contents($file->getPathname());
+                    $content = @file_get_contents($src);
                     if ($content !== false && @file_put_contents($dest, $content) !== false) {
+                        $copied++;
+                    } elseif ($this->forceWriteFile($src, $dest, $rel)) {
                         $copied++;
                     } else {
                         $failedCopies[] = $rel;

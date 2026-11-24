@@ -62,7 +62,7 @@ class UpdateServiceDependencyTest extends TestCase
         $src = file_get_contents(app_path('Services/UpdateService.php'));
 
         $this->assertStringContainsString(
-            'if ($depsOk)',
+            '$codeSynced && $depsOk',
             $src,
             'Migrasi harus dijaga kondisi $depsOk agar tidak berjalan dengan vendor tidak sesuai.'
         );
