@@ -7040,6 +7040,10 @@ input:disabled + .slider-toggle-crud {
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody tr.empty-row td,
     .dashboard-wrapper .dash-main .dash-body .table-pd tbody tr.empty-row td,
     .dashboard-wrapper .dash-main .dash-body table tbody tr.empty-row td {
+        /* Kembalikan ke sel tabel agar teks tidak terpecah per karakter
+           (sebelumnya tetap flex dari presensi.css / mode kartu lama).
+           colspan otomatis membentang penuh seperti mode desktop. */
+        display: table-cell !important;
         text-align: center !important;
         vertical-align: middle !important;
         white-space: normal !important;
@@ -7091,25 +7095,28 @@ input:disabled + .slider-toggle-crud {
         margin-right: auto !important;
     }
 
-    /* Kunci lebar tabel 100% saat data kosong agar tidak overflow horizontal dan konten empty state tepat di tengah layar */
+    /* Saat data kosong: pakai auto layout agar header seperti mode desktop
+       dan pesan empty state membentang penuh tanpa terpecah. Lebar tabel
+       mengikuti aturan dasar (min-width:100%, max-width:none) agar tetap
+       bisa digeser horizontal. */
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody td[colspan]) table,
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody tr.empty-row) table,
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack:has(tbody td.cell-empty) table,
     .dashboard-wrapper .dash-main .dash-body table:has(tbody td[colspan]),
     .dashboard-wrapper .dash-main .dash-body table:has(tbody tr.empty-row),
     .dashboard-wrapper .dash-main .dash-body table:has(tbody td.cell-empty) {
-        width: 100% !important;
-        min-width: 100% !important;
-        max-width: 100% !important;
-        table-layout: fixed !important;
+        table-layout: auto !important;
     }
 
+    /* Header saat data kosong: biarkan wrap agar tabel pas 100% tanpa
+       memotong teks header (dulu nowrap + ellipsis → "T_", "JAM_" terpotong). */
     .dashboard-wrapper .dash-main .dash-body table:has(tbody td[colspan]) thead th,
     .dashboard-wrapper .dash-main .dash-body table:has(tbody tr.empty-row) thead th,
     .dashboard-wrapper .dash-main .dash-body table:has(tbody td.cell-empty) thead th {
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        text-overflow: clip !important;
     }
 
     .dashboard-wrapper .dash-main .dash-body .table-responsive-stack tbody td::before,

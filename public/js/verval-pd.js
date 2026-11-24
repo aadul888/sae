@@ -99,6 +99,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Delegasi: klik sel centang Residu → ubah ✓/✗ (tercatat di riwayat).
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.residu-cell-btn');
+        if (!btn) return;
+        e.preventDefault();
+        if (btn.disabled) return;
+
+        const id = btn.getAttribute('data-id');
+        const column = btn.getAttribute('data-column');
+        const current = btn.getAttribute('data-value') || '';
+        const next = btn.getAttribute('data-next') || '✓';
+
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/dashboard/verval-pd/residu/${encodeURIComponent(id)}/cell`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': csrf(),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ column, value: next }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                const applied = json.value === null ? '' : String(json.value);
+                btn.setAttribute('data-value', applied);
+                btn.setAttribute('data-next', (applied && /[✓✔√]/.test(applied)) ? '✗' : '✓');
+                const box = btn.querySelector('span');
+                const isYes = applied !== '' && /[✓✔√]/.test(applied);
+                const isNo = applied !== '' && /[✗✘×]/.test(applied);
+                if (box && (isYes || isNo)) {
+                    box.style.cssText = `display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm, 6px); background: rgba(${isYes ? '16,185,129' : '239,68,68'},0.15); color: ${isYes ? 'var(--success, #10b981)' : 'var(--danger, #ef4444)'};`;
+                    box.innerHTML = `<i class="fas fa-${isYes ? 'check' : 'xmark'}"></i>`;
+                    box.setAttribute('title', isYes ? 'Sesuai' : 'Tidak Sesuai');
+                }
+                const title = (applied && /[✓✔√]/.test(applied)) ? 'Klik untuk ubah menjadi Tidak Sesuai (✗)' : 'Klik untuk ubah menjadi Sesuai (✓)';
+                btn.setAttribute('title', title);
+                btn.setAttribute('aria-label', title);
+            } else {
+                Swal.fire('Gagal', json.message || 'Perubahan tidak tersimpan.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     // ====================================================== BERKAS DIGITAL
     let berkasStatusChanged = false;
 

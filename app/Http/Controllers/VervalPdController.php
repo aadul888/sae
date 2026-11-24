@@ -46,6 +46,8 @@ class VervalPdController extends Controller
         [$canCreate, $canRead, $canUpdate, $canDelete] = $this->permissions($user);
 
         $data = $this->pageData($request, 'residu');
+        $sortable = ['rombel_sekolah', 'nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'];
+        $sort = in_array($data['sort'], $sortable, true) ? $data['sort'] : null;
         $data['items'] = VervalPdResidu::query()
             ->when(trim($request->get('q', '')) !== '', function ($q) use ($request) {
                 $term = trim($request->get('q'));
@@ -54,7 +56,7 @@ class VervalPdController extends Controller
                     ->orWhere('nik', 'like', "%{$term}%")
                     ->orWhere('rombel_sekolah', 'like', "%{$term}%"));
             })
-            ->orderBy('nama')
+            ->orderBy($sort ?? 'nama', $sort ? $data['sortDir'] : 'asc')
             ->paginate($data['perPage'], ['*'], 'residu_page')
             ->withQueryString();
         $data['stats'] = $this->residuStats();
@@ -126,6 +128,24 @@ class VervalPdController extends Controller
         }
 
         $res = $this->residuService->clear($user);
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    /** Ubah satu sel centang / Rombel pada satu baris Residu (tercatat di riwayat). */
+    public function updateResiduCell(Request $request, $id): JsonResponse
+    {
+        $user = $this->sessionUser();
+        if (!$this->can($user, 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'column' => 'required|string',
+            'value' => 'nullable|string|max:150',
+        ]);
+
+        $res = $this->residuService->updateCell((int) $id, $validated['column'], $validated['value'] ?? null, $user);
 
         return response()->json($res, $res['status_code'] ?? 200);
     }

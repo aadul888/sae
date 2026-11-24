@@ -15,6 +15,22 @@
         }
         return '<span style="font-weight: 600; color: var(--text-color); font-size: var(--text-sm, 0.8125rem);">' . e($val) . '</span>';
     };
+
+    // Sel centang bisa diklik untuk mengubah ✓/✗ (khusus admin dengan hak update).
+    $renderCell = function ($item, $col) use ($renderCentang, $canUpdate) {
+        $raw = trim((string) $item->{$col});
+        if (!$canUpdate) {
+            return $renderCentang($raw);
+        }
+        $next = ($raw !== '' && preg_match('/[✓✔√]/u', $raw)) ? '✗' : '✓';
+        $title = 'Klik untuk ubah menjadi ' . ($next === '✓' ? 'Sesuai (✓)' : 'Tidak Sesuai (✗)');
+
+        return '<button type="button" class="residu-cell-btn" data-id="' . $item->id . '" data-column="' . e($col) . '"'
+            . ' data-value="' . e($raw) . '" data-next="' . $next . '"'
+            . ' title="' . $title . '" aria-label="' . $title . '"'
+            . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;">'
+            . $renderCentang($raw) . '</button>';
+    };
 @endphp
 
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
@@ -22,23 +38,26 @@
         <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 @foreach ([
-                    'NISN',
-                    'NIK',
-                    'NAMA',
-                    'Rombel/Sekolah',
-                    'NISN Dukcapil',
-                    'NIK Dukcapil',
-                    'NIK Ganda',
-                    'Nama Dukcapil',
-                    'Tempat Lahir',
-                    'Tanggal Lahir',
-                    'Ibu Kandung',
-                    'Jenis Kelamin',
-                    'Desa/Kelurahan',
-                ] as $label)
-                    <th
-                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 4 ? 'text-align: center;' : '' }}">
+                    [null, 'NISN'],
+                    [null, 'NIK'],
+                    [null, 'NAMA'],
+                    ['rombel_sekolah', 'Rombel/Sekolah'],
+                    ['nisn_banding', 'NISN Dukcapil'],
+                    ['nik_dukcapil', 'NIK Dukcapil'],
+                    ['nik_ganda', 'NIK Ganda'],
+                    ['nama_banding', 'Nama Dukcapil'],
+                    ['tempat_lahir', 'Tempat Lahir'],
+                    ['tanggal_lahir', 'Tanggal Lahir'],
+                    ['ibu_kandung', 'Ibu Kandung'],
+                    ['jenis_kelamin', 'Jenis Kelamin'],
+                    ['desa_kelurahan', 'Desa/Kelurahan'],
+                ] as [$key, $label])
+                    <th @if ($key) class="sortable-th {{ $sort === $key ? 'sorted' : '' }}" data-sort="{{ $key }}" @endif
+                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 3 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
                         {{ $label }}
+                        @if ($key)
+                            <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        @endif
                     </th>
                 @endforeach
             </tr>
@@ -68,15 +87,20 @@
                         data-label="Nama">
                         {{ $item->nama ?: '-' }}
                     </td>
-                    <td style="padding: 12px 16px;" data-label="Rombel/Sekolah">
-                        <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
-                            {{ $item->rombel_sekolah ?: '-' }}
-                        </span>
+                    <td style="padding: 12px 16px; text-align: center;" data-label="Rombel/Sekolah">
+                        @php $rombelVal = trim((string) $item->rombel_sekolah); @endphp
+                        @if ($rombelVal !== '' && preg_match('/[✓✔√✗✘×]/u', $rombelVal))
+                            {!! $renderCell($item, 'rombel_sekolah') !!}
+                        @else
+                            <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
+                                {{ $rombelVal !== '' ? $rombelVal : '-' }}
+                            </span>
+                        @endif
                     </td>
                     @foreach (['nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'] as $col)
                         <td style="padding: 12px 16px; text-align: center;"
                             data-label="{{ str_replace('_', ' ', $col) }}">
-                            {!! $renderCentang($item->{$col}) !!}
+                            {!! $renderCell($item, $col) !!}
                         </td>
                     @endforeach
                 </tr>
