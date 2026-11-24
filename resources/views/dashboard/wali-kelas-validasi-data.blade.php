@@ -177,15 +177,7 @@
                                 Lengkap</option>
                         </select>
 
-                        <!-- Filter Gender -->
-                        <select id="filterGender" name="gender" class="toolbar-filter-select"
-                            style="height: 38px; min-width: 125px;">
-                            <option value="">Semua Gender</option>
-                            <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
-                            <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
-                        </select>
-
-                        @if ($q || $gender || $berkas || ($konfirmasi && !in_array($konfirmasi, ['', 'semua'], true)))
+                        @if ($q || $berkas || ($konfirmasi && !in_array($konfirmasi, ['', 'semua'], true)))
                             <a href="{{ route('dashboard.wali-kelas.validasi.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
                                 class="btn btn-outline btn-reset-filter"
                                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"

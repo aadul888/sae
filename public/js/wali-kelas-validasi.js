@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const perPageSelect = document.getElementById("perPageSelect");
     const filterKonfirmasi = document.getElementById("filterKonfirmasi");
     const filterBerkas = document.getElementById("filterBerkas");
-    const filterGender = document.getElementById("filterGender");
     const adminRombelSelect = document.getElementById("adminRombelSelect");
 
     function applyFilter(overrideParams = {}) {
@@ -47,10 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (filterBerkas) {
             if (filterBerkas.value) url.searchParams.set("berkas", filterBerkas.value);
             else url.searchParams.delete("berkas");
-        }
-        if (filterGender) {
-            if (filterGender.value) url.searchParams.set("gender", filterGender.value);
-            else url.searchParams.delete("gender");
         }
         if (adminRombelSelect) {
             if (adminRombelSelect.value) url.searchParams.set("rombel_id", adminRombelSelect.value);
@@ -87,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!e.target || e.target.tagName !== "SELECT") return;
         if (
             e.target.closest("#tableDataContainer, .datatable-toolbar") &&
-            (e.target.id === "filterKonfirmasi" || e.target.id === "filterBerkas" || e.target.id === "filterGender" || e.target.id === "adminRombelSelect" || e.target.id === "perPageSelect")
+            (e.target.id === "filterKonfirmasi" || e.target.id === "filterBerkas" || e.target.id === "adminRombelSelect" || e.target.id === "perPageSelect")
         ) {
             e.preventDefault();
             e.stopPropagation();
