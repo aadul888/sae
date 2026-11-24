@@ -64,7 +64,7 @@ class PresensiHarian extends Model
         'H' => '<span class="badge badge-success"><i class="fas fa-check-circle me-1"></i> Hadir</span>',
         'T' => '<span class="badge badge-warning"><i class="fas fa-clock me-1"></i> Terlambat</span>',
         'I' => '<span class="badge badge-primary"><i class="fas fa-file-signature me-1"></i> Izin</span>',
-        'S' => '<span class="badge badge-purple" style="background: rgba(139,92,246,0.15); color: #8b5cf6;"><i class="fas fa-notes-medical me-1"></i> Sakit</span>',
+        'S' => '<span class="badge badge-purple"><i class="fas fa-notes-medical me-1"></i> Sakit</span>',
         'A' => '<span class="badge badge-danger"><i class="fas fa-times-circle me-1"></i> Alpha</span>',
         'D' => '<span class="badge badge-info"><i class="fas fa-award me-1"></i> Dispen</span>',
     ];

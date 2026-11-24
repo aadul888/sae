@@ -465,6 +465,119 @@ select:autofill {
     border: 1px solid rgba(6, 182, 212, 0.3);
     color: var(--accent);
 }
+.alert-warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--warning);
+}
+
+/* Utilitas kecil bersama */
+.badge--xs    { font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; }
+.badge--sm    { font-size: var(--text-xs, 0.75rem); }
+
+/* Elemen baku banner & toolbar (dipakai bersama generator modul) */
+.dash-banner-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.dash-banner-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg, 12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-2xl, 1.5rem);
+    flex-shrink: 0;
+}
+.dash-banner-icon--primary { background: rgba(59, 130, 246, 0.12); color: var(--primary); }
+.dash-banner-icon--success { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+.dash-banner-icon--warning { background: rgba(245, 158, 11, 0.12); color: var(--warning); }
+.dash-banner-icon--accent  { background: rgba(6, 182, 212, 0.12);  color: var(--accent); }
+
+.btn-icon-square {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md, 8px);
+}
+
+.table-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+}
+.table-toolbar-col {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.table-head-row > th {
+    text-align: left;
+}
+.table-empty-cell {
+    text-align: center;
+    padding: 36px 14px;
+    color: var(--text-muted);
+    font-size: var(--text-base, 0.875rem);
+}
+.table-empty-icon {
+    font-size: var(--text-3xl, 1.875rem);
+    opacity: 0.4;
+}
+.text-center { text-align: center; }
+.text-end { text-align: right; }
+.req { color: var(--danger); }
+.mb-20 { margin-bottom: 20px; }
+.d-inline { display: inline; }
+.w-100 { width: 100%; }
+.w-50px  { width: 50px; }
+.w-100px { width: 100px; }
+.w-120px { width: 120px; }
+.dash-banner--tight { margin-bottom: 20px; }
+.dash-stat-grid--dense { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+/* Struktur modal baku (dipakai bersama generator modul) */
+.modal-card-sm { max-width: 500px; }
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+.modal-title {
+    font-size: var(--text-lg, 1.125rem);
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: var(--text-lg, 1.125rem);
+    padding: 4px;
+}
+.modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 14px;
+}
 
 /* Badges */
 .badge {
@@ -512,6 +625,54 @@ select:autofill {
     background: transparent;
     color: var(--text-muted);
     border: 1px dashed var(--border-color);
+}
+.badge-purple {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+.badge-secondary {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--text-muted);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Badge status pekan jadwal KBM (sumber: JadwalKbmPekan::STATUS_BADGES) */
+.pekan-status-badge {
+    font-size: var(--text-sm);
+    padding: 4px 8px;
+}
+.pekan-status--draft {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.pekan-status--aktif {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.pekan-status--libur {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+.pekan-status--ujian {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+/* Copyright badge (footer sistem) */
+.copyright-badge {
+    font-size: var(--text-xs, 0.75rem);
+    color: var(--text-muted);
+    text-align: center;
+    padding: 4px 0;
+}
+.copyright-badge a {
+    color: var(--primary);
+    text-decoration: none;
 }
 
 /* Global Responsive Segmented Tabs & Toolbars */

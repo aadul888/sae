@@ -216,7 +216,7 @@ class KalenderPendidikan extends Model
                 'is_libur'    => true,
                 'is_weekend'  => true,
                 'label'       => "Libur Akhir Pekan ({$namaHari})",
-                'badge'       => '<span class="badge badge-secondary" style="background: rgba(148,163,184,0.18); color: #64748b; border: 1px solid rgba(148,163,184,0.3);"><i class="fas fa-bed me-1"></i> Libur Akhir Pekan</span>',
+                'badge'       => '<span class="badge badge-secondary"><i class="fas fa-bed me-1"></i> Libur Akhir Pekan</span>',
                 'agenda'      => $agendaWeekend,
                 'nama_agenda' => $agendaWeekend
                     ? ($agendaWeekend->nama_kegiatan ?: "Libur Akhir Pekan ({$namaHari})")

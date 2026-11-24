@@ -51,10 +51,10 @@ class JadwalKbmPekan extends Model
     ];
 
     public const STATUS_BADGES = [
-        'draft' => 'background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3);',
-        'aktif' => 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);',
-        'libur' => 'background: rgba(148,163,184,0.18); color: var(--text-muted); border: 1px solid var(--border-color);',
-        'ujian' => 'background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3);',
+        'draft' => 'pekan-status--draft',
+        'aktif' => 'pekan-status--aktif',
+        'libur' => 'pekan-status--libur',
+        'ujian' => 'pekan-status--ujian',
     ];
 
     /** Label ringkas rentang tanggal, mis. "13 – 18 Okt 2026". */

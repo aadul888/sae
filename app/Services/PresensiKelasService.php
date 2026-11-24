@@ -621,7 +621,7 @@ class PresensiKelasService
                 'status'  => 'success',
                 'code'    => 200,
                 'message' => "Presensi mapel {$siswa->nama} berhasil dibatalkan / dikosongkan.",
-                'badge'   => '<span class="badge badge-outline" style="color: var(--text-muted); font-size: 0.74rem;">Belum</span>',
+                'badge'   => '<span class="badge badge-outline">Belum</span>',
             ];
         }
 

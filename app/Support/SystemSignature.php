@@ -169,9 +169,9 @@ final class SystemSignature
         $intl    = preg_replace('/^0/', '62', $contact);
         $addr    = htmlspecialchars($m['a'] ?? '', ENT_QUOTES, 'UTF-8');
 
-        return '<div class="copyright-badge" style="font-size:0.75rem;color:var(--text-muted,#94a3b8);text-align:center;padding:4px 0;">'
+        return '<div class="copyright-badge">'
             . '<span>Dikembangkan oleh <strong>' . $author . '</strong></span>'
-            . ' &bull; <a href="https://wa.me/' . $intl . '" target="_blank" rel="noopener" style="color:var(--primary,#6366f1);text-decoration:none;">'
+            . ' &bull; <a href="https://wa.me/' . $intl . '" target="_blank" rel="noopener">'
             . '<i class="fab fa-whatsapp"></i> WhatsApp</a>'
             . ' &bull; <span>' . $addr . '</span>'
             . '</div>';

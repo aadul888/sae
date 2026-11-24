@@ -138,8 +138,7 @@
                             @endif
                         </td>
                         <td style="padding: 12px 14px;">
-                            <span class="badge pekan-status-badge"
-                                style="{{ $pekan->status_badge }} font-size: var(--text-sm); padding: 4px 8px;">
+                            <span class="badge pekan-status-badge {{ $pekan->status_badge }}">
                                 {{ $pekan->status_label }}
                             </span>
                         </td>

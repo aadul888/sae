@@ -291,25 +291,24 @@ PHP;
 
 @section('content')
     <!-- 1. Header Banner & Actions -->
-    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+    <div class="dash-banner dash-banner--tight">
+        <div class="dash-banner-head">
+            <div class="dash-banner-icon dash-banner-icon--primary">
                 <i class="fas fa-cubes"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0 0 2px 0;">
+                <h2 class="dash-banner-title">
                     {$title}
                 </h2>
-                <p style="color: var(--text-muted); font-size: 0.84rem; margin: 0;">
+                <p class="dash-banner-desc">
                     Kelola data dan administrasi {$title} secara terpadu.
                 </p>
             </div>
         </div>
 
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <div class="dash-banner-actions">
             @if (\$canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenCreateModal"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                <button type="button" class="btn btn-primary btn-icon-square" id="btnOpenCreateModal"
                     title="Tambah Data {$title} Baru">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -319,22 +318,22 @@ PHP;
 
     <!-- 2. Flash Messages -->
     @if (session('success'))
-        <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+        <div class="alert alert-success">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
-        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
+        <div class="alert alert-danger">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
     @endif
 
     <!-- 3. Stat Grid Baku SAE (Tepat 4 Card Genap) -->
-    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
+    <div class="dash-stat-grid dash-stat-grid--dense mb-20">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
+            <div class="dash-stat-icon icon-primary">
                 <i class="fas fa-list"></i>
             </div>
             <div class="dash-stat-info">
@@ -343,7 +342,7 @@ PHP;
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon icon-success">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -352,7 +351,7 @@ PHP;
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon icon-warning">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
@@ -361,7 +360,7 @@ PHP;
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent);">
+            <div class="dash-stat-icon icon-accent">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -375,11 +374,11 @@ PHP;
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         <!-- 1. Toolbar Header (Entries, Filter & Search) -->
         <div class="datatable-toolbar">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+            <div class="table-toolbar-row">
+                <div class="table-toolbar-col">
                     <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <label for="perPageSelect">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
                             @foreach ([10, 15, 25, 50, 100] as \$n)
                                 <option value="{{ \$n }}" {{ (\$perPage ?? 25) == \$n ? 'selected' : '' }}>{{ \$n }}</option>
                             @endforeach
@@ -387,20 +386,18 @@ PHP;
                         <span>entri</span>
                     </div>
 
-                    <select id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterStatus" class="toolbar-filter-select">
                         <option value="">Semua Status</option>
                         <option value="aktif">Aktif</option>
                         <option value="nonaktif">Nonaktif</option>
                     </select>
 
-                    <a href="{{ route('{$slug}.index') }}" class="btn btn-outline"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                        title="Reset Filter">
+                    <a href="{{ route('{$slug}.index') }}" class="btn btn-outline btn-icon-square" title="Reset Filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 </div>
 
-                <div class="live-search-wrap" style="height: 38px;">
+                <div class="live-search-wrap">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="liveSearch" placeholder="Cari data {$title}..." value="{{ \$q ?? '' }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ !empty(\$q) ? 'visible' : '' }}" title="Hapus pencarian">
@@ -411,41 +408,41 @@ PHP;
         </div>
 
         <!-- 2. Konten Datatable Responsive Stack -->
-        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+        <div class="table-responsive-stack">
+            <table class="table table-pd">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">No</th>
-                        <th class="sortable-th {{ (\$sort ?? '') === 'nama' ? 'sorted' : '' }}" data-sort="nama" style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                    <tr class="table-head-row">
+                        <th class="text-center w-50px">No</th>
+                        <th class="sortable-th {{ (\$sort ?? '') === 'nama' ? 'sorted' : '' }}" data-sort="nama">
                             Nama Data
                             <span class="sort-icon">{!! (\$sort ?? '') === 'nama' ? ((\$sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Keterangan</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">Status</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">Aksi</th>
+                        <th>Keterangan</th>
+                        <th class="text-center w-120px">Status</th>
+                        <th class="text-end w-100px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse (\$items as \$index => \$item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;" data-label="No">{{ \$index + 1 }}</td>
-                            <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Data">{{ \$item->nama ?? '-' }}</td>
-                            <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-muted);" data-label="Keterangan">{{ \$item->keterangan ?? '-' }}</td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Status">
-                                <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">Aktif</span>
+                        <tr>
+                            <td class="text-center" data-label="No">{{ \$index + 1 }}</td>
+                            <td class="cell-pd-nama" data-label="Nama Data">{{ \$item->nama ?? '-' }}</td>
+                            <td data-label="Keterangan">{{ \$item->keterangan ?? '-' }}</td>
+                            <td class="text-center" data-label="Status">
+                                <span class="badge badge-success badge--xs">Aktif</span>
                             </td>
-                            <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
+                            <td class="text-end" data-label="Aksi">
+                                <div class="table-actions">
                                     @if (\$canUpdate)
-                                        <button type="button" class="btn-icon btn-edit-row" data-id="{{ \$item->id ?? 0 }}" title="Edit Data" style="color: var(--primary);">
-                                            <i class="fas fa-pen-to-square"></i>
+                                        <button type="button" class="btn-icon btn-edit-row" data-id="{{ \$item->id ?? 0 }}" title="Edit Data">
+                                            <i class="fas fa-pen-to-square text-primary"></i>
                                         </button>
                                     @endif
                                     @if (\$canDelete)
-                                        <form action="{{ route('{$slug}.destroy', \$item->id ?? 0) }}" method="POST" data-confirm="delete" data-name="{{ \$item->nama ?? 'Data' }}" style="display: inline;">
+                                        <form action="{{ route('{$slug}.destroy', \$item->id ?? 0) }}" method="POST" data-confirm="delete" data-name="{{ \$item->nama ?? 'Data' }}" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn-icon" title="Hapus Data" style="color: #ef4444;">
+                                            <button type="submit" class="btn-icon danger" title="Hapus Data">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -455,8 +452,8 @@ PHP;
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                            <td colspan="5" class="table-empty-cell">
+                                <i class="fas fa-folder-open table-empty-icon d-block"></i>
                                 <div>Belum ada data {$title} yang tercatat di sistem.</div>
                             </td>
                         </tr>
@@ -472,18 +469,15 @@ PHP;
             </div>
         @endif
     </div>
-            <div id="paginationButtons" style="display: flex; gap: 4px;"></div>
-        </div>
-    </div>
 
     <!-- 5. Modal Form Baku SAE (z-index: 99999 !important) -->
-    <div id="modalFormItem" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="max-width: 500px; width: 92%; margin: 0; border-radius: 14px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card, #1e293b);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 id="modalTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+    <div id="modalFormItem" class="modal-backdrop">
+        <div class="card modal-card-sm">
+            <div class="modal-head">
+                <h3 id="modalTitle" class="modal-title">
                     <i class="fas fa-plus-circle text-primary"></i> Form {$title}
                 </h3>
-                <button type="button" id="btnCloseModal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
+                <button type="button" id="btnCloseModal" class="modal-close">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -492,28 +486,26 @@ PHP;
                 @csrf
                 <input type="hidden" id="formItemId" name="id">
 
-                <div style="margin-bottom: 14px;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Nama Data <span style="color: #ef4444;">*</span>
+                <div class="form-group">
+                    <label class="form-label">
+                        Nama Data <span class="req">*</span>
                     </label>
-                    <input type="text" id="inputNama" name="nama" required placeholder="Masukkan nama..."
-                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                    <input type="text" id="inputNama" name="nama" class="form-control" required placeholder="Masukkan nama...">
                 </div>
 
-                <div style="margin-bottom: 18px;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                <div class="form-group">
+                    <label class="form-label">
                         Keterangan
                     </label>
-                    <textarea id="inputKeterangan" name="keterangan" rows="3" placeholder="Tambahkan keterangan opsional..."
-                        style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box; resize: vertical;"></textarea>
+                    <textarea id="inputKeterangan" name="keterangan" class="form-control" rows="3" placeholder="Tambahkan keterangan opsional..."></textarea>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <button type="button" id="btnCancelModal" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px;">
+                <div class="modal-foot">
+                    <button type="button" id="btnCancelModal" class="btn btn-outline">
                         Batal
                     </button>
-                    <button type="submit" id="btnSaveModal" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.84rem; border-radius: 8px; font-weight: 600;">
-                        <i class="fas fa-check me-1"></i> Simpan
+                    <button type="submit" id="btnSaveModal" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Simpan
                     </button>
                 </div>
             </form>

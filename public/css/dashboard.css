@@ -2682,6 +2682,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
     text-align: left;
     text-transform: uppercase;
     white-space: nowrap;
+    padding: 12px 18px;
 }
 
 .table-pd tbody td,
@@ -2689,6 +2690,7 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
 .datatable-card-wrapper tbody td {
     color: var(--text-main);
     vertical-align: middle;
+    padding: 14px 18px;
 }
 
 .table-pd tbody tr:hover,
