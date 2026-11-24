@@ -191,6 +191,14 @@
     box-sizing: border-box;
 }
 
+/* Aksi di tengah & konsisten: matikan grid 3-kolom bawaan agar tombol rapat center */
+.table-validasi-data .cell-pd-aksi .table-actions {
+    display: inline-flex;
+    grid-template-columns: none;
+    justify-content: center;
+    width: auto;
+}
+
 .berkas-pill-group {
     display: inline-flex;
     align-items: center;

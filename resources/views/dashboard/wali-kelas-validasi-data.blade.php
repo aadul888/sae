@@ -241,7 +241,7 @@
                                 <span class="sort-icon">{!! $sort === 'berkas' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="th-aksi"
-                                style="padding: 13px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 180px;">
+                                style="padding: 13px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 180px;">
                                 Aksi
                             </th>
                         </tr>
@@ -413,8 +413,8 @@
 
                                 <!-- Kolom Aksi -->
                                 <td class="cell-pd-aksi" data-label="Aksi"
-                                    style="padding: 14px 18px; text-align: right;">
-                                    <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
+                                    style="padding: 14px 18px; text-align: center;">
+                                    <div class="table-actions" style="justify-content: center; gap: 6px;">
                                         <button type="button" class="btn-icon btn-validasi-berkas-detail"
                                             data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                             title="Validasi &amp; Kelola Dokumen Berkas Digital Siswa"
