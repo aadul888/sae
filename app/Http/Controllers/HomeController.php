@@ -330,23 +330,22 @@ class HomeController extends Controller
                 }
             }
 
-            $kualitasSumMap = []; // rombongan_belajar_id => jumlah skor
+            $kualitasSumMap = [];   // rombongan_belajar_id => jumlah skor kualitas
+            $konfSumMap = [];       // rombongan_belajar_id => jumlah skor konfirmasi
+            $berkasSumMap = [];     // rombongan_belajar_id => jumlah skor berkas (KK + Ijazah)
             foreach ($pdRombelMap as $pid => $rid) {
                 if (!$rid) continue;
                 $slots = $skorMap[$pid] ?? [];
-                $skor = KualitasData::skorPesertaDidik(
-                    $konfStatusMap[$pid] ?? null,
-                    $slots[0] ?? null,
-                    !empty($slots[1]),
-                    $slots[2] ?? null,
-                    !empty($slots[3]),
-                );
-                if ($skor > 0) {
-                    $kualitasSumMap[$rid] = ($kualitasSumMap[$rid] ?? 0) + $skor;
-                }
+                $konfSum = KualitasData::skorKonfirmasi($konfStatusMap[$pid] ?? null);
+                $berkasSum = KualitasData::skorBerkas($slots[0] ?? null, !empty($slots[1]))
+                    + KualitasData::skorBerkas($slots[2] ?? null, !empty($slots[3]));
+
+                $konfSumMap[$rid] = ($konfSumMap[$rid] ?? 0) + $konfSum;
+                $berkasSumMap[$rid] = ($berkasSumMap[$rid] ?? 0) + $berkasSum;
+                $kualitasSumMap[$rid] = ($kualitasSumMap[$rid] ?? 0) + ($konfSum + $berkasSum) / 2;
             }
 
-            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasSumMap) {
+            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasSumMap, $konfSumMap, $berkasSumMap) {
                 $total = (int) $r->total_siswa;
                 $sesuai = (int) $r->konfirm_sesuai;
                 $tidakSesuai = (int) $r->konfirm_tidak_sesuai;
@@ -358,8 +357,13 @@ class HomeController extends Controller
                 $persenBelum = $total > 0 ? round(($belum / $total) * 100, 1) : 0;
                 $persenBerkas = $total > 0 ? round(($bValid / $total) * 100, 1) : 0;
 
+                // Dua komponen kualitas (skala 0..100 masing-masing), rata-rata jadi Kualitas.
+                $rid = $r->rombongan_belajar_id;
+                $skorKonfirmasi = $total > 0 ? round(($konfSumMap[$rid] ?? 0) / $total, 1) : 0;
+                $skorBerkas = $total > 0 ? round(($berkasSumMap[$rid] ?? 0) / $total, 1) : 0;
+
                 // Kualitas data = rata-rata skor kualitas per PD dalam rombel.
-                $kualitasCount = (float) ($kualitasSumMap[$r->rombongan_belajar_id] ?? 0);
+                $kualitasCount = (float) ($kualitasSumMap[$rid] ?? 0);
 
                 // Kualitas data = rata-rata skor kualitas per PD (skala 0..100).
                 // Rumus identik dengan halaman Wali Kelas — Validasi Data.
@@ -385,6 +389,8 @@ class HomeController extends Controller
                     'persen_belum'        => $persenBelum,
                     'berkas_valid'        => $bValid,
                     'persen_berkas'       => $persenBerkas,
+                    'skor_konfirmasi'     => $skorKonfirmasi, // komponen kualitas: skor konfirmasi (0..100)
+                    'skor_berkas'         => $skorBerkas,     // komponen kualitas: skor berkas KK+Ijazah (0..100)
                     'kualitas'            => $skorKualitas,
                     'kualitas_sum'        => $kualitasCount, // jumlah skor mentah (untuk rekap global)
                 ];

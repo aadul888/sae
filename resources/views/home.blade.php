@@ -296,6 +296,7 @@
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--purple, #8b5cf6);"></span> Berkas Valid</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></span> Belum</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span> Kualitas (rata-rata)</span>
                 </div>
             </div>
 
@@ -339,26 +340,35 @@
                                 </td>
                                 <!-- Kolom Data Valid: bar bertumpuk Sesuai / Perbaikan / Belum -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
+                                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:6px;">
+                                        <div style="font-size: var(--text-sm, 0.78rem); font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
+                                        <div style="font-size: var(--text-xs, 0.68rem); font-weight: 700; color: var(--text-muted);" title="Skor konfirmasi (sesuai=100, perbaikan=50) yang masuk hitungan Kualitas Data">skor {{ $r['skor_konfirmasi'] }}</div>
+                                    </div>
                                     <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
                                         <div style="width: {{ $r['persen_sesuai'] }}%; background: var(--success);" title="Sesuai: {{ $r['persen_sesuai'] }}%"></div>
                                         <div style="width: {{ $r['persen_tidak_sesuai'] }}%; background: var(--warning, #f59e0b);" title="Perlu Perbaikan: {{ $r['persen_tidak_sesuai'] }}%"></div>
                                         <div style="width: {{ $r['persen_belum'] }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Konfirmasi: {{ $r['persen_belum'] }}%"></div>
                                     </div>
+                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;">Sesuai {{ $r['persen_sesuai'] }}% · Perbaikan {{ $r['persen_tidak_sesuai'] }}% · Belum {{ $r['persen_belum'] }}%</div>
                                 </td>
                                 <!-- Kolom Berkas Valid: bar valid vs sisa -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
+                                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:6px;">
+                                        <div style="font-size: var(--text-sm, 0.78rem); font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
+                                        <div style="font-size: var(--text-xs, 0.68rem); font-weight: 700; color: var(--text-muted);" title="Skor berkas KK + Ijazah (valid=100, menunggu/tidak_valid=50 dari maks 100) yang masuk hitungan Kualitas Data">skor {{ $r['skor_berkas'] }}</div>
+                                    </div>
                                     <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
-                                        <div style="width: {{ $r['persen_berkas'] }}%; background: var(--purple, #8b5cf6);" title="Berkas Valid: {{ $r['persen_berkas'] }}%"></div>
+                                        <div style="width: {{ $r['persen_berkas'] }}%; background: var(--purple, #8b5cf6);" title="Berkas Valid (KK + Ijazah): {{ $r['persen_berkas'] }}%"></div>
                                         <div style="width: {{ max(0, 100 - $r['persen_berkas']) }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Valid: {{ max(0, 100 - $r['persen_berkas']) }}%"></div>
                                     </div>
+                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;">{{ $r['berkas_valid'] }} siswa KK+Ijazah valid</div>
                                 </td>
                                 <!-- Kualitas Data -->
                                 <td style="padding: 10px 14px; text-align: center; background: rgba(16, 185, 129, 0.03);">
                                     <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 4px 8px; border-radius: var(--radius-md, 8px); font-weight: 800; font-size: var(--text-base, 0.85rem); {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
                                         {{ $r['kualitas'] }}%
                                     </span>
+                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;" title="Kualitas = rata-rata(skor konfirmasi, skor berkas)">({{ $r['skor_konfirmasi'] }} + {{ $r['skor_berkas'] }}) ÷ 2</div>
                                 </td>
                             </tr>
                         @empty
@@ -371,6 +381,13 @@
                     </tbody>
                 </table>
             </div>
+            <p style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin: 10px 2px 0;">
+                <i class="fas fa-circle-info"></i>
+                <strong>Kualitas Data</strong> = rata-rata <em>skor konfirmasi</em> &amp; <em>skor berkas</em> tiap siswa, lalu dirata-rata per rombel.
+                Skor konfirmasi: sesuai/diverifikasi = 100, perlu perbaikan = 50, belum = 0.
+                Skor berkas (KK + Ijazah): valid = 100, menunggu/tidak valid = 50. Karena itu <strong>Kualitas bisa &gt; 0 walau Data Valid &amp; Berkas Valid 0%</strong> —
+                siswa yang berstatus <em>perlu perbaikan</em> atau berkasnya masih <em>menunggu</em> tetap menyumbang skor.
+            </p>
         </section>
 
         <script>
