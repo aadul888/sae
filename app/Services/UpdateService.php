@@ -22,6 +22,10 @@ class UpdateService
      */
     public function checkUpdate(): array
     {
+        // Non-interaktif: cegah git menunggu input kredensial. putenv() berfungsi
+        // di Linux maupun Windows; prefiks "VAR=x cmd" hanya valid di shell POSIX.
+        @putenv('GIT_TERMINAL_PROMPT=0');
+
         $setting = Table::exists('settings') ? DB::table('settings')->where('id', 1)->first() : null;
         // Versi = konstanta kode; settings.app_version hanya mirror (ditulis saat update via updater).
         $currentVersion = self::CURRENT_VERSION;
@@ -29,8 +33,11 @@ class UpdateService
 
         $hasGit = is_dir(base_path('.git'));
         $gitBranch = 'main';
-        $localCommit = $this->getLocalCommit($setting);
-        $gitCommit = $localCommit;
+        $gitHead = $this->getLocalCommit($setting);
+        // Baseline sebenarnya = commit yang BENAR-BENAR terpasang. Bila deploy
+        // memakai fallback ZIP (git pull gagal), HEAD lokal tidak bergerak dan
+        // settings.last_commit_hash yang maju; jadi bandingkan dengan yang lebih baru.
+        $localCommit = $this->resolveDeployedCommit($setting, $gitHead);
         $remoteCommit = '';
         $behindCount = 0;
         $updatesAvailable = false;
@@ -41,23 +48,24 @@ class UpdateService
         if ($hasGit) {
             try {
                 $basePath = base_path();
-                $envPrefix = 'GIT_TERMINAL_PROMPT=0';
                 $gitCmd = 'git -C ' . escapeshellarg($basePath);
 
                 // Pastikan safe.directory terdaftar
-                @shell_exec($envPrefix . ' git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
+                @shell_exec('git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
 
                 $gitBranch = trim(@shell_exec($gitCmd . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
                 if (str_contains($gitBranch, ' ') || str_contains($gitBranch, 'fatal:')) {
                     $gitBranch = 'main';
                 }
-                @shell_exec($envPrefix . ' ' . $gitCmd . ' fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
+                @shell_exec($gitCmd . ' fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
 
-                $behindCount = (int) trim(@shell_exec($gitCmd . ' rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
+                // Hitung selisih dari baseline terpasang, bukan dari HEAD mentah.
+                $rangeBase = $localCommit !== '' ? $localCommit : 'HEAD';
+                $behindCount = (int) trim(@shell_exec($gitCmd . ' rev-list --count ' . escapeshellarg($rangeBase) . '..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
                 if ($behindCount > 0) {
                     $updatesAvailable = true;
-                    $changesRaw = @shell_exec($gitCmd . ' log HEAD..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
-                    if ($changesRaw) {
+                    $changesRaw = @shell_exec($gitCmd . ' log ' . escapeshellarg($rangeBase) . '..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
+                    if ($changesRaw && !str_contains($changesRaw, 'fatal:')) {
                         $changes = array_filter(explode("\n", trim($changesRaw)));
                     }
                 }
@@ -71,14 +79,13 @@ class UpdateService
             $remoteData = $this->fetchGitHubLatestCommit($gitBranch);
             if ($remoteData && !empty($remoteData['sha'])) {
                 $remoteCommit = substr($remoteData['sha'], 0, 7);
-                if (!empty($remoteData['message'])) {
-                    $firstLine = explode("\n", trim($remoteData['message']))[0];
-                    $changes[] = $remoteCommit . ' ' . $firstLine;
-                }
-
-                if (empty($localCommit) || strpos(strtolower($remoteData['sha']), strtolower($localCommit)) !== 0) {
+                if (!$this->commitMatches($remoteData['sha'], $localCommit)) {
                     $updatesAvailable = true;
                     $behindCount = 1;
+                    if (!empty($remoteData['message'])) {
+                        $firstLine = explode("\n", trim($remoteData['message']))[0];
+                        $changes[] = $remoteCommit . ' ' . $firstLine;
+                    }
                 }
             }
         }
@@ -111,7 +118,7 @@ class UpdateService
 
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
-            @shell_exec('GIT_TERMINAL_PROMPT=0 git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
+            @shell_exec('git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
             $cliHash = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
             if (preg_match('/^[a-f0-9]{40}$/i', $cliHash)) {
                 return $cliHash;
@@ -135,6 +142,63 @@ class UpdateService
         }
 
         return $dbHash;
+    }
+
+    /**
+     * Commit yang benar-benar terpasang. Ambil yang lebih baru antara HEAD git
+     * dan settings.last_commit_hash (hasil deploy ZIP saat git pull gagal).
+     */
+    protected function resolveDeployedCommit($setting, string $gitHead): string
+    {
+        $dbHash = trim((string) ($setting->last_commit_hash ?? ''));
+        $valid = static fn (?string $h): bool => is_string($h) && (bool) preg_match('/^[a-f0-9]{40}$/i', $h);
+
+        if (!$valid($gitHead)) {
+            return $valid($dbHash) ? $dbHash : $gitHead;
+        }
+        if (!$valid($dbHash) || strcasecmp($gitHead, $dbHash) === 0) {
+            return $gitHead;
+        }
+
+        // Repositori git tersedia: pilih yang merupakan keturunan (lebih baru).
+        if (is_dir(base_path('.git'))) {
+            $gitCmd = 'git -C ' . escapeshellarg(base_path());
+            @shell_exec('git config --global --add safe.directory ' . escapeshellarg(base_path()) . ' 2>&1');
+            if ($this->isAncestor($gitCmd, $dbHash, $gitHead)) {
+                return $gitHead; // HEAD memuat commit DB → HEAD lebih baru
+            }
+            if ($this->isAncestor($gitCmd, $gitHead, $dbHash)) {
+                return $dbHash; // deploy ZIP sudah maju, HEAD tertinggal
+            }
+        }
+
+        // Tidak bisa dibandingkan: pakai yang dicatat updater (paling baru dipasang).
+        return $dbHash;
+    }
+
+    /** True bila $ancestor adalah leluhur $descendant menurut git. */
+    protected function isAncestor(string $gitCmd, string $ancestor, string $descendant): bool
+    {
+        // Pakai penanda keluaran, bukan exit code: shell_exec bekerja walau exec()
+        // dimatikan pada disable_functions server sekolah.
+        $out = (string) @shell_exec(
+            $gitCmd . ' merge-base --is-ancestor '
+            . escapeshellarg($ancestor) . ' ' . escapeshellarg($descendant) . ' 2>&1 && echo __SAE_YES__'
+        );
+
+        return str_contains($out, '__SAE_YES__');
+    }
+
+    /** True bila hash remote sama dengan baseline terpasang (prefix 7 char). */
+    protected function commitMatches(string $remoteFull, string $localFull): bool
+    {
+        $remote = strtolower(trim($remoteFull));
+        $local = strtolower(trim($localFull));
+        if ($local === '') {
+            return false;
+        }
+
+        return substr($remote, 0, 7) === substr($local, 0, 7);
     }
 
     /**
@@ -223,18 +287,21 @@ class UpdateService
         $logs = [];
         $success = true;
         $newCommit = null;
+        $zipResult = null;
 
         // 0. Pra-perbaikan hak akses agar git pull & zip fallback tidak Permission Denied
         $this->ensurePermissions();
+
+        // Non-interaktif untuk seluruh pemanggilan git di proses ini (portable).
+        @putenv('GIT_TERMINAL_PROMPT=0');
 
         // 1. Sync file kode
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
             $gitCmd = 'git -C ' . escapeshellarg($basePath);
-            $envPrefix = 'GIT_TERMINAL_PROMPT=0';
 
             // 1a. Tambahkan safe.directory agar git tidak menolak operasi
-            @shell_exec($envPrefix . ' git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
+            @shell_exec('git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
             $logs[] = "[SAFE DIR] Registered " . $basePath;
 
             $branch = trim(@shell_exec($gitCmd . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
@@ -243,12 +310,12 @@ class UpdateService
             }
 
             // 1b. Reset file lokal yang termodifikasi (storage/.gitignore dll) agar tidak block pull
-            @shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard HEAD 2>&1');
-            @shell_exec($envPrefix . ' ' . $gitCmd . ' checkout -- . 2>&1');
+            @shell_exec($gitCmd . ' reset --hard HEAD 2>&1');
+            @shell_exec($gitCmd . ' checkout -- . 2>&1');
             $logs[] = "[GIT RESET] Local changes reset sebelum pull.";
 
             // 1c. Fetch dulu untuk memastikan remote refs up to date
-            $fetchOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' fetch origin ' . escapeshellarg($branch) . ' 2>&1') ?: '');
+            $fetchOut = trim(@shell_exec($gitCmd . ' fetch origin ' . escapeshellarg($branch) . ' 2>&1') ?: '');
             if ($fetchOut) {
                 $logs[] = "[GIT FETCH] " . $fetchOut;
             }
@@ -271,7 +338,7 @@ class UpdateService
 
             // 1d. Coba pull hanya jika fetch tidak mengalami error permission fatal
             if (!$hasFetchPermissionError) {
-                $pullOutput = @shell_exec($envPrefix . ' ' . $gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
+                $pullOutput = @shell_exec($gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
                 $pullText = trim($pullOutput ?: 'No output');
                 $logs[] = "[GIT PULL ($branch)] " . $pullText;
 
@@ -281,10 +348,10 @@ class UpdateService
                 // 1e. Jika git pull gagal karena untracked working tree files, merge conflict, dll:
                 if (!$gitPullSuccess) {
                     $logs[] = "[GIT SYNC] Terdeteksi kendala merge/untracked files. Melakukan hard reset ke origin/$branch...";
-                    $resetOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+                    $resetOut = trim(@shell_exec($gitCmd . ' reset --hard origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
                     $logs[] = "[GIT RESET --HARD] " . $resetOut;
 
-                    @shell_exec($envPrefix . ' ' . $gitCmd . ' clean -fd 2>&1');
+                    @shell_exec($gitCmd . ' clean -fd 2>&1');
 
                     $checkHead = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
                     $checkOrigin = trim(@shell_exec($gitCmd . ' rev-parse origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
@@ -449,32 +516,6 @@ class UpdateService
      */
     protected function syncComposerDependencies(array &$logs): bool
     {
-        // Cari Composer: perintah global, composer.phar lokal, atau binary aaPanel.
-        $composerCmd = null;
-
-        $candidates = [
-            'composer',
-            'php ' . escapeshellarg(base_path('composer.phar')),
-        ];
-
-        // aaPanel menyimpan composer di dalam folder PHP-nya.
-        foreach (glob('/www/server/php/*/bin/composer') ?: [] as $aaComposer) {
-            $candidates[] = escapeshellarg($aaComposer);
-        }
-
-        foreach ($candidates as $candidate) {
-            $probe = trim(@shell_exec($candidate . ' --version 2>&1') ?: '');
-            if ($probe !== '' && stripos($probe, 'composer') !== false && stripos($probe, 'not found') === false) {
-                $composerCmd = $candidate;
-                break;
-            }
-        }
-
-        if ($composerCmd === null) {
-            $logs[] = "[DEPS] Composer tidak ditemukan. Jalankan manual: composer install --no-dev --optimize-autoloader";
-            return false;
-        }
-
         // Deteksi apakah lock file lebih baru dari autoload hasil install.
         $lockFile = base_path('composer.lock');
         $installedFile = base_path('vendor/composer/installed.json');
@@ -540,6 +581,14 @@ class UpdateService
             return true;
         }
 
+        // Composer hanya dicari saat benar-benar perlu install. Bila dependensi
+        // sudah sesuai, ketiadaan Composer bukan kegagalan (dulu selalu gagal).
+        $composerCmd = $this->findComposer();
+        if ($composerCmd === null) {
+            $logs[] = "[DEPS] Dependensi berubah tetapi Composer tidak ditemukan. Jalankan manual: composer install --no-dev --optimize-autoloader";
+            return false;
+        }
+
         // Jalankan composer install. Batas waktu diperpanjang karena proses ini berat.
         @set_time_limit(600);
         $basePath = escapeshellarg(base_path());
@@ -578,6 +627,33 @@ class UpdateService
 
         $logs[] = "[DEPS] Dependensi berhasil disinkronkan ke framework {$verifyInstalled}.";
         return true;
+    }
+
+    /**
+     * Cari Composer yang benar-benar bisa dijalankan (global, composer.phar, aaPanel).
+     * Kembalikan perintah lengkap atau null bila tidak ada.
+     */
+    protected function findComposer(): ?string
+    {
+        $candidates = [
+            'composer',
+            'php ' . escapeshellarg(base_path('composer.phar')),
+            escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(base_path('composer.phar')),
+        ];
+
+        // aaPanel menyimpan composer di dalam folder PHP-nya.
+        foreach (glob('/www/server/php/*/bin/composer') ?: [] as $aaComposer) {
+            $candidates[] = escapeshellarg($aaComposer);
+        }
+
+        foreach ($candidates as $candidate) {
+            $probe = trim(@shell_exec($candidate . ' --version 2>&1') ?: '');
+            if ($probe !== '' && stripos($probe, 'composer') !== false && stripos($probe, 'not found') === false) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -704,8 +780,20 @@ class UpdateService
             }
 
             $latestCommit = $this->fetchGitHubLatestCommit($branch);
+
+            // File yang gagal disalin berarti kode tidak utuh: jangan tandai sukses,
+            // supaya commit terpasang tidak tercatat padahal isi masih campuran.
+            if (!empty($failedCopies)) {
+                $logs[] = "[ZIP ERROR] Sinkronisasi tidak utuh: " . count($failedCopies) . " file gagal ditulis.";
+                return [
+                    'success' => false,
+                    'logs' => $logs,
+                    'sha' => null,
+                ];
+            }
+
             return [
-                'success' => empty($failedCopies) || $copied > 0,
+                'success' => true,
                 'logs' => $logs,
                 'sha' => $latestCommit['sha'] ?? null,
             ];
