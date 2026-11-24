@@ -137,8 +137,8 @@ class WaliKelasValidasiService
                 $statBerkasKurang++;
             }
 
-            // Kualitas data = PD yang sudah konfirmasi DAN berkas wajibnya lengkap valid.
-            if ($isSudah && $valCount === count($wajibKeys)) {
+            // Kualitas data = berkas wajib (KK + Ijazah) sudah lengkap valid.
+            if ($valCount === count($wajibKeys)) {
                 $statKualitas++;
             }
         }

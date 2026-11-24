@@ -446,7 +446,7 @@ class DutyDashboardController extends Controller
                     if ($kkValid) $kkCount++;
                     if ($ijzValid) $ijzCount++;
 
-                    if ($isConfirmed && $kkValid && $ijzValid) {
+                    if ($kkValid && $ijzValid) {
                         $validCount++;
                     }
                 }
