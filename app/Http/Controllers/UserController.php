@@ -65,13 +65,18 @@ class UserController extends Controller
                 ->orWhere('peran_id_str', 'LIKE', '%yayasan%');
         });
 
+        // Akun GTK Non-ASN (input lokal) dikelompokkan lewat relasi gtk_non_asn,
+        // BUKAN cocok teks `peran_id_str` — agar selalu muncul di tab yang benar.
+        [$nonAsnGuruIds, $nonAsnTendikIds] = $this->akunNonAsnPerKelompok();
+
         // Query Tenaga Kependidikan (Tendik)
-        $tendikQuery = User::where(function ($query) {
+        $tendikQuery = User::where(function ($query) use ($nonAsnTendikIds) {
             $query->where('peran_id_str', 'LIKE', '%tendik%')
                 ->orWhere('peran_id_str', 'LIKE', '%tenaga kependidikan%')
                 ->orWhere('peran_id_str', 'LIKE', '%tata usaha%')
                 ->orWhere('peran_id_str', 'LIKE', '%laboran%')
                 ->orWhere('peran_id_str', 'LIKE', '%pustakawan%')
+                ->orWhereIn('pengguna_id', $nonAsnTendikIds)
                 ->orWhere(function ($qGtk) {
                     $qGtk->whereNotNull('ptk_id')
                         ->whereIn('ptk_id', function ($sub) {
@@ -87,8 +92,9 @@ class UserController extends Controller
         });
 
         // Query Guru (murni pendidik, mengecualikan tendik)
-        $guruQuery = User::where(function ($query) {
+        $guruQuery = User::where(function ($query) use ($nonAsnGuruIds) {
             $query->where('peran_id_str', 'LIKE', '%guru%')
+                ->orWhereIn('pengguna_id', $nonAsnGuruIds)
                 ->orWhere(function ($qGtk) {
                     $qGtk->where(function ($subPeran) {
                         $subPeran->where('peran_id_str', 'LIKE', '%ptk%')
@@ -359,6 +365,39 @@ class UserController extends Controller
             'canUpdate',
             'canDelete'
         ));
+    }
+
+    /**
+     * ID akun login milik GTK Non-ASN, dipisah per kelompok tab.
+     *
+     * Pengelompokan memakai `jenis_ptk` pada tabel `gtk_non_asn` (sumber
+     * kebenaran), bukan teks `peran_id_str`, supaya akun Non-ASN selalu
+     * muncul di tab Guru/Tendik yang tepat berapa pun nilai perannya.
+     *
+     * @return array{0: array<int,string>, 1: array<int,string>}
+     */
+    private function akunNonAsnPerKelompok(): array
+    {
+        if (!\App\Support\Table::exists('gtk_non_asn')) {
+            return [[], []];
+        }
+
+        $rows = DB::table('gtk_non_asn')
+            ->whereNotNull('pengguna_id')
+            ->where('pengguna_id', '<>', '')
+            ->get(['pengguna_id', 'jenis_ptk']);
+
+        $guru = [];
+        $tendik = [];
+        foreach ($rows as $r) {
+            if (\App\Services\GtkGabunganService::jenisAdalahGuru($r->jenis_ptk)) {
+                $guru[] = $r->pengguna_id;
+            } else {
+                $tendik[] = $r->pengguna_id;
+            }
+        }
+
+        return [$guru, $tendik];
     }
 
     /**
