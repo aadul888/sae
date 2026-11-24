@@ -425,20 +425,27 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                    @if (!$berkasPrereq['is_valid'] && $statusKonfirmasi === 'perlu_perbaikan')
+                    @if (!$isReadOnlyView && !$berkasPrereq['is_valid'] && $statusKonfirmasi === 'perlu_perbaikan')
                         <a href="{{ route('dashboard.berkas.index') }}" class="btn btn-primary"
                             style="padding: 9px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-folder-open"></i> Upload Berkas (KK &amp; Ijazah)
                         </a>
                     @endif
 
-                    <button type="button"
-                        class="btn {{ $statusKonfirmasi === 'belum_konfirmasi' ? 'btn-primary' : 'btn-outline' }} btn-konfirmasi-dialog"
-                        @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan yang belum selesai (menunggu review / belum masuk Dapodik)." @endif
-                        style="padding: 9px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; {{ $hasUnfinishedUsulan ? 'opacity: .55; cursor: not-allowed;' : '' }}">
-                        <i class="fas {{ $hasUnfinishedUsulan ? 'fa-lock' : 'fa-clipboard-check' }}"></i>
-                        {{ $hasUnfinishedUsulan ? 'Pilihan Konfirmasi Terkunci' : ($statusKonfirmasi === 'belum_konfirmasi' ? 'Konfirmasi Data Siswa' : 'Ubah Pilihan Konfirmasi') }}
-                    </button>
+                    @if (!$isReadOnlyView)
+                        <button type="button"
+                            class="btn {{ $statusKonfirmasi === 'belum_konfirmasi' ? 'btn-primary' : 'btn-outline' }} btn-konfirmasi-dialog"
+                            @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan yang belum selesai (menunggu review / belum masuk Dapodik)." @endif
+                            style="padding: 9px 18px; font-size: var(--text-base, 0.875rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px; {{ $hasUnfinishedUsulan ? 'opacity: .55; cursor: not-allowed;' : '' }}">
+                            <i class="fas {{ $hasUnfinishedUsulan ? 'fa-lock' : 'fa-clipboard-check' }}"></i>
+                            {{ $hasUnfinishedUsulan ? 'Pilihan Konfirmasi Terkunci' : ($statusKonfirmasi === 'belum_konfirmasi' ? 'Konfirmasi Data Siswa' : 'Ubah Pilihan Konfirmasi') }}
+                        </button>
+                    @else
+                        <span class="badge badge-outline"
+                            style="font-size: var(--text-sm, 0.8125rem); padding: 8px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-eye"></i> Mode Lihat (Read-Only)
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -511,7 +518,10 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                        @if ($isFormLocked)
+                        @if ($isReadOnlyView)
+                            <i class="fas fa-eye" style="color: var(--primary); margin-right: 4px;"></i> Mode lihat saja. Hanya
+                            peserta didik / orang tua yang dapat mengonfirmasi &amp; mengajukan perubahan data.
+                        @elseif ($isFormLocked)
                             <i class="fas fa-lock text-warning me-1"></i> Formulir dalam kondisi terkunci. Klik tombol
                             konfirmasi untuk membuka pengajuan usulan.
                         @else
@@ -520,7 +530,9 @@
                         @endif
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        @if ($isFormLocked)
+                        @if ($isReadOnlyView)
+                            {{-- Mode lihat: tidak ada aksi tulis --}}
+                        @elseif ($isFormLocked)
                             <button type="button" class="btn btn-outline btn-konfirmasi-dialog"
                                 @if ($hasUnfinishedUsulan) disabled aria-disabled="true" title="Pilihan konfirmasi dikunci: masih ada usulan yang belum selesai (menunggu review / belum masuk Dapodik)." @endif
                                 style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 8px; color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.4); {{ $hasUnfinishedUsulan ? 'opacity: .55; cursor: not-allowed;' : '' }}">

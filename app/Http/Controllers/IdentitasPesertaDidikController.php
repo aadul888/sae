@@ -264,6 +264,9 @@ class IdentitasPesertaDidikController extends Controller
                 'waliKelas' => null,
                 'ref' => [],
                 'usulanList' => collect(),
+                'isFormLocked' => true,
+                'isFormEditable' => false,
+                'isReadOnlyView' => !in_array($userRole, ['peserta_didik', 'orang_tua', 'admin'], true),
             ])->with('error', 'Data profil peserta didik tidak ditemukan.');
         }
 
@@ -367,6 +370,15 @@ class IdentitasPesertaDidikController extends Controller
         $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan')
             && $berkasPrereq['is_valid']
             && !$hasUnfinishedUsulan;
+
+        // Staf (guru/walas/tendik) yang membuka form ini hanya dalam mode LIHAT.
+        // Hanya peserta didik & orang tua yang boleh mengisi/mengajukan usulan;
+        // admin tetap seperti semula.
+        $isReadOnlyView = !in_array($userRole, ['peserta_didik', 'orang_tua', 'admin'], true);
+        if ($isReadOnlyView) {
+            $isFormEditable = false;
+        }
+
         $isFormLocked = !$isFormEditable;
 
         return view('dashboard.identitas-peserta-didik', compact(
@@ -384,6 +396,7 @@ class IdentitasPesertaDidikController extends Controller
             'berkasPrereq',
             'isFormLocked',
             'isFormEditable',
+            'isReadOnlyView',
             'hasPendingUsulan',
             'unfinishedUsulanCount',
             'hasUnfinishedUsulan',
@@ -405,6 +418,11 @@ class IdentitasPesertaDidikController extends Controller
 
         if (!$pd) {
             return back()->with('error', 'Peserta didik tidak ditemukan.');
+        }
+
+        // Hanya peserta didik / orang tua (/admin) yang boleh mengonfirmasi.
+        if (!in_array($userRole, ['peserta_didik', 'orang_tua', 'admin'], true)) {
+            return back()->with('error', 'Mode lihat saja: akun Anda tidak berwenang mengonfirmasi data identitas peserta didik.');
         }
 
         $pilihan = $request->input('status', 'sesuai'); // 'sesuai' atau 'perlu_perbaikan'
@@ -614,6 +632,12 @@ class IdentitasPesertaDidikController extends Controller
 
         if (!$pd) {
             return back()->with('error', 'Peserta didik tidak ditemukan.');
+        }
+
+        // Mode lihat saja untuk staf (guru/walas/tendik). Hanya peserta didik /
+        // orang tua (/admin) yang boleh mengajukan usulan perubahan identitas.
+        if (!in_array($userRole, ['peserta_didik', 'orang_tua', 'admin'], true)) {
+            return back()->with('error', 'Mode lihat saja: akun Anda tidak berwenang mengubah data identitas peserta didik.');
         }
 
         // Cek persyaratan berkas KK dan Ijazah SMP harus VALID untuk peserta didik / orang tua
