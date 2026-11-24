@@ -452,6 +452,7 @@
     <script
         src="{{ asset('js/sae-realtime.js') }}?v={{ file_exists(public_path('js/sae-realtime.js')) ? filemtime(public_path('js/sae-realtime.js')) : time() }}">
     </script>
+    <script>window.__SAE_PWA__ = { swUrl: '/sw.js?v={{ @filemtime(public_path('sw.js')) ?: '1' }}', scope: '/' };</script>
     <script
         src="{{ asset('js/pwa.js') }}?v={{ file_exists(public_path('js/pwa.js')) ? filemtime(public_path('js/pwa.js')) : time() }}">
     </script>

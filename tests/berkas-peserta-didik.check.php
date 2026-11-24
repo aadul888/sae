@@ -115,6 +115,12 @@ $checks['JS tolak PDF hanya berdasarkan MIME eksplisit'] =
     && str_contains($js, "mime === 'application/pdf'")
     && !str_contains($js, "file.type === 'application/pdf'");
 
+// --- 5d. URL sw.js harus ber-query versi, agar cache tepi (Cloudflare) tidak
+// menyajikan service worker lama untuk '/sw.js' polos.
+$checks['sw.js didaftarkan dengan query versi (lolos cache CDN)'] =
+    str_contains(file_get_contents(__DIR__ . '/../resources/views/layouts/dashboard.blade.php'), "__SAE_PWA__")
+    && str_contains(file_get_contents(__DIR__ . '/../resources/views/layouts/app.blade.php'), "__SAE_PWA__");
+
 try {
     app(\App\Http\Controllers\StorageFallbackController::class)->show($rel);
     $checks['fallback storage tolak berkas_siswa -> 404'] = false;

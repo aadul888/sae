@@ -77,6 +77,7 @@
 
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/sae.js') }}?v={{ @filemtime(public_path('js/sae.js')) ?: '1' }}"></script>
+    <script>window.__SAE_PWA__ = { swUrl: '/sw.js?v={{ @filemtime(public_path('sw.js')) ?: '1' }}', scope: '/' };</script>
     <script src="{{ asset('js/pwa.js') }}?v={{ @filemtime(public_path('js/pwa.js')) ?: '1' }}"></script>
     <script src="{{ asset('js/upload-dropzone.js') }}?v={{ @filemtime(public_path('js/upload-dropzone.js')) ?: '1' }}"></script>
     <script src="{{ asset('js/form-error-focus.js') }}?v={{ @filemtime(public_path('js/form-error-focus.js')) ?: '1' }}"></script>
