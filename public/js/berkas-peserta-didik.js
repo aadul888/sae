@@ -26,7 +26,16 @@ function initPdfFileInputValidation() {
             if (!file) return;
 
             const fileName = file.name.toLowerCase();
-            const isPdf = fileName.endsWith('.pdf') || file.type === 'application/pdf';
+            const mime = (file.type || '').toLowerCase();
+
+            // Patokan utama: ekstensi .pdf. Sebagian browser — terutama saat aplikasi
+            // berjalan sebagai PWA terpasang, atau berkas diambil dari aplikasi
+            // "Files"/kamera — melaporkan file.type kosong atau application/octet-stream
+            // walau berkasnya PDF sah. MIME PDF yang eksplisit juga diterima.
+            // Isi berkas tetap diverifikasi ulang di server.
+            const isPdf = fileName.endsWith('.pdf')
+                || mime === 'application/pdf'
+                || mime === 'application/x-pdf';
 
             if (!isPdf) {
                 if (typeof Swal !== 'undefined') {

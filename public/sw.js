@@ -4,7 +4,7 @@
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.4";
+const CACHE_NAME = "sae-pwa-v1.2.5";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker

@@ -100,6 +100,21 @@ $checks['preview cek file_path kosong'] = str_contains($src, 'empty($berkas->fil
 $checks['nama berkas unggahan acak (opaque)'] = str_contains($src, 'Str::random(24)');
 $checks['validasi PDF pakai MIME isi (tahan octet-stream)'] = str_contains($src, 'mime_content_type');
 
+// --- 5b. Aturan `mimes:pdf` Laravel menebak ekstensi dari MIME yang dilaporkan
+// perangkat (PWA/WebView kerap mengirim octet-stream / kosong) sehingga PDF sah
+// ikut ditolak. Pastikan aturan itu tidak dipakai lagi dan validasi memakai
+// tanda tangan %PDF dari isi berkas.
+$checks['upload tidak pakai aturan mimes:pdf'] = !str_contains($src, '|mimes:pdf');
+$checks['upload cek tanda tangan %PDF di isi berkas'] = str_contains($src, "str_contains(\$head, '%PDF')");
+
+// --- 5c. Validasi client-side harus menerima PDF walau file.type kosong /
+// octet-stream (kasus PWA terpasang). Patokan utamanya ekstensi .pdf.
+$js = file_get_contents(__DIR__ . '/../public/js/berkas-peserta-didik.js');
+$checks['JS tolak PDF hanya berdasarkan MIME eksplisit'] =
+    str_contains($js, "fileName.endsWith('.pdf')")
+    && str_contains($js, "mime === 'application/pdf'")
+    && !str_contains($js, "file.type === 'application/pdf'");
+
 try {
     app(\App\Http\Controllers\StorageFallbackController::class)->show($rel);
     $checks['fallback storage tolak berkas_siswa -> 404'] = false;

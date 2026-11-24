@@ -170,24 +170,27 @@ class BerkasPesertaDidikController extends Controller
 
         $request->validate([
             'jenis_berkas' => 'required|string|in:akta_kelahiran,kartu_keluarga,ijazah_smp,ktp_orang_tua,kip_pip,lainnya',
-            'file_berkas' => 'required|file|mimes:pdf|max:5120', // Maksimal 5MB, hanya PDF
+            'file_berkas' => 'required|file|max:5120', // Maksimal 5MB, hanya PDF
         ], [
             'file_berkas.required' => 'Silakan pilih berkas PDF yang ingin diunggah.',
-            'file_berkas.mimes' => 'Format file ditolak! Sistem hanya menerima file PDF (.pdf).',
             'file_berkas.max' => 'Ukuran file PDF terlalu besar! Maksimal ukuran file adalah 5 MB.',
         ]);
 
         $file = $request->file('file_berkas');
 
-        // Validasi PDF yang tahan perangkat: sebagian browser HP/Android melaporkan
-        // MIME client sebagai application/octet-stream walau berkasnya PDF sah.
-        // Jadi patokan utamanya ekstensi + MIME nyata dari isi berkas, bukan MIME client.
+        // Validasi PDF yang tahan perangkat. PWA/WebView (Android & iOS) sering
+        // melaporkan getClientMimeType() sebagai application/octet-stream atau string
+        // kosong untuk PDF sah, sehingga aturan `mimes:pdf` Laravel (menebak ekstensi
+        // dari MIME) menolak unggahan sah. Patokan di sini: ekstensi .pdf DAN tanda
+        // tangan %PDF di awal berkas — tidak bergantung pada MIME yang dilaporkan
+        // perangkat. MIME client & MIME nyata hanya dicatat untuk log diagnosa.
         $extension  = strtolower($file->getClientOriginalExtension());
-        $clientMime = (string) $file->getClientMimeType();
-        $realMime   = (string) (@mime_content_type($file->getRealPath()) ?: '');
+        $clientMime = strtolower((string) $file->getClientMimeType());
+        $realMime   = strtolower((string) (@mime_content_type($file->getRealPath()) ?: ''));
 
-        $isPdf = $extension === 'pdf'
-            && ($realMime === '' || str_contains($realMime, 'pdf') || str_contains($clientMime, 'pdf'));
+        // Spesifikasi PDF: header %PDF- harus berada dalam 1024 byte pertama.
+        $head = (string) @file_get_contents($file->getRealPath(), false, null, 0, 1024);
+        $isPdf = $extension === 'pdf' && str_contains($head, '%PDF');
 
         if (!$isPdf) {
             Log::error('Unggah berkas ditolak: bukan PDF', [
