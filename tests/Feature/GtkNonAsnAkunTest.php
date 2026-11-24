@@ -114,26 +114,40 @@ class GtkNonAsnAkunTest extends TestCase
             ->assertSee('Buat Akun Semua');
     }
 
-    /** Baris yang sudah punya akun harus dilewati, tidak dibuat ganda. */
+    /** Baris yang sudah punya akun: dibuat=0, peran disinkronkan, tidak digandakan. */
     public function test_buat_semua_akun_melewati_yang_sudah_punya_akun(): void
     {
         if (!Table::exists('gtk_non_asn')) {
             $this->markTestSkipped('Tabel gtk_non_asn belum ada.');
         }
 
-        // Baris dengan pengguna_id terisi (dianggap sudah punya akun).
+        // Akun yang sudah ada, perannya sengaja salah ("PTK").
+        $penggunaId = (string) Str::random(8);
+        DB::table('pengguna')->insert([
+            'pengguna_id'  => $penggunaId,
+            'username'     => 'peran.lama.' . Str::random(6),
+            'nama'         => 'Sudah Punya Akun',
+            'peran_id_str' => 'PTK',
+            'password'     => bcrypt('x'),
+            'sumber_data'  => 'manual',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
         $this->insertNonAsn([
             'jenis_ptk'   => 'Guru',
             'email'       => 'sudah.ada.' . Str::random(5) . '@sekolah.sch.id',
-            'pengguna_id' => 'pengguna-lama-uji',
-            'username'    => 'sudah.ada',
+            'pengguna_id' => $penggunaId,
         ]);
 
         $res = $this->withSession(['user' => $this->adminSession()])
             ->postJson(route('dashboard.gtk-non-asn.buat-semua-akun'));
 
         $res->assertStatus(200)->assertJson(['status' => 'success']);
-        $this->assertSame(0, $res->json('summary.dibuat'), 'Baris yang sudah punya akun harus dilewati.');
+        $this->assertSame(0, $res->json('summary.dibuat'), 'Baris yang sudah punya akun tidak boleh dibuat ulang.');
+
+        // Peran lama ("PTK") dinormalkan sesuai jenis GTK (Guru).
+        $this->assertSame('Guru', DB::table('pengguna')->where('pengguna_id', $penggunaId)->value('peran_id_str'));
     }
 
     /**

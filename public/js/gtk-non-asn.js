@@ -251,7 +251,7 @@ document.addEventListener("click", async function (e) {
     const konfirmasi = window.Swal
         ? await Swal.fire({
               title: "Buat Akun Semua?",
-              html: `Akun login akan dibuatkan untuk <strong>${jumlah}</strong> GTK Non-ASN yang belum punya akun.<br><small>Peran mengikuti jenis: Guru → guru, Tenaga Kependidikan → tendik.</small>`,
+              html: `Akun login akan dibuatkan untuk GTK Non-ASN yang belum punya akun (ada <strong>${jumlah}</strong>), dan peran akun yang sudah ada dirapikan sesuai jenis.<br><small>Jenis: Guru → peran Guru, Tenaga Kependidikan → peran Tendik.</small>`,
               icon: "question",
               showCancelButton: true,
               confirmButtonText: "Ya, Buat Semua",

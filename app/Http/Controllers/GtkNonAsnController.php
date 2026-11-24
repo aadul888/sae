@@ -231,8 +231,11 @@ class GtkNonAsnController extends Controller
     }
 
     /**
-     * Buatkan akun login untuk SEMUA data Non-ASN yang belum punya akun.
-     * Peran mengikuti jenis GTK (Guru → guru, Tenaga Kependidikan → tendik).
+     * Buatkan akun login untuk SEMUA data Non-ASN.
+     *
+     * Baris tanpa akun → dibuatkan. Baris yang sudah punya akun → peran akun
+     * dinormalkan agar sesuai jenis GTK (mis. peran tertimpa `PTK` oleh sync
+     * Dapodik dikembalikan ke `Guru` / `Tenaga Kependidikan`).
      */
     public function buatSemuaAkun(): JsonResponse
     {
@@ -240,13 +243,25 @@ class GtkNonAsnController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Tidak berwenang membuat akun.'], 403);
         }
 
-        $baris = DB::table('gtk_non_asn')
-            ->where(fn ($q) => $q->whereNull('pengguna_id')->orWhere('pengguna_id', ''))
-            ->get();
+        $baris = DB::table('gtk_non_asn')->get();
 
-        $dibuat = 0; $dilewati = 0; $galat = [];
+        $dibuat = 0; $diperbaiki = 0; $dilewati = 0; $galat = [];
 
         foreach ($baris as $row) {
+            $punyaAkun = !empty($row->pengguna_id)
+                && DB::table('pengguna')->where('pengguna_id', $row->pengguna_id)->exists();
+
+            if ($punyaAkun) {
+                try {
+                    $this->sinkronkanPeranAkun($row);
+                    $diperbaiki++;
+                } catch (\Throwable $e) {
+                    $dilewati++;
+                    $galat[] = ($row->nama ?? ('#' . $row->id)) . ': ' . $e->getMessage();
+                }
+                continue;
+            }
+
             try {
                 $this->buatAkunUntukBaris($row);
                 $dibuat++;
@@ -258,8 +273,29 @@ class GtkNonAsnController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Selesai: {$dibuat} akun dibuat, {$dilewati} gagal.",
-            'summary' => ['dibuat' => $dibuat, 'gagal' => $dilewati, 'galat' => $galat],
+            'message' => "Selesai: {$dibuat} akun dibuat, {$diperbaiki} akun disinkronkan, {$dilewati} gagal.",
+            'summary' => ['dibuat' => $dibuat, 'disinkronkan' => $diperbaiki, 'gagal' => $dilewati, 'galat' => $galat],
+        ]);
+    }
+
+    /**
+     * Selaraskan peran akun login dengan jenis GTK Non-ASN.
+     *
+     * Menjaga agar akun selalu muncul di tab Manajemen Pengguna yang benar
+     * walau `peran_id_str` sempat berubah (mis. ditimpa `PTK`).
+     */
+    private function sinkronkanPeranAkun(object $row): void
+    {
+        if (empty($row->pengguna_id)) {
+            return;
+        }
+
+        $peran = $this->peranUntuk($row);
+
+        DB::table('pengguna')->where('pengguna_id', $row->pengguna_id)->update([
+            'peran_id_str' => $peran,
+            'sumber_data'  => 'manual',
+            'updated_at'   => now(),
         ]);
     }
 
