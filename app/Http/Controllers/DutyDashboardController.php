@@ -434,7 +434,7 @@ class DutyDashboardController extends Controller
 
                 foreach ($siswaList as $s) {
                     $idRec = $identitasMap->get($s->peserta_didik_id);
-                    $isConfirmed = $idRec && in_array($idRec->status_konfirmasi, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
+                    $isConfirmed = $idRec && in_array($idRec->status_konfirmasi, ['sesuai', 'perlu_perbaikan', 'diverifikasi', 'disinkronkan_dapodik'], true);
                     if ($isConfirmed) $konfirmasiCount++;
 
                     $sBerkas = $berkasMap->get($s->peserta_didik_id) ?? collect();

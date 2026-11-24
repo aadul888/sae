@@ -235,12 +235,8 @@
                                     : '&#9650;&#9660;' !!}</span>
                             </th>
                             <th class="th-berkas"
-                                style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 240px;">
-                                Berkas Persyaratan (KK &bull; Ijazah &bull; Akta &bull; KTP)
-                            </th>
-                            <th class="th-kelengkapan"
-                                style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 130px;">
-                                Kelengkapan
+                                style="padding: 13px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 200px;">
+                                Berkas Persyaratan (KK &bull; Ijazah)
                             </th>
                             <th class="th-aksi"
                                 style="padding: 13px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 180px;">
@@ -254,15 +250,11 @@
                                 $rowNum = ($list->currentPage() - 1) * $list->perPage() + $index + 1;
                                 $stKonf = $item->status_konfirmasi ?? 'belum_konfirmasi';
 
-                                $aktaF = $item->berkas_items->get('akta_kelahiran');
                                 $kkF = $item->berkas_items->get('kartu_keluarga');
                                 $ijzF = $item->berkas_items->get('ijazah_smp');
-                                $ktpF = $item->berkas_items->get('ktp_orang_tua');
 
-                                $aktaVal = $aktaF?->status === 'valid' || !empty($item->fisik_verif?->akta_kelahiran);
                                 $kkVal = $kkF?->status === 'valid' || !empty($item->fisik_verif?->kartu_keluarga);
                                 $ijzVal = $ijzF?->status === 'valid' || !empty($item->fisik_verif?->ijazah_smp);
-                                $ktpVal = $ktpF?->status === 'valid' || !empty($item->fisik_verif?->ktp_orang_tua);
 
                                 $berkasSlots = [
                                     [
@@ -276,18 +268,6 @@
                                         'title' => 'Ijazah SMP/MTs (Asli)',
                                         'file' => $ijzF,
                                         'isValid' => $ijzVal,
-                                    ],
-                                    [
-                                        'label' => 'Akta',
-                                        'title' => 'Akta Kelahiran',
-                                        'file' => $aktaF,
-                                        'isValid' => $aktaVal,
-                                    ],
-                                    [
-                                        'label' => 'KTP',
-                                        'title' => 'KTP Orang Tua / Wali',
-                                        'file' => $ktpF,
-                                        'isValid' => $ktpVal,
                                     ],
                                 ];
                             @endphp
@@ -429,42 +409,6 @@
                                     </div>
                                 </td>
 
-                                <!-- Kolom Ringkasan Kelengkapan -->
-                                <td class="cell-pd-kelengkapan" data-label="Kelengkapan"
-                                    style="padding: 14px 18px; text-align: center;">
-                                    <div class="kelengkapan-wrapper"
-                                        style="display: inline-flex; flex-direction: column; align-items: center; gap: 3px;">
-                                        @if ($item->is_berkas_lengkap)
-                                            <span class="badge badge-success"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-circle-check"></i> 4/4 Lengkap
-                                            </span>
-                                        @elseif ($item->menunggu_count > 0)
-                                            <span class="badge badge-warning"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-clock"></i> {{ $item->menunggu_count }} Menunggu
-                                            </span>
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                                {{ $item->valid_wajib_count }}/4 Valid
-                                            </div>
-                                        @elseif ($item->tidak_valid_count > 0)
-                                            <span class="badge badge-danger"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-circle-exclamation"></i> {{ $item->tidak_valid_count }}
-                                                Ditolak
-                                            </span>
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
-                                                {{ $item->valid_wajib_count }}/4 Valid
-                                            </div>
-                                        @else
-                                            <span class="badge badge-outline"
-                                                style="font-size: var(--text-xs, 0.75rem); padding: 4px 10px; font-weight: 600; opacity: 0.85;">
-                                                {{ $item->valid_wajib_count }}/4 Valid
-                                            </span>
-                                        @endif
-                                    </div>
-                                </td>
-
                                 <!-- Kolom Aksi -->
                                 <td class="cell-pd-aksi" data-label="Aksi"
                                     style="padding: 14px 18px; text-align: right;">
@@ -487,7 +431,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="cell-empty"
+                                <td colspan="5" class="cell-empty"
                                     style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                                     <i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.4;"></i>
                                     <div style="font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada

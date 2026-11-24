@@ -217,7 +217,7 @@
                     <span class="section-kicker"><i class="fas fa-chart-pie me-1"></i> Transparansi Data Mutu</span>
                     <h3 style="font-size: clamp(1.15rem, 3vw, 1.4rem); font-weight: 800; margin-bottom: 4px;">Progres Pengiriman &amp; Kualitas Data per Rombel</h3>
                     <p style="color: var(--text-muted); font-size: clamp(0.75rem, 2vw, 0.875rem); margin: 0;">
-                        Pemantauan realtime status konfirmasi identitas siswa dan validitas berkas wajib (KK, Ijazah, Akta) per rombongan belajar.
+                        Pemantauan realtime status konfirmasi identitas siswa dan validitas berkas wajib (KK &amp; Ijazah) per rombongan belajar.
                     </p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -234,7 +234,6 @@
                 $totTidakSesuai = array_sum(array_column($progres_rombel, 'tidak_sesuai'));
                 $totBelum = array_sum(array_column($progres_rombel, 'belum_konfirmasi'));
                 $totBerkas = array_sum(array_column($progres_rombel, 'berkas_valid'));
-                $totKualitas = array_sum(array_column($progres_rombel, 'kualitas'));
 
                 $persenTotSesuai = $totSemuaSiswa > 0 ? round(($totSesuai / $totSemuaSiswa) * 100, 1) : 0;
                 $persenTotTidak = $totSemuaSiswa > 0 ? round(($totTidakSesuai / $totSemuaSiswa) * 100, 1) : 0;

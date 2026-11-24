@@ -273,7 +273,8 @@ class HomeController extends Controller
 
             // Hitung PD dengan berkas wajib LENGKAP & VALID (digital atau verifikasi fisik),
             // plus yang sekaligus sudah konfirmasi. Rumus harus sama dengan kartu Wali Kelas — Validasi Data.
-            $wajibKeys = ['akta_kelahiran', 'kartu_keluarga', 'ijazah_smp', 'ktp_orang_tua'];
+            // Berkas wajib = KK + Ijazah; Akta & KTP opsional. Rumus sama dengan Wali Kelas.
+            $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
             $berkasMap = collect();
             $kualitasMap = collect();
 

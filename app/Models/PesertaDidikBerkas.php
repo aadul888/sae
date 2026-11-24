@@ -83,13 +83,13 @@ class PesertaDidikBerkas extends Model
                 'label' => 'Akta Kelahiran',
                 'deskripsi' => 'Scan/foto Akta Kelahiran resmi dari Disdukcapil (format PDF).',
                 'icon' => 'fa-certificate',
-                'wajib' => true,
+                'wajib' => false,
             ],
             'ktp_orang_tua' => [
                 'label' => 'KTP Orang Tua / Wali',
                 'deskripsi' => 'Scan KTP elektronik Ayah/Ibu/Wali yang masih berlaku (format PDF).',
                 'icon' => 'fa-id-card',
-                'wajib' => true,
+                'wajib' => false,
             ],
             'kip_pip' => [
                 'label' => 'Kartu KIP / PIP / KKS',

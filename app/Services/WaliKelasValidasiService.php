@@ -86,7 +86,9 @@ class WaliKelasValidasiService
             ? DB::table('kesiswaan_berkas_verifikasi')->whereIn('peserta_didik_id', $allPdIds)->get()->keyBy('peserta_didik_id')
             : collect();
 
-        $wajibKeys = ['akta_kelahiran', 'kartu_keluarga', 'ijazah_smp', 'ktp_orang_tua'];
+        // Berkas wajib = KK + Ijazah. Akta & KTP bersifat opsional (tetap dapat
+        // dikelola lewat modal validasi berkas pada kolom Aksi).
+        $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
 
         $statSudahKonfirmasi = 0;
         $statBelumKonfirmasi = 0;
@@ -294,36 +296,6 @@ class WaliKelasValidasiService
 
             $item->berkas_items = $sFiles->keyBy('jenis_berkas');
             $item->fisik_verif  = $sFisik;
-
-            $validCount = 0;
-            $menungguCount = 0;
-            $tidakValidCount = 0;
-            $uploadedCount = 0;
-
-            foreach ($wajibKeys as $wk) {
-                $bf = $item->berkas_items->get($wk);
-                $isFisikValid = !empty($sFisik?->{$wk});
-                $isDigitalValid = ($bf?->status === 'valid');
-
-                if ($isDigitalValid || $isFisikValid) {
-                    $validCount++;
-                } elseif ($bf?->status === 'menunggu') {
-                    $menungguCount++;
-                } elseif ($bf?->status === 'tidak_valid') {
-                    $tidakValidCount++;
-                }
-
-                if ($bf && !empty($bf->file_path)) {
-                    $uploadedCount++;
-                }
-            }
-
-            $item->total_wajib = count($wajibKeys);
-            $item->valid_wajib_count = $validCount;
-            $item->menunggu_count = $menungguCount;
-            $item->tidak_valid_count = $tidakValidCount;
-            $item->uploaded_count = $uploadedCount;
-            $item->is_berkas_lengkap = ($validCount === count($wajibKeys));
         }
 
         return [
