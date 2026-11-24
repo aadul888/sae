@@ -234,11 +234,14 @@
                 $totTidakSesuai = array_sum(array_column($progres_rombel, 'tidak_sesuai'));
                 $totBelum = array_sum(array_column($progres_rombel, 'belum_konfirmasi'));
                 $totBerkas = array_sum(array_column($progres_rombel, 'berkas_valid'));
+                $totKualitasSum = array_sum(array_column($progres_rombel, 'kualitas_sum'));
 
                 $persenTotSesuai = $totSemuaSiswa > 0 ? round(($totSesuai / $totSemuaSiswa) * 100, 1) : 0;
                 $persenTotTidak = $totSemuaSiswa > 0 ? round(($totTidakSesuai / $totSemuaSiswa) * 100, 1) : 0;
                 $persenTotBelum = $totSemuaSiswa > 0 ? round(($totBelum / $totSemuaSiswa) * 100, 1) : 0;
                 $persenTotBerkas = $totSemuaSiswa > 0 ? round(($totBerkas / $totSemuaSiswa) * 100, 1) : 0;
+                // Kualitas global = rata-rata skor kualitas seluruh PD (bobot per siswa).
+                $persenTotKualitas = $totSemuaSiswa > 0 ? round($totKualitasSum / $totSemuaSiswa, 1) : 0;
             @endphp
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
                 <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
@@ -259,6 +262,15 @@
                         <div style="width: {{ max(0, 100 - $persenTotBerkas) }}%; background: rgba(148, 163, 184, 0.6);"></div>
                     </div>
                     <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-top: 4px;">{{ number_format($totBerkas) }} siswa berkas lengkap</div>
+                </div>
+                <div style="background: var(--input-bg); border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 14px); padding: 12px 16px;">
+                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--purple, #8b5cf6); font-weight: 700; text-transform: uppercase;">Kualitas Data</div>
+                    <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--purple, #8b5cf6); line-height: 1.2; margin-top: 4px;">{{ $persenTotKualitas }}%</div>
+                    <div style="display: flex; height: 6px; border-radius: var(--radius-pill, 99px); overflow: hidden; margin-top: 8px; background: rgba(0,0,0,0.06);">
+                        <div style="width: {{ $persenTotKualitas }}%; background: var(--purple, #8b5cf6);"></div>
+                        <div style="width: {{ max(0, 100 - $persenTotKualitas) }}%; background: rgba(148, 163, 184, 0.6);"></div>
+                    </div>
+                    <div style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin-top: 4px;">rata-rata konfirmasi &amp; berkas</div>
                 </div>
             </div>
 

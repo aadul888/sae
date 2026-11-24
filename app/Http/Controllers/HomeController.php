@@ -386,6 +386,7 @@ class HomeController extends Controller
                     'berkas_valid'        => $bValid,
                     'persen_berkas'       => $persenBerkas,
                     'kualitas'            => $skorKualitas,
+                    'kualitas_sum'        => $kualitasCount, // jumlah skor mentah (untuk rekap global)
                 ];
             })
             // Default sort: kualitas data tertinggi
