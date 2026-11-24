@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Support\Table;
 use App\Support\RombelScope;
 use App\Support\ProgramKeahlian;
+use App\Support\KualitasData;
 use App\Models\Berita;
 use App\Models\Pengumuman;
 
@@ -271,9 +272,8 @@ class HomeController extends Controller
                 ->orderBy('rb.nama')
                 ->get();
 
-            // Berkas wajib = KK + Ijazah; Akta & KTP opsional. Kualitas Data = konfirmasi
-            // SESUAI + berkas wajib lengkap valid (irisan). Rumus sama dengan kartu
-            // Wali Kelas — Validasi Data.
+            // Berkas wajib = KK + Ijazah; Akta & KTP opsional. Kualitas Data = rata-rata
+            // skor konfirmasi & berkas setiap PD (rumus tunggal App\Support\KualitasData).
             $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
             $berkasMap = collect();
 
@@ -306,40 +306,64 @@ class HomeController extends Controller
                 }
             }
 
-            // Kualitas Data = konfirmasi SESUAI + berkas wajib lengkap valid (irisan).
-            // Definisi "sesuai" mengikuti kolom Data Valid di tabel ini.
-            $kualitasSet = [];
-            if ($hasIdentitas) {
-                foreach (DB::table('peserta_didik_identitas')
-                    ->whereRaw("LOWER(TRIM(status_konfirmasi)) IN ('sesuai', 'diverifikasi', 'disinkronkan_dapodik')")
-                    ->pluck('peserta_didik_id') as $pid) {
-                    if (isset($validKeysMap[$pid]) && count($validKeysMap[$pid]) >= count($wajibKeys)) {
-                        $kualitasSet[$pid] = true;
+            // Kualitas Data = rata-rata skor konfirmasi & berkas (KK + Ijazah) tiap PD.
+            // Rumus tunggal di App\Support\KualitasData, sama dgn walas & duty.
+            $konfStatusMap = $hasIdentitas
+                ? DB::table('peserta_didik_identitas')->pluck('status_konfirmasi', 'peserta_didik_id')
+                : collect();
+
+            $skorMap = []; // peserta_didik_id => [statusKk, kkFisik, statusIjazah, ijazahFisik]
+            if ($hasBerkas) {
+                foreach (DB::table('peserta_didik_berkas')
+                    ->whereIn('jenis_berkas', $wajibKeys)
+                    ->select('peserta_didik_id', 'jenis_berkas', 'status')
+                    ->get() as $r) {
+                    $slot = $r->jenis_berkas === 'kartu_keluarga' ? 0 : 2;
+                    $skorMap[$r->peserta_didik_id][$slot] = $r->status;
+                }
+            }
+            if (Table::exists('kesiswaan_berkas_verifikasi')) {
+                foreach ($wajibKeys as $i => $wk) {
+                    foreach (DB::table('kesiswaan_berkas_verifikasi')->where($wk, 1)->pluck('peserta_didik_id') as $pid) {
+                        $skorMap[$pid][$i === 0 ? 1 : 3] = true;
                     }
                 }
             }
-            $kualitasMap = collect();
-            foreach ($kualitasSet as $pid => $ok) {
-                $rid = $pdRombelMap[$pid] ?? null;
-                if ($rid) $kualitasMap[$rid] = ($kualitasMap[$rid] ?? 0) + 1;
+
+            $kualitasSumMap = []; // rombongan_belajar_id => jumlah skor
+            foreach ($pdRombelMap as $pid => $rid) {
+                if (!$rid) continue;
+                $slots = $skorMap[$pid] ?? [];
+                $skor = KualitasData::skorPesertaDidik(
+                    $konfStatusMap[$pid] ?? null,
+                    $slots[0] ?? null,
+                    !empty($slots[1]),
+                    $slots[2] ?? null,
+                    !empty($slots[3]),
+                );
+                if ($skor > 0) {
+                    $kualitasSumMap[$rid] = ($kualitasSumMap[$rid] ?? 0) + $skor;
+                }
             }
 
-            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasMap) {
+            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasSumMap) {
                 $total = (int) $r->total_siswa;
                 $sesuai = (int) $r->konfirm_sesuai;
                 $tidakSesuai = (int) $r->konfirm_tidak_sesuai;
                 $belum = (int) $r->belum_konfirmasi;
                 $bValid = (int) ($berkasMap[$r->rombongan_belajar_id] ?? 0);
-                $kualitasCount = (int) ($kualitasMap[$r->rombongan_belajar_id] ?? 0);
 
                 $persenSesuai = $total > 0 ? round(($sesuai / $total) * 100, 1) : 0;
                 $persenTidakSesuai = $total > 0 ? round(($tidakSesuai / $total) * 100, 1) : 0;
                 $persenBelum = $total > 0 ? round(($belum / $total) * 100, 1) : 0;
                 $persenBerkas = $total > 0 ? round(($bValid / $total) * 100, 1) : 0;
 
-                // Kualitas data = konfirmasi sesuai + berkas wajib (KK + Ijazah) lengkap valid.
+                // Kualitas data = rata-rata skor kualitas per PD dalam rombel.
+                $kualitasCount = (float) ($kualitasSumMap[$r->rombongan_belajar_id] ?? 0);
+
+                // Kualitas data = rata-rata skor kualitas per PD (skala 0..100).
                 // Rumus identik dengan halaman Wali Kelas — Validasi Data.
-                $skorKualitas = $total > 0 ? round(($kualitasCount / $total) * 100, 1) : 0;
+                $skorKualitas = $total > 0 ? round($kualitasCount / $total, 1) : 0;
 
                 $tg = (string) $r->tingkat;
                 if ($tg === '10') $tg = 'X';

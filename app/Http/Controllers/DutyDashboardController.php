@@ -11,6 +11,7 @@ use App\Models\RolePermission;
 use App\Models\User;
 
 
+use App\Support\KualitasData;
 use App\Support\Table;
 
 class DutyDashboardController extends Controller
@@ -431,6 +432,7 @@ class DutyDashboardController extends Controller
                 $konfirmasiCount = 0;
                 $kkCount = 0;
                 $ijzCount = 0;
+                $skorSum = 0.0;
 
                 foreach ($siswaList as $s) {
                     $idRec = $identitasMap->get($s->peserta_didik_id);
@@ -441,8 +443,11 @@ class DutyDashboardController extends Controller
                     $sBerkas = $berkasMap->get($s->peserta_didik_id) ?? collect();
                     $sFisik  = $fisikMap->get($s->peserta_didik_id);
 
-                    $kkValid  = (strtolower(trim((string) ($sBerkas->firstWhere('jenis_berkas', 'kartu_keluarga')?->status ?? ''))) === 'valid') || !empty($sFisik?->kartu_keluarga);
-                    $ijzValid = (strtolower(trim((string) ($sBerkas->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? ''))) === 'valid') || !empty($sFisik?->ijazah_smp);
+                    $kkF  = $sBerkas->firstWhere('jenis_berkas', 'kartu_keluarga');
+                    $ijzF = $sBerkas->firstWhere('jenis_berkas', 'ijazah_smp');
+
+                    $kkValid  = (strtolower(trim((string) ($kkF?->status ?? ''))) === 'valid') || !empty($sFisik?->kartu_keluarga);
+                    $ijzValid = (strtolower(trim((string) ($ijzF?->status ?? ''))) === 'valid') || !empty($sFisik?->ijazah_smp);
 
                     if ($kkValid) $kkCount++;
                     if ($ijzValid) $ijzCount++;
@@ -450,13 +455,22 @@ class DutyDashboardController extends Controller
                     if ($isConfirmed && $kkValid && $ijzValid) {
                         $validCount++;
                     }
+
+                    // Skor kualitas per PD (rata-rata konfirmasi & berkas).
+                    $skorSum += KualitasData::skorPesertaDidik(
+                        $stKonf,
+                        $kkF?->status,
+                        !empty($sFisik?->kartu_keluarga),
+                        $ijzF?->status,
+                        !empty($sFisik?->ijazah_smp),
+                    );
                 }
 
                 $kualitasData['valid'] = $validCount;
                 $kualitasData['konfirmasi'] = $konfirmasiCount;
                 $kualitasData['kk'] = $kkCount;
                 $kualitasData['ijazah'] = $ijzCount;
-                $kualitasData['persen'] = $totalSiswa > 0 ? round(($validCount / $totalSiswa) * 100, 1) : 0;
+                $kualitasData['persen'] = $totalSiswa > 0 ? round($skorSum / $totalSiswa, 1) : 0;
             }
         }
 

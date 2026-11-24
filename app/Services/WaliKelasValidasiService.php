@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\KualitasData;
 use App\Support\Table;
 /**
  * Service khusus rekapitulasi dan pemrosesan validasi kelengkapan data & berkas siswa per rombel binaan.
@@ -95,7 +96,8 @@ class WaliKelasValidasiService
         $statBerkasLengkap   = 0;
         $statBerkasMenunggu  = 0;
         $statBerkasKurang    = 0;
-        $statKualitas        = 0;
+        $statKualitasSum     = 0.0; // jumlah skor kualitas per PD (untuk rata-rata)
+        $statKualitasCount   = 0;   // PD dengan skor kualitas > 0
 
         foreach ($allPdIds as $idSiswa) {
             $idRec = $identitasAll->get($idSiswa);
@@ -140,11 +142,21 @@ class WaliKelasValidasiService
                 $statBerkasKurang++;
             }
 
-            // Kualitas data = PD dengan konfirmasi SESUAI dan berkas wajib (KK + Ijazah)
-            // lengkap valid. Definisi "sesuai" = kolom Data Valid (tanpa perlu_perbaikan).
-            $isSesuai = in_array($stKonf, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true);
-            if ($isSesuai && $valCount === count($wajibKeys)) {
-                $statKualitas++;
+            // Skor Kualitas Data per PD = rata-rata(konfirmasi, KK + Ijazah).
+            // Rumus tunggal di App\Support\KualitasData agar sama dgn beranda & duty.
+            $kkBf  = $sB->firstWhere('jenis_berkas', 'kartu_keluarga');
+            $ijzBf = $sB->firstWhere('jenis_berkas', 'ijazah_smp');
+
+            $skorPd = KualitasData::skorPesertaDidik(
+                $stKonf,
+                $kkBf?->status,
+                !empty($sF?->kartu_keluarga),
+                $ijzBf?->status,
+                !empty($sF?->ijazah_smp),
+            );
+            $statKualitasSum += $skorPd;
+            if ($skorPd > 0) {
+                $statKualitasCount++;
             }
         }
 
@@ -157,8 +169,8 @@ class WaliKelasValidasiService
             'berkas_lengkap'   => $statBerkasLengkap,
             'berkas_menunggu'  => $statBerkasMenunggu,
             'berkas_kurang'    => $statBerkasKurang,
-            'kualitas_count'   => $statKualitas,
-            'kualitas_persen'  => $totalSiswa > 0 ? round($statKualitas / $totalSiswa * 100, 1) : 0,
+            'kualitas_count'   => $statKualitasCount,
+            'kualitas_persen'  => $totalSiswa > 0 ? round($statKualitasSum / $totalSiswa, 1) : 0,
         ];
 
         $query = (clone $baseQuery)
