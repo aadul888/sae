@@ -608,6 +608,150 @@ function initAdminCharts() {
             }
         });
     }
+
+    // -------------------------------------------------------------
+    // 6. CHART BATANG (BAR): Statistik Usia Peserta Didik
+    // -------------------------------------------------------------
+    const ctxUsia = document.getElementById('chartUsiaPd')?.getContext('2d');
+    if (ctxUsia && payload.usia) {
+        const usiaValues = payload.usia.data || [];
+        const usiaMax = Math.max(...usiaValues, 0);
+        window.adminChartUsia = new Chart(ctxUsia, {
+            type: 'bar',
+            data: {
+                labels: payload.usia.labels || [],
+                datasets: [{
+                    label: 'Jumlah Peserta Didik',
+                    data: usiaValues,
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.85)',
+                        'rgba(6, 182, 212, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(16, 185, 129, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(236, 72, 153, 0.85)'
+                    ].slice(0, usiaValues.length),
+                    borderRadius: 6,
+                    maxBarThickness: 46
+                }]
+            },
+            plugins: [barDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 20 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: items => (items && items.length ? 'Usia ' + items[0].label + ' Tahun' : ''),
+                            label: ctx => ` Jumlah: ${Number(ctx.parsed.y).toLocaleString('id-ID')} Peserta Didik`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textMuted, font: { size: 11 } },
+                        title: { display: true, text: 'Kelompok Usia (Tahun)', color: textMuted, font: { size: 10 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: Math.max(10, Math.ceil((usiaMax * 1.15) / 10) * 10),
+                        grid: { color: gridColor },
+                        ticks: { color: textMuted, font: { size: 10 }, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 7. CHART BATANG (BAR): Kondisi & Jumlah Ruangan dan Aset
+    // -------------------------------------------------------------
+    const ctxRuangAset = document.getElementById('chartRuangAset')?.getContext('2d');
+    if (ctxRuangAset && payload.ruangAset) {
+        const raData = [payload.ruangAset.ruangan || [], payload.ruangAset.aset || []];
+        const raMax = Math.max(...raData[0], ...raData[1], 0);
+        window.adminChartRuangAset = new Chart(ctxRuangAset, {
+            type: 'bar',
+            data: {
+                labels: payload.ruangAset.labels || [],
+                datasets: [
+                    {
+                        label: 'Ruangan',
+                        data: raData[0],
+                        backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    },
+                    {
+                        label: 'Aset',
+                        data: raData[1],
+                        backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    }
+                ]
+            },
+            plugins: [{
+                id: 'adminRuangAsetLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    data.datasets.forEach((dataset, dIdx) => {
+                        const meta = chart.getDatasetMeta(dIdx);
+                        if (!meta || meta.hidden) return;
+                        meta.data.forEach((bar, index) => {
+                            const val = dataset.data[index];
+                            if (val === undefined || val === null || val <= 0) return;
+                            ctx.fillStyle = isLight ? '#0f172a' : '#f8fafc';
+                            ctx.font = 'bold 10px Plus Jakarta Sans, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(Number(val).toLocaleString('id-ID'), bar.x, bar.y - 3);
+                        });
+                    });
+                    ctx.restore();
+                }
+            }],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 20 } },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            usePointStyle: true,
+                            color: textColor,
+                            font: { size: 11, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y).toLocaleString('id-ID')}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textMuted, font: { size: 11 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: Math.max(5, Math.ceil((raMax * 1.15) / 5) * 5),
+                        grid: { color: gridColor },
+                        ticks: { color: textMuted, font: { size: 10 }, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
 }
 
 /**

@@ -301,6 +301,54 @@
                 <canvas id="chartSiswaBulanan"></canvas>
             </div>
         </div>
+
+        <!-- Charts Row 3: Statistik Usia Peserta Didik & Kondisi Ruangan dan Aset -->
+        <div class="dash-grid-2" style="margin-top: 20px;">
+            <!-- Chart 5: Statistik Usia Peserta Didik -->
+            <div class="card" style="margin-bottom: 0;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-users-line text-primary"></i> Statistik Usia Peserta Didik
+                        </h4>
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Sebaran jumlah peserta didik
+                            berdasarkan kelompok usia (tahun)</span>
+                    </div>
+                    <span class="badge badge-outline"
+                        style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border: 1px solid var(--border-color);">
+                        {{ number_format($usiaStats['total'] ?? 0) }} Terdata
+                    </span>
+                </div>
+                <div style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="chartUsiaPd"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 6: Kondisi Ruangan & Aset -->
+            <div class="card" style="margin-bottom: 0;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-warehouse text-warning"></i> Kondisi Ruangan &amp; Aset
+                        </h4>
+                        <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Jumlah ruangan dan unit aset
+                            per kondisi (Baik / Rusak Ringan / Rusak Berat)</span>
+                    </div>
+                    <span class="badge"
+                        style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
+                        {{ number_format($ruangAsetStats['total_ruangan'] ?? 0) }} Ruang &bull;
+                        {{ number_format($ruangAsetStats['total_aset'] ?? 0) }} Aset
+                    </span>
+                </div>
+                <div style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="chartRuangAset"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Main Section: Grid 2 Columns (Datatable Aktivitas & Status Sistem) -->
@@ -648,6 +696,8 @@
             'gtk' => $gtkComposition,
             'tingkat' => $tingkatStats,
             'siswaBulanan' => $chartSiswaBulanan,
+            'usia' => $usiaStats,
+            'ruangAset' => $ruangAsetStats,
         ]) !!}
     </script>
 

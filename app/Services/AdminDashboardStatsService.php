@@ -290,6 +290,73 @@ class AdminDashboardStatsService
             }
         }
 
+        // Chart Bar: Statistik Usia Peserta Didik (< 15, 15, 16, 17, 18, > 18)
+        $usiaBuckets = ['< 15' => 0, '15' => 0, '16' => 0, '17' => 0, '18' => 0, '> 18' => 0];
+        if (Table::exists('peserta_didik')) {
+            DB::table('peserta_didik')
+                ->whereNotNull('tanggal_lahir')
+                ->where('tanggal_lahir', '<>', '')
+                ->pluck('tanggal_lahir')
+                ->each(function ($tgl) use (&$usiaBuckets) {
+                    try {
+                        $umur = Carbon::parse($tgl)->age;
+                    } catch (\Throwable $e) {
+                        return;
+                    }
+                    if ($umur < 15) {
+                        $usiaBuckets['< 15']++;
+                    } elseif ($umur > 18) {
+                        $usiaBuckets['> 18']++;
+                    } else {
+                        $usiaBuckets[(string) $umur]++;
+                    }
+                });
+        }
+        $usiaStats = [
+            'labels' => array_keys($usiaBuckets),
+            'data'   => array_values($usiaBuckets),
+            'total'  => array_sum($usiaBuckets),
+        ];
+
+        // Chart Bar: Kondisi & Jumlah Ruangan dan Aset Sarpras
+        $kondisiKeys = ['baik', 'rusak_ringan', 'rusak_berat'];
+        $ruangCounts = array_fill_keys($kondisiKeys, 0);
+        if (Table::exists('sarpras_ruang')) {
+            DB::table('sarpras_ruang')
+                ->select('kondisi', DB::raw('count(*) as total'))
+                ->groupBy('kondisi')
+                ->get()
+                ->each(function ($r) use (&$ruangCounts) {
+                    $k = $r->kondisi ?: 'baik';
+                    if (array_key_exists($k, $ruangCounts)) $ruangCounts[$k] += (int) $r->total;
+                });
+        }
+
+        $asetCounts = array_fill_keys($kondisiKeys, 0);
+        if (Table::exists('sarpras_aset')) {
+            $cols = [
+                'baik'         => Table::hasColumn('sarpras_aset', 'jumlah_baik') ? 'jumlah_baik' : null,
+                'rusak_ringan' => Table::hasColumn('sarpras_aset', 'jumlah_rusak_ringan') ? 'jumlah_rusak_ringan' : null,
+                'rusak_berat'  => Table::hasColumn('sarpras_aset', 'jumlah_rusak_berat') ? 'jumlah_rusak_berat' : null,
+            ];
+            $row = DB::table('sarpras_aset')->selectRaw(
+                collect($cols)->map(fn ($c, $k) => 'COALESCE(SUM(' . ($c ?: '0') . '),0) as ' . $k)->implode(', ')
+            )->first();
+            if ($row) {
+                foreach ($kondisiKeys as $k) {
+                    $asetCounts[$k] = (int) ($row->{$k} ?? 0);
+                }
+            }
+        }
+
+        $ruangAsetStats = [
+            'labels'        => ['Baik', 'Rusak Ringan', 'Rusak Berat'],
+            'ruangan'       => array_values($ruangCounts),
+            'aset'          => array_values($asetCounts),
+            'total_ruangan' => array_sum($ruangCounts),
+            'total_aset'    => array_sum($asetCounts),
+        ];
+
         // 3. Datatable Aktivitas Administrator
         $queryLogs = AdminAktivitas::query()->latest();
 
@@ -326,6 +393,8 @@ class AdminDashboardStatsService
             'gtkComposition',
             'tingkatStats',
             'chartSiswaBulanan',
+            'usiaStats',
+            'ruangAsetStats',
             'aktivitasLogs',
             'availableModules',
             'perPage'
