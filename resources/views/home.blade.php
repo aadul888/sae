@@ -293,10 +293,10 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px; font-size: var(--text-xs, 0.72rem); color: var(--text-muted); flex-wrap: wrap;">
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Data Valid</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--purple, #8b5cf6);"></span> Berkas Valid</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></span> Belum</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span> Kualitas (rata-rata)</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Berkas Valid</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22d3ee;"></span> Menunggu</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--warning, #f59e0b);"></span> Perbaikan / Tidak Valid</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--danger, #ef4444);"></span> Belum</span>
                 </div>
             </div>
 
@@ -340,35 +340,40 @@
                                 </td>
                                 <!-- Kolom Data Valid: bar bertumpuk Sesuai / Perbaikan / Belum -->
                                 <td style="padding: 10px 14px;">
-                                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:6px;">
-                                        <div style="font-size: var(--text-sm, 0.78rem); font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
-                                        <div style="font-size: var(--text-xs, 0.68rem); font-weight: 700; color: var(--text-muted);" title="Skor konfirmasi (sesuai=100, perbaikan=50) yang masuk hitungan Kualitas Data">skor {{ $r['skor_konfirmasi'] }}</div>
-                                    </div>
+                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: var(--success);">{{ $r['persen_sesuai'] }}%</div>
                                     <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
                                         <div style="width: {{ $r['persen_sesuai'] }}%; background: var(--success);" title="Sesuai: {{ $r['persen_sesuai'] }}%"></div>
                                         <div style="width: {{ $r['persen_tidak_sesuai'] }}%; background: var(--warning, #f59e0b);" title="Perlu Perbaikan: {{ $r['persen_tidak_sesuai'] }}%"></div>
-                                        <div style="width: {{ $r['persen_belum'] }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Konfirmasi: {{ $r['persen_belum'] }}%"></div>
+                                        <div style="width: {{ $r['persen_belum'] }}%; background: var(--danger, #ef4444);" title="Belum Konfirmasi: {{ $r['persen_belum'] }}%"></div>
                                     </div>
-                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;">Sesuai {{ $r['persen_sesuai'] }}% · Perbaikan {{ $r['persen_tidak_sesuai'] }}% · Belum {{ $r['persen_belum'] }}%</div>
                                 </td>
-                                <!-- Kolom Berkas Valid: bar valid vs sisa -->
+                                <!-- Kolom Berkas Valid: bar bertumpuk Valid / Menunggu / Tidak Valid / Belum -->
+                                @php
+                                    $bt = max($r['total_siswa'], 1);
+                                    $bPct = fn ($n) => round(($n / $bt) * 100, 1);
+                                @endphp
                                 <td style="padding: 10px 14px;">
-                                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:6px;">
-                                        <div style="font-size: var(--text-sm, 0.78rem); font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
-                                        <div style="font-size: var(--text-xs, 0.68rem); font-weight: 700; color: var(--text-muted);" title="Skor berkas KK + Ijazah (valid=100, menunggu/tidak_valid=50 dari maks 100) yang masuk hitungan Kualitas Data">skor {{ $r['skor_berkas'] }}</div>
-                                    </div>
+                                    <div style="font-size: var(--text-sm, 0.78rem); margin-bottom: 4px; font-weight: 800; color: #8b5cf6;">{{ $r['persen_berkas'] }}%</div>
                                     <div style="display: flex; width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-pill, 99px); overflow: hidden;">
-                                        <div style="width: {{ $r['persen_berkas'] }}%; background: var(--purple, #8b5cf6);" title="Berkas Valid (KK + Ijazah): {{ $r['persen_berkas'] }}%"></div>
-                                        <div style="width: {{ max(0, 100 - $r['persen_berkas']) }}%; background: rgba(148, 163, 184, 0.6);" title="Belum Valid: {{ max(0, 100 - $r['persen_berkas']) }}%"></div>
+                                        <div style="width: {{ $bPct($r['detail']['berkas']['valid']) }}%; background: #8b5cf6;" title="Valid: {{ $r['detail']['berkas']['valid'] }} siswa"></div>
+                                        <div style="width: {{ $bPct($r['detail']['berkas']['menunggu']) }}%; background: #22d3ee;" title="Menunggu verifikasi: {{ $r['detail']['berkas']['menunggu'] }} siswa"></div>
+                                        <div style="width: {{ $bPct($r['detail']['berkas']['tidak_valid']) }}%; background: var(--warning, #f59e0b);" title="Tidak valid: {{ $r['detail']['berkas']['tidak_valid'] }} siswa"></div>
+                                        <div style="width: {{ $bPct($r['detail']['berkas']['belum']) }}%; background: var(--danger, #ef4444);" title="Belum unggah: {{ $r['detail']['berkas']['belum'] }} siswa"></div>
                                     </div>
-                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;">{{ $r['berkas_valid'] }} siswa KK+Ijazah valid</div>
                                 </td>
-                                <!-- Kualitas Data -->
-                                <td style="padding: 10px 14px; text-align: center; background: rgba(16, 185, 129, 0.03);">
-                                    <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 4px 8px; border-radius: var(--radius-md, 8px); font-weight: 800; font-size: var(--text-base, 0.85rem); {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
-                                        {{ $r['kualitas'] }}%
-                                    </span>
-                                    <div style="font-size: var(--text-xs, 0.68rem); color: var(--text-muted); margin-top: 4px;" title="Kualitas = rata-rata(skor konfirmasi, skor berkas)">({{ $r['skor_konfirmasi'] }} + {{ $r['skor_berkas'] }}) ÷ 2</div>
+                                <!-- Kualitas Data: klik untuk detail -->
+                                <td style="padding: 10px 14px; text-align: center; background: rgba(139, 92, 246, 0.04);">
+                                    <button type="button" class="btn-kualitas"
+                                        data-rombel="{{ $r['rombel'] }}"
+                                        data-jurusan="{{ $r['jurusan'] }}"
+                                        data-total="{{ $r['total_siswa'] }}"
+                                        data-skor-konfirmasi="{{ $r['skor_konfirmasi'] }}"
+                                        data-skor-berkas="{{ $r['skor_berkas'] }}"
+                                        data-kualitas="{{ $r['kualitas'] }}"
+                                        data-detail='@json($r['detail'])'
+                                        style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid transparent; border-radius: var(--radius-md, 8px); font-weight: 800; font-size: var(--text-base, 0.85rem); cursor: pointer; transition: transform .12s ease; {{ $r['kualitas'] >= 60 ? 'background: rgba(16, 185, 129, 0.14); color: var(--success);' : ($r['kualitas'] >= 30 ? 'background: rgba(245, 158, 11, 0.14); color: var(--warning, #f59e0b);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger, #ef4444);') }}">
+                                        {{ $r['kualitas'] }}% <i class="fas fa-circle-info" style="opacity: 0.7; font-size: 0.75em;"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -384,11 +389,49 @@
             <p style="font-size: var(--text-xs, 0.72rem); color: var(--text-muted); margin: 10px 2px 0;">
                 <i class="fas fa-circle-info"></i>
                 <strong>Kualitas Data</strong> = rata-rata <em>skor konfirmasi</em> &amp; <em>skor berkas</em> tiap siswa, lalu dirata-rata per rombel.
-                Skor konfirmasi: sesuai/diverifikasi = 100, perlu perbaikan = 50, belum = 0.
-                Skor berkas (KK + Ijazah): valid = 100, menunggu/tidak valid = 50. Karena itu <strong>Kualitas bisa &gt; 0 walau Data Valid &amp; Berkas Valid 0%</strong> —
-                siswa yang berstatus <em>perlu perbaikan</em> atau berkasnya masih <em>menunggu</em> tetap menyumbang skor.
+                <strong>Klik angka Kualitas Data</strong> untuk melihat rincian. Karena skor bertingkat, Kualitas bisa &gt; 0 walau Data Valid &amp; Berkas Valid 0%.
             </p>
         </section>
+
+        <!-- Modal Detail Kualitas Data per Rombel -->
+        <div id="modalKualitas" class="kualitas-modal" style="display:none;">
+            <div class="kualitas-modal-box">
+                <div class="kualitas-modal-head">
+                    <div>
+                        <div id="kmRombel" style="font-weight:800; font-size: var(--text-lg, 1rem);"></div>
+                        <div id="kmJurusan" style="font-size: var(--text-sm, 0.8rem); color: var(--text-muted);"></div>
+                    </div>
+                    <button type="button" id="kmClose" class="kualitas-modal-close" aria-label="Tutup">&times;</button>
+                </div>
+                <div class="kualitas-modal-body">
+                    <div class="km-score-row">
+                        <div class="km-score">
+                            <div class="km-score-val" id="kmKualitas">0%</div>
+                            <div class="km-score-lbl">Kualitas Data</div>
+                        </div>
+                        <div class="km-score-calc" id="kmCalc">(0 + 0) ÷ 2</div>
+                    </div>
+
+                    <div class="km-section">
+                        <div class="km-section-head">
+                            <span>Konfirmasi Identitas</span>
+                            <span class="km-skor" id="kmKonfSkor">0</span>
+                        </div>
+                        <div class="km-bar" id="kmKonfBar"></div>
+                        <div class="km-legend" id="kmKonfLegend"></div>
+                    </div>
+
+                    <div class="km-section">
+                        <div class="km-section-head">
+                            <span>Berkas KK + Ijazah</span>
+                            <span class="km-skor" id="kmBerkasSkor">0</span>
+                        </div>
+                        <div class="km-bar" id="kmBerkasBar"></div>
+                        <div class="km-legend" id="kmBerkasLegend"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -498,6 +541,93 @@
 
                 if (searchInput) searchInput.addEventListener('input', filterRows);
                 if (tingkatSelect) tingkatSelect.addEventListener('change', filterRows);
+
+                // --- Modal Detail Kualitas Data ---
+                const COLOR = {
+                    valid: '#10b981', sesuai: '#10b981',
+                    menunggu: '#22d3ee',
+                    perbaikan: '#f59e0b', tidak_valid: '#f59e0b',
+                    belum: '#ef4444',
+                };
+                const modal = document.getElementById('modalKualitas');
+
+                function buildBar(el, parts, total) {
+                    const t = Math.max(total, 1);
+                    el.innerHTML = '';
+                    parts.forEach(function(p) {
+                        const n = p.n || 0;
+                        if (n <= 0) return;
+                        const s = document.createElement('span');
+                        s.style.width = ((n / t) * 100) + '%';
+                        s.style.background = p.color;
+                        s.title = p.label + ': ' + n + ' siswa';
+                        el.appendChild(s);
+                    });
+                }
+
+                function buildLegend(el, parts) {
+                    el.innerHTML = '';
+                    parts.forEach(function(p) {
+                        const d = document.createElement('span');
+                        d.className = 'km-legend-item';
+                        d.innerHTML = '<span class="km-legend-dot" style="background:' + p.color + '"></span>' +
+                            p.label + ' <b>' + (p.n || 0) + '</b>';
+                        el.appendChild(d);
+                    });
+                }
+
+                function openModal(btn) {
+                    const d = JSON.parse(btn.getAttribute('data-detail') || '{}');
+                    const total = parseInt(btn.getAttribute('data-total')) || 0;
+                    const konf = d.konfirmasi || {};
+                    const berkas = d.berkas || {};
+
+                    document.getElementById('kmRombel').textContent = btn.getAttribute('data-rombel') || '';
+                    document.getElementById('kmJurusan').textContent =
+                        (btn.getAttribute('data-jurusan') || '') + ' · ' + total + ' siswa';
+
+                    document.getElementById('kmKualitas').textContent = btn.getAttribute('data-kualitas') + '%';
+                    document.getElementById('kmCalc').textContent =
+                        '(konfirmasi ' + btn.getAttribute('data-skor-konfirmasi') + ' + berkas ' +
+                        btn.getAttribute('data-skor-berkas') + ') ÷ 2';
+                    document.getElementById('kmKonfSkor').textContent = 'skor ' + btn.getAttribute('data-skor-konfirmasi');
+                    document.getElementById('kmBerkasSkor').textContent = 'skor ' + btn.getAttribute('data-skor-berkas');
+
+                    buildBar(document.getElementById('kmKonfBar'), [
+                        { n: konf.sesuai, color: COLOR.sesuai, label: 'Sesuai' },
+                        { n: konf.perbaikan, color: COLOR.perbaikan, label: 'Perlu perbaikan' },
+                        { n: konf.belum, color: COLOR.belum, label: 'Belum konfirmasi' },
+                    ], total);
+                    buildLegend(document.getElementById('kmKonfLegend'), [
+                        { n: konf.sesuai, color: COLOR.sesuai, label: 'Sesuai' },
+                        { n: konf.perbaikan, color: COLOR.perbaikan, label: 'Perlu perbaikan' },
+                        { n: konf.belum, color: COLOR.belum, label: 'Belum' },
+                    ]);
+
+                    buildBar(document.getElementById('kmBerkasBar'), [
+                        { n: berkas.valid, color: COLOR.valid, label: 'Valid' },
+                        { n: berkas.menunggu, color: COLOR.menunggu, label: 'Menunggu' },
+                        { n: berkas.tidak_valid, color: COLOR.tidak_valid, label: 'Tidak valid' },
+                        { n: berkas.belum, color: COLOR.belum, label: 'Belum unggah' },
+                    ], total);
+                    buildLegend(document.getElementById('kmBerkasLegend'), [
+                        { n: berkas.valid, color: COLOR.valid, label: 'Valid' },
+                        { n: berkas.menunggu, color: COLOR.menunggu, label: 'Menunggu' },
+                        { n: berkas.tidak_valid, color: COLOR.tidak_valid, label: 'Tidak valid' },
+                        { n: berkas.belum, color: COLOR.belum, label: 'Belum' },
+                    ]);
+
+                    modal.style.display = 'flex';
+                }
+
+                document.querySelectorAll('.btn-kualitas').forEach(function(btn) {
+                    btn.addEventListener('click', function() { openModal(btn); });
+                });
+                if (modal) {
+                    modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+                    document.getElementById('kmClose').addEventListener('click', function() { modal.style.display = 'none'; });
+                    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') modal.style.display = 'none'; });
+                }
             });
         </script>
 
@@ -570,6 +700,52 @@
             </div>
         </section>
     </div>
+@endsection
+
+@section('styles')
+    <style>
+        /* Modal Detail Kualitas Data per Rombel */
+        .kualitas-modal {
+            position: fixed; inset: 0; z-index: var(--z-modal, 1000);
+            background: rgba(15, 23, 42, 0.55);
+            display: flex; align-items: center; justify-content: center; padding: 16px;
+        }
+        .kualitas-modal-box {
+            background: var(--bg-card, #fff); color: var(--text-main);
+            border: 1px solid var(--border-glass); border-radius: var(--radius-xl, 16px);
+            width: min(520px, 100%); max-height: 88vh; overflow: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+        .kualitas-modal-head {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+            padding: 16px 18px; border-bottom: 1px solid var(--border-glass);
+        }
+        .kualitas-modal-close {
+            border: none; background: transparent; font-size: 1.6rem; line-height: 1;
+            color: var(--text-muted); cursor: pointer; padding: 0 4px;
+        }
+        .kualitas-modal-close:hover { color: var(--danger, #ef4444); }
+        .kualitas-modal-body { padding: 16px 18px 20px; }
+        .km-score-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .km-score-val { font-size: 2rem; font-weight: 800; line-height: 1; color: var(--purple, #8b5cf6); }
+        .km-score-lbl { font-size: var(--text-xs, 0.72rem); color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; }
+        .km-score-calc {
+            font-size: var(--text-sm, 0.8rem); color: var(--text-muted); font-weight: 700;
+            background: var(--input-bg, rgba(0,0,0,0.04)); padding: 6px 10px; border-radius: var(--radius-md, 8px);
+        }
+        .km-section { margin-top: 16px; }
+        .km-section-head {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: var(--text-sm, 0.82rem); font-weight: 700; margin-bottom: 6px;
+        }
+        .km-skor { font-weight: 800; color: var(--purple, #8b5cf6); }
+        .km-bar { display: flex; width: 100%; height: 12px; border-radius: var(--radius-pill, 99px); overflow: hidden; background: rgba(0,0,0,0.06); }
+        .km-bar > span { display: block; height: 100%; }
+        .km-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 8px; }
+        .km-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs, 0.74rem); color: var(--text-muted); }
+        .km-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+        .km-legend-item b { color: var(--text-main); }
+    </style>
 @endsection
 
 @section('scripts')

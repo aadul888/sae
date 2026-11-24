@@ -33,15 +33,26 @@ final class KualitasData
     /** Skor satu jenis berkas (0..50). `$fisik` = checklist verifikasi fisik. */
     public static function skorBerkas(?string $status, bool $fisik = false): float
     {
-        if ($fisik) {
-            return 50.0;
-        }
-
-        return match (strtolower(trim((string) $status))) {
+        return match (self::kategoriBerkas($status, $fisik)) {
             'valid' => 50.0,
             'menunggu', 'tidak_valid' => 25.0,
             default => 0.0,
         };
+    }
+
+    /**
+     * Kategori tampilan satu jenis berkas: valid | menunggu | tidak_valid | belum.
+     * Verifikasi fisik (checklist) dianggap valid.
+     */
+    public static function kategoriBerkas(?string $status, bool $fisik = false): string
+    {
+        if ($fisik) {
+            return 'valid';
+        }
+
+        $s = strtolower(trim((string) $status));
+
+        return in_array($s, ['valid', 'menunggu', 'tidak_valid'], true) ? $s : 'belum';
     }
 
     /**

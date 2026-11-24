@@ -333,6 +333,9 @@ class HomeController extends Controller
             $kualitasSumMap = [];   // rombongan_belajar_id => jumlah skor kualitas
             $konfSumMap = [];       // rombongan_belajar_id => jumlah skor konfirmasi
             $berkasSumMap = [];     // rombongan_belajar_id => jumlah skor berkas (KK + Ijazah)
+            $kkKatMap = [];         // rombongan_belajar_id => [kategori KK => jumlah PD]
+            $ijzKatMap = [];        // rombongan_belajar_id => [kategori Ijazah => jumlah PD]
+            $berkasKatMap = [];     // rombongan_belajar_id => [kategori berkas siswa => jumlah PD]
             foreach ($pdRombelMap as $pid => $rid) {
                 if (!$rid) continue;
                 $slots = $skorMap[$pid] ?? [];
@@ -343,9 +346,26 @@ class HomeController extends Controller
                 $konfSumMap[$rid] = ($konfSumMap[$rid] ?? 0) + $konfSum;
                 $berkasSumMap[$rid] = ($berkasSumMap[$rid] ?? 0) + $berkasSum;
                 $kualitasSumMap[$rid] = ($kualitasSumMap[$rid] ?? 0) + ($konfSum + $berkasSum) / 2;
+
+                $kkKat = KualitasData::kategoriBerkas($slots[0] ?? null, !empty($slots[1]));
+                $ijzKat = KualitasData::kategoriBerkas($slots[2] ?? null, !empty($slots[3]));
+                $kkKatMap[$rid][$kkKat] = ($kkKatMap[$rid][$kkKat] ?? 0) + 1;
+                $ijzKatMap[$rid][$ijzKat] = ($ijzKatMap[$rid][$ijzKat] ?? 0) + 1;
+
+                // Kategori berkas tingkat siswa (untuk bar bertumpuk): valid > menunggu > tidak_valid > belum.
+                if ($kkKat === 'valid' && $ijzKat === 'valid') {
+                    $bKat = 'valid';
+                } elseif ($kkKat === 'menunggu' || $ijzKat === 'menunggu') {
+                    $bKat = 'menunggu';
+                } elseif ($kkKat === 'tidak_valid' || $ijzKat === 'tidak_valid') {
+                    $bKat = 'tidak_valid';
+                } else {
+                    $bKat = 'belum';
+                }
+                $berkasKatMap[$rid][$bKat] = ($berkasKatMap[$rid][$bKat] ?? 0) + 1;
             }
 
-            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasSumMap, $konfSumMap, $berkasSumMap) {
+            $progres_rombel = $rows->map(function ($r) use ($berkasMap, $kualitasSumMap, $konfSumMap, $berkasSumMap, $kkKatMap, $ijzKatMap, $berkasKatMap) {
                 $total = (int) $r->total_siswa;
                 $sesuai = (int) $r->konfirm_sesuai;
                 $tidakSesuai = (int) $r->konfirm_tidak_sesuai;
@@ -368,6 +388,9 @@ class HomeController extends Controller
                 // Kualitas data = rata-rata skor kualitas per PD (skala 0..100).
                 // Rumus identik dengan halaman Wali Kelas — Validasi Data.
                 $skorKualitas = $total > 0 ? round($kualitasCount / $total, 1) : 0;
+
+                // Rincian jumlah PD per kategori (untuk panel detail).
+                $kat = fn (array $m, string $k) => (int) ($m[$rid][$k] ?? 0);
 
                 $tg = (string) $r->tingkat;
                 if ($tg === '10') $tg = 'X';
@@ -393,6 +416,12 @@ class HomeController extends Controller
                     'skor_berkas'         => $skorBerkas,     // komponen kualitas: skor berkas KK+Ijazah (0..100)
                     'kualitas'            => $skorKualitas,
                     'kualitas_sum'        => $kualitasCount, // jumlah skor mentah (untuk rekap global)
+                    'detail'              => [
+                        'konfirmasi' => ['sesuai' => $sesuai, 'perbaikan' => $tidakSesuai, 'belum' => $belum],
+                        'berkas'     => ['valid' => $kat($berkasKatMap, 'valid'), 'menunggu' => $kat($berkasKatMap, 'menunggu'), 'tidak_valid' => $kat($berkasKatMap, 'tidak_valid'), 'belum' => $kat($berkasKatMap, 'belum')],
+                        'kk'         => ['valid' => $kat($kkKatMap, 'valid'), 'menunggu' => $kat($kkKatMap, 'menunggu'), 'tidak_valid' => $kat($kkKatMap, 'tidak_valid'), 'belum' => $kat($kkKatMap, 'belum')],
+                        'ijazah'     => ['valid' => $kat($ijzKatMap, 'valid'), 'menunggu' => $kat($ijzKatMap, 'menunggu'), 'tidak_valid' => $kat($ijzKatMap, 'tidak_valid'), 'belum' => $kat($ijzKatMap, 'belum')],
+                    ],
                 ];
             })
             // Default sort: kualitas data tertinggi
