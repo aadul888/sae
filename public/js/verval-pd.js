@@ -556,77 +556,83 @@ document.addEventListener('DOMContentLoaded', function () {
                             : `<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas fa-minus me-1"></i> Belum Unggah</span>`));
 
                 html += `
-                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}" style="padding: 14px 16px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color); background: var(--card-bg, #fff); ${stepIdx === 0 ? '' : 'display: none;'}">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                                <div style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem); flex-shrink: 0;">
-                                    <i class="fas ${item.icon}"></i>
+                    <div class="card card-berkas-item vb-card" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}">
+                        <div class="vb-col-pdf">
+                            ${item.is_uploaded ? `
+                                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
+                                    <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
+                                        style="width: 100%; height: 100%; min-height: 62vh; border: none; display: block;"></iframe>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">${escapeHtml(item.label)}</span>
-                                    ${item.wajib ? '<span class="badge badge-outline" style="font-size: var(--text-2xs, 0.7rem); padding: 1px 6px;">Wajib</span>' : ''}
+                            ` : `
+                                <div style="height: 100%; min-height: 40vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-hover);">
+                                    <i class="fas fa-file-circle-xmark" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
+                                    <span style="font-size: var(--text-sm, 0.8125rem);">Belum ada berkas digital</span>
+                                    <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 6px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
+                                        <i class="fas fa-upload me-1"></i> Unggah File
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="status-badge-container">${statusBadge}</div>
+                            `}
                         </div>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); margin-bottom: 12px; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0; font-size: var(--text-sm, 0.8125rem);">
-                                ${item.is_uploaded ? `
-                                    <i class="fas fa-file-pdf" style="color: var(--danger, #ef4444); font-size: 1.15rem; flex-shrink: 0;"></i>
-                                    <span style="font-weight: 600; color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px;" title="${escapeHtml(item.file_name)}">${escapeHtml(item.file_name)}</span>
-                                    <span class="text-muted" style="font-size: var(--text-xs, 0.75rem);">(${item.file_size})</span>
-                                ` : `
-                                    <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);"><i class="fas fa-minus-circle me-1"></i>Belum ada file digital</span>
-                                `}
+                        <div class="vb-col-panel">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                    <div style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem); flex-shrink: 0;">
+                                        <i class="fas ${item.icon}"></i>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <span style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--text-color);">${escapeHtml(item.label)}</span>
+                                        ${item.wajib ? '<span class="badge badge-outline" style="font-size: var(--text-2xs, 0.7rem); padding: 1px 6px;">Wajib</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="status-badge-container">${statusBadge}</div>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                ${item.is_uploaded ? `
-                                    <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${item.file_url}" data-title="${escapeHtml(item.label)} - ${escapeHtml(siswa.nama)}" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" data-status="${item.status || ''}" data-catatan="${escapeHtml(item.catatan_penolakan || '')}" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;">
-                                        <i class="fas fa-eye me-1"></i> Lihat PDF
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); margin-bottom: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0; font-size: var(--text-sm, 0.8125rem);">
+                                    ${item.is_uploaded ? `
+                                        <i class="fas fa-file-pdf" style="color: var(--danger, #ef4444); font-size: 1.15rem; flex-shrink: 0;"></i>
+                                        <span style="font-weight: 600; color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="${escapeHtml(item.file_name)}">${escapeHtml(item.file_name)}</span>
+                                    ` : `
+                                        <span class="text-muted" style="font-size: var(--text-sm, 0.8125rem);"><i class="fas fa-minus-circle me-1"></i>Belum ada file digital</span>
+                                    `}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="file" id="fileTendik_${item.jenis_berkas}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" class="input-file-tendik" data-pd-id="${id}" data-key="${item.jenis_berkas}">
+                                    <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;" title="Unggah file peserta didik">
+                                        <i class="fas fa-upload me-1"></i> ${item.is_uploaded ? 'Ganti File' : 'Unggah File'}
                                     </button>
-                                ` : ''}
-                                <input type="file" id="fileTendik_${item.jenis_berkas}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" class="input-file-tendik" data-pd-id="${id}" data-key="${item.jenis_berkas}">
-                                <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;" title="Unggah file peserta didik">
-                                    <i class="fas fa-upload me-1"></i> ${item.is_uploaded ? 'Ganti File' : 'Unggah File'}
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 16px; align-items: center;">
+                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
+                                        <input type="radio" name="status_${item.jenis_berkas}" value="valid" ${item.status === 'valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
+                                        <i class="fas fa-circle-check"></i> Valid
+                                    </label>
+                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
+                                        <input type="radio" name="status_${item.jenis_berkas}" value="tidak_valid" ${item.status === 'tidak_valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
+                                        <i class="fas fa-circle-xmark"></i> Tidak Valid
+                                    </label>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-save-verif-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" style="padding: 5px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-check"></i> Simpan
                                 </button>
                             </div>
-                        </div>
 
-                        ${item.is_uploaded ? `
-                            <div style="margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a);">
-                                <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
-                                    style="width: 100%; height: 58vh; min-height: 420px; border: none; display: block;"></iframe>
+                            <div id="boxPenolakan_${item.jenis_berkas}" style="display: ${item.status === 'tidak_valid' ? 'block' : 'none'}; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                                ${rekomendasiList.length ? `
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                                        ${rekomendasiList.map(rek => `
+                                            <button type="button" class="btn btn-outline btn-chip-rekomendasi" data-target-text="textarea_${item.jenis_berkas}" data-text="${escapeHtml(rek)}" style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;">
+                                                ${escapeHtml(rek)}
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                                <textarea id="textarea_${item.jenis_berkas}" class="form-control input-catatan-penolakan" rows="2" placeholder="Catatan perbaikan untuk siswa..." style="font-size: var(--text-sm, 0.8125rem); width: 100%; border-radius: var(--radius-sm, 6px);">${escapeHtml(item.catatan_penolakan || '')}</textarea>
                             </div>
-                        ` : ''}
-
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                            <div style="display: flex; gap: 16px; align-items: center;">
-                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
-                                    <input type="radio" name="status_${item.jenis_berkas}" value="valid" ${item.status === 'valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                    <i class="fas fa-circle-check"></i> Valid
-                                </label>
-                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
-                                    <input type="radio" name="status_${item.jenis_berkas}" value="tidak_valid" ${item.status === 'tidak_valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                    <i class="fas fa-circle-xmark"></i> Tidak Valid
-                                </label>
-                            </div>
-                            <button type="button" class="btn btn-primary btn-save-verif-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" style="padding: 5px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-check"></i> Simpan
-                            </button>
-                        </div>
-
-                        <div id="boxPenolakan_${item.jenis_berkas}" style="display: ${item.status === 'tidak_valid' ? 'block' : 'none'}; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
-                            ${rekomendasiList.length ? `
-                                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
-                                    ${rekomendasiList.map(rek => `
-                                        <button type="button" class="btn btn-outline btn-chip-rekomendasi" data-target-text="textarea_${item.jenis_berkas}" data-text="${escapeHtml(rek)}" style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;">
-                                            ${escapeHtml(rek)}
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                            <textarea id="textarea_${item.jenis_berkas}" class="form-control input-catatan-penolakan" rows="2" placeholder="Catatan perbaikan untuk siswa..." style="font-size: var(--text-sm, 0.8125rem); width: 100%; border-radius: var(--radius-sm, 6px);">${escapeHtml(item.catatan_penolakan || '')}</textarea>
                         </div>
                     </div>
                 `;
@@ -646,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const vbShow = (i) => {
                 if (!vbCards.length) return;
                 vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
-                vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'block' : 'none'; });
+                vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'grid' : 'none'; });
                 const counter = document.getElementById('vbStepCounter');
                 const labelEl = document.getElementById('vbStepLabel');
                 const prevBtn = document.getElementById('vbPrev');

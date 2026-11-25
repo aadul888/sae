@@ -2,7 +2,7 @@
 <div id="modalVerifikasiBerkasDigital" class="modal-backdrop"
     style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
     <div class="card"
-        style="max-width: 1400px; width: 96%; height: 92vh; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
+        style="max-width: 98vw; width: 98vw; height: 92vh; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 12px;">
