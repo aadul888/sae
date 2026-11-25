@@ -52,6 +52,23 @@ function initPdfFileInputValidation() {
                 return;
             }
 
+            // Batas bawah: berkas 0 byte (placeholder cloud Drive/WhatsApp yang belum
+            // benar-benar diunduh ke perangkat) tidak mungkin PDF sah.
+            if (!file.size) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Berkas Kosong (0 byte)',
+                        html: 'Berkas yang dipilih <strong>kosong</strong>. Ini biasanya terjadi bila berkas diambil langsung dari <strong>Google Drive / WhatsApp / cloud</strong> dan belum benar-benar tersimpan di perangkat.<br><br>Simpan (unduh) berkas ke perangkat dulu, lalu pilih ulang dari folder <strong>Unduhan/Files</strong>.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                } else {
+                    window.SAE.alert('Berkas kosong (0 byte). Unduh dulu ke perangkat lalu pilih ulang.', 'Informasi', 'info');
+                }
+                this.value = '';
+                return;
+            }
+
             // Batas ukuran 5MB (5 * 1024 * 1024 bytes)
             const maxBytes = 5 * 1024 * 1024;
             if (file.size > maxBytes) {
@@ -85,6 +102,15 @@ function initPdfFileInputValidation() {
             const normalize = (async () => {
                 try {
                     const buffer = await file.arrayBuffer();
+
+                    // Pembacaan bisa mengembalikan 0 byte walau file.size > 0, bila sumber
+                    // berkas cloud baru dilepas handle-nya. Jangan ganti input dengan berkas
+                    // kosong — biarkan berkas asli (server akan menolak dengan pesan jelas).
+                    if (!buffer || buffer.byteLength === 0) {
+                        console.warn('[SAE-Berkas] arrayBuffer kosong; input dibiarkan apa adanya.');
+                        return;
+                    }
+
                     const inMemory = new File([buffer], file.name, { type: file.type || 'application/pdf' });
                     if (window.DataTransfer) {
                         const dt = new DataTransfer();

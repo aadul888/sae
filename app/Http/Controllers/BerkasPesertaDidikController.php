@@ -199,10 +199,14 @@ class BerkasPesertaDidikController extends Controller
                 'extension'        => $extension,
                 'client_mime'      => $clientMime,
                 'real_mime'        => $realMime,
+                'file_size'        => $file->getSize(),
+                'head_sample'      => $head !== '' ? bin2hex(substr($head, 0, 8)) : '(kosong)',
                 'file_name'        => $file->getClientOriginalName(),
             ]);
 
-            return back()->with('error', 'File yang diunggah bukan file PDF yang valid. Pastikan berkas berekstensi .pdf dan isinya benar-benar PDF.');
+            return back()->with('error', $file->getSize() < 1
+                ? 'Berkas yang diunggah kosong (0 byte). Simpan/unduh berkas ke perangkat dulu, lalu pilih ulang dari folder Unduhan.'
+                : 'File yang diunggah bukan file PDF yang valid. Pastikan berkas berekstensi .pdf dan isinya benar-benar PDF.');
         }
 
         $jenisBerkas = $request->input('jenis_berkas');
