@@ -478,6 +478,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // ====================================================== BERKAS DIGITAL
     let berkasStatusChanged = false;
 
+    // Auto-refresh datatable tiap modal validasi tertutup (lewat jalur mana pun:
+    // tombol Tutup, ESC, backdrop) jika ada perubahan status berkas.
+    const modalVbWatch = document.getElementById('modalVerifikasiBerkasDigital');
+    if (modalVbWatch) {
+        new MutationObserver(() => {
+            if (modalVbWatch.style.display === 'none' && berkasStatusChanged) {
+                berkasStatusChanged = false;
+                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+            }
+        }).observe(modalVbWatch, { attributes: true, attributeFilter: ['style'] });
+    }
+
     window.openModalVerifikasiBerkas = async function (id, nama) {
         const modal = document.getElementById('modalVerifikasiBerkasDigital');
         const loading = document.getElementById('modalVbLoading');
@@ -556,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             : `<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas fa-minus me-1"></i> Belum Unggah</span>`));
 
                 html += `
-                    <div class="card card-berkas-item vb-card" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}">
+                    <div class="card card-berkas-item vb-card" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-uploaded="${item.is_uploaded ? '1' : '0'}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}">
                         <div class="vb-col-pdf">
                             ${item.is_uploaded ? `
                                 <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
@@ -646,11 +658,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnLihatSemua.addEventListener('click', () => window.openSemuaBerkas());
             }
 
-            // -------- Stepper: satu dokumen per tampilan, urut, navigasi ikon saja.
-            const vbCards = Array.from(content.querySelectorAll('.card-berkas-item'));
+            // -------- Stepper: satu dokumen terunggah per tampilan, urut, navigasi ikon saja.
+            // Dokumen tanpa berkas (belum unggah) dilewati otomatis. Bila TIDAK ADA berkas
+            // sama sekali → tutup modal & selesai (tak ada yang bisa divalidasi).
+            const allCards = Array.from(content.querySelectorAll('.card-berkas-item'));
+            const vbCards = allCards.filter((c) => c.getAttribute('data-uploaded') === '1');
+            allCards.forEach((c) => { if (c.getAttribute('data-uploaded') !== '1') c.style.display = 'none'; });
+
+            if (!vbCards.length) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                return;
+            }
+
             let vbIndex = 0;
             const vbShow = (i) => {
-                if (!vbCards.length) return;
                 vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
                 vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'grid' : 'none'; });
                 const counter = document.getElementById('vbStepCounter');
@@ -660,13 +683,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (counter) counter.textContent = `Dokumen ${vbIndex + 1} / ${vbCards.length}`;
                 if (labelEl) labelEl.textContent = vbCards[vbIndex].getAttribute('data-label') || '';
                 if (prevBtn) prevBtn.disabled = vbIndex === 0;
-                if (nextBtn) nextBtn.disabled = vbIndex === vbCards.length - 1;
+                const onLast = vbIndex === vbCards.length - 1;
+                if (nextBtn) {
+                    nextBtn.disabled = onLast;
+                    // Dokumen terakhir: tombol kanan jadi "Selesai" (tutup + refresh).
+                    nextBtn.title = onLast ? 'Selesai & tutup' : 'Dokumen selanjutnya';
+                    nextBtn.innerHTML = onLast ? '<i class="fas fa-check"></i>' : '<i class="fas fa-chevron-right"></i>';
+                }
                 content.scrollTop = 0;
+            };
+            const vbFinish = () => {
+                berkasStatusChanged = false; // sudah ditangani di sini; cegah refresh ganda dari observer
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
             };
             const vbPrev = document.getElementById('vbPrev');
             const vbNext = document.getElementById('vbNext');
             if (vbPrev) vbPrev.addEventListener('click', () => vbShow(vbIndex - 1));
-            if (vbNext) vbNext.addEventListener('click', () => vbShow(vbIndex + 1));
+            if (vbNext) vbNext.addEventListener('click', () => {
+                if (vbIndex === vbCards.length - 1) vbFinish();
+                else vbShow(vbIndex + 1);
+            });
             vbShow(0);
 
             content.querySelectorAll('.radio-status-berkas').forEach((radio) => {
@@ -769,10 +807,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const prevBtn = card.querySelector('.btn-preview-pdf-inline');
                                 if (prevBtn) { prevBtn.setAttribute('data-status', status); prevBtn.setAttribute('data-catatan', catatan); }
 
-                                // Simpan cepat: setelah simpan sukses, otomatis pindah ke dokumen berikutnya.
+                                // Simpan cepat: lanjut ke dokumen berikutnya; bila ini terakhir → selesai & tutup.
                                 const curIdx = vbCards.indexOf(card);
-                                if (curIdx > -1 && curIdx < vbCards.length - 1) {
-                                    setTimeout(() => vbShow(curIdx + 1), 350);
+                                if (curIdx > -1) {
+                                    if (curIdx < vbCards.length - 1) setTimeout(() => vbShow(curIdx + 1), 350);
+                                    else setTimeout(() => vbFinish(), 600);
                                 }
                             }
                         } else {
