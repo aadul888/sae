@@ -38,52 +38,60 @@ trait ChecksAuthenticatedSession
     }
 
     /**
-     * Ambil peran pengguna dari sesi.
+     * Ambil peran kanonik pengguna dari sesi.
      *
-     * Sesi lama / hasil pemulihan (remember token) bisa saja tidak memuat key
-     * 'role'; turunkan dari 'peran_id_str' agar tidak salah dikenali (mis. siswa
-     * dianggap staf). Logika sama dengan DashboardController::checkAuth().
+     * Nilai `role` di sesi bisa tidak kanonik: sesi lama mungkin menyimpan
+     * string peran mentah (mis. "Peserta Didik"), bukan "peserta_didik".
+     * Karena itu nilainya SELALU dinormalisasi lewat pemetaan yang sama,
+     * dengan 'peran_id_str' sebagai cadangan. Logika sama dengan match `$role`
+     * di dash-sidebar & DashboardController::checkAuth().
      */
     protected function sessionRole(): string
     {
         $user = $this->sessionUser();
 
-        $role = (string) (is_array($user)
+        $rawRole = (string) (is_array($user)
             ? ($user['role'] ?? '')
             : ($user->role ?? ''));
-
-        if ($role !== '') {
-            return $role;
-        }
-
-        $peran = strtolower(trim((string) (is_array($user)
+        $rawPeran = (string) (is_array($user)
             ? ($user['peran_id_str'] ?? '')
-            : ($user->peran_id_str ?? ''))));
+            : ($user->peran_id_str ?? ''));
 
-        $resolved = match (true) {
-            str_contains($peran, 'admin'),
-            str_contains($peran, 'operator'),
-            str_contains($peran, 'dinas'),
-            str_contains($peran, 'yayasan') => 'admin',
-            str_contains($peran, 'orang tua'),
-            str_contains($peran, 'orang_tua'),
-            str_contains($peran, 'wali') => 'orang_tua',
-            str_contains($peran, 'tendik'),
-            str_contains($peran, 'tenaga kependidikan'),
-            str_contains($peran, 'tata usaha') => 'tendik',
-            str_contains($peran, 'guru'),
-            str_contains($peran, 'pendidik'),
-            str_contains($peran, 'ptk') => 'guru',
-            default => 'peserta_didik',
-        };
+        $resolved = self::normalizeRole($rawRole !== '' ? $rawRole : $rawPeran);
 
         // Tulis balik ke sesi agar pemakaian lain ($user['role'] mentah) ikut
         // konsisten tanpa harus diubah satu per satu.
-        if (is_array($user) && session()->has('user')) {
+        if (is_array($user) && ($user['role'] ?? null) !== $resolved && session()->has('user')) {
             $user['role'] = $resolved;
             session(['user' => $user]);
         }
 
         return $resolved;
+    }
+
+    /**
+     * Petakan nilai peran apa pun (kanonik atau mentah) ke salah satu peran baku.
+     */
+    public static function normalizeRole(?string $role): string
+    {
+        $role = strtolower(trim((string) $role));
+
+        return match (true) {
+            str_contains($role, 'admin'),
+            str_contains($role, 'operator'),
+            str_contains($role, 'dinas'),
+            str_contains($role, 'yayasan') => 'admin',
+            str_contains($role, 'orang tua'),
+            str_contains($role, 'orang_tua'),
+            str_contains($role, 'wali murid'),
+            str_contains($role, 'wali_murid') => 'orang_tua',
+            str_contains($role, 'tendik'),
+            str_contains($role, 'tenaga kependidikan'),
+            str_contains($role, 'tata usaha') => 'tendik',
+            str_contains($role, 'guru'),
+            str_contains($role, 'pendidik'),
+            str_contains($role, 'ptk') => 'guru',
+            default => 'peserta_didik',
+        };
     }
 }
