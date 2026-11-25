@@ -687,7 +687,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (labelEl) labelEl.textContent = c.getAttribute('data-label') || '';
                     if (prevBtn) prevBtn.disabled = vbIndex === 0;
                     if (nextBtn) {
-                        nextBtn.disabled = onLast;
+                        // Di dokumen terakhir tombol jadi "Selesai & tutup" — tetap AKTIF.
+                        nextBtn.disabled = false;
                         nextBtn.title = onLast ? 'Selesai & tutup' : 'Dokumen selanjutnya';
                         nextBtn.innerHTML = onLast ? '<i class="fas fa-check"></i>' : '<i class="fas fa-chevron-right"></i>';
                     }
