@@ -351,6 +351,12 @@
             min-width: 0;
         }
 
+        /* Kartu non-aktif disembunyikan lewat class (agar tak berbenturan dengan
+           display:grid !important pada .vb-card). */
+        .modal-backdrop .vb-card.vb-hidden {
+            display: none !important;
+        }
+
         /* Layar lebar: kartu mengisi tinggi area modal, PDF pakai sisa ruang (tanpa scroll). */
         @media (min-width: 1100px) {
             #modalVbContent {

@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // sama sekali → tutup modal & selesai (tak ada yang bisa divalidasi).
             const allCards = Array.from(content.querySelectorAll('.card-berkas-item'));
             const vbCards = allCards.filter((c) => c.getAttribute('data-uploaded') === '1');
-            allCards.forEach((c) => { if (c.getAttribute('data-uploaded') !== '1') c.style.display = 'none'; });
+            allCards.forEach((c) => { if (c.getAttribute('data-uploaded') !== '1') c.classList.add('vb-hidden'); });
 
             if (!vbCards.length) {
                 modal.style.display = 'none';
@@ -675,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let vbIndex = 0;
             const vbShow = (i) => {
                 vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
-                vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'grid' : 'none'; });
+                vbCards.forEach((c, idx) => c.classList.toggle('vb-hidden', idx !== vbIndex));
 
                 const onLast = vbIndex === vbCards.length - 1;
                 vbCards.forEach((c, idx) => {
