@@ -115,6 +115,14 @@ $checks['JS tolak PDF hanya berdasarkan MIME eksplisit'] =
     && str_contains($js, "mime === 'application/pdf'")
     && !str_contains($js, "file.type === 'application/pdf'");
 
+// --- 5e. Anti ERR_UPLOAD_FILE_CHANGED: berkas dinormalisasi ke in-memory saat
+// dipilih (Android mengubah last_modified berkas URI sementara -> Chromium
+// membatalkan unggahan sebelum request terkirim).
+$checks['JS normalisasi berkas ke memori (anti ERR_UPLOAD_FILE_CHANGED)'] =
+    str_contains($js, 'arrayBuffer')
+    && str_contains($js, 'new File([')
+    && str_contains($js, 'DataTransfer');
+
 // --- 5d. URL sw.js harus ber-query versi, agar cache tepi (Cloudflare) tidak
 // menyajikan service worker lama untuk '/sw.js' polos.
 $checks['sw.js didaftarkan dengan query versi (lolos cache CDN)'] =

@@ -21,7 +21,7 @@ function initPdfFileInputValidation() {
     const fileInputs = document.querySelectorAll('.file-input-pdf');
 
     fileInputs.forEach(input => {
-        input.addEventListener('change', function () {
+        input.addEventListener('change', async function () {
             const file = this.files[0];
             if (!file) return;
 
@@ -68,6 +68,37 @@ function initPdfFileInputValidation() {
                 this.value = '';
                 return;
             }
+
+            // Anti `net::ERR_UPLOAD_FILE_CHANGED`.
+            //
+            // Di Android (Chrome/PWA) berkas dari "Files"/Drive/Gallery disajikan sebagai
+            // URI sementara yang `last_modified`-nya berubah antar query. Saat form dikirim,
+            // Chromium membandingkan waktu berkas saat ini dengan saat dipilih → dianggap
+            // "berubah" → unggahan dibatalkan sebelum request terkirim (tak ada jejak di
+            // log server). Solusi: baca isi berkas ke memori sekarang, lalu ganti isi input
+            // dengan Blob in-memory. Blob tanpa path disk → tak ada waktu berkas untuk
+            // dibandingkan saat submit.
+            const inputEl = this;
+            // Simpan promise normalisasi: handler submit menunggu ini dulu agar berkas
+            // in-memory terpasang sebelum form dikirim (user bisa menekan Unggah cepat).
+            inputEl._saeNormalizeDone = false;
+            const normalize = (async () => {
+                try {
+                    const buffer = await file.arrayBuffer();
+                    const inMemory = new File([buffer], file.name, { type: file.type || 'application/pdf' });
+                    if (window.DataTransfer) {
+                        const dt = new DataTransfer();
+                        dt.items.add(inMemory);
+                        inputEl.files = dt.files;
+                    }
+                } catch (err) {
+                    // Gagal membaca (mis. berkas sudah hilang) → biarkan; server akan tolak.
+                    console.warn('[SAE-Berkas] Gagal menormalisasi berkas ke memori:', err);
+                } finally {
+                    inputEl._saeNormalizeDone = true;
+                }
+            })();
+            inputEl._saeNormalize = normalize;
         });
     });
 }
@@ -83,6 +114,23 @@ function initUploadFormSubmit() {
             const fileInput = this.querySelector('.file-input-pdf');
             if (!fileInput || !fileInput.files.length) {
                 e.preventDefault();
+                return;
+            }
+
+            // Bila normalisasi in-memory belum selesai (user menekan Unggah segera
+            // setelah memilih berkas), tunggu selesai dulu baru kirim — agar tidak
+            // ada jendela waktu di mana berkas on-disk dikirim dan ERR_UPLOAD_FILE_CHANGED
+            // muncul kembali.
+            if (fileInput._saeNormalize && !fileInput._saeNormalizeDone) {
+                e.preventDefault();
+                const form = this;
+                fileInput._saeNormalize.then(() => {
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                });
                 return;
             }
 
