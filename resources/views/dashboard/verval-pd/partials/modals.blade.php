@@ -33,14 +33,6 @@
         </div>
 
         <div id="modalVbContent" style="overflow-y: auto; flex: 1; min-height: 0; display: none; padding-right: 4px;"></div>
-
-        <div
-            style="display: flex; justify-content: flex-end; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-            <button type="button" class="btn btn-outline close-modal" data-target="#modalVerifikasiBerkasDigital"
-                style="border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-base, 0.875rem);">
-                Tutup
-            </button>
-        </div>
     </div>
 </div>
 
