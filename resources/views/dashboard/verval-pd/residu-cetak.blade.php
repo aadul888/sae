@@ -2,12 +2,12 @@
 <html lang="id">
 
 {{--
-    Cetak Laporan Residu Verval PD (A4 landscape).
+    Cetak Laporan Residu Verval PD (A4, orientasi bisa dipilih).
 
     Menampilkan hasil penyandingan Dukcapil apa adanya (centang → Sesuai/Tidak
     Sesuai) + Nama Kelas, Status Proses, dan Catatan Masalah per peserta didik.
     Data disiapkan `VervalPdController::cetakResidu()`. Ukuran kertas diatur
-    `@page` (A4 landscape) seperti dokumen cetak modul lain.
+    `@page` sesuai orientasi yang dipilih pada review (default landscape).
 --}}
 
 <head>
@@ -22,9 +22,9 @@
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
     <style>
-        /* 16 kolom → wajib mendatar agar tidak terpotong. */
+        /* 16 kolom → landscape agar tidak terpotong; portrait tetap diizinkan. */
         @page {
-            size: A4 landscape;
+            size: A4 {{ $orientasi }};
             margin: 1.2cm;
         }
 
@@ -101,19 +101,44 @@
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
 
+        <div class="orientation-switch">
+            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'portrait']) }}"
+                class="btn-orientasi {{ $orientasi === 'portrait' ? 'active' : '' }}" title="Kertas A4 Portrait">
+                <i class="fas fa-file"></i> Portrait
+            </a>
+            <a href="{{ request()->fullUrlWithQuery(['orientasi' => 'landscape']) }}"
+                class="btn-orientasi {{ $orientasi === 'landscape' ? 'active' : '' }}" title="Kertas A4 Landscape">
+                <i class="fas fa-file-invoice"></i> Landscape
+            </a>
+        </div>
+
         <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Dokumen (Print / PDF)
         </button>
     </div>
 
     @php
-        $svc = app(\App\Services\VervalPdResiduService::class);
-        $labelNilai = fn($v) => $svc->tampilNilai($v);
         $statusLabel = fn($v) => \App\Services\VervalPdResiduService::STATUS_LABELS[$v] ?? 'Belum Diproses';
+
+        // Sel centang → ikon berwarna saja (hijau ✓ / merah ✗), tanpa teks tambahan.
+        $renderSel = function ($v) {
+            $v = trim((string) $v);
+            if ($v === '') {
+                return '<span style="color: #94a3b8;">-</span>';
+            }
+            if (preg_match('/[✓✔√]/u', $v) === 1) {
+                return '<i class="fas fa-check" style="color: var(--success, #059669);"></i>';
+            }
+            if (preg_match('/[✗✘×]/u', $v) === 1) {
+                return '<i class="fas fa-xmark" style="color: var(--danger, #dc2626);"></i>';
+            }
+
+            return e($v);
+        };
     @endphp
 
-    {{-- Halaman Dokumen A4 Landscape --}}
-    <div class="cetak-page landscape">
+    {{-- Halaman Dokumen A4 (orientasi mengikuti pilihan) --}}
+    <div class="cetak-page {{ $orientasi === 'landscape' ? 'landscape' : '' }}">
         {{-- Watermark Logo SAE --}}
         <div class="watermark-sae">
             <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
@@ -148,8 +173,8 @@
                     <th style="width: 9%;">NISN / NIK</th>
                     <th style="width: 12%;">Nama</th>
                     <th style="width: 5.5%;">Kelas</th>
-                    <th style="width: 6.5%;">Rombel/Sekolah</th>
                     <th style="width: 6.5%;">Status Proses</th>
+                    <th style="width: 6.5%;">Rombel/Sekolah</th>
                     <th style="width: 5.5%;">NISN Dukcapil</th>
                     <th style="width: 5.5%;">NIK Dukcapil</th>
                     <th style="width: 5%;">NIK Ganda</th>
@@ -174,17 +199,17 @@
                         </td>
                         <td class="col-nama">{{ $it->nama ?: '-' }}</td>
                         <td style="text-align: center;">{{ $it->kelas ?: '-' }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->rombel_sekolah) }}</td>
                         <td style="text-align: center; font-weight: 700;">{{ $statusLabel($it->status_proses) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->nisn_banding) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->nik_dukcapil) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->nik_ganda) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->nama_banding) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->tempat_lahir) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->tanggal_lahir) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->ibu_kandung) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->jenis_kelamin) }}</td>
-                        <td style="text-align: center;">{{ $labelNilai($it->desa_kelurahan) }}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->rombel_sekolah) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->nisn_banding) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->nik_dukcapil) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->nik_ganda) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->nama_banding) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->tempat_lahir) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->tanggal_lahir) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->ibu_kandung) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->jenis_kelamin) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->desa_kelurahan) !!}</td>
                         <td>{{ trim((string) $it->catatan) !== '' ? $it->catatan : '—' }}</td>
                     </tr>
                 @empty
@@ -224,7 +249,7 @@
                 <strong>Laporan Residu Verval PD — Sistem Aplikasi Edukasi (SAE)</strong><br>
                 Dicetak pada {{ now()->translatedFormat('l, d F Y H:i') }} WIB
             </div>
-            <div>Format A4 Landscape</div>
+            <div>Format A4 {{ ucfirst($orientasi) }}</div>
         </div>
     </div>
 

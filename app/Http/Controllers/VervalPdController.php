@@ -151,11 +151,13 @@ class VervalPdController extends Controller
 
         $status = trim((string) $request->get('status', ''));
         $q = trim((string) $request->get('q', ''));
+        $orientasi = $request->get('orientasi') === 'portrait' ? 'portrait' : 'landscape';
 
         return view('dashboard.verval-pd.residu-cetak', [
             'items' => $items,
             'status' => $status,
             'q' => $q,
+            'orientasi' => $orientasi,
             'selectedCount' => count((array) $request->get('ids', [])),
             'sekolah' => \App\Models\Sekolah::first(),
             'kepsek' => $this->kepalahSekolah(),
