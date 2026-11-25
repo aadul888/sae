@@ -355,6 +355,70 @@
             align-self: stretch;
         }
 
+        /* Opsi Valid / Tidak Valid: seluruh pill (ikon + teks) jadi area klik,
+           bukan hanya titik radio kecil. */
+        .vb-status-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1 1 auto;
+        }
+
+        .vb-status-opt {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            font-size: var(--text-sm, 0.8125rem);
+            font-weight: 700;
+            border-radius: var(--radius-md, 8px);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-hover);
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+            transition: all 0.15s ease;
+        }
+
+        .vb-status-opt input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        .vb-status-valid {
+            color: var(--success, #10b981);
+        }
+
+        .vb-status-invalid {
+            color: var(--danger, #ef4444);
+        }
+
+        .vb-status-valid:hover {
+            border-color: var(--success, #10b981);
+            background: rgba(16, 185, 129, 0.12);
+        }
+
+        .vb-status-invalid:hover {
+            border-color: var(--danger, #ef4444);
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        .vb-status-valid:has(input:checked) {
+            border-color: var(--success, #10b981);
+            background: rgba(16, 185, 129, 0.18);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+        }
+
+        .vb-status-invalid:has(input:checked) {
+            border-color: var(--danger, #ef4444);
+            background: rgba(239, 68, 68, 0.18);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+        }
+
         @media (max-width: 1024px) {
             .modal-backdrop .vb-card {
                 grid-template-columns: 1fr;

@@ -618,14 +618,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
 
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                                <div style="display: flex; gap: 16px; align-items: center;">
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
+                                <div class="vb-status-group">
+                                    <label class="vb-status-opt vb-status-valid">
                                         <input type="radio" name="status_${item.jenis_berkas}" value="valid" ${item.status === 'valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                        <i class="fas fa-circle-check"></i> Valid
+                                        <i class="fas fa-circle-check"></i> <span>Valid</span>
                                     </label>
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
+                                    <label class="vb-status-opt vb-status-invalid">
                                         <input type="radio" name="status_${item.jenis_berkas}" value="tidak_valid" ${item.status === 'tidak_valid' ? 'checked' : ''} class="radio-status-berkas" data-key="${item.jenis_berkas}">
-                                        <i class="fas fa-circle-xmark"></i> Tidak Valid
+                                        <i class="fas fa-circle-xmark"></i> <span>Tidak Valid</span>
                                     </label>
                                 </div>
                                 <button type="button" class="btn btn-primary btn-save-verif-berkas" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" style="padding: 5px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-sm, 6px); display: inline-flex; align-items: center; gap: 6px;">
