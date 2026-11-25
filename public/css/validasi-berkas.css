@@ -1,0 +1,182 @@
+/* ==========================================================================
+   Modal Validasi Berkas Digital — kartu stepper + PDF inline 2 kolom.
+   Dipakai: Verval PD (tab Berkas), Wali Kelas Validasi Data, Kesiswaan Peserta Didik.
+   ========================================================================== */
+
+/* Manfaatkan lebar layar desktop — PDF kiri besar, panel validasi kanan.
+   Di layar sempit otomatis bertumpuk (1 kolom) agar tetap nyaman. */
+.modal-backdrop .vb-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--border-color);
+    background: var(--card-bg, #fff);
+}
+
+.vb-card .vb-col-pdf {
+    min-width: 0;
+}
+
+.vb-card .vb-col-panel {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    min-width: 0;
+}
+
+/* Kartu non-aktif disembunyikan lewat class (agar tak berbenturan dengan
+   display:grid !important pada .vb-card). */
+.modal-backdrop .vb-card.vb-hidden {
+    display: none !important;
+}
+
+/* Bar: nomor dokumen + nama + navigasi — di atas isi panel kanan. */
+.vb-stepbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg, 12px);
+}
+
+/* Opsi Valid / Tidak Valid: seluruh pill (ikon + teks) jadi area klik,
+   bukan hanya titik radio kecil. */
+.vb-status-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+
+.vb-status-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    min-height: 40px;
+    font-size: var(--text-sm, 0.8125rem);
+    font-weight: 700;
+    border-radius: var(--radius-md, 8px);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-hover);
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+    transition: all 0.15s ease;
+}
+
+.vb-status-opt input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.vb-status-valid {
+    color: var(--success, #10b981);
+}
+
+.vb-status-invalid {
+    color: var(--danger, #ef4444);
+}
+
+.vb-status-valid:hover {
+    border-color: var(--success, #10b981);
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.vb-status-invalid:hover {
+    border-color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.vb-status-valid:has(input:checked) {
+    border-color: var(--success, #10b981);
+    background: rgba(16, 185, 129, 0.18);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.vb-status-invalid:has(input:checked) {
+    border-color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.18);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+/* Selaraskan tinggi tombol Simpan dengan pill Valid/Tidak Valid. */
+.vb-card .btn-save-verif-berkas {
+    min-height: 40px;
+    padding: 9px 18px !important;
+    font-size: var(--text-sm, 0.8125rem) !important;
+    border-radius: var(--radius-md, 8px) !important;
+    border: 1.5px solid transparent;
+}
+
+/* Layar lebar: PDF kiri besar, panel validasi kanan; kartu mengisi tinggi area
+   modal sehingga PDF pas 1 layar (tanpa scroll). */
+@media (min-width: 1100px) {
+    .modal-backdrop .vb-card {
+        grid-template-columns: minmax(0, 1fr) 400px;
+        gap: 18px;
+    }
+
+    #modalVbContent {
+        overflow-y: hidden !important;
+    }
+
+    #modalVbContent .vb-cards {
+        height: 100%;
+    }
+
+    #modalVbContent .vb-cards > .vb-card {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .vb-card .vb-pdf-wrap {
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Panel kanan boleh menggulir sendiri bila isinya (catatan/rekomendasi) panjang. */
+    .vb-card .vb-col-panel {
+        overflow-y: auto;
+        max-height: 100%;
+    }
+}
+
+/* Layar sempit/mobile: kartu bertumpuk, tombol tetap besar. */
+@media (max-width: 1099px) {
+    .modal-backdrop .vb-card {
+        padding: 12px;
+    }
+
+    .vb-card .vb-pdf-wrap iframe {
+        min-height: 52vh;
+    }
+
+    .vb-status-group {
+        width: 100%;
+    }
+
+    .vb-status-opt {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+
+    .vb-card .btn-save-verif-berkas {
+        width: 100%;
+        justify-content: center;
+    }
+}

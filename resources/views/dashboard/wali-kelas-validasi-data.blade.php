@@ -460,7 +460,7 @@
         data-can-update="{{ !empty($canUpdate) ? '1' : '0' }}"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 860px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
+            style="max-width: 98vw; width: 98vw; height: 92vh; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: var(--radius-xl, 16px); padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -488,21 +488,8 @@
                 <div>Memuat daftar berkas digital siswa...</div>
             </div>
 
-            <div id="modalVbContent" style="overflow-y: auto; flex: 1; display: none; padding-right: 4px;">
+            <div id="modalVbContent" style="overflow-y: auto; flex: 1; min-height: 0; display: none; padding-right: 4px;">
                 <!-- Diisi secara dinamis via JavaScript -->
-            </div>
-
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                    <i class="fas fa-circle-info text-primary me-1"></i>
-                    Status validasi berkas: <strong>Valid / Sesuai</strong> atau <strong>Tidak Valid / Tidak
-                        Sesuai</strong>.
-                </div>
-                <button type="button" class="btn btn-outline close-modal" data-target="#modalVerifikasiBerkasDigital"
-                    style="border-radius: var(--radius-md, 8px); padding: 7px 16px; font-size: var(--text-base, 0.875rem);">
-                    Tutup
-                </button>
             </div>
         </div>
     </div>
@@ -580,9 +567,12 @@
 @push('styles')
     <link rel="stylesheet"
         href="{{ asset('css/wali-kelas.css') }}?v={{ file_exists(public_path('css/wali-kelas.css')) ? filemtime(public_path('css/wali-kelas.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/validasi-berkas.css') }}?v={{ file_exists(public_path('css/validasi-berkas.css')) ? filemtime(public_path('css/validasi-berkas.css')) : time() }}">
 @endpush
 
 @push('scripts')
+    <script src="{{ asset('js/validasi-berkas-modal.js') }}?v={{ file_exists(public_path('js/validasi-berkas-modal.js')) ? filemtime(public_path('js/validasi-berkas-modal.js')) : time() }}"></script>
     <script
         src="{{ asset('js/wali-kelas-validasi.js') }}?v={{ file_exists(public_path('js/wali-kelas-validasi.js')) ? filemtime(public_path('js/wali-kelas-validasi.js')) : time() }}">
     </script>
