@@ -36,10 +36,10 @@
     document.addEventListener('pointerdown', function (e) {
         if (isMobile() || e.button !== 0) return;
 
-        var handle = e.target.closest('.modal-backdrop > .card > div, .modal-backdrop > .card > header, .modal-backdrop > .modal-card > div');
+        var handle = e.target.closest('.modal-backdrop > .card > div:first-child, .modal-backdrop > .card > header:first-child, .modal-backdrop > .modal-card > div:first-child');
         if (!handle) return;
         // Jangan seret saat menekan tombol / input / elemen interaktif (klik-salin) di dalam modal
-        if (e.target.closest('button, a, input, select, textarea, .copyable, [data-copy]')) return;
+        if (e.target.closest('button, a, input, select, textarea, label, .copyable, [data-copy]')) return;
 
         var backdrop = handle.closest('.modal-backdrop');
         var box = getBox(backdrop);
