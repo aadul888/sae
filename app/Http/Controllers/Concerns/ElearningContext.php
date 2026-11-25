@@ -151,9 +151,14 @@ trait ElearningContext
             return false;
         }
 
-        $name = $prefix.'_'.date('YmdHis').'_'.bin2hex(random_bytes(4)).'.'.$ext;
+        // Gambar (jpg/jpeg/png/webp) dikompres ulang otomatis; dokumen disimpan apa adanya.
+        $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+            $file,
+            storage_path('app/public/elearning'),
+            $prefix . '_' . \Illuminate\Support\Str::random(8)
+        );
 
-        return $file->storeAs('elearning', $name, 'public');
+        return 'elearning/' . $hasil['filename'];
     }
 
     /** Hapus berkas dari disk publik. */

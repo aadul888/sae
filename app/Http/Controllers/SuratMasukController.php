@@ -156,7 +156,7 @@ class SuratMasukController extends Controller
             'kode_indeks' => 'nullable|string|max:50',
             'status' => 'nullable|string|in:menunggu_disposisi,diproses,selesai,diarsipkan',
             'keterangan' => 'nullable|string|max:1000',
-            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600', // max 25MB
+            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // max 10MB
         ]);
 
         $filePath = null;
@@ -235,7 +235,7 @@ class SuratMasukController extends Controller
             'kode_indeks' => 'nullable|string|max:50',
             'status' => 'nullable|string|in:menunggu_disposisi,diproses,selesai,diarsipkan',
             'keterangan' => 'nullable|string|max:1000',
-            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
+            'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $data = [

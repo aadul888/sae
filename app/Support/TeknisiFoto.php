@@ -29,7 +29,17 @@ final class TeknisiFoto
             return $lama;
         }
 
-        $path = $file->store('teknisi/' . trim($folder, '/'), 'public');
+        // Foto bukti dikompres ulang otomatis agar hemat penyimpanan.
+        // Tulis lewat disk 'public' (bukan path absolut langsung) supaya tetap
+        // menghormati Storage::fake() pada pengujian. Prefix acak agar foto
+        // pengganti selalu jadi berkas baru (bukan menimpa bila isinya sama).
+        $sub = 'teknisi/' . trim($folder, '/');
+        $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+            $file,
+            Storage::disk('public')->path($sub),
+            'teknisi_' . \Illuminate\Support\Str::random(8)
+        );
+        $path = $sub . '/' . $hasil['filename'];
 
         if ($lama && $lama !== $path) {
             self::hapus($lama);

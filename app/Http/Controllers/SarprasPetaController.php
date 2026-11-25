@@ -174,8 +174,16 @@ class SarprasPetaController extends Controller
 
         $peta = SarprasPeta::query()->where('tingkat', 'tapak')->orderByDesc('id')->firstOrFail();
 
-        $path = $request->file('latar')->store('sarpras-peta', 'public');
-
+        // Latar peta = gambar: dikompres ulang otomatis (resolusi lebih tinggi
+        // 2560px agar denah tetap terbaca, kualitas 85).
+        $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+            $request->file('latar'),
+            storage_path('app/public/sarpras-peta'),
+            'peta_' . \Illuminate\Support\Str::random(8),
+            2560,
+            85
+        );
+        $path = 'sarpras-peta/' . $hasil['filename'];
         DB::transaction(function () use ($peta, $request, $path) {
             if ($peta->latar_path && $peta->latar_path !== $path) {
                 Storage::disk('public')->delete($peta->latar_path);

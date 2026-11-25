@@ -1016,9 +1016,15 @@ class CbtController extends Controller
         if (! in_array($ext, $allowed, true)) {
             return false;
         }
-        $name = $prefix.'_'.date('YmdHis').'_'.bin2hex(random_bytes(4)).'.'.$ext;
 
-        return $file->storeAs('elearning', $name, 'public');
+        // Gambar dikompres ulang otomatis agar tidak membebani server.
+        $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+            $file,
+            storage_path('app/public/elearning'),
+            $prefix . '_' . bin2hex(random_bytes(6))
+        );
+
+        return 'elearning/' . $hasil['filename'];
     }
 
     /* ==================== PERIODE ASESMEN ==================== */

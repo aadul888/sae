@@ -142,7 +142,7 @@ class SuratKeluarController extends Controller
             'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
             'status'          => 'nullable|string|in:draf,selesai,diarsipkan',
             'keterangan'      => 'nullable|string|max:1000',
-            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
+            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $persuratan = SuratKeluarService::store($request, $user);
@@ -193,7 +193,7 @@ class SuratKeluarController extends Controller
             'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
             'status'          => 'nullable|string|in:draf,selesai,diarsipkan',
             'keterangan'      => 'nullable|string|max:1000',
-            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
+            'file_arsip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         SuratKeluarService::update($request, $surat);

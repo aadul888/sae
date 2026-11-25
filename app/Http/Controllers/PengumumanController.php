@@ -651,11 +651,21 @@ class PengumumanController extends Controller
         $gambarPath = null;
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');
-            $uploadDir = public_path('uploads/berita');
-            File::ensureDirectoryExists($uploadDir);
-            $fileName = 'berita_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move($uploadDir, $fileName);
-            $gambarPath = 'uploads/berita/' . $fileName;
+            // Gambar raster dikompres ulang otomatis; SVG (vektor) disimpan apa adanya.
+            if (strtolower((string) $file->getClientOriginalExtension()) === 'svg') {
+                $uploadDir = public_path('uploads/berita');
+                File::ensureDirectoryExists($uploadDir);
+                $fileName = 'berita_' . time() . '_' . Str::random(8) . '.svg';
+                $file->move($uploadDir, $fileName);
+                $gambarPath = 'uploads/berita/' . $fileName;
+            } else {
+                $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+                    $file,
+                    public_path('uploads/berita'),
+                    'berita_' . Str::random(8)
+                );
+                $gambarPath = 'uploads/berita/' . $hasil['filename'];
+            }
         }
 
         $isActive = $request->boolean('is_active', false);
@@ -725,15 +735,25 @@ class PengumumanController extends Controller
         $gambarPath = $berita->gambar;
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');
-            $uploadDir = public_path('uploads/berita');
-            File::ensureDirectoryExists($uploadDir);
-            $fileName = 'berita_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move($uploadDir, $fileName);
+            if (strtolower((string) $file->getClientOriginalExtension()) === 'svg') {
+                $uploadDir = public_path('uploads/berita');
+                File::ensureDirectoryExists($uploadDir);
+                $fileName = 'berita_' . time() . '_' . Str::random(8) . '.svg';
+                $file->move($uploadDir, $fileName);
+                $gambarPathBaru = 'uploads/berita/' . $fileName;
+            } else {
+                $hasil = app(\App\Services\ImageOptimizerService::class)->optimizeAndSaveImage(
+                    $file,
+                    public_path('uploads/berita'),
+                    'berita_' . Str::random(8)
+                );
+                $gambarPathBaru = 'uploads/berita/' . $hasil['filename'];
+            }
 
             if ($gambarPath && File::exists(public_path($gambarPath))) {
                 @unlink(public_path($gambarPath));
             }
-            $gambarPath = 'uploads/berita/' . $fileName;
+            $gambarPath = $gambarPathBaru;
         } elseif ($request->boolean('hapus_gambar')) {
             if ($gambarPath && File::exists(public_path($gambarPath))) {
                 @unlink(public_path($gambarPath));
