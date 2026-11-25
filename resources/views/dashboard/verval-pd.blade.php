@@ -332,13 +332,15 @@
     <link rel="stylesheet"
         href="{{ asset('css/wali-kelas.css') }}?v={{ file_exists(public_path('css/wali-kelas.css')) ? filemtime(public_path('css/wali-kelas.css')) : time() }}">
     <style>
-        /* Validasi Berkas: manfaatkan lebar layar desktop — PDF kiri besar, panel validasi kanan. */
+        /* Validasi Berkas: manfaatkan lebar layar desktop — PDF kiri besar, panel validasi kanan.
+           Di layar sempit otomatis bertumpuk (1 kolom) agar tetap nyaman. */
         .modal-backdrop .vb-card {
             max-width: 100% !important;
             width: 100% !important;
             margin: 0 !important;
-            grid-template-columns: minmax(0, 1fr) 380px;
-            gap: 16px;
+            display: grid !important;
+            grid-template-columns: 1fr;
+            gap: 14px;
             padding: 14px 16px;
             border-radius: var(--radius-lg, 12px);
             border: 1px solid var(--border-color);
@@ -349,10 +351,61 @@
             min-width: 0;
         }
 
+        .vb-card .vb-pdf-wrap iframe {
+            min-height: 74vh;
+        }
+
         .vb-card .vb-col-panel {
             display: flex;
             flex-direction: column;
             align-self: stretch;
+            min-width: 0;
+        }
+
+        /* Bar: nomor dokumen + nama + navigasi — di atas isi panel kanan. */
+        .vb-stepbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg, 12px);
+        }
+
+        /* Layar lebar: PDF kiri besar, panel validasi kanan. */
+        @media (min-width: 1100px) {
+            .modal-backdrop .vb-card {
+                grid-template-columns: minmax(0, 1fr) 400px;
+                gap: 18px;
+            }
+        }
+
+        /* Layar sempit/mobile: modal penuh, kartu bertumpuk, tombol tetap besar. */
+        @media (max-width: 1099px) {
+            .modal-backdrop .vb-card {
+                padding: 12px;
+            }
+
+            .vb-card .vb-pdf-wrap iframe {
+                min-height: 52vh;
+            }
+            .vb-status-group {
+                width: 100%;
+            }
+
+            .vb-status-opt {
+                flex: 1 1 0;
+                justify-content: center;
+            }
+
+            .vb-card .btn-save-verif-berkas {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         /* Opsi Valid / Tidak Valid: seluruh pill (ikon + teks) jadi area klik,
@@ -427,12 +480,6 @@
             font-size: var(--text-sm, 0.8125rem) !important;
             border-radius: var(--radius-md, 8px) !important;
             border: 1.5px solid transparent;
-        }
-
-        @media (max-width: 1024px) {
-            .modal-backdrop .vb-card {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 @endpush

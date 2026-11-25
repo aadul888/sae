@@ -532,31 +532,8 @@ document.addEventListener('DOMContentLoaded', function () {
             window.__berkasAktif = { siswa, items: json.items };
 
             const jumlahFile = (json.items || []).filter((it) => it.is_uploaded).length;
-            const vbTotal = json.items.length;
             let html = `
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 8px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); position: sticky; top: 0; z-index: 5;">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                        <span id="vbStepCounter" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); white-space: nowrap;">Dokumen 1 / ${vbTotal}</span>
-                        <span id="vbStepLabel" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <button type="button" id="vbPrev" class="btn btn-outline" title="Dokumen sebelumnya" aria-label="Dokumen sebelumnya"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button type="button" id="vbNext" class="btn btn-outline" title="Dokumen selanjutnya" aria-label="Dokumen selanjutnya"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <button type="button" id="btnLihatSemuaBerkas" class="btn btn-primary"
-                            ${jumlahFile === 0 ? 'disabled' : ''} title="Lihat semua berkas sekaligus"
-                            aria-label="Lihat semua berkas sekaligus"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
-                            <i class="fas fa-images"></i>
-                        </button>
-                    </div>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 16px;">`;
+                <div class="vb-cards" style="display: flex; flex-direction: column; gap: 16px;">`;
 
             json.items.forEach((item, stepIdx) => {
                 const statusBadge = item.status === 'valid'
@@ -571,9 +548,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="card card-berkas-item vb-card" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-uploaded="${item.is_uploaded ? '1' : '0'}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}">
                         <div class="vb-col-pdf">
                             ${item.is_uploaded ? `
-                                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
+                                <div class="vb-pdf-wrap" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
                                     <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
-                                        style="width: 100%; height: 100%; min-height: 62vh; border: none; display: block;"></iframe>
+                                        style="width: 100%; height: 100%; min-height: 74vh; border: none; display: block;"></iframe>
                                 </div>
                             ` : `
                                 <div style="height: 100%; min-height: 40vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-hover);">
@@ -587,6 +564,29 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
 
                         <div class="vb-col-panel">
+                            <div class="vb-stepbar">
+                                <div style="display: flex; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap;">
+                                    <span class="vb-step-counter" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); white-space: nowrap;">Dokumen 1 / 1</span>
+                                    <span class="vb-step-label" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <button type="button" class="vb-prev btn btn-outline" title="Dokumen sebelumnya" aria-label="Dokumen sebelumnya"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button type="button" class="vb-next btn btn-outline" title="Dokumen selanjutnya" aria-label="Dokumen selanjutnya"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <button type="button" class="vb-lihat-semua btn btn-primary"
+                                        ${jumlahFile === 0 ? 'disabled' : ''} title="Lihat semua berkas sekaligus"
+                                        aria-label="Lihat semua berkas sekaligus"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                                        <i class="fas fa-images"></i>
+                                    </button>
+                                </div>
+                            </div>
+
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
                                     <div style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem); flex-shrink: 0;">
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
             html += `</div>`;
             content.innerHTML = html;
 
-            const btnLihatSemua = document.getElementById('btnLihatSemuaBerkas');
+            const btnLihatSemua = content.querySelector('.vb-lihat-semua');
             if (btnLihatSemua) {
                 btnLihatSemua.addEventListener('click', () => window.openSemuaBerkas());
             }
@@ -676,20 +676,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const vbShow = (i) => {
                 vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
                 vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'grid' : 'none'; });
-                const counter = document.getElementById('vbStepCounter');
-                const labelEl = document.getElementById('vbStepLabel');
-                const prevBtn = document.getElementById('vbPrev');
-                const nextBtn = document.getElementById('vbNext');
-                if (counter) counter.textContent = `Dokumen ${vbIndex + 1} / ${vbCards.length}`;
-                if (labelEl) labelEl.textContent = vbCards[vbIndex].getAttribute('data-label') || '';
-                if (prevBtn) prevBtn.disabled = vbIndex === 0;
+
                 const onLast = vbIndex === vbCards.length - 1;
-                if (nextBtn) {
-                    nextBtn.disabled = onLast;
-                    // Dokumen terakhir: tombol kanan jadi "Selesai" (tutup + refresh).
-                    nextBtn.title = onLast ? 'Selesai & tutup' : 'Dokumen selanjutnya';
-                    nextBtn.innerHTML = onLast ? '<i class="fas fa-check"></i>' : '<i class="fas fa-chevron-right"></i>';
-                }
+                vbCards.forEach((c, idx) => {
+                    const counter = c.querySelector('.vb-step-counter');
+                    const labelEl = c.querySelector('.vb-step-label');
+                    const prevBtn = c.querySelector('.vb-prev');
+                    const nextBtn = c.querySelector('.vb-next');
+                    if (counter) counter.textContent = `Dokumen ${vbIndex + 1} / ${vbCards.length}`;
+                    if (labelEl) labelEl.textContent = c.getAttribute('data-label') || '';
+                    if (prevBtn) prevBtn.disabled = vbIndex === 0;
+                    if (nextBtn) {
+                        nextBtn.disabled = onLast;
+                        nextBtn.title = onLast ? 'Selesai & tutup' : 'Dokumen selanjutnya';
+                        nextBtn.innerHTML = onLast ? '<i class="fas fa-check"></i>' : '<i class="fas fa-chevron-right"></i>';
+                    }
+                });
                 content.scrollTop = 0;
             };
             const vbFinish = () => {
@@ -698,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.style.overflow = '';
                 window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
             };
-            const vbPrev = document.getElementById('vbPrev');
-            const vbNext = document.getElementById('vbNext');
-            if (vbPrev) vbPrev.addEventListener('click', () => vbShow(vbIndex - 1));
-            if (vbNext) vbNext.addEventListener('click', () => {
-                if (vbIndex === vbCards.length - 1) vbFinish();
-                else vbShow(vbIndex + 1);
+            content.addEventListener('click', (e) => {
+                if (e.target.closest('.vb-prev')) { e.preventDefault(); vbShow(vbIndex - 1); }
+                else if (e.target.closest('.vb-next')) {
+                    e.preventDefault();
+                    if (vbIndex === vbCards.length - 1) vbFinish();
+                    else vbShow(vbIndex + 1);
+                }
             });
             vbShow(0);
 
