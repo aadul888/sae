@@ -659,10 +659,11 @@ document.addEventListener('DOMContentLoaded', function () {
             html += `</div>`;
             content.innerHTML = html;
 
-            const btnLihatSemua = content.querySelector('.vb-lihat-semua');
-            if (btnLihatSemua) {
-                btnLihatSemua.addEventListener('click', () => window.openSemuaBerkas());
-            }
+            // Tombol "Lihat Semua" ada di SETIAP kartu; hanya kartu aktif yang tampak.
+            // Pasang di semua tombol (bukan querySelector yang cuma ambil kartu pertama).
+            content.querySelectorAll('.vb-lihat-semua').forEach((b) => {
+                b.addEventListener('click', () => window.openSemuaBerkas());
+            });
 
             // -------- Stepper: satu dokumen terunggah per tampilan, urut, navigasi ikon saja.
             // Dokumen tanpa berkas (belum unggah) dilewati otomatis. Bila TIDAK ADA berkas
