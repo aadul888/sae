@@ -515,7 +515,24 @@ document.addEventListener('DOMContentLoaded', function () {
             infoEl.innerHTML = `NISN: <strong>${escapeHtml(siswa.nisn)}</strong> &bull; NIPD: <strong>${escapeHtml(siswa.nipd)}</strong> &bull; Rombel: <strong>${escapeHtml(siswa.rombel)}</strong>`;
 
             const rekomendasiList = json.rekomendasi_penolakan || [];
-            let html = `<div style="display: flex; flex-direction: column; gap: 16px;">`;
+
+            // Simpan data siswa/berkas agar tombol "Lihat Semua" bisa membuka grid tanpa fetch ulang.
+            window.__berkasAktif = { siswa, items: json.items };
+
+            const jumlahFile = (json.items || []).filter((it) => it.is_uploaded).length;
+            let html = `
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 10px 14px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px);">
+                    <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
+                        <i class="fas fa-circle-info me-1"></i>
+                        ${json.items.length} jenis dokumen &bull; <strong style="color: var(--text-color);">${jumlahFile}</strong> berkas tersedia
+                    </span>
+                    <button type="button" id="btnLihatSemuaBerkas" class="btn btn-primary"
+                        ${jumlahFile === 0 ? 'disabled' : ''}
+                        style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-images"></i> Lihat Semua Berkas
+                    </button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 16px;">`;
 
             json.items.forEach((item) => {
                 const statusBadge = item.status === 'valid'
@@ -598,6 +615,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             html += `</div>`;
             content.innerHTML = html;
+
+            const btnLihatSemua = document.getElementById('btnLihatSemuaBerkas');
+            if (btnLihatSemua) {
+                btnLihatSemua.addEventListener('click', () => window.openSemuaBerkas());
+            }
 
             content.querySelectorAll('.radio-status-berkas').forEach((radio) => {
                 radio.addEventListener('change', function () {
@@ -724,6 +746,68 @@ document.addEventListener('DOMContentLoaded', function () {
             window.openModalVerifikasiBerkas(btn.getAttribute('data-id'), btn.getAttribute('data-nama'));
         }
     });
+
+    // Lihat SEMUA berkas sekaligus dalam satu grid — sekali buka, tanpa tutup-buka per file.
+    window.openSemuaBerkas = function () {
+        const modal = document.getElementById('modalSemuaBerkas');
+        const grid = document.getElementById('semuaBerkasGrid');
+        const titleEl = document.getElementById('semuaBerkasTitle');
+        const subEl = document.getElementById('semuaBerkasSubtitle');
+        if (!modal || !grid) return;
+
+        const data = window.__berkasAktif || { siswa: {}, items: [] };
+        const siswa = data.siswa || {};
+        const items = (data.items || []).filter((it) => it.is_uploaded);
+
+        if (titleEl) titleEl.textContent = `Semua Berkas: ${siswa.nama || 'Peserta Didik'}`;
+        if (subEl) subEl.innerHTML = `${items.length} dokumen &bull; NISN: <strong>${escapeHtml(siswa.nisn || '-')}</strong> &bull; Rombel: <strong>${escapeHtml(siswa.rombel || '-')}</strong>`;
+
+        if (!items.length) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);"><i class="fas fa-folder-open mb-2" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i><div>Belum ada berkas yang diunggah.</div></div>`;
+        } else {
+            grid.innerHTML = items.map((item) => {
+                const badge = item.status === 'valid'
+                    ? `<span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;"><i class="fas fa-circle-check me-1"></i> Valid</span>`
+                    : (item.status === 'tidak_valid'
+                        ? `<span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid</span>`
+                        : `<span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem); padding: 2px 8px;"><i class="fas fa-clock me-1"></i> Menunggu</span>`);
+                return `
+                    <div class="card" style="display: flex; flex-direction: column; padding: 0; overflow: hidden; border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); background: var(--card-bg, #fff);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
+                            <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); min-width: 0;">
+                                <i class="fas ${item.icon || 'fa-file-pdf'}" style="color: var(--primary);"></i>
+                                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.label)}</span>
+                            </span>
+                            ${badge}
+                        </div>
+                        <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
+                            style="width: 100%; height: 480px; border: none; background: var(--text-main, #0f172a);"></iframe>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeSemuaBerkas = function () {
+        const modal = document.getElementById('modalSemuaBerkas');
+        const grid = document.getElementById('semuaBerkasGrid');
+        if (modal) modal.style.display = 'none';
+        if (grid) grid.innerHTML = '';
+        const modalVb = document.getElementById('modalVerifikasiBerkasDigital');
+        if (!modalVb || modalVb.style.display === 'none') document.body.style.overflow = '';
+    };
+
+    const modalSemuaEl = document.getElementById('modalSemuaBerkas');
+    if (modalSemuaEl) {
+        modalSemuaEl.addEventListener('click', function (e) {
+            if (e.target === modalSemuaEl) window.closeSemuaBerkas();
+        });
+        const tutupBtn = document.getElementById('btnTutupSemuaBerkas');
+        if (tutupBtn) tutupBtn.addEventListener('click', () => window.closeSemuaBerkas());
+    }
 
     // Delegasi: klik sel Konfirmasi (khusus admin) → ubah Sesuai <-> Perlu Perbaikan (tercatat riwayat).
     const konfMeta = {

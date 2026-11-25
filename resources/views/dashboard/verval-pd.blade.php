@@ -325,6 +325,7 @@
         @include('dashboard.verval-pd.partials.modal-reset-konfirmasi')
     @endif
     @include('dashboard.verval-pd.partials.modal-pdf-viewer')
+    @include('dashboard.verval-pd.partials.modal-semua-berkas')
 @endsection
 
 @push('styles')

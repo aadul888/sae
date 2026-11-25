@@ -470,11 +470,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Global Modal Backdrop Close & ESC Handler
+    // Sinkronkan kunci scroll body: saat ada modal-backdrop terlihat body dikunci,
+    // saat semua tertutup (lewat jalur mana pun) scroll dilepas kembali.
+    // Tanpa ini, menutup modal via backdrop/ESC meninggalkan body overflow:hidden → halaman tak bisa di-scroll.
+    window.saeSyncBodyScroll = function () {
+        const anyOpen = Array.from(document.querySelectorAll(".modal-backdrop")).some(
+            (m) => getComputedStyle(m).display !== "none"
+        );
+        document.body.style.overflow = anyOpen ? "hidden" : "";
+    };
+
     document.querySelectorAll(".modal-backdrop").forEach((modal) => {
         modal.addEventListener("click", function (e) {
             if (e.target === modal) {
                 modal.style.display = "none";
+                window.saeSyncBodyScroll();
             }
+        });
+        new MutationObserver(window.saeSyncBodyScroll).observe(modal, {
+            attributes: true,
+            attributeFilter: ["style"],
         });
     });
 
@@ -483,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll(".modal-backdrop").forEach((modal) => {
                 modal.style.display = "none";
             });
+            window.saeSyncBodyScroll();
         }
     });
 
