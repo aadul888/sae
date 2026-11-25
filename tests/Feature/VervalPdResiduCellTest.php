@@ -77,4 +77,36 @@ class VervalPdResiduCellTest extends TestCase
         $this->assertSame('error', $res['status']);
         $this->assertSame(422, $res['status_code']);
     }
+
+    public function test_status_proses_update_persists_and_logs_history(): void
+    {
+        $row = $this->makeRow();
+        $this->assertSame('belum', $row->fresh()->status_proses);
+
+        $service = app(VervalPdResiduService::class);
+        $user = ['nama' => 'Administrator Uji'];
+
+        $res = $service->updateStatus($row->id, VervalPdResiduService::STATUS_PROSES, $user);
+        $this->assertSame('success', $res['status']);
+        $this->assertSame('proses', $row->fresh()->status_proses);
+
+        $service->updateStatus($row->id, VervalPdResiduService::STATUS_SELESAI, $user);
+        $this->assertSame('selesai', $row->fresh()->status_proses);
+
+        $log = AdminAktivitas::where('modul', 'Verval PD Residu')
+            ->where('aktivitas', 'like', '%Status Proses%')
+            ->latest('id')->first();
+
+        $this->assertNotNull($log, 'Riwayat perubahan status tidak tercatat.');
+        $this->assertStringContainsString('Sedang Proses', $log->keterangan);
+        $this->assertStringContainsString('Selesai', $log->keterangan);
+    }
+
+    public function test_status_proses_invalid_rejected(): void
+    {
+        $row = $this->makeRow();
+        $res = app(VervalPdResiduService::class)->updateStatus($row->id, 'ngawur', ['nama' => 'x']);
+        $this->assertSame('error', $res['status']);
+        $this->assertSame(422, $res['status_code']);
+    }
 }

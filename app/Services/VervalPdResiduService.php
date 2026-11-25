@@ -83,6 +83,18 @@ class VervalPdResiduService
     public const MARK_YES = '✓';
     public const MARK_NO = '✗';
 
+    /** Status proses manual per baris Residu. */
+    public const STATUS_BELUM = 'belum';
+    public const STATUS_PROSES = 'proses';
+    public const STATUS_SELESAI = 'selesai';
+
+    /** Label manusiawi status proses. */
+    public const STATUS_LABELS = [
+        self::STATUS_BELUM => 'Belum Diproses',
+        self::STATUS_PROSES => 'Sedang Proses',
+        self::STATUS_SELESAI => 'Selesai',
+    ];
+
     /** Unduh template Excel (.xlsx) untuk import berkas Residu. */
     public function downloadTemplate(): BinaryFileResponse
     {
@@ -217,6 +229,38 @@ class VervalPdResiduService
         ];
     }
 
+    /**
+     * Ubah status proses baris Residu: belum | proses | selesai.
+     * Tercatat di riwayat (admin_aktivitas) sebagai perubahan status.
+     */
+    public function updateStatus(int $id, string $status, mixed $user): array
+    {
+        $item = VervalPdResidu::find($id);
+        if (!$item) {
+            return ['status' => 'error', 'message' => 'Baris Residu tidak ditemukan.', 'status_code' => 404];
+        }
+
+        if (!array_key_exists($status, self::STATUS_LABELS)) {
+            return ['status' => 'error', 'message' => 'Status proses tidak valid.', 'status_code' => 422];
+        }
+
+        $old = $item->status_proses ?: self::STATUS_BELUM;
+        if ($old === $status) {
+            return ['status' => 'success', 'message' => 'Tidak ada perubahan.', 'status' => $status];
+        }
+
+        $item->status_proses = $status;
+        $item->save();
+
+        $this->logPerubahan($item, 'status_proses', $old, $status, $user);
+
+        return [
+            'status' => 'success',
+            'message' => 'Status proses diperbarui.',
+            'status_proses' => $status,
+        ];
+    }
+
     /** Label manusiawi untuk tiap kolom Residu yang dapat diubah. */
     public function columnLabel(string $column): string
     {
@@ -231,6 +275,7 @@ class VervalPdResiduService
             'ibu_kandung' => 'Ibu Kandung',
             'jenis_kelamin' => 'Jenis Kelamin',
             'desa_kelurahan' => 'Desa/Kelurahan',
+            'status_proses' => 'Status Proses',
         ][$column] ?? $column;
     }
 
@@ -240,6 +285,9 @@ class VervalPdResiduService
         $value = trim((string) $value);
         if ($value === '') {
             return '(kosong)';
+        }
+        if (array_key_exists($value, self::STATUS_LABELS)) {
+            return self::STATUS_LABELS[$value];
         }
         $yes = preg_match('/[✓✔√]/u', $value) === 1;
         $no = preg_match('/[✗✘×]/u', $value) === 1;

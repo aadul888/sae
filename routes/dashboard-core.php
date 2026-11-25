@@ -27,6 +27,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/residu/import', [\App\Http\Controllers\VervalPdController::class, 'importResidu'])->name('residu.import')->middleware('permission:menu_verval_pd,create');
         Route::get('/residu/template', [\App\Http\Controllers\VervalPdController::class, 'downloadTemplateResidu'])->name('residu.template')->middleware('permission:menu_verval_pd,read');
         Route::patch('/residu/{id}/cell', [\App\Http\Controllers\VervalPdController::class, 'updateResiduCell'])->name('residu.cell')->middleware('permission:menu_verval_pd,update');
+        Route::patch('/residu/{id}/status', [\App\Http\Controllers\VervalPdController::class, 'updateResiduStatus'])->name('residu.status')->middleware('permission:menu_verval_pd,update');
         Route::delete('/residu', [\App\Http\Controllers\VervalPdController::class, 'clearResidu'])->name('residu.clear')->middleware('permission:menu_verval_pd,delete');
 
         // Submenu 2: Berkas / Dokumen

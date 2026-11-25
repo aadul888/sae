@@ -46,7 +46,7 @@ class VervalPdController extends Controller
         [$canCreate, $canRead, $canUpdate, $canDelete] = $this->permissions($user);
 
         $data = $this->pageData($request, 'residu');
-        $sortable = ['rombel_sekolah', 'nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'];
+        $sortable = ['status_proses', 'rombel_sekolah', 'nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'];
         $sort = in_array($data['sort'], $sortable, true) ? $data['sort'] : null;
         $data['items'] = VervalPdResidu::query()
             ->when(trim($request->get('q', '')) !== '', function ($q) use ($request) {
@@ -56,7 +56,15 @@ class VervalPdController extends Controller
                     ->orWhere('nik', 'like', "%{$term}%")
                     ->orWhere('rombel_sekolah', 'like', "%{$term}%"));
             })
-            ->orderBy($sort ?? 'nama', $sort ? $data['sortDir'] : 'asc')
+            ->when($sort, fn($q) => $q->orderBy($sort, $data['sortDir']), function ($q) {
+                // Default: urutkan status Belum → Sedang Proses → Selesai (selesai paling bawah).
+                $q->orderByRaw("CASE status_proses
+                    WHEN '" . VervalPdResiduService::STATUS_BELUM . "' THEN 0
+                    WHEN '" . VervalPdResiduService::STATUS_PROSES . "' THEN 1
+                    WHEN '" . VervalPdResiduService::STATUS_SELESAI . "' THEN 2
+                    ELSE 3 END ASC")
+                    ->orderByRaw("LOWER(TRIM(nama)) ASC");
+            })
             ->paginate($data['perPage'], ['*'], 'residu_page')
             ->withQueryString();
 
@@ -151,6 +159,23 @@ class VervalPdController extends Controller
         ]);
 
         $res = $this->residuService->updateCell((int) $id, $validated['column'], $validated['value'] ?? null, $user);
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    /** Ubah status proses (Belum/Sedang Proses/Selesai) satu baris Residu — tercatat di riwayat. */
+    public function updateResiduStatus(Request $request, $id): JsonResponse
+    {
+        $user = $this->sessionUser();
+        if (!$this->can($user, 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:belum,proses,selesai',
+        ]);
+
+        $res = $this->residuService->updateStatus((int) $id, $validated['status'], $user);
 
         return response()->json($res, $res['status_code'] ?? 200);
     }

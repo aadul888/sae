@@ -99,6 +99,61 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Delegasi: klik pill "Proses" → ubah Belum → Sedang → Selesai (tercatat di riwayat).
+    const prosesMeta = {
+        belum: { label: 'Belum Diproses', icon: 'fa-circle-dashed', color: 'var(--text-muted)', bg: 'rgba(148,163,184,0.15)' },
+        proses: { label: 'Sedang Proses', icon: 'fa-spinner', color: 'var(--warning, #f59e0b)', bg: 'rgba(245,158,11,0.15)' },
+        selesai: { label: 'Selesai', icon: 'fa-circle-check', color: 'var(--success, #10b981)', bg: 'rgba(16,185,129,0.15)' },
+    };
+    const nextProses = { belum: 'proses', proses: 'selesai', selesai: 'belum' };
+
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.residu-status-btn');
+        if (!btn) return;
+        e.preventDefault();
+        if (btn.disabled) return;
+
+        const id = btn.getAttribute('data-id');
+        const next = btn.getAttribute('data-next') || 'proses';
+
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/dashboard/verval-pd/residu/${encodeURIComponent(id)}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': csrf(),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ status: next }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                const applied = json.status_proses || next;
+                const meta = prosesMeta[applied] || prosesMeta.belum;
+                const pill = btn.querySelector('span');
+                if (pill) {
+                    pill.style.cssText = `display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill, 999px); background: ${meta.bg}; color: ${meta.color}; font-size: var(--text-sm, 0.8125rem); font-weight: 700; white-space: nowrap;`;
+                    pill.innerHTML = `<i class="fas ${meta.icon}"></i> ${meta.label}`;
+                }
+                const following = nextProses[applied] || 'proses';
+                const followingMeta = prosesMeta[following] || prosesMeta.belum;
+                const title = `Klik untuk ubah ke: ${followingMeta.label}`;
+                btn.setAttribute('data-status', applied);
+                btn.setAttribute('data-next', following);
+                btn.setAttribute('title', title);
+                btn.setAttribute('aria-label', title);
+            } else {
+                Swal.fire('Gagal', json.message || 'Status tidak tersimpan.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     // Delegasi: klik sel centang Residu → ubah ✓/✗ (tercatat di riwayat).
     document.addEventListener('click', async function (e) {
         const btn = e.target.closest('.residu-cell-btn');

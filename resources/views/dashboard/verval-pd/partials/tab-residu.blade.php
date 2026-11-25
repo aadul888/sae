@@ -73,6 +73,31 @@
             default => 'Belum Diunggah',
         };
     };
+
+    // Sel "Proses": pill status Belum/Sedang/Selesai, klik untuk ganti siklik (khusus update).
+    $prosesMeta = [
+        'belum' => ['Belum Diproses', 'fa-circle-dashed', 'var(--text-muted)', 'rgba(148,163,184,0.15)'],
+        'proses' => ['Sedang Proses', 'fa-spinner', 'var(--warning, #f59e0b)', 'rgba(245,158,11,0.15)'],
+        'selesai' => ['Selesai', 'fa-circle-check', 'var(--success, #10b981)', 'rgba(16,185,129,0.15)'],
+    ];
+    $nextProses = ['belum' => 'proses', 'proses' => 'selesai', 'selesai' => 'belum'];
+    $renderProses = function ($item) use ($prosesMeta, $nextProses, $canUpdate) {
+        $st = $item->status_proses ?: 'belum';
+        [$label, $icon, $color, $bg] = $prosesMeta[$st] ?? $prosesMeta['belum'];
+        $pill = '<span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill, 999px);'
+            . ' background: ' . $bg . '; color: ' . $color . '; font-size: var(--text-sm, 0.8125rem); font-weight: 700; white-space: nowrap;">'
+            . '<i class="fas ' . $icon . '"></i> ' . $label . '</span>';
+
+        if (!$canUpdate) {
+            return $pill;
+        }
+        $next = $nextProses[$st] ?? 'proses';
+        $title = 'Klik untuk ubah ke: ' . ($prosesMeta[$next][0] ?? $next);
+
+        return '<button type="button" class="residu-status-btn" data-id="' . $item->id . '" data-status="' . e($st) . '"'
+            . ' data-next="' . e($next) . '" title="' . e($title) . '" aria-label="' . e($title) . '"'
+            . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;">' . $pill . '</button>';
+    };
 @endphp
 
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
@@ -80,10 +105,10 @@
         <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 @foreach ([
-                    [null, 'NISN'],
-                    [null, 'NIK'],
+                    [null, 'NISN / NIK'],
                     [null, 'NAMA'],
                     [null, 'Kelas'],
+                    ['status_proses', 'Proses'],
                     [null, 'Status'],
                     ['rombel_sekolah', 'Rombel/Sekolah'],
                     ['nisn_banding', 'NISN Dukcapil'],
@@ -97,7 +122,7 @@
                     ['desa_kelurahan', 'Desa/Kelurahan'],
                 ] as [$key, $label])
                     <th @if ($key) class="sortable-th {{ $sort === $key ? 'sorted' : '' }}" data-sort="{{ $key }}" @endif
-                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 3 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
+                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 2 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
                         {{ $label }}
                         @if ($key)
                             <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
@@ -109,23 +134,21 @@
         <tbody>
             @forelse ($items as $item)
                 <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                    <td style="padding: 12px 16px; font-family: var(--font-family-mono, monospace); font-size: var(--text-sm, 0.8125rem); color: var(--primary);"
-                        data-label="NISN">
-                        @if ($item->nisn)
-                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
-                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
-                        @else
-                            -
-                        @endif
-                    </td>
                     <td style="padding: 12px 16px; font-family: var(--font-family-mono, monospace); font-size: var(--text-sm, 0.8125rem);"
-                        data-label="NIK">
-                        @if ($item->nik)
-                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
-                                title="Klik untuk salin NIK">{{ $item->nik }}</span>
-                        @else
-                            -
-                        @endif
+                        data-label="NISN/NIK">
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            @if ($item->nisn)
+                                <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                    title="Klik untuk salin NISN" style="color: var(--primary);">{{ $item->nisn }}</span>
+                            @else
+                                <span style="color: var(--text-muted);">-</span>
+                            @endif
+                            @if ($item->nik)
+                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                    title="Klik untuk salin NIK"
+                                    style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">{{ $item->nik }}</span>
+                            @endif
+                        </div>
                     </td>
                     <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                         data-label="Nama">
@@ -135,6 +158,9 @@
                         <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
                             {{ $item->kelas ?: '-' }}
                         </span>
+                    </td>
+                    <td style="padding: 12px 16px; text-align: center;" data-label="Proses">
+                        {!! $renderProses($item) !!}
                     </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Status">
                         @php
