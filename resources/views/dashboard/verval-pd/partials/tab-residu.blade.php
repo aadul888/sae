@@ -31,6 +31,48 @@
             . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;">'
             . $renderCentang($raw) . '</button>';
     };
+
+    // Ikon status (konfirmasi / KK / Ijazah). Bila `$fileId` ada, ikon jadi tombol
+    // pratinjau PDF di modal (pola `.btn-preview-pdf-inline`).
+    $renderStatusIcon = function (string $variant, string $title, $fileId = null) {
+        $palette = [
+            'ok'    => ['fa-circle-check', 'var(--success, #10b981)', 'rgba(16,185,129,0.15)'],
+            'warn'  => ['fa-hourglass-half', 'var(--warning, #f59e0b)', 'rgba(245,158,11,0.15)'],
+            'bad'   => ['fa-circle-xmark', 'var(--danger, #ef4444)', 'rgba(239,68,68,0.15)'],
+            'muted' => ['fa-minus', 'var(--text-muted)', 'rgba(148,163,184,0.15)'],
+        ];
+        [$icon, $color, $bg] = $palette[$variant] ?? $palette['muted'];
+        $style = 'display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;'
+            . ' border-radius: var(--radius-sm, 6px); background: ' . $bg . '; color: ' . $color . ';'
+            . ' border: 1px solid ' . $color . '; font-size: var(--text-sm, 0.8125rem);';
+        $inner = '<i class="fas ' . $icon . '"></i>';
+
+        if ($fileId) {
+            return '<button type="button" class="btn-preview-pdf-inline" data-url="' . route('dashboard.berkas.preview', $fileId) . '"'
+                . ' data-title="' . e($title) . '" title="' . e($title) . ' (klik untuk lihat berkas)"'
+                . ' style="' . $style . ' cursor: pointer; padding: 0;">' . $inner . '</button>';
+        }
+
+        return '<span title="' . e($title) . '" style="' . $style . '">' . $inner . '</span>';
+    };
+
+    // Peta status berkas → varian ikon + label.
+    $berkasVariant = function ($meta) {
+        return match ($meta['status'] ?? '') {
+            'valid' => 'ok',
+            'menunggu' => 'warn',
+            'tidak_valid' => 'bad',
+            default => 'muted',
+        };
+    };
+    $berkasStatusLabel = function ($meta) {
+        return match ($meta['status'] ?? '') {
+            'valid' => 'Valid / Sesuai',
+            'menunggu' => 'Menunggu Verifikasi',
+            'tidak_valid' => 'Ditolak / Tidak Sesuai',
+            default => 'Belum Diunggah',
+        };
+    };
 @endphp
 
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
@@ -95,27 +137,21 @@
                         </span>
                     </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Status">
-                        @if ($item->sudah_konfirmasi && $item->berkas_valid)
-                            <span class="badge badge-success" title="Sudah konfirmasi &amp; berkas wajib (KK + Ijazah) valid"
-                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-                                <i class="fas fa-circle-check"></i> Lengkap
-                            </span>
-                        @elseif ($item->sudah_konfirmasi)
-                            <span class="badge badge-warning" title="Sudah konfirmasi, berkas wajib belum lengkap/valid"
-                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-                                <i class="fas fa-file-circle-question"></i> Konfirmasi
-                            </span>
-                        @elseif ($item->berkas_valid)
-                            <span class="badge badge-primary" title="Berkas wajib valid, konfirmasi belum"
-                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-                                <i class="fas fa-file-circle-check"></i> Berkas
-                            </span>
-                        @else
-                            <span class="badge badge-outline" title="Belum konfirmasi &amp; berkas wajib belum lengkap"
-                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted);">
-                                <i class="fas fa-clock"></i> Belum
-                            </span>
-                        @endif
+                        @php
+                            $kkMeta = $item->berkas_map['kartu_keluarga'] ?? [];
+                            $ijzMeta = $item->berkas_map['ijazah_smp'] ?? [];
+                            $konfVariant = $item->sudah_konfirmasi
+                                ? ($item->status_konfirmasi === 'perlu_perbaikan' ? 'warn' : 'ok')
+                                : 'muted';
+                            $konfLabel = $item->sudah_konfirmasi
+                                ? ($item->status_konfirmasi === 'perlu_perbaikan' ? 'Perlu Perbaikan' : 'Sudah Konfirmasi')
+                                : 'Belum Konfirmasi';
+                        @endphp
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            {!! $renderStatusIcon($konfVariant, 'Konfirmasi: ' . $konfLabel) !!}
+                            {!! $renderStatusIcon($berkasVariant($kkMeta), 'Kartu Keluarga: ' . $berkasStatusLabel($kkMeta), $kkMeta['file_id'] ?? null) !!}
+                            {!! $renderStatusIcon($berkasVariant($ijzMeta), 'Ijazah SMP: ' . $berkasStatusLabel($ijzMeta), $ijzMeta['file_id'] ?? null) !!}
+                        </div>
                     </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Rombel/Sekolah">
                         @php $rombelVal = trim((string) $item->rombel_sekolah); @endphp

@@ -294,8 +294,9 @@ class VervalPdController extends Controller
 
     /**
      * Tempelkan info peserta didik asli ke tiap baris Residu (dipetakan lewat NISN):
-     * nama kelas (rombel), status konfirmasi identitas, dan kelengkapan berkas wajib.
-     * Terpisah dari kolom centang Dukcapil yang berasal dari berkas import.
+     * nama kelas (rombel), status konfirmasi identitas, dan status berkas wajib
+     * (KK + Ijazah) beserta id berkas untuk pratinjau. Terpisah dari kolom centang
+     * Dukcapil yang berasal dari berkas import.
      */
     protected function attachPesertaInfo(\Illuminate\Contracts\Pagination\LengthAwarePaginator $items): void
     {
@@ -305,6 +306,7 @@ class VervalPdController extends Controller
             $it->status_konfirmasi = null;
             $it->sudah_konfirmasi = false;
             $it->berkas_valid = false;
+            $it->berkas_map = [];
         }
 
         if (!Table::exists('peserta_didik')) {
@@ -328,21 +330,32 @@ class VervalPdController extends Controller
             : collect();
 
         $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
-        $validMap = [];
+
+        // Status + id berkas terbaru per jenis (hanya yang wajib), untuk ikon & pratinjau.
+        $berkasMap = [];
         if (Table::exists('peserta_didik_berkas')) {
             foreach (\Illuminate\Support\Facades\DB::table('peserta_didik_berkas')
                 ->whereIn('peserta_didik_id', $pdIds)
-                ->whereRaw("LOWER(TRIM(status)) = 'valid'")
                 ->whereIn('jenis_berkas', $wajibKeys)
-                ->get() as $r) {
-                $validMap[$r->peserta_didik_id][$r->jenis_berkas] = true;
+                ->orderByDesc('id')
+                ->get(['id', 'peserta_didik_id', 'jenis_berkas', 'status', 'file_path']) as $r) {
+                if (isset($berkasMap[$r->peserta_didik_id][$r->jenis_berkas])) {
+                    continue; // ambil record terbaru saja
+                }
+                $berkasMap[$r->peserta_didik_id][$r->jenis_berkas] = [
+                    'status' => strtolower(trim((string) $r->status)),
+                    'file_id' => !empty($r->file_path) ? $r->id : null,
+                ];
             }
         }
+
+        // Verifikasi fisik (checklist walas) → valid walau tanpa berkas digital.
         if (Table::exists('kesiswaan_berkas_verifikasi')) {
             foreach ($wajibKeys as $wk) {
                 foreach (\Illuminate\Support\Facades\DB::table('kesiswaan_berkas_verifikasi')
                     ->whereIn('peserta_didik_id', $pdIds)->where($wk, 1)->pluck('peserta_didik_id') as $pid) {
-                    $validMap[$pid][$wk] = true;
+                    $existing = $berkasMap[$pid][$wk]['file_id'] ?? null;
+                    $berkasMap[$pid][$wk] = ['status' => 'valid', 'file_id' => $existing];
                 }
             }
         }
@@ -356,7 +369,16 @@ class VervalPdController extends Controller
             $stKonf = strtolower(trim((string) ($konfMap[$pd->peserta_didik_id] ?? 'belum_konfirmasi')));
             $it->status_konfirmasi = $stKonf;
             $it->sudah_konfirmasi = in_array($stKonf, ['sesuai', 'perlu_perbaikan', 'diverifikasi', 'disinkronkan_dapodik'], true);
-            $it->berkas_valid = count($validMap[$pd->peserta_didik_id] ?? []) >= count($wajibKeys);
+
+            $map = $berkasMap[$pd->peserta_didik_id] ?? [];
+            $it->berkas_map = $map;
+            $validCount = 0;
+            foreach ($wajibKeys as $wk) {
+                if (($map[$wk]['status'] ?? null) === 'valid') {
+                    $validCount++;
+                }
+            }
+            $it->berkas_valid = $validCount >= count($wajibKeys);
         }
     }
 

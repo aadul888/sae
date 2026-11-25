@@ -289,6 +289,7 @@
     @else
         @include('dashboard.verval-pd.partials.modals')
     @endif
+    @include('dashboard.verval-pd.partials.modal-pdf-viewer')
 @endsection
 
 @push('styles')
