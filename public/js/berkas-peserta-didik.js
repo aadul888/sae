@@ -111,6 +111,13 @@ function initPdfFileInputValidation() {
                         return;
                     }
 
+                    // Jangan ganti bila hasil baca tidak utuh — mencegah berkas terpotong/kosong
+                    // terkirim ke server hanya karena pembacaan sebagian gagal.
+                    if (buffer.byteLength !== file.size) {
+                        console.warn('[SAE-Berkas] Ukuran baca tak sama (' + buffer.byteLength + ' vs ' + file.size + '); input dibiarkan apa adanya.');
+                        return;
+                    }
+
                     const inMemory = new File([buffer], file.name, { type: file.type || 'application/pdf' });
                     if (window.DataTransfer) {
                         const dt = new DataTransfer();
