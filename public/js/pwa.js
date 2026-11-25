@@ -68,13 +68,18 @@
     // server — jadi berguna mendiagnosis kegagalan: terlihat perangkat memakai versi
     // PWA yang mana. Bila kosong, elemen dibiarkan (footer tetap rapi).
     function syncPwaVersionBadge() {
-        const el = document.getElementById('saePwaVersion');
-        if (!el) return;
+        const els = document.querySelectorAll('[data-pwa-version]');
+        if (!els.length) return;
 
         const mode = isStandalone ? 'Terpasang' : 'Browser';
         const render = (ver) => {
-            el.textContent = `PWA v${ver} \u2022 ${mode}`;
-            el.title = `Versi PWA (service worker): v${ver}\nMode pakai: ${mode}`;
+            els.forEach((el) => {
+                el.textContent =
+                    el.dataset.pwaVersion === 'short'
+                        ? `PWA v${ver}`
+                        : `PWA v${ver} \u2022 ${mode}`;
+                el.title = `Versi PWA (service worker): v${ver}\nMode pakai: ${mode}`;
+            });
         };
 
         if (!('caches' in window)) {
