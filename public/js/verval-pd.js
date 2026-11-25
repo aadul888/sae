@@ -113,6 +113,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Reset SEMUA status konfirmasi identitas → 'belum_konfirmasi' (khusus admin).
+    // Tersedia di halaman Residu & Berkas. Riwayat usulan perubahan tidak dihapus.
+    const btnResetKonfirmasiAll = document.getElementById('btnResetKonfirmasiAll');
+    if (btnResetKonfirmasiAll) {
+        btnResetKonfirmasiAll.addEventListener('click', async function () {
+            const ok = await window.SAE.confirm(
+                'Reset <b>SEMUA</b> status konfirmasi peserta didik kembali ke <b>Belum Konfirmasi</b>?<br><small>Riwayat usulan perubahan tetap utuh.</small>',
+                'Reset Semua Konfirmasi?', 'warning', 'Ya, Reset Semua', 'Batal'
+            );
+            if (!ok) return;
+
+            btnResetKonfirmasiAll.disabled = true;
+            try {
+                const res = await fetch('/dashboard/verval-pd/konfirmasi/reset-all', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf(),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const json = await res.json();
+                if (res.ok && json.status === 'success') {
+                    Swal.fire({ icon: 'success', title: 'Terreset', text: json.message, timer: 1600, showConfirmButton: false });
+                    window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                } else {
+                    Swal.fire('Gagal', json.message || 'Reset konfirmasi gagal.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+            } finally {
+                btnResetKonfirmasiAll.disabled = false;
+            }
+        });
+    }
+
     // Cetak hanya baris yang dicentang.
     const btnCetakTerpilih = document.getElementById('btnCetakTerpilihResidu');
     if (btnCetakTerpilih) {
@@ -124,6 +160,51 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = '/dashboard/verval-pd/residu/cetak?' + p.toString();
         });
     }
+
+    // ---------------------------------------- Residu: chart rekap Sesuai / Tidak Sesuai
+    // Data dihitung server-side dari baris yang tampil (halaman + filter aktif),
+    // + di-embed sebagai JSON. Chart digambar ulang setiap tabel di-refresh live.
+    const renderResiduChart = (source) => {
+        const root = source || document;
+        const dataEl = root.querySelector('#residuChartData');
+        const canvas = document.getElementById('chartResiduBanding');
+        if (!dataEl || !canvas || typeof Chart === 'undefined') return;
+
+        let data;
+        try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+
+        if (window.__residuChart) { window.__residuChart.destroy(); }
+
+        const css = getComputedStyle(document.documentElement);
+        const success = css.getPropertyValue('--success').trim() || '#10b981';
+        const danger = css.getPropertyValue('--danger').trim() || '#ef4444';
+
+        window.__residuChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.labels || [],
+                datasets: [
+                    { label: 'Sesuai', data: data.sesuai || [], backgroundColor: success, borderRadius: 4, maxBarThickness: 38 },
+                    { label: 'Tidak Sesuai', data: data.tidak || [], backgroundColor: danger, borderRadius: 4, maxBarThickness: 38 },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                },
+            },
+        });
+    };
+
+    renderResiduChart(document);
+    window.addEventListener('sae:tableRefreshed', (e) => {
+        renderResiduChart((e.detail && e.detail.doc) || document);
+    });
 
     const btnClear = document.getElementById('btnClearResidu');
     if (btnClear) {

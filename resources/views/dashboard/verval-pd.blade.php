@@ -68,6 +68,15 @@
                     </button>
                 @endif
             @endif
+
+            @if (in_array($page, ['residu', 'berkas'], true) && !empty($isAdmin))
+                <button type="button" class="btn btn-outline" id="btnResetKonfirmasiAll"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.4);"
+                    title="Reset Semua Konfirmasi ke Belum Konfirmasi"
+                    aria-label="Reset Semua Konfirmasi ke Belum Konfirmasi">
+                    <i class="fas fa-rotate-left"></i>
+                </button>
+            @endif
         </div>
     </div>
 

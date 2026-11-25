@@ -81,6 +81,7 @@ class VervalPdController extends Controller
 
         $data['stats'] = $this->residuStats();
         $data['page'] = 'residu';
+        $data['isAdmin'] = $this->isAdmin($user);
 
         return view('dashboard.verval-pd', $data + compact('canCreate', 'canRead', 'canUpdate', 'canDelete'));
     }
@@ -301,6 +302,19 @@ class VervalPdController extends Controller
             $user,
             self::MODUL['berkas']
         );
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
+    /** Reset SEMUA status konfirmasi identitas ke 'belum_konfirmasi' — khusus admin. */
+    public function resetAllKonfirmasiBerkas(Request $request): JsonResponse
+    {
+        $user = $this->sessionUser();
+        if (!$this->isAdmin($user)) {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang dapat mereset status konfirmasi.'], 403);
+        }
+
+        $res = $this->berkasService->resetAllKonfirmasiIdentitas($user, self::MODUL['berkas']);
 
         return response()->json($res, $res['status_code'] ?? 200);
     }

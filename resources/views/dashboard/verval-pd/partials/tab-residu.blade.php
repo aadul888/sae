@@ -131,6 +131,61 @@
     };
 @endphp
 
+@php
+    // Rekap bar chart: jumlah Sesuai (✓) vs Tidak Sesuai (✗) per kolom penyandingan,
+    // dihitung HANYA dari baris yang sedang tampil di datatable (halaman + filter aktif).
+    $chartCols = [
+        'rombel_sekolah' => 'Rombel/Sekolah',
+        'nik_dukcapil' => 'NIK Dukcapil',
+        'nik_ganda' => 'NIK Ganda',
+        'nama_banding' => 'Nama Dukcapil',
+        'tempat_lahir' => 'Tempat Lahir',
+        'tanggal_lahir' => 'Tanggal Lahir',
+        'ibu_kandung' => 'Ibu Kandung',
+        'jenis_kelamin' => 'Jenis Kelamin',
+        'desa_kelurahan' => 'Desa/Kelurahan',
+    ];
+    $visibleRows = $items->items();
+    $rekap = ['labels' => [], 'sesuai' => [], 'tidak' => []];
+    foreach ($chartCols as $col => $label) {
+        $yes = 0;
+        $no = 0;
+        foreach ($visibleRows as $row) {
+            $v = trim((string) ($row->{$col} ?? ''));
+            if ($v === '') {
+                continue;
+            }
+            if (preg_match('/[✓✔√]/u', $v) === 1) {
+                $yes++;
+            } elseif (preg_match('/[✗✘×]/u', $v) === 1) {
+                $no++;
+            }
+        }
+        $rekap['labels'][] = $label;
+        $rekap['sesuai'][] = $yes;
+        $rekap['tidak'][] = $no;
+    }
+    $rekap['rows'] = count($visibleRows);
+@endphp
+
+{{-- Chart batang: rekap Sesuai / Tidak Sesuai dari data yang tampil --}}
+<div style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); padding: 16px; margin-bottom: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
+        <div style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);">
+            <i class="fas fa-chart-column" style="color: var(--accent);"></i>
+            Rekap Sesuai / Tidak Sesuai — data yang tampil
+        </div>
+        <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
+            {{ number_format($rekap['rows']) }} baris ditampilkan
+        </div>
+    </div>
+    <div style="position: relative; height: 320px;">
+        <canvas id="chartResiduBanding" aria-label="Chart rekap residu" role="img"></canvas>
+    </div>
+</div>
+
+<script type="application/json" id="residuChartData">{!! json_encode($rekap, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
         <thead>
@@ -146,7 +201,6 @@
                     ['status_proses', 'Proses'],
                     [null, 'Status'],
                     ['rombel_sekolah', 'Rombel/Sekolah'],
-                    ['nisn_banding', 'NISN Dukcapil'],
                     ['nik_dukcapil', 'NIK Dukcapil'],
                     ['nik_ganda', 'NIK Ganda'],
                     ['nama_banding', 'Nama Dukcapil'],
@@ -231,7 +285,7 @@
                             </span>
                         @endif
                     </td>
-                    @foreach (['nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'] as $col)
+                    @foreach (['nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'] as $col)
                         <td style="padding: 12px 16px; text-align: center;"
                             data-label="{{ str_replace('_', ' ', $col) }}">
                             {!! $renderCell($item, $col) !!}
@@ -240,7 +294,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="17"
+                    <td colspan="16"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-file-circle-exclamation mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>

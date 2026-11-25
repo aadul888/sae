@@ -101,6 +101,49 @@ class KesiswaanBerkasService
     }
 
     /**
+     * Reset SEMUA status konfirmasi identitas peserta didik ke posisi awal
+     * ('belum_konfirmasi') sekaligus, tanpa menghapus riwayat usulan perubahan.
+     * Khusus admin. Tercatat di riwayat (admin_aktivitas modul $modul).
+     */
+    public function resetAllKonfirmasiIdentitas(mixed $user, string $modul = 'Verval PD Berkas'): array
+    {
+        if (!Table::exists('peserta_didik_identitas')) {
+            return ['status' => 'error', 'message' => 'Tabel identitas peserta didik tidak tersedia.', 'status_code' => 422];
+        }
+
+        $affected = DB::table('peserta_didik_identitas')
+            ->where(fn($q) => $q->whereNull('status_konfirmasi')->orWhere('status_konfirmasi', '!=', 'belum_konfirmasi'))
+            ->update([
+                'status_konfirmasi' => 'belum_konfirmasi',
+                'dikonfirmasi_pada' => null,
+                'dikonfirmasi_oleh' => null,
+                'updated_at' => now(),
+            ]);
+
+        if ($affected === 0) {
+            return ['status' => 'success', 'message' => 'Tidak ada konfirmasi yang perlu direset.', 'affected' => 0];
+        }
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
+
+        if (class_exists(AdminAktivitas::class)) {
+            AdminAktivitas::recordCrud(
+                'UPDATE',
+                "Reset Semua Konfirmasi ke 'Belum Konfirmasi'",
+                $modul,
+                "{$affected} status konfirmasi peserta didik direset ke 'Belum Konfirmasi' oleh {$userName}.",
+                'warning'
+            );
+        }
+
+        return [
+            'status' => 'success',
+            'message' => "{$affected} status konfirmasi berhasil direset ke 'Belum Konfirmasi'.",
+            'affected' => $affected,
+        ];
+    }
+
+    /**
      * Ambil data berkas digital lengkap per siswa (JSON) untuk Modal Verifikasi Berkas Kesiswaan.
      */
     public function getBerkasDetail(string|int $id): array

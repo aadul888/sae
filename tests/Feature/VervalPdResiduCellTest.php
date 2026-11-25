@@ -157,4 +157,42 @@ class VervalPdResiduCellTest extends TestCase
         $res->assertSee('Uji Residu');
         $res->assertDontSee('Baris Lain');
     }
+
+    public function test_reset_all_konfirmasi_returns_to_belum(): void
+    {
+        $pdId = 'pd-reset-' . uniqid();
+        \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')->insert([
+            'peserta_didik_id' => $pdId,
+            'nisn' => '7770001111',
+            'nama' => 'Siswa Reset',
+            'status_konfirmasi' => 'sesuai',
+            'dikonfirmasi_pada' => now(),
+            'dikonfirmasi_oleh' => 'Tester',
+        ]);
+
+        $res = app(\App\Services\KesiswaanBerkasService::class)
+            ->resetAllKonfirmasiIdentitas(['nama' => 'Administrator Uji'], 'Verval PD Berkas');
+
+        $this->assertSame('success', $res['status']);
+        $this->assertGreaterThanOrEqual(1, $res['affected']);
+
+        $row = \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')
+            ->where('peserta_didik_id', $pdId)->first();
+        $this->assertSame('belum_konfirmasi', $row->status_konfirmasi);
+        $this->assertNull($row->dikonfirmasi_pada);
+
+        $log = AdminAktivitas::where('modul', 'Verval PD Berkas')
+            ->where('aktivitas', 'like', '%Reset Semua Konfirmasi%')
+            ->latest('id')->first();
+        $this->assertNotNull($log, 'Riwayat reset konfirmasi tidak tercatat.');
+    }
+
+    public function test_reset_all_konfirmasi_requires_admin(): void
+    {
+        // Non-admin diblokir middleware permission (redirect / 403), bukan sukses.
+        $res = $this->withSession(['user' => ['nama' => 'Guru', 'role' => 'guru']])
+            ->post('/dashboard/verval-pd/konfirmasi/reset-all');
+
+        $this->assertContains($res->getStatusCode(), [302, 403]);
+    }
 }
