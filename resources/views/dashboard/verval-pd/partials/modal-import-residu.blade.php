@@ -31,7 +31,8 @@
                 </div>
                 <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin: 0; line-height: 1.5;">
                     Kolom centang (✓/✗) diambil <strong>apa adanya</strong> dari berkas — sistem tidak membandingkan
-                    ulang. Import baru akan <strong>mengganti seluruh data Residu</strong> sebelumnya.
+                    ulang. Import baru akan <strong>memperbarui</strong> data dengan NISN yang sama dan
+                    <strong>menyimpan riwayat</strong> per siswa, sehingga data lama tidak hilang.
                 </p>
             </div>
 

@@ -228,8 +228,7 @@
     <!-- 4. Datatable Card -->
     <div class="card datatable-card-wrapper" id="tableDataContainer">
         @if ($activeTab === 'data')
-            <div class="datatable-toolbar">
-                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div class="datatable-toolbar">                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <div class="toolbar-entries">
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
@@ -309,7 +308,11 @@
 
             @include('dashboard.verval-pd.partials.tab-' . $page)
         @else
-            @include('dashboard.verval-pd.partials.tab-riwayat', ['riwayatList' => $riwayatList])
+            @if ($page === 'residu')
+                @include('dashboard.verval-pd.partials.tab-riwayat-residu')
+            @else
+                @include('dashboard.verval-pd.partials.tab-riwayat', ['riwayatList' => $riwayatList])
+            @endif
         @endif
     </div>
 

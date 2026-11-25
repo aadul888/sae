@@ -61,7 +61,7 @@ class VervalPdResiduCellTest extends TestCase
         $service->updateCell($row->id, 'nama_banding', '✓', $user);
 
         $logs = AdminAktivitas::where('modul', 'Verval PD Residu')
-            ->where('aktivitas', 'like', '%Nama (Dukcapil)%')
+            ->where('aktivitas', 'like', '%Ubah Nama:%')
             ->where('aktivitas', 'like', '%9990001111%')
             ->orderBy('id')->get();
 
@@ -194,5 +194,49 @@ class VervalPdResiduCellTest extends TestCase
             ->post('/dashboard/verval-pd/konfirmasi/reset-all');
 
         $this->assertContains($res->getStatusCode(), [302, 403]);
+    }
+
+    public function test_import_upsert_and_riwayat_per_siswa(): void
+    {
+        $service = app(VervalPdResiduService::class);
+        $user = ['nama' => 'Administrator Uji'];
+
+        $csv1 = "NISN,NIK,NAMA,ROMBEL/SEKOLAH,NISN (Dukcapil),NIK DUKCAPIL,NIK GANDA,NAMA (Dukcapil),TEMPAT LAHIR,TANGGAL LAHIR,IBU KANDUNG,JENIS KELAMIN,DESA/KELURAHAN\n"
+            . "5550001111,3203010101080001,Import Uji,✓,✓,✓,✗,✓,✓,✓,✓,✓,✓\n";
+        $file1 = \Illuminate\Http\UploadedFile::fake()->createWithContent('residu1.csv', $csv1);
+        $req1 = new \Illuminate\Http\Request();
+        $req1->files->set('file_residu', $file1);
+        $r1 = $service->importExcel($req1, $user);
+
+        $this->assertSame('success', $r1['status']);
+        $this->assertSame(1, $r1['created_count']);
+
+        // Import kedua dengan NISN yang sama → baris diperbarui, TIDAK diduplikasi/dihapus.
+        $csv2 = str_replace(',✗,✓,✓,✓,✓,✓,✓', ',✓,✓,✓,✓,✓,✓,✗', $csv1);
+        $file2 = \Illuminate\Http\UploadedFile::fake()->createWithContent('residu2.csv', $csv2);
+        $req2 = new \Illuminate\Http\Request();
+        $req2->files->set('file_residu', $file2);
+        $r2 = $service->importExcel($req2, $user);
+
+        $this->assertSame('success', $r2['status']);
+        $this->assertSame(0, $r2['created_count']);
+        $this->assertSame(1, $r2['updated_count']);
+        $this->assertSame(1, VervalPdResidu::where('nisn', '5550001111')->count(), 'Baris NISN sama tidak boleh terduplikasi.');
+
+        $hist = \Illuminate\Support\Facades\DB::table('verval_pd_residu_riwayat')
+            ->where('nisn', '5550001111')->orderBy('id')->get();
+        $this->assertGreaterThanOrEqual(2, $hist->count(), 'Riwayat harus berisi jejak import pertama & import ulang.');
+        $this->assertSame('import', $hist->first()->tipe);
+
+        // Tab Riwayat per siswa: satu baris ringkas per NISN + daftar peristiwa.
+        $riwayat = $service->riwayatPerSiswa(new \Illuminate\Http\Request(['rq' => '5550001111']));
+        $this->assertSame(1, $riwayat->total());
+        $this->assertGreaterThanOrEqual(2, $riwayat->first()->total);
+
+        // Halaman tab Riwayat harus dapat dirender (satu kartu per siswa).
+        $page = $this->withSession(['user' => ['nama' => 'Administrator Uji', 'role' => 'admin']])
+            ->get('/dashboard/verval-pd/residu?tab=riwayat');
+        $page->assertStatus(200);
+        $page->assertSee('Import Uji');
     }
 }

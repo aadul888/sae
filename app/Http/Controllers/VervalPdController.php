@@ -83,6 +83,12 @@ class VervalPdController extends Controller
         $data['page'] = 'residu';
         $data['isAdmin'] = $this->isAdmin($user);
 
+        // Tab Riwayat Residu = riwayat PER SISWA (satu NISN satu kartu), bukan log mentah.
+        $data['riwayatSiswa'] = $this->residuService->riwayatPerSiswa($request);
+        $data['riwayatQ'] = trim((string) $request->get('rq', ''));
+        $data['riwayatTipe'] = trim((string) $request->get('rtipe', ''));
+        $data['riwayatPerPage'] = (int) $request->get('rperPage', 15);
+
         return view('dashboard.verval-pd', $data + compact('canCreate', 'canRead', 'canUpdate', 'canDelete'));
     }
 

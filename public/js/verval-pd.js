@@ -230,6 +230,21 @@ document.addEventListener('DOMContentLoaded', function () {
         renderResiduChart((e.detail && e.detail.doc) || document);
     });
 
+    // ----------------------------------- Riwayat Residu: buka/tutup kartu per siswa
+    // Delegasi agar tetap berfungsi setelah tabel di-refresh live tanpa reload.
+    document.addEventListener('click', function (e) {
+        const head = e.target.closest('.riwayat-siswa-head');
+        if (!head) return;
+        e.preventDefault();
+        const card = head.closest('.riwayat-siswa-card');
+        const body = card ? card.querySelector('.riwayat-siswa-body') : null;
+        const caret = head.querySelector('.riwayat-siswa-caret');
+        if (!body) return;
+        const open = body.style.display !== 'none' && body.style.display !== '';
+        body.style.display = open ? 'none' : 'block';
+        if (caret) caret.style.transform = open ? '' : 'rotate(180deg)';
+    });
+
     const btnClear = document.getElementById('btnClearResidu');
     if (btnClear) {
         btnClear.addEventListener('click', async function () {

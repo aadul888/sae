@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AdminAktivitas;
 use App\Models\VervalPdResidu;
+use App\Support\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -116,7 +117,13 @@ class VervalPdResiduService
         ])->deleteFileAfterSend(true);
     }
 
-    /** Import berkas Residu Excel/CSV. Data lama diganti (satu berkas = kondisi terkini). */
+    /**
+     * Import berkas Residu Excel/CSV.
+     *
+     * Data lama TIDAK dihapus: baris dicocokkan per NISN lalu diperbarui (upsert),
+     * dan setiap perubahan dicatat ke tabel riwayat per siswa sehingga jejak
+     * (import + perubahan status/catatan) tetap tersimpan walau diimpor ulang.
+     */
     public function importExcel(Request $request, mixed $user): array
     {
         $file = $request->file('file_residu');
@@ -142,8 +149,9 @@ class VervalPdResiduService
         $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
         $batch = (string) Str::uuid();
         $now = now();
-        $payload = [];
 
+        // Siapkan data per baris dari berkas (key = NISN, fallback nama).
+        $payload = [];
         foreach ($rows as $row) {
             $get = fn(int $i) => trim((string) ($row['__col_' . $i] ?? ''));
 
@@ -153,21 +161,58 @@ class VervalPdResiduService
                 continue;
             }
 
-            $data = ['import_batch' => $batch, 'imported_by' => $userName, 'created_at' => $now, 'updated_at' => $now];
+            $data = ['import_batch' => $batch, 'imported_by' => $userName, 'updated_at' => $now];
             foreach (self::COLUMNS as $i => $col) {
                 $data[$col] = $get($i) ?: null;
             }
-            $payload[] = $data;
+            $key = $nisn !== '' ? $nisn : 'N:' . $nama;
+            $payload[$key] = $data;
         }
 
         if (empty($payload)) {
             return ['status' => 'error', 'message' => 'Tidak ada baris valid (kolom NISN/NAMA kosong).', 'status_code' => 422];
         }
 
-        DB::transaction(function () use ($payload) {
-            VervalPdResidu::query()->delete();
-            foreach (array_chunk($payload, 200) as $chunk) {
-                VervalPdResidu::insert($chunk);
+        // Baris lama dipetakan per NISN agar tidak terhapus — hanya diperbarui.
+        $existing = VervalPdResidu::query()
+            ->whereNotNull('nisn')->where('nisn', '<>', '')
+            ->get()->keyBy('nisn');
+
+        $baru = 0;
+        $diperbarui = 0;
+
+        DB::transaction(function () use ($payload, $existing, $now, $userName, &$baru, &$diperbarui) {
+            foreach ($payload as $key => $data) {
+                $nisn = trim((string) ($data['nisn'] ?? ''));
+                $old = ($nisn !== '' && $existing->has($nisn)) ? $existing->get($nisn) : null;
+
+                if ($old) {
+                    $changes = $this->ringkasPerubahan($old, $data);
+                    $old->fill($data);
+                    $old->save();
+                    $diperbarui++;
+                    $this->catatRiwayat(
+                        $old,
+                        'import',
+                        null,
+                        null,
+                        $data['rombel_sekolah'] ?? null,
+                        $changes === [] ? 'Import ulang: tidak ada perubahan nilai.' : 'Import ulang — ' . implode('; ', $changes),
+                        $userName
+                    );
+                } else {
+                    $row = VervalPdResidu::create($data + ['created_at' => $now]);
+                    $baru++;
+                    $this->catatRiwayat(
+                        $row,
+                        'import',
+                        null,
+                        null,
+                        $data['rombel_sekolah'] ?? null,
+                        'Data pertama masuk dari import Residu Dukcapil.',
+                        $userName
+                    );
+                }
             }
         });
 
@@ -176,16 +221,33 @@ class VervalPdResiduService
                 'CREATE',
                 'Import Residu Verval PD (' . count($payload) . ' baris)',
                 'Verval PD Residu',
-                "Berkas Residu diimpor oleh {$userName}.",
+                "Berkas Residu diimpor oleh {$userName}: {$baru} data baru, {$diperbarui} diperbarui (data lama tetap tersimpan di riwayat).",
                 'success'
             );
         }
 
         return [
             'status' => 'success',
-            'message' => 'Import Residu berhasil: ' . count($payload) . ' baris tersimpan.',
+            'message' => 'Import Residu selesai: ' . $baru . ' data baru, ' . $diperbarui . ' data diperbarui. Riwayat lama tetap tersimpan.',
             'imported_count' => count($payload),
+            'created_count' => $baru,
+            'updated_count' => $diperbarui,
         ];
+    }
+
+    /** Bandingkan baris lama vs data import, kembalikan daftar kolom yang berubah (label: lama → baru). */
+    protected function ringkasPerubahan(VervalPdResidu $old, array $data): array
+    {
+        $changes = [];
+        foreach (self::EDITABLE_COLUMNS as $col) {
+            $lama = $this->displayValue($old->{$col});
+            $baru = $this->displayValue($data[$col] ?? null);
+            if ($lama !== $baru) {
+                $changes[] = $this->columnLabel($col) . ': ' . $lama . ' → ' . $baru;
+            }
+        }
+
+        return $changes;
     }
 
     /**
@@ -222,6 +284,17 @@ class VervalPdResiduService
 
         $this->logPerubahan($item, $column, $old, $value, $user);
 
+        $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
+        $this->catatRiwayat(
+            $item,
+            'sel',
+            $column,
+            $this->displayValue($old),
+            $this->displayValue($value),
+            'Ubah ' . $this->columnLabel($column) . ': ' . $this->displayValue($old) . ' → ' . $this->displayValue($value) . '.',
+            $userName
+        );
+
         return [
             'status' => 'success',
             'message' => 'Perubahan tersimpan.',
@@ -253,6 +326,17 @@ class VervalPdResiduService
         $item->save();
 
         $this->logPerubahan($item, 'status_proses', $old, $status, $user);
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
+        $this->catatRiwayat(
+            $item,
+            'status',
+            'status_proses',
+            $this->displayValue($old),
+            $this->displayValue($status),
+            'Status proses: ' . $this->displayValue($old) . ' → ' . $this->displayValue($status) . '.',
+            $userName
+        );
 
         return [
             'status' => 'success',
@@ -287,6 +371,17 @@ class VervalPdResiduService
 
         $this->logPerubahan($item, 'catatan', $old, $new, $user);
 
+        $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
+        $this->catatRiwayat(
+            $item,
+            'catatan',
+            'catatan',
+            $this->displayValue($old),
+            $this->displayValue($new),
+            'Catatan masalah: ' . $this->displayValue($old) . ' → ' . $this->displayValue($new) . '.',
+            $userName
+        );
+
         return [
             'status' => 'success',
             'message' => 'Catatan tersimpan.',
@@ -299,10 +394,10 @@ class VervalPdResiduService
     {
         return [
             'rombel_sekolah' => 'Rombel/Sekolah',
-            'nisn_banding' => 'NISN (Dukcapil)',
+            'nisn_banding' => 'NISN',
             'nik_dukcapil' => 'NIK Dukcapil',
             'nik_ganda' => 'NIK Ganda',
-            'nama_banding' => 'Nama (Dukcapil)',
+            'nama_banding' => 'Nama',
             'tempat_lahir' => 'Tempat Lahir',
             'tanggal_lahir' => 'Tanggal Lahir',
             'ibu_kandung' => 'Ibu Kandung',
@@ -355,6 +450,46 @@ class VervalPdResiduService
         );
     }
 
+    /** Kunci identitas baris untuk pengelompokan riwayat per siswa (NISN, fallback nama). */
+    protected function kunciSiswa(VervalPdResidu $item): string
+    {
+        $nisn = trim((string) $item->nisn);
+
+        return $nisn !== '' ? $nisn : 'N:' . trim((string) $item->nama);
+    }
+
+    /**
+     * Catat satu peristiwa (import / ubah sel / ubah status / catatan) ke riwayat per siswa.
+     * Riwayat bersifat append-only: tidak pernah dihapus saat import berikutnya.
+     */
+    protected function catatRiwayat(
+        VervalPdResidu $item,
+        string $tipe,
+        ?string $kolom,
+        ?string $nilaiLama,
+        ?string $nilaiBaru,
+        ?string $keterangan,
+        ?string $adminName
+    ): void {
+        if (!Table::exists('verval_pd_residu_riwayat')) {
+            return;
+        }
+
+        DB::table('verval_pd_residu_riwayat')->insert([
+            'kunci' => $this->kunciSiswa($item),
+            'nisn' => $item->nisn ?: null,
+            'nama' => $item->nama ?: null,
+            'tipe' => $tipe,
+            'kolom' => $kolom,
+            'nilai_lama' => $nilaiLama,
+            'nilai_baru' => $nilaiBaru,
+            'keterangan' => $keterangan,
+            'admin_name' => $adminName,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
     /**
      * Query laporan Residu: filter status proses + pencarian, urut Belum → Proses →
      * Selesai lalu nama. Dipakai halaman cetak laporan.
@@ -390,6 +525,93 @@ class VervalPdResiduService
     public function tampilNilai(?string $value): string
     {
         return $this->displayValue($value);
+    }
+
+    /**
+     * Riwayat Residu dikelompokkan PER SISWA (satu NISN = satu kartu riwayat),
+     * lengkap dengan seluruh peristiwa (import pertama sampai update terakhir).
+     * Mendukung pencarian (rq), filter jenis peristiwa (rtipe), dan paginasi.
+     */
+    public function riwayatPerSiswa(Request $request): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        if (!Table::exists('verval_pd_residu_riwayat')) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+        }
+
+        $q = trim((string) $request->get('rq', ''));
+        $tipe = trim((string) $request->get('rtipe', ''));
+        $perPage = (int) $request->get('rperPage', 15);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
+            $perPage = 15;
+        }
+
+        $base = DB::table('verval_pd_residu_riwayat')
+            ->when($q !== '', fn($w) => $w->where(fn($x) => $x->where('nama', 'like', "%{$q}%")
+                ->orWhere('nisn', 'like', "%{$q}%")
+                ->orWhere('kunci', 'like', "%{$q}%")))
+            ->when($tipe !== '', fn($w) => $w->where('tipe', $tipe));
+
+        $paginator = $base->clone()
+            ->select('kunci', DB::raw('MAX(created_at) as terakhir'))
+            ->groupBy('kunci')
+            ->orderByDesc('terakhir')
+            ->paginate($perPage, ['kunci', 'terakhir'], 'riwayat_page')
+            ->withQueryString();
+
+        $keys = collect($paginator->items())->pluck('kunci')->all();
+
+        if (empty($keys)) {
+            return $paginator;
+        }
+
+        $events = DB::table('verval_pd_residu_riwayat')
+            ->whereIn('kunci', $keys)
+            ->orderBy('created_at')->orderBy('id')
+            ->get()->groupBy('kunci');
+
+        // Kondisi terkini dari tabel Residu (status proses + catatan saat ini).
+        $current = VervalPdResidu::query()->whereIn('nisn', $keys)->get()->keyBy('nisn');
+
+        foreach ($paginator->items() as $row) {
+            $list = $events->get($row->kunci, collect());
+            $first = $list->first();
+            $last = $list->last();
+            $row->nama = $last->nama ?? ($first->nama ?? '-');
+            $row->nisn = $last->nisn ?? ($first->nisn ?? null);
+            $row->nama_awal = $first->nama ?? null;
+            $row->total = $list->count();
+            $row->import_pertama = $first->created_at ?? null;
+            $row->update_terakhir = $last->created_at ?? null;
+            $row->events = $list;
+            $cur = $row->nisn ? ($current->get($row->nisn) ?? null) : null;
+            $row->status_proses = $cur->status_proses ?? null;
+            $row->catatan = $cur->catatan ?? null;
+        }
+
+        return $paginator;
+    }
+
+    /** Label manusiawi tipe peristiwa riwayat Residu. */
+    public function tipeLabel(string $tipe): string
+    {
+        return [
+            'import' => 'Import',
+            'sel' => 'Ubah Sel',
+            'status' => 'Ubah Status',
+            'catatan' => 'Catatan',
+        ][$tipe] ?? $tipe;
+    }
+
+    /** Pasangan ikon + warna untuk tipe peristiwa riwayat. */
+    public function tipeMeta(string $tipe): array
+    {
+        return match ($tipe) {
+            'import' => ['fa-file-import', 'var(--accent, #0284c7)'],
+            'sel' => ['fa-check-double', 'var(--primary, #3b82f6)'],
+            'status' => ['fa-arrows-rotate', 'var(--warning, #f59e0b)'],
+            'catatan' => ['fa-note-sticky', 'var(--purple, #8b5cf6)'],
+            default => ['fa-circle-info', 'var(--text-muted)'],
+        };
     }
 
     /** Hapus seluruh data Residu. */
