@@ -39,15 +39,51 @@ trait ChecksAuthenticatedSession
 
     /**
      * Ambil peran pengguna dari sesi.
+     *
+     * Sesi lama / hasil pemulihan (remember token) bisa saja tidak memuat key
+     * 'role'; turunkan dari 'peran_id_str' agar tidak salah dikenali (mis. siswa
+     * dianggap staf). Logika sama dengan DashboardController::checkAuth().
      */
     protected function sessionRole(): string
     {
         $user = $this->sessionUser();
 
-        $role = is_array($user)
+        $role = (string) (is_array($user)
             ? ($user['role'] ?? '')
-            : ($user->role ?? '');
+            : ($user->role ?? ''));
 
-        return (string) $role;
+        if ($role !== '') {
+            return $role;
+        }
+
+        $peran = strtolower(trim((string) (is_array($user)
+            ? ($user['peran_id_str'] ?? '')
+            : ($user->peran_id_str ?? ''))));
+
+        $resolved = match (true) {
+            str_contains($peran, 'admin'),
+            str_contains($peran, 'operator'),
+            str_contains($peran, 'dinas'),
+            str_contains($peran, 'yayasan') => 'admin',
+            str_contains($peran, 'orang tua'),
+            str_contains($peran, 'orang_tua'),
+            str_contains($peran, 'wali') => 'orang_tua',
+            str_contains($peran, 'tendik'),
+            str_contains($peran, 'tenaga kependidikan'),
+            str_contains($peran, 'tata usaha') => 'tendik',
+            str_contains($peran, 'guru'),
+            str_contains($peran, 'pendidik'),
+            str_contains($peran, 'ptk') => 'guru',
+            default => 'peserta_didik',
+        };
+
+        // Tulis balik ke sesi agar pemakaian lain ($user['role'] mentah) ikut
+        // konsisten tanpa harus diubah satu per satu.
+        if (is_array($user) && session()->has('user')) {
+            $user['role'] = $resolved;
+            session(['user' => $user]);
+        }
+
+        return $resolved;
     }
 }

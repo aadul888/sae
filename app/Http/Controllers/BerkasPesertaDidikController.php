@@ -27,7 +27,7 @@ class BerkasPesertaDidikController extends Controller
     private function resolveStudentContext(Request $request): array
     {
         $user = session('user');
-        $userRole = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $userRole = $this->sessionRole();
         $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Pengguna')) : ($user->nama ?? ($user->name ?? 'Pengguna'));
 
@@ -296,7 +296,7 @@ class BerkasPesertaDidikController extends Controller
         if ($res = $this->checkAuth()) return $res;
 
         $user = session('user');
-        $userRole = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $userRole = $this->sessionRole();
         $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
 
         $berkas = PesertaDidikBerkas::findOrFail($id);
@@ -339,7 +339,7 @@ class BerkasPesertaDidikController extends Controller
         if ($res = $this->checkAuth()) return $res;
 
         $user = session('user');
-        $userRole = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $userRole = $this->sessionRole();
 
         $berkas = PesertaDidikBerkas::findOrFail($id);
 
