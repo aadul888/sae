@@ -59,6 +59,10 @@ class VervalPdController extends Controller
             ->orderBy($sort ?? 'nama', $sort ? $data['sortDir'] : 'asc')
             ->paginate($data['perPage'], ['*'], 'residu_page')
             ->withQueryString();
+
+        // Kolom "Kelas" & "Status": info peserta didik asli (dipetakan via NISN).
+        $this->attachPesertaInfo($data['items']);
+
         $data['stats'] = $this->residuStats();
         $data['page'] = 'residu';
 
@@ -286,6 +290,74 @@ class VervalPdController extends Controller
             ->orderByDesc('id')
             ->limit(200)
             ->get();
+    }
+
+    /**
+     * Tempelkan info peserta didik asli ke tiap baris Residu (dipetakan lewat NISN):
+     * nama kelas (rombel), status konfirmasi identitas, dan kelengkapan berkas wajib.
+     * Terpisah dari kolom centang Dukcapil yang berasal dari berkas import.
+     */
+    protected function attachPesertaInfo(\Illuminate\Contracts\Pagination\LengthAwarePaginator $items): void
+    {
+        $rows = collect($items->items());
+        foreach ($rows as $it) {
+            $it->kelas = null;
+            $it->status_konfirmasi = null;
+            $it->sudah_konfirmasi = false;
+            $it->berkas_valid = false;
+        }
+
+        if (!Table::exists('peserta_didik')) {
+            return;
+        }
+
+        $nisns = $rows->pluck('nisn')->filter()->unique()->values()->all();
+        if (empty($nisns)) {
+            return;
+        }
+
+        $pdMap = \Illuminate\Support\Facades\DB::table('peserta_didik')
+            ->whereIn('nisn', $nisns)
+            ->get(['peserta_didik_id', 'nisn', 'nama_rombel'])
+            ->keyBy('nisn');
+        $pdIds = $pdMap->pluck('peserta_didik_id')->all();
+
+        $konfMap = Table::exists('peserta_didik_identitas')
+            ? \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')
+                ->whereIn('peserta_didik_id', $pdIds)->pluck('status_konfirmasi', 'peserta_didik_id')
+            : collect();
+
+        $wajibKeys = ['kartu_keluarga', 'ijazah_smp'];
+        $validMap = [];
+        if (Table::exists('peserta_didik_berkas')) {
+            foreach (\Illuminate\Support\Facades\DB::table('peserta_didik_berkas')
+                ->whereIn('peserta_didik_id', $pdIds)
+                ->whereRaw("LOWER(TRIM(status)) = 'valid'")
+                ->whereIn('jenis_berkas', $wajibKeys)
+                ->get() as $r) {
+                $validMap[$r->peserta_didik_id][$r->jenis_berkas] = true;
+            }
+        }
+        if (Table::exists('kesiswaan_berkas_verifikasi')) {
+            foreach ($wajibKeys as $wk) {
+                foreach (\Illuminate\Support\Facades\DB::table('kesiswaan_berkas_verifikasi')
+                    ->whereIn('peserta_didik_id', $pdIds)->where($wk, 1)->pluck('peserta_didik_id') as $pid) {
+                    $validMap[$pid][$wk] = true;
+                }
+            }
+        }
+
+        foreach ($rows as $it) {
+            $pd = $it->nisn ? ($pdMap[$it->nisn] ?? null) : null;
+            if (!$pd) {
+                continue;
+            }
+            $it->kelas = $pd->nama_rombel ?: null;
+            $stKonf = strtolower(trim((string) ($konfMap[$pd->peserta_didik_id] ?? 'belum_konfirmasi')));
+            $it->status_konfirmasi = $stKonf;
+            $it->sudah_konfirmasi = in_array($stKonf, ['sesuai', 'perlu_perbaikan', 'diverifikasi', 'disinkronkan_dapodik'], true);
+            $it->berkas_valid = count($validMap[$pd->peserta_didik_id] ?? []) >= count($wajibKeys);
+        }
     }
 
     protected function residuStats(): array

@@ -41,6 +41,8 @@
                     [null, 'NISN'],
                     [null, 'NIK'],
                     [null, 'NAMA'],
+                    [null, 'Kelas'],
+                    [null, 'Status'],
                     ['rombel_sekolah', 'Rombel/Sekolah'],
                     ['nisn_banding', 'NISN Dukcapil'],
                     ['nik_dukcapil', 'NIK Dukcapil'],
@@ -87,6 +89,34 @@
                         data-label="Nama">
                         {{ $item->nama ?: '-' }}
                     </td>
+                    <td style="padding: 12px 16px; text-align: center;" data-label="Kelas">
+                        <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
+                            {{ $item->kelas ?: '-' }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px 16px; text-align: center;" data-label="Status">
+                        @if ($item->sudah_konfirmasi && $item->berkas_valid)
+                            <span class="badge badge-success" title="Sudah konfirmasi &amp; berkas wajib (KK + Ijazah) valid"
+                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-circle-check"></i> Lengkap
+                            </span>
+                        @elseif ($item->sudah_konfirmasi)
+                            <span class="badge badge-warning" title="Sudah konfirmasi, berkas wajib belum lengkap/valid"
+                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-file-circle-question"></i> Konfirmasi
+                            </span>
+                        @elseif ($item->berkas_valid)
+                            <span class="badge badge-primary" title="Berkas wajib valid, konfirmasi belum"
+                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-file-circle-check"></i> Berkas
+                            </span>
+                        @else
+                            <span class="badge badge-outline" title="Belum konfirmasi &amp; berkas wajib belum lengkap"
+                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted);">
+                                <i class="fas fa-clock"></i> Belum
+                            </span>
+                        @endif
+                    </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Rombel/Sekolah">
                         @php $rombelVal = trim((string) $item->rombel_sekolah); @endphp
                         @if ($rombelVal !== '' && preg_match('/[✓✔√✗✘×]/u', $rombelVal))
@@ -106,7 +136,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13"
+                    <td colspan="15"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-file-circle-exclamation mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
