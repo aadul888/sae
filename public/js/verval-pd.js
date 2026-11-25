@@ -520,21 +520,33 @@ document.addEventListener('DOMContentLoaded', function () {
             window.__berkasAktif = { siswa, items: json.items };
 
             const jumlahFile = (json.items || []).filter((it) => it.is_uploaded).length;
+            const vbTotal = json.items.length;
             let html = `
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 10px 14px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px);">
-                    <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                        <i class="fas fa-circle-info me-1"></i>
-                        ${json.items.length} jenis dokumen &bull; <strong style="color: var(--text-color);">${jumlahFile}</strong> berkas tersedia
-                    </span>
-                    <button type="button" id="btnLihatSemuaBerkas" class="btn btn-primary"
-                        ${jumlahFile === 0 ? 'disabled' : ''}
-                        style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-images"></i> Lihat Semua Berkas
-                    </button>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 8px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); position: sticky; top: 0; z-index: 5;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <span id="vbStepCounter" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); white-space: nowrap;">Dokumen 1 / ${vbTotal}</span>
+                        <span id="vbStepLabel" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button type="button" id="vbPrev" class="btn btn-outline" title="Dokumen sebelumnya" aria-label="Dokumen sebelumnya"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" id="vbNext" class="btn btn-outline" title="Dokumen selanjutnya" aria-label="Dokumen selanjutnya"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button type="button" id="btnLihatSemuaBerkas" class="btn btn-primary"
+                            ${jumlahFile === 0 ? 'disabled' : ''} title="Lihat semua berkas sekaligus"
+                            aria-label="Lihat semua berkas sekaligus"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);">
+                            <i class="fas fa-images"></i>
+                        </button>
+                    </div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 16px;">`;
 
-            json.items.forEach((item) => {
+            json.items.forEach((item, stepIdx) => {
                 const statusBadge = item.status === 'valid'
                     ? `<span class="badge badge-success" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas fa-circle-check me-1"></i> Valid</span>`
                     : (item.status === 'tidak_valid'
@@ -544,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             : `<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i class="fas fa-minus me-1"></i> Belum Unggah</span>`));
 
                 html += `
-                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-selected-status="${item.status || ''}" style="padding: 14px 16px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color); background: var(--card-bg, #fff);">
+                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-step="${stepIdx}" data-label="${escapeHtml(item.label)}" data-selected-status="${item.status || ''}" style="padding: 14px 16px; border-radius: var(--radius-lg, 12px); border: 1px solid var(--border-color); background: var(--card-bg, #fff); ${stepIdx === 0 ? '' : 'display: none;'}">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
                                 <div style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem); flex-shrink: 0;">
@@ -580,6 +592,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </button>
                             </div>
                         </div>
+
+                        ${item.is_uploaded ? `
+                            <div style="margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a);">
+                                <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
+                                    style="width: 100%; height: 360px; border: none; display: block;"></iframe>
+                            </div>
+                        ` : ''}
 
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                             <div style="display: flex; gap: 16px; align-items: center;">
@@ -620,6 +639,29 @@ document.addEventListener('DOMContentLoaded', function () {
             if (btnLihatSemua) {
                 btnLihatSemua.addEventListener('click', () => window.openSemuaBerkas());
             }
+
+            // -------- Stepper: satu dokumen per tampilan, urut, navigasi ikon saja.
+            const vbCards = Array.from(content.querySelectorAll('.card-berkas-item'));
+            let vbIndex = 0;
+            const vbShow = (i) => {
+                if (!vbCards.length) return;
+                vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
+                vbCards.forEach((c, idx) => { c.style.display = idx === vbIndex ? 'block' : 'none'; });
+                const counter = document.getElementById('vbStepCounter');
+                const labelEl = document.getElementById('vbStepLabel');
+                const prevBtn = document.getElementById('vbPrev');
+                const nextBtn = document.getElementById('vbNext');
+                if (counter) counter.textContent = `Dokumen ${vbIndex + 1} / ${vbCards.length}`;
+                if (labelEl) labelEl.textContent = vbCards[vbIndex].getAttribute('data-label') || '';
+                if (prevBtn) prevBtn.disabled = vbIndex === 0;
+                if (nextBtn) nextBtn.disabled = vbIndex === vbCards.length - 1;
+                content.scrollTop = 0;
+            };
+            const vbPrev = document.getElementById('vbPrev');
+            const vbNext = document.getElementById('vbNext');
+            if (vbPrev) vbPrev.addEventListener('click', () => vbShow(vbIndex - 1));
+            if (vbNext) vbNext.addEventListener('click', () => vbShow(vbIndex + 1));
+            vbShow(0);
 
             content.querySelectorAll('.radio-status-berkas').forEach((radio) => {
                 radio.addEventListener('change', function () {
@@ -720,6 +762,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (currentRadio) currentRadio.checked = true;
                                 const prevBtn = card.querySelector('.btn-preview-pdf-inline');
                                 if (prevBtn) { prevBtn.setAttribute('data-status', status); prevBtn.setAttribute('data-catatan', catatan); }
+
+                                // Simpan cepat: setelah simpan sukses, otomatis pindah ke dokumen berikutnya.
+                                const curIdx = vbCards.indexOf(card);
+                                if (curIdx > -1 && curIdx < vbCards.length - 1) {
+                                    setTimeout(() => vbShow(curIdx + 1), 350);
+                                }
                             }
                         } else {
                             Swal.fire('Gagal', postJson.message || 'Terjadi kesalahan.', 'error');
