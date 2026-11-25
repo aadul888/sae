@@ -67,6 +67,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Ekspor laporan Residu ke Excel, ikut filter/pencarian yang aktif.
+    const btnExportResidu = document.getElementById('btnExportResidu');
+    if (btnExportResidu) {
+        btnExportResidu.addEventListener('click', () => {
+            const params = new URLSearchParams(window.location.search);
+            const q = document.getElementById('liveSearch')?.value?.trim();
+            if (q) params.set('q', q); else params.delete('q');
+            window.location.href = '/dashboard/verval-pd/residu/export?' + params.toString();
+        });
+    }
+
     const btnClear = document.getElementById('btnClearResidu');
     if (btnClear) {
         btnClear.addEventListener('click', async function () {

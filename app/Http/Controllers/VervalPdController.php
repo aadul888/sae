@@ -56,6 +56,14 @@ class VervalPdController extends Controller
                     ->orWhere('nik', 'like', "%{$term}%")
                     ->orWhere('rombel_sekolah', 'like', "%{$term}%"));
             })
+            ->when($data['status'] !== '', function ($q) use ($data) {
+                $st = $data['status'];
+                if ($st === VervalPdResiduService::STATUS_BELUM) {
+                    $q->where(fn($w) => $w->where('status_proses', $st)->orWhereNull('status_proses'));
+                } elseif (in_array($st, [VervalPdResiduService::STATUS_PROSES, VervalPdResiduService::STATUS_SELESAI], true)) {
+                    $q->where('status_proses', $st);
+                }
+            })
             ->when($sort, fn($q) => $q->orderBy($sort, $data['sortDir']), function ($q) {
                 // Default: urutkan status Belum → Sedang Proses → Selesai (selesai paling bawah).
                 $q->orderByRaw("CASE status_proses
@@ -131,6 +139,14 @@ class VervalPdController extends Controller
         if ($res = $this->checkAuth()) return $res;
 
         return $this->residuService->downloadTemplate();
+    }
+
+    /** Ekspor laporan Residu ke Excel (.xlsx). */
+    public function exportResidu(Request $request)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        return $this->residuService->export($request);
     }
 
     public function clearResidu(Request $request): JsonResponse
@@ -411,25 +427,17 @@ class VervalPdController extends Controller
     {
         $base = VervalPdResidu::query();
         $total = (clone $base)->count();
-        $centangHijau = (clone $base)->where('nama_banding', 'like', '%✓%')->count();
-        $perluPerbaikan = (clone $base)->where(fn($q) => $q
-            ->where('nik_dukcapil', 'like', '%✗%')
-            ->orWhere('nama_banding', 'like', '%✗%')
-            ->orWhere('tempat_lahir', 'like', '%✗%')
-            ->orWhere('tanggal_lahir', 'like', '%✗%')
-            ->orWhere('ibu_kandung', 'like', '%✗%')
-            ->orWhere('jenis_kelamin', 'like', '%✗%')
-            ->orWhere('desa_kelurahan', 'like', '%✗%'))->count();
-        $nikGanda = (clone $base)->where(fn($q) => $q
-            ->where('nik_ganda', 'like', '%✗%')
-            ->orWhere('nik_ganda', 'like', '%Ganda%'))->count();
+        $belum = (clone $base)->where(fn($q) => $q->where('status_proses', VervalPdResiduService::STATUS_BELUM)
+            ->orWhereNull('status_proses'))->count();
+        $proses = (clone $base)->where('status_proses', VervalPdResiduService::STATUS_PROSES)->count();
+        $selesai = (clone $base)->where('status_proses', VervalPdResiduService::STATUS_SELESAI)->count();
         $importedBy = (clone $base)->whereNotNull('imported_by')->latest('updated_at')->value('imported_by');
 
         return [
             'total' => $total,
-            'valid' => $centangHijau,
-            'perlu_perbaikan' => $perluPerbaikan,
-            'nik_ganda' => $nikGanda,
+            'belum' => $belum,
+            'proses' => $proses,
+            'selesai' => $selesai,
             'imported_by' => $importedBy,
         ];
     }

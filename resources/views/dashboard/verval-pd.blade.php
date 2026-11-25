@@ -43,6 +43,11 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($page === 'residu')
+                <button type="button" class="btn btn-outline" id="btnExportResidu"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
+                    title="Ekspor Laporan Residu (Excel)" aria-label="Ekspor Laporan Residu">
+                    <i class="fas fa-file-excel"></i>
+                </button>
                 <button type="button" class="btn btn-outline" id="btnTemplateResidu"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
                     title="Unduh Template Excel Residu" aria-label="Unduh Template Excel Residu">
@@ -79,30 +84,30 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
-                    <i class="fas fa-circle-check"></i>
+                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: var(--text-muted);">
+                    <i class="fas fa-circle-dashed"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">{{ number_format($stats['valid'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Nama Sesuai Dukcapil</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
-                <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">{{ number_format($stats['perlu_perbaikan'] ?? 0) }}</div>
-                    <div class="dash-stat-label">Perlu Perbaikan</div>
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem);">{{ number_format($stats['belum'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Belum Diproses</div>
                 </div>
             </div>
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
-                    <i class="fas fa-clone"></i>
+                    <i class="fas fa-spinner"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">{{ number_format($stats['nik_ganda'] ?? 0) }}</div>
-                    <div class="dash-stat-label">NIK Ganda</div>
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">{{ number_format($stats['proses'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Sedang Proses</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">{{ number_format($stats['selesai'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Selesai</div>
                 </div>
             </div>
         @elseif ($page === 'berkas')
@@ -227,7 +232,14 @@
                             <span>entri</span>
                         </div>
 
-                        @if ($page === 'berkas')
+                        @if ($page === 'residu')
+                            <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                                <option value="">Semua Status Proses</option>
+                                <option value="belum" {{ $status === 'belum' ? 'selected' : '' }}>Belum Diproses</option>
+                                <option value="proses" {{ $status === 'proses' ? 'selected' : '' }}>Sedang Proses</option>
+                                <option value="selesai" {{ $status === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            </select>
+                        @elseif ($page === 'berkas')
                             <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
                                 <option value="">Semua Rombel</option>
                                 @foreach ($filterRombel as $r)
