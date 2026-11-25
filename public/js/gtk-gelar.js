@@ -5,40 +5,22 @@
  * dipakai kedua menu. Gelar disimpan ke `gtk_meta` (aman dari tarik Dapodik).
  */
 (function () {
+    /** Alert global SAE (sama seperti modul lain); fallback Swal bila belum siap. */
     function showGelarToast(message, type) {
-        let toast = document.getElementById("gtkGelarToast");
-        if (!toast) {
-            toast = document.createElement("div");
-            toast.id = "gtkGelarToast";
-            document.body.appendChild(toast);
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(message, type || "info");
+            return;
         }
-
-        const ok = type === "success";
-        toast.textContent = message;
-        toast.style.cssText = [
-            "position: fixed",
-            "bottom: 24px",
-            "right: 24px",
-            "z-index: 2000",
-            "padding: 11px 16px",
-            "border-radius: 10px",
-            "font-size: 0.875rem",
-            "font-weight: 600",
-            "color: #fff",
-            "box-shadow: 0 8px 24px rgba(0,0,0,0.25)",
-            "background: " + (ok ? "#10b981" : "#ef4444"),
-            "opacity: 0",
-            "transition: opacity 0.2s ease",
-        ].join(";");
-
-        requestAnimationFrame(() => {
-            toast.style.opacity = "1";
-        });
-
-        clearTimeout(window.__gtkGelarToastTimer);
-        window.__gtkGelarToastTimer = setTimeout(() => {
-            toast.style.opacity = "0";
-        }, 2600);
+        if (window.Swal) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: type === "success" ? "success" : "error",
+                title: message,
+                showConfirmButton: false,
+                timer: 3000,
+            });
+        }
     }
 
     /**
