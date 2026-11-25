@@ -32,7 +32,7 @@
             <div>Memuat berkas siswa...</div>
         </div>
 
-        <div id="modalVbContent" style="overflow-y: auto; flex: 1; display: none; padding-right: 4px;"></div>
+        <div id="modalVbContent" style="overflow-y: auto; flex: 1; min-height: 0; display: none; padding-right: 4px;"></div>
 
         <div
             style="display: flex; justify-content: flex-end; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">

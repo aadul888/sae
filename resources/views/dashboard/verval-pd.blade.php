@@ -351,6 +351,33 @@
             min-width: 0;
         }
 
+        /* Layar lebar: kartu mengisi tinggi area modal, PDF pakai sisa ruang (tanpa scroll). */
+        @media (min-width: 1100px) {
+            #modalVbContent {
+                overflow-y: hidden !important;
+            }
+
+            #modalVbContent .vb-cards {
+                height: 100%;
+            }
+
+            #modalVbContent .vb-cards > .vb-card {
+                height: 100%;
+                min-height: 0;
+            }
+
+            .vb-card .vb-pdf-wrap {
+                height: 100%;
+                min-height: 0;
+            }
+
+            /* Panel kanan boleh menggulir sendiri bila isinya (catatan/rekomendasi) panjang. */
+            .vb-card .vb-col-panel {
+                overflow-y: auto;
+                max-height: 100%;
+            }
+        }
+
         .vb-card .vb-pdf-wrap iframe {
             min-height: 74vh;
         }

@@ -550,10 +550,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${item.is_uploaded ? `
                                 <div class="vb-pdf-wrap" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
                                     <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
-                                        style="width: 100%; height: 100%; min-height: 74vh; border: none; display: block;"></iframe>
+                                        style="width: 100%; height: 100%; border: none; display: block;"></iframe>
                                 </div>
                             ` : `
-                                <div style="height: 100%; min-height: 40vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-hover);">
+                                <div class="vb-pdf-wrap" style="height: 100%; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md, 8px); background: var(--bg-hover);">
                                     <i class="fas fa-file-circle-xmark" style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
                                     <span style="font-size: var(--text-sm, 0.8125rem);">Belum ada berkas digital</span>
                                     <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 6px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
