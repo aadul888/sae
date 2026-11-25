@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="vb-col-pdf">
                             ${item.is_uploaded ? `
                                 <div class="vb-pdf-wrap" style="border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a); height: 100%;">
-                                    <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
+                                    <iframe data-src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
                                         style="width: 100%; height: 100%; border: none; display: block;"></iframe>
                                 </div>
                             ` : `
@@ -682,7 +682,23 @@ document.addEventListener('DOMContentLoaded', function () {
             let vbIndex = 0;
             const vbShow = (i) => {
                 vbIndex = Math.max(0, Math.min(i, vbCards.length - 1));
-                vbCards.forEach((c, idx) => c.classList.toggle('vb-hidden', idx !== vbIndex));
+                vbCards.forEach((c, idx) => {
+                    const active = idx === vbIndex;
+                    c.classList.toggle('vb-hidden', !active);
+
+                    // Lazy PDF: muat iframe hanya untuk dokumen yang tampil; dokumen
+                    // lain dibebaskan agar PDF besar (ratusan halaman) tidak membanjiri
+                    // memori/bandwidth saat modal dibuka.
+                    const frame = c.querySelector('iframe');
+                    if (frame) {
+                        const src = frame.getAttribute('data-src') || '';
+                        if (active) {
+                            if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+                        } else if (frame.getAttribute('src')) {
+                            frame.setAttribute('src', 'about:blank');
+                        }
+                    }
+                });
 
                 const onLast = vbIndex === vbCards.length - 1;
                 vbCards.forEach((c, idx) => {
