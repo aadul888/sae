@@ -182,9 +182,41 @@ class VervalPdResiduCellTest extends TestCase
         $this->assertNull($row->dikonfirmasi_pada);
 
         $log = AdminAktivitas::where('modul', 'Verval PD Berkas')
-            ->where('aktivitas', 'like', '%Reset Semua Konfirmasi%')
+            ->where('aktivitas', 'like', '%Reset Konfirmasi%')
             ->latest('id')->first();
         $this->assertNotNull($log, 'Riwayat reset konfirmasi tidak tercatat.');
+    }
+
+    public function test_reset_konfirmasi_per_rombel_only_touches_that_class(): void
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('peserta_didik')
+            || !\Illuminate\Support\Facades\Schema::hasColumn('peserta_didik', 'nama_rombel')) {
+            $this->markTestSkipped('Tabel peserta_didik tanpa kolom nama_rombel.');
+        }
+
+        $rombel = 'XII-RESET-' . uniqid();
+        \Illuminate\Support\Facades\DB::table('peserta_didik')->insert([
+            ['peserta_didik_id' => 'pd-r1', 'nisn' => '6600000001', 'nama' => 'Siswa Satu', 'nama_rombel' => $rombel],
+            ['peserta_didik_id' => 'pd-r2', 'nisn' => '6600000002', 'nama' => 'Siswa Dua', 'nama_rombel' => 'XII-LAIN-' . uniqid()],
+        ]);
+        foreach (['pd-r1', 'pd-r2'] as $i => $pid) {
+            \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')->insert([
+                'peserta_didik_id' => $pid,
+                'nisn' => '660000000' . ($i + 1),
+                'nama' => 'Siswa ' . ($i + 1),
+                'status_konfirmasi' => 'sesuai',
+            ]);
+        }
+
+        $res = app(\App\Services\KesiswaanBerkasService::class)
+            ->resetAllKonfirmasiIdentitas(['nama' => 'Administrator Uji'], 'Verval PD Berkas', $rombel);
+
+        $this->assertSame('success', $res['status']);
+        $this->assertSame('belum_konfirmasi',
+            \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')->where('peserta_didik_id', 'pd-r1')->value('status_konfirmasi'));
+        $this->assertSame('sesuai',
+            \Illuminate\Support\Facades\DB::table('peserta_didik_identitas')->where('peserta_didik_id', 'pd-r2')->value('status_konfirmasi'),
+            'Kelas lain tidak boleh ikut terreset.');
     }
 
     public function test_reset_all_konfirmasi_requires_admin(): void

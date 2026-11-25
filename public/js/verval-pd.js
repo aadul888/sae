@@ -113,30 +113,43 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Reset SEMUA status konfirmasi identitas → 'belum_konfirmasi' (khusus admin).
-    // Tersedia di halaman Residu & Berkas. Riwayat usulan perubahan tidak dihapus.
+    // Reset status konfirmasi identitas → 'belum_konfirmasi' (khusus admin).
+    // Tersedia di halaman Residu & Berkas. Satu tombol membuka modal pilih cakupan
+    // (Semua Kelas / per kelas). Riwayat usulan perubahan tidak dihapus.
     const btnResetKonfirmasiAll = document.getElementById('btnResetKonfirmasiAll');
     if (btnResetKonfirmasiAll) {
-        btnResetKonfirmasiAll.addEventListener('click', async function () {
+        btnResetKonfirmasiAll.addEventListener('click', () => openModal('#modalResetKonfirmasi'));
+    }
+
+    const btnResetKonfirmasiProses = document.getElementById('btnResetKonfirmasiProses');
+    if (btnResetKonfirmasiProses) {
+        btnResetKonfirmasiProses.addEventListener('click', async function () {
+            const sel = document.getElementById('resetKonfirmasiRombel');
+            const rombel = sel ? sel.value : '';
+            const scope = rombel ? `Kelas <b>${escapeHtml(rombel)}</b>` : '<b>SEMUA</b> kelas';
+
             const ok = await window.SAE.confirm(
-                'Reset <b>SEMUA</b> status konfirmasi peserta didik kembali ke <b>Belum Konfirmasi</b>?<br><small>Riwayat usulan perubahan tetap utuh.</small>',
-                'Reset Semua Konfirmasi?', 'warning', 'Ya, Reset Semua', 'Batal'
+                `Reset status konfirmasi <b>${scope}</b> kembali ke <b>Belum Konfirmasi</b>?<br><small>Riwayat usulan perubahan tetap utuh.</small>`,
+                'Reset Konfirmasi?', 'warning', 'Ya, Reset', 'Batal'
             );
             if (!ok) return;
 
-            btnResetKonfirmasiAll.disabled = true;
+            btnResetKonfirmasiProses.disabled = true;
             try {
                 const res = await fetch('/dashboard/verval-pd/konfirmasi/reset-all', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrf(),
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
+                    body: JSON.stringify({ rombel }),
                 });
                 const json = await res.json();
                 if (res.ok && json.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'Terreset', text: json.message, timer: 1600, showConfirmButton: false });
+                    closeModal('#modalResetKonfirmasi');
+                    Swal.fire({ icon: 'success', title: 'Terreset', text: json.message, timer: 1800, showConfirmButton: false });
                     window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
                 } else {
                     Swal.fire('Gagal', json.message || 'Reset konfirmasi gagal.', 'error');
@@ -144,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 Swal.fire('Error', 'Gagal menghubungi server.', 'error');
             } finally {
-                btnResetKonfirmasiAll.disabled = false;
+                btnResetKonfirmasiProses.disabled = false;
             }
         });
     }

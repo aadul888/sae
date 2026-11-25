@@ -101,27 +101,44 @@ class KesiswaanBerkasService
     }
 
     /**
-     * Reset SEMUA status konfirmasi identitas peserta didik ke posisi awal
-     * ('belum_konfirmasi') sekaligus, tanpa menghapus riwayat usulan perubahan.
+     * Reset status konfirmasi identitas peserta didik ke posisi awal
+     * ('belum_konfirmasi'), tanpa menghapus riwayat usulan perubahan.
      * Khusus admin. Tercatat di riwayat (admin_aktivitas modul $modul).
+     *
+     * @param string|null $rombel  Nama rombel/kelas untuk reset sebagian; null = SEMUA.
      */
-    public function resetAllKonfirmasiIdentitas(mixed $user, string $modul = 'Verval PD Berkas'): array
+    public function resetAllKonfirmasiIdentitas(mixed $user, string $modul = 'Verval PD Berkas', ?string $rombel = null): array
     {
         if (!Table::exists('peserta_didik_identitas')) {
             return ['status' => 'error', 'message' => 'Tabel identitas peserta didik tidak tersedia.', 'status_code' => 422];
         }
 
-        $affected = DB::table('peserta_didik_identitas')
-            ->where(fn($q) => $q->whereNull('status_konfirmasi')->orWhere('status_konfirmasi', '!=', 'belum_konfirmasi'))
-            ->update([
-                'status_konfirmasi' => 'belum_konfirmasi',
-                'dikonfirmasi_pada' => null,
-                'dikonfirmasi_oleh' => null,
-                'updated_at' => now(),
-            ]);
+        $rombel = $rombel !== null ? trim($rombel) : null;
+
+        $query = DB::table('peserta_didik_identitas')
+            ->where(fn($q) => $q->whereNull('status_konfirmasi')->orWhere('status_konfirmasi', '!=', 'belum_konfirmasi'));
+
+        $scopeLabel = 'Semua Kelas';
+        if ($rombel !== null && $rombel !== '') {
+            $pdIds = Table::exists('peserta_didik')
+                ? DB::table('peserta_didik')->where('nama_rombel', $rombel)->pluck('peserta_didik_id')->all()
+                : [];
+            if (empty($pdIds)) {
+                return ['status' => 'error', 'message' => "Tidak ada peserta didik pada rombel '{$rombel}'.", 'status_code' => 422];
+            }
+            $query->whereIn('peserta_didik_id', $pdIds);
+            $scopeLabel = "Kelas {$rombel}";
+        }
+
+        $affected = $query->update([
+            'status_konfirmasi' => 'belum_konfirmasi',
+            'dikonfirmasi_pada' => null,
+            'dikonfirmasi_oleh' => null,
+            'updated_at' => now(),
+        ]);
 
         if ($affected === 0) {
-            return ['status' => 'success', 'message' => 'Tidak ada konfirmasi yang perlu direset.', 'affected' => 0];
+            return ['status' => 'success', 'message' => "Tidak ada konfirmasi yang perlu direset pada {$scopeLabel}.", 'affected' => 0];
         }
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Administrator') : ($user->nama ?? 'Administrator');
@@ -129,16 +146,16 @@ class KesiswaanBerkasService
         if (class_exists(AdminAktivitas::class)) {
             AdminAktivitas::recordCrud(
                 'UPDATE',
-                "Reset Semua Konfirmasi ke 'Belum Konfirmasi'",
+                'Reset Konfirmasi ' . $scopeLabel . " ke 'Belum Konfirmasi'",
                 $modul,
-                "{$affected} status konfirmasi peserta didik direset ke 'Belum Konfirmasi' oleh {$userName}.",
+                "{$affected} status konfirmasi peserta didik ({$scopeLabel}) direset ke 'Belum Konfirmasi' oleh {$userName}.",
                 'warning'
             );
         }
 
         return [
             'status' => 'success',
-            'message' => "{$affected} status konfirmasi berhasil direset ke 'Belum Konfirmasi'.",
+            'message' => "{$affected} status konfirmasi pada {$scopeLabel} berhasil direset ke 'Belum Konfirmasi'.",
             'affected' => $affected,
         ];
     }

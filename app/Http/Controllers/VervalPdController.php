@@ -82,6 +82,7 @@ class VervalPdController extends Controller
         $data['stats'] = $this->residuStats();
         $data['page'] = 'residu';
         $data['isAdmin'] = $this->isAdmin($user);
+        $data['filterRombel'] = $this->filterRombel();
 
         // Tab Riwayat Residu = riwayat PER SISWA (satu NISN satu kartu), bukan log mentah.
         $data['riwayatSiswa'] = $this->residuService->riwayatPerSiswa($request);
@@ -312,7 +313,8 @@ class VervalPdController extends Controller
         return response()->json($res, $res['status_code'] ?? 200);
     }
 
-    /** Reset SEMUA status konfirmasi identitas ke 'belum_konfirmasi' — khusus admin. */
+    /** Reset status konfirmasi identitas ke 'belum_konfirmasi' — khusus admin.
+     *  Body opsional `rombel`: bila diisi, hanya kelas itu; kosong = semua kelas. */
     public function resetAllKonfirmasiBerkas(Request $request): JsonResponse
     {
         $user = $this->sessionUser();
@@ -320,7 +322,15 @@ class VervalPdController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang dapat mereset status konfirmasi.'], 403);
         }
 
-        $res = $this->berkasService->resetAllKonfirmasiIdentitas($user, self::MODUL['berkas']);
+        $validated = $request->validate([
+            'rombel' => 'nullable|string|max:100',
+        ]);
+
+        $res = $this->berkasService->resetAllKonfirmasiIdentitas(
+            $user,
+            self::MODUL['berkas'],
+            $validated['rombel'] ?? null
+        );
 
         return response()->json($res, $res['status_code'] ?? 200);
     }
