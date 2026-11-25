@@ -127,6 +127,23 @@ $checks['JS normalisasi berkas ke memori (anti ERR_UPLOAD_FILE_CHANGED)'] =
     && str_contains($js, 'new File([')
     && str_contains($js, 'DataTransfer');
 
+// --- 5g. Kamera -> PDF: murid boleh memotret dokumen dan hasilnya otomatis jadi
+// PDF multi-halaman di sisi klien (jsPDF), lalu dipasang ke input PDF form.
+$checks['JS kamera ke PDF (jsPDF, multi-halaman)'] =
+    str_contains($js, 'initCameraToPdf')
+    && str_contains($js, 'new jsPDF(')
+    && str_contains($js, 'addPage')
+    && str_contains($js, "output('blob')");
+
+// --- 5h. View menyertakan tombol kamera + input capture; jsPDF dimuat malas dari JS.
+$view = file_get_contents(__DIR__ . '/../resources/views/dashboard/berkas-peserta-didik.blade.php');
+$checks['View punya tombol kamera + input capture'] =
+    str_contains($view, 'btn-camera-pdf')
+    && str_contains($view, 'capture="environment"');
+$checks['jsPDF lokal tersedia & dimuat malas'] =
+    str_contains($js, 'vendor/jspdf/jspdf.umd.min.js')
+    && file_exists(__DIR__ . '/../public/vendor/jspdf/jspdf.umd.min.js');
+
 // --- 5d. URL sw.js harus ber-query versi, agar cache tepi (Cloudflare) tidak
 // menyajikan service worker lama untuk '/sw.js' polos.
 $checks['sw.js didaftarkan dengan query versi (lolos cache CDN)'] =

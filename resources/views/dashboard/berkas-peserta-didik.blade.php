@@ -321,6 +321,27 @@
                                     style="font-size: var(--text-sm, 0.8125rem); padding: 6px 10px; border-radius: var(--radius-md, 8px);">
                             </div>
 
+                            <!-- Alternatif: ambil foto dokumen lalu otomatis jadi PDF.
+                                 Bisa beberapa kali jepret; semua foto digabung jadi satu PDF
+                                 multi-halaman. Hasilnya mengisi input PDF di atas.
+                                 Hanya untuk siswa/wali — admin cukup memilih PDF yang sudah ada. -->
+                            @if (in_array($userRole, ['peserta_didik', 'orang_tua'], true))
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <button type="button" class="btn btn-outline btn-camera-pdf"
+                                        style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-camera"></i> Ambil Foto → PDF
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-camera-clear"
+                                        style="display: none; padding: 6px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-md, 8px);">
+                                        <i class="fas fa-rotate-left"></i> Ulangi Foto
+                                    </button>
+                                    <span class="camera-pdf-status"
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"></span>
+                                    <input type="file" accept="image/*" capture="environment" multiple
+                                        class="file-input-camera" hidden>
+                                </div>
+                            @endif
+
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                                 <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                     <i class="fas fa-file-shield text-primary me-1"></i>Hanya .pdf (Maks. 5MB)
@@ -385,6 +406,12 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.__SAE_JSPDF__ = {
+            local: "{{ asset('vendor/jspdf/jspdf.umd.min.js') }}",
+            cdn: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
+        };
+    </script>
     <script
         src="{{ asset('js/berkas-peserta-didik.js') }}?v={{ file_exists(public_path('js/berkas-peserta-didik.js')) ? filemtime(public_path('js/berkas-peserta-didik.js')) : time() }}">
     </script>

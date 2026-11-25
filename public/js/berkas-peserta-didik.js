@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 3. Pratinjau Dokumen PDF In-App (Tanpa Buka Tab Baru)
     initPdfPreviewModal();
+
+    // 4. Ambil foto dokumen → otomatis jadi satu PDF multi-halaman
+    initCameraToPdf();
 });
 
 /**
@@ -212,6 +215,236 @@ function initPdfPreviewModal() {
             if (modal) modal.style.display = 'none';
             if (frame) frame.src = '';
             document.body.style.overflow = '';
+        }
+    });
+}
+
+/**
+ * Ambil Foto Dokumen → Otomatis Jadi PDF (multi-halaman).
+ *
+ * Alurnya:
+ *   klik "Ambil Foto → PDF" → input `capture` membuka kamera OS → foto masuk
+ *   (boleh menekan tombol berulang kali; tiap foto jadi 1 halaman) → semua foto
+ *   digabung jadi satu berkas PDF di sisi klien (jsPDF) → berkas PDF itu dipasang
+ *   ke input `.file-input-pdf` milik form. Server tetap menerima PDF biasa, jadi
+ *   seluruh validasi/guard server (%PDF, polyglot) tak berubah.
+ *
+ * Foto diperkecil (sisi terpanjang MAX_DIM) dan dikompres JPEG agar PDF tetap
+ * jauh di bawah batas 5 MB.
+ */
+function initCameraToPdf() {
+    const MAX_DIM = 1600;   // px — sisi terpanjang gambar setelah diperkecil
+    const JPEG_Q = 0.82;    // kualitas JPEG untuk foto dokumen
+    const MAX_BYTES = 5 * 1024 * 1024;
+    const JSPDF_LOCAL = (window.__SAE_JSPDF__ && window.__SAE_JSPDF__.local)
+        || '/vendor/jspdf/jspdf.umd.min.js';
+    const JSPDF_CDN = (window.__SAE_JSPDF__ && window.__SAE_JSPDF__.cdn)
+        || 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+
+    // jsPDF (365 KB) dimuat malas — hanya saat tombol kamera benar-benar dipakai.
+    // Halaman admin/tendik yang cuma mengunduh PDF tak perlu membayarnya.
+    let jsPdfLoading = null;
+    function loadJsPdf() {
+        if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+        if (jsPdfLoading) return jsPdfLoading;
+        jsPdfLoading = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = JSPDF_LOCAL;
+            s.onload = () => {
+                if (window.jspdf && window.jspdf.jsPDF) resolve(window.jspdf.jsPDF);
+                else reject(new Error('jsPDF tidak mengekspos global.'));
+            };
+            // Fallback CDN bila aset lokal hilang/diblokir.
+            s.onerror = () => {
+                const alt = document.createElement('script');
+                alt.src = JSPDF_CDN;
+                alt.onload = () => (window.jspdf && window.jspdf.jsPDF)
+                    ? resolve(window.jspdf.jsPDF)
+                    : reject(new Error('jsPDF gagal dimuat.'));
+                alt.onerror = () => reject(new Error('jsPDF gagal dimuat (lokal & CDN).'));
+                document.head.appendChild(alt);
+            };
+            document.head.appendChild(s);
+        });
+        return jsPdfLoading;
+    }
+
+    const forms = document.querySelectorAll('.form-upload-berkas');
+    if (!forms.length || !document.querySelector('.btn-camera-pdf')) return;
+
+    // Tombol tak bisa dipakai bila pustaka tak termuat → tandai saat gagal.
+    const disableAll = (why) => {
+        document.querySelectorAll('.btn-camera-pdf').forEach((b) => {
+            b.disabled = true;
+            b.title = why;
+        });
+    };
+
+    /** Gambar File → dataURL JPEG yang sudah diperkecil. */
+    function toDownscaledJpeg(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Gagal membaca foto.'));
+            reader.onload = () => {
+                const img = new Image();
+                img.onerror = () => reject(new Error('Foto tidak dapat diproses.'));
+                img.onload = () => {
+                    let w = img.naturalWidth || img.width;
+                    let h = img.naturalHeight || img.height;
+                    const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+                    w = Math.max(1, Math.round(w * scale));
+                    h = Math.max(1, Math.round(h * scale));
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    // Latar putih: JPEG tak mendukung transparansi (foto dokumen
+                    // umumnya sudah putih, ini hanya pengaman).
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', JPEG_Q));
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    forms.forEach((form) => {
+        const trigger = form.querySelector('.btn-camera-pdf');
+        const resetBtn = form.querySelector('.btn-camera-clear');
+        const statusEl = form.querySelector('.camera-pdf-status');
+        const cameraInput = form.querySelector('.file-input-camera');
+        const pdfInput = form.querySelector('.file-input-pdf');
+        if (!trigger || !cameraInput || !pdfInput) return;
+
+        const pages = form._saeCameraPages || (form._saeCameraPages = []);
+        let busy = false;
+
+        const setStatus = (text) => {
+            if (statusEl) statusEl.textContent = text || '';
+            if (resetBtn) resetBtn.style.display = pages.length ? 'inline-flex' : 'none';
+        };
+
+        /** Bangun PDF dari semua foto dan pasang ke input PDF form. */
+        const rebuildPdf = async () => {
+            if (!pages.length) return;
+            busy = true;
+            setStatus('Menyiapkan…');
+
+            try {
+                const jsPDF = await loadJsPdf();
+                setStatus('Menyusun PDF…');
+
+                // A4 potret, satuan mm.
+                const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+                const pageW = 210, pageH = 297, margin = 8;
+                const boxW = pageW - margin * 2;
+                const boxH = pageH - margin * 2;
+
+                for (let i = 0; i < pages.length; i++) {
+                    const dataUrl = await toDownscaledJpeg(pages[i]);
+                    // Rasio dari dataURL: pakai Image sekali lagi (sudah ter-cache).
+                    const dim = await new Promise((res, rej) => {
+                        const im = new Image();
+                        im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+                        im.onerror = () => rej(new Error('Dimensi foto gagal dibaca.'));
+                        im.src = dataUrl;
+                    });
+
+                    const scale = Math.min(boxW / dim.w, boxH / dim.h);
+                    const w = dim.w * scale;
+                    const h = dim.h * scale;
+                    const x = margin + (boxW - w) / 2;
+                    const y = margin + (boxH - h) / 2;
+                    if (i > 0) doc.addPage();
+                    doc.addImage(dataUrl, 'JPEG', x, y, w, h, undefined, 'FAST');
+                }
+
+                const blob = doc.output('blob');
+                const jenis = form.querySelector('input[name="jenis_berkas"]');
+                const baseName = (jenis && jenis.value ? jenis.value : 'dokumen');
+                const pdfFile = new File([blob], `${baseName}.pdf`, { type: 'application/pdf' });
+
+                if (pdfFile.size > MAX_BYTES) {
+                    busy = false;
+                    setStatus('');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hasil PDF Terlalu Besar',
+                        html: `PDF hasil foto berukuran <strong>${(pdfFile.size / 1024 / 1024).toFixed(2)} MB</strong> (batas 5 MB).<br>Kurangi jumlah foto atau ambil ulang dengan pencahayaan lebih baik.`,
+                        confirmButtonColor: '#f59e0b',
+                    });
+                    return;
+                }
+
+                if (window.DataTransfer) {
+                    const dt = new DataTransfer();
+                    dt.items.add(pdfFile);
+                    pdfInput.files = dt.files;
+                }
+                // Input diisi lewat JS (bukan change event) → tak ada normalisasi
+                // in-memory yang menggantung di handler submit.
+                pdfInput._saeNormalizeDone = true;
+                delete pdfInput._saeNormalize;
+
+                const sizeMb = (pdfFile.size / 1024 / 1024).toFixed(2);
+                setStatus(`${pages.length} foto → PDF (${sizeMb} MB). Siap diunggah.`);
+            } catch (err) {
+                console.warn('[SAE-Kamera] Gagal menyusun PDF:', err);
+                const libMissing = !(window.jspdf && window.jspdf.jsPDF);
+                if (libMissing) disableAll('Fitur kamera nonaktif: pustaka PDF gagal dimuat (periksa koneksi lalu muat ulang).');
+                Swal.fire({
+                    icon: 'error',
+                    title: libMissing ? 'Pustaka PDF Gagal Dimuat' : 'Gagal Membuat PDF',
+                    text: libMissing
+                        ? 'Periksa koneksi internet lalu muat ulang halaman. Unggah berkas PDF manual tetap bisa dipakai.'
+                        : 'Foto tidak dapat diproses. Coba ambil ulang dengan kamera.',
+                    confirmButtonColor: '#ef4444',
+                });
+                setStatus('');
+            } finally {
+                busy = false;
+            }
+        };
+
+        trigger.addEventListener('click', () => {
+            if (busy) return;
+            cameraInput.click();
+        });
+
+        cameraInput.addEventListener('change', function () {
+            const files = Array.from(this.files || []);
+            this.value = ''; // biar pilih foto berikutnya tetap memicu change
+            if (!files.length) return;
+
+            files.forEach((f) => {
+                if (f.type && f.type.indexOf('image/') === 0) pages.push(f);
+            });
+            if (!pages.length) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Bukan Gambar',
+                    text: 'Berkas yang dipilih bukan gambar. Silakan ambil foto ulang.',
+                    confirmButtonColor: '#ef4444',
+                });
+                return;
+            }
+            rebuildPdf();
+        });
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                pages.length = 0;
+                if (window.DataTransfer) {
+                    pdfInput.files = new DataTransfer().files;
+                }
+                pdfInput._saeNormalizeDone = true;
+                delete pdfInput._saeNormalize;
+                setStatus('');
+            });
         }
     });
 }
