@@ -333,7 +333,10 @@
         href="{{ asset('css/wali-kelas.css') }}?v={{ file_exists(public_path('css/wali-kelas.css')) ? filemtime(public_path('css/wali-kelas.css')) : time() }}">
     <style>
         /* Validasi Berkas: manfaatkan lebar layar desktop — PDF kiri besar, panel validasi kanan. */
-        .vb-card {
+        .modal-backdrop .vb-card {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
             grid-template-columns: minmax(0, 1fr) 380px;
             gap: 16px;
             padding: 14px 16px;
@@ -353,7 +356,7 @@
         }
 
         @media (max-width: 1024px) {
-            .vb-card {
+            .modal-backdrop .vb-card {
                 grid-template-columns: 1fr;
             }
         }
