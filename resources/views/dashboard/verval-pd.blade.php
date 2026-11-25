@@ -384,10 +384,6 @@
             }
         }
 
-        .vb-card .vb-pdf-wrap iframe {
-            min-height: 74vh;
-        }
-
         .vb-card .vb-col-panel {
             display: flex;
             flex-direction: column;
