@@ -372,11 +372,6 @@
                                 <input type="text" id="gtkGelarBelakang" maxlength="100" placeholder="Gelar belakang"
                                     autocomplete="off"
                                     style="flex: 2 1 150px; min-width: 120px; padding: 6px 9px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); background: var(--surface-2, transparent); color: var(--text-color); font-size: var(--text-sm, 0.8125rem);">
-                                <button type="button" class="btn btn-primary" id="gtkGelarSave"
-                                    onclick="saveGelarGuru()"
-                                    style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); white-space: nowrap;">
-                                    <i class="fas fa-floppy-disk me-1"></i> Simpan
-                                </button>
                             </div>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
                                 Tersimpan lokal, tidak terhapus saat tarik Dapodik.
@@ -459,9 +454,13 @@
             </div>
 
             <div
-                style="display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <button type="button" class="btn btn-outline" onclick="closeBiodataGuruModal()"
                     style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
+                <button type="button" class="btn btn-primary" id="gtkGelarSave" onclick="saveGelarGuru()"
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
+                    <i class="fas fa-floppy-disk me-1"></i> Simpan
+                </button>
             </div>
         </div>
     </div>
