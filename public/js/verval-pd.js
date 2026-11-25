@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${item.is_uploaded ? `
                             <div style="margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); overflow: hidden; background: var(--text-main, #0f172a);">
                                 <iframe src="${item.file_url}" title="${escapeHtml(item.label)}" loading="lazy"
-                                    style="width: 100%; height: 360px; border: none; display: block;"></iframe>
+                                    style="width: 100%; height: 58vh; min-height: 420px; border: none; display: block;"></iframe>
                             </div>
                         ` : ''}
 
