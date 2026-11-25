@@ -63,6 +63,40 @@
     // Sinkronisasi awal aset PWA
     syncThemeColor();
 
+    // Tampilkan versi PWA yang BENAR-BENAR terpasang di perangkat ini + mode pakai.
+    // Versi dibaca dari nama cache service worker aktif (sae-pwa-vX.Y.Z), bukan dari
+    // server — jadi berguna mendiagnosis kegagalan: terlihat perangkat memakai versi
+    // PWA yang mana. Bila kosong, elemen dibiarkan (footer tetap rapi).
+    function syncPwaVersionBadge() {
+        const el = document.getElementById('saePwaVersion');
+        if (!el) return;
+
+        const mode = isStandalone ? 'Terpasang' : 'Browser';
+        const render = (ver) => {
+            el.textContent = `PWA v${ver} \u2022 ${mode}`;
+            el.title = `Versi PWA (service worker): v${ver}\nMode pakai: ${mode}`;
+        };
+
+        if (!('caches' in window)) {
+            render('\u2014');
+            return;
+        }
+
+        caches
+            .keys()
+            .then((keys) => {
+                const key = keys
+                    .filter((k) => k.indexOf('sae-pwa-') === 0)
+                    .sort()
+                    .pop();
+                render(key ? key.replace('sae-pwa-', '') : '\u2014');
+            })
+            .catch(() => render('\u2014'));
+    }
+
+    document.addEventListener('DOMContentLoaded', syncPwaVersionBadge);
+    if (document.readyState !== 'loading') syncPwaVersionBadge();
+
     // 2. Registrasi Service Worker & Deteksi Pembaruan
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
