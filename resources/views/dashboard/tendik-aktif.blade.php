@@ -226,7 +226,8 @@
                 </thead>
                 <tbody>
                     @forelse ($list as $tendik)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                        <tr data-ptk-id="{{ $tendik->ptk_id }}"
+                            style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
                             <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem);" data-label="Nama">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     @php($fotoUrl = \App\Services\GtkFotoService::url($tendik->foto_path ?? null))
@@ -245,7 +246,9 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <div style="font-weight: 700; color: var(--text-color);">{{ $tendik->nama }}</div>
+                                        <div class="gtk-nama-lengkap" style="font-weight: 700; color: var(--text-color);">
+                                            {{ trim(($tendik->gelar_depan ?? '') . ' ' . $tendik->nama . ($tendik->gelar_belakang ? ', ' . $tendik->gelar_belakang : '')) }}
+                                        </div>
                                         @if (!empty($tendik->nik))
                                             <div
                                                 style="font-size: var(--text-xs, 0.75rem); font-family: monospace; color: var(--text-muted); margin-top: 1px;">
@@ -385,10 +388,10 @@
                 </div>
             </div>
             <div
-                style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); text-align: right;">
-                <button type="button" class="btn btn-outline" style="padding: 7px 16px; font-size: var(--text-sm, 0.8125rem);"
-                    onclick="closeTendikModal()">
-                    Tutup
+                style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-primary" id="tendikGelarSave" onclick="saveGelarTendik()"
+                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
+                    <i class="fas fa-floppy-disk me-1"></i> Simpan &amp; Tutup
                 </button>
             </div>
         </div>
@@ -402,6 +405,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/gtk-gelar.js') }}?v={{ filemtime(public_path('js/gtk-gelar.js')) }}"></script>
     @if (file_exists(public_path('js/tendik-aktif.js')))
         <script src="{{ asset('js/tendik-aktif.js') }}?v={{ filemtime(public_path('js/tendik-aktif.js')) }}"></script>
     @endif

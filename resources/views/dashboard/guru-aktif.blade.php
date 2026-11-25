@@ -455,11 +455,9 @@
 
             <div
                 style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                <button type="button" class="btn btn-outline" onclick="closeBiodataGuruModal()"
-                    style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">Tutup</button>
                 <button type="button" class="btn btn-primary" id="gtkGelarSave" onclick="saveGelarGuru()"
                     style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem);">
-                    <i class="fas fa-floppy-disk me-1"></i> Simpan
+                    <i class="fas fa-floppy-disk me-1"></i> Simpan &amp; Tutup
                 </button>
             </div>
         </div>
@@ -472,6 +470,7 @@
     ])
 
     @push('scripts')
+        <script src="{{ asset('js/gtk-gelar.js') }}?v={{ filemtime(public_path('js/gtk-gelar.js')) }}"></script>
         <script src="{{ asset('js/guru-aktif.js') }}?v={{ filemtime(public_path('js/guru-aktif.js')) }}"></script>
         <script src="{{ asset('js/gtk-foto.js') }}?v={{ filemtime(public_path('js/gtk-foto.js')) }}"></script>
     @endpush

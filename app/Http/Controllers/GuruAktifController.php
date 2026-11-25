@@ -285,6 +285,29 @@ class GuruAktifController extends Controller
             'gelar_belakang' => ['nullable', 'string', 'max:100'],
         ]);
 
+        if (GtkGabunganService::isNonAsn((string) $id)) {
+            $ok = DB::table('gtk_non_asn')
+                ->where('id', substr((string) $id, 7))
+                ->update([
+                    'gelar_depan' => ($data['gelar_depan'] ?? '') ?: null,
+                    'gelar_belakang' => ($data['gelar_belakang'] ?? '') ?: null,
+                    'updated_at' => now(),
+                ]);
+
+            if (!$ok) {
+                return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Gelar berhasil disimpan.',
+                'data' => [
+                    'gelar_depan' => ($data['gelar_depan'] ?? '') ?: null,
+                    'gelar_belakang' => ($data['gelar_belakang'] ?? '') ?: null,
+                ],
+            ]);
+        }
+
         $ptkId = DB::table('gtk')
             ->where('ptk_id', $id)
             ->orWhere('nuptk', $id)

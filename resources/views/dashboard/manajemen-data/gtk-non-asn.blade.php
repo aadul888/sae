@@ -229,7 +229,8 @@
                 </thead>
                 <tbody>
                     @forelse ($list as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                        <tr data-ptk-id="nonasn:{{ $item->id }}"
+                            style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
                                 data-label="Nama">
                                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -249,7 +250,7 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <div>{{ $item->nama }}</div>
+                                        <div class="gtk-nama-lengkap">{{ trim(($item->gelar_depan ?? '') . ' ' . $item->nama . ($item->gelar_belakang ? ', ' . $item->gelar_belakang : '')) }}</div>
                                         <div
                                             style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 500;">
                                             {{ $item->kode }}
@@ -304,30 +305,27 @@
                                 @endif
                             </td>
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div style="display: inline-flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
-                                    <button type="button" class="btn btn-outline"
+                                <div class="table-actions">
+                                    <button type="button" class="btn-icon" title="Kartu Pegawai Digital"
                                         onclick="openKartuPegawaiModal('nonasn:{{ $item->id }}')"
-                                        style="padding: 5px 10px; font-size: var(--text-xs, 0.75rem); color: var(--accent, #06b6d4); border-color: var(--accent, #06b6d4);"
-                                        title="Kartu Pegawai Digital">
+                                        style="color: var(--accent, #06b6d4);">
                                         <i class="fas fa-id-badge"></i>
                                     </button>
 
                                     @unless ($item->pengguna_id)
                                         @if (($canCreate ?? false) || $isAdmin)
-                                            <button type="button" class="btn btn-outline btn-buat-akun"
+                                            <button type="button" class="btn-icon btn-buat-akun"
                                                 data-id="{{ $item->id }}" data-nama="{{ $item->nama }}"
-                                                style="padding: 5px 10px; font-size: var(--text-xs, 0.75rem);"
                                                 title="Buat akun login">
-                                                <i class="fas fa-key"></i> Buat Akun
+                                                <i class="fas fa-key"></i>
                                             </button>
                                         @endif
                                     @endunless
 
                                     @if (($canUpdate ?? false) || $isAdmin)
-                                        <button type="button" class="btn btn-outline btn-edit-non-asn"
+                                        <button type="button" class="btn-icon btn-edit-non-asn"
                                             data-row="{{ base64_encode(json_encode($item)) }}"
-                                            style="padding: 5px 10px; font-size: var(--text-xs, 0.75rem);"
-                                            title="Ubah data">
+                                            title="Ubah data (termasuk gelar)">
                                             <i class="fas fa-pen"></i>
                                         </button>
                                     @endif
@@ -338,9 +336,7 @@
                                             onsubmit="return confirm('Hapus data Non-ASN {{ addslashes($item->nama) }}? Akun login (bila ada) tidak dihapus.');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline"
-                                                style="padding: 5px 10px; font-size: var(--text-xs, 0.75rem); border-color: var(--danger, #ef4444); color: var(--danger, #ef4444);"
-                                                title="Hapus data">
+                                            <button type="submit" class="btn-icon danger" title="Hapus data">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

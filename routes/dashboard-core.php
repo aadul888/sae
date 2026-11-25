@@ -586,6 +586,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/manajemen-data/guru-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'deleteFoto'])->name('guru-aktif.delete-foto')->middleware('permission:menu_guru_aktif,update');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif,read');
     Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif,read');
+    Route::post('/manajemen-data/tendik-aktif/{id}/gelar', [\App\Http\Controllers\TendikAktifController::class, 'updateGelar'])->name('tendik-aktif.update-gelar')->middleware('permission:menu_tendik_aktif,update');
     Route::post('/manajemen-data/tendik-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'uploadFoto'])->name('tendik-aktif.upload-foto')->middleware('permission:menu_tendik_aktif,update');
     Route::delete('/manajemen-data/tendik-aktif/foto', [\App\Http\Controllers\GtkFotoController::class, 'deleteFoto'])->name('tendik-aktif.delete-foto')->middleware('permission:menu_tendik_aktif,update');
 

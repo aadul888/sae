@@ -7,6 +7,45 @@ window.closeTendikModal = function () {
     if (modal) modal.style.display = "none";
 };
 
+/**
+ * Simpan gelar Tendik lalu tutup modal (satu tombol "Simpan & Tutup").
+ * Logika bersama ada di `public/js/gtk-gelar.js`.
+ */
+window.saveGelarTendik = async function () {
+    const ptkId = window.currentTendikId;
+    if (!ptkId) return;
+
+    const ok = await window.saveGtkGelar({
+        ptkId,
+        endpoint:
+            "/dashboard/manajemen-data/tendik-aktif/" +
+            encodeURIComponent(ptkId) +
+            "/gelar",
+        btn: document.getElementById("tendikGelarSave"),
+        getDepan: () => document.getElementById("tendikGelarDepan")?.value,
+        getBelakang: () => document.getElementById("tendikGelarBelakang")?.value,
+        onSuccess: (data) => {
+            const lengkap = window.gtkNamaLengkap(
+                window.currentTendikNama || "",
+                data.gelar_depan || "",
+                data.gelar_belakang || "",
+            );
+
+            const namaEl = document.getElementById("tendikJkNama");
+            if (namaEl) namaEl.textContent = lengkap;
+
+            const row = document.querySelector(
+                'tr[data-ptk-id="' + (window.currentTendikId || "") + '"]',
+            );
+            const rowName = row?.querySelector(".gtk-nama-lengkap");
+            if (rowName) rowName.textContent = lengkap;
+        },
+    });
+
+    // Tombol tunggal: simpan lalu tutup.
+    if (ok) window.closeTendikModal();
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("modalDetailTendik");
     const modalTitle = document.getElementById("tendikModalTitle");
@@ -30,6 +69,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const id = btn.getAttribute("data-id");
         if (!id || !modal || !modalBody) return;
 
+        window.currentTendikId = id;
+        window.currentTendikNama = "";
+
             if (modalTitle)
                 modalTitle.textContent = "Profil Tenaga Kependidikan";
             if (modalSubtitle) modalSubtitle.textContent = "Memuat data...";
@@ -51,15 +93,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 const json = await res.json();
                 if (json.status === "success" && json.data) {
                     const d = json.data;
+                    window.currentTendikNama = d.nama || "";
+                    const namaLengkap = window.gtkNamaLengkap(
+                        d.nama || "",
+                        d.gelar_depan || "",
+                        d.gelar_belakang || "",
+                    );
                     if (modalTitle)
-                        modalTitle.textContent =
-                            d.nama || "Tenaga Kependidikan";
+                        modalTitle.textContent = namaLengkap;
                     if (modalSubtitle)
                         modalSubtitle.textContent =
                             [
-                                d.jabatan_ptk_id_str,
-                                d.jenis_ptk_id_str,
-                                d.status_kepegawaian_id_str,
+                                d.jabatan_ptk,
+                                d.jenis_ptk,
+                                d.status_kepegawaian,
                             ]
                                 .filter(Boolean)
                                 .join(" • ") || "-";
@@ -67,9 +114,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     modalBody.innerHTML = `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px;">
                             <div style="grid-column: span 2; background: rgba(99,102,241,0.06); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary);">
-                                <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-color);">${escapeHtml(d.nama || "-")}</div>
+                                <div id="tendikJkNama" style="font-size: 1.05rem; font-weight: 800; color: var(--text-color);">${escapeHtml(namaLengkap)}</div>
                                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                                    ${escapeHtml(d.jabatan_ptk_id_str || d.jenis_ptk_id_str || "Tenaga Kependidikan")} • ${escapeHtml(d.status_kepegawaian_id_str || "-")}
+                                    ${escapeHtml(d.jabatan_ptk || d.jenis_ptk || "Tenaga Kependidikan")} • ${escapeHtml(d.status_kepegawaian || "-")}
+                                </div>
+                            </div>
+
+                            <div style="grid-column: span 2; background: rgba(99,102,241,0.04); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">Gelar (tersimpan lokal, tidak terhapus saat tarik Dapodik)</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                    <input type="text" id="tendikGelarDepan" maxlength="50" placeholder="Gelar depan" autocomplete="off"
+                                        value="${escapeHtml(d.gelar_depan || "")}"
+                                        style="flex: 1 1 100px; min-width: 90px; padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-2, transparent); color: var(--text-color); font-size: 0.8125rem;">
+                                    <input type="text" id="tendikGelarBelakang" maxlength="100" placeholder="Gelar belakang" autocomplete="off"
+                                        value="${escapeHtml(d.gelar_belakang || "")}"
+                                        style="flex: 2 1 150px; min-width: 120px; padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-2, transparent); color: var(--text-color); font-size: 0.8125rem;">
                                 </div>
                             </div>
 
@@ -97,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">Agama</div>
-                                <div style="font-weight: 600;">${escapeHtml(d.agama_id_str || "-")}</div>
+                                <div style="font-weight: 600;">${escapeHtml(d.agama || "-")}</div>
                             </div>
 
                             <div>
@@ -114,8 +173,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <div style="font-weight: 600;">${escapeHtml(d.pangkat_golongan_terakhir || "-")}</div>
                             </div>
                             <div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);">Status Induk / Tgl Tugas</div>
-                                <div style="font-weight: 600;">${escapeHtml([d.ptk_induk === "1" ? "Induk" : null, d.tanggal_surat_tugas ? "Tgl: " + d.tanggal_surat_tugas : null].filter(Boolean).join(" • ") || "-")}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">Jenjang / Jabatan</div>
+                                <div style="font-weight: 600;">${escapeHtml(d.jabatan_ptk || d.jenis_ptk || "-")}</div>
                             </div>
 
                             <div>

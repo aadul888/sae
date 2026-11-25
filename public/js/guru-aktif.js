@@ -146,129 +146,44 @@ window.closeBiodataGuruModal = function () {
 };
 
 /**
- * Simpan gelar depan & belakang GTK.
- * Disimpan ke tabel lokal (gtk_meta) agar tidak terhapus saat tarik Dapodik.
+ * Simpan gelar lalu tutup modal (satu tombol "Simpan & Tutup").
+ * Logika bersama ada di `public/js/gtk-gelar.js` (dipakai juga oleh Tendik).
  */
 window.saveGelarGuru = async function () {
     const ptkId = window.currentGtkId;
-    const btn = document.getElementById("gtkGelarSave");
-    const depan = document.getElementById("gtkGelarDepan");
-    const belakang = document.getElementById("gtkGelarBelakang");
+    if (!ptkId) return;
 
-    if (!ptkId) {
-        showGelarToast("Data GTK tidak dikenali.", "error");
-        return;
-    }
-
-    const csrfToken =
-        document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content") || "";
-
-    const originalHtml = btn ? btn.innerHTML : "";
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML =
-            '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
-    }
-
-    try {
-        const res = await fetch(
+    const ok = await window.saveGtkGelar({
+        ptkId,
+        endpoint:
             "/dashboard/manajemen-data/guru-aktif/" +
-                encodeURIComponent(ptkId) +
-                "/gelar",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                body: JSON.stringify({
-                    gelar_depan: depan ? depan.value.trim() : "",
-                    gelar_belakang: belakang ? belakang.value.trim() : "",
-                }),
-            },
-        );
+            encodeURIComponent(ptkId) +
+            "/gelar",
+        btn: document.getElementById("gtkGelarSave"),
+        getDepan: () => document.getElementById("gtkGelarDepan")?.value,
+        getBelakang: () => document.getElementById("gtkGelarBelakang")?.value,
+        onSuccess: (data) => {
+            const lengkap = window.gtkNamaLengkap(
+                window.currentGtkNama || "",
+                data.gelar_depan || "",
+                data.gelar_belakang || "",
+            );
 
-        const json = await res.json().catch(() => ({}));
+            const namaEl = document.getElementById("gtkJkNama");
+            if (namaEl) namaEl.textContent = lengkap;
 
-        if (!res.ok || json.status !== "success") {
-            throw new Error(json.message || "Gagal menyimpan gelar.");
-        }
-
-        const namaEl = document.getElementById("gtkJkNama");
-        const gelarDepan = json.data?.gelar_depan || "";
-        const gelarBelakang = json.data?.gelar_belakang || "";
-        const namaAsli = window.currentGtkNama || "";
-
-        const lengkap =
-            [
-                gelarDepan,
-                namaAsli,
-                gelarBelakang ? ", " + gelarBelakang : null,
-            ]
-                .filter(Boolean)
-                .join(" ") || "-";
-
-        if (namaEl) namaEl.textContent = lengkap;
-
-        const judul = document.getElementById("gtkJabatan");
-        if (judul) judul.textContent = lengkap;
-
-        // Segarkan kolom nama pada baris tabel yang sedang dibuka.
-        const row = document.querySelector(
-            'tr[data-ptk-id="' + (window.currentGtkId || "") + '"]',
-        );
-        const rowName = row?.querySelector(".gtk-nama-lengkap");
-        if (rowName) rowName.textContent = lengkap;
-
-        showGelarToast("Gelar berhasil disimpan.", "success");
-    } catch (e) {
-        showGelarToast(e.message || "Gagal menyimpan gelar.", "error");
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
-    }
-};
-
-function showGelarToast(message, type) {
-    let toast = document.getElementById("gtkGelarToast");
-    if (!toast) {
-        toast = document.createElement("div");
-        toast.id = "gtkGelarToast";
-        document.body.appendChild(toast);
-    }
-
-    const ok = type === "success";
-    toast.textContent = message;
-    toast.style.cssText = [
-        "position: fixed",
-        "bottom: 24px",
-        "right: 24px",
-        "z-index: 2000",
-        "padding: 11px 16px",
-        "border-radius: 10px",
-        "font-size: 0.875rem",
-        "font-weight: 600",
-        "color: #fff",
-        "box-shadow: 0 8px 24px rgba(0,0,0,0.25)",
-        "background: " + (ok ? "#10b981" : "#ef4444"),
-        "opacity: 0",
-        "transition: opacity 0.2s ease",
-    ].join(";");
-
-    requestAnimationFrame(() => {
-        toast.style.opacity = "1";
+            // Segarkan kolom nama pada baris tabel yang sedang dibuka.
+            const row = document.querySelector(
+                'tr[data-ptk-id="' + (window.currentGtkId || "") + '"]',
+            );
+            const rowName = row?.querySelector(".gtk-nama-lengkap");
+            if (rowName) rowName.textContent = lengkap;
+        },
     });
 
-    clearTimeout(window.__gtkGelarToastTimer);
-    window.__gtkGelarToastTimer = setTimeout(() => {
-        toast.style.opacity = "0";
-    }, 2600);
-}
+    // Tombol tunggal: simpan lalu tutup.
+    if (ok) window.closeBiodataGuruModal();
+};
 
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("gtkModal");
