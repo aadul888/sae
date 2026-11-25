@@ -141,12 +141,38 @@ class VervalPdController extends Controller
         return $this->residuService->downloadTemplate();
     }
 
-    /** Ekspor laporan Residu ke Excel (.xlsx). */
-    public function exportResidu(Request $request)
+    /** Halaman cetak laporan Residu (A4, langsung print/PDF) — ikut filter status & pencarian. */
+    public function cetakResidu(Request $request)
     {
         if ($res = $this->checkAuth()) return $res;
 
-        return $this->residuService->export($request);
+        $items = $this->residuService->reportItems($request);
+        $this->attachPesertaInfo($items);
+
+        $status = trim((string) $request->get('status', ''));
+        $q = trim((string) $request->get('q', ''));
+
+        return view('dashboard.verval-pd.residu-cetak', [
+            'items' => $items,
+            'status' => $status,
+            'q' => $q,
+            'kepsek' => $this->kepalahSekolah(),
+            'stats' => $this->residuStats(),
+        ]);
+    }
+
+    /** Kepala sekolah untuk tanda tangan dokumen cetak. */
+    protected function kepalahSekolah()
+    {
+        if (!Table::exists('gtk')) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\DB::table('gtk')
+            ->where(fn($w) => $w->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%'))
+            ->select('nama', 'nip')
+            ->first();
     }
 
     public function clearResidu(Request $request): JsonResponse
@@ -356,9 +382,11 @@ class VervalPdController extends Controller
      * (KK + Ijazah) beserta id berkas untuk pratinjau. Terpisah dari kolom centang
      * Dukcapil yang berasal dari berkas import.
      */
-    protected function attachPesertaInfo(\Illuminate\Contracts\Pagination\LengthAwarePaginator $items): void
+    protected function attachPesertaInfo(iterable $items): void
     {
-        $rows = collect($items->items());
+        $rows = $items instanceof \Illuminate\Contracts\Pagination\Paginator
+            ? collect($items->items())
+            : collect($items);
         foreach ($rows as $it) {
             $it->kelas = null;
             $it->status_konfirmasi = null;

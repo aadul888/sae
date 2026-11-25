@@ -32,9 +32,9 @@
             . $renderCentang($raw) . '</button>';
     };
 
-    // Ikon status (konfirmasi / KK / Ijazah). Bila `$fileId` ada, ikon jadi tombol
-    // pratinjau PDF di modal (pola `.btn-preview-pdf-inline`).
-    $renderStatusIcon = function (string $variant, string $title, $fileId = null) {
+    // Ikon status (konfirmasi / KK / Ijazah) + label mini di bawah ikon. Bila `$fileId`
+    // ada, ikon jadi tombol pratinjau PDF di modal (pola `.btn-preview-pdf-inline`).
+    $renderStatusIcon = function (string $variant, string $title, $fileId = null, ?string $short = null) {
         $palette = [
             'ok'    => ['fa-circle-check', 'var(--success, #10b981)', 'rgba(16,185,129,0.15)'],
             'warn'  => ['fa-hourglass-half', 'var(--warning, #f59e0b)', 'rgba(245,158,11,0.15)'],
@@ -48,12 +48,21 @@
         $inner = '<i class="fas ' . $icon . '"></i>';
 
         if ($fileId) {
-            return '<button type="button" class="btn-preview-pdf-inline" data-url="' . route('dashboard.berkas.preview', $fileId) . '"'
+            $box = '<button type="button" class="btn-preview-pdf-inline" data-url="' . route('dashboard.berkas.preview', $fileId) . '"'
                 . ' data-title="' . e($title) . '" title="' . e($title) . ' (klik untuk lihat berkas)"'
                 . ' style="' . $style . ' cursor: pointer; padding: 0;">' . $inner . '</button>';
+        } else {
+            $box = '<span title="' . e($title) . '" style="' . $style . '">' . $inner . '</span>';
         }
 
-        return '<span title="' . e($title) . '" style="' . $style . '">' . $inner . '</span>';
+        if ($short === null) {
+            return $box;
+        }
+
+        return '<span style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px;">'
+            . $box
+            . '<span style="font-size: var(--text-xs, 0.6875rem); font-weight: 800; letter-spacing: 0.03em; color: ' . $color . '; text-transform: uppercase; line-height: 1;">' . e($short) . '</span>'
+            . '</span>';
     };
 
     // Peta status berkas → varian ikon + label.
@@ -99,22 +108,26 @@
             . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;">' . $pill . '</button>';
     };
 
-    // Sel "Catatan": teks masalah per peserta didik, klik untuk ubah (khusus update).
+    // Sel "Catatan": ikon saja. Catatan TIDAK ditampilkan langsung — klik ikon
+    // membuka modal untuk melihat / mengubah (khusus update). Tercatat di riwayat.
     $renderCatatan = function ($item) use ($canUpdate) {
         $note = trim((string) $item->catatan);
-        $body = $note !== ''
-            ? '<span style="display: block; max-width: 220px; white-space: pre-wrap; word-break: break-word; color: var(--text-color); text-align: left;">' . e($note) . '</span>'
-            : '<span style="color: var(--text-muted); opacity: 0.6;">-</span>';
-
-        if (!$canUpdate) {
-            return $body;
-        }
+        $ada = $note !== '';
+        $color = $ada ? 'var(--warning, #f59e0b)' : 'var(--text-muted)';
+        $bg = $ada ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.12)';
+        $icon = $ada ? 'fa-note-sticky' : 'fa-plus';
+        $title = $ada ? 'Lihat / ubah catatan masalah' : 'Tambah catatan masalah';
 
         return '<button type="button" class="residu-catatan-btn" data-id="' . $item->id . '"'
             . ' data-nama="' . e($item->nama ?: '-') . '" data-catatan="' . e($note) . '"'
-            . ' title="Klik untuk ' . ($note !== '' ? 'ubah' : 'tambah') . ' catatan masalah"'
-            . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1.4; width: 100%;">'
-            . $body . '</button>';
+            . ' data-can-edit="' . ($canUpdate ? '1' : '0') . '"'
+            . ' title="' . e($title) . '" aria-label="' . e($title) . '"'
+            . ' style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;'
+            . ' border-radius: var(--radius-sm, 6px); background: ' . $bg . '; color: ' . $color . ';'
+            . ' border: 1px solid ' . $color . '; cursor: pointer; padding: 0; position: relative;">'
+            . '<i class="fas ' . $icon . '"></i>'
+            . ($ada ? '<span data-catatan-dot="1" style="position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning, #f59e0b); border: 1.5px solid var(--bg-card, #fff);"></span>' : '')
+            . '</button>';
     };
 @endphp
 
@@ -123,6 +136,7 @@
         <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 @foreach ([
+                    [null, 'Catatan'],
                     [null, 'NISN / NIK'],
                     [null, 'NAMA'],
                     [null, 'Kelas'],
@@ -138,10 +152,9 @@
                     ['ibu_kandung', 'Ibu Kandung'],
                     ['jenis_kelamin', 'Jenis Kelamin'],
                     ['desa_kelurahan', 'Desa/Kelurahan'],
-                    [null, 'Catatan'],
                 ] as [$key, $label])
                     <th @if ($key) class="sortable-th {{ $sort === $key ? 'sorted' : '' }}" data-sort="{{ $key }}" @endif
-                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 2 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
+                        style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 3 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
                         {{ $label }}
                         @if ($key)
                             <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
@@ -153,6 +166,9 @@
         <tbody>
             @forelse ($items as $item)
                 <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                    <td style="padding: 12px 16px; text-align: center;" data-label="Catatan">
+                        {!! $renderCatatan($item) !!}
+                    </td>
                     <td style="padding: 12px 16px; font-family: var(--font-family-mono, monospace); font-size: var(--text-sm, 0.8125rem);"
                         data-label="NISN/NIK">
                         <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -169,12 +185,12 @@
                             @endif
                         </div>
                     </td>
-                    <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"
+                    <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem); white-space: nowrap;"
                         data-label="Nama">
                         {{ $item->nama ?: '-' }}
                     </td>
-                    <td style="padding: 12px 16px; text-align: center;" data-label="Kelas">
-                        <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px;">
+                    <td style="padding: 12px 16px; text-align: center; white-space: nowrap;" data-label="Kelas">
+                        <span class="badge badge-outline" style="font-size: var(--text-sm, 0.8125rem); padding: 3px 8px; white-space: nowrap;">
                             {{ $item->kelas ?: '-' }}
                         </span>
                     </td>
@@ -214,9 +230,6 @@
                             {!! $renderCell($item, $col) !!}
                         </td>
                     @endforeach
-                    <td style="padding: 12px 16px;" data-label="Catatan">
-                        {!! $renderCatatan($item) !!}
-                    </td>
                 </tr>
             @empty
                 <tr>

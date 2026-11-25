@@ -67,14 +67,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Ekspor laporan Residu ke Excel, ikut filter/pencarian yang aktif.
+    // Cetak laporan Residu (langsung print/PDF), ikut filter/pencarian yang aktif.
     const btnExportResidu = document.getElementById('btnExportResidu');
     if (btnExportResidu) {
         btnExportResidu.addEventListener('click', () => {
             const params = new URLSearchParams(window.location.search);
             const q = document.getElementById('liveSearch')?.value?.trim();
             if (q) params.set('q', q); else params.delete('q');
-            window.location.href = '/dashboard/verval-pd/residu/export?' + params.toString();
+            window.location.href = '/dashboard/verval-pd/residu/cetak?' + params.toString();
         });
     }
 
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Delegasi: klik tombol Catatan Residu → modal isi catatan masalah (tercatat di riwayat).
+    // Delegasi: klik ikon Catatan Residu → modal lihat/ubah catatan (tercatat di riwayat).
     document.addEventListener('click', async function (e) {
         const btn = e.target.closest('.residu-catatan-btn');
         if (!btn) return;
@@ -174,6 +174,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const id = btn.getAttribute('data-id');
         const nama = btn.getAttribute('data-nama') || 'Peserta Didik';
         const current = btn.getAttribute('data-catatan') || '';
+        const canEdit = btn.getAttribute('data-can-edit') === '1';
+
+        // Tanpa hak update: tampilkan catatan saja (read-only), tanpa tombol simpan.
+        if (!canEdit) {
+            Swal.fire({
+                title: 'Catatan Masalah',
+                html: `<div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 8px;">${escapeHtml(nama)}</div>`
+                    + `<div style="text-align: left; white-space: pre-wrap; word-break: break-word; color: var(--text-color);">${current ? escapeHtml(current) : '(belum ada catatan)'}</div>`,
+                confirmButtonText: 'Tutup',
+            });
+            return;
+        }
 
         const result = await Swal.fire({
             title: 'Catatan Masalah',
@@ -204,17 +216,25 @@ document.addEventListener('DOMContentLoaded', function () {
             if (res.ok && json.status === 'success') {
                 const applied = json.catatan || '';
                 btn.setAttribute('data-catatan', applied);
-                const span = btn.querySelector('span');
-                if (span) {
-                    if (applied !== '') {
-                        span.textContent = applied;
-                        span.style.color = 'var(--text-color)';
-                        span.style.opacity = '1';
-                    } else {
-                        span.textContent = '-';
-                        span.style.color = 'var(--text-muted)';
-                        span.style.opacity = '0.6';
+                const icon = btn.querySelector('i');
+                const dot = btn.querySelector('[data-catatan-dot]');
+                if (applied !== '') {
+                    if (icon) icon.className = 'fas fa-note-sticky';
+                    btn.style.color = 'var(--warning, #f59e0b)';
+                    btn.style.background = 'rgba(245,158,11,0.15)';
+                    btn.style.borderColor = 'var(--warning, #f59e0b)';
+                    if (!dot) {
+                        const s = document.createElement('span');
+                        s.setAttribute('data-catatan-dot', '1');
+                        s.style.cssText = 'position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning, #f59e0b); border: 1.5px solid var(--bg-card, #fff);';
+                        btn.appendChild(s);
                     }
+                } else {
+                    if (icon) icon.className = 'fas fa-plus';
+                    btn.style.color = 'var(--text-muted)';
+                    btn.style.background = 'rgba(148,163,184,0.12)';
+                    btn.style.borderColor = 'var(--text-muted)';
+                    if (dot) dot.remove();
                 }
                 Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1400, showConfirmButton: false });
             } else {

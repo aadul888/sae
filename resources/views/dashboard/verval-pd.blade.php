@@ -45,8 +45,8 @@
             @if ($page === 'residu')
                 <button type="button" class="btn btn-outline" id="btnExportResidu"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"
-                    title="Ekspor Laporan Residu (Excel)" aria-label="Ekspor Laporan Residu">
-                    <i class="fas fa-file-excel"></i>
+                    title="Cetak Laporan Residu" aria-label="Cetak Laporan Residu">
+                    <i class="fas fa-print"></i>
                 </button>
                 <button type="button" class="btn btn-outline" id="btnTemplateResidu"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px);"

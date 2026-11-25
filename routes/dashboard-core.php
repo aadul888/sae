@@ -26,7 +26,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/residu', [\App\Http\Controllers\VervalPdController::class, 'residu'])->name('residu')->middleware('permission:menu_verval_pd,read');
         Route::post('/residu/import', [\App\Http\Controllers\VervalPdController::class, 'importResidu'])->name('residu.import')->middleware('permission:menu_verval_pd,create');
         Route::get('/residu/template', [\App\Http\Controllers\VervalPdController::class, 'downloadTemplateResidu'])->name('residu.template')->middleware('permission:menu_verval_pd,read');
-        Route::get('/residu/export', [\App\Http\Controllers\VervalPdController::class, 'exportResidu'])->name('residu.export')->middleware('permission:menu_verval_pd,read');
+        Route::get('/residu/cetak', [\App\Http\Controllers\VervalPdController::class, 'cetakResidu'])->name('residu.cetak')->middleware('permission:menu_verval_pd,read');
         Route::patch('/residu/{id}/cell', [\App\Http\Controllers\VervalPdController::class, 'updateResiduCell'])->name('residu.cell')->middleware('permission:menu_verval_pd,update');
         Route::patch('/residu/{id}/status', [\App\Http\Controllers\VervalPdController::class, 'updateResiduStatus'])->name('residu.status')->middleware('permission:menu_verval_pd,update');
         Route::patch('/residu/{id}/catatan', [\App\Http\Controllers\VervalPdController::class, 'updateResiduCatatan'])->name('residu.catatan')->middleware('permission:menu_verval_pd,update');

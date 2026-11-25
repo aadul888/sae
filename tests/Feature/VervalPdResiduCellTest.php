@@ -109,4 +109,33 @@ class VervalPdResiduCellTest extends TestCase
         $this->assertSame('error', $res['status']);
         $this->assertSame(422, $res['status_code']);
     }
+
+    public function test_catatan_update_persists_and_logs_history(): void
+    {
+        $row = $this->makeRow();
+        $service = app(VervalPdResiduService::class);
+        $user = ['nama' => 'Administrator Uji'];
+
+        $res = $service->updateCatatan($row->id, 'NIK tidak sesuai KK', $user);
+        $this->assertSame('success', $res['status']);
+        $this->assertSame('NIK tidak sesuai KK', $row->fresh()->catatan);
+
+        $log = AdminAktivitas::where('modul', 'Verval PD Residu')
+            ->where('aktivitas', 'like', '%Catatan Masalah%')
+            ->latest('id')->first();
+
+        $this->assertNotNull($log, 'Riwayat perubahan catatan tidak tercatat.');
+    }
+
+    public function test_cetak_report_renders(): void
+    {
+        $this->makeRow();
+        $admin = ['nama' => 'Administrator Uji', 'role' => 'admin'];
+
+        $res = $this->withSession(['user' => $admin])->get('/dashboard/verval-pd/residu/cetak');
+
+        $res->assertStatus(200);
+        $res->assertSee('LAPORAN RESIDU VERVAL PD');
+        $res->assertSee('Catatan Masalah');
+    }
 }

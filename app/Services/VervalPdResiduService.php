@@ -356,95 +356,34 @@ class VervalPdResiduService
     }
 
     /**
-     * Ekspor laporan Residu ke Excel (.xlsx): seluruh kolom + status proses +
-     * status konfirmasi/berkas peserta didik. Bisa difilter status proses & pencarian.
+     * Query laporan Residu: filter status proses + pencarian, urut Belum → Proses →
+     * Selesai lalu nama. Dipakai halaman cetak laporan.
      */
-    public function export(Request $request): BinaryFileResponse
+    public function reportItems(Request $request): \Illuminate\Support\Collection
     {
         $status = trim((string) $request->get('status', ''));
         $q = trim((string) $request->get('q', ''));
 
-        $query = VervalPdResidu::query();
-        if ($status === self::STATUS_BELUM) {
-            $query->where(fn($w) => $w->where('status_proses', self::STATUS_BELUM)->orWhereNull('status_proses'));
-        } elseif (in_array($status, [self::STATUS_PROSES, self::STATUS_SELESAI], true)) {
-            $query->where('status_proses', $status);
-        }
-        if ($q !== '') {
-            $query->where(fn($w) => $w->where('nama', 'like', "%{$q}%")
+        return VervalPdResidu::query()
+            ->when($status === self::STATUS_BELUM, fn($w) => $w->where(fn($x) => $x->where('status_proses', self::STATUS_BELUM)->orWhereNull('status_proses')))
+            ->when(in_array($status, [self::STATUS_PROSES, self::STATUS_SELESAI], true), fn($w) => $w->where('status_proses', $status))
+            ->when($q !== '', fn($w) => $w->where(fn($x) => $x->where('nama', 'like', "%{$q}%")
                 ->orWhere('nisn', 'like', "%{$q}%")
                 ->orWhere('nik', 'like', "%{$q}%")
-                ->orWhere('rombel_sekolah', 'like', "%{$q}%"));
-        }
+                ->orWhere('rombel_sekolah', 'like', "%{$q}%")))
+            ->orderByRaw("CASE status_proses
+                WHEN '" . self::STATUS_BELUM . "' THEN 0
+                WHEN '" . self::STATUS_PROSES . "' THEN 1
+                WHEN '" . self::STATUS_SELESAI . "' THEN 2
+                ELSE 3 END ASC")
+            ->orderByRaw('LOWER(TRIM(nama)) ASC')
+            ->get();
+    }
 
-        $query->orderByRaw("CASE status_proses
-            WHEN '" . self::STATUS_BELUM . "' THEN 0
-            WHEN '" . self::STATUS_PROSES . "' THEN 1
-            WHEN '" . self::STATUS_SELESAI . "' THEN 2
-            ELSE 3 END ASC")->orderByRaw('LOWER(TRIM(nama)) ASC');
-
-        $rows = [];
-        foreach ($query->get() as $i => $r) {
-            $rows[] = [
-                $i + 1,
-                $r->nisn ?: '',
-                $r->nik ?: '',
-                $r->nama ?: '',
-                $r->rombel_sekolah ?: '',
-                self::STATUS_LABELS[$r->status_proses ?: self::STATUS_BELUM] ?? 'Belum Diproses',
-                $r->nisn_banding ?: '',
-                $r->nik_dukcapil ?: '',
-                $r->nik_ganda ?: '',
-                $r->nama_banding ?: '',
-                $r->tempat_lahir ?: '',
-                $r->tanggal_lahir ?: '',
-                $r->ibu_kandung ?: '',
-                $r->jenis_kelamin ?: '',
-                $r->desa_kelurahan ?: '',
-                $r->catatan ?: '',
-            ];
-        }
-
-        $headers = [
-            'NO', 'NISN', 'NIK', 'NAMA', 'ROMBEL/SEKOLAH', 'STATUS PROSES',
-            'NISN (Dukcapil)', 'NIK DUKCAPIL', 'NIK GANDA', 'NAMA (Dukcapil)',
-            'TEMPAT LAHIR', 'TANGGAL LAHIR', 'IBU KANDUNG', 'JENIS KELAMIN', 'DESA/KELURAHAN',
-            'CATATAN MASALAH',
-        ];
-
-        // Ganti lambang centang agar terbaca di Excel (kecuali kolom terakhir: Catatan).
-        $lastCol = count($headers) - 1;
-        foreach ($rows as &$row) {
-            foreach ($row as $ci => &$cell) {
-                if ($ci === $lastCol) {
-                    continue;
-                }
-                if (is_string($cell) && $cell !== '') {
-                    $cell = $this->displayValue($cell);
-                }
-            }
-        }
-        unset($row, $cell);
-
-        $tempPath = tempnam(sys_get_temp_dir(), 'lpr_residu_') . '.xlsx';
-
-        SimpleXlsxExporter::export($tempPath, [
-            'title' => 'LAPORAN RESIDU VERVAL PD',
-            'subtitle' => 'Hasil penyandingan Dukcapil — Sistem Administrasi Elektronik (SAE)',
-            'fields' => [
-                'Total Baris' => count($rows),
-                'Filter Status' => $status !== '' ? (self::STATUS_LABELS[$status] ?? $status) : 'Semua',
-                'Dicetak' => now()->translatedFormat('d M Y, H:i'),
-            ],
-        ], $headers, $rows, [
-            'sheetName' => 'Residu Verval PD',
-            'headerBg' => '#1E3A8A',
-            'centerCols' => [0, 4, 5, 6, 7, 8, 12, 13],
-        ]);
-
-        return response()->download($tempPath, 'Laporan_Residu_Verval_PD_' . now()->format('Ymd_His') . '.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ])->deleteFileAfterSend(true);
+    /** Label "Sesuai/Tidak Sesuai" untuk sel centang (dipakai halaman cetak). */
+    public function tampilNilai(?string $value): string
+    {
+        return $this->displayValue($value);
     }
 
     /** Hapus seluruh data Residu. */
