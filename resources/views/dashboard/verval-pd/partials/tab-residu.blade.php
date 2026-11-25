@@ -98,6 +98,24 @@
             . ' data-next="' . e($next) . '" title="' . e($title) . '" aria-label="' . e($title) . '"'
             . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;">' . $pill . '</button>';
     };
+
+    // Sel "Catatan": teks masalah per peserta didik, klik untuk ubah (khusus update).
+    $renderCatatan = function ($item) use ($canUpdate) {
+        $note = trim((string) $item->catatan);
+        $body = $note !== ''
+            ? '<span style="display: block; max-width: 220px; white-space: pre-wrap; word-break: break-word; color: var(--text-color); text-align: left;">' . e($note) . '</span>'
+            : '<span style="color: var(--text-muted); opacity: 0.6;">-</span>';
+
+        if (!$canUpdate) {
+            return $body;
+        }
+
+        return '<button type="button" class="residu-catatan-btn" data-id="' . $item->id . '"'
+            . ' data-nama="' . e($item->nama ?: '-') . '" data-catatan="' . e($note) . '"'
+            . ' title="Klik untuk ' . ($note !== '' ? 'ubah' : 'tambah') . ' catatan masalah"'
+            . ' style="background: none; border: 0; padding: 0; cursor: pointer; line-height: 1.4; width: 100%;">'
+            . $body . '</button>';
+    };
 @endphp
 
 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
@@ -120,6 +138,7 @@
                     ['ibu_kandung', 'Ibu Kandung'],
                     ['jenis_kelamin', 'Jenis Kelamin'],
                     ['desa_kelurahan', 'Desa/Kelurahan'],
+                    [null, 'Catatan'],
                 ] as [$key, $label])
                     <th @if ($key) class="sortable-th {{ $sort === $key ? 'sorted' : '' }}" data-sort="{{ $key }}" @endif
                         style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; {{ $loop->index >= 2 ? 'text-align: center;' : '' }} {{ $key ? 'cursor: pointer;' : '' }}">
@@ -173,10 +192,10 @@
                                 ? ($item->status_konfirmasi === 'perlu_perbaikan' ? 'Perlu Perbaikan' : 'Sudah Konfirmasi')
                                 : 'Belum Konfirmasi';
                         @endphp
-                        <div style="display: inline-flex; align-items: center; gap: 6px;">
-                            {!! $renderStatusIcon($konfVariant, 'Konfirmasi: ' . $konfLabel) !!}
-                            {!! $renderStatusIcon($berkasVariant($kkMeta), 'Kartu Keluarga: ' . $berkasStatusLabel($kkMeta), $kkMeta['file_id'] ?? null) !!}
-                            {!! $renderStatusIcon($berkasVariant($ijzMeta), 'Ijazah SMP: ' . $berkasStatusLabel($ijzMeta), $ijzMeta['file_id'] ?? null) !!}
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            {!! $renderStatusIcon($konfVariant, 'Konfirmasi: ' . $konfLabel, null, 'Konf') !!}
+                            {!! $renderStatusIcon($berkasVariant($kkMeta), 'Kartu Keluarga: ' . $berkasStatusLabel($kkMeta), $kkMeta['file_id'] ?? null, 'KK') !!}
+                            {!! $renderStatusIcon($berkasVariant($ijzMeta), 'Ijazah SMP: ' . $berkasStatusLabel($ijzMeta), $ijzMeta['file_id'] ?? null, 'IJZ') !!}
                         </div>
                     </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Rombel/Sekolah">
@@ -195,10 +214,13 @@
                             {!! $renderCell($item, $col) !!}
                         </td>
                     @endforeach
+                    <td style="padding: 12px 16px;" data-label="Catatan">
+                        {!! $renderCatatan($item) !!}
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="15"
+                    <td colspan="16"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-file-circle-exclamation mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>

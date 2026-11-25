@@ -165,6 +165,66 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Delegasi: klik tombol Catatan Residu → modal isi catatan masalah (tercatat di riwayat).
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.residu-catatan-btn');
+        if (!btn) return;
+        e.preventDefault();
+
+        const id = btn.getAttribute('data-id');
+        const nama = btn.getAttribute('data-nama') || 'Peserta Didik';
+        const current = btn.getAttribute('data-catatan') || '';
+
+        const result = await Swal.fire({
+            title: 'Catatan Masalah',
+            html: `<div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-bottom: 8px;">${escapeHtml(nama)}</div>`,
+            input: 'textarea',
+            inputValue: current,
+            inputPlaceholder: 'Tuliskan masalah / tindak lanjut pada peserta didik ini...',
+            showCancelButton: true,
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            inputAttributes: { maxlength: 1000, 'aria-label': 'Catatan masalah' },
+        });
+        if (!result.isConfirmed) return;
+
+        const catatan = (result.value || '').trim();
+        try {
+            const res = await fetch(`/dashboard/verval-pd/residu/${encodeURIComponent(id)}/catatan`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': csrf(),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ catatan }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                const applied = json.catatan || '';
+                btn.setAttribute('data-catatan', applied);
+                const span = btn.querySelector('span');
+                if (span) {
+                    if (applied !== '') {
+                        span.textContent = applied;
+                        span.style.color = 'var(--text-color)';
+                        span.style.opacity = '1';
+                    } else {
+                        span.textContent = '-';
+                        span.style.color = 'var(--text-muted)';
+                        span.style.opacity = '0.6';
+                    }
+                }
+                Swal.fire({ icon: 'success', title: 'Tersimpan', text: json.message, timer: 1400, showConfirmButton: false });
+            } else {
+                Swal.fire('Gagal', json.message || 'Catatan tidak tersimpan.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+        }
+    });
+
     // Delegasi: klik sel centang Residu → ubah ✓/✗ (tercatat di riwayat).
     document.addEventListener('click', async function (e) {
         const btn = e.target.closest('.residu-cell-btn');

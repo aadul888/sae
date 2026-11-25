@@ -196,6 +196,23 @@ class VervalPdController extends Controller
         return response()->json($res, $res['status_code'] ?? 200);
     }
 
+    /** Simpan catatan masalah satu baris Residu — tercatat di riwayat. */
+    public function updateResiduCatatan(Request $request, $id): JsonResponse
+    {
+        $user = $this->sessionUser();
+        if (!$this->can($user, 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'catatan' => 'nullable|string|max:1000',
+        ]);
+
+        $res = $this->residuService->updateCatatan((int) $id, $validated['catatan'] ?? null, $user);
+
+        return response()->json($res, $res['status_code'] ?? 200);
+    }
+
     // ---------------------------------------------------------------- Berkas
 
     public function getBerkasDetail($id): JsonResponse

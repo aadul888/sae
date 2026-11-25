@@ -29,6 +29,7 @@ class VervalPdResidu extends Model
         'jenis_kelamin',
         'desa_kelurahan',
         'status_proses',
+        'catatan',
         'imported_by',
     ];
 }

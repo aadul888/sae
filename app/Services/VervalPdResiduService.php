@@ -261,6 +261,39 @@ class VervalPdResiduService
         ];
     }
 
+    /**
+     * Simpan catatan masalah baris Residu (bebas teks, boleh dikosongkan).
+     * Tercatat di riwayat (admin_aktivitas).
+     */
+    public function updateCatatan(int $id, ?string $catatan, mixed $user): array
+    {
+        $item = VervalPdResidu::find($id);
+        if (!$item) {
+            return ['status' => 'error', 'message' => 'Baris Residu tidak ditemukan.', 'status_code' => 404];
+        }
+
+        $new = trim((string) $catatan);
+        if ($new === '') {
+            $new = null;
+        }
+
+        $old = $item->catatan;
+        if ($old === $new) {
+            return ['status' => 'success', 'message' => 'Tidak ada perubahan.', 'catatan' => $new];
+        }
+
+        $item->catatan = $new;
+        $item->save();
+
+        $this->logPerubahan($item, 'catatan', $old, $new, $user);
+
+        return [
+            'status' => 'success',
+            'message' => 'Catatan tersimpan.',
+            'catatan' => $new,
+        ];
+    }
+
     /** Label manusiawi untuk tiap kolom Residu yang dapat diubah. */
     public function columnLabel(string $column): string
     {
@@ -276,6 +309,7 @@ class VervalPdResiduService
             'jenis_kelamin' => 'Jenis Kelamin',
             'desa_kelurahan' => 'Desa/Kelurahan',
             'status_proses' => 'Status Proses',
+            'catatan' => 'Catatan Masalah',
         ][$column] ?? $column;
     }
 
@@ -367,24 +401,30 @@ class VervalPdResiduService
                 $r->ibu_kandung ?: '',
                 $r->jenis_kelamin ?: '',
                 $r->desa_kelurahan ?: '',
+                $r->catatan ?: '',
             ];
         }
 
-        // Ganti lambang centang agar terbaca di Excel.
+        $headers = [
+            'NO', 'NISN', 'NIK', 'NAMA', 'ROMBEL/SEKOLAH', 'STATUS PROSES',
+            'NISN (Dukcapil)', 'NIK DUKCAPIL', 'NIK GANDA', 'NAMA (Dukcapil)',
+            'TEMPAT LAHIR', 'TANGGAL LAHIR', 'IBU KANDUNG', 'JENIS KELAMIN', 'DESA/KELURAHAN',
+            'CATATAN MASALAH',
+        ];
+
+        // Ganti lambang centang agar terbaca di Excel (kecuali kolom terakhir: Catatan).
+        $lastCol = count($headers) - 1;
         foreach ($rows as &$row) {
-            foreach ($row as &$cell) {
+            foreach ($row as $ci => &$cell) {
+                if ($ci === $lastCol) {
+                    continue;
+                }
                 if (is_string($cell) && $cell !== '') {
                     $cell = $this->displayValue($cell);
                 }
             }
         }
         unset($row, $cell);
-
-        $headers = [
-            'NO', 'NISN', 'NIK', 'NAMA', 'ROMBEL/SEKOLAH', 'STATUS PROSES',
-            'NISN (Dukcapil)', 'NIK DUKCAPIL', 'NIK GANDA', 'NAMA (Dukcapil)',
-            'TEMPAT LAHIR', 'TANGGAL LAHIR', 'IBU KANDUNG', 'JENIS KELAMIN', 'DESA/KELURAHAN',
-        ];
 
         $tempPath = tempnam(sys_get_temp_dir(), 'lpr_residu_') . '.xlsx';
 
