@@ -370,6 +370,7 @@
             align-items: center;
             gap: 8px;
             padding: 9px 18px;
+            min-height: 40px;
             font-size: var(--text-sm, 0.8125rem);
             font-weight: 700;
             border-radius: var(--radius-md, 8px);
@@ -417,6 +418,15 @@
             border-color: var(--danger, #ef4444);
             background: rgba(239, 68, 68, 0.18);
             box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+        }
+
+        /* Selaraskan tinggi tombol Simpan dengan pill Valid/Tidak Valid. */
+        .vb-card .btn-save-verif-berkas {
+            min-height: 40px;
+            padding: 9px 18px !important;
+            font-size: var(--text-sm, 0.8125rem) !important;
+            border-radius: var(--radius-md, 8px) !important;
+            border: 1.5px solid transparent;
         }
 
         @media (max-width: 1024px) {
