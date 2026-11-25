@@ -78,7 +78,7 @@ use App\Http\Controllers\Concerns\ChecksAuthenticatedSession;class KesiswaanPese
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
-        $res = $this->berkasService->getBerkasDetail($id);
+        $res = $this->berkasService->getBerkasDetail($id, $role === 'admin');
 
         return response()->json($res, $res['status_code'] ?? 200);
     }

@@ -332,31 +332,43 @@ class BerkasPesertaDidikController extends Controller
     }
 
     /**
-     * Hapus Berkas yang Belum Valid atau Ingin Diganti
+     * Hapus berkas digital peserta didik. HANYA Administrator yang boleh menghapus.
      */
     public function destroy($id)
     {
         if ($res = $this->checkAuth()) return $res;
 
-        $user = session('user');
         $userRole = $this->sessionRole();
-
-        $berkas = PesertaDidikBerkas::findOrFail($id);
-
-        if ($userRole === 'peserta_didik') {
-            $myPdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
-            if ($myPdId !== $berkas->peserta_didik_id) {
-                return back()->with('error', 'Akses ditolak.');
-            }
+        if ($userRole !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang dapat menghapus dokumen peserta didik.'], 403);
         }
+
+        $berkas = PesertaDidikBerkas::find($id);
+        if (!$berkas) {
+            return response()->json(['status' => 'error', 'message' => 'Dokumen tidak ditemukan.'], 404);
+        }
+
+        $nama = $berkas->nama_berkas;
+        $pdId = $berkas->peserta_didik_id;
 
         if (!empty($berkas->file_path)) {
             Storage::disk('public')->delete($berkas->file_path);
         }
-
-        $nama = $berkas->nama_berkas;
         $berkas->delete();
 
-        return back()->with('success', "File berkas \"{$nama}\" berhasil dihapus.");
+        $user = session('user');
+        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Administrator')) : ($user->nama ?? ($user->name ?? 'Administrator'));
+        $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
+
+        if (class_exists(AdminAktivitas::class)) {
+            AdminAktivitas::record(
+                "Hapus Berkas Peserta Didik: {$pd?->nama} - {$nama}",
+                'Kesiswaan',
+                "Dokumen \"{$nama}\" dihapus oleh {$userName} (Administrator).",
+                'warning'
+            );
+        }
+
+        return response()->json(['status' => 'success', 'message' => "Dokumen \"{$nama}\" berhasil dihapus."]);
     }
 }

@@ -163,7 +163,7 @@ class KesiswaanBerkasService
     /**
      * Ambil data berkas digital lengkap per siswa (JSON) untuk Modal Verifikasi Berkas Kesiswaan.
      */
-    public function getBerkasDetail(string|int $id): array
+    public function getBerkasDetail(string|int $id, bool $isAdmin = false): array
     {
         $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
         if (!$pd && Table::exists('peserta_didik_tidak_aktif')) {
@@ -212,6 +212,8 @@ class KesiswaanBerkasService
             ],
             'items' => $items,
             'rekomendasi_penolakan' => $rekomendasi,
+            // Hanya admin yang boleh menghapus dokumen (tombol di modal validasi).
+            'is_admin' => $isAdmin,
         ];
     }
 

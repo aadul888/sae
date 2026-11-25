@@ -260,7 +260,7 @@ class VervalPdController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
 
-        $res = $this->berkasService->getBerkasDetail($id);
+        $res = $this->berkasService->getBerkasDetail($id, $this->isAdmin($user));
 
         return response()->json($res, $res['status_code'] ?? 200);
     }

@@ -610,6 +610,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                     `}
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 6px;">
+                                    ${item.is_uploaded ? `
+                                        <button type="button" class="btn btn-outline vb-delete-berkas" data-berkas-id="${item.berkas_id}" data-label="${escapeHtml(item.label)}" title="Hapus dokumen (Administrator)"
+                                            style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer; color: var(--danger, #ef4444); border-color: var(--danger, #ef4444);">
+                                            <i class="fas fa-trash me-1"></i> Hapus
+                                        </button>
+                                    ` : ''}
                                     <input type="file" id="fileTendik_${item.jenis_berkas}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" class="input-file-tendik" data-pd-id="${id}" data-key="${item.jenis_berkas}">
                                     <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;" title="Unggah file peserta didik">
                                         <i class="fas fa-upload me-1"></i> ${item.is_uploaded ? 'Ganti File' : 'Unggah File'}
@@ -712,6 +718,42 @@ document.addEventListener('DOMContentLoaded', function () {
                     e.preventDefault();
                     if (vbIndex === vbCards.length - 1) vbFinish();
                     else vbShow(vbIndex + 1);
+                } else if (e.target.closest('.vb-delete-berkas')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.vb-delete-berkas');
+                    const berkasId = btn.getAttribute('data-berkas-id');
+                    const label = btn.getAttribute('data-label') || 'dokumen';
+                    if (!berkasId) return;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hapus Dokumen?',
+                        html: `Dokumen <strong>${escapeHtml(label)}</strong> akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#ef4444',
+                    }).then(async (r) => {
+                        if (!r.isConfirmed) return;
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch(`/dashboard/berkas/${encodeURIComponent(berkasId)}`, {
+                                method: 'DELETE',
+                                headers: { 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                            });
+                            const delJson = await res.json();
+                            if (res.ok && delJson.status === 'success') {
+                                berkasStatusChanged = true;
+                                Swal.fire({ icon: 'success', title: 'Terhapus', text: delJson.message, timer: 1400, showConfirmButton: false });
+                                window.openModalVerifikasiBerkas(id, siswa.nama);
+                            } else {
+                                btn.disabled = false;
+                                Swal.fire('Gagal', delJson.message || 'Tidak dapat menghapus dokumen.', 'error');
+                            }
+                        } catch (err) {
+                            btn.disabled = false;
+                            Swal.fire('Kesalahan Jaringan', 'Tidak dapat terhubung ke server.', 'error');
+                        }
+                    });
                 }
             });
             content.__vbToken = vbToken;

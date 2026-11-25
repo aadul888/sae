@@ -36,6 +36,7 @@
             const {
                 items = [], siswa = {}, pdId, rekomendasiList = [], canUpload = true,
                 uploadUrl, verifyUrl, csrf, reopen, finish, onChanged = () => {},
+                isAdmin = false, deleteUrl = (bid) => `/dashboard/berkas/${encodeURIComponent(bid)}`,
             } = cfg;
 
             const jumlahFile = items.filter((it) => it.is_uploaded).length;
@@ -99,6 +100,12 @@
                                     `}
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 6px;">
+                                    ${isAdmin && item.is_uploaded ? `
+                                        <button type="button" class="btn btn-outline vb-delete-berkas" data-berkas-id="${item.berkas_id}" data-label="${escapeHtml(item.label)}" title="Hapus dokumen (Administrator)"
+                                            style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer; color: var(--danger, #ef4444); border-color: var(--danger, #ef4444);">
+                                            <i class="fas fa-trash me-1"></i> Hapus
+                                        </button>
+                                    ` : ''}
                                     ${canUpload ? `
                                         <input type="file" class="vb-file-input input-file-tendik" data-pd-id="${pdId}" data-key="${item.jenis_berkas}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                                         <button type="button" class="btn btn-outline vb-upload-trigger" style="padding: 4px 10px; font-size: var(--text-xs, 0.75rem); border-radius: var(--radius-sm, 6px); cursor: pointer;" title="Unggah / ganti file">
@@ -191,6 +198,42 @@
                     e.preventDefault();
                     if (vbIndex === vbCards.length - 1) vbFinish();
                     else vbShow(vbIndex + 1);
+                } else if (e.target.closest('.vb-delete-berkas')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.vb-delete-berkas');
+                    const berkasId = btn.getAttribute('data-berkas-id');
+                    const label = btn.getAttribute('data-label') || 'dokumen';
+                    if (!berkasId) return;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hapus Dokumen?',
+                        html: `Dokumen <strong>${escapeHtml(label)}</strong> akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#ef4444',
+                    }).then(async (r) => {
+                        if (!r.isConfirmed) return;
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch(deleteUrl(berkasId), {
+                                method: 'DELETE',
+                                headers: { 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.status === 'success') {
+                                onChanged();
+                                Swal.fire({ icon: 'success', title: 'Terhapus', text: json.message, timer: 1400, showConfirmButton: false });
+                                reopen(pdId, siswa.nama);
+                            } else {
+                                btn.disabled = false;
+                                Swal.fire('Gagal', json.message || 'Tidak dapat menghapus dokumen.', 'error');
+                            }
+                        } catch (err) {
+                            btn.disabled = false;
+                            Swal.fire('Kesalahan Jaringan', 'Tidak dapat terhubung ke server.', 'error');
+                        }
+                    });
                 }
             });
             vbShow(0);

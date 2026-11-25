@@ -261,6 +261,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 verifyUrl: (pid) => `/dashboard/wali-kelas/validasi-data/berkas-verifikasi/${encodeURIComponent(pid)}`,
                 csrf: () => document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]')?.value || '',
                 reopen: (pid, nm) => window.openModalVerifikasiBerkas(pid, nm),
+                isAdmin: json.is_admin === true,
                 onChanged: () => { berkasStatusChanged = true; },
                 finish: () => { berkasStatusChanged = false; modal.style.display = 'none'; document.body.style.overflow = ''; window.refreshLiveTable ? window.refreshLiveTable() : location.reload(); },
             });
