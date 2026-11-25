@@ -200,6 +200,13 @@ class ImageOptimizerService
             $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: '';
             $this->assertSafeDocument($binary, $extension);
 
+            // PDF: coba perkecil via Ghostscript (bila terpasang). Berkas kecil
+            // dilewati agar tak memboroskan CPU; bila gs tak ada/hasil tak lebih
+            // kecil → PDF asli tetap dipakai.
+            if ($extension === 'pdf' && strlen($binary) > 1048576) {
+                $binary = $this->tryCompressPdf($binary);
+            }
+
             return $this->persistBinary($binary, $extension, 0, 0, $targetDir, $namePrefix, $originalSize);
         }
 
@@ -306,6 +313,39 @@ class ImageOptimizerService
         $mime = $this->detectMimeFromBuffer($binary);
         if ($mime !== '' && in_array($mime, self::BLOCKED_MIME_TYPES, true)) {
             throw new InvalidArgumentException("Tipe berkas tidak diizinkan ({$mime}).");
+        }
+    }
+
+    /**
+     * Coba perkecil biner PDF via Ghostscript. Kembalikan biner baru bila
+     * hasilnya benar-benar lebih kecil, atau biner asli bila gagal/tidak untung.
+     */
+    private function tryCompressPdf(string $binary): string
+    {
+        $tmpDir = storage_path('app/tmp_pdf');
+        if (!is_dir($tmpDir) && !@mkdir($tmpDir, 0755, true)) {
+            return $binary;
+        }
+
+        $tmpIn = $tmpDir . DIRECTORY_SEPARATOR . 'in_' . bin2hex(random_bytes(6)) . '.pdf';
+
+        try {
+            if (@file_put_contents($tmpIn, $binary) === false) {
+                return $binary;
+            }
+
+            $newSize = app(PdfCompressorService::class)->compress($tmpIn);
+            if ($newSize === null) {
+                return $binary;
+            }
+
+            $out = (string) @file_get_contents($tmpIn);
+
+            return $out !== '' ? $out : $binary;
+        } catch (\Throwable $e) {
+            return $binary;
+        } finally {
+            @unlink($tmpIn);
         }
     }
 
