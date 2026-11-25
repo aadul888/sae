@@ -320,8 +320,15 @@ class BerkasPesertaDidikController extends Controller
 
         // setContentDisposition menangani nama non-ASCII/kutip/baris-baru dengan aman
         // (RFC 6266), berbeda dari menyusun header manual yang bisa memicu error 500.
-        return response()->file($fullPath, ['Content-Type' => 'application/pdf'])
-            ->setContentDisposition('inline', $berkas->file_name ?: basename($fullPath));
+        //
+        // `no-store` penting: URL pratinjau memakai `id` yang TETAP saat siswa mengganti
+        // berkas (baris DB di-update, bukan dibuat baru). Tanpa ini, service worker
+        // (stale-while-revalidate) atau cache HTTP menyajikan PDF lama.
+        return response()->file($fullPath, [
+            'Content-Type'  => 'application/pdf',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma'        => 'no-cache',
+        ])->setContentDisposition('inline', $berkas->file_name ?: basename($fullPath));
     }
 
     /**

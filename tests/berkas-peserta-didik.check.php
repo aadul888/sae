@@ -64,8 +64,12 @@ try {
     $resp = app(BerkasPesertaDidikController::class)->preview($ada->id);
     $resp->prepare(Request::create('/'));
     $checks['pratinjau berkas nyata -> 200 PDF'] = ($resp->getStatusCode() === 200);
+    // Header anti-cache: URL pratinjau tetap sama saat siswa mengganti berkas.
+    $checks['pratinjau kirim Cache-Control no-store'] =
+        str_contains((string) $resp->headers->get('Cache-Control'), 'no-store');
 } catch (\Throwable $e) {
     $checks['pratinjau berkas nyata -> 200 PDF'] = false;
+    $checks['pratinjau kirim Cache-Control no-store'] = false;
 }
 
 // --- 3. Optimizer tetap menolak berkas berbahaya (guard tidak dilonggarkan) ---
@@ -128,6 +132,12 @@ $checks['JS normalisasi berkas ke memori (anti ERR_UPLOAD_FILE_CHANGED)'] =
 $checks['sw.js didaftarkan dengan query versi (lolos cache CDN)'] =
     str_contains(file_get_contents(__DIR__ . '/../resources/views/layouts/dashboard.blade.php'), "__SAE_PWA__")
     && str_contains(file_get_contents(__DIR__ . '/../resources/views/layouts/app.blade.php'), "__SAE_PWA__");
+
+// --- 5f. Service worker harus mem-bypass cache untuk URL pratinjau berkas, agar
+// PDF lama tak disajikan setelah siswa mengganti berkas (URL/id tetap sama).
+$sw = file_get_contents(__DIR__ . '/../public/sw.js');
+$checks['sw.js bypass cache untuk URL pratinjau berkas'] =
+    str_contains($sw, 'berkas\/preview');
 
 try {
     app(\App\Http\Controllers\StorageFallbackController::class)->show($rel);

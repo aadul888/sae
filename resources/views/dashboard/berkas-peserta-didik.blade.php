@@ -286,13 +286,13 @@
                                         </div>
                                         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
                                             {{ $berkas->formatted_file_size }} &bull; Diunggah
-                                            {{ $berkas->created_at ? $berkas->created_at->diffForHumans() : '-' }}
+                                            {{ ($berkas->updated_at ?: $berkas->created_at)?->diffForHumans() ?? '-' }}
                                         </div>
                                     </div>
                                 </div>
                                 @if (!empty($berkas->file_path))
                                     <button type="button" class="btn btn-outline btn-preview-pdf-inline"
-                                        data-url="{{ route('dashboard.berkas.preview', $berkas->id) }}"
+                                        data-url="{{ route('dashboard.berkas.preview', $berkas->id) }}?v={{ $berkas->updated_at?->timestamp }}"
                                         data-title="{{ $slot['label'] }} - {{ $pd->nama }}"
                                         style="padding: 5px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); flex-shrink: 0; cursor: pointer;"
                                         title="Lihat Pratinjau Dokumen PDF">

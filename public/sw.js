@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.2.9 - Full Offline / Self-Hosted Assets
+   Version: 1.3.0 - Full Offline / Self-Hosted Assets
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.9";
+const CACHE_NAME = "sae-pwa-v1.3.0";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -53,6 +53,11 @@ const NETWORK_ONLY_PATTERNS = [
     /^\/presensi\/scan\/lock/i,
     /^\/receive-data/i,
     /^\/install/i,
+    // Pratinjau berkas siswa: URL tetap sama saat siswa mengganti berkas
+    // (baris DB tetap, `id` tak berubah). Tanpa bypass, stale-while-revalidate
+    // menyajikan PDF LAMA dari cache walau server sudah punya berkas baru.
+    /^\/dashboard\/berkas\/preview\//i,
+    /\/berkas\/preview\//i,
 ];
 
 // 1. Install Event: Cache Core Shell
