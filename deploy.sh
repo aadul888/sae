@@ -273,7 +273,21 @@ if command -v systemctl >/dev/null 2>&1; then
     done
 fi
 
-# aaPanel memakai OpenLiteSpeed (lsphp) atau PHP-FPM.
+# aaPanel memakai OpenLiteSpeed (lsphp) atau PHP-FPM sendiri; keduanya bisa
+# berbeda dari service php-fpm systemd di atas. Bila vhost menunjuk FPM aaPanel
+# (mis. unix:/tmp/php-cgi-83.sock) dengan opcache.validate_timestamps=0, kode
+# baru tetap disajikan BASI sampai FPM itu di-restart. Deteksi & restart juga.
+restart_aanpanel_fpm() {
+    for init in /etc/init.d/php-fpm-83 /etc/init.d/php-fpm-8.3 /etc/init.d/php-fpm; do
+        if [ -x "$init" ]; then
+            "$init" restart >/dev/null 2>&1 && { ok "Restart ${init##*/} (PHP-FPM aaPanel)"; return 0; }
+        fi
+    done
+    return 1
+}
+restart_aanpanel_fpm || warn "PHP-FPM aaPanel tidak terdeteksi (lewati; pakai service systemd bila ada)"
+
+# OpenLiteSpeed / LSPHP (aaPanel versi OLS)
 pkill -USR2 -u "${PHP_USER}" lsphp 2>/dev/null || true
 if [ -f /usr/local/lsws/bin/lswsctrl ]; then
     /usr/local/lsws/bin/lswsctrl restart >/dev/null 2>&1 && ok "OpenLiteSpeed direstart" || true
