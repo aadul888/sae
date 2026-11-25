@@ -441,7 +441,7 @@ final class SarprasDashboardService
 
         if (Table::exists('teknisi_work_order')) {
             $daftar['woTerbaru'] = DB::table('teknisi_work_order')
-                ->select('nomor_wo', 'tanggal', 'lokasi_unit', 'kategori_perbaikan', 'tingkat_urgensi', 'status', 'pelapor_nama')
+                ->select('nomor_wo', 'tanggal', 'lokasi_unit', 'kategori_perbaikan', 'deskripsi_kerusakan', 'tingkat_urgensi', 'status', 'pelapor_nama')
                 ->orderByDesc('tanggal')
                 ->orderByDesc('id')
                 ->limit(8)

@@ -589,7 +589,7 @@
                             </td>
                             <td data-label="Kerusakan"
                                 style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
-                                {{ \Illuminate\Support\Str::limit($row['deskripsi_kerusakan'], 42) }}
+                                {{ \Illuminate\Support\Str::limit($row['deskripsi_kerusakan'] ?? '', 42) }}
                             </td>
                             <td data-label="Urgensi" style="text-align: center;">
                                 <span
