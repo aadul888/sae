@@ -700,7 +700,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.style.overflow = '';
                 window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
             };
+            // Listener delegasi di #modalVbContent dipasang ulang setiap buka → numpuk,
+            // dan handler lama menyimpan state basi (bisa menutup modal saat klik next).
+            // Pakai token: hanya handler dari sesi terakhir yang dijalankan.
+            const vbToken = (content.__vbToken || 0) + 1;
             content.addEventListener('click', (e) => {
+                if (content.__vbToken !== vbToken) return; // sesi usang, abaikan
                 if (e.target.closest('.vb-prev')) { e.preventDefault(); vbShow(vbIndex - 1); }
                 else if (e.target.closest('.vb-next')) {
                     e.preventDefault();
@@ -708,6 +713,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     else vbShow(vbIndex + 1);
                 }
             });
+            content.__vbToken = vbToken;
             vbShow(0);
 
             content.querySelectorAll('.radio-status-berkas').forEach((radio) => {
