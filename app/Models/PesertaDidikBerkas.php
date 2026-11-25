@@ -25,10 +25,12 @@ class PesertaDidikBerkas extends Model
         'verified_by',
         'verified_at',
         'uploaded_by',
+        'uploaded_at',
     ];
 
     protected $casts = [
         'verified_at' => 'datetime',
+        'uploaded_at' => 'datetime',
         'file_size' => 'integer',
     ];
 

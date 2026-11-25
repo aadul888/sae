@@ -444,14 +444,14 @@ class KesiswaanQueryService
                 ELSE 4
             END ASC")
             ->orderByRaw("(
-                SELECT MIN(pdb.created_at)
+                SELECT MAX(pdb.uploaded_at)
                 FROM peserta_didik_berkas pdb
                 WHERE pdb.peserta_didik_id = pd.peserta_didik_id
                   AND pdb.file_path IS NOT NULL
                   AND pdb.file_path <> ''
             ) IS NULL ASC")
             ->orderByRaw("(
-                SELECT MIN(pdb.created_at)
+                SELECT MAX(pdb.uploaded_at)
                 FROM peserta_didik_berkas pdb
                 WHERE pdb.peserta_didik_id = pd.peserta_didik_id
                   AND pdb.file_path IS NOT NULL

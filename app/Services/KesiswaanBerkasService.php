@@ -360,6 +360,9 @@ class KesiswaanBerkasService
                 'verified_by' => $userName . ' (' . $roleLabel . ')',
                 'verified_at' => now(),
                 'uploaded_by' => $userName . ' (' . $roleLabel . ')',
+                // Waktu unggah bergeser tiap ganti berkas → memindahkan siswa
+                // ke bawah antrean validasi (lihat KesiswaanQueryService::getBerkasTab).
+                'uploaded_at' => now(),
             ]
         );
 

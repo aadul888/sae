@@ -255,6 +255,9 @@ class BerkasPesertaDidikController extends Controller
                     'verified_by' => null,
                     'verified_at' => null,
                     'uploaded_by' => mb_substr($userName . ' (' . ucfirst($userRole) . ')', 0, 100),
+                    // Waktu unggah bergeser tiap ganti berkas → memindahkan siswa
+                    // ke bawah antrean validasi (lihat KesiswaanQueryService::getBerkasTab).
+                    'uploaded_at' => now(),
                 ]
             );
 
