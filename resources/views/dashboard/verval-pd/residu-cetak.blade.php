@@ -175,9 +175,10 @@
                     <th style="width: 5.5%;">Kelas</th>
                     <th style="width: 6.5%;">Status Proses</th>
                     <th style="width: 6.5%;">Rombel/Sekolah</th>
+                    <th style="width: 5.5%;">NISN</th>
                     <th style="width: 5.5%;">NIK Dukcapil</th>
                     <th style="width: 5%;">NIK Ganda</th>
-                    <th style="width: 8%;">Nama Dukcapil</th>
+                    <th style="width: 8%;">Nama</th>
                     <th style="width: 7.5%;">Tempat Lahir</th>
                     <th style="width: 5.5%;">Tanggal Lahir</th>
                     <th style="width: 7.5%;">Ibu Kandung</th>
@@ -200,6 +201,7 @@
                         <td style="text-align: center;">{{ $it->kelas ?: '-' }}</td>
                         <td style="text-align: center; font-weight: 700;">{{ $statusLabel($it->status_proses) }}</td>
                         <td style="text-align: center;">{!! $renderSel($it->rombel_sekolah) !!}</td>
+                        <td style="text-align: center;">{!! $renderSel($it->nisn_banding) !!}</td>
                         <td style="text-align: center;">{!! $renderSel($it->nik_dukcapil) !!}</td>
                         <td style="text-align: center;">{!! $renderSel($it->nik_ganda) !!}</td>
                         <td style="text-align: center;">{!! $renderSel($it->nama_banding) !!}</td>
@@ -212,7 +214,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="15" style="text-align: center; padding: 18px; color: #64748b;">
+                        <td colspan="16" style="text-align: center; padding: 18px; color: #64748b;">
                             Tidak ada data Residu pada kriteria ini.
                         </td>
                     </tr>

@@ -178,6 +178,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const css = getComputedStyle(document.documentElement);
         const success = css.getPropertyValue('--success').trim() || '#10b981';
         const danger = css.getPropertyValue('--danger').trim() || '#ef4444';
+        const textColor = css.getPropertyValue('--text-color').trim() || '#1e293b';
+
+        // Plugin ringkas: tulis angka di atas tiap batang (tanpa dependensi chartjs-plugin-datalabels).
+        const valueLabels = {
+            id: 'residuValueLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.fillStyle = textColor;
+                ctx.font = '600 10px -apple-system, Segoe UI, Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                chart.data.datasets.forEach((ds, di) => {
+                    chart.getDatasetMeta(di).data.forEach((bar, i) => {
+                        const v = ds.data[i];
+                        if (v === null || v === undefined || v === 0) return;
+                        ctx.fillText(String(v), bar.x, bar.y - 2);
+                    });
+                });
+                ctx.restore();
+            },
+        };
 
         window.__residuChart = new Chart(canvas.getContext('2d'), {
             type: 'bar',
@@ -192,12 +214,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
+                layout: { padding: { top: 18 } },
                 plugins: { legend: { position: 'bottom' } },
                 scales: {
                     x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } },
                     y: { beginAtZero: true, ticks: { precision: 0 } },
                 },
             },
+            plugins: [valueLabels],
         });
     };
 

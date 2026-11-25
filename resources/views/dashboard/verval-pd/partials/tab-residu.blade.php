@@ -136,9 +136,10 @@
     // dihitung HANYA dari baris yang sedang tampil di datatable (halaman + filter aktif).
     $chartCols = [
         'rombel_sekolah' => 'Rombel/Sekolah',
+        'nisn_banding' => 'NISN',
         'nik_dukcapil' => 'NIK Dukcapil',
         'nik_ganda' => 'NIK Ganda',
-        'nama_banding' => 'Nama Dukcapil',
+        'nama_banding' => 'Nama',
         'tempat_lahir' => 'Tempat Lahir',
         'tanggal_lahir' => 'Tanggal Lahir',
         'ibu_kandung' => 'Ibu Kandung',
@@ -201,9 +202,10 @@
                     ['status_proses', 'Proses'],
                     [null, 'Status'],
                     ['rombel_sekolah', 'Rombel/Sekolah'],
+                    ['nisn_banding', 'NISN'],
                     ['nik_dukcapil', 'NIK Dukcapil'],
                     ['nik_ganda', 'NIK Ganda'],
-                    ['nama_banding', 'Nama Dukcapil'],
+                    ['nama_banding', 'Nama'],
                     ['tempat_lahir', 'Tempat Lahir'],
                     ['tanggal_lahir', 'Tanggal Lahir'],
                     ['ibu_kandung', 'Ibu Kandung'],
@@ -285,7 +287,7 @@
                             </span>
                         @endif
                     </td>
-                    @foreach (['nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'] as $col)
+                    @foreach (['nisn_banding', 'nik_dukcapil', 'nik_ganda', 'nama_banding', 'tempat_lahir', 'tanggal_lahir', 'ibu_kandung', 'jenis_kelamin', 'desa_kelurahan'] as $col)
                         <td style="padding: 12px 16px; text-align: center;"
                             data-label="{{ str_replace('_', ' ', $col) }}">
                             {!! $renderCell($item, $col) !!}
@@ -294,7 +296,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="16"
+                    <td colspan="17"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-file-circle-exclamation mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
