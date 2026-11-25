@@ -156,6 +156,7 @@ class VervalPdController extends Controller
             'items' => $items,
             'status' => $status,
             'q' => $q,
+            'sekolah' => \App\Models\Sekolah::first(),
             'kepsek' => $this->kepalahSekolah(),
             'stats' => $this->residuStats(),
         ]);
