@@ -31,7 +31,8 @@
         .table-residu {
             width: 100%;
             border-collapse: collapse;
-            font-size: var(--text-xs, 0.75rem);
+            table-layout: fixed;
+            font-size: var(--text-2xs, 0.6875rem);
             margin: 10px 0 18px 0;
         }
 
@@ -39,10 +40,12 @@
             background: #f1f5f9 !important;
             color: #0f172a;
             border: 1px solid #64748b;
-            padding: 5px 4px;
+            padding: 4px 3px;
             text-align: center;
             font-weight: 700;
             text-transform: uppercase;
+            line-height: 1.2;
+            word-break: break-word;
         }
 
         .table-residu td {
@@ -50,10 +53,23 @@
             padding: 3px 4px;
             vertical-align: middle;
             color: #1e293b;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .table-residu tr:nth-child(even) td {
             background: #f8fafc;
+        }
+
+        /* Nama panjang tetap dalam satu kolom, jangan melebar. */
+        .table-residu td.col-nama {
+            font-weight: 600;
+        }
+
+        /* NISN / NIK selalu satu baris (dipisah <br>), jangan melebar. */
+        .table-residu td.col-nisn {
+            font-family: monospace;
+            font-size: var(--text-2xs, 0.6875rem);
         }
 
         @media print {
@@ -67,6 +83,11 @@
                 background: #f8fafc !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+
+            .table-residu tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
         }
     </style>
@@ -106,48 +127,52 @@
             <div class="doc-title-main">LAPORAN RESIDU VERVAL PD</div>
             <div class="doc-subtitle" style="text-align: center;">
                 Hasil Penyandingan Dukcapil
-                @if ($status !== '')
-                    &bull; Filter Status: {{ $statusLabel($status) }}
+                @if ($selectedCount > 0)
+                    &bull; Data Terpilih: {{ $selectedCount }} Baris
+                @else
+                    @if ($status !== '')
+                        &bull; Filter Status: {{ $statusLabel($status) }}
+                    @endif
+                    @if ($q !== '')
+                        &bull; Pencarian: "{{ $q }}"
+                    @endif
+                    &bull; Total: {{ $items->count() }} Baris
                 @endif
-                @if ($q !== '')
-                    &bull; Pencarian: "{{ $q }}"
-                @endif
-                &bull; Total: {{ $items->count() }} Baris
             </div>
         </div>
 
         <table class="table-residu">
             <thead>
                 <tr>
-                    <th style="width: 26px;">No</th>
-                    <th style="width: 92px;">NISN / NIK</th>
-                    <th>Nama</th>
-                    <th style="width: 58px;">Kelas</th>
-                    <th style="width: 78px;">Rombel/Sekolah</th>
-                    <th style="width: 78px;">Status Proses</th>
-                    <th style="width: 62px;">NISN Dukcapil</th>
-                    <th style="width: 62px;">NIK Dukcapil</th>
-                    <th style="width: 54px;">NIK Ganda</th>
-                    <th style="width: 92px;">Nama Dukcapil</th>
-                    <th style="width: 86px;">Tempat Lahir</th>
-                    <th style="width: 64px;">Tanggal Lahir</th>
-                    <th style="width: 86px;">Ibu Kandung</th>
-                    <th style="width: 40px;">JK</th>
-                    <th style="width: 86px;">Desa/Kelurahan</th>
-                    <th style="width: 150px;">Catatan Masalah</th>
+                    <th style="width: 3%;">No</th>
+                    <th style="width: 9%;">NISN / NIK</th>
+                    <th style="width: 12%;">Nama</th>
+                    <th style="width: 5.5%;">Kelas</th>
+                    <th style="width: 6.5%;">Rombel/Sekolah</th>
+                    <th style="width: 6.5%;">Status Proses</th>
+                    <th style="width: 5.5%;">NISN Dukcapil</th>
+                    <th style="width: 5.5%;">NIK Dukcapil</th>
+                    <th style="width: 5%;">NIK Ganda</th>
+                    <th style="width: 8%;">Nama Dukcapil</th>
+                    <th style="width: 7.5%;">Tempat Lahir</th>
+                    <th style="width: 5.5%;">Tanggal Lahir</th>
+                    <th style="width: 7.5%;">Ibu Kandung</th>
+                    <th style="width: 3%;">JK</th>
+                    <th style="width: 7.5%;">Desa/Kelurahan</th>
+                    <th style="width: 12%;">Catatan Masalah</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($items as $idx => $it)
                     <tr>
                         <td style="text-align: center;">{{ $idx + 1 }}</td>
-                        <td style="font-family: monospace; font-size: var(--text-2xs, 0.6875rem);">
+                        <td class="col-nisn">
                             {{ $it->nisn ?: '-' }}
                             @if ($it->nik)
                                 <br>{{ $it->nik }}
                             @endif
                         </td>
-                        <td style="font-weight: 600;">{{ $it->nama ?: '-' }}</td>
+                        <td class="col-nama">{{ $it->nama ?: '-' }}</td>
                         <td style="text-align: center;">{{ $it->kelas ?: '-' }}</td>
                         <td style="text-align: center;">{{ $labelNilai($it->rombel_sekolah) }}</td>
                         <td style="text-align: center; font-weight: 700;">{{ $statusLabel($it->status_proses) }}</td>

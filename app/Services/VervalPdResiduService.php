@@ -363,11 +363,17 @@ class VervalPdResiduService
     {
         $status = trim((string) $request->get('status', ''));
         $q = trim((string) $request->get('q', ''));
+        $ids = collect($request->get('ids', []))
+            ->filter(fn($v) => $v !== null && $v !== '')
+            ->map(fn($v) => (int) $v)
+            ->filter()
+            ->values();
 
         return VervalPdResidu::query()
-            ->when($status === self::STATUS_BELUM, fn($w) => $w->where(fn($x) => $x->where('status_proses', self::STATUS_BELUM)->orWhereNull('status_proses')))
-            ->when(in_array($status, [self::STATUS_PROSES, self::STATUS_SELESAI], true), fn($w) => $w->where('status_proses', $status))
-            ->when($q !== '', fn($w) => $w->where(fn($x) => $x->where('nama', 'like', "%{$q}%")
+            ->when($ids->isNotEmpty(), fn($w) => $w->whereIn('id', $ids))
+            ->when($ids->isEmpty() && $status === self::STATUS_BELUM, fn($w) => $w->where(fn($x) => $x->where('status_proses', self::STATUS_BELUM)->orWhereNull('status_proses')))
+            ->when($ids->isEmpty() && in_array($status, [self::STATUS_PROSES, self::STATUS_SELESAI], true), fn($w) => $w->where('status_proses', $status))
+            ->when($ids->isEmpty() && $q !== '', fn($w) => $w->where(fn($x) => $x->where('nama', 'like', "%{$q}%")
                 ->orWhere('nisn', 'like', "%{$q}%")
                 ->orWhere('nik', 'like', "%{$q}%")
                 ->orWhere('rombel_sekolah', 'like', "%{$q}%")))

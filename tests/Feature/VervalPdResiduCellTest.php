@@ -138,4 +138,23 @@ class VervalPdResiduCellTest extends TestCase
         $res->assertSee('LAPORAN RESIDU VERVAL PD');
         $res->assertSee('Catatan Masalah');
     }
+
+    public function test_cetak_only_selected_rows(): void
+    {
+        $keep = $this->makeRow();
+        VervalPdResidu::create([
+            'import_batch' => 'test-batch',
+            'nisn' => '8880002222',
+            'nama' => 'Baris Lain',
+            'imported_by' => 'tester',
+        ]);
+
+        $admin = ['nama' => 'Administrator Uji', 'role' => 'admin'];
+        $res = $this->withSession(['user' => $admin])
+            ->get('/dashboard/verval-pd/residu/cetak?ids[]=' . $keep->id);
+
+        $res->assertStatus(200);
+        $res->assertSee('Uji Residu');
+        $res->assertDontSee('Baris Lain');
+    }
 }

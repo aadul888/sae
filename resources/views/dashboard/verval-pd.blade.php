@@ -277,6 +277,14 @@
                                 <i class="fas fa-undo"></i>
                             </a>
                         @endif
+
+                        @if ($page === 'residu')
+                            <button type="button" id="btnCetakTerpilihResidu" class="btn btn-primary"
+                                style="height: 38px; padding: 0 12px; display: none; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px);"
+                                title="Cetak baris yang dicentang" disabled>
+                                <i class="fas fa-print"></i> <span id="residuSelectedCount">0</span> Terpilih
+                            </button>
+                        @endif
                     </div>
 
                     <div class="live-search-wrap" style="height: 38px;">

@@ -67,14 +67,61 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Cetak laporan Residu (langsung print/PDF), ikut filter/pencarian yang aktif.
+    // ---------------------------------------------------- Residu: pilih baris & cetak
+    const residuRowChecks = () => Array.from(document.querySelectorAll('.residu-row-check'));
+    const residuSelectedIds = () => residuRowChecks().filter((c) => c.checked).map((c) => c.value);
+
+    const syncResiduSelection = () => {
+        const checks = residuRowChecks();
+        const count = checks.filter((c) => c.checked).length;
+
+        const checkAll = document.getElementById('residuCheckAll');
+        if (checkAll) {
+            checkAll.checked = count > 0 && count === checks.length;
+            checkAll.indeterminate = count > 0 && count < checks.length;
+        }
+
+        const btn = document.getElementById('btnCetakTerpilihResidu');
+        const label = document.getElementById('residuSelectedCount');
+        if (label) label.textContent = String(count);
+        if (btn) {
+            btn.disabled = count === 0;
+            btn.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+    };
+
+    document.querySelectorAll('.residu-row-check').forEach((c) => c.addEventListener('change', syncResiduSelection));
+
+    const residuCheckAll = document.getElementById('residuCheckAll');
+    if (residuCheckAll) {
+        residuCheckAll.addEventListener('change', function () {
+            residuRowChecks().forEach((c) => { c.checked = this.checked; });
+            syncResiduSelection();
+        });
+    }
+
+    // Cetak seluruh baris sesuai filter/pencarian aktif (tanpa centang).
     const btnExportResidu = document.getElementById('btnExportResidu');
     if (btnExportResidu) {
         btnExportResidu.addEventListener('click', () => {
             const params = new URLSearchParams(window.location.search);
             const q = document.getElementById('liveSearch')?.value?.trim();
             if (q) params.set('q', q); else params.delete('q');
+            params.delete('ids[]');
+            params.delete('ids');
             window.location.href = '/dashboard/verval-pd/residu/cetak?' + params.toString();
+        });
+    }
+
+    // Cetak hanya baris yang dicentang.
+    const btnCetakTerpilih = document.getElementById('btnCetakTerpilihResidu');
+    if (btnCetakTerpilih) {
+        btnCetakTerpilih.addEventListener('click', () => {
+            const ids = residuSelectedIds();
+            if (ids.length === 0) return;
+            const p = new URLSearchParams();
+            ids.forEach((id) => p.append('ids[]', id));
+            window.location.href = '/dashboard/verval-pd/residu/cetak?' + p.toString();
         });
     }
 

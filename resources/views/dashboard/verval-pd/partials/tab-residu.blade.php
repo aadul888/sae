@@ -135,6 +135,9 @@
     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
         <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
+                <th class="th-check" style="padding: 12px 10px; width: 40px; text-align: center;">
+                    <input type="checkbox" id="residuCheckAll" title="Pilih semua baris di halaman ini" aria-label="Pilih semua baris">
+                </th>
                 @foreach ([
                     [null, 'Catatan'],
                     [null, 'NISN / NIK'],
@@ -165,7 +168,11 @@
         </thead>
         <tbody>
             @forelse ($items as $item)
-                <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;" data-residu-id="{{ $item->id }}">
+                    <td class="td-check" style="padding: 12px 10px; text-align: center;">
+                        <input type="checkbox" class="residu-row-check" value="{{ $item->id }}"
+                            title="Pilih baris ini untuk dicetak" aria-label="Pilih baris {{ $item->nama ?: $item->id }}">
+                    </td>
                     <td style="padding: 12px 16px; text-align: center;" data-label="Catatan">
                         {!! $renderCatatan($item) !!}
                     </td>
@@ -233,7 +240,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="16"
+                    <td colspan="17"
                         style="padding: 30px; text-align: center; color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-file-circle-exclamation mb-2"
                             style="font-size: var(--text-3xl, 1.875rem); opacity: 0.5;"></i>
