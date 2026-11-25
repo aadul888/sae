@@ -21,6 +21,6 @@
                 title="Versi sistem aplikasi terpasang">v{{ $appVersion ?? '1.0.5' }}</span>
             <span class="badge badge-outline"
                 style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-family: monospace; white-space: nowrap;"
-                data-pwa-version="short" title="Versi PWA di perangkat ini">PWA v—</span>
+                data-pwa-version="short" title="Versi PWA di perangkat ini">v—</span>
         </span>
     </div>

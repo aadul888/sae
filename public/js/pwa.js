@@ -73,12 +73,13 @@
 
         const mode = isStandalone ? 'Terpasang' : 'Browser';
         const render = (ver) => {
+            // `ver` sudah memuat awalan "v" (dari nama cache sae-pwa-vX.Y.Z).
             els.forEach((el) => {
                 el.textContent =
                     el.dataset.pwaVersion === 'short'
-                        ? `PWA v${ver}`
-                        : `PWA v${ver} \u2022 ${mode}`;
-                el.title = `Versi PWA (service worker): v${ver}\nMode pakai: ${mode}`;
+                        ? ver
+                        : `${ver} \u2022 ${mode}`;
+                el.title = `Versi PWA (service worker): ${ver}\nMode pakai: ${mode}`;
             });
         };
 
