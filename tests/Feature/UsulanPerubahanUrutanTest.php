@@ -44,15 +44,19 @@ class UsulanPerubahanUrutanTest extends TestCase
         return $pdId;
     }
 
-    private function usulan(string $pdId, string $status): void
+    private function usulan(string $pdId, string $status, ?string $createdAt = null): void
     {
-        SiswaUsulanPerubahan::create([
+        $usulan = SiswaUsulanPerubahan::create([
             'peserta_didik_id' => $pdId,
             'kolom_perubahan' => 'nama_wali',
             'nilai_lama' => '-',
             'nilai_baru' => 'Wali ' . $status,
             'status' => $status,
         ]);
+
+        if ($createdAt !== null) {
+            $usulan->forceFill(['created_at' => $createdAt])->save();
+        }
     }
 
     public function test_urutan_default_mengikuti_prioritas_status(): void
@@ -76,5 +80,31 @@ class UsulanPerubahanUrutanTest extends TestCase
             ->all();
 
         $this->assertSame([$menunggu, $ditolak, $disetujui, $dapodik], $urutan);
+    }
+
+    public function test_dalam_status_sama_yang_lebih_dulu_mengusulkan_di_atas(): void
+    {
+        $baru = $this->buatSiswa('Siswa Usul Baru');
+        $lama = $this->buatSiswa('Siswa Usul Lama');
+        $tengah = $this->buatSiswa('Siswa Usul Tengah');
+
+        // Ketiganya berstatus 'menunggu'; beda waktu pengajuan.
+        $this->usulan($baru, 'menunggu', '2026-11-03 09:00:00');
+        $this->usulan($lama, 'menunggu', '2026-11-01 09:00:00');
+        $this->usulan($tengah, 'menunggu', '2026-11-02 09:00:00');
+
+        $request = new Request(['perPage' => '100', 'rombel' => 'X-ORDU']);
+        $list = app(KesiswaanQueryService::class)->getUsulanTab($request);
+
+        $urutan = collect($list->items())
+            ->filter(fn ($r) => in_array($r->peserta_didik_id, $this->pdIds, true))
+            ->pluck('peserta_didik_id')
+            ->all();
+
+        $this->assertSame(
+            [$lama, $tengah, $baru],
+            $urutan,
+            'Yang lebih dulu mengusulkan harus di atas (FIFO).'
+        );
     }
 }

@@ -502,7 +502,7 @@ class KesiswaanQueryService
         $usulanPdQuery = SiswaUsulanPerubahan::query()
             ->select(
                 'peserta_didik_id',
-                DB::raw('MAX(created_at) as latest_created_at'),
+                DB::raw('MIN(created_at) as earliest_created_at'),
                 DB::raw("MIN(CASE status
                     WHEN 'menunggu' THEN 1
                     WHEN 'ditolak' THEN 2
@@ -534,12 +534,12 @@ class KesiswaanQueryService
         }
 
         if ($request->has('sort')) {
-            $usulanList = $usulanPdQuery->orderBy('latest_created_at', $sortDir)
+            $usulanList = $usulanPdQuery->orderBy('earliest_created_at', $sortDir)
                 ->paginate($perPage, ['*'], 'usulan_page')
                 ->withQueryString();
         } else {
             $usulanList = $usulanPdQuery->orderBy('priority_rank', 'asc')
-                ->orderBy('latest_created_at', 'desc')
+                ->orderBy('earliest_created_at', 'asc')
                 ->paginate($perPage, ['*'], 'usulan_page')
                 ->withQueryString();
         }
