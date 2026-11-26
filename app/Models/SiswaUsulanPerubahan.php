@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RefDapodikHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,6 +35,50 @@ class SiswaUsulanPerubahan extends Model
     {
         return self::labelMap()[$this->kolom_perubahan]
             ?? ucwords(str_replace('_', ' ', (string) $this->kolom_perubahan));
+    }
+
+    /**
+     * Nilai tampilan: kolom yang menyimpan ID referensi Dapodik (agama,
+     * pendidikan, pekerjaan, penghasilan, transportasi, hobi, ...) diubah ke
+     * label terbaca. Nilai yang sudah berupa teks (nama, alamat, tanggal)
+     * dikembalikan apa adanya. Dipakai hanya untuk TAMPILAN — nilai mentah
+     * `nilai_baru` tetap dipakai saat menerapkan perubahan ke tabel peserta didik.
+     */
+    public function nilaiTampilan(mixed $value): string
+    {
+        $raw = trim((string) $value);
+        if ($raw === '' || $raw === '(Kosong)' || $raw === '(Belum Terisi / Kosong)') {
+            return (string) $value;
+        }
+
+        $map = self::referensiMap()[$this->kolom_perubahan] ?? null;
+        if ($map !== null && isset($map[$raw])) {
+            return $map[$raw];
+        }
+
+        return $raw;
+    }
+
+    /**
+     * Pemetaan kolom → daftar referensi Dapodik (ID → label).
+     * Hanya kolom yang nilainya benar-benar berupa ID angka.
+     */
+    public static function referensiMap(): array
+    {
+        return [
+            'agama_id' => RefDapodikHelper::getAgama(),
+            'tempat_tinggal_id' => RefDapodikHelper::getTempatTinggal(),
+            'transportasi_id' => RefDapodikHelper::getTransportasi(),
+            'jenis_pendaftaran_id' => RefDapodikHelper::getJenisPendaftaran(),
+            'hobi_id' => RefDapodikHelper::getHobi(),
+            'cita_cita_id' => RefDapodikHelper::getCitaCita(),
+            'pendidikan_ayah_id' => RefDapodikHelper::getJenjangPendidikan(),
+            'pekerjaan_ayah_id' => RefDapodikHelper::getPekerjaan(),
+            'penghasilan_ayah_id' => RefDapodikHelper::getPenghasilan(),
+            'pendidikan_ibu_id' => RefDapodikHelper::getJenjangPendidikan(),
+            'pekerjaan_ibu_id' => RefDapodikHelper::getPekerjaan(),
+            'penghasilan_ibu_id' => RefDapodikHelper::getPenghasilan(),
+        ];
     }
 
     public static function labelMap(): array

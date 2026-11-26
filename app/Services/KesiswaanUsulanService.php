@@ -228,8 +228,8 @@ class KesiswaanUsulanService
                 'id' => $u->id,
                 'kolom_perubahan' => $u->kolom_perubahan,
                 'kolom_label' => $kolomLabels[$u->kolom_perubahan] ?? ucwords(str_replace('_', ' ', $u->kolom_perubahan)),
-                'nilai_lama' => $u->nilai_lama ?: '(Belum Terisi / Kosong)',
-                'nilai_baru' => $u->nilai_baru,
+                'nilai_lama' => $u->nilaiTampilan($u->nilai_lama) ?: '(Belum Terisi / Kosong)',
+                'nilai_baru' => $u->nilaiTampilan($u->nilai_baru),
                 'alasan' => $u->alasan ?: 'Penyesuaian formulir identitas mandiri.',
                 'status' => $u->status,
                 'catatan_verifikasi' => $u->catatan_verifikasi,
@@ -256,10 +256,12 @@ class KesiswaanUsulanService
             $statusAgregat = 'sudah_ke_dapodik';
         }
 
+        $first = $usulanList->first();
+
         return [
             'status' => 'success',
             'data' => [
-                'id' => $usulanList->first()?->id,
+                'id' => $first?->id,
                 'peserta_didik_id' => $pdId,
                 'nama_siswa' => $pd?->nama ?: 'Siswa #' . $pdId,
                 'nisn' => $pd?->nisn ?: '-',
@@ -273,16 +275,16 @@ class KesiswaanUsulanService
                 'dapodik_count' => $dapodikCount,
                 'status' => $statusAgregat,
                 'items' => $itemsData,
-                'kolom_perubahan' => $usulanList->first()?->kolom_perubahan,
-                'kolom_label' => $kolomLabels[$usulanList->first()?->kolom_perubahan ?? ''] ?? '',
-                'nilai_lama' => $usulanList->first()?->nilai_lama ?: '(Belum Terisi / Kosong)',
-                'nilai_baru' => $usulanList->first()?->nilai_baru,
-                'alasan' => $usulanList->first()?->alasan ?: 'Penyesuaian formulir identitas mandiri.',
-                'catatan_verifikasi' => $usulanList->first()?->catatan_verifikasi,
-                'verified_by' => $usulanList->first()?->verified_by,
-                'verified_at' => $usulanList->first()?->verified_at ? $usulanList->first()->verified_at->translatedFormat('d F Y, H:i') : null,
-                'created_at' => $usulanList->first()?->created_at ? $usulanList->first()->created_at->translatedFormat('d F Y, H:i') : null,
-                'berkas_bukti_url' => !empty($usulanList->first()?->berkas_bukti) ? asset('storage/' . ltrim($usulanList->first()->berkas_bukti, '/')) : null,
+                'kolom_perubahan' => $first?->kolom_perubahan,
+                'kolom_label' => $kolomLabels[$first?->kolom_perubahan ?? ''] ?? '',
+                'nilai_lama' => ($first && trim((string) $first->nilai_lama) !== '') ? $first->nilaiTampilan($first->nilai_lama) : '(Belum Terisi / Kosong)',
+                'nilai_baru' => $first?->nilaiTampilan($first->nilai_baru),
+                'alasan' => $first?->alasan ?: 'Penyesuaian formulir identitas mandiri.',
+                'catatan_verifikasi' => $first?->catatan_verifikasi,
+                'verified_by' => $first?->verified_by,
+                'verified_at' => $first?->verified_at ? $first->verified_at->translatedFormat('d F Y, H:i') : null,
+                'created_at' => $first?->created_at ? $first->created_at->translatedFormat('d F Y, H:i') : null,
+                'berkas_bukti_url' => !empty($first?->berkas_bukti) ? asset('storage/' . ltrim($first->berkas_bukti, '/')) : null,
                 'kk' => [
                     'exists' => !empty($kk),
                     'status' => $kk?->status ?? 'belum_unggah',
