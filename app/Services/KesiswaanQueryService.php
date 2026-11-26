@@ -505,8 +505,8 @@ class KesiswaanQueryService
                 DB::raw('MAX(created_at) as latest_created_at'),
                 DB::raw("MIN(CASE status
                     WHEN 'menunggu' THEN 1
-                    WHEN 'disetujui' THEN 2
-                    WHEN 'ditolak' THEN 3
+                    WHEN 'ditolak' THEN 2
+                    WHEN 'disetujui' THEN 3
                     WHEN 'sudah_ke_dapodik' THEN 4
                     ELSE 5
                 END) as priority_rank")
