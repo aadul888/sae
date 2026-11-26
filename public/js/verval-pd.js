@@ -1056,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.setAttribute('data-usulan-id', data.id || id);
 
             if (namaEl) namaEl.textContent = data.nama_siswa || '-';
-            if (subtitleEl) subtitleEl.innerHTML = `NISN: <strong>${data.nisn || '-'}</strong> &bull; Rombel: <strong>${data.rombel || '-'}</strong> &bull; Total Pengajuan: <strong>${items.length} Data</strong>`;
+            if (subtitleEl) subtitleEl.innerHTML = `NISN: <strong class="copyable" data-copy="${escapeHtml(data.nisn || '-')}" data-label="NISN" title="Klik untuk salin NISN" style="cursor:pointer;">${escapeHtml(data.nisn || '-')}</strong> &bull; Rombel: <strong>${escapeHtml(data.rombel || '-')}</strong> &bull; Total Pengajuan: <strong>${items.length} Data</strong>`;
 
             const fotoImg = document.getElementById('modalUsulanFoto');
             const fotoIcon = document.getElementById('modalUsulanFotoDefault');
