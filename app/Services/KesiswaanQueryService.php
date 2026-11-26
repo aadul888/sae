@@ -503,13 +503,14 @@ class KesiswaanQueryService
             ->select(
                 'peserta_didik_id',
                 DB::raw('MIN(created_at) as earliest_created_at'),
-                DB::raw("MIN(CASE status
-                    WHEN 'menunggu' THEN 1
-                    WHEN 'ditolak' THEN 2
-                    WHEN 'disetujui' THEN 3
-                    WHEN 'sudah_ke_dapodik' THEN 4
+                DB::raw("CASE
+                    WHEN SUM(status = 'menunggu') > 0 THEN 1
+                    WHEN SUM(status = 'ditolak') > 0 AND SUM(status = 'disetujui') > 0 THEN 2
+                    WHEN SUM(status = 'disetujui') > 0 THEN 3
+                    WHEN SUM(status = 'ditolak') > 0 AND SUM(status = 'sudah_ke_dapodik') = 0 THEN 2
+                    WHEN SUM(status = 'sudah_ke_dapodik') > 0 THEN 4
                     ELSE 5
-                END) as priority_rank")
+                END as priority_rank")
             )
             ->groupBy('peserta_didik_id');
 
@@ -639,16 +640,7 @@ class KesiswaanQueryService
             $dapodikCount = $items->where('status', 'sudah_ke_dapodik')->count();
             $ditolakCount = $items->where('status', 'ditolak')->count();
 
-            $statusAgregat = 'menunggu';
-            if ($menungguCount > 0) {
-                $statusAgregat = 'menunggu';
-            } elseif ($disetujuiCount > 0) {
-                $statusAgregat = 'disetujui';
-            } elseif ($ditolakCount === $total && $total > 0) {
-                $statusAgregat = 'ditolak';
-            } elseif ($dapodikCount === $total && $total > 0) {
-                $statusAgregat = 'sudah_ke_dapodik';
-            }
+            $statusAgregat = SiswaUsulanPerubahan::agregatStatus($items->pluck('status'));
 
             $kolomList = $items->map(function ($u) use ($kolomLabelsMap) {
                 return [

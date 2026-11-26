@@ -240,21 +240,19 @@ class KesiswaanUsulanService
             ];
         }
 
+        // Susun butir usulan mengikuti urutan bagian formulir identitas, agar
+        // operator menginput ke Dapodik berurutan tanpa bolak-balik bagian.
+        usort($itemsData, fn ($a, $b) =>
+            [SiswaUsulanPerubahan::rankFormulir($a['kolom_perubahan']), $a['id']]
+            <=> [SiswaUsulanPerubahan::rankFormulir($b['kolom_perubahan']), $b['id']]
+        );
+
         $menungguCount = $usulanList->where('status', 'menunggu')->count();
         $disetujuiCount = $usulanList->where('status', 'disetujui')->count();
         $ditolakCount = $usulanList->where('status', 'ditolak')->count();
         $dapodikCount = $usulanList->where('status', 'sudah_ke_dapodik')->count();
 
-        $statusAgregat = 'menunggu';
-        if ($menungguCount > 0) {
-            $statusAgregat = 'menunggu';
-        } elseif ($disetujuiCount > 0) {
-            $statusAgregat = 'disetujui';
-        } elseif ($ditolakCount === count($itemsData) && count($itemsData) > 0) {
-            $statusAgregat = 'ditolak';
-        } elseif ($dapodikCount === count($itemsData) && count($itemsData) > 0) {
-            $statusAgregat = 'sudah_ke_dapodik';
-        }
+        $statusAgregat = SiswaUsulanPerubahan::agregatStatus($usulanList->pluck('status'));
 
         $first = $usulanList->first();
 

@@ -319,26 +319,16 @@ class IdentitasPesertaDidikController extends Controller
         $riwayatBatches = $usulanList
             ->groupBy(fn ($u) => $u->batch_id ?: 'legacy-' . ($u->created_at?->format('YmdHi') ?? '') . '-' . $u->created_by)
             ->map(function ($rows) {
-                $menunggu = $rows->where('status', 'menunggu')->count();
-                $disetujui = $rows->where('status', 'disetujui')->count();
-                $dapodik = $rows->where('status', 'sudah_ke_dapodik')->count();
-
-                $status = 'ditolak';
-                if ($menunggu > 0) {
-                    $status = 'menunggu';
-                } elseif ($disetujui > 0) {
-                    $status = 'disetujui';
-                } elseif ($dapodik > 0) {
-                    $status = 'sudah_ke_dapodik';
-                }
-
                 return [
                     'batch_id' => $rows->first()->batch_id ?: ('b' . $rows->first()->id),
                     'waktu' => $rows->max('created_at'),
                     'jumlah' => $rows->count(),
-                    'status' => $status,
+                    'status' => \App\Models\SiswaUsulanPerubahan::agregatStatus($rows->pluck('status')),
                     'ditolak_count' => $rows->where('status', 'ditolak')->count(),
-                    'items' => $rows->sortBy('id')->values(),
+                    'items' => $rows->sortBy(fn ($r) => [
+                        \App\Models\SiswaUsulanPerubahan::rankFormulir($r->kolom_perubahan),
+                        $r->id,
+                    ])->values(),
                     'catatan' => $rows->first(fn ($r) => !empty($r->catatan_verifikasi))?->catatan_verifikasi,
                     'verified_at' => $rows->max('verified_at'),
                     'verified_by' => $rows->first(fn ($r) => !empty($r->verified_by))?->verified_by,
