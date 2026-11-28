@@ -100,9 +100,9 @@ class PesertaDidikBerkas extends Model
                 'wajib' => false,
             ],
             'lainnya' => [
-                'label' => 'Dokumen Tambahan / Lainnya',
-                'deskripsi' => 'Sertifikat prestasi, surat pernyataan, atau dokumen pendukung lain (format PDF).',
-                'icon' => 'fa-file-lines',
+                'label' => 'Kartu Indonesia Sehat (KIS)',
+                'deskripsi' => 'Scan fisik Kartu Indonesia Sehat (KIS) siswa (format PDF, opsional).',
+                'icon' => 'fa-notes-medical',
                 'wajib' => false,
             ],
         ];
