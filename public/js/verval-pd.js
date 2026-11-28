@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (res.ok && json.status === 'success') {
                     closeModal('#modalImportResidu');
                     Swal.fire({ icon: 'success', title: 'Berhasil!', text: json.message, timer: 1800, showConfirmButton: false });
-                    window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                    window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
                 } else {
                     Swal.fire('Gagal Import', json.message || 'Terjadi kesalahan sistem.', 'error');
                 }
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (res.ok && json.status === 'success') {
                     closeModal('#modalResetKonfirmasi');
                     Swal.fire({ icon: 'success', title: 'Terreset', text: json.message, timer: 1800, showConfirmButton: false });
-                    window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                    window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
                 } else {
                     Swal.fire('Gagal', json.message || 'Reset konfirmasi gagal.', 'error');
                 }
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const json = await res.json();
                 if (res.ok && json.status === 'success') {
                     Swal.fire({ icon: 'success', title: 'Terhapus', text: json.message, timer: 1600, showConfirmButton: false });
-                    window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                    window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
                 } else {
                     Swal.fire('Gagal', json.message || 'Terjadi kesalahan.', 'error');
                 }
@@ -485,7 +485,9 @@ document.addEventListener('DOMContentLoaded', function () {
         new MutationObserver(() => {
             if (modalVbWatch.style.display === 'none' && berkasStatusChanged) {
                 berkasStatusChanged = false;
-                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                // WAJIB kirim URL: refreshLiveTable() tanpa argumen langsung `return`
+                // (no-op) → tabel tak ikut tersusun ulang setelah validasi.
+                window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
             }
         }).observe(modalVbWatch, { attributes: true, attributeFilter: ['style'] });
     }
@@ -498,7 +500,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const infoEl = document.getElementById('modalVbInfo');
         if (!modal) return;
 
-        berkasStatusChanged = false;
+        // JANGAN reset berkasStatusChanged di sini: modal bisa dibuka ulang setelah
+        // unggah/hapus (reopen). Bila flag direset, menutup modal via X/ESC/backdrop
+        // tidak memicu refresh → urutan tabel (menunggu/tidak valid) tak diperbarui.
+        // Flag hanya direset saat refresh benar-benar dijalankan.
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         loading.style.display = 'block';
@@ -675,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!vbCards.length) {
                 modal.style.display = 'none';
                 document.body.style.overflow = '';
-                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
                 return;
             }
 
@@ -722,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 berkasStatusChanged = false; // sudah ditangani di sini; cegah refresh ganda dari observer
                 modal.style.display = 'none';
                 document.body.style.overflow = '';
-                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
             };
             // Listener delegasi di #modalVbContent dipasang ulang setiap buka → numpuk,
             // dan handler lama menyimpan state basi (bisa menutup modal saat klik next).
@@ -880,7 +885,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const curIdx = vbCards.indexOf(card);
                                 if (curIdx > -1) {
                                     if (curIdx < vbCards.length - 1) setTimeout(() => vbShow(curIdx + 1), 350);
-                                    else setTimeout(() => vbFinish(), 600);
+                                    else setTimeout(() => vbFinish(), 300);
                                 }
                             }
                         } else {
@@ -1309,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (json.status !== 'success') throw new Error(json.message || 'Gagal menyimpan verifikasi.');
                 Swal.fire({ title: 'Tersimpan', text: json.message, icon: 'success', timer: 1600, showConfirmButton: false });
                 window.closeModalPengelolaanUsulan();
-                window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+                window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
             } catch (err) {
                 Swal.fire('Gagal', err.message, 'error');
             } finally {
@@ -1338,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (json.status !== 'success') throw new Error(json.message || 'Gagal menandai status.');
             Swal.fire({ title: 'Sinkronisasi Selesai', text: json.message, icon: 'success', timer: 1600, showConfirmButton: false });
             window.closeModalPengelolaanUsulan();
-            window.refreshLiveTable ? window.refreshLiveTable() : location.reload();
+            window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
         } catch (err) {
             Swal.fire('Gagal', err.message, 'error');
         } finally {

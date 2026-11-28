@@ -357,7 +357,7 @@
                             const curIdx = vbCards.indexOf(card);
                             if (curIdx > -1) {
                                 if (curIdx < vbCards.length - 1) setTimeout(() => vbShow(curIdx + 1), 350);
-                                else setTimeout(() => vbFinish(), 600);
+                                else setTimeout(() => vbFinish(), 300);
                             }
                         } else {
                             Swal.fire('Gagal', postJson.message || 'Terjadi kesalahan.', 'error');

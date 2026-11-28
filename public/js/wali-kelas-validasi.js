@@ -173,7 +173,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.style.overflow = "";
         }
         if (berkasStatusChanged) {
-            location.reload();
+            berkasStatusChanged = false;
+            window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload();
         }
     }
 
@@ -203,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
             if (modalVb && modalVb.style.display !== "none" && berkasStatusChanged) {
-                location.reload();
+                handleModalVbClose();
             }
         }
     });
@@ -217,7 +218,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!modal) return;
 
-        berkasStatusChanged = false;
+        // JANGAN reset berkasStatusChanged: modal bisa dibuka ulang setelah unggah/hapus.
+        // Flag direset hanya saat refresh tabel benar-benar dijalankan.
         modal.style.display = "flex";
         document.body.style.overflow = "hidden";
         loading.style.display = "block";
@@ -263,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 reopen: (pid, nm) => window.openModalVerifikasiBerkas(pid, nm),
                 isAdmin: json.is_admin === true,
                 onChanged: () => { berkasStatusChanged = true; },
-                finish: () => { berkasStatusChanged = false; modal.style.display = 'none'; document.body.style.overflow = ''; window.refreshLiveTable ? window.refreshLiveTable() : location.reload(); },
+                finish: () => { berkasStatusChanged = false; modal.style.display = 'none'; document.body.style.overflow = ''; window.refreshLiveTable ? window.refreshLiveTable(location.href) : location.reload(); },
             });
         } catch (err) {
             loading.style.display = "none";
