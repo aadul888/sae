@@ -23,7 +23,7 @@ class WaliKelasValidasiService
         $konfirmasi = trim((string) $request->get('konfirmasi', ''));
         $berkas     = trim((string) $request->get('berkas', ''));
         $perPage    = (int) $request->get('perPage', 15);
-        $sort       = $request->get('sort', ($konfirmasi === 'sudah_konfirmasi' ? 'dikonfirmasi_pada' : 'nama'));
+        $sort       = $request->get('sort', ($konfirmasi === 'sudah_konfirmasi' ? 'dikonfirmasi_pada' : ''));
         $sortDir    = $request->get('sort_dir', ($konfirmasi === 'sudah_konfirmasi' && $sort === 'dikonfirmasi_pada' ? 'desc' : 'asc')) === 'desc' ? 'desc' : 'asc';
 
         if (!$activeRombel) {
@@ -275,6 +275,14 @@ class WaliKelasValidasiService
             default => 'pd.nama',
         };
 
+        // Ekspresi bersama: jumlah berkas wajib yang valid (bisa dari berkas digital
+        // atau centang verifikasi fisik) + ada berkas menunggu.
+        $validExpr = collect($wajibKeys)->map(
+            fn($wk) => "(CASE WHEN EXISTS(SELECT 1 FROM peserta_didik_berkas b WHERE b.peserta_didik_id = pd.peserta_didik_id AND b.jenis_berkas = '{$wk}' AND b.status = 'valid') OR EXISTS(SELECT 1 FROM kesiswaan_berkas_verifikasi f WHERE f.peserta_didik_id = pd.peserta_didik_id AND f.{$wk} = 1) THEN 1 ELSE 0 END)"
+        )->implode(' + ');
+        $wajibIn = "'" . implode("','", $wajibKeys) . "'";
+        $menungguExpr = "EXISTS(SELECT 1 FROM peserta_didik_berkas mb WHERE mb.peserta_didik_id = pd.peserta_didik_id AND mb.status = 'menunggu' AND mb.jenis_berkas IN ({$wajibIn}))";
+
         if ($sort === 'dikonfirmasi_pada') {
             $query->orderByRaw("pdi.dikonfirmasi_pada IS NULL ASC")
                   ->orderBy('pdi.dikonfirmasi_pada', $sortDir)
@@ -284,12 +292,28 @@ class WaliKelasValidasiService
             // belum ada berkas (0) < masih menunggu (tier ganjil) < sudah valid (tier genap).
             // skor = (jumlah valid * 2) + (1 bila ada berkas menunggu).
             // ponytail: correlated subquery; pindah ke kolom tersimpan bila tabel berkas membesar.
-            $validExpr = collect($wajibKeys)->map(
-                fn($wk) => "(CASE WHEN EXISTS(SELECT 1 FROM peserta_didik_berkas b WHERE b.peserta_didik_id = pd.peserta_didik_id AND b.jenis_berkas = '{$wk}' AND b.status = 'valid') OR EXISTS(SELECT 1 FROM kesiswaan_berkas_verifikasi f WHERE f.peserta_didik_id = pd.peserta_didik_id AND f.{$wk} = 1) THEN 1 ELSE 0 END)"
-            )->implode(' + ');
-            $wajibIn = "'" . implode("','", $wajibKeys) . "'";
-            $menungguExpr = "EXISTS(SELECT 1 FROM peserta_didik_berkas mb WHERE mb.peserta_didik_id = pd.peserta_didik_id AND mb.status = 'menunggu' AND mb.jenis_berkas IN ({$wajibIn}))";
             $query->orderByRaw("(({$validExpr}) * 2 + (CASE WHEN {$menungguExpr} THEN 1 ELSE 0 END)) {$sortDir}")
+                  ->orderBy('pd.nama', 'asc');
+        } elseif ($sort === '') {
+            // Default (tanpa sort eksplisit): yang perlu ditangani lebih dulu naik ke atas.
+            // Tier: 1 menunggu → 2 tidak valid → 3 belum lengkap → 4 sisanya.
+            // Dalam tier yang sama = FIFO (unggahan paling lama lebih dulu), lalu nama.
+            $query->orderByRaw("CASE
+                    WHEN EXISTS (SELECT 1 FROM peserta_didik_berkas mb
+                                 WHERE mb.peserta_didik_id = pd.peserta_didik_id
+                                   AND mb.status = 'menunggu') THEN 1
+                    WHEN EXISTS (SELECT 1 FROM peserta_didik_berkas tb
+                                 WHERE tb.peserta_didik_id = pd.peserta_didik_id
+                                   AND tb.status = 'tidak_valid') THEN 2
+                    WHEN ({$validExpr}) < " . count($wajibKeys) . " THEN 3
+                    ELSE 4
+                END ASC")
+                  ->orderByRaw("(SELECT MAX(ub.uploaded_at) FROM peserta_didik_berkas ub
+                                 WHERE ub.peserta_didik_id = pd.peserta_didik_id
+                                   AND ub.file_path IS NOT NULL AND ub.file_path <> '') IS NULL ASC")
+                  ->orderByRaw("(SELECT MAX(ub.uploaded_at) FROM peserta_didik_berkas ub
+                                 WHERE ub.peserta_didik_id = pd.peserta_didik_id
+                                   AND ub.file_path IS NOT NULL AND ub.file_path <> '') ASC")
                   ->orderBy('pd.nama', 'asc');
         } else {
             $query->orderBy($sortCol, $sortDir);
