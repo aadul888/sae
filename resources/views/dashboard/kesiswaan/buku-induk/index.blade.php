@@ -411,6 +411,11 @@
                     {{-- A. Identitas Pokok --}}
                     <div class="bi-section">
                         <div class="bi-section-title"><i class="fas fa-id-card"></i> A. Keterangan Identitas Pokok</div>
+                        {{-- Urutan field mengikuti formulir Dapodik "Edit Peserta Didik" →
+                             Data Pribadi: Nama, Jenis kelamin, NISN, Kewarganegaraan, NIK,
+                             No KK, Tempat lahir, Tanggal lahir, No. Akta Lahir, Agama.
+                             Field khusus register (Nomor Induk/Klaper) + data tambahan buku
+                             induk diletakkan sesudahnya. --}}
                         <div class="bi-grid-3">
                             <div class="bi-field">
                                 <label>Nomor Induk <span class="bi-req">*</span></label>
@@ -439,16 +444,8 @@
                                 </select>
                             </div>
                             <div class="bi-field">
-                                <label>Tempat Lahir</label>
-                                <input type="text" name="tempat_lahir" id="biTempatLahir" class="bi-input">
-                            </div>
-                            <div class="bi-field">
-                                <label>Tanggal Lahir</label>
-                                <input type="date" name="tanggal_lahir" id="biTanggalLahir" class="bi-input">
-                            </div>
-                            <div class="bi-field">
-                                <label>Agama</label>
-                                <input type="text" name="agama_id_str" id="biAgama" class="bi-input">
+                                <label>Kewarganegaraan</label>
+                                <input type="text" name="kewarganegaraan" id="biKewarganegaraan" class="bi-input">
                             </div>
                             <div class="bi-field">
                                 <label>NIK</label>
@@ -459,13 +456,22 @@
                                 <input type="text" name="no_kk" id="biNoKk" class="bi-input" maxlength="20">
                             </div>
                             <div class="bi-field">
+                                <label>Tempat Lahir</label>
+                                <input type="text" name="tempat_lahir" id="biTempatLahir" class="bi-input">
+                            </div>
+                            <div class="bi-field">
+                                <label>Tanggal Lahir</label>
+                                <input type="date" name="tanggal_lahir" id="biTanggalLahir" class="bi-input">
+                            </div>
+                            <div class="bi-field">
                                 <label>No. Registrasi Akta Lahir</label>
                                 <input type="text" name="no_registrasi_akta_lahir" id="biNoAkta" class="bi-input">
                             </div>
                             <div class="bi-field">
-                                <label>Kewarganegaraan</label>
-                                <input type="text" name="kewarganegaraan" id="biKewarganegaraan" class="bi-input">
+                                <label>Agama</label>
+                                <input type="text" name="agama_id_str" id="biAgama" class="bi-input">
                             </div>
+                            {{-- Data tambahan khusus Buku Induk (tidak ada di Dapodik). --}}
                             <div class="bi-field">
                                 <label>Anak Keberapa</label>
                                 <input type="number" name="anak_keberapa" id="biAnakKe" class="bi-input"
